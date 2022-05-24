@@ -52,6 +52,8 @@ dependencies {
     implementation("io.ktor:ktor-client-json-jvm:2.0.1")
     implementation("io.ktor:ktor-client-serialization-jvm:2.0.1")
     testImplementation("io.ktor:ktor-server-tests-jvm:2.0.1")
+    implementation("io.ktor:ktor-serialization-gson:2.0.1")
+    implementation("io.ktor:ktor-serialization-jackson:2.0.1")
     implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
     implementation("no.nav.helsearbeidsgiver:helsearbeidsgiver-tokenprovider:$helsearbeidsgiverTokenproviderVersion")
     testImplementation(kotlin("test"))

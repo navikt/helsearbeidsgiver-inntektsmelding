@@ -51,6 +51,7 @@ dependencies {
     implementation("io.ktor:ktor-client-serialization-jvm:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("no.nav.helsearbeidsgiver:tokenprovider:$helsearbeidsgiverTokenproviderVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation(kotlin("test"))

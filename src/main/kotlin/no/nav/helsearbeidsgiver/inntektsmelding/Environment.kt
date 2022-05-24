@@ -6,7 +6,9 @@ import java.io.File
 
 fun getEnv(): Environment {
     if (isLocal()) {
-        return getTestEnv()
+        val localEnvironmentPath = ".nais/local.json"
+        val objectMapper = ObjectMapper().registerKotlinModule()
+        return objectMapper.readValue(File(localEnvironmentPath), Environment::class.java)
     }
     return Environment(
         Dokarkiv(getEnvVar("DOKARKIV_URL"))
@@ -20,12 +22,6 @@ data class Environment(
 data class Dokarkiv(
     val url: String,
 )
-
-const val localEnvironmentPath = ".nais/local.json"
-val objectMapper = ObjectMapper().registerKotlinModule()
-
-fun getTestEnv() =
-    objectMapper.readValue(File(localEnvironmentPath), Environment::class.java)
 
 fun isLocal(): Boolean = getEnvVar("KTOR_ENV", "local") == "local"
 

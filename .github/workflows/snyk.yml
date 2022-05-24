@@ -1,0 +1,20 @@
+name: Snyk
+
+on:
+  push:
+    branches:
+      - '!dependabot/*'
+
+jobs:
+  Snyk:
+    name: "Dependencies"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/gradle-jdk11@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --org=helsearbeidsgiver --project-name=helsearbeidsgiver-inntektsmelding --fail-on=all

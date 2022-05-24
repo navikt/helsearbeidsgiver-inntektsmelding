@@ -1,0 +1,16 @@
+name: Ktlint
+
+on: [pull_request]
+
+jobs:
+  Ktlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: "Install ktlint"
+        uses: nbadal/action-ktlint-setup@v1
+        with:
+          ktlint_version: '0.42.1'
+      - run: ktlint
+        shell: bash

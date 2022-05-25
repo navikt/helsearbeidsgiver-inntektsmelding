@@ -8,6 +8,7 @@ env:
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
   RESOURCE: config/nais.yml
   TEAM: helsearbeidsgiver
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   generate_vars:

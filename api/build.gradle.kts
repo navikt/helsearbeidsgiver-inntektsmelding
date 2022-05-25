@@ -6,6 +6,20 @@ val logbackVersion="1.2.11"
 val nimbusJoseJwtVersion="9.22"
 val tokenproviderVersion = "0.1.3"
 
+repositories {
+    maven("https://packages.confluent.io/maven/")
+    maven("https://oss.sonatype.org")
+    maven("https://jitpack.io")
+    mavenCentral()
+    maven {
+        credentials {
+            username = System.getenv("GITHUB_ACTOR") ?: "x-access-token"
+            password = System.getenv("GITHUB_TOKEN")
+        }
+        setUrl("https://maven.pkg.github.com/navikt/helsearbeidsgiver-tokenprovider")
+    }
+}
+
 dependencies {
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")

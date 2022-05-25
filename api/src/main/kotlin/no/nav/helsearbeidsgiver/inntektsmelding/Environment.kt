@@ -1,17 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import java.io.File
-
 fun getEnv(): Environment {
-    if (isLocal()) {
-        val localEnvironmentPath = ".nais/local.json"
-        val objectMapper = ObjectMapper().registerKotlinModule()
-        return objectMapper.readValue(File(localEnvironmentPath), Environment::class.java)
-    }
     return Environment(
-        Dokarkiv(getEnvVar("DOKARKIV_URL"))
+        Dokarkiv(getEnvVar("DOKARKIV_URL", ""))
     )
 }
 

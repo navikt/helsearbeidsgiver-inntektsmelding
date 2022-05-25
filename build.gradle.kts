@@ -15,6 +15,7 @@ val ktorVersion = "2.0.0"
 val cxfVersion = "3.4.2"
 val mockkVersion = "1.12.0"
 val wiremockVersion = "2.27.2"
+val tokenproviderVersion = "0.1.4"
 
 buildscript {
     repositories { mavenCentral() }
@@ -97,6 +98,13 @@ allprojects {
         maven("https://oss.sonatype.org")
         maven("https://jitpack.io")
         mavenCentral()
+        maven {
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: "x-access-token"
+                password = System.getenv("GITHUB_TOKEN")
+            }
+            setUrl("https://maven.pkg.github.com/navikt/*")
+        }
     }
 
     tasks {

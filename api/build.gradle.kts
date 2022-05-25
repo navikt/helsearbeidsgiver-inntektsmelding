@@ -4,7 +4,7 @@ val kotlinVersion="1.6.21"
 val kotlinterVersion="3.10.0"
 val logbackVersion="1.2.11"
 val nimbusJoseJwtVersion="9.22"
-val tokenproviderVersion: String by project
+val tokenproviderVersion = "0.1.3"
 
 repositories {
     maven {
@@ -12,7 +12,7 @@ repositories {
             username = System.getenv("GITHUB_ACTOR") ?: "x-access-token"
             password = System.getenv("GITHUB_TOKEN")
         }
-        setUrl("https://maven.pkg.github.com/navikt/*")
+        setUrl("https://maven.pkg.github.com/navikt/helsearbeidsgiver-tokenprovider")
     }
 }
 

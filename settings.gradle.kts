@@ -1,4 +1,4 @@
-rootProject.name = "im-apper"
+rootProject.name = "helsearbeidsgiver-inntektsmelding"
 rootDir
     .listFiles()
     ?.filter { it.isDirectory && File(it, "build.gradle.kts").exists() }

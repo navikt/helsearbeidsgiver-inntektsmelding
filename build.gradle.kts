@@ -10,7 +10,7 @@ plugins {
 
 val gradleWrapperVersion = "7.4.2"
 val junitJupiterVersion = "5.8.2"
-val rapidsAndRiversVersion = "1.ec0400d"
+val rapidsAndRiversVersion = "2022.04.21-09.34.08966130226f"
 val ktorVersion = "2.0.0"
 val cxfVersion = "3.4.2"
 val mockkVersion = "1.12.0"
@@ -79,7 +79,7 @@ tasks.create("deployMatrix") {
 }
 
 allprojects {
-    group = "no.nav.helsearbeidsgiver.im"
+    group = "no.nav.helsearbeidsgiver.inntektsmelding"
     version = properties["version"] ?: "local-build"
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
@@ -97,13 +97,6 @@ allprojects {
         maven("https://oss.sonatype.org")
         maven("https://jitpack.io")
         mavenCentral()
-        maven {
-            credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: "x-access-token"
-                password = System.getenv("GITHUB_TOKEN")
-            }
-            setUrl("https://maven.pkg.github.com/navikt/*")
-        }
     }
 
     tasks {

@@ -6,27 +6,7 @@ val logbackVersion="1.2.11"
 val nimbusJoseJwtVersion="9.22"
 val helsearbeidsgiverTokenproviderVersion="0.1.3"
 
-group = "no.nav.helsearbeidsgiver"
-version = "0.1.0"
-
-plugins {
-    kotlin("jvm") version "1.6.21"
-    application
-}
-
-application {
-    mainClass.set("no.nav.helsearbeidsgiver.inntektsmelding.ApplicationKt")
-}
-
-tasks {
-    test {
-        useJUnitPlatform()
-    }
-}
-
 repositories {
-    mavenCentral()
-    maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
     maven {
         credentials {
             username = System.getenv("GITHUB_ACTOR") ?: "x-access-token"

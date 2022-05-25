@@ -1,0 +1,6 @@
+kafkaPool: nav-prod
+azure:
+  enabled: true
+env:
+  - name: DOKARKIV_URL
+    value: https://dokarkiv.prod-fss-pub.nais.io

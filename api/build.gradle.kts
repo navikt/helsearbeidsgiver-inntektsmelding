@@ -4,7 +4,7 @@ val kotlinVersion="1.6.21"
 val kotlinterVersion="3.10.0"
 val logbackVersion="1.2.11"
 val nimbusJoseJwtVersion="9.22"
-val helsearbeidsgiverTokenproviderVersion="0.1.3"
+val tokenproviderVersion: String by project
 
 repositories {
     maven {
@@ -24,7 +24,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("com.nimbusds:nimbus-jose-jwt:9.22")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
-    implementation("no.nav.helsearbeidsgiver:tokenprovider:$helsearbeidsgiverTokenproviderVersion")
+    implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenproviderVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")

@@ -14,7 +14,17 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
+    id("org.sonarqube") version "2.8"
 }
+
+sonarqube {
+     properties {
+         property("sonar.projectKey", "navikt_im-varsel")
+         property("sonar.organization", "navikt")
+         property("sonar.host.url", "https://sonarcloud.io")
+         property("sonar.login", System.getenv("SONAR_TOKEN"))
+     }
+ }
 
 group = "no.nav.helsearbeidsgiver"
 version = "0.1.0"

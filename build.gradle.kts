@@ -1,7 +1,7 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val jvmTarget = "17"
+val jvmTarget = "11"
 
 plugins {
     kotlin("jvm") version "1.6.21"
@@ -103,7 +103,7 @@ allprojects {
                 username = System.getenv("GITHUB_ACTOR") ?: "x-access-token"
                 password = System.getenv("GITHUB_TOKEN")
             }
-            setUrl("https://maven.pkg.github.com/navikt/*")
+            setUrl("https://maven.pkg.github.com/navikt/helsearbeidsgiver-tokenprovider")
         }
     }
 

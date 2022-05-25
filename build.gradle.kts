@@ -95,7 +95,6 @@ allprojects {
     repositories {
         maven("https://packages.confluent.io/maven/")
         maven("https://oss.sonatype.org")
-        maven("https://jitpack.io")
         mavenCentral()
         maven {
             credentials {

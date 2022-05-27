@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding
+package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 fun getEnv(): Environment {
     return Environment(

@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding
+package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.*
@@ -20,6 +20,12 @@ fun Application.configureRouting() {
             call.respondText("I'm alive")
         }
         get("isready") {
+            call.respondText("I'm ready")
+        }
+        get("/isalive") {
+            call.respondText("I'm alive")
+        }
+        get("/isready") {
             call.respondText("I'm ready")
         }
         get("/internal/isalive") {

@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.configureRouting
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
-        log.info("Starting.....")
+        log.info("Starting....")
         configureRouting()
     }.start(wait = true)
 }

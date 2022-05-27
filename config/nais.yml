@@ -35,16 +35,16 @@ spec:
     max: 6
     cpuThresholdPercentage: 75
   {{#if kafkaPool}}
-    kafka:
-      pool: {{ kafkaPool }}
-      {{/if}}
-  {{#if azure}}
-    azure:
-      application:
-        enabled: {{azure.enabled}}
-  {{#if azure.tenant}}
-    tenant: {{azure.tenant}}
+  kafka:
+    pool: {{ kafkaPool }}
   {{/if}}
+  {{#if azure}}
+  azure:
+    application:
+      enabled: {{azure.enabled}}
+      {{#if azure.tenant}}
+      tenant: {{azure.tenant}}
+      {{/if}}
   {{/if}}
   prometheus:
     enabled: true
@@ -55,23 +55,23 @@ spec:
   vault:
     enabled: true
     {{#if mountPaths}}
-      paths:
-        {{# each mountPaths as |item| }}
-           - mountPath: {{ item.mountPath }}
-               kvPath: {{ item.kvPath }}
-               {{/each}}
-          {{/if}}
+    paths:
+    {{# each mountPaths as |item| }}
+      - mountPath: {{ item.mountPath }}
+        kvPath: {{ item.kvPath }}
+    {{/each}}
+    {{/if}}
   {{#if envFrom}}
-    envFrom:
-      {{# each envFrom as |item| }}
-         - secret: {{item}}
-        {{/each}}{{/if}}
+  envFrom:
+  {{# each envFrom as |item| }}
+  - secret: {{item}}
+  {{/each}}{{/if}}
   env:
-    - name: KAFKA_CONSUMER_GROUP_ID
-      value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}{{team}}-im-{{app}}-v1{{/if}}
-                - name: KAFKA_RAPID_TOPIC
-                    value: im.rapid.v1
-                  {{#if env}}{{# each env as |item| }}
-                     - name: {{ item.name }}
-                         value: "{{ item.value }}"
-                       {{/each }}{{/if}}
+  - name: KAFKA_CONSUMER_GROUP_ID
+    value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}{{team}}-sparkel-{{app}}-v1{{/if}}
+  - name: KAFKA_RAPID_TOPIC
+    value: im.rapid.v1
+  {{#if env}}{{# each env as |item| }}
+  - name: {{ item.name }}
+    value: "{{ item.value }}"
+  {{/each }}{{/if}}

@@ -16,12 +16,12 @@ fun Application.configureRouting() {
         }
     }
     routing {
-        get("/is-alive") {
+        get("/isalive") {
             call.respondText("I'm alive")
         }
     }
     routing {
-        get("/is-ready") {
+        get("/isready") {
             call.respondText("I'm ready")
         }
     }

@@ -19,6 +19,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenproviderVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:0.1.9")
+    implementation("org.valiktor:valiktor-core:0.12.0")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation(kotlin("test"))
 }

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -23,6 +24,11 @@ fun Application.configureRouting() {
                     call.respond(list)
                 }
             }
+            route("/login-expiry") {
+                get {
+                    call.respond(HttpStatusCode.OK, "2022-05-31")
+                }
+            }
         }
     }
     routing {
@@ -30,18 +36,6 @@ fun Application.configureRouting() {
             call.respondText("I'm alive")
         }
         get("isready") {
-            call.respondText("I'm ready")
-        }
-        get("/isalive") {
-            call.respondText("I'm alive")
-        }
-        get("/isready") {
-            call.respondText("I'm ready")
-        }
-        get("/internal/isalive") {
-            call.respondText("I'm alive")
-        }
-        get("/internal/isready") {
             call.respondText("I'm ready")
         }
     }

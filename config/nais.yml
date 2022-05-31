@@ -18,7 +18,8 @@ spec:
   image: {{image}}
   port: 8080
   {{#if ingress}}
-  ingress: {{ ingress }}
+  ingresses:
+    - {{ ingress }}
   {{/if}}
   liveness:
     path: isalive

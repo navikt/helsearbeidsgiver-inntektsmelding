@@ -11,5 +11,5 @@ fun mockOrganisasjoner(): List<AltinnOrganisasjon> {
 }
 
 fun org(navn: String, orgnr: String): AltinnOrganisasjon {
-    return AltinnOrganisasjon("Norge as", "Business","910020102","AS",orgnr,"", "ACTIVE")
+    return AltinnOrganisasjon(navn, "Business","910020102","AS",orgnr,"", "ACTIVE")
 }

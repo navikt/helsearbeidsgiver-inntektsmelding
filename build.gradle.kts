@@ -11,10 +11,8 @@ plugins {
 val gradleWrapperVersion = "7.4.2"
 val junitJupiterVersion = "5.8.2"
 val rapidsAndRiversVersion = "1.389b5c3"
-val ktorVersion = "2.0.0"
-val cxfVersion = "3.4.2"
+val ktorVersion = "2.0.2"
 val mockkVersion = "1.12.0"
-val wiremockVersion = "2.27.2"
 
 buildscript {
     repositories {
@@ -134,14 +132,9 @@ subprojects {
     ext {
         set("ktorVersion", ktorVersion)
         set("rapidsAndRiversVersion", rapidsAndRiversVersion)
-        set("cxfVersion", cxfVersion)
     }
     dependencies {
         testImplementation("io.mockk:mockk:$mockkVersion")
-        testImplementation("com.github.tomakehurst:wiremock:$wiremockVersion") {
-            exclude(group = "junit")
-            exclude("com.github.jknack.handlebars.java")
-        }
         testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     }
     tasks {

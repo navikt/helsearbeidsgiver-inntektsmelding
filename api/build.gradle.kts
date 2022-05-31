@@ -1,7 +1,6 @@
 
-val ktorVersion="2.0.0"
-val kotlinVersion="1.6.21"
-val kotlinterVersion="3.10.0"
+val ktorVersion: String by project
+val kotlinVersion: String by project
 val logbackVersion="1.2.11"
 val nimbusJoseJwtVersion="9.22"
 val tokenproviderVersion = "0.1.3"

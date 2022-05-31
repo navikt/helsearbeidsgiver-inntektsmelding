@@ -5,6 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 
 fun Application.configureRouting() {
     install(ContentNegotiation) {
@@ -13,6 +14,15 @@ fun Application.configureRouting() {
     routing {
         get("/") {
             call.respondText("Hello inntektsmelding")
+        }
+        route ("/api/v1"){
+            route("/arbeidsgivere"){
+                get(""){
+                    val ao = AltinnOrganisasjon("Norge as", "","","","","", "")
+                    val list = listOf<AltinnOrganisasjon>(ao)
+                    call.respond(list)
+                }
+            }
         }
     }
     routing {

@@ -8,19 +8,6 @@ val tokenproviderVersion = "0.1.3"
 
 val githubPassword: String by project
 
-repositories {
-    maven("https://packages.confluent.io/maven/")
-    maven("https://oss.sonatype.org")
-    maven("https://jitpack.io")
-    mavenCentral()
-    maven {
-        credentials {
-            username = System.getenv("GITHUB_ACTOR") ?: "x-access-token"
-            password = System.getenv("GITHUB_TOKEN") ?: githubPassword
-        }
-        setUrl("https://maven.pkg.github.com/navikt/*")
-    }
-}
 
 dependencies {
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
@@ -31,7 +18,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:9.22")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenproviderVersion")
+    implementation("no.nav.helsearbeidsgiver:altinn-client:0.1.9")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation(kotlin("test"))
-    testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
 }

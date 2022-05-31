@@ -104,7 +104,7 @@ allprojects {
                 username = System.getenv("GITHUB_ACTOR") ?: "x-access-token"
                 password = System.getenv("GITHUB_TOKEN")
             }
-            setUrl("https://maven.pkg.github.com/navikt/helsearbeidsgiver-tokenprovider")
+            setUrl("https://maven.pkg.github.com/navikt/*")
         }
     }
 

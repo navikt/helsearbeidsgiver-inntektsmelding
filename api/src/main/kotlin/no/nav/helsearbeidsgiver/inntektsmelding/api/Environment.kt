@@ -1,12 +1,14 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-fun getEnv(): Environment {
+fun setUpEnvironment(): Environment {
     return Environment(
+        raw = System.getenv(),
         Dokarkiv(getEnvVar("DOKARKIV_URL", ""))
     )
 }
 
 data class Environment(
+    val raw: Map<String, String>,
     val dokarkiv: Dokarkiv
 )
 

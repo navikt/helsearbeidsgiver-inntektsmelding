@@ -15,7 +15,7 @@ fun main() {
     val app = createApp(setUpEnvironment())
     embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
         configureRouting(app)
-    }.start(wait = true)
+    }.start(wait = true).also { app.start() }
 }
 
 fun createApp(environment: Environment): RapidsConnection {

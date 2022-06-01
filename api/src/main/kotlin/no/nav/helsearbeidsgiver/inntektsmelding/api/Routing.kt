@@ -11,7 +11,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mock.mockOrganisasjoner
 
 fun Application.configureRouting(rapidsConnection: RapidsConnection) {
-    rapidsConnection.start()
     install(ContentNegotiation) {
         jackson()
     }

@@ -11,11 +11,13 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-brre
 
 fun main() {
     val app = createApp(setUpEnvironment())
-    app.start()
+    app.start().also {
+        logger.info("Første melding på Rapid fra brreg modulen")
+        app.publish("Første melding på Rapid fra brreg modulen")
+    }
 }
 
 fun createApp(environment: Environment): RapidsConnection {
     val rapidsConnection = RapidApplication.create(environment.raw)
-    rapidsConnection.publish("Første melding på Rapid fra brreg modulen")
     return rapidsConnection
 }

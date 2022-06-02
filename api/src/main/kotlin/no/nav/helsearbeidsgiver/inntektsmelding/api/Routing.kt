@@ -10,7 +10,7 @@ import io.ktor.server.routing.*
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mock.mockOrganisasjoner
 
-fun Application.configureRouting(rapidsConnection: RapidsConnection) {
+fun Application.configureRouting() {
     install(ContentNegotiation) {
         jackson()
     }
@@ -32,7 +32,6 @@ fun Application.configureRouting(rapidsConnection: RapidsConnection) {
             route("/inntektsmelding") {
                 post {
                     val request = call.receive<InntektsmeldingRequest>()
-                    rapidsConnection.publish("Ny rapid på køen")
                     request.validate()
                     call.respond(HttpStatusCode.Created, "Ok")
                 }

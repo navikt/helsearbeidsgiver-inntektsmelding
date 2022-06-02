@@ -5,8 +5,6 @@ val logbackVersion="1.2.11"
 val nimbusJoseJwtVersion="9.22"
 val tokenproviderVersion = "0.1.3"
 
-val githubPassword: String by project
-
 
 dependencies {
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")

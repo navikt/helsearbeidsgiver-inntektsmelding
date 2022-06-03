@@ -18,5 +18,4 @@ class InntektsmeldingRegistrertProducer(
         rapidsConnection.publish(request.fnr, packet.toJson())
         logger.info("Publiserte til kafka ${packet.toJson()}")
     }
-
 }

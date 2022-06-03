@@ -10,14 +10,13 @@ class InntektsmeldingRegistrertProducer(
 ) {
     fun publish(request: InntektsmeldingRequest) {
         val packet: JsonMessage = JsonMessage.newMessage(mapOf(
-            "@behov" to "BrregLøser",
             "@event_name" to "inntektsmelding_registrert",
             "@id" to UUID.randomUUID(),
             "@opprettet" to LocalDateTime.now(),
+            "fødselsnummer" to request.fnr
         ))
-        logger.info("Skal publisere til kafka")
-        rapidsConnection.publish("Kode", packet.toJson())
-        logger.info("Publiserte til kafka")
+        rapidsConnection.publish(request.fnr, packet.toJson())
+        logger.info("Publiserte til kafka ${packet.toJson()}")
     }
 
 }

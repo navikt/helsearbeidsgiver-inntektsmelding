@@ -10,6 +10,8 @@ val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-brreg")
 
 fun main() {
+    logger.info("Henter inn environment...")
+    sikkerlogg.info("Henter inn environment...")
     val app = createApp(setUpEnvironment())
     app.start().also {
         sikkerlogg.info("Første melding på Rapid fra brreg modulen...")

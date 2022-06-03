@@ -6,10 +6,17 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-brreg")
 
 fun main() {
+    val env = System.getenv()
+    RapidApplication.create(env).apply {
+
+    }.start()
+}
+
+
+fun main2() {
     logger.info("Henter inn environment...")
     sikkerlogg.info("Henter inn environment...")
     val app = createApp(setUpEnvironment())
@@ -22,5 +29,6 @@ fun main() {
 
 fun createApp(environment: Environment): RapidsConnection {
     val rapidsConnection = RapidApplication.create(environment.raw)
+    BrregLøser(rapidsConnection)
     return rapidsConnection
 }

@@ -10,6 +10,7 @@ class InntektsmeldingRegistrertProducer(
 ) {
     fun publish(request: InntektsmeldingRequest) {
         val packet: JsonMessage = JsonMessage.newMessage(mapOf(
+            "@behov" to "BrregLøser",
             "@event_name" to "inntektsmelding_registrert",
             "@id" to UUID.randomUUID(),
             "@opprettet" to LocalDateTime.now(),

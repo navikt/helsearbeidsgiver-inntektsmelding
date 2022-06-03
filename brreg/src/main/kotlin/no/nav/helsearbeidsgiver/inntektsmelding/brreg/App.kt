@@ -12,7 +12,8 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-brre
 fun main() {
     val app = createApp(setUpEnvironment())
     app.start().also {
-        logger.info("Første melding på Rapid fra brreg modulen")
+        sikkerlogg.info("Første melding på Rapid fra brreg modulen...")
+        logger.info("Første melding på Rapid fra brreg modulen...")
         app.publish("Første melding på Rapid fra brreg modulen")
     }
 }

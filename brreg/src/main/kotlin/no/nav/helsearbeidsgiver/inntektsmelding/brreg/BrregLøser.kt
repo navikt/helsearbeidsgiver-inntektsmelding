@@ -19,9 +19,6 @@ class BrregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
     init {
         River(rapidsConnection).apply {
             validate { it.requireContains("@behov", behov) }
-            validate { it.forbid("@løsning") }
-            validate { it.requireKey("@id") }
-            validate { it.requireKey("fødselsnummer") }
         }.register(this)
     }
 

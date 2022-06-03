@@ -7,10 +7,9 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mock.mockOrganisasjoner
 
-fun Application.configureRouting() {
+fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
     install(ContentNegotiation) {
         jackson()
     }
@@ -32,7 +31,10 @@ fun Application.configureRouting() {
             route("/inntektsmelding") {
                 post {
                     val request = call.receive<InntektsmeldingRequest>()
+                    logger.info("Mottok inntektsmelding $request")
                     request.validate()
+                    logger.info("Publiser til Rapid")
+                    producer.publish(request)
                     call.respond(HttpStatusCode.Created, "Ok")
                 }
             }

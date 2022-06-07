@@ -16,14 +16,14 @@ class BrregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    init {
-        River(rapidsConnection).apply {
-            // validate { it.requireContains("@behov", behov) }
-            //validate { it.requireKey()}
-            validate { it.requireKey("@event_name") }
-            //validate { it.requireContains("@event_name", "inntektsmelding_registrert") }
-        }.register(this)
-    }
+//    init {
+//        River(rapidsConnection).apply {
+//            // validate { it.requireContains("@behov", behov) }
+//            //validate { it.requireKey()}
+//            validate { it.requireKey("@event_name") }
+//            //validate { it.requireContains("@event_name", "inntektsmelding_registrert") }
+//        }.register(this)
+//    }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Mottok melding: ${packet.toJson()}")

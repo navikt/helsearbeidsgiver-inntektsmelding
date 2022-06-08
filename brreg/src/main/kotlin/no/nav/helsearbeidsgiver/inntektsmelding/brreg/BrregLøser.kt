@@ -18,24 +18,17 @@ class BrregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
-            // validate { it.requireContains("@behov", behov) }
-            //validate { it.requireKey()}
-            // validate { it.requireKey("@event_name") }
-            //validate { it.requireContains("@event_name", "inntektsmelding_registrert") }
+            // validate { it.forbid("@løsning") }
             validate { it.requireValue("@event_name" , "inntektsmelding_registrert") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Mottok melding: ${packet.toJson()}")
-        sikkerlogg.info("Mottok melding: ${packet.toJson()}")
-        val fantDataFraBrreg = "" // Kall opp brreg her
+        // Følgende re-publiserer tilbake
+        // val fantDataFraBrreg = "NYTT" // Kall opp brreg her
         // packet.setLøsning(behov, fantDataFraBrreg)
         // context.publish(packet.toJson())
-    }
-
-    override fun onError(problems: MessageProblems, context: MessageContext) {
-        log.info("Fikk error $problems")
     }
 
     private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {
@@ -43,4 +36,9 @@ class BrregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
             nøkkel to data
         )
     }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        log.error("Fikk error $problems")
+    }
+
 }

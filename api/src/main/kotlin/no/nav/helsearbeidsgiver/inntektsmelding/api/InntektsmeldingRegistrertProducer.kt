@@ -13,7 +13,8 @@ class InntektsmeldingRegistrertProducer(
             "@event_name" to "inntektsmelding_registrert",
             "@id" to UUID.randomUUID(),
             "@opprettet" to LocalDateTime.now(),
-            "fødselsnummer" to request.fnr
+            "fødselsnummer" to request.fnr,
+            "orgnr" to request.orgnr,
         ))
         rapidsConnection.publish(request.fnr, packet.toJson())
         logger.info("Publiserte til kafka ${packet.toJson()}")

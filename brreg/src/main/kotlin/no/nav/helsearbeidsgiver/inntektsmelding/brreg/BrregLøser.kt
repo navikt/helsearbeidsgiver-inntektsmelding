@@ -21,7 +21,8 @@ class BrregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
             // validate { it.requireContains("@behov", behov) }
             //validate { it.requireKey()}
             // validate { it.requireKey("@event_name") }
-            validate { it.requireContains("@event_name", "inntektsmelding_registrert") }
+            //validate { it.requireContains("@event_name", "inntektsmelding_registrert") }
+            validate { it.requireValue("@event_name" , "inntektsmelding_registrert") }
         }.register(this)
     }
 

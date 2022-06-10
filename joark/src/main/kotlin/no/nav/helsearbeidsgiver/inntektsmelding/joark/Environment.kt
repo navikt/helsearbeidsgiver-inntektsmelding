@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.journalpost
+package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 fun setUpEnvironment(): Environment {
     return Environment(

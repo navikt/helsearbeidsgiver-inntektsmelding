@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.journalpost
+package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import org.slf4j.Logger

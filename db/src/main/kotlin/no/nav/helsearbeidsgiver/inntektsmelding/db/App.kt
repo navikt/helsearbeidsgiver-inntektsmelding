@@ -10,7 +10,7 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api"
 fun main() {
     val env = System.getenv()
     RapidApplication.create(env).apply {
-        // DatabaseLøser(this)
+        LagreInntektsmeldingLøser(this)
     }.start()
 
 }

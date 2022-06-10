@@ -27,7 +27,6 @@ class LagreInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.Pac
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Skal lagre i db: ${packet.toJson()}")
         // TODO - Lagre inntektsmelding i databasen
-
         // Følgende publiser at inntektsmelding er persistert
         packet.setLøsning(behov, "persistert")
         context.publish(packet.toJson())

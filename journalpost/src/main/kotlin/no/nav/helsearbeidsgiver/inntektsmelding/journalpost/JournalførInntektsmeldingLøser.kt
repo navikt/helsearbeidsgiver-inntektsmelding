@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.brreg
+package no.nav.helsearbeidsgiver.inntektsmelding.journalpost
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -7,10 +7,10 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import org.slf4j.LoggerFactory
 
-class BrregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
     companion object {
-        internal const val behov = "BrregLøser"
+        internal const val behov = "JournalførInntektsmeldingLøser"
     }
 
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
@@ -18,17 +18,26 @@ class BrregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
-            // validate { it.forbid("@løsning") }
-            validate { it.requireValue("@event_name" , "_dummy_") }
+            validate { it.requireValue("@event_name" , "inntektsmelding_inn") }
+            validate { it.requireContains("@behov", behov) }
+            validate { it.requireValue("@løsning" , "persistert") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Mottok melding: ${packet.toJson()}")
-        // Følgende re-publiserer tilbake
-        // val fantDataFraBrreg = "NYTT" // Kall opp brreg her
-        // packet.setLøsning(behov, fantDataFraBrreg)
-        // context.publish(packet.toJson())
+        log.info("Skal journalføre: $packet")
+        // TODO - Ferdigstill journalpost
+        val journalpostID = "JP-123"
+        //
+        packet.setBehov(behov, packet)
+        packet.setLøsning(journalpostID, packet)
+        context.publish(packet.toJson())
+    }
+
+    private fun JsonMessage.setBehov(nøkkel: String, data: Any) {
+        this["@behov"] = mapOf(
+            nøkkel to data
+        )
     }
 
     private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {

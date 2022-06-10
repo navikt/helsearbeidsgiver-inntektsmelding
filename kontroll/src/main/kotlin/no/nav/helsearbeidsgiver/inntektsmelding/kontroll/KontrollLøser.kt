@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.kontroll
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -7,10 +7,10 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import org.slf4j.LoggerFactory
 
-class DatabaseLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+class KontrollLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
     companion object {
-        internal const val behov = "DatabaseLøser"
+        internal const val behov = "KontrollLøser"
     }
 
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
@@ -19,23 +19,15 @@ class DatabaseLøser(rapidsConnection: RapidsConnection) : River.PacketListener 
     init {
         River(rapidsConnection).apply {
             validate { it.requireValue("@event_name" , "inntektsmelding_inn") }
-            validate { it.requireContains("@behov", behov) }
-            validate { it.rejectKey("@løsning") }
+            validate { it.requireContains("@behov", "JournalførInntektsmeldingLøser") }
+            validate { it.requireKey("@løsning") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Mottok melding: ${packet.toJson()}")
-        // TODO -
-        // Følgende publiser at inntektsmelding er persistert
-        packet.setLøsning(behov, "persistert")
-        context.publish(packet.toJson())
-    }
+        log.info("Inntektsmelding er ferdigbehandlet: $packet")
+        // TODO - Publiser at inntektsmelding er publisert
 
-    private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {
-        this["@løsning"] = mapOf(
-            nøkkel to data
-        )
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

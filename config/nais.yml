@@ -50,6 +50,14 @@ spec:
       tenant: {{azure.tenant}}
       {{/if}}
   {{/if}}
+  {{#if db}}
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_14
+        databases:
+          - name: inntektsmelding-db
+            diskAutoresize: true
+  {{/if}}
   prometheus:
     enabled: true
     path: /metrics

@@ -1,0 +1,8 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+ingress: https://helsearbeidsgiver-im-db.dev.nav.no
+db: true
+env:
+- name: ENHETSREGISTERET_URL
+  value: "https://data.brreg.no/enhetsregisteret/api/underenheter/"

@@ -18,9 +18,9 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name" , "inntektsmelding_inn") }
+            validate { it.requireValue("@event_name", "inntektsmelding_inn") }
             validate { it.requireContains("@behov", behov) }
-            validate { it.requireValue("@løsning" , "persistert") }
+            validate { it.requireValue("@løsning", "persistert") }
         }.register(this)
     }
 
@@ -49,5 +49,4 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     override fun onError(problems: MessageProblems, context: MessageContext) {
         log.error("Fikk error $problems")
     }
-
 }

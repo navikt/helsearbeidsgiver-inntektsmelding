@@ -17,5 +17,4 @@ fun main() {
             configureRouting(producer)
         }.start(wait = true)
     }.start()
-
 }

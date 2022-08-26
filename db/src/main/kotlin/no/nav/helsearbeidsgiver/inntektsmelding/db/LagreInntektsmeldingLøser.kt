@@ -18,7 +18,7 @@ class LagreInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.Pac
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name" , "inntektsmelding_inn") }
+            validate { it.requireValue("@event_name", "inntektsmelding_inn") }
             validate { it.requireContains("@behov", behov) }
             validate { it.rejectKey("@løsning") }
         }.register(this)
@@ -41,5 +41,4 @@ class LagreInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.Pac
     override fun onError(problems: MessageProblems, context: MessageContext) {
         log.error("Fikk error $problems")
     }
-
 }

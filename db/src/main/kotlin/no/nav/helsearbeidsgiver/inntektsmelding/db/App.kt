@@ -12,5 +12,4 @@ fun main() {
     RapidApplication.create(env).apply {
         LagreInntektsmeldingLøser(this)
     }.start()
-
 }

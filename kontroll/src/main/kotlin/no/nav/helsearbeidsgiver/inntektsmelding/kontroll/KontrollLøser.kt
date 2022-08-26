@@ -18,7 +18,7 @@ class KontrollLøser(rapidsConnection: RapidsConnection) : River.PacketListener 
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name" , "inntektsmelding_inn") }
+            validate { it.requireValue("@event_name", "inntektsmelding_inn") }
             validate { it.requireContains("@behov", "JournalførInntektsmeldingLøser") }
             validate { it.requireKey("@løsning") }
         }.register(this)
@@ -27,11 +27,9 @@ class KontrollLøser(rapidsConnection: RapidsConnection) : River.PacketListener 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Inntektsmelding er ferdigbehandlet: $packet")
         // TODO - Publiser at inntektsmelding er publisert
-
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         log.error("Fikk error $problems")
     }
-
 }

@@ -19,7 +19,7 @@ class BrregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
     init {
         River(rapidsConnection).apply {
             // validate { it.forbid("@løsning") }
-            validate { it.requireValue("@event_name" , "_dummy_") }
+            validate { it.requireValue("@event_name", "_dummy_") }
         }.register(this)
     }
 
@@ -40,5 +40,4 @@ class BrregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
     override fun onError(problems: MessageProblems, context: MessageContext) {
         log.error("Fikk error $problems")
     }
-
 }

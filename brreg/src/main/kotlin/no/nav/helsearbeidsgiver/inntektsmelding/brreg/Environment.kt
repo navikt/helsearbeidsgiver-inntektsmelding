@@ -13,7 +13,7 @@ data class Environment(
 )
 
 data class Dokarkiv(
-    val url: String,
+    val url: String
 )
 
 fun isLocal(): Boolean = getEnvVar("KTOR_ENV", "local") == "local"

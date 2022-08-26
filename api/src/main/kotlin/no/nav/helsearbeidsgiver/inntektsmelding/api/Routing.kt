@@ -17,8 +17,8 @@ fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
         get("/") {
             call.respondText("Hello inntektsmelding")
         }
-        route ("/api/v1"){
-            route("/arbeidsgivere"){
+        route("/api/v1") {
+            route("/arbeidsgivere") {
                 get {
                     call.respond(mockOrganisasjoner())
                 }

@@ -9,7 +9,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("org.valiktor:valiktor-core:0.12.0")
-    implementation("no.nav.helsearbeidsgiver:altinn-client:0.1.9")
+    implementation("no.nav.helsearbeidsgiver:altinn-client:0.1.11")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation(kotlin("test"))
 }

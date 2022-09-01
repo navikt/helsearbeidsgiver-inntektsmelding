@@ -6,20 +6,13 @@ import org.valiktor.validate
 
 @Serializable
 data class InntektsmeldingRequest(
-    val fnr: String,
-    val orgnr: String,
-    val perioder: List<Periode> = emptyList()
+    val organisasjonsnummer: String,
+    val fødselsnummer: String
 ) {
     fun validate() {
         validate(this) {
-            validate(InntektsmeldingRequest::fnr).isNotEmpty()
-            validate(InntektsmeldingRequest::orgnr).isNotEmpty()
+            validate(InntektsmeldingRequest::organisasjonsnummer).isNotEmpty()
+            validate(InntektsmeldingRequest::fødselsnummer).isNotEmpty()
         }
     }
 }
-
-@Serializable
-data class Periode(
-    val fom: String,
-    val tom: String
-)

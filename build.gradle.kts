@@ -13,6 +13,7 @@ val gradleWrapperVersion = "7.4.2"
 val junitJupiterVersion = "5.8.2"
 val rapidsAndRiversVersion = "1.389b5c3"
 val ktorVersion = "2.0.2"
+val kotlinVersion = "1.6.21"
 val mockkVersion = "1.12.0"
 
 buildscript {
@@ -27,9 +28,9 @@ val mapper = ObjectMapper()
 fun getBuildableProjects(): List<Project> {
     val changedFiles = System.getenv("CHANGED_FILES")?.split(",") ?: emptyList()
     val commonChanges = changedFiles.any {
-        it.startsWith("felles/") || it.contains("config/nais.yml")
-            || it.startsWith("build.gradle.kts") || it == ".github/workflows/build.yml"
-            || it == "Dockerfile"
+        it.startsWith("felles/") || it.contains("config/nais.yml") ||
+            it.startsWith("build.gradle.kts") || it == ".github/workflows/build.yml" ||
+            it == "Dockerfile"
     }
     if (changedFiles.isEmpty() || commonChanges) return subprojects.toList()
     return subprojects.filter { project -> changedFiles.any { path -> path.contains("${project.name}/") } }
@@ -40,9 +41,13 @@ fun getDeployableProjects() = getBuildableProjects()
 
 tasks.create("buildMatrix") {
     doLast {
-        println(mapper.writeValueAsString(mapOf(
-            "project" to getBuildableProjects().map { it.name }
-        )))
+        println(
+            mapper.writeValueAsString(
+                mapOf(
+                    "project" to getBuildableProjects().map { it.name }
+                )
+            )
+        )
     }
 }
 tasks.create("deployMatrix") {
@@ -51,11 +56,13 @@ tasks.create("deployMatrix") {
         val deployableProjects = getDeployableProjects().map { it.name }
         val environments = deployableProjects
             .map { project ->
-                project to (File("config", project)
-                    .listFiles()
-                    ?.filter { it.isFile && it.name.endsWith(".yml") }
-                    ?.map { it.name.removeSuffix(".yml") }
-                    ?: emptyList())
+                project to (
+                    File("config", project)
+                        .listFiles()
+                        ?.filter { it.isFile && it.name.endsWith(".yml") }
+                        ?.map { it.name.removeSuffix(".yml") }
+                        ?: emptyList()
+                    )
             }.toMap()
 
         val clusters = environments.flatMap { it.value }.distinct()
@@ -65,17 +72,23 @@ tasks.create("deployMatrix") {
             }
             .filterValues { it.isNotEmpty() }
             .flatMap { (app, clusters) ->
-                clusters.map { cluster -> mapOf(
-                    "project" to app,
-                    "cluster" to cluster
-                )}
+                clusters.map { cluster ->
+                    mapOf(
+                        "project" to app,
+                        "cluster" to cluster
+                    )
+                }
             }
 
-        println(mapper.writeValueAsString(mapOf(
-            "cluster" to clusters,
-            "project" to deployableProjects,
-            "exclude" to exclusions
-        )))
+        println(
+            mapper.writeValueAsString(
+                mapOf(
+                    "cluster" to clusters,
+                    "project" to deployableProjects,
+                    "exclude" to exclusions
+                )
+            )
+        )
     }
 }
 
@@ -161,8 +174,9 @@ subprojects {
                 doLast {
                     configurations.runtimeClasspath.get().forEach {
                         val file = File("$buildDir/libs/${it.name}")
-                        if (!file.exists())
+                        if (!file.exists()) {
                             it.copyTo(file)
+                        }
                     }
                 }
             }

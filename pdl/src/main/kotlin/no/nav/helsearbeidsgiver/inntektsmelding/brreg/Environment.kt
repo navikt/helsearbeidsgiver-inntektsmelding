@@ -3,16 +3,16 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 fun setUpEnvironment(): Environment {
     return Environment(
         raw = System.getenv(),
-        brregUrl = getEnvVar(
-            "ENHETSREGISTERET_URL",
-            "https://data.brreg.no/enhetsregisteret/api/underenheter/"
+        pdlUrl = getEnvVar(
+            "PDL_URL",
+            "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/pdl"
         )
     )
 }
 
 data class Environment(
     val raw: Map<String, String>,
-    val brregUrl: String
+    val pdlUrl: String
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =

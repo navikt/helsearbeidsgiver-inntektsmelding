@@ -5,7 +5,6 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

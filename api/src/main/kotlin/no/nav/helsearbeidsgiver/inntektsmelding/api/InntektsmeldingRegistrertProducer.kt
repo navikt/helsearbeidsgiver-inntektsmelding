@@ -18,7 +18,7 @@ class InntektsmeldingRegistrertProducer(
                 "inntektsmelding" to request
             )
         )
-        rapidsConnection.publish(request.fødselsnummer, packet.toJson())
+        rapidsConnection.publish(request.identitetsnummer, packet.toJson())
         logger.info("Publiserte til kafka ${packet.toJson()}")
     }
 }

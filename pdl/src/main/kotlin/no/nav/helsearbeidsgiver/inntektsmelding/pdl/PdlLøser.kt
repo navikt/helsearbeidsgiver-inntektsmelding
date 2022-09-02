@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.brreg
+package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext

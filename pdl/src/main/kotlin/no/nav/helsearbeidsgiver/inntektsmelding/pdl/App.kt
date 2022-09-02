@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.brreg
+package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

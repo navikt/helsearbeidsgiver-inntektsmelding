@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.brreg
+package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
 fun setUpEnvironment(): Environment {
     return Environment(

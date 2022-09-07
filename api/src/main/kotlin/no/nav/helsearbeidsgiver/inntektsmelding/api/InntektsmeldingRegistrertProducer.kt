@@ -12,7 +12,7 @@ class InntektsmeldingRegistrertProducer(
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 "@event_name" to "inntektsmelding_inn",
-                "@behov" to listOf("BrregLøser", "AaregLøser"),
+                "@behov" to listOf("BrregLøser", "PdlLøser"),
                 "@id" to UUID.randomUUID(),
                 "@opprettet" to LocalDateTime.now(),
                 "inntektsmelding" to request

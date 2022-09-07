@@ -2,18 +2,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 fun setUpEnvironment(): Environment {
     return Environment(
-        raw = System.getenv(),
-        Dokarkiv(getEnvVar("DOKARKIV_URL", ""))
+        raw = System.getenv()
     )
 }
 
 data class Environment(
-    val raw: Map<String, String>,
-    val dokarkiv: Dokarkiv
-)
-
-data class Dokarkiv(
-    val url: String
+    val raw: Map<String, String>
 )
 
 fun isLocal(): Boolean = getEnvVar("KTOR_ENV", "local") == "local"

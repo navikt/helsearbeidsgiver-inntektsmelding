@@ -3,5 +3,5 @@ azure:
   enabled: true
 ingress: https://helsearbeidsgiver-im-aareg.dev.nav.no
 env:
-- name: AAREG_URL
-  value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/aareg-arbeidsforhold"
+- name: PDL_URL
+  value: https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/pdl

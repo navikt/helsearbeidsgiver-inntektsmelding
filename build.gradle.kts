@@ -10,7 +10,7 @@ val ktorVersion: String by project
 val mockkVersion: String by project
 
 plugins {
-    kotlin("jvm") version "1.6.21"
+    kotlin("jvm") version "1.7.20-RC"
     id("org.jmailen.kotlinter") version "3.10.0"
 }
 

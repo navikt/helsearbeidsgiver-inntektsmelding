@@ -1,8 +1,10 @@
 val ktorVersion: String by project
 val altinnVersion: String by project
 val valiktorVersion: String by project
+val lettuceVersion: String by project
 
 dependencies {
+    implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-serialization-jvm:$ktorVersion")

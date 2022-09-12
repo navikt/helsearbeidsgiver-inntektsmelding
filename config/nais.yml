@@ -87,3 +87,7 @@ spec:
   - name: {{ item.name }}
     value: "{{ item.value }}"
   {{/each }}{{/if}}
+  accessPolicy:
+    outbound:
+      rules:
+        - application: helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local

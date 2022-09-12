@@ -1,6 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
-import io.lettuce.core.RedisClient
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -8,8 +11,18 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import org.slf4j.LoggerFactory
 
-class Akkumulator(rapidsConnection: RapidsConnection, private val redisUrl: String) : River.PacketListener {
+@Serializable
+data class Løsere(
+    val BrregLøser: String?,
+    val PdlLøser: String?
+)
+
+class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: RedisStore) : River.PacketListener {
     private val log = LoggerFactory.getLogger(this::class.java)
+    val json = Json {
+        ignoreUnknownKeys = true
+        explicitNulls = false
+    }
 
     init {
         River(rapidsConnection).apply {
@@ -22,18 +35,21 @@ class Akkumulator(rapidsConnection: RapidsConnection, private val redisUrl: Stri
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val id = packet["@id"].asText()
-        val løsning = packet["@løsning"].toString()
-
         log.info("Akkumulerer løsning med id $id")
 
-        val redisClient = RedisClient.create("redis://$redisUrl:6379/0")
-        val connection = redisClient.connect()
-        val syncCommands = connection.sync()
+        val løsning = packet["@løsning"].toString()
 
-        syncCommands[id] = løsning
+        val løsninger = redisStore.get(id)
 
-        connection.close()
-        redisClient.shutdown()
+        if (løsninger.isNullOrEmpty()) {
+            redisStore.set(id, løsning)
+        } else {
+            // TODO: slå sammen løsninger og løsning på en god måte
+            val sammenslåtteLøsninger = json.decodeFromString<Løsere>(løsning)
+                .merge(json.decodeFromString(løsninger))
+
+            redisStore.set(id, json.encodeToString(sammenslåtteLøsninger))
+        }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {}

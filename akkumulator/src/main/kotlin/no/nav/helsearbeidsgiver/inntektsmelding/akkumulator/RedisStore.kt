@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 import io.lettuce.core.RedisClient
 import io.lettuce.core.SetArgs
 
-class RedisClient(redisUrl: String) {
+class RedisStore(redisUrl: String) {
     private val redisClient = RedisClient.create("redis://$redisUrl:6379/0")
     private val connection = redisClient.connect()
     private val syncCommands = connection.sync()

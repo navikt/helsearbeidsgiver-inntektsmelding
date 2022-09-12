@@ -1,4 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.dto
 
-class MottattArbeidsforhold {
-}
+data class MottattArbeidsforhold(
+    val arbeidsforholdId: String,
+    val arbeidsforhold: String,
+    val stillingsprosent: Number
+)

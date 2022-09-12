@@ -1,4 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.dto
 
-class MottattHistoriskInntekt {
-}
+data class MottattHistoriskInntekt(
+    val maanedsnavn: String,
+    val inntekt: Number
+)

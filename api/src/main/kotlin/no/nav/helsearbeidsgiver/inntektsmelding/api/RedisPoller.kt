@@ -12,7 +12,7 @@ class RedisPoller(val redisClient: RedisClient) {
         connection = redisClient.connect()
     }
 
-    suspend fun getValue(key: String, maxRetries: Int = 10, waitMillis: Long = 10) : String {
+    suspend fun getValue(key: String, maxRetries: Int = 10, waitMillis: Long = 500) : String {
         for (x in 0..maxRetries) {
             val value = getValue(key)
             if (value == null || value == "") {

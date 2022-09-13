@@ -40,7 +40,7 @@ fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
                     val redisUrl = "helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local"
                     val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"))
                     try {
-                        val data = poller.getValue(request.fnr, 10)
+                        poller.getValue("abc", 10)
                         call.respond(HttpStatusCode.Created, "Opprettet")
                     } catch (ex: TimeoutException) {
                         call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")

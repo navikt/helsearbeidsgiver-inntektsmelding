@@ -14,7 +14,7 @@ class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: B
         internal const val behov = "BrregLøser"
     }
 
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
@@ -28,7 +28,7 @@ class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: B
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Løser behov $behov med id ${packet["@id"].asText()}")
+        logger.info("Løser behov $behov med id ${packet["@id"].asText()}")
         val løsning = brregClient.getVirksomhetsNavn(packet["orgnrUnderenhet"].asText())
         packet.setLøsning(behov, løsning)
         context.publish(packet.toJson())

@@ -16,7 +16,7 @@ class PdlLøser(
         internal const val behov = "PdlLøser"
     }
 
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
@@ -30,7 +30,7 @@ class PdlLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Løser behov $behov med id ${packet["@id"].asText()}")
+        logger.info("Løser behov $behov med id ${packet["@id"].asText()}")
         // val navn = pdlClient.personNavn(packet["identitetsnummer"].asText())?.navn?.firstOrNull()
         // val løsning = "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
         val løsning = "Navn Navnesen"

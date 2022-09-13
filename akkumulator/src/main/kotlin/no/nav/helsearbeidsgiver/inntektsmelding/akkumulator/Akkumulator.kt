@@ -18,7 +18,7 @@ data class Løsere(
 )
 
 class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: RedisStore) : River.PacketListener {
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
     val json = Json {
         ignoreUnknownKeys = true
         explicitNulls = false
@@ -35,7 +35,7 @@ class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: Re
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val id = packet["@id"].asText()
-        log.info("Akkumulerer løsning med id $id")
+        logger.info("Akkumulerer løsning med id $id")
 
         val løsning = packet["@løsning"].toString()
 

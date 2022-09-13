@@ -2,8 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
-import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.delay
+import java.util.concurrent.TimeoutException
 
 class RedisPoller(val redisClient: RedisClient) {
     private var connection: StatefulRedisConnection<String, String>
@@ -12,7 +12,7 @@ class RedisPoller(val redisClient: RedisClient) {
         connection = redisClient.connect()
     }
 
-    suspend fun getValue(key: String, maxRetries: Int = 10, waitMillis: Long = 500) : String {
+    suspend fun getValue(key: String, maxRetries: Int = 10, waitMillis: Long = 500): String {
         for (x in 0..maxRetries) {
             val value = getValue(key)
             if (value == null || value == "") {
@@ -24,7 +24,7 @@ class RedisPoller(val redisClient: RedisClient) {
         throw TimeoutException("Klarte ikke hente ut verdier!")
     }
 
-    private fun getValue(key: String) : String? {
+    private fun getValue(key: String): String? {
         connection.use {
             return connection.sync().get(key)
         }
@@ -34,5 +34,4 @@ class RedisPoller(val redisClient: RedisClient) {
         connection.close()
         redisClient.shutdown()
     }
-
 }

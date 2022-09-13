@@ -8,8 +8,8 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.lettuce.core.RedisClient
-import java.util.concurrent.TimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mock.mockOrganisasjoner
+import java.util.concurrent.TimeoutException
 
 fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
     install(ContentNegotiation) {
@@ -42,7 +42,7 @@ fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
                     try {
                         val data = poller.getValue(request.fnr, 10)
                         call.respond(HttpStatusCode.Created, "Opprettet")
-                    } catch (ex: TimeoutException){
+                    } catch (ex: TimeoutException) {
                         call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")
                     }
                 }

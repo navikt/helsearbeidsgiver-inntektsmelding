@@ -8,7 +8,7 @@ import io.mockk.mockk
 
 fun buildPoller(answers: List<String>): RedisPoller {
     val connection = mockk<StatefulRedisConnection<String, String>>()
-    val command = mockk<RedisCommands<String,String>>()
+    val command = mockk<RedisCommands<String, String>>()
 
     every {
         command.get(any())

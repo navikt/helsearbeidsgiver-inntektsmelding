@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.util.concurrent.TimeoutException
 import kotlin.test.assertEquals
 
 internal class RedisPollerTest {
@@ -40,5 +40,4 @@ internal class RedisPollerTest {
             assertEquals(DATA, data)
         }
     }
-
 }

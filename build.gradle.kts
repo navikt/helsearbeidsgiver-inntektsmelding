@@ -1,20 +1,18 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val jvmTarget = "17"
 val githubPassword: String by project
+val jvmTargetVersion: String by project
+val gradleWrapperVersion: String by project
+val junitJupiterVersion: String by project
+val rapidsAndRiversVersion: String by project
+val ktorVersion: String by project
+val mockkVersion: String by project
 
 plugins {
-    kotlin("jvm") version "1.6.21"
+    kotlin("jvm") version "1.7.20-RC"
     id("org.jmailen.kotlinter") version "3.10.0"
 }
-
-val gradleWrapperVersion = "7.4.2"
-val junitJupiterVersion = "5.8.2"
-val rapidsAndRiversVersion = "1.389b5c3"
-val ktorVersion = "2.0.2"
-val kotlinVersion = "1.6.21"
-val mockkVersion = "1.12.0"
 
 buildscript {
     repositories {
@@ -122,11 +120,11 @@ allprojects {
 
     tasks {
         withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = jvmTarget
+            kotlinOptions.jvmTarget = jvmTargetVersion
         }
 
         named<KotlinCompile>("compileTestKotlin") {
-            kotlinOptions.jvmTarget = jvmTarget
+            kotlinOptions.jvmTarget = jvmTargetVersion
         }
 
         withType<Wrapper> {

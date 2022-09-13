@@ -10,7 +10,7 @@ class BehovRiver(
     private val packetListener: (JsonMessage, MessageContext) -> Unit
 ) : River.PacketValidation, River.PacketListener {
     private companion object {
-        private val log = LoggerFactory.getLogger(BehovRiver::class.java)
+        private val logger = LoggerFactory.getLogger(BehovRiver::class.java)
         private val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
     }
 
@@ -24,11 +24,11 @@ class BehovRiver(
     override fun validate(message: JsonMessage) {
         message.demandAll("@behov", listOf(behov))
         message.rejectKey("@final", "@løsning")
-        message.requireKey("aktørId", "fødselsnummer", "organisasjonsnummer")
+        message.requireKey("identitesnummer", "orgnrUnderenhet")
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        log.error("Forstod ikke $behov (se sikkerLog for detaljer)")
+        logger.error("Forstod ikke $behov (se sikkerLog for detaljer)")
         sikkerLogg.error("Forstod ikke $behov: ${problems.toExtendedReport()}")
     }
 

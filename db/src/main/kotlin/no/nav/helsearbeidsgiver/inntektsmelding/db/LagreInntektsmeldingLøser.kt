@@ -14,7 +14,7 @@ class LagreInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.Pac
     }
 
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
@@ -25,7 +25,7 @@ class LagreInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.Pac
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Skal lagre i db: ${packet.toJson()}")
+        logger.info("Skal lagre i db: ${packet.toJson()}")
         // TODO - Lagre inntektsmelding i databasen
         // Følgende publiser at inntektsmelding er persistert
         packet.setLøsning(behov, "persistert")
@@ -39,6 +39,6 @@ class LagreInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.Pac
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        log.error("Fikk error $problems")
+        logger.error("Fikk error $problems")
     }
 }

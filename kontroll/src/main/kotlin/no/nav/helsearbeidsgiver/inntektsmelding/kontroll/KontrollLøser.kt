@@ -14,7 +14,7 @@ class KontrollLøser(rapidsConnection: RapidsConnection) : River.PacketListener 
     }
 
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
@@ -25,11 +25,11 @@ class KontrollLøser(rapidsConnection: RapidsConnection) : River.PacketListener 
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Inntektsmelding er ferdigbehandlet: $packet")
+        logger.info("Inntektsmelding er ferdigbehandlet: $packet")
         // TODO - Publiser at inntektsmelding er publisert
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        log.error("Fikk error $problems")
+        logger.error("Fikk error $problems")
     }
 }

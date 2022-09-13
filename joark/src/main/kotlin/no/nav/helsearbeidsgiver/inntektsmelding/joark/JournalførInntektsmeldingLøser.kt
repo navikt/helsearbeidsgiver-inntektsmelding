@@ -14,7 +14,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     }
 
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
@@ -25,7 +25,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Skal journalføre: $packet")
+        logger.info("Skal journalføre: $packet")
         // TODO - Ferdigstill journalpost
         val journalpostID = "JP-123"
         //
@@ -47,6 +47,6 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        log.error("Fikk error $problems")
+        logger.error("Fikk error $problems")
     }
 }

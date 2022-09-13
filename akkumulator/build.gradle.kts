@@ -1,7 +1,8 @@
 val ktorVersion: String by project
+val lettuceVersion: String by project
 
 dependencies {
-    implementation("no.nav.helsearbeidsgiver:brreg-client:0.1.5")
+    implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-json:$ktorVersion")

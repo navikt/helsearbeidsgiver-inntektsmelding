@@ -1,0 +1,7 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+ingress: https://helsearbeidsgiver-im-akkumulator.dev.nav.no
+env:
+- name: REDIS_URL
+  value: helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local

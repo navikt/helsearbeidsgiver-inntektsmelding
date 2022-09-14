@@ -18,8 +18,7 @@ internal class RedisPollerTest {
     fun skal_gi_opp_etter_mange_forsøk() {
         runBlocking {
             assertThrows<TimeoutException> {
-                val data = buildPoller(UGYLDIG_LISTE).getValue(FNR, 2, 0)
-                assertEquals(TOM, data)
+                buildPoller(UGYLDIG_LISTE).getValue(FNR, 2, 0)
             }
         }
     }

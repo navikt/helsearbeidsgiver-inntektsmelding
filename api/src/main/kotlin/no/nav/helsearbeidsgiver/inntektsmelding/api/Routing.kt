@@ -45,6 +45,7 @@ fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
                     } catch (ex: TimeoutException) {
                         call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")
                     }
+                    poller.shutdown()
                 }
             }
         }

@@ -24,8 +24,9 @@ fun main() {
         }
     }
     logger.info("Starter Rapid")
+    val brregUrl = System.getenv().get("ENHETSREGISTERET_URL")!!
     RapidApplication.create(System.getenv()).apply {
         logger.info("Starter BrregLøser")
-        BrregLøser(this, BrregClient(httpClient, environment.brregUrl))
+        BrregLøser(this, BrregClient(httpClient, brregUrl))
     }.start()
 }

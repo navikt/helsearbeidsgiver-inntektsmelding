@@ -23,9 +23,8 @@ fun main() {
             )
         }
     }
-    val brregClient = BrregClient(httpClient, environment.brregUrl)
-
+    logger.info("Starter")
     RapidApplication.create(environment.raw).apply {
-        BrregLøser(this, brregClient)
+        BrregLøser(this, BrregClient(httpClient, environment.brregUrl))
     }.start()
 }

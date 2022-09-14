@@ -90,4 +90,4 @@ spec:
   accessPolicy:
     outbound:
       rules:
-        - application: helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local
+        - application: helsearbeidsgiver-redis

@@ -23,8 +23,9 @@ fun main() {
             )
         }
     }
-    logger.info("Starter")
-    RapidApplication.create(environment.raw).apply {
+    logger.info("Starter Rapid")
+    RapidApplication.create(System.getenv()).apply {
+        logger.info("Starter BrregLøser")
         BrregLøser(this, BrregClient(httpClient, environment.brregUrl))
     }.start()
 }

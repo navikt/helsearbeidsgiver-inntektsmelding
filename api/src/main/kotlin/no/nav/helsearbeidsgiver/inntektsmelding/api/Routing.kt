@@ -36,11 +36,11 @@ fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
                     logger.info("Mottok inntektsmelding $request")
                     request.validate()
                     logger.info("Publiser til Rapid")
-                    producer.publish(request)
+                    val uuid = producer.publish(request)
                     val redisUrl = "helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local"
                     val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"))
                     try {
-                        poller.getValue("abc", 10)
+                        poller.getValue(uuid, 5, 500)
                         call.respond(HttpStatusCode.Created, "Opprettet")
                     } catch (ex: TimeoutException) {
                         call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")

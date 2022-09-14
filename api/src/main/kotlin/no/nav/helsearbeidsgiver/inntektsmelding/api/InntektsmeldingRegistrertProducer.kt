@@ -8,17 +8,19 @@ import java.util.*
 class InntektsmeldingRegistrertProducer(
     private val rapidsConnection: RapidsConnection
 ) {
-    fun publish(request: InntektsmeldingRequest) {
+    fun publish(request: InntektsmeldingRequest): String {
+        val uuid = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 "@event_name" to "inntektsmelding_inn",
                 "@behov" to listOf("BrregLøser", "PdlLøser"),
-                "@id" to UUID.randomUUID(),
+                "@id" to uuid,
                 "@opprettet" to LocalDateTime.now(),
                 "inntektsmelding" to request
             )
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())
-        logger.info("Publiserte til kafka ${packet.toJson()}")
+        logger.info("Publiserte til kafka id=$uuid json=${packet.toJson()}")
+        return uuid.toString()
     }
 }

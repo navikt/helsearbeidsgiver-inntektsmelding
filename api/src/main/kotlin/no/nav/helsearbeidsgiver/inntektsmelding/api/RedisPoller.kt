@@ -12,7 +12,7 @@ class RedisPoller(val redisClient: RedisClient) {
         logger.info("Fikk connection.")
         connection.use {
             for (x in 0..maxRetries) {
-                logger.info("Hent verdi")
+                logger.info("Hent verdi for: $key")
                 val value = it.sync().get(key)
                 logger.info("Fikk verdi: $value")
                 if (value.isNullOrEmpty()) {

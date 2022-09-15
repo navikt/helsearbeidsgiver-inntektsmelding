@@ -10,16 +10,16 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-akku
 
 fun main() {
     val environment = setUpEnvironment()
+    val app = createApp(environment)
+    app.start()
+}
 
+internal fun createApp(environment: Environment): RapidsConnection {
+    logger.info("Starting Redis client...")
     val redisClient = RedisStore(environment.redisUrl)
-
-    RapidApplication.create(environment.raw).apply {
-        Akkumulator(this, redisClient)
-    }.apply {
-        register(object : RapidsConnection.StatusListener {
-            override fun onShutdown(rapidsConnection: RapidsConnection) {
-                redisClient.shutdown()
-            }
-        })
-    }.start()
+    logger.info("Starting RapidApplication...")
+    val rapidsConnection = RapidApplication.create(environment.raw)
+    logger.info("Starting Akkumulator...")
+    Akkumulator(rapidsConnection, redisClient)
+    return rapidsConnection
 }

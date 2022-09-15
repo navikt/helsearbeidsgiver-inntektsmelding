@@ -5,6 +5,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -14,6 +15,13 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-brre
 
 fun main() {
     val environment = setUpEnvironment()
+    val app = createApp(environment)
+    app.start()
+}
+
+internal fun createApp(environment: Environment): RapidsConnection {
+    logger.info("Starting RapidApplication...")
+    val rapidsConnection = RapidApplication.create(environment.raw)
     val httpClient = HttpClient {
         install(ContentNegotiation) {
             json(
@@ -23,10 +31,7 @@ fun main() {
             )
         }
     }
-    logger.info("Starter Rapid")
-    val brregUrl = System.getenv().get("ENHETSREGISTERET_URL")!!
-    RapidApplication.create(System.getenv()).apply {
-        logger.info("Starter BrregLøser")
-        BrregLøser(this, BrregClient(brregUrl, httpClient))
-    }.start()
+    logger.info("Starting BrregLøser...")
+    BrregLøser(rapidsConnection, BrregClient(environment.brregUrl, httpClient))
+    return rapidsConnection
 }

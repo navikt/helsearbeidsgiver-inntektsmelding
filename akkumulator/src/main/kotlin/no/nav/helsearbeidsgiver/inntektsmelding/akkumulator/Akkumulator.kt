@@ -27,8 +27,9 @@ class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: Re
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandKey("@løsning")
                 it.requireKey("@id")
+                it.requireKey("@behov")
+                it.demandKey("@løsning")
             }
         }.register(this)
     }

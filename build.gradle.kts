@@ -99,6 +99,14 @@ allprojects {
     dependencies {
         if (!erFellesmodul()) implementation(project(":felles"))
 
+        implementation("no.nav.helsearbeidsgiver:brreg-client:0.2.0")
+        implementation("io.ktor:ktor-client-core:$ktorVersion")
+        implementation("io.ktor:ktor-client-cio:$ktorVersion")
+        implementation("io.ktor:ktor-client-json:$ktorVersion")
+        implementation("io.ktor:ktor-client-serialization:$ktorVersion")
+        implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+        implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")

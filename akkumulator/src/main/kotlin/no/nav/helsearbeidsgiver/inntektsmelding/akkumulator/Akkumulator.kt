@@ -34,6 +34,7 @@ class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: Re
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        sikkerlogg.info("Akkumulerer pakke $packet")
         val id = packet["@id"].asText()
         val behov = packet["@behov"].asText()
         val løsning = packet["@løsning"].toString()

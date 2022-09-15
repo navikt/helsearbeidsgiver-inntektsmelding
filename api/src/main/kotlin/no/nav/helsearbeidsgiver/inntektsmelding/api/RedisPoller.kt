@@ -22,7 +22,7 @@ class RedisPoller(val redisClient: RedisClient) {
                 }
             }
         }
-        throw TimeoutException("Klarte ikke hente ut verdier!")
+        throw TimeoutException("Klarte ikke hente verdi for $key")
     }
 
     fun shutdown() {

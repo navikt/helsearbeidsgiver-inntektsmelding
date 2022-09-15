@@ -35,20 +35,17 @@ class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: Re
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val id = packet["@id"].asText()
-        logger.info("Akkumulerer løsning med id $id")
-
+        val behov = packet["@behov"].asText()
         val løsning = packet["@løsning"].toString()
-
+        logger.info("Akkumulerer id=$id behov=$behov løsning=$løsning")
         val løsninger = redisStore.get(id)
-
         if (løsninger.isNullOrEmpty()) {
-            redisStore.set(id, løsning)
+            redisStore.set(id, løsning, 600)
         } else {
             // TODO: slå sammen løsninger og løsning på en god måte
             val sammenslåtteLøsninger = json.decodeFromString<Løsere>(løsning)
                 .merge(json.decodeFromString(løsninger))
-
-            redisStore.set(id, json.encodeToString(sammenslåtteLøsninger))
+            redisStore.set(id, json.encodeToString(sammenslåtteLøsninger), 600)
         }
     }
 

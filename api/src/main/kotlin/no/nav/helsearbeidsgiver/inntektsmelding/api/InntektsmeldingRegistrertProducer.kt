@@ -20,7 +20,8 @@ class InntektsmeldingRegistrertProducer(
             )
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())
-        logger.info("Publiserte til kafka id=$uuid json=${packet.toJson()}")
+        logger.info("Publiserte til kafka id=$uuid")
+        sikkerlogg.info("Publiserte til kafka id=$uuid json=${packet.toJson()}")
         return uuid.toString()
     }
 }

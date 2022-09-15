@@ -21,7 +21,7 @@ class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: B
             validate {
                 it.demandAll("@behov", listOf(behov))
                 it.requireKey("@id")
-                it.requireKey("inntektsmelding.orgnrUnderenhet")
+                it.requireKey("orgnrUnderenhet")
                 it.rejectKey("@løsning")
             }
         }.register(this)
@@ -29,7 +29,7 @@ class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: B
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Løser behov $behov med id ${packet["@id"].asText()}")
-        val løsning = brregClient.getVirksomhetsNavn(packet["inntektsmelding.orgnrUnderenhet"].asText())
+        val løsning = brregClient.getVirksomhetsNavn(packet["orgnrUnderenhet"].asText())
         packet.setLøsning(behov, løsning)
         context.publish(packet.toJson())
     }

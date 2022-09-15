@@ -16,7 +16,9 @@ class InntektsmeldingRegistrertProducer(
                 "@behov" to listOf("BrregLøser", "PdlLøser"),
                 "@id" to uuid,
                 "@opprettet" to LocalDateTime.now(),
-                "inntektsmelding" to request
+                "inntektsmelding" to request,
+                "orgnrUnderenhet" to request.orgnrUnderenhet,
+                "identitetsnummer" to request.identitetsnummer,
             )
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())

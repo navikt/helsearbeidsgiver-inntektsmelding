@@ -23,7 +23,7 @@ class PdlLøser(
             validate {
                 it.demandAll("@behov", listOf(behov))
                 it.requireKey("@id")
-                it.requireKey("inntektsmelding.identitetsnummer")
+                it.requireKey("identitetsnummer")
                 it.rejectKey("@løsning")
             }
         }.register(this)

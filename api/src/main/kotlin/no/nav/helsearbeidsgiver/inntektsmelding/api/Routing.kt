@@ -9,7 +9,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.lettuce.core.RedisClient
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mock.mockOrganisasjoner
-import java.util.concurrent.TimeoutException
 
 fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
     install(ContentNegotiation) {
@@ -37,14 +36,16 @@ fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
                     request.validate()
                     logger.info("Publiser til Rapid")
                     val uuid = producer.publish(request)
-                    val redisUrl = "helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local"
+                    val redisUrl = "helsearbeidsgiver-redis"
                     val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"))
-                    try {
-                        poller.getValue(uuid, 5, 500)
-                        call.respond(HttpStatusCode.Created, "Opprettet")
-                    } catch (ex: TimeoutException) {
-                        call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")
-                    }
+                    poller.getValue(uuid, 5, 500)
+                    call.respond(HttpStatusCode.Created, "Opprettet")
+//                    try {
+//                        poller.getValue(uuid, 5, 500)
+//                        call.respond(HttpStatusCode.Created, "Opprettet")
+//                    } catch (ex: TimeoutException) {
+//                        call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")
+//                    }
                     poller.shutdown()
                 }
             }

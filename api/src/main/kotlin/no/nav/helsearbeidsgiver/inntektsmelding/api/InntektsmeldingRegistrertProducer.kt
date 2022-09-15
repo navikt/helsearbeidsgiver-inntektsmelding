@@ -16,6 +16,7 @@ class InntektsmeldingRegistrertProducer(
                 "@behov" to listOf("BrregLøser", "PdlLøser"),
                 "@id" to uuid,
                 "@opprettet" to LocalDateTime.now(),
+                "uuid" to uuid,
                 "inntektsmelding" to request,
                 "orgnrUnderenhet" to request.orgnrUnderenhet,
                 "identitetsnummer" to request.identitetsnummer,

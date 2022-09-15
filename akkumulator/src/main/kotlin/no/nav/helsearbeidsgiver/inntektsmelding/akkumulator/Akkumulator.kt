@@ -28,6 +28,7 @@ class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: Re
         River(rapidsConnection).apply {
             validate {
                 it.requireKey("@id")
+                it.requireKey("uuid")
                 it.requireKey("@behov")
                 it.demandKey("@løsning")
             }
@@ -36,18 +37,19 @@ class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: Re
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerlogg.info("Akkumulerer pakke $packet")
+        val uuid = packet["uuid"].asText()
         val id = packet["@id"].asText()
         val behov = packet["@behov"].asText()
         val løsning = packet["@løsning"].toString()
         logger.info("Akkumulerer id=$id behov=$behov løsning=$løsning")
-        val løsninger = redisStore.get(id)
+        val løsninger = redisStore.get(uuid)
         if (løsninger.isNullOrEmpty()) {
-            redisStore.set(id, løsning, 600)
+            redisStore.set(uuid, løsning, 600)
         } else {
             // TODO: slå sammen løsninger og løsning på en god måte
             val sammenslåtteLøsninger = json.decodeFromString<Løsere>(løsning)
                 .merge(json.decodeFromString(løsninger))
-            redisStore.set(id, json.encodeToString(sammenslåtteLøsninger), 600)
+            redisStore.set(uuid, json.encodeToString(sammenslåtteLøsninger), 600)
         }
     }
 

@@ -15,8 +15,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattPeriode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyllRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltProducer
 
-fun Route.Preutfylling(){
+fun Route.Preutfylling(producer: PreutfyltProducer, redisUrl: String) {
     route("/preutfyll") {
         post {
             val request = call.receive<PreutfyllRequest>()
@@ -35,6 +36,7 @@ fun Route.Preutfylling(){
                 arbeidsforhold = listOf(MottattArbeidsforhold("1", "test", 100.0f))
             )
             call.respond(HttpStatusCode.OK, Json.encodeToString(response))
+            producer.publish(request)
         }
     }
 }

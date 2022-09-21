@@ -8,7 +8,7 @@ import java.util.*
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 
-class InntektsmeldingRegistrertProducer(
+class InnsendingProducer(
     private val rapidsConnection: RapidsConnection
 ) {
     fun publish(request: InntektsmeldingRequest): String {

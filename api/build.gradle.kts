@@ -3,7 +3,12 @@ val altinnVersion: String by project
 val valiktorVersion: String by project
 val lettuceVersion: String by project
 
+plugins {
+    kotlin("plugin.serialization") version "1.7.10"
+}
+
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")

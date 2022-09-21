@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MottattHistoriskInntekt(
     val maanedsnavn: String,
-    val inntekt: Number
+    val inntekt: Long
 )

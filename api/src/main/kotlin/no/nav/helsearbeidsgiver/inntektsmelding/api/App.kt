@@ -10,6 +10,7 @@ import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsending
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.Preutfylling
 import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

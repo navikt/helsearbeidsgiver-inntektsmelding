@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api
+package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -10,19 +10,17 @@ import io.ktor.server.routing.route
 import java.time.LocalDate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.Inntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.PreutfyltResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattPeriode
-import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyllRequest
-import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltProducer
 
 fun Route.Preutfylling(producer: PreutfyltProducer, redisUrl: String) {
     route("/preutfyll") {
         post {
             val request = call.receive<PreutfyllRequest>()
             request.validate()
-            val response = Inntektsmelding(
+            val response = PreutfyltResponse(
                 navn = "Ola Normann",
                 identitetsnummer = request.identitetsnummer,
                 virksomhetsnavn = "Norge AS",

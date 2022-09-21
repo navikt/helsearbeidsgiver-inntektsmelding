@@ -4,7 +4,7 @@ import java.time.LocalDate
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Inntektsmelding(
+data class PreutfyltResponse(
     val navn: String,
     val identitetsnummer: String,
     val virksomhetsnavn: String,

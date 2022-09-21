@@ -44,14 +44,14 @@ class Akkumulator(
         behovListe.forEach {
             val v = packet["@løsning"].get(it)
             if (v != null) {
-                redisStore.set(getRedisKey(uuid,it), v.asText(), timeout)
+                redisStore.set(getRedisKey(uuid, it), v.asText(), timeout)
             }
         }
 
         // Sjekk behov opp mot lagret i Redis
-        val komplettMap = mutableMapOf<String,String>()
+        val komplettMap = mutableMapOf<String, String>()
         behovListe.forEach {
-            val stored = redisStore.get(getRedisKey(uuid,it))
+            val stored = redisStore.get(getRedisKey(uuid, it))
             komplettMap.put(it, stored ?: "")
         }
 
@@ -67,5 +67,4 @@ class Akkumulator(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {}
-
 }

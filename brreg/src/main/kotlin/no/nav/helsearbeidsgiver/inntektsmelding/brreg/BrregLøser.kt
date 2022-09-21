@@ -6,20 +6,18 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
+import no.nav.helsearbeidsgiver.felles.Behov
 import org.slf4j.LoggerFactory
 
 class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient) : River.PacketListener {
 
-    companion object {
-        internal const val behov = "BrregLøser"
-    }
-
     private val logger = LoggerFactory.getLogger(this::class.java)
+    private val BEHOV = Behov.VIRKSOMHET.name
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", listOf(behov))
+                it.demandAll("@behov", listOf(BEHOV))
                 it.requireKey("@id")
                 it.requireKey("orgnrUnderenhet")
                 it.rejectKey("@løsning")
@@ -28,9 +26,9 @@ class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: B
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Løser behov $behov med id ${packet["@id"].asText()}")
+        logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
         val løsning = brregClient.getVirksomhetsNavn(packet["orgnrUnderenhet"].asText())
-        packet.setLøsning(behov, løsning)
+        packet.setLøsning(BEHOV, løsning)
         context.publish(packet.toJson())
     }
 

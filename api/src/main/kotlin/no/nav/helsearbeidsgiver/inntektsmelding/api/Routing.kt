@@ -8,8 +8,8 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.lettuce.core.RedisClient
-import java.util.concurrent.TimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mock.mockOrganisasjoner
+import java.util.concurrent.TimeoutException
 
 fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
     install(ContentNegotiation) {

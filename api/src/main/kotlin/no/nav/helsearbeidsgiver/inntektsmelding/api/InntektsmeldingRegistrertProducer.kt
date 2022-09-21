@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.Behov
 import java.time.LocalDateTime
 import java.util.*
 
@@ -13,7 +14,7 @@ class InntektsmeldingRegistrertProducer(
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 "@event_name" to "inntektsmelding_inn",
-                "@behov" to listOf("BrregLøser", "PdlLøser"),
+                "@behov" to listOf(Behov.VIRKSOMHET.name, Behov.FULLT_NAVN.name),
                 "@id" to uuid,
                 "@opprettet" to LocalDateTime.now(),
                 "uuid" to uuid,

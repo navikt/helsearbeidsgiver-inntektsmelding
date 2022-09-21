@@ -31,6 +31,5 @@ internal fun createApp(environment: Environment): RapidsConnection {
         }
     }
     logger.info("Starting BrregLøser...")
-    PdlLøser(rapidsConnection)
     return rapidsConnection
 }

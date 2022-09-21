@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -9,16 +7,13 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import org.slf4j.LoggerFactory
 
-@Serializable
-data class Løsere(
-    val BrregLøser: String?,
-    val PdlLøser: String?
-)
+class Akkumulator(
+    rapidsConnection: RapidsConnection,
+    private val redisStore: RedisStore,
+    private val timeout: Long = 600
+) : River.PacketListener {
 
-class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: RedisStore) : River.PacketListener {
-    private val logger = LoggerFactory.getLogger(this::class.java)
     val json = Json {
         ignoreUnknownKeys = true
         explicitNulls = false
@@ -29,29 +24,48 @@ class Akkumulator(rapidsConnection: RapidsConnection, private val redisStore: Re
             validate {
                 it.requireKey("@id")
                 it.requireKey("uuid")
-                it.requireKey("@behov")
+                it.requireKey("@behov") //
                 it.demandKey("@løsning")
             }
         }.register(this)
     }
 
+    fun getRedisKey(uuid: String, løser: String): String {
+        return "${uuid}_$løser"
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerlogg.info("Akkumulerer pakke $packet")
+        sikkerlogg.info("Pakke med behov: $packet")
         val uuid = packet["uuid"].asText()
-        val id = packet["@id"].asText()
-        val behov = packet["@behov"].asText()
-        val løsning = packet["@løsning"].toString()
-        logger.info("Akkumulerer id=$id behov=$behov løsning=$løsning")
-        val løsninger = redisStore.get(uuid)
-        if (løsninger.isNullOrEmpty()) {
-            redisStore.set(uuid, løsning, 600)
+        logger.info("Behov: $uuid")
+        val behovListe = packet["@behov"].map { it.asText() }.toList()
+
+        // Skal lagre løsning
+        behovListe.forEach {
+            val v = packet["@løsning"].get(it)
+            if (v != null) {
+                redisStore.set(getRedisKey(uuid,it), v.asText(), timeout)
+            }
+        }
+
+        // Sjekk behov opp mot lagret i Redis
+        val komplettMap = mutableMapOf<String,String>()
+        behovListe.forEach {
+            val stored = redisStore.get(getRedisKey(uuid,it))
+            komplettMap.put(it, stored ?: "")
+        }
+
+        // Er alle behov fylt ut?
+        if (komplettMap.filterValues { it.isBlank() }.isEmpty()) {
+            logger.info("Behov: $uuid er komplett.")
+            val data = json.encodeToString(komplettMap)
+            sikkerlogg.info("Publiserer løsning: $data")
+            redisStore.set(uuid, data, timeout)
         } else {
-            // TODO: slå sammen løsninger og løsning på en god måte
-            val sammenslåtteLøsninger = json.decodeFromString<Løsere>(løsning)
-                .merge(json.decodeFromString(løsninger))
-            redisStore.set(uuid, json.encodeToString(sammenslåtteLøsninger), 600)
+            logger.info("Behov: $uuid er ikke komplett")
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {}
+
 }

@@ -1,11 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -21,15 +18,8 @@ fun main() {
 internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
     val rapidsConnection = RapidApplication.create(environment.raw)
-    val httpClient = HttpClient {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
-    }
-    logger.info("Starting BrregLøser...")
+    val tokenProvider: () -> String = {""}
+    val pdl = PdlClient(environment.pdlUrl, tokenProvider)
+    PdlLøser(rapidsConnection, pdl)
     return rapidsConnection
 }

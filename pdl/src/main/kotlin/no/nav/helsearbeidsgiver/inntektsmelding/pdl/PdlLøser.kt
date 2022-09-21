@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
+import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -32,12 +33,14 @@ class PdlLøser(
         val identitetsnummer = packet["identitetsnummer"].asText()
         sikkerlogg.info("Henter navn for identitetsnummer $identitetsnummer")
         logger.info("Løser  id ${packet["@id"].asText()}")
-        val navn = pdlClient.personNavn(identitetsnummer)?.navn?.firstOrNull()
-        val løsning = "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
-        sikkerlogg.info("Fant navn: $løsning for identitetsnummer: $identitetsnummer")
-        // val løsning = "Navn Navnesen"
-        packet.setLøsning(BEHOV, løsning)
-        context.publish(packet.toJson())
+        runBlocking {
+            val token = ""
+            val navn = pdlClient.personNavn(identitetsnummer, token)?.navn?.firstOrNull()
+            val løsning = "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
+            sikkerlogg.info("Fant navn: $løsning for identitetsnummer: $identitetsnummer")
+            packet.setLøsning(BEHOV, løsning)
+            context.publish(packet.toJson())
+        }
     }
 
     private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {

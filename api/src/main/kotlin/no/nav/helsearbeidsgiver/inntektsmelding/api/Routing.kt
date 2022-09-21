@@ -8,8 +8,15 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.lettuce.core.RedisClient
+import java.time.LocalDate
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mock.mockOrganisasjoner
 import java.util.concurrent.TimeoutException
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.Inntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattArbeidsforhold
+import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattHistoriskInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattPeriode
 
 fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
     install(ContentNegotiation) {
@@ -46,6 +53,25 @@ fun Application.configureRouting(producer: InntektsmeldingRegistrertProducer) {
                         call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")
                     }
                     poller.shutdown()
+                }
+            }
+            route("/preutfyll") {
+                post {
+                    val request = call.receive<InntektsmeldingRequest>()
+                    val response = Inntektsmelding(
+                        navn = "Ola Normann",
+                        identitetsnummer = request.identitetsnummer,
+                        virksomhetsnavn = "Norge AS",
+                        orgnrUnderenhet = request.orgnrUnderenhet,
+                        fravaersperiode = listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))),
+                        egenmeldingsperioder = listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))),
+                        bruttoinntekt = 1000,
+                        tidligereinntekt = listOf(MottattHistoriskInntekt("Januar", 1)),
+                        behandlingsdager = listOf(LocalDate.of(2022, 1, 1)),
+                        behandlingsperiode = MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)),
+                        arbeidsforhold = listOf(MottattArbeidsforhold("1", "test", 100.0f))
+                    )
+                    call.respond(HttpStatusCode.OK, Json.encodeToString(response))
                 }
             }
         }

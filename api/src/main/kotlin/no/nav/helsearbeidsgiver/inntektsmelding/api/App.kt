@@ -1,8 +1,14 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.application.install
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InntektsmeldingRegistrertProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -14,7 +20,18 @@ fun main() {
     RapidApplication.create(env).apply {
         val producer = InntektsmeldingRegistrertProducer(this)
         embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
-            configureRouting(producer)
+            install(ContentNegotiation) {
+                jackson()
+            }
+            Helsesjekker()
+            Welcome()
+            routing {
+                route("/api/v1") {
+                    Arbeidsgiver()
+                    Innsending(producer)
+                    Preutfylling()
+                }
+            }
         }.start(wait = true)
     }.start()
 }

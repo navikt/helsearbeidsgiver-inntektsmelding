@@ -3,6 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InntektsmeldingRegistrertProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InntektsmeldingRequest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

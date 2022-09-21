@@ -1,10 +1,12 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api
+package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Behov
 import java.time.LocalDateTime
 import java.util.*
+import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 
 class InntektsmeldingRegistrertProducer(
     private val rapidsConnection: RapidsConnection

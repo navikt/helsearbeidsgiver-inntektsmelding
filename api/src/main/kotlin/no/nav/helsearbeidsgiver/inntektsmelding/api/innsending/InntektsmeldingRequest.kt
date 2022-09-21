@@ -1,10 +1,8 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api
+package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import kotlinx.serialization.Serializable
 import org.valiktor.functions.isNotEmpty
 import org.valiktor.validate
 
-@Serializable
 data class InntektsmeldingRequest(
     val orgnrUnderenhet: String,
     val identitetsnummer: String

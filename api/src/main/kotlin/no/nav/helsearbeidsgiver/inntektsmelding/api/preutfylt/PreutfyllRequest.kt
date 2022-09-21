@@ -1,8 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
+import kotlinx.serialization.Serializable
 import org.valiktor.functions.isNotEmpty
 import org.valiktor.validate
 
+@Serializable
 data class PreutfyllRequest(
     val orgnrUnderenhet: String,
     val identitetsnummer: String

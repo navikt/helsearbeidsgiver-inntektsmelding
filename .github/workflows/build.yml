@@ -9,6 +9,7 @@ env:
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
   RESOURCE: config/nais.yml
   TEAM: helsearbeidsgiver
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -128,7 +129,7 @@ jobs:
       - name: check if docker image exists
         id: docker-exists
         run: |
-          layers=$(curl -X GET https://docker.pkg.github.com/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.tag }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
+          layers=$(curl -X GET https://docker.pkg.github.com/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.tag }} -u $GITHUB_ACTOR:$GITHUB_TOKEN | jq '.layers')
           if [ "$layers" == 'null' ]; then
             echo "::set-output name=exists::false"
           else

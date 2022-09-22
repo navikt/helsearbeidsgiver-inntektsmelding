@@ -23,8 +23,8 @@ fun oAuth2TokenProvider(environment: Environment): OAuth2TokenProvider {
     )
     val clientPropertiesConfig = with(environment) {
         ClientProperties(
-            URI(tokenEndpointUrl),
-            URI(wellknownUrl),
+            URI(azureTokenEndpointUrl),
+            URI(azureWellknownUrl),
             OAuth2GrantType("client_credentials"),
             scope.split(","),
             ClientAuthenticationProperties(

@@ -6,7 +6,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 
-fun Application.Helsesjekker() {
+fun Application.helsesjekkerRouting() {
     routing {
         get("isalive") {
             call.respondText("I'm alive")

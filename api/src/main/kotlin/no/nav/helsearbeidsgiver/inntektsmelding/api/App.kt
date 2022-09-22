@@ -1,16 +1,19 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.ktor.serialization.jackson.jackson
+import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsending
-import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.Preutfylling
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.preutfyltRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -30,13 +33,16 @@ fun main() {
             install(ContentNegotiation) {
                 jackson()
             }
-            Helsesjekker()
-            Welcome()
+            helsesjekkerRouting()
+
             routing {
+                get("/") {
+                    call.respondText("helsearbeidsgiver-im")
+                }
                 route("/api/v1") {
-                    Arbeidsgiver()
-                    innsending(innsendingProducer, redisUrl)
-                    Preutfylling(preutfyltProducer, redisUrl)
+                    arbeidsgiverRoute()
+                    innsendingRoute(innsendingProducer, redisUrl)
+                    preutfyltRoute(preutfyltProducer, redisUrl)
                 }
             }
         }.start(wait = true)

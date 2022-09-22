@@ -7,7 +7,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mock.mockOrganisasjoner
 
-fun Route.Arbeidsgiver() {
+fun Route.arbeidsgiverRoute() {
     route("/arbeidsgivere") {
         get {
             call.respond(mockOrganisasjoner())

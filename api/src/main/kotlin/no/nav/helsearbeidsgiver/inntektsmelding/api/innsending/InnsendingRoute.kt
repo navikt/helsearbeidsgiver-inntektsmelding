@@ -10,9 +10,10 @@ import io.ktor.server.routing.route
 import io.lettuce.core.RedisClient
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import java.util.concurrent.TimeoutException
 
-fun Route.innsending(producer: InnsendingProducer, redisUrl: String) {
+fun Route.innsendingRoute(producer: InnsendingProducer, redisUrl: String) {
     route("/inntektsmelding") {
         post {
             val request = call.receive<InntektsmeldingRequest>()
@@ -23,6 +24,7 @@ fun Route.innsending(producer: InnsendingProducer, redisUrl: String) {
             val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"))
             try {
                 val value = poller.getValue(uuid, 5, 500)
+                sikkerlogg.info("Fikk value: $value")
                 call.respond(HttpStatusCode.Created, value)
             } catch (ex: TimeoutException) {
                 call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")

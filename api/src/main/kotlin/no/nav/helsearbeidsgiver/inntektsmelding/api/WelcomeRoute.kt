@@ -6,7 +6,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 
-fun Application.Welcome(){
+fun Application.Welcome() {
     routing {
         get("/") {
             call.respondText("helsearbeidsgiver-im")

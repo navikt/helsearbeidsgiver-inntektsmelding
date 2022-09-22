@@ -18,7 +18,7 @@ fun main() {
 internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
     val rapidsConnection = RapidApplication.create(environment.raw)
-    val tokenProvider: () -> String = {""}
+    val tokenProvider: () -> String = { "" }
     val pdl = PdlClient(environment.pdlUrl, tokenProvider)
     PdlLøser(rapidsConnection, pdl)
     return rapidsConnection

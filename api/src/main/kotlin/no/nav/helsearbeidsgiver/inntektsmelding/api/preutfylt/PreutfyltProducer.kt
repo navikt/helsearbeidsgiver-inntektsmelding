@@ -3,10 +3,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Behov
-import java.time.LocalDateTime
-import java.util.*
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import java.time.LocalDateTime
+import java.util.*
 
 class PreutfyltProducer(
     private val rapidsConnection: RapidsConnection

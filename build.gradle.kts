@@ -1,128 +1,26 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val githubPassword: String by project
-val jvmTargetVersion: String by project
-val gradleWrapperVersion: String by project
-val junitJupiterVersion: String by project
-val rapidsAndRiversVersion: String by project
-val ktorVersion: String by project
-val mockkVersion: String by project
-
 plugins {
-    kotlin("jvm") version "1.7.20-RC"
-    id("org.jmailen.kotlinter") version "3.10.0"
+    kotlin("jvm")
+    id("org.jmailen.kotlinter")
 }
 
 buildscript {
     repositories {
         mavenCentral()
     }
-    dependencies { "classpath"(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.13.2.2") }
-}
-
-val mapper = ObjectMapper()
-
-fun getBuildableProjects(): List<Project> {
-    val changedFiles = System.getenv("CHANGED_FILES")?.split(",") ?: emptyList()
-    val commonChanges = changedFiles.any {
-        it.startsWith("felles/") || it.contains("config/nais.yml") ||
-            it.startsWith("build.gradle.kts") || it == ".github/workflows/build.yml" ||
-            it == "Dockerfile"
-    }
-    if (changedFiles.isEmpty() || commonChanges) return subprojects.toList()
-    return subprojects.filter { project -> changedFiles.any { path -> path.contains("${project.name}/") } }
-}
-
-fun getDeployableProjects() = getBuildableProjects()
-    .filter { project -> File("config", project.name).isDirectory }
-
-tasks.create("buildMatrix") {
-    doLast {
-        println(
-            mapper.writeValueAsString(
-                mapOf(
-                    "project" to getBuildableProjects().map { it.name }
-                )
-            )
-        )
-    }
-}
-tasks.create("deployMatrix") {
-    doLast {
-        // map of cluster to list of apps
-        val deployableProjects = getDeployableProjects().map { it.name }
-        val environments = deployableProjects
-            .map { project ->
-                project to (
-                    File("config", project)
-                        .listFiles()
-                        ?.filter { it.isFile && it.name.endsWith(".yml") }
-                        ?.map { it.name.removeSuffix(".yml") }
-                        ?: emptyList()
-                    )
-            }.toMap()
-
-        val clusters = environments.flatMap { it.value }.distinct()
-        val exclusions = environments
-            .mapValues { (_, configs) ->
-                clusters.filterNot { it in configs }
-            }
-            .filterValues { it.isNotEmpty() }
-            .flatMap { (app, clusters) ->
-                clusters.map { cluster ->
-                    mapOf(
-                        "project" to app,
-                        "cluster" to cluster
-                    )
-                }
-            }
-
-        println(
-            mapper.writeValueAsString(
-                mapOf(
-                    "cluster" to clusters,
-                    "project" to deployableProjects,
-                    "exclude" to exclusions
-                )
-            )
-        )
+    dependencies {
+        classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4")
     }
 }
 
 allprojects {
-    group = "no.nav.helsearbeidsgiver.inntektsmelding"
-    version = properties["version"] ?: "local-build"
-
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-
-    dependencies {
-        if (!erFellesmodul()) implementation(project(":felles"))
-        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-    }
-
-    repositories {
-        maven("https://packages.confluent.io/maven/")
-        maven("https://oss.sonatype.org")
-        maven("https://jitpack.io")
-        mavenCentral()
-        maven {
-            credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: "x-access-token"
-                password = System.getenv("GITHUB_TOKEN") ?: githubPassword
-            }
-            setUrl("https://maven.pkg.github.com/navikt/*")
-        }
-    }
-
     tasks {
-        withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = jvmTargetVersion
-        }
+        val jvmTargetVersion: String by project
+        val gradleWrapperVersion: String by project
 
-        named<KotlinCompile>("compileTestKotlin") {
+        withType<KotlinCompile> {
             kotlinOptions.jvmTarget = jvmTargetVersion
         }
 
@@ -137,17 +35,33 @@ allprojects {
             }
         }
     }
+
+    repositories {
+        val githubPassword: String by project
+
+        maven("https://packages.confluent.io/maven/")
+        maven("https://oss.sonatype.org")
+        maven("https://jitpack.io")
+        mavenCentral()
+        maven {
+            setUrl("https://maven.pkg.github.com/navikt/*")
+            credentials {
+                username = "x-access-token"
+                password = githubPassword
+            }
+        }
+    }
 }
 
 subprojects {
-    ext {
-        set("ktorVersion", ktorVersion)
-        set("rapidsAndRiversVersion", rapidsAndRiversVersion)
-    }
-    dependencies {
-        testImplementation("io.mockk:mockk:$mockkVersion")
-        testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
-    }
+    group = "no.nav.helsearbeidsgiver.inntektsmelding"
+    version = properties["version"] ?: "local-build"
+
+    applyPlugins(
+        "org.jetbrains.kotlin.jvm",
+        "org.jmailen.kotlinter"
+    )
+
     tasks {
         if (!project.erFellesmodul()) {
             named<Jar>("jar") {
@@ -156,11 +70,7 @@ subprojects {
                 val mainClass = project.mainClass()
 
                 doLast {
-                    val mainClassFound = this.project.sourceSets.findByName("main")?.let {
-                        it.output.classesDirs.asFileTree.any { it.path.contains(mainClass.replace(".", File.separator)) }
-                    } ?: false
-
-                    if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
+                    validateMainClassFound(mainClass)
                 }
 
                 manifest {
@@ -169,19 +79,155 @@ subprojects {
                 }
 
                 doLast {
-                    configurations.runtimeClasspath.get().forEach {
-                        val file = File("$buildDir/libs/${it.name}")
-                        if (!file.exists()) {
-                            it.copyTo(file)
-                        }
+                    configurations.runtimeClasspath.get().forEach { file ->
+                        File("$buildDir/libs/${file.name}")
+                            .takeUnless(File::exists)
+                            ?.let(file::copyTo)
                     }
                 }
             }
         }
     }
+
+    val junitJupiterVersion: String by project
+    val ktorVersion: String by project
+    val mockkVersion: String by project
+    val rapidsAndRiversVersion: String by project
+
+    ext {
+        set("ktorVersion", ktorVersion)
+        set("rapidsAndRiversVersion", rapidsAndRiversVersion)
+    }
+
+    dependencies {
+        if (!erFellesmodul())
+            implementation(project(":felles"))
+
+        testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
+        testImplementation("io.mockk:mockk:$mockkVersion")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+        testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+    }
+}
+
+tasks {
+    val mapper = ObjectMapper()
+
+    create("buildMatrix") {
+        doLast {
+            mapper.asString(
+                "project" to getBuildableProjects()
+            )
+                .also(::println)
+        }
+    }
+
+    create("deployMatrix") {
+        doLast {
+            val (
+                deployableProjects,
+                clusters,
+                exclusions,
+            ) = getDeployMatrixVariables()
+
+            mapper.asString(
+                "cluster" to clusters,
+                "project" to deployableProjects,
+                "exclude" to exclusions
+            )
+                .also(::println)
+        }
+    }
+}
+
+fun getBuildableProjects(): List<String> {
+    val changedFiles = System.getenv("CHANGED_FILES")
+        ?.split(",")
+        .orEmpty()
+
+    val hasCommonChanges = changedFiles.any {
+        it.startsWith("felles/") ||
+            it.startsWith("build.gradle.kts") ||
+            it.contains("config/nais.yml") ||
+            it == ".github/workflows/build.yml" ||
+            it == "Dockerfile"
+    }
+
+    return subprojects.map { it.name }
+        .let { projects ->
+            if (hasCommonChanges) projects.toList()
+            else projects.filter { changedFiles.anyContains("$it/") }
+        }
+}
+
+fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Map<String, String>>> {
+    // map of cluster to list of apps
+    val deployableProjects = getBuildableProjects().filter { File("config", it).isDirectory }
+
+    val environments = deployableProjects.associateWith { project ->
+        File("config", project)
+            .listFiles()
+            ?.filter { it.isFile && it.name.endsWith(".yml") }
+            ?.map { it.name.removeSuffix(".yml") }
+            ?.toSet()
+            .orEmpty()
+    }
+
+    val clusters = environments.values.flatten().toSet()
+
+    val exclusions = environments
+        .mapValues { (_, configs) ->
+            clusters.subtract(configs)
+        }
+        .filterValues { it.isNotEmpty() }
+        .flatMap { (project, excludedClusters) ->
+            excludedClusters.map {
+                mapOf(
+                    "project" to project,
+                    "cluster" to it
+                )
+            }
+        }
+
+    return Triple(
+        deployableProjects,
+        clusters,
+        exclusions
+    )
+}
+
+fun PluginAware.applyPlugins(vararg ids: String) {
+    ids.forEach {
+        apply(plugin = it)
+    }
+}
+
+fun Task.validateMainClassFound(mainClass: String) {
+    val mainClassOsSpecific = mainClass.replace(".", File.separator)
+
+    val mainClassFound = this.project.sourceSets
+        .findByName("main")
+        ?.output
+        ?.classesDirs
+        ?.asFileTree
+        ?.map { it.path }
+        ?.anyContains(mainClassOsSpecific)
+        ?: false
+
+    if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
 }
 
 fun Project.mainClass() =
     "$group.${name.replace("-", "")}.AppKt"
 
-fun Project.erFellesmodul() = name == "felles"
+fun Project.erFellesmodul() =
+    name == "felles"
+
+fun ObjectMapper.asString(vararg keyValuePairs: Pair<String, Any>): String =
+    writeValueAsString(
+        mapOf(*keyValuePairs)
+    )
+
+fun List<String>.anyContains(other: String): Boolean =
+    this.any { it.contains(other) }

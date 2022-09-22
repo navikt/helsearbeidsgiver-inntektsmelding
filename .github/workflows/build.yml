@@ -10,6 +10,7 @@ env:
   RESOURCE: config/nais.yml
   TEAM: helsearbeidsgiver
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   generate_vars:
@@ -115,8 +116,6 @@ jobs:
         run: |
           echo $GITHUB_TOKEN | docker login --username $GITHUB_REPOSITORY --password-stdin https://docker.pkg.github.com
           docker push $IMAGE
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     needs: [generate_vars, build]
@@ -130,7 +129,7 @@ jobs:
       - name: check if docker image exists
         id: docker-exists
         run: |
-          layers=$(curl -X GET https://docker.pkg.github.com/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.tag }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
+          layers=$(curl -X GET https://docker.pkg.github.com/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.tag }} -u $GITHUB_ACTOR:$GITHUB_TOKEN | jq '.layers')
           if [ "$layers" == 'null' ]; then
             echo "::set-output name=exists::false"
           else

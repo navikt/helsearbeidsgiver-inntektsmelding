@@ -9,7 +9,7 @@ env:
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
   RESOURCE: config/nais.yml
   TEAM: helsearbeidsgiver
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   generate_vars:
@@ -115,8 +115,6 @@ jobs:
         run: |
           echo $GITHUB_TOKEN | docker login --username $GITHUB_REPOSITORY --password-stdin https://docker.pkg.github.com
           docker push $IMAGE
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     needs: [generate_vars, build]

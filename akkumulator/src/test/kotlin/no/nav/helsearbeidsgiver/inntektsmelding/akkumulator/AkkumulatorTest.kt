@@ -30,7 +30,6 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal behandle errors i løsninger`() {
-
     }
 
     @Test

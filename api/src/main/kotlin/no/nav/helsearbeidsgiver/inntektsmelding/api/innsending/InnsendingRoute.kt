@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import java.util.concurrent.TimeoutException
 
-fun Route.innsending(producer: InnsendingProducer, redisUrl: String) {
+fun Route.innsendingRoute(producer: InnsendingProducer, redisUrl: String) {
     route("/inntektsmelding") {
         post {
             val request = call.receive<InntektsmeldingRequest>()

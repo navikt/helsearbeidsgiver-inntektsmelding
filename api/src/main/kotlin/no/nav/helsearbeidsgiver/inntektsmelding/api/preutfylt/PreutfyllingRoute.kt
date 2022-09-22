@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattPeriode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.PreutfyltResponse
 import java.time.LocalDate
 
-fun Route.Preutfylling(producer: PreutfyltProducer, redisUrl: String) {
+fun Route.preutfyltRoute(producer: PreutfyltProducer, redisUrl: String) {
     route("/preutfyll") {
         post {
             val request = call.receive<PreutfyllRequest>()

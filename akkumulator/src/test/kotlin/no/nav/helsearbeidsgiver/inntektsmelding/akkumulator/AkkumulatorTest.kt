@@ -29,6 +29,11 @@ internal class AkkumulatorTest {
     }
 
     @Test
+    fun `skal behandle errors i løsninger`() {
+
+    }
+
+    @Test
     fun `skal behandle komplett løsning`() {
         every { redisStore.get("uuid_BrregLøser") } returns "Brreg-001"
         every { redisStore.get("uuid_PdlLøser") } returns "Pdl-001"

@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class PreutfyltProducer(
     private val rapidsConnection: RapidsConnection
@@ -21,7 +21,7 @@ class PreutfyltProducer(
                 "@opprettet" to LocalDateTime.now(),
                 "uuid" to uuid,
                 "orgnrUnderenhet" to request.orgnrUnderenhet,
-                "identitetsnummer" to request.identitetsnummer,
+                "identitetsnummer" to request.identitetsnummer
             )
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())

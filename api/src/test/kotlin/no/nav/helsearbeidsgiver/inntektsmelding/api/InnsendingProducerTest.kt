@@ -5,7 +5,7 @@ import io.mockk.mockk
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InntektsmeldingRequest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 internal class InnsendingProducerTest {

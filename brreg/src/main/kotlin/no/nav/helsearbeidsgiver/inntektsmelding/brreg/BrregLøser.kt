@@ -7,6 +7,8 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.Behov
+import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Løsning
 import org.slf4j.LoggerFactory
 
 class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient) : River.PacketListener {
@@ -27,9 +29,18 @@ class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: B
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
-        val løsning = brregClient.getVirksomhetsNavn(packet["orgnrUnderenhet"].asText())
-        packet.setLøsning(BEHOV, løsning)
-        context.publish(packet.toJson())
+        val orgnr = packet["orgnrUnderenhet"].asText()
+        try {
+            val navn = brregClient.getVirksomhetsNavn(orgnr)
+            packet.setLøsning(BEHOV, Løsning(navn))
+            context.publish(packet.toJson())
+            sikkerlogg.info("Fant $navn for $orgnr")
+        } catch (ex: Exception) {
+            packet.setLøsning(BEHOV, Løsning(errors = listOf(Feilmelding("Klarte ikke hente virksomhet"))))
+            sikkerlogg.info("Det oppstod en feil ved henting for $orgnr")
+            sikkerlogg.error(ex.stackTraceToString())
+            context.publish(packet.toJson())
+        }
     }
 
     private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {

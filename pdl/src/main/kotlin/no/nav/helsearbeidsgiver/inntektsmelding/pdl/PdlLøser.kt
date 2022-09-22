@@ -7,6 +7,8 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.Behov
+import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
 
@@ -33,14 +35,25 @@ class PdlLøser(
         val identitetsnummer = packet["identitetsnummer"].asText()
         sikkerlogg.info("Henter navn for identitetsnummer $identitetsnummer")
         logger.info("Løser  id ${packet["@id"].asText()}")
-        runBlocking {
-            val token = ""
-            val navn = pdlClient.personNavn(identitetsnummer, token)?.navn?.firstOrNull()
-            val løsning = "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
-            sikkerlogg.info("Fant navn: $løsning for identitetsnummer: $identitetsnummer")
-            packet.setLøsning(BEHOV, løsning)
+        val token = ""
+        try {
+            val fulltNavn = runBlocking {
+                hentNavn(identitetsnummer, token)
+            }
+            sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
+            packet.setLøsning(BEHOV, Løsning(fulltNavn))
+            context.publish(packet.toJson())
+        } catch (ex: Exception) {
+            packet.setLøsning(BEHOV, Løsning(errors = listOf(Feilmelding("Klarte ikke hente navn"))))
+            sikkerlogg.info("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer")
+            sikkerlogg.error(ex.stackTraceToString())
             context.publish(packet.toJson())
         }
+    }
+
+    suspend fun hentNavn(identitetsnummer: String, token: String): String {
+        val navn = pdlClient.personNavn(identitetsnummer, token)?.navn?.firstOrNull()
+        return "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
     }
 
     private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {

@@ -3,10 +3,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Behov
-import java.time.LocalDateTime
-import java.util.*
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import java.time.LocalDateTime
+import java.util.UUID
 
 class InnsendingProducer(
     private val rapidsConnection: RapidsConnection
@@ -22,7 +22,7 @@ class InnsendingProducer(
                 "uuid" to uuid,
                 "inntektsmelding" to request,
                 "orgnrUnderenhet" to request.orgnrUnderenhet,
-                "identitetsnummer" to request.identitetsnummer,
+                "identitetsnummer" to request.identitetsnummer
             )
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())

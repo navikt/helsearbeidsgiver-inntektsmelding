@@ -7,13 +7,13 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import java.time.LocalDate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.PreutfyltResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattPeriode
+import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.PreutfyltResponse
+import java.time.LocalDate
 
 fun Route.Preutfylling(producer: PreutfyltProducer, redisUrl: String) {
     route("/preutfyll") {

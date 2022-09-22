@@ -11,7 +11,7 @@ fun setUpEnvironment(): Environment {
 data class Environment(
     val raw: Map<String, String>,
     val dokarkiv: Dokarkiv,
-    val redis: Redis,
+    val redis: Redis
 )
 
 data class Dokarkiv(

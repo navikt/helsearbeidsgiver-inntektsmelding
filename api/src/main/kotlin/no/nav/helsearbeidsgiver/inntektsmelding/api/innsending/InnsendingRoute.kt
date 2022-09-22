@@ -8,9 +8,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.lettuce.core.RedisClient
-import java.util.concurrent.TimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import java.util.concurrent.TimeoutException
 
 fun Route.innsending(producer: InnsendingProducer, redisUrl: String) {
     route("/inntektsmelding") {

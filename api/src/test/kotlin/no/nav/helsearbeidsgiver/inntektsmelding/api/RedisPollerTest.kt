@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.concurrent.TimeoutException
 import kotlin.test.assertEquals
 
 internal class RedisPollerTest {
@@ -17,7 +16,7 @@ internal class RedisPollerTest {
     @Test
     fun skal_gi_opp_etter_mange_forsøk() {
         runBlocking {
-            assertThrows<TimeoutException> {
+            assertThrows<RedisPollerTimeoutException> {
                 buildPoller(UGYLDIG_LISTE).getValue(FNR, 2, 0)
             }
         }
@@ -26,7 +25,7 @@ internal class RedisPollerTest {
     @Test
     fun skal_ikke_finne_etter_maks_forsøk() {
         runBlocking {
-            assertThrows<TimeoutException> {
+            assertThrows<RedisPollerTimeoutException> {
                 buildPoller(GYLDIG_LISTE).getValue(FNR, 1, 0)
             }
         }

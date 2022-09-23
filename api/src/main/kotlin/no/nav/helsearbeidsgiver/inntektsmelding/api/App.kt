@@ -25,16 +25,15 @@ fun main() {
     val env = System.getenv()
     val redisUrl = "helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local"
     RapidApplication.create(env).apply {
-        //
+        logger.info("Starter InnsendingProducer...")
         val innsendingProducer = InnsendingProducer(this)
+        logger.info("Starter PreutfyltProducer...")
         val preutfyltProducer = PreutfyltProducer(this)
-        //
         embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
             install(ContentNegotiation) {
                 jackson()
             }
             helsesjekkerRouting()
-
             routing {
                 get("/") {
                     call.respondText("helsearbeidsgiver-im")

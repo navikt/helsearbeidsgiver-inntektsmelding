@@ -36,7 +36,7 @@ fun main() {
             helsesjekkerRouting()
             routing {
                 get("/") {
-                    call.respondText("helsearbeidsgiver-im")
+                    call.respondText("helsearbeidsgiver inntektsmelding")
                 }
                 route("/api/v1") {
                     arbeidsgiverRoute()

@@ -4,8 +4,8 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 internal class HelsesjekkerKtTest {
 
@@ -28,5 +28,4 @@ internal class HelsesjekkerKtTest {
         assertEquals("I'm ready", response.bodyAsText())
         assertEquals(HttpStatusCode.OK, response.status)
     }
-
 }

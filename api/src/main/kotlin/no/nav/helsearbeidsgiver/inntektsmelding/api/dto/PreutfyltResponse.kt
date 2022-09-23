@@ -5,7 +5,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.dto
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.inntektsmelding.api.LocalDateSerializer
-import java.time.LocalDate
 
 @Serializable
 data class PreutfyltResponse(
@@ -17,7 +16,6 @@ data class PreutfyltResponse(
     val egenmeldingsperioder: List<MottattPeriode>,
     val bruttoinntekt: Long,
     val tidligereinntekt: List<MottattHistoriskInntekt>,
-    val behandlingsdager: List<LocalDate>,
     val behandlingsperiode: MottattPeriode,
     val arbeidsforhold: List<MottattArbeidsforhold>
 )

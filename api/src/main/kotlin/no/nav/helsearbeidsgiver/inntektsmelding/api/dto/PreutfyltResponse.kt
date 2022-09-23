@@ -21,4 +21,3 @@ data class PreutfyltResponse(
     val behandlingsperiode: MottattPeriode,
     val arbeidsforhold: List<MottattArbeidsforhold>
 )
-

@@ -23,7 +23,7 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api"
 
 fun main() {
     val env = System.getenv()
-    val redisUrl = "helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local"
+    val redisUrl = System.getenv("REDIS_URL")
     RapidApplication.create(env).apply {
         logger.info("Starter InnsendingProducer...")
         val innsendingProducer = InnsendingProducer(this)

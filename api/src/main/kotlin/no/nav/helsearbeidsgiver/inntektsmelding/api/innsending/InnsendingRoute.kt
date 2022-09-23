@@ -27,7 +27,7 @@ fun Route.innsendingRoute(producer: InnsendingProducer, redisUrl: String) {
                 sikkerlogg.info("Fikk value: $value")
                 call.respond(HttpStatusCode.Created, value)
             } catch (ex: TimeoutException) {
-                call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")
+                call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data!")
             } finally {
                 poller.shutdown()
             }

@@ -13,7 +13,7 @@ import no.nav.security.token.support.client.core.oauth2.OnBehalfOfTokenClient
 import no.nav.security.token.support.client.core.oauth2.TokenExchangeClient
 import java.net.URI
 
-fun oAuth2TokenProvider(environment: Environment): OAuth2TokenProvider {
+fun OAuth2ClientConfig(environment: Environment): OAuth2TokenProvider {
     val oauth2HttpClient = DefaultOAuth2HttpClient()
     val oauth2Service = OAuth2AccessTokenService(
         TokenResolver(),

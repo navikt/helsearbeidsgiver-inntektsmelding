@@ -139,35 +139,34 @@ jobs:
       matrix: ${{ fromJSON(needs.generate_vars.outputs.deploy_matrix) }}
     steps:
       - name: Check if docker image exists
-        id: docker-exists
         run: |
-          layers=$(curl -X GET https://$DOCKER_REGISTRY/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
-          if [ "$layers" == 'null' ]; then
-            echo "::set-output name=exists::false"
+          LAYERS=$(curl -X GET https://$DOCKER_REGISTRY/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
+          if [ "$LAYERS" == 'null' ]; then
+            echo "IMAGE_EXISTS=false" >> $GITHUB_ENV
           else
-            echo "::set-output name=exists::true"
+            echo "IMAGE_EXISTS=true" >> $GITHUB_ENV
           fi
 
       - name: Create env vars
-        if: steps.docker-exists.outputs.exists == 'true'
+        if: env.IMAGE_EXISTS == 'true'
         run: |
           VARS_FILE="config/${{ matrix.project }}/${{ matrix.cluster }}.yml"
           echo "VARS=$VARS_FILE" >> $GITHUB_ENV
           echo "IMAGE=$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}" >> $GITHUB_ENV
 
       - name: Fetch sources
-        if: steps.docker-exists.outputs.exists == 'true'
+        if: env.IMAGE_EXISTS == 'true'
         uses: actions/checkout@v3
 
       - name: Check for vars yml
-        if: steps.docker-exists.outputs.exists == 'true'
+        if: env.IMAGE_EXISTS == 'true'
         id: vars_file
         uses: andstor/file-existence-action@v1
         with:
           files: "${{ env.VARS }}"
 
       - name: Deploy
-        if: steps.docker-exists.outputs.exists == 'true' && steps.vars_file.outputs.files_exists == 'true'
+        if: env.IMAGE_EXISTS == 'true' && steps.vars_file.outputs.files_exists == 'true'
         uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}

@@ -118,7 +118,7 @@ jobs:
       - name: Create docker tag
         if: steps.app_jar.outputs.files_exists == 'true'
         run: |
-          echo "IMAGE=$DOCKER_REGISTRY/$DOCKER_IMAGE_PREFIX${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}" >> $GITHUB_ENV
+          echo "IMAGE=$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}" >> $GITHUB_ENV
 
       - name: Build docker image
         if: steps.app_jar.outputs.files_exists == 'true'
@@ -141,7 +141,7 @@ jobs:
       - name: Check if docker image exists
         id: docker-exists
         run: |
-          layers=$(curl -X GET https://$DOCKER_REGISTRY/v2/$DOCKER_IMAGE_PREFIX${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
+          layers=$(curl -X GET https://$DOCKER_REGISTRY/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
           if [ "$layers" == 'null' ]; then
             echo "::set-output name=exists::false"
           else
@@ -153,7 +153,7 @@ jobs:
         run: |
           VARS_FILE="config/${{ matrix.project }}/${{ matrix.cluster }}.yml"
           echo "VARS=$VARS_FILE" >> $GITHUB_ENV
-          echo "IMAGE=$DOCKER_REGISTRY/$DOCKER_IMAGE_PREFIX${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}" >> $GITHUB_ENV
+          echo "IMAGE=$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}" >> $GITHUB_ENV
 
       - name: Fetch sources
         if: steps.docker-exists.outputs.exists == 'true'

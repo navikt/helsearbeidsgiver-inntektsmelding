@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.lettuce.core.RedisClient
 import kotlinx.coroutines.delay
-import java.util.concurrent.TimeoutException
 
 class RedisPoller(val redisClient: RedisClient) {
 
@@ -22,10 +21,14 @@ class RedisPoller(val redisClient: RedisClient) {
                 }
             }
         }
-        throw TimeoutException("Klarte ikke hente verdi for $key")
+        throw RedisPollerTimeoutException(key)
     }
 
     fun shutdown() {
         redisClient.shutdown()
     }
 }
+
+class RedisPollerTimeoutException(uuid: String) : Exception(
+    "Brukte for lang tid på å svare ($uuid)"
+)

@@ -20,18 +20,21 @@ fun Route.preutfyltRoute(producer: PreutfyltProducer, redisUrl: String) {
         post {
             val request = call.receive<PreutfyllRequest>()
             request.validate()
+
+            val map = mutableMapOf<String, List<MottattPeriode>>()
+            map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))))
+
             val response = PreutfyltResponse(
                 navn = "Ola Normann",
                 identitetsnummer = request.identitetsnummer,
                 virksomhetsnavn = "Norge AS",
                 orgnrUnderenhet = request.orgnrUnderenhet,
-                fravaersperiode = listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))),
+                fravaersperiode = map,
                 egenmeldingsperioder = listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))),
                 bruttoinntekt = 1000,
                 tidligereinntekt = listOf(MottattHistoriskInntekt("Januar", 1)),
-                behandlingsdager = listOf(LocalDate.of(2022, 1, 1)),
                 behandlingsperiode = MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)),
-                arbeidsforhold = listOf(MottattArbeidsforhold("1", "test", 100.0f))
+                arbeidsforhold = listOf(MottattArbeidsforhold("arbeidsforhold1", "test", 100.0f))
             )
             call.respond(HttpStatusCode.OK, Json.encodeToString(response))
             producer.publish(request)

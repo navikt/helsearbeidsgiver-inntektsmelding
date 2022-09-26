@@ -100,8 +100,9 @@ subprojects {
     }
 
     dependencies {
-        if (!erFellesmodul())
+        if (!erFellesmodul()) {
             implementation(project(":felles"))
+        }
 
         testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
         testImplementation("io.mockk:mockk:$mockkVersion")
@@ -128,7 +129,7 @@ tasks {
             val (
                 deployableProjects,
                 clusters,
-                exclusions,
+                exclusions
             ) = getDeployMatrixVariables()
 
             mapper.asString(
@@ -156,7 +157,7 @@ fun getBuildableProjects(): List<String> {
 
     return subprojects.map { it.name }
         .let { projects ->
-            if (hasCommonChanges) projects.toList()
+            if (changedFiles.isEmpty() || hasCommonChanges) projects
             else projects.filter { changedFiles.anyContains("$it/") }
         }
 }

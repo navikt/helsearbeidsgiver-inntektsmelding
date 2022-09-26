@@ -7,29 +7,31 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import io.lettuce.core.RedisClient
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
-import java.util.concurrent.TimeoutException
+import org.valiktor.ConstraintViolationException
 
-fun Route.innsendingRoute(producer: InnsendingProducer, redisUrl: String) {
+fun Route.innsendingRoute(producer: InnsendingProducer, poller: RedisPoller) {
     route("/inntektsmelding") {
         post {
             val request = call.receive<InntektsmeldingRequest>()
-            logger.info("Mottok inntektsmelding $request")
-            request.validate()
-            logger.info("Publiser til Rapid")
-            val uuid = producer.publish(request)
-            val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"))
+            sikkerlogg.info("Mottok innsending $request")
             try {
-                val value = poller.getValue(uuid, 5, 500)
-                sikkerlogg.info("Fikk value: $value")
-                call.respond(HttpStatusCode.Created, value)
-            } catch (ex: TimeoutException) {
-                call.respond(HttpStatusCode.InternalServerError, "Klarte ikke hente data")
-            } finally {
-                poller.shutdown()
+                logger.info("Fikk innsending")
+                request.validate()
+                val uuid = producer.publish(request)
+                logger.info("Publiserte til Rapid med uuid: $uuid")
+                val data = poller.getValue(uuid, 5, 500)
+                sikkerlogg.info("Fikk value: $data")
+                call.respond(HttpStatusCode.Created, data)
+            } catch (ex2: ConstraintViolationException) {
+                logger.info("Valideringsfeil!")
+                call.respond(HttpStatusCode.BadRequest, ex2.constraintViolations)
+            } catch (ex: RedisPollerTimeoutException) {
+                logger.info("Fikk timeout!")
+                call.respond(HttpStatusCode.InternalServerError)
             }
         }
     }

@@ -10,6 +10,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import io.lettuce.core.RedisClient
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
@@ -23,25 +24,25 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api"
 
 fun main() {
     val env = System.getenv()
-    val redisUrl = "helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local"
+    val redisUrl = System.getenv("REDIS_URL")
+    val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"))
     RapidApplication.create(env).apply {
-        //
+        logger.info("Starter InnsendingProducer...")
         val innsendingProducer = InnsendingProducer(this)
+        logger.info("Starter PreutfyltProducer...")
         val preutfyltProducer = PreutfyltProducer(this)
-        //
         embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
             install(ContentNegotiation) {
                 jackson()
             }
             helsesjekkerRouting()
-
             routing {
                 get("/") {
-                    call.respondText("helsearbeidsgiver-im")
+                    call.respondText("helsearbeidsgiver inntektsmelding")
                 }
                 route("/api/v1") {
                     arbeidsgiverRoute()
-                    innsendingRoute(innsendingProducer, redisUrl)
+                    innsendingRoute(innsendingProducer, poller)
                     preutfyltRoute(preutfyltProducer, redisUrl)
                 }
             }

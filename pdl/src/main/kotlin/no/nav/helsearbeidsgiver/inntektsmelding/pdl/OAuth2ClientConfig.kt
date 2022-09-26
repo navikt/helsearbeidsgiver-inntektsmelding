@@ -29,7 +29,7 @@ fun OAuth2ClientConfig(environment: Environment): OAuth2TokenProvider {
             scope.split(","),
             ClientAuthenticationProperties(
                 azureAppClientID,
-                ClientAuthenticationMethod("CLIENT_SECRET_POST"),
+                ClientAuthenticationMethod("client_secret_post"),
                 azureAppClientSecret,
                 azureAppJwk
             ),

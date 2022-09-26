@@ -147,29 +147,29 @@ jobs:
             echo "IMAGE_EXISTS=true" >> $GITHUB_ENV
           fi
 
-      - name: Create env vars
-        if: env.IMAGE_EXISTS == 'true'
-        run: |
-          VARS_FILE="config/${{ matrix.project }}/${{ matrix.cluster }}.yml"
-          echo "VARS=$VARS_FILE" >> $GITHUB_ENV
-          echo "IMAGE=$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}" >> $GITHUB_ENV
-
       - name: Fetch sources
         if: env.IMAGE_EXISTS == 'true'
         uses: actions/checkout@v3
 
-      - name: Check for vars yml
+      - name: Determine app configuration file
         if: env.IMAGE_EXISTS == 'true'
-        id: vars_file
+        run: |
+          CONFIG_FILE="config/${{ matrix.project }}/${{ matrix.cluster }}.yml"
+          echo "VARS=$CONFIG_FILE" >> $GITHUB_ENV # VARS-variable is used by nais/deploy/actions/deploy@v1
+
+      - name: Confirm app configuration file existence
+        id: confirm_config_file
+        if: env.IMAGE_EXISTS == 'true'
         uses: andstor/file-existence-action@v1
         with:
           files: "${{ env.VARS }}"
 
       - name: Deploy
-        if: env.IMAGE_EXISTS == 'true' && steps.vars_file.outputs.files_exists == 'true'
+        if: env.IMAGE_EXISTS == 'true' && steps.confirm_config_file.outputs.files_exists == 'true'
         uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ matrix.cluster }}
+          IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_PREFIX }}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}
           RESOURCE: config/nais.yml
           VAR: team=helsearbeidsgiver,app=${{ matrix.project }}

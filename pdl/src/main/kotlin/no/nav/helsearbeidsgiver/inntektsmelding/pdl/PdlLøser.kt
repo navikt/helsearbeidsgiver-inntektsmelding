@@ -33,12 +33,13 @@ class PdlLøser(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val identitetsnummer = packet["identitetsnummer"].asText()
+
         sikkerlogg.info("Henter navn for identitetsnummer $identitetsnummer")
         logger.info("Løser  id ${packet["@id"].asText()}")
-        val token = ""
+
         try {
             val fulltNavn = runBlocking {
-                hentNavn(identitetsnummer, token)
+                hentNavn(identitetsnummer)
             }
             sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
             packet.setLøsning(BEHOV, Løsning(fulltNavn))
@@ -51,8 +52,8 @@ class PdlLøser(
         }
     }
 
-    suspend fun hentNavn(identitetsnummer: String, token: String): String {
-        val navn = pdlClient.personNavn(identitetsnummer, token)?.navn?.firstOrNull()
+    suspend fun hentNavn(identitetsnummer: String): String {
+        val navn = pdlClient.personNavn(identitetsnummer)?.navn?.firstOrNull()
         return "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
     }
 

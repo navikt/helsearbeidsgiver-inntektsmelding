@@ -8,7 +8,6 @@ env:
   DOCKER_REGISTRY: docker.pkg.github.com
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
   RESOURCE: config/nais.yml
-  TEAM: helsearbeidsgiver
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 
@@ -16,7 +15,6 @@ jobs:
   generate_vars:
     runs-on: ubuntu-latest
     outputs:
-      team: ${{ steps.set-vars.outputs.team }}
       tag: ${{ steps.set-vars.outputs.tag }}
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       deployMatrix: ${{ steps.set-matrix.outputs.deployMatrix }}
@@ -44,7 +42,6 @@ jobs:
       - id: set-vars
         run: |
           TAG=$(echo ${{ github.sha }} | cut -c1-7)
-          echo "::set-output name=team::$TEAM"
           echo "::set-output name=tag::$TAG"
 
       - id: set-changed-files
@@ -174,4 +171,4 @@ jobs:
         env:
           CLUSTER: ${{ matrix.cluster }}
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          VAR: team=${{ needs.generate_vars.outputs.team }},app=${{ matrix.project }}
+          VAR: team=helsearbeidsgiver,app=${{ matrix.project }}

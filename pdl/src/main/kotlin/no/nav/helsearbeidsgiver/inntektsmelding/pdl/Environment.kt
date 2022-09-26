@@ -3,14 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 fun setUpEnvironment(): Environment {
     return Environment(
         raw = System.getenv(),
-        pdlUrl = getEnvVar(
-            "PDL_URL",
-            "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/pdl"
-        ),
-        scope = getEnvVar(
-            "PROXY_SCOPE",
-            "api://5ccfebdd-40b0-424b-9306-3383bd0febd7/.default"
-        ),
+        pdlUrl = getEnvVar("PDL_URL"),
+        scope = getEnvVar("PROXY_SCOPE"),
         azureWellknownUrl = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
         azureTokenEndpointUrl = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
         azureAppClientID = getEnvVar("AZURE_APP_CLIENT_ID"),

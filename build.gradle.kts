@@ -147,21 +147,28 @@ tasks {
 
 fun getBuildableProjects(): List<String> {
     val changedFiles = System.getenv("CHANGED_FILES")
+        ?.takeIf(String::isNotBlank)
         ?.split(",")
-        .orEmpty()
+        ?: throw IllegalStateException("Ingen endrede filer funnet.")
 
-    val hasCommonChanges = changedFiles.any {
-        it.startsWith("felles/") ||
-            it.startsWith("build.gradle.kts") ||
-            it.contains("config/nais.yml") ||
-            it == ".github/workflows/build.yml" ||
-            it == "Dockerfile"
-    }
+    val hasCommonChanges = changedFiles.any { it.startsWith("felles/") } ||
+        changedFiles.containsAny(
+            ".github/workflows/build.yml",
+            "config/nais.yml",
+            "build.gradle.kts",
+            "Dockerfile",
+            "gradle.properties"
+        )
 
     return subprojects.map { it.name }
         .let { projects ->
-            if (changedFiles.isEmpty() || hasCommonChanges) projects
-            else projects.filter { changedFiles.anyContains("$it/") }
+            if (hasCommonChanges) projects
+            else projects.filter {
+                changedFiles.any {
+                    it.startsWith("$it/") ||
+                        it.startsWith("config/$it/")
+                }
+            }
         }
 }
 
@@ -205,8 +212,7 @@ fun Task.validateMainClassFound(mainClass: String) {
         ?.output
         ?.classesDirs
         ?.asFileTree
-        ?.map { it.path }
-        ?.anyContains(mainClassOsSpecific)
+        ?.any { it.path.contains(mainClassOsSpecific) }
         ?: false
 
     if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
@@ -224,5 +230,5 @@ fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
         .let(::println)
 }
 
-fun List<String>.anyContains(other: String): Boolean =
-    this.any { it.contains(other) }
+fun List<String>.containsAny(vararg others: String) =
+    this.intersect(others.toSet()).isNotEmpty()

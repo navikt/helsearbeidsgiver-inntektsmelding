@@ -103,7 +103,7 @@ internal class AkkumulatorTest {
             )
         )
         val resultat = mapOf(
-            BEHOV_PDL to LØSNING_FEIL,
+            BEHOV_PDL to LØSNING_FEIL
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
@@ -116,8 +116,8 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal behandle komplett løsning`() {
-        //every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_OK)
-        //every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
+        // every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_OK)
+        // every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),

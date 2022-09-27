@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -9,6 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.felles.Behov
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
 import org.junit.jupiter.api.Test
@@ -21,8 +24,11 @@ internal class AkkumulatorTest {
     private var akkumulator: Akkumulator
     private val timeout = 600L
 
-    private val UUID_BRREG = "uuid_BrregLøser"
-    private val UUID_PDL = "uuid_PdlLøser"
+    private val BEHOV_PDL = Behov.FULLT_NAVN.toString()
+    private val BEHOV_BRREG = Behov.VIRKSOMHET.toString()
+
+    private val UUID_BRREG = "uuid_" + BEHOV_BRREG
+    private val UUID_PDL = "uuid_" + BEHOV_PDL
 
     val BRREG_FEIL = Løsning(errors = listOf(Feilmelding("Fikk 500")))
     val BRREG_OK = Løsning(value = "abc")
@@ -45,9 +51,9 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf("PdlLøser", "BrregLøser"),
+            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
             "@løsning" to mapOf(
-                "PdlLøser" to PDL_OK
+                BEHOV_PDL to PDL_OK
             )
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
@@ -67,9 +73,9 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf("PdlLøser", "BrregLøser"),
+            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
             "@løsning" to mapOf(
-                "BrregLøser" to BRREG_FEIL
+                BEHOV_BRREG to BRREG_FEIL
             )
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
@@ -89,15 +95,15 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf("PdlLøser", "BrregLøser"),
+            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
             "@løsning" to mapOf(
-                "BrregLøser" to BRREG_OK,
-                "PdlLøser" to PDL_OK
+                BEHOV_BRREG to BRREG_OK,
+                BEHOV_PDL to PDL_OK
             )
         )
         val toStk = mapOf(
-            "PdlLøser" to PDL_OK,
-            "BrregLøser" to BRREG_OK
+            BEHOV_PDL to PDL_OK,
+            BEHOV_BRREG to BRREG_OK
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
@@ -119,9 +125,9 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf("PdlLøser", "BrregLøser"),
+            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
             "@løsning" to mapOf(
-                "BrregLøser" to ""
+                BEHOV_BRREG to ""
             )
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))

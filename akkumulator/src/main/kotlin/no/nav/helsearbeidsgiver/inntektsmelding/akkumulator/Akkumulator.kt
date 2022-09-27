@@ -53,7 +53,7 @@ class Akkumulator(
 
         behovListe.forEach {
             val stored = redisStore.get(getRedisKey(uuid, it))
-            if (stored.isNullOrEmpty()){
+            if (stored.isNullOrEmpty()) {
                 mangler.add(it)
             } else {
                 val node = objectMapper.readTree(stored)

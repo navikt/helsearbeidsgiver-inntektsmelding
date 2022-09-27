@@ -14,8 +14,6 @@ import no.nav.helsearbeidsgiver.felles.Løsning
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-
-
 internal class AkkumulatorTest {
 
     private val rapid = TestRapid()

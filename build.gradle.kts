@@ -117,10 +117,9 @@ tasks {
 
     create("buildMatrix") {
         doLast {
-            mapper.asString(
+            mapper.taskOutput(
                 "project" to getBuildableProjects()
             )
-                .also(::println)
         }
     }
 
@@ -132,12 +131,16 @@ tasks {
                 exclusions
             ) = getDeployMatrixVariables()
 
-            mapper.asString(
-                "cluster" to clusters,
+            mapper.taskOutput(
                 "project" to deployableProjects,
-                "exclude" to exclusions
+                "cluster" to clusters,
+                "exclude" to exclusions.map { (project, cluster) ->
+                    mapOf(
+                        "project" to project,
+                        "cluster" to cluster
+                    )
+                }
             )
-                .also(::println)
         }
     }
 }
@@ -162,38 +165,28 @@ fun getBuildableProjects(): List<String> {
         }
 }
 
-fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Map<String, String>>> {
+fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Pair<String, String>>> {
     // map of cluster to list of apps
     val deployableProjects = getBuildableProjects().filter { File("config", it).isDirectory }
 
-    val environments = deployableProjects.associateWith { project ->
+    val clustersByProject = deployableProjects.associateWith { project ->
         File("config", project)
-            .listFiles()
-            ?.filter { it.isFile && it.name.endsWith(".yml") }
-            ?.map { it.name.removeSuffix(".yml") }
+            .list { file, name -> file.isFile && name.endsWith(".yml") }
+            ?.map { it.removeSuffix(".yml") }
             ?.toSet()
             .orEmpty()
     }
 
-    val clusters = environments.values.flatten().toSet()
+    val allClusters = clustersByProject.values.flatten().toSet()
 
-    val exclusions = environments
-        .mapValues { (_, configs) ->
-            clusters.subtract(configs)
-        }
-        .filterValues { it.isNotEmpty() }
-        .flatMap { (project, excludedClusters) ->
-            excludedClusters.map {
-                mapOf(
-                    "project" to project,
-                    "cluster" to it
-                )
-            }
-        }
+    val exclusions = clustersByProject.flatMap { (project, clusters) ->
+        allClusters.subtract(clusters)
+            .map { Pair(project, it) }
+    }
 
     return Triple(
         deployableProjects,
-        clusters,
+        allClusters,
         exclusions
     )
 }
@@ -225,10 +218,11 @@ fun Project.mainClass() =
 fun Project.erFellesmodul() =
     name == "felles"
 
-fun ObjectMapper.asString(vararg keyValuePairs: Pair<String, Any>): String =
-    writeValueAsString(
-        mapOf(*keyValuePairs)
-    )
+fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
+    mapOf(*keyValuePairs)
+        .let(this::writeValueAsString)
+        .let(::println)
+}
 
 fun List<String>.anyContains(other: String): Boolean =
     this.any { it.contains(other) }

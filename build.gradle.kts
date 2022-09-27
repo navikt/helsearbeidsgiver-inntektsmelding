@@ -178,8 +178,9 @@ fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Pair<Stri
 
     val clustersByProject = deployableProjects.associateWith { project ->
         File("config", project)
-            .list { file, name -> file.isFile && name.endsWith(".yml") }
-            ?.map { it.removeSuffix(".yml") }
+            .listFiles()
+            ?.filter { it.isFile && it.name.endsWith(".yml") }
+            ?.map { it.name.removeSuffix(".yml") }
             ?.toSet()
             .orEmpty()
     }

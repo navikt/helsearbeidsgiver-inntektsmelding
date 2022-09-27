@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -35,35 +37,44 @@ class Akkumulator(
         sikkerlogg.info("Pakke med behov: $packet")
         val uuid = packet["uuid"].asText()
         logger.info("Behov: $uuid")
-        val behovListe = packet["@behov"].map { it.asText() }.toList()
 
-        // Skal lagre løsning
-        behovListe.forEach {
-            val løserNavn = packet["@løsning"].get(it)
-            sikkerlogg.info("Fant løsning $it for $løserNavn")
-            if (løserNavn != null) {
-                val data = løserNavn.toString()
-                redisStore.set(getRedisKey(uuid, it), data, timeout)
-            }
-        }
-
-        // Sjekk behov opp mot lagret i Redis
         val mangler = mutableListOf<String>()
+        val feil = mutableListOf<String>()
         val results: ObjectNode = objectMapper.createObjectNode()
 
-        behovListe.forEach {
-            val stored = redisStore.get(getRedisKey(uuid, it))
-            if (stored.isNullOrEmpty()) {
-                mangler.add(it)
-            } else {
-                val node = objectMapper.readTree(stored)
-                sikkerlogg.info("Fant i redis: $node")
-                results.putIfAbsent(it, node)
+        // Finn alle løsninger og lagre ny til Redis
+        packet["@behov"].map { it.asText() }.toList().forEach { behovNavn ->
+            val løsning = packet["@løsning"].get(behovNavn) // Finn løsning JSON
+            if (løsning == null) { // Fant ikke løsning i pakke
+                val stored = redisStore.get(getRedisKey(uuid, behovNavn))
+                if (stored.isNullOrEmpty()) { // Ingenting i Redis
+                    println("Behov: $behovNavn. Løsning: n/a")
+                    mangler.add(behovNavn)
+                } else { // Fant i Redis
+                    val node = objectMapper.readTree(stored)
+                    println("Behov: $behovNavn. Løsning: (Redis) $node")
+                    results.putIfAbsent(behovNavn, node)
+                }
+            } else { // Fant løsning i pakke
+                val data = løsning.toString()
+                println("Behov: $behovNavn. Løsning: $data")
+                // Lagre løsning
+                redisStore.set(getRedisKey(uuid, behovNavn), data, timeout)
+                val node = objectMapper.readTree(data)
+                val errorNode = node.get("errors")
+                if (errorNode != null && errorNode.size() > 0) {
+                    feil.add(behovNavn)
+                }
+                results.putIfAbsent(behovNavn, node)
             }
         }
 
-        // Er alle behov fylt ut?
-        if (mangler.isNotEmpty()) {
+        if (feil.isNotEmpty()) {
+            logger.info("Behov: $uuid har feil $feil")
+            val data = results.toString()
+            sikkerlogg.info("Publiserer løsning: $data")
+            redisStore.set(uuid, data, timeout)
+        } else if (mangler.isNotEmpty()) {
             logger.info("Behov: $uuid er ikke komplett ennå. Mangler $mangler")
         } else {
             logger.info("Behov: $uuid er komplett.")

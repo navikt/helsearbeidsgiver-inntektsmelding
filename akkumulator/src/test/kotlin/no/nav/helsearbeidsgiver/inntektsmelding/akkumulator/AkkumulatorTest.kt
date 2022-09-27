@@ -66,54 +66,81 @@ internal class AkkumulatorTest {
     }
 
     @Test
-    fun `skal behandle errors i løsninger`() {
-        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_FEIL)
-        every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
+    fun `skal håndtere en feil før alle løsninger er klare`() {
+        every { redisStore.get(UUID_BRREG) } returns ""
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
             "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_BRREG to LØSNING_FEIL
+                BEHOV_PDL to LØSNING_FEIL
             )
+        )
+        val løsningResultat = mapOf(
+            BEHOV_PDL to LØSNING_FEIL
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
-            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(LØSNING_FEIL), timeout)
+            redisStore.set(UUID_PDL, objectMapper.writeValueAsString(LØSNING_FEIL), any())
         }
         verify(exactly = 1) {
-            redisStore.set("uuid", any(), any())
+            redisStore.set("uuid", objectMapper.writeValueAsString(løsningResultat), any())
+        }
+    }
+
+    @Test
+    fun `skal behandle en feil blant løsninger`() {
+        every { redisStore.set(UUID_PDL, any(), timeout) } returns Unit
+        every { redisStore.get(UUID_BRREG) } returns ""
+        every { redisStore.set(any(), any(), timeout) } returns Unit
+        val melding = mapOf(
+            "@id" to UUID.randomUUID(),
+            "uuid" to "uuid",
+            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@løsning" to mapOf( // PDL feiler først
+                BEHOV_PDL to LØSNING_FEIL
+            )
+        )
+        val resultat = mapOf(
+            BEHOV_PDL to LØSNING_FEIL,
+        )
+        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+        verify(exactly = 1) {
+            redisStore.set(UUID_PDL, objectMapper.writeValueAsString(LØSNING_FEIL), timeout)
+        }
+        verify(exactly = 1) {
+            redisStore.set("uuid", objectMapper.writeValueAsString(resultat), any())
         }
     }
 
     @Test
     fun `skal behandle komplett løsning`() {
-        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_OK)
-        every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
+        //every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_OK)
+        //every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
             "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_BRREG to LØSNING_OK,
-                BEHOV_PDL to PDL_OK
+                BEHOV_PDL to LØSNING_OK,
+                BEHOV_BRREG to LØSNING_OK
             )
         )
-        val toStk = mapOf(
-            BEHOV_PDL to PDL_OK,
+        val løsningResultat = mapOf(
+            BEHOV_PDL to LØSNING_OK,
             BEHOV_BRREG to LØSNING_OK
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+//        verify(exactly = 1) {
+//            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(LØSNING_OK), timeout)
+//        }
+//        verify(exactly = 1) {
+//            redisStore.set(UUID_PDL, objectMapper.writeValueAsString(PDL_OK), timeout)
+//        }
         verify(exactly = 1) {
-            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(LØSNING_OK), timeout)
-        }
-        verify(exactly = 1) {
-            redisStore.set(UUID_PDL, objectMapper.writeValueAsString(PDL_OK), timeout)
-        }
-        verify(exactly = 1) {
-            redisStore.set("uuid", objectMapper.writeValueAsString(toStk), timeout)
+            redisStore.set("uuid", objectMapper.writeValueAsString(løsningResultat), timeout)
         }
     }
 

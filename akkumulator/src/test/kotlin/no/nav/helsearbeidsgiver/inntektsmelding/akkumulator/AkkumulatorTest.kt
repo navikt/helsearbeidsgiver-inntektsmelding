@@ -30,8 +30,8 @@ internal class AkkumulatorTest {
     private val UUID_BRREG = "uuid_" + BEHOV_BRREG
     private val UUID_PDL = "uuid_" + BEHOV_PDL
 
-    val BRREG_FEIL = Løsning(errors = listOf(Feilmelding("Fikk 500")))
-    val BRREG_OK = Løsning(value = "abc")
+    val LØSNING_FEIL = Løsning(errors = listOf(Feilmelding("Fikk 500")))
+    val LØSNING_OK = Løsning(value = "abc")
     val PDL_OK = Løsning(value = "xyz")
 
     internal val objectMapper: ObjectMapper = jacksonObjectMapper()
@@ -67,7 +67,7 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal behandle errors i løsninger`() {
-        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(BRREG_FEIL)
+        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_FEIL)
         every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
@@ -75,12 +75,12 @@ internal class AkkumulatorTest {
             "uuid" to "uuid",
             "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_BRREG to BRREG_FEIL
+                BEHOV_BRREG to LØSNING_FEIL
             )
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
-            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(BRREG_FEIL), timeout)
+            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(LØSNING_FEIL), timeout)
         }
         verify(exactly = 1) {
             redisStore.set("uuid", any(), any())
@@ -89,7 +89,7 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal behandle komplett løsning`() {
-        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(BRREG_OK)
+        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_OK)
         every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
@@ -97,17 +97,17 @@ internal class AkkumulatorTest {
             "uuid" to "uuid",
             "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_BRREG to BRREG_OK,
+                BEHOV_BRREG to LØSNING_OK,
                 BEHOV_PDL to PDL_OK
             )
         )
         val toStk = mapOf(
             BEHOV_PDL to PDL_OK,
-            BEHOV_BRREG to BRREG_OK
+            BEHOV_BRREG to LØSNING_OK
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
-            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(BRREG_OK), timeout)
+            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(LØSNING_OK), timeout)
         }
         verify(exactly = 1) {
             redisStore.set(UUID_PDL, objectMapper.writeValueAsString(PDL_OK), timeout)
@@ -119,7 +119,7 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal behandle ukomplett løsning`() {
-        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(BRREG_OK)
+        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_OK)
         every { redisStore.get(UUID_PDL) } returns ""
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(

@@ -9,8 +9,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Løsning
 import org.junit.jupiter.api.Test
 import java.util.UUID
+
+
 
 internal class AkkumulatorTest {
 
@@ -18,6 +22,13 @@ internal class AkkumulatorTest {
     private val redisStore = mockk<RedisStore>()
     private var akkumulator: Akkumulator
     private val timeout = 600L
+
+    private val UUID_BRREG = "uuid_BrregLøser"
+    private val UUID_PDL = "uuid_PdlLøser"
+
+    val BRREG_FEIL = Løsning(errors = listOf(Feilmelding("Fikk 500")))
+    val BRREG_OK = Løsning(value = "abc")
+    val PDL_OK = Løsning(value = "xyz")
 
     internal val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -29,37 +40,83 @@ internal class AkkumulatorTest {
     }
 
     @Test
-    fun `skal behandle errors i løsninger`() {
-    }
-
-    @Test
-    fun `skal behandle komplett løsning`() {
-        every { redisStore.get("uuid_BrregLøser") } returns "Brreg-001"
-        every { redisStore.get("uuid_PdlLøser") } returns "Pdl-001"
+    fun `skal lagre verdi`() {
+        every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
+        every { redisStore.get(UUID_BRREG) } returns ""
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
             "@behov" to listOf("PdlLøser", "BrregLøser"),
             "@løsning" to mapOf(
-                "BrregLøser" to "dummy"
+                "PdlLøser" to PDL_OK
             )
         )
-        val json = "{\"PdlLøser\":\"Pdl-001\",\"BrregLøser\":\"Brreg-001\"}"
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
-
         verify(exactly = 1) {
-            redisStore.set("uuid_BrregLøser", "dummy", timeout)
+            redisStore.set(UUID_PDL, objectMapper.writeValueAsString(PDL_OK), timeout)
+        }
+        verify(exactly = 0) {
+            redisStore.set("uuid", any(), any())
+        }
+    }
+
+    @Test
+    fun `skal behandle errors i løsninger`() {
+        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(BRREG_FEIL)
+        every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
+        every { redisStore.set(any(), any(), timeout) } returns Unit
+        val melding = mapOf(
+            "@id" to UUID.randomUUID(),
+            "uuid" to "uuid",
+            "@behov" to listOf("PdlLøser", "BrregLøser"),
+            "@løsning" to mapOf(
+                "BrregLøser" to BRREG_FEIL
+            )
+        )
+        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+        verify(exactly = 1) {
+            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(BRREG_FEIL), timeout)
         }
         verify(exactly = 1) {
-            redisStore.set("uuid", json, timeout)
+            redisStore.set("uuid", any(), any())
+        }
+    }
+
+    @Test
+    fun `skal behandle komplett løsning`() {
+        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(BRREG_OK)
+        every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
+        every { redisStore.set(any(), any(), timeout) } returns Unit
+        val melding = mapOf(
+            "@id" to UUID.randomUUID(),
+            "uuid" to "uuid",
+            "@behov" to listOf("PdlLøser", "BrregLøser"),
+            "@løsning" to mapOf(
+                "BrregLøser" to BRREG_OK,
+                "PdlLøser" to PDL_OK
+            )
+        )
+        val toStk = mapOf(
+            "PdlLøser" to PDL_OK,
+            "BrregLøser" to BRREG_OK
+        )
+        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+        verify(exactly = 1) {
+            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(BRREG_OK), timeout)
+        }
+        verify(exactly = 1) {
+            redisStore.set(UUID_PDL, objectMapper.writeValueAsString(PDL_OK), timeout)
+        }
+        verify(exactly = 1) {
+            redisStore.set("uuid", objectMapper.writeValueAsString(toStk), timeout)
         }
     }
 
     @Test
     fun `skal behandle ukomplett løsning`() {
-        every { redisStore.get("uuid_BrregLøser") } returns "Brreg-001"
-        every { redisStore.get("uuid_PdlLøser") } returns ""
+        every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(BRREG_OK)
+        every { redisStore.get(UUID_PDL) } returns ""
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
@@ -70,6 +127,9 @@ internal class AkkumulatorTest {
             )
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+        verify(exactly = 1) {
+            redisStore.set(UUID_BRREG, any(), timeout)
+        }
         verify(exactly = 0) {
             redisStore.set("uuid", any(), any())
         }

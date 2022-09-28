@@ -48,16 +48,16 @@ class Akkumulator(
             if (løsning == null) { // Fant ikke løsning i pakke
                 val stored = redisStore.get(getRedisKey(uuid, behovNavn))
                 if (stored.isNullOrEmpty()) { // Ingenting i Redis
-                    println("Behov: $behovNavn. Løsning: n/a")
+                    sikkerlogg.info("Behov: $behovNavn. Løsning: n/a")
                     mangler.add(behovNavn)
                 } else { // Fant i Redis
                     val node = objectMapper.readTree(stored)
-                    println("Behov: $behovNavn. Løsning: (Redis) $node")
+                    sikkerlogg.info("Behov: $behovNavn. Løsning: (Redis) $node")
                     results.putIfAbsent(behovNavn, node)
                 }
             } else { // Fant løsning i pakke
                 val data = løsning.toString()
-                println("Behov: $behovNavn. Løsning: $data")
+                sikkerlogg.info("Behov: $behovNavn. Løsning: $data")
                 // Lagre løsning
                 redisStore.set(getRedisKey(uuid, behovNavn), data, timeout)
                 val node = objectMapper.readTree(data)

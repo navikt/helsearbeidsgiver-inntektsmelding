@@ -45,7 +45,6 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal lagre verdi`() {
-        every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
         every { redisStore.get(UUID_BRREG) } returns ""
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
@@ -59,6 +58,9 @@ internal class AkkumulatorTest {
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
             redisStore.set(UUID_PDL, objectMapper.writeValueAsString(PDL_OK), timeout)
+        }
+        verify(exactly = 0) {
+            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(LØSNING_OK), timeout)
         }
         verify(exactly = 0) {
             redisStore.set("uuid", any(), any())

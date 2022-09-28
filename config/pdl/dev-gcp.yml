@@ -5,3 +5,5 @@ ingress: https://helsearbeidsgiver-im-pdl.dev.nav.no
 env:
 - name: PDL_URL
   value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/pdl"
+- name: PROXY_SCOPE
+  value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"

@@ -45,7 +45,7 @@ class PdlLøser(
             packet.setLøsning(BEHOV, Løsning(fulltNavn))
             context.publish(packet.toJson())
         } catch (ex: Exception) {
-            packet.setLøsning(BEHOV, Løsning(errors = listOf(Feilmelding("Klarte ikke hente navn"))))
+            packet.setLøsning(BEHOV, Løsning(error = Feilmelding("Klarte ikke hente navn")))
             sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
             context.publish(packet.toJson())
         }

@@ -36,7 +36,7 @@ class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: B
             context.publish(packet.toJson())
             sikkerlogg.info("Fant $navn for $orgnr")
         } catch (ex: Exception) {
-            packet.setLøsning(BEHOV, Løsning(errors = listOf(Feilmelding("Klarte ikke hente virksomhet"))))
+            packet.setLøsning(BEHOV, Løsning(error = Feilmelding("Klarte ikke hente virksomhet")))
             sikkerlogg.info("Det oppstod en feil ved henting for $orgnr")
             sikkerlogg.error(ex.stackTraceToString())
             context.publish(packet.toJson())

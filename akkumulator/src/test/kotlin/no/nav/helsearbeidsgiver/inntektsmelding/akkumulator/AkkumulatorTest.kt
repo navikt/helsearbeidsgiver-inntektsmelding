@@ -30,7 +30,7 @@ internal class AkkumulatorTest {
     private val UUID_BRREG = "uuid_" + BEHOV_BRREG
     private val UUID_PDL = "uuid_" + BEHOV_PDL
 
-    val LØSNING_FEIL = Løsning(errors = listOf(Feilmelding("Fikk 500")))
+    val LØSNING_FEIL = Løsning(error = Feilmelding("Fikk 500"))
     val LØSNING_OK = Løsning(value = "abc")
     val PDL_OK = Løsning(value = "xyz")
 

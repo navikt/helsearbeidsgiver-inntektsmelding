@@ -118,8 +118,6 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal behandle komplett løsning`() {
-        // every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_OK)
-        // every { redisStore.get(UUID_PDL) } returns objectMapper.writeValueAsString(PDL_OK)
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
@@ -135,12 +133,6 @@ internal class AkkumulatorTest {
             BEHOV_BRREG to LØSNING_OK
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
-//        verify(exactly = 1) {
-//            redisStore.set(UUID_BRREG, objectMapper.writeValueAsString(LØSNING_OK), timeout)
-//        }
-//        verify(exactly = 1) {
-//            redisStore.set(UUID_PDL, objectMapper.writeValueAsString(PDL_OK), timeout)
-//        }
         verify(exactly = 1) {
             redisStore.set("uuid", objectMapper.writeValueAsString(løsningResultat), timeout)
         }

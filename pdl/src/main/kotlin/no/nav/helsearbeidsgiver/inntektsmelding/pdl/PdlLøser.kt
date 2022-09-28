@@ -53,7 +53,11 @@ class PdlLøser(
 
     suspend fun hentNavn(identitetsnummer: String): String {
         val navn = pdlClient.personNavn(identitetsnummer)?.navn?.firstOrNull()
-        return "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
+        return if (navn?.mellomnavn.isNullOrEmpty()) {
+            "${navn?.fornavn} ${navn?.etternavn}"
+        } else {
+            "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
+        }
     }
 
     private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {

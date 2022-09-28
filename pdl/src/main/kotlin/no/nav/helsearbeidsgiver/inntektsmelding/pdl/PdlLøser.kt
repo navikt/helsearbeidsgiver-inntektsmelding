@@ -33,27 +33,31 @@ class PdlLøser(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val identitetsnummer = packet["identitetsnummer"].asText()
+
         sikkerlogg.info("Henter navn for identitetsnummer $identitetsnummer")
-        logger.info("Løser  id ${packet["@id"].asText()}")
-        val token = ""
+        logger.info("Løser id ${packet["@id"].asText()}")
+
         try {
             val fulltNavn = runBlocking {
-                hentNavn(identitetsnummer, token)
+                hentNavn(identitetsnummer)
             }
             sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
             packet.setLøsning(BEHOV, Løsning(fulltNavn))
             context.publish(packet.toJson())
         } catch (ex: Exception) {
             packet.setLøsning(BEHOV, Løsning(errors = listOf(Feilmelding("Klarte ikke hente navn"))))
-            sikkerlogg.info("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer")
-            sikkerlogg.error(ex.stackTraceToString())
+            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
             context.publish(packet.toJson())
         }
     }
 
-    suspend fun hentNavn(identitetsnummer: String, token: String): String {
-        val navn = pdlClient.personNavn(identitetsnummer, token)?.navn?.firstOrNull()
-        return "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
+    suspend fun hentNavn(identitetsnummer: String): String {
+        val navn = pdlClient.personNavn(identitetsnummer)?.navn?.firstOrNull()
+        return if (navn?.mellomnavn.isNullOrEmpty()) {
+            "${navn?.fornavn} ${navn?.etternavn}"
+        } else {
+            "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
+        }
     }
 
     private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {

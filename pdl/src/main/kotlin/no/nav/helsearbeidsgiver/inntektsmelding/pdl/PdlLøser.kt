@@ -35,7 +35,7 @@ class PdlLøser(
         val identitetsnummer = packet["identitetsnummer"].asText()
 
         sikkerlogg.info("Henter navn for identitetsnummer $identitetsnummer")
-        logger.info("Løser  id ${packet["@id"].asText()}")
+        logger.info("Løser id ${packet["@id"].asText()}")
 
         try {
             val fulltNavn = runBlocking {
@@ -46,8 +46,7 @@ class PdlLøser(
             context.publish(packet.toJson())
         } catch (ex: Exception) {
             packet.setLøsning(BEHOV, Løsning(errors = listOf(Feilmelding("Klarte ikke hente navn"))))
-            sikkerlogg.info("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer")
-            sikkerlogg.error(ex.stackTraceToString())
+            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
             context.publish(packet.toJson())
         }
     }

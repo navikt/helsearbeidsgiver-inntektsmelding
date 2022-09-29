@@ -1,5 +1,8 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -15,6 +18,9 @@ import io.ktor.server.testing.testApplication
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Løsning
+import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,19 +31,55 @@ internal class InnsendingRouteKtTest {
 
     val producer = mockk<InnsendingProducer>()
     val poller = mockk<RedisPoller>()
+    val objectMapper = ObjectMapper()
     val GYLDIG_REQUEST = InntektsmeldingRequest("123456789", "12345678901")
     val UGYLDIG_REQUEST = InntektsmeldingRequest("", "")
 
+    val UUID = "abc-123"
+    val RESULTAT_OK = Resultat(listOf<Løsning>(Løsning("behov1", "verdi")))
+    val RESULTAT_FEIL = Resultat(listOf<Løsning>(Løsning("behov1", Feilmelding("feil", 500))))
+
     @Test
-    fun skal_gi_feilmelding_ugyldig_request() = testApplication {
+    fun `skal godta og returnere kvittering`() = testApplication {
         every {
             producer.publish(any())
-        } returns "Unit"
+        } returns UUID
         every {
             runBlocking {
-                poller.getValue(any(), any(), any())
+                poller.getResultat(any(), any(), any())
             }
-        } returns "uuid"
+        } returns RESULTAT_OK
+        val client = createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                json()
+            }
+        }
+        application {
+            install(ContentNegotiation) {
+                jackson()
+            }
+            routing {
+                innsendingRoute(producer, poller)
+            }
+        }
+        val response = client.post("/inntektsmelding") {
+            contentType(ContentType.Application.Json)
+            setBody(GYLDIG_REQUEST)
+        }
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals(objectMapper.writeValueAsString(InnsendingResponse(UUID)), response.bodyAsText())
+    }
+
+    @Test
+    fun `skal returnere valideringsfeil ved ugyldig request`() = testApplication {
+        every {
+            producer.publish(any())
+        } returns UUID
+        every {
+            runBlocking {
+                poller.getResultat(any(), any(), any())
+            }
+        } returns RESULTAT_FEIL
         val client = createClient {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
                 json()
@@ -60,15 +102,15 @@ internal class InnsendingRouteKtTest {
     }
 
     @Test
-    fun skal_gi_feilmelding_naar_redis_ikke_faar_data() = testApplication {
+    fun `skal returnere feilmelding ved timeout fra Redis`() = testApplication {
         every {
             producer.publish(any())
-        } returns "Unit"
+        } returns UUID
         every {
             runBlocking {
-                poller.getValue(any(), any(), any())
+                poller.getResultat(any(), any(), any())
             }
-        } throws RedisPollerTimeoutException("uuid")
+        } throws RedisPollerTimeoutException(UUID)
         val client = createClient {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
                 json()
@@ -87,19 +129,19 @@ internal class InnsendingRouteKtTest {
             setBody(GYLDIG_REQUEST)
         }
         assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals("", response.bodyAsText())
+        assertEquals(objectMapper.writeValueAsString(InnsendingFeilet(UUID, "Brukte for lang tid")), response.bodyAsText())
     }
 
     @Test
-    fun skal_sende_inn() = testApplication {
+    fun `skal vise feil når et behov feiler`() = testApplication {
         every {
             producer.publish(any())
-        } returns "Unit"
+        } returns UUID
         every {
             runBlocking {
-                poller.getValue(any(), any(), any())
+                poller.getResultat(any(), any(), any())
             }
-        } returns "abc"
+        } returns RESULTAT_FEIL
         val client = createClient {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
                 json()
@@ -115,9 +157,8 @@ internal class InnsendingRouteKtTest {
         }
         val response = client.post("/inntektsmelding") {
             contentType(ContentType.Application.Json)
-            setBody(GYLDIG_REQUEST)
+            setBody(UGYLDIG_REQUEST)
         }
-        assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals("abc", response.bodyAsText())
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 }

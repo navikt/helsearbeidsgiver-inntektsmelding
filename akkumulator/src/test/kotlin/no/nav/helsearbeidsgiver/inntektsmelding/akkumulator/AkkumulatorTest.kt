@@ -30,9 +30,9 @@ internal class AkkumulatorTest {
     private val UUID_BRREG = "uuid_" + BEHOV_BRREG
     private val UUID_PDL = "uuid_" + BEHOV_PDL
 
-    val LØSNING_FEIL = Løsning(error = Feilmelding("Fikk 500"))
-    val LØSNING_OK = Løsning(value = "abc")
-    val PDL_OK = Løsning(value = "xyz")
+    val LØSNING_FEIL = Løsning(Behov.FULLT_NAVN.name, error = Feilmelding("Fikk 500"))
+    val LØSNING_OK = Løsning(Behov.FULLT_NAVN.name, value = "abc")
+    val PDL_OK = Løsning(Behov.FULLT_NAVN.name, value = "xyz")
 
     internal val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

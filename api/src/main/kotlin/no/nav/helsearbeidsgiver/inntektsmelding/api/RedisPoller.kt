@@ -1,9 +1,21 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.lettuce.core.RedisClient
 import kotlinx.coroutines.delay
+import no.nav.helsearbeidsgiver.felles.Resultat
 
-class RedisPoller(val redisClient: RedisClient) {
+class RedisPoller(val redisClient: RedisClient, val objectMapper: ObjectMapper) {
+
+    suspend fun getResultat(key: String, maxRetries: Int = 10, waitMillis: Long = 500): Resultat {
+        val data = getValue(key, maxRetries, waitMillis)
+        try {
+            return objectMapper.readValue<Resultat>(data)
+        } catch (ex: Exception) {
+            throw RedisPollerJsonException(key)
+        }
+    }
 
     suspend fun getValue(key: String, maxRetries: Int = 10, waitMillis: Long = 500): String {
         logger.info("Poller starter...")
@@ -23,12 +35,16 @@ class RedisPoller(val redisClient: RedisClient) {
         }
         throw RedisPollerTimeoutException(key)
     }
-
-    fun shutdown() {
-        redisClient.shutdown()
-    }
 }
 
-class RedisPollerTimeoutException(uuid: String) : Exception(
+open class RedisPollerException(message: String) : Exception(
+    message
+)
+
+class RedisPollerTimeoutException(uuid: String) : RedisPollerException(
     "Brukte for lang tid på å svare ($uuid)"
+)
+
+class RedisPollerJsonException(uuid: String) : RedisPollerException(
+    "Klarte ikke å parse Json data ($uuid)"
 )

@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -32,11 +34,11 @@ class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: B
         val orgnr = packet["orgnrUnderenhet"].asText()
         try {
             val navn = brregClient.getVirksomhetsNavn(orgnr)
-            packet.setLøsning(BEHOV, Løsning(navn))
+            packet.setLøsning(BEHOV, Løsning(BEHOV, navn))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant $navn for $orgnr")
         } catch (ex: Exception) {
-            packet.setLøsning(BEHOV, Løsning(error = Feilmelding("Klarte ikke hente virksomhet")))
+            packet.setLøsning(BEHOV, Løsning(BEHOV, error = Feilmelding("Klarte ikke hente virksomhet")))
             sikkerlogg.info("Det oppstod en feil ved henting for $orgnr")
             sikkerlogg.error(ex.stackTraceToString())
             context.publish(packet.toJson())

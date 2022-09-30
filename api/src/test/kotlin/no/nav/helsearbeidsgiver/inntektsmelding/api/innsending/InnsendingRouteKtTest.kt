@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
@@ -32,8 +33,8 @@ internal class InnsendingRouteKtTest {
     val producer = mockk<InnsendingProducer>()
     val poller = mockk<RedisPoller>()
     val objectMapper = ObjectMapper()
-    val GYLDIG_REQUEST = InntektsmeldingRequest("123456789", "12345678901")
-    val UGYLDIG_REQUEST = InntektsmeldingRequest("", "")
+    val GYLDIG_REQUEST = InntektsmeldingRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
+    val UGYLDIG_REQUEST = InntektsmeldingRequest(TestData.notValidOrgNr, TestData.notValidIdentitetsnummer)
 
     val UUID = "abc-123"
     val RESULTAT_OK = Resultat(listOf<Løsning>(Løsning("behov1", "verdi")))

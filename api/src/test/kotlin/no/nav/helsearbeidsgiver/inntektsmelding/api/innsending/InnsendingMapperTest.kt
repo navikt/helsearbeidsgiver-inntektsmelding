@@ -11,11 +11,25 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.valiktor.ConstraintViolationException
 
 internal class InnsendingMapperTest {
 
     val løsningOk = Løsning(Behov.FULLT_NAVN.name, "abc")
-    val løsningFeil = Løsning(Behov.FULLT_NAVN.name, error = Feilmelding("Oops!"))
+    val løsningFeil = Løsning(Behov.FULLT_NAVN.name, error = Feilmelding("Oops"))
+
+    @Test
+    fun `skal kaste constraints exception når feil oppstår`() {
+        val mapper = buildMapper(true, false)
+        assertThrows<ConstraintViolationException> {
+            mapper.getResponse()
+        }
+        val constraints = mapper.getConstraintViolations()
+        assertEquals(1, constraints.size)
+        assertEquals("identitetsnummer", constraints[0].property)
+        assertEquals("Oops", constraints[0].value)
+    }
 
     @Test
     fun `skal returnere feilinformasjon når feil oppstår`() {

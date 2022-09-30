@@ -2,7 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -21,9 +21,11 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.inntektsmelding.api.DummyConstraintViolation
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
+import no.nav.helsearbeidsgiver.inntektsmelding.api.buildObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
@@ -32,13 +34,13 @@ internal class InnsendingRouteKtTest {
 
     val producer = mockk<InnsendingProducer>()
     val poller = mockk<RedisPoller>()
-    val objectMapper = ObjectMapper()
+    val objectMapper = buildObjectMapper()
     val GYLDIG_REQUEST = InntektsmeldingRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
     val UGYLDIG_REQUEST = InntektsmeldingRequest(TestData.notValidOrgNr, TestData.notValidIdentitetsnummer)
 
     val UUID = "abc-123"
     val RESULTAT_OK = Resultat(listOf<Løsning>(Løsning("behov1", "verdi")))
-    val RESULTAT_FEIL = Resultat(listOf<Løsning>(Løsning("behov1", Feilmelding("feil", 500))))
+    val RESULTAT_FEIL = Resultat(listOf<Løsning>(Løsning("FULLT_NAVN", Feilmelding("feil", 500))))
 
     @Test
     fun `skal godta og returnere kvittering`() = testApplication {
@@ -100,6 +102,11 @@ internal class InnsendingRouteKtTest {
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
+        val data: String = response.bodyAsText()
+        val violations = objectMapper.readValue<List<DummyConstraintViolation>>(data)
+        assertEquals(2, violations.size)
+        assertEquals("orgnrUnderenhet", violations[0].property)
+        assertEquals("identitetsnummer", violations[1].property)
     }
 
     @Test
@@ -161,5 +168,9 @@ internal class InnsendingRouteKtTest {
             setBody(UGYLDIG_REQUEST)
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertNotNull(response.bodyAsText())
+        val data: String = response.bodyAsText()
+        val violations = objectMapper.readValue<List<DummyConstraintViolation>>(data)
+        assertEquals(2, violations.size)
     }
 }

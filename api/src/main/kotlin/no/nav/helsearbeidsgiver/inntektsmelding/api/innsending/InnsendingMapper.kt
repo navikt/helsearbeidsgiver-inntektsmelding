@@ -7,8 +7,6 @@ import no.nav.helsearbeidsgiver.felles.Behov
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.IdentitetsnummerConstraint
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.OrganisasjonsnummerConstraint
 import org.valiktor.ConstraintViolation
 import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
@@ -20,16 +18,18 @@ class InnsendingMapper(val uuid: String, var resultat: Resultat) {
     }
 
     fun getConstraintViolations(): List<ConstraintViolation> {
-        return resultat.løsninger.filter { it.error != null && !it.error!!.melding.isBlank() }.map { mapConstraint(it) }
+        return resultat.løsninger
+            .filter { it.error != null && !it.error!!.melding.isBlank() }
+            .map { mapConstraint(it) }
     }
 
     fun mapConstraint(løsning: Løsning): ConstraintViolation {
         val behov = løsning.behov
         if (behov.equals(Behov.VIRKSOMHET.name)) {
-            return DefaultConstraintViolation("orgnrUnderenhet", løsning.error!!.melding, OrganisasjonsnummerConstraint())
+            return DefaultConstraintViolation("orgnrUnderenhet", løsning.error!!.melding, FeilmeldingConstraint())
         }
         if (behov.equals(Behov.FULLT_NAVN.name)) {
-            return DefaultConstraintViolation("identitetsnummer", løsning.error!!.melding, IdentitetsnummerConstraint())
+            return DefaultConstraintViolation("identitetsnummer", løsning.error!!.melding, FeilmeldingConstraint())
         }
         return DefaultConstraintViolation("ukjent", løsning.error!!.melding, FeilmeldingConstraint())
     }

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
@@ -28,5 +27,5 @@ fun buildPoller(answers: List<String>): RedisPoller {
         redisClient.connect()
     } returns connection
 
-    return RedisPoller(redisClient, ObjectMapper())
+    return RedisPoller(redisClient, buildObjectMapper())
 }

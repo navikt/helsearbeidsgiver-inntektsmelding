@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.call
 import io.ktor.server.application.install
@@ -26,7 +25,7 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api"
 fun main() {
     val env = System.getenv()
     val redisUrl = System.getenv("REDIS_URL")
-    val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"), ObjectMapper())
+    val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"), buildObjectMapper())
     RapidApplication.create(env).apply {
         logger.info("Starter InnsendingProducer...")
         val innsendingProducer = InnsendingProducer(this)

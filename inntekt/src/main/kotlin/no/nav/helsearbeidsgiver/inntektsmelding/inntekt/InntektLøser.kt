@@ -28,13 +28,13 @@ class InntektLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
         }.register(this)
     }
 
-    fun getInntekt(fnr: String) : Inntekt {
+    fun getInntekt(fnr: String): Inntekt {
         val historisk = listOf(
             MottattHistoriskInntekt("Januar", 31000),
             MottattHistoriskInntekt("Februar", 32000),
-            MottattHistoriskInntekt("Mars", 33000),
+            MottattHistoriskInntekt("Mars", 33000)
         )
-        return Inntekt(32000*12, historisk)
+        return Inntekt(32000 * 12, historisk)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

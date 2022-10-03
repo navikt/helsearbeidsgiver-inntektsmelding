@@ -1,7 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import kotlinx.serialization.Serializable
-import org.valiktor.functions.isNotEmpty
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidIdentitetsnummer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidOrganisasjonsnummer
 import org.valiktor.validate
 
 @Serializable
@@ -11,8 +12,8 @@ data class PreutfyllRequest(
 ) {
     fun validate() {
         validate(this) {
-            validate(PreutfyllRequest::orgnrUnderenhet).isNotEmpty()
-            validate(PreutfyllRequest::identitetsnummer).isNotEmpty()
+            validate(PreutfyllRequest::orgnrUnderenhet).isValidOrganisasjonsnummer()
+            validate(PreutfyllRequest::identitetsnummer).isValidIdentitetsnummer()
         }
     }
 }

@@ -7,37 +7,34 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattArbeidsforhold
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattHistoriskInntekt
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattPeriode
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.PreutfyltResponse
-import java.time.LocalDate
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
+import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import org.valiktor.ConstraintViolationException
 
-fun Route.preutfyltRoute(producer: PreutfyltProducer, redisUrl: String) {
+fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller) {
     route("/preutfyll") {
         post {
             val request = call.receive<PreutfyllRequest>()
-            request.validate()
-
-            val map = mutableMapOf<String, List<MottattPeriode>>()
-            map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))))
-
-            val response = PreutfyltResponse(
-                navn = "Ola Normann",
-                identitetsnummer = request.identitetsnummer,
-                virksomhetsnavn = "Norge AS",
-                orgnrUnderenhet = request.orgnrUnderenhet,
-                fravaersperiode = map,
-                egenmeldingsperioder = listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))),
-                bruttoinntekt = 1000,
-                tidligereinntekt = listOf(MottattHistoriskInntekt("Januar", 1)),
-                behandlingsperiode = MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)),
-                arbeidsforhold = listOf(MottattArbeidsforhold("arbeidsforhold1", "test", 100.0f))
-            )
-            call.respond(HttpStatusCode.OK, Json.encodeToString(response))
-            producer.publish(request)
+            var uuid = "ukjent uuid"
+            sikkerlogg.info("Mottok preutfylt $request")
+            try {
+                request.validate()
+                uuid = producer.publish(request)
+                logger.info("Publiserte behov uuid: $uuid")
+                val resultat = poller.getResultat(uuid, 5, 500)
+                sikkerlogg.info("Fikk resultat for $uuid : $resultat")
+                val mapper = PreutfyltMapper(uuid, resultat, request)
+                call.respond(mapper.getStatus(), mapper.getResponse())
+            } catch (ex2: ConstraintViolationException) {
+                logger.info("Fikk valideringsfeil for $uuid")
+                call.respond(HttpStatusCode.BadRequest, ex2.constraintViolations)
+            } catch (ex: RedisPollerTimeoutException) {
+                logger.info("Fikk timeout for $uuid")
+                call.respond(HttpStatusCode.InternalServerError, InnsendingFeilet(uuid, "Brukte for lang tid"))
+            }
         }
     }
 }

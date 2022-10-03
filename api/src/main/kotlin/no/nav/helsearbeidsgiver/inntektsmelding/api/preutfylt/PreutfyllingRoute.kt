@@ -7,6 +7,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
@@ -27,7 +29,7 @@ fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller) {
                 val resultat = poller.getResultat(uuid, 5, 500)
                 sikkerlogg.info("Fikk resultat for $uuid : $resultat")
                 val mapper = PreutfyltMapper(uuid, resultat, request)
-                call.respond(mapper.getStatus(), mapper.getResponse())
+                call.respond(mapper.getStatus(), Json.encodeToString(mapper.getResponse()))
             } catch (ex2: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for $uuid")
                 call.respond(HttpStatusCode.BadRequest, ex2.constraintViolations)

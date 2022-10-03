@@ -34,7 +34,7 @@ class InnsendingMapper(val uuid: String, var resultat: Resultat) {
         return DefaultConstraintViolation("ukjent", løsning.error!!.melding, FeilmeldingConstraint())
     }
 
-    fun getResponse(): Any {
+    fun getResponse(): InnsendingResponse {
         if (hasErrors()) {
             throw ConstraintViolationException(getConstraintViolations().toSet())
         }

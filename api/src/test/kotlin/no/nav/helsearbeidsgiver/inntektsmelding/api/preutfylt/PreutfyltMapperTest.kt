@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.PreutfyltResponse
 import org.junit.jupiter.api.Test
 import org.valiktor.ConstraintViolationException
 import kotlin.test.assertEquals
@@ -45,7 +44,7 @@ internal class PreutfyltMapperTest {
     fun `skal returnere kvittering når det ikke er feil`() {
         assertEquals(HttpStatusCode.Created, buildMapper(true, true).getStatus())
         assertFalse(buildMapper(true, true).hasErrors())
-        buildMapper(true, true).getResponse() as PreutfyltResponse
+        buildMapper(true, true).getResponse()
     }
 
     fun buildMapper(en: Boolean, to: Boolean): PreutfyltMapper {

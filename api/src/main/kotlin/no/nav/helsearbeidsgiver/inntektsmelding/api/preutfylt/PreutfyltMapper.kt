@@ -43,7 +43,7 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
         return resultat.løsninger.first { it.behov.equals(behov.name) }
     }
 
-    fun getResponse(): Any {
+    fun getResponse(): PreutfyltResponse {
         if (hasErrors()) {
             throw ConstraintViolationException(getConstraintViolations().toSet())
         }

@@ -57,7 +57,9 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
 
     fun mapFraværsperiode(): MutableMap<String, List<MottattPeriode>> {
         val map = mutableMapOf<String, List<MottattPeriode>>()
-        map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))))
+        map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 1))))
+        map.put("arbeidsforhold2", listOf(MottattPeriode(LocalDate.of(2022, 1, 2), LocalDate.of(2022, 1, 2))))
+        map.put("arbeidsforhold3", listOf(MottattPeriode(LocalDate.of(2022, 1, 3), LocalDate.of(2022, 1, 3))))
         return map
     }
 

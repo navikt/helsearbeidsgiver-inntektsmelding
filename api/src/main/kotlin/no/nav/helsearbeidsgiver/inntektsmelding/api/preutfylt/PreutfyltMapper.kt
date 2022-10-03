@@ -43,26 +43,52 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
         return resultat.løsninger.first { it.behov.equals(behov.name) }
     }
 
+    fun mapEgenmeldingsperioder(): List<MottattPeriode> {
+        return listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)))
+    }
+
+    fun mapBehandlingsperiode(): MottattPeriode {
+        return MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))
+    }
+
+    fun mapArbeidsforhold(): List<MottattArbeidsforhold> {
+        return listOf(MottattArbeidsforhold("arbeidsforhold1", "test", 100.0f))
+    }
+
+    fun mapFraværsperiode(): MutableMap<String, List<MottattPeriode>> {
+        val map = mutableMapOf<String, List<MottattPeriode>>()
+        map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))))
+        return map
+    }
+
+    fun mapFulltNavn(): String {
+        return findLøsningByBehov(Behov.FULLT_NAVN).value as String
+    }
+
+    fun mapVirksomhet(): String {
+        return findLøsningByBehov(Behov.VIRKSOMHET).value as String
+    }
+
+    fun mapInntekt(): Inntekt {
+        return findLøsningByBehov(Behov.INNTEKT).value as Inntekt
+    }
+
     fun getResponse(): PreutfyltResponse {
         if (hasErrors()) {
             throw ConstraintViolationException(getConstraintViolations().toSet())
         }
-        val map = mutableMapOf<String, List<MottattPeriode>>()
-        map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))))
-        val fulltNavn = findLøsningByBehov(Behov.FULLT_NAVN)
-        val virksomhet = findLøsningByBehov(Behov.VIRKSOMHET)
-        val inntekt = findLøsningByBehov(Behov.INNTEKT).value as Inntekt
+        val inntekt = mapInntekt()
         return PreutfyltResponse(
-            navn = fulltNavn.value as String,
+            navn = mapFulltNavn(),
             identitetsnummer = request.identitetsnummer,
-            virksomhetsnavn = virksomhet.value as String,
+            virksomhetsnavn = mapVirksomhet(),
             orgnrUnderenhet = request.orgnrUnderenhet,
-            fravaersperiode = map,
-            egenmeldingsperioder = listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))),
+            fravaersperiode = mapFraværsperiode(),
+            egenmeldingsperioder = mapEgenmeldingsperioder(),
             bruttoinntekt = inntekt.bruttoInntekt,
             tidligereinntekt = inntekt.historisk,
-            behandlingsperiode = MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)),
-            arbeidsforhold = listOf(MottattArbeidsforhold("arbeidsforhold1", "test", 100.0f))
+            behandlingsperiode = mapBehandlingsperiode(),
+            arbeidsforhold = mapArbeidsforhold()
         )
     }
 

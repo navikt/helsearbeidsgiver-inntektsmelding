@@ -51,8 +51,7 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
         map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))))
         val fulltNavn = findLøsningByBehov(Behov.FULLT_NAVN)
         val virksomhet = findLøsningByBehov(Behov.VIRKSOMHET)
-        val inntektResultat = findLøsningByBehov(Behov.INNTEKT)
-        val inntekt = inntektResultat.value as Inntekt
+        val inntekt = findLøsningByBehov(Behov.INNTEKT).value as Inntekt
         return PreutfyltResponse(
             navn = fulltNavn.value as String,
             identitetsnummer = request.identitetsnummer,

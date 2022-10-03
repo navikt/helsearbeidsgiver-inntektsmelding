@@ -6,8 +6,8 @@ import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.Behov
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.Inntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattArbeidsforhold
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattPeriode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.PreutfyltResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
@@ -51,6 +51,8 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
         map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))))
         val fulltNavn = findLøsningByBehov(Behov.FULLT_NAVN)
         val virksomhet = findLøsningByBehov(Behov.VIRKSOMHET)
+        val inntektResultat = findLøsningByBehov(Behov.INNTEKT)
+        val inntekt = inntektResultat.value as Inntekt
         return PreutfyltResponse(
             navn = fulltNavn.value as String,
             identitetsnummer = request.identitetsnummer,
@@ -58,8 +60,8 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
             orgnrUnderenhet = request.orgnrUnderenhet,
             fravaersperiode = map,
             egenmeldingsperioder = listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))),
-            bruttoinntekt = 1000,
-            tidligereinntekt = listOf(MottattHistoriskInntekt("Januar", 1)),
+            bruttoinntekt = inntekt.bruttoInntekt,
+            tidligereinntekt = inntekt.historisk,
             behandlingsperiode = MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)),
             arbeidsforhold = listOf(MottattArbeidsforhold("arbeidsforhold1", "test", 100.0f))
         )

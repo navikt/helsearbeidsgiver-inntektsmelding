@@ -18,6 +18,7 @@ import io.ktor.server.testing.testApplication
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
@@ -39,8 +40,8 @@ internal class InnsendingRouteKtTest {
     val UGYLDIG_REQUEST = InntektsmeldingRequest(TestData.notValidOrgNr, TestData.notValidIdentitetsnummer)
 
     val UUID = "abc-123"
-    val RESULTAT_OK = Resultat(listOf<Løsning>(Løsning("behov1", "verdi")))
-    val RESULTAT_FEIL = Resultat(listOf<Løsning>(Løsning("FULLT_NAVN", Feilmelding("feil", 500))))
+    val RESULTAT_OK = Resultat(listOf<Løsning>(Løsning(BehovType.FULLT_NAVN, "verdi")))
+    val RESULTAT_FEIL = Resultat(listOf<Løsning>(Løsning(BehovType.FULLT_NAVN, Feilmelding("feil", 500))))
 
     @Test
     fun `skal godta og returnere kvittering`() = testApplication {

@@ -7,7 +7,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.Behov
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
 import org.slf4j.LoggerFactory
@@ -15,12 +15,12 @@ import org.slf4j.LoggerFactory
 class InntektLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private val BEHOV = Behov.INNTEKT.name
+    private val BEHOV = BehovType.INNTEKT
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", listOf(BEHOV))
+                it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
                 it.requireKey("identitetsnummer")
                 it.rejectKey("@løsning")
@@ -53,9 +53,9 @@ class InntektLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
         }
     }
 
-    private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {
+    private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
         this["@løsning"] = mapOf(
-            nøkkel to data
+            nøkkel.name to data
         )
     }
 

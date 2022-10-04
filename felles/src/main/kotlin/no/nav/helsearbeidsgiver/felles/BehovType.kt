@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.felles
 
-enum class Behov {
+enum class BehovType {
     FULLT_NAVN,
     VIRKSOMHET,
     INNTEKT,

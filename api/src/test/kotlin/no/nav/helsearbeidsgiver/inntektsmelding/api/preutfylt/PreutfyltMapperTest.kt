@@ -3,7 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.Behov
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
@@ -18,12 +18,12 @@ import kotlin.test.assertTrue
 
 internal class PreutfyltMapperTest {
 
-    val løsningNavn = Løsning(Behov.FULLT_NAVN.name, "abc")
-    val løsningVirksomhet = Løsning(Behov.VIRKSOMHET.name, "xyz")
-    val løsningInntekt = Løsning(Behov.INNTEKT.name, Inntekt(250000, listOf(MottattHistoriskInntekt("Januar", 25000))))
-    val løsningArbeidsforhold = Løsning(Behov.ARBEIDSFORHOLD.name, "arbeidsforhold")
-    val løsningSykdom = Løsning(Behov.SYK.name, "sykdom")
-    val løsningFeil = Løsning(Behov.FULLT_NAVN.name, error = Feilmelding("Oops"))
+    val løsningNavn = Løsning(BehovType.FULLT_NAVN, "abc")
+    val løsningVirksomhet = Løsning(BehovType.VIRKSOMHET, "xyz")
+    val løsningInntekt = Løsning(BehovType.INNTEKT, Inntekt(250000, listOf(MottattHistoriskInntekt("Januar", 25000))))
+    val løsningArbeidsforhold = Løsning(BehovType.ARBEIDSFORHOLD, "arbeidsforhold")
+    val løsningSykdom = Løsning(BehovType.SYK, "sykdom")
+    val løsningFeil = Løsning(BehovType.FULLT_NAVN, error = Feilmelding("Oops"))
 
     @Test
     fun `skal kaste constraints exception når feil oppstår`() {

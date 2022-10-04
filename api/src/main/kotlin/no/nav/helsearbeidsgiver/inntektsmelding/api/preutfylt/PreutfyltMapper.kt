@@ -3,7 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.Behov
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.Inntekt
@@ -31,18 +31,18 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
     }
 
     fun mapConstraint(løsning: Løsning): ConstraintViolation {
-        val behov = løsning.behov
-        if (behov.equals(Behov.VIRKSOMHET.name)) {
+        val behov = løsning.behovType
+        if (behov == BehovType.VIRKSOMHET) {
             return DefaultConstraintViolation("orgnrUnderenhet", løsning.error!!.melding, FeilmeldingConstraint())
         }
-        if (behov.equals(Behov.FULLT_NAVN.name)) {
+        if (behov == BehovType.FULLT_NAVN) {
             return DefaultConstraintViolation("identitetsnummer", løsning.error!!.melding, FeilmeldingConstraint())
         }
         return DefaultConstraintViolation("ukjent", løsning.error!!.melding, FeilmeldingConstraint())
     }
 
-    fun findLøsningByBehov(behov: Behov): Løsning {
-        return resultat.løsninger.first { it.behov.equals(behov.name) }
+    fun findLøsningByBehov(behovType: BehovType): Løsning {
+        return resultat.løsninger.first { it.behovType == behovType }
     }
 
     fun mapEgenmeldingsperioder(): List<MottattPeriode> {
@@ -50,19 +50,19 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
     }
 
     fun mapBehandlingsperiode(): MottattPeriode {
-        val syk = findLøsningByBehov(Behov.SYK)
+        val syk = findLøsningByBehov(BehovType.SYK)
         sikkerlogg.info("Fant behandlingsperiode $syk for $uuid")
         return MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))
     }
 
     fun mapArbeidsforhold(): List<MottattArbeidsforhold> {
-        val arbeidsforhold = findLøsningByBehov(Behov.ARBEIDSFORHOLD)
+        val arbeidsforhold = findLøsningByBehov(BehovType.ARBEIDSFORHOLD)
         sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $uuid")
         return listOf(MottattArbeidsforhold("arbeidsforhold1", "test", 100.0f))
     }
 
     fun mapFraværsperiode(): MutableMap<String, List<MottattPeriode>> {
-        val syk = findLøsningByBehov(Behov.SYK)
+        val syk = findLøsningByBehov(BehovType.SYK)
         sikkerlogg.info("Fant fraværsperiode $syk for $uuid")
         val map = mutableMapOf<String, List<MottattPeriode>>()
         map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 1))))
@@ -72,15 +72,15 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
     }
 
     fun mapFulltNavn(): String {
-        return findLøsningByBehov(Behov.FULLT_NAVN).value as String
+        return findLøsningByBehov(BehovType.FULLT_NAVN).value as String
     }
 
     fun mapVirksomhet(): String {
-        return findLøsningByBehov(Behov.VIRKSOMHET).value as String
+        return findLøsningByBehov(BehovType.VIRKSOMHET).value as String
     }
 
     fun mapInntekt(): Inntekt {
-        val inntekt = findLøsningByBehov(Behov.INNTEKT)
+        val inntekt = findLøsningByBehov(BehovType.INNTEKT)
         sikkerlogg.info("Fant inntekt $inntekt for $uuid")
         return Inntekt(250000, listOf(MottattHistoriskInntekt("Januar", 32000)))
     }

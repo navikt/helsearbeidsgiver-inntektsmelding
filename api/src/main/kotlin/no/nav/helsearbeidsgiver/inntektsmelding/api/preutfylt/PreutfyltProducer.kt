@@ -16,7 +16,7 @@ class PreutfyltProducer(
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 "@event_name" to "preutfylt",
-                "@behov" to listOf(Behov.VIRKSOMHET.name, Behov.FULLT_NAVN.name, Behov.INNTEKT.name, Behov.ARBEIDSFORHOLD.name),
+                "@behov" to listOf(Behov.VIRKSOMHET.name, Behov.FULLT_NAVN.name, Behov.INNTEKT.name, Behov.ARBEIDSFORHOLD.name, Behov.SYK.name),
                 "@id" to uuid,
                 "@opprettet" to LocalDateTime.now(),
                 "uuid" to uuid,

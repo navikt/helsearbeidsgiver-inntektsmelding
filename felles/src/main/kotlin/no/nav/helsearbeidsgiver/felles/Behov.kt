@@ -4,5 +4,6 @@ enum class Behov {
     FULLT_NAVN,
     VIRKSOMHET,
     INNTEKT,
-    ARBEIDSFORHOLD
+    ARBEIDSFORHOLD,
+    SYK
 }

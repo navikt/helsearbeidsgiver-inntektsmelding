@@ -22,6 +22,7 @@ internal class PreutfyltMapperTest {
     val løsningVirksomhet = Løsning(Behov.VIRKSOMHET.name, "xyz")
     val løsningInntekt = Løsning(Behov.INNTEKT.name, Inntekt(250000, listOf(MottattHistoriskInntekt("Januar", 25000))))
     val løsningArbeidsforhold = Løsning(Behov.ARBEIDSFORHOLD.name, "arbeidsforhold")
+    val løsningSykdom = Løsning(Behov.SYK.name, "sykdom")
     val løsningFeil = Løsning(Behov.FULLT_NAVN.name, error = Feilmelding("Oops"))
 
     @Test
@@ -57,6 +58,7 @@ internal class PreutfyltMapperTest {
         løsninger.add(if (to) { løsningVirksomhet } else { løsningFeil })
         løsninger.add(if (tre) { løsningInntekt } else { løsningFeil })
         løsninger.add(løsningArbeidsforhold)
+        løsninger.add(løsningSykdom)
         val request = PreutfyllRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
         return PreutfyltMapper("uuid", Resultat(løsninger), request)
     }

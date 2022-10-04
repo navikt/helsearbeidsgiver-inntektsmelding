@@ -50,6 +50,8 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
     }
 
     fun mapBehandlingsperiode(): MottattPeriode {
+        val syk = findLøsningByBehov(Behov.SYK)
+        sikkerlogg.info("Fant behandlingsperiode $syk for $uuid")
         return MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))
     }
 
@@ -60,6 +62,8 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
     }
 
     fun mapFraværsperiode(): MutableMap<String, List<MottattPeriode>> {
+        val syk = findLøsningByBehov(Behov.SYK)
+        sikkerlogg.info("Fant fraværsperiode $syk for $uuid")
         val map = mutableMapOf<String, List<MottattPeriode>>()
         map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 1))))
         map.put("arbeidsforhold2", listOf(MottattPeriode(LocalDate.of(2022, 1, 2), LocalDate.of(2022, 1, 2))))

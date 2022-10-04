@@ -9,6 +9,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 
 class Akkumulator(
     rapidsConnection: RapidsConnection,
@@ -61,8 +62,8 @@ class Akkumulator(
                 // Lagre løsning
                 redisStore.set(getRedisKey(uuid, behovNavn), data, timeout)
                 val node = objectMapper.readTree(data)
-                val errorNode = node.get("errors")
-                if (errorNode != null && errorNode.size() > 0) {
+                val errorNode = node.get("error")
+                if (errorNode != null && !errorNode.isMissingOrNull()) {
                     feil.add(behovNavn)
                 }
                 results.putIfAbsent(behovNavn, node)

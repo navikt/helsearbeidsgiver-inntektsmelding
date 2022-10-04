@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
 import kotlinx.coroutines.runBlocking
@@ -42,10 +44,10 @@ class PdlLøser(
                 hentNavn(identitetsnummer)
             }
             sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
-            packet.setLøsning(BEHOV, Løsning(fulltNavn))
+            packet.setLøsning(BEHOV, Løsning(BEHOV, fulltNavn))
             context.publish(packet.toJson())
         } catch (ex: Exception) {
-            packet.setLøsning(BEHOV, Løsning(errors = listOf(Feilmelding("Klarte ikke hente navn"))))
+            packet.setLøsning(BEHOV, Løsning(BEHOV, error = Feilmelding("Klarte ikke hente navn")))
             sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
             context.publish(packet.toJson())
         }

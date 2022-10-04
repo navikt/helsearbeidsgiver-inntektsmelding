@@ -1,7 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import kotlinx.serialization.Serializable
-import org.valiktor.functions.isNotEmpty
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidIdentitetsnummer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidOrganisasjonsnummer
 import org.valiktor.validate
 
 @Serializable
@@ -11,8 +12,8 @@ data class InntektsmeldingRequest(
 ) {
     fun validate() {
         validate(this) {
-            validate(InntektsmeldingRequest::orgnrUnderenhet).isNotEmpty()
-            validate(InntektsmeldingRequest::identitetsnummer).isNotEmpty()
+            validate(InntektsmeldingRequest::orgnrUnderenhet).isValidOrganisasjonsnummer()
+            validate(InntektsmeldingRequest::identitetsnummer).isValidIdentitetsnummer()
         }
     }
 }

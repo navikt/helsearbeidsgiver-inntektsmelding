@@ -18,9 +18,11 @@ import kotlin.test.assertTrue
 
 internal class PreutfyltMapperTest {
 
-    val løsningOk = Løsning(BehovType.FULLT_NAVN, "abc")
-    val løsningOk2 = Løsning(BehovType.VIRKSOMHET, "xyz")
-    val løsningOk3 = Løsning(BehovType.INNTEKT, Inntekt(250000, listOf(MottattHistoriskInntekt("Januar", 25000))))
+    val løsningNavn = Løsning(BehovType.FULLT_NAVN, "abc")
+    val løsningVirksomhet = Løsning(BehovType.VIRKSOMHET, "xyz")
+    val løsningInntekt = Løsning(BehovType.INNTEKT, Inntekt(250000, listOf(MottattHistoriskInntekt("Januar", 25000))))
+    val løsningArbeidsforhold = Løsning(BehovType.ARBEIDSFORHOLD, "arbeidsforhold")
+    val løsningSykdom = Løsning(BehovType.SYK, "sykdom")
     val løsningFeil = Løsning(BehovType.FULLT_NAVN, error = Feilmelding("Oops"))
 
     @Test
@@ -52,9 +54,11 @@ internal class PreutfyltMapperTest {
 
     fun buildMapper(en: Boolean, to: Boolean, tre: Boolean): PreutfyltMapper {
         val løsninger = mutableListOf<Løsning>()
-        løsninger.add(if (en) { løsningOk } else { løsningFeil })
-        løsninger.add(if (to) { løsningOk2 } else { løsningFeil })
-        løsninger.add(if (tre) { løsningOk3 } else { løsningFeil })
+        løsninger.add(if (en) { løsningNavn } else { løsningFeil })
+        løsninger.add(if (to) { løsningVirksomhet } else { løsningFeil })
+        løsninger.add(if (tre) { løsningInntekt } else { løsningFeil })
+        løsninger.add(løsningArbeidsforhold)
+        løsninger.add(løsningSykdom)
         val request = PreutfyllRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
         return PreutfyltMapper("uuid", Resultat(løsninger), request)
     }

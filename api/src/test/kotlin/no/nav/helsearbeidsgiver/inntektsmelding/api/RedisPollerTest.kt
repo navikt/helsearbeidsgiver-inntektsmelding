@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import kotlinx.coroutines.runBlocking
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Løsning
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -19,9 +20,9 @@ internal class RedisPollerTest {
 
     @Test
     fun `skal hente ut resultat`() {
-        val map = mutableMapOf<String, Løsning>()
-        map.put("behov1", Løsning("behov1", "verdi1"))
-        map.put("behov2", Løsning("behov2", "verdi2"))
+        val map = mutableMapOf<BehovType, Løsning>()
+        map.put(BehovType.FULLT_NAVN, Løsning(BehovType.FULLT_NAVN, "verdi1"))
+        map.put(BehovType.ARBEIDSFORHOLD, Løsning(BehovType.ARBEIDSFORHOLD, "verdi2"))
         val data = buildObjectMapper().writeValueAsString(map)
         val resultat = buildPoller(UGYLDIG_LISTE).transformResultat(data, "uuid")
         assertNotNull(resultat)

@@ -3,7 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.Behov
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
@@ -16,8 +16,8 @@ import org.valiktor.ConstraintViolationException
 
 internal class InnsendingMapperTest {
 
-    val løsningOk = Løsning(Behov.FULLT_NAVN.name, "abc")
-    val løsningFeil = Løsning(Behov.FULLT_NAVN.name, error = Feilmelding("Oops"))
+    val løsningOk = Løsning(BehovType.FULLT_NAVN, "abc")
+    val løsningFeil = Løsning(BehovType.FULLT_NAVN, error = Feilmelding("Oops"))
 
     @Test
     fun `skal kaste constraints exception når feil oppstår`() {

@@ -3,7 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.Behov
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.Inntekt
@@ -29,18 +29,18 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
     }
 
     fun mapConstraint(løsning: Løsning): ConstraintViolation {
-        val behov = løsning.behov
-        if (behov.equals(Behov.VIRKSOMHET.name)) {
+        val behov = løsning.behovType
+        if (behov == BehovType.VIRKSOMHET) {
             return DefaultConstraintViolation("orgnrUnderenhet", løsning.error!!.melding, FeilmeldingConstraint())
         }
-        if (behov.equals(Behov.FULLT_NAVN.name)) {
+        if (behov == BehovType.FULLT_NAVN) {
             return DefaultConstraintViolation("identitetsnummer", løsning.error!!.melding, FeilmeldingConstraint())
         }
         return DefaultConstraintViolation("ukjent", løsning.error!!.melding, FeilmeldingConstraint())
     }
 
-    fun findLøsningByBehov(behov: Behov): Løsning {
-        return resultat.løsninger.first { it.behov.equals(behov.name) }
+    fun findLøsningByBehov(behovType: BehovType): Løsning {
+        return resultat.løsninger.first { it.behovType == behovType }
     }
 
     fun mapEgenmeldingsperioder(): List<MottattPeriode> {
@@ -64,15 +64,15 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
     }
 
     fun mapFulltNavn(): String {
-        return findLøsningByBehov(Behov.FULLT_NAVN).value as String
+        return findLøsningByBehov(BehovType.FULLT_NAVN).value as String
     }
 
     fun mapVirksomhet(): String {
-        return findLøsningByBehov(Behov.VIRKSOMHET).value as String
+        return findLøsningByBehov(BehovType.VIRKSOMHET).value as String
     }
 
     fun mapInntekt(): Inntekt {
-        return findLøsningByBehov(Behov.INNTEKT).value as Inntekt
+        return findLøsningByBehov(BehovType.INNTEKT).value as Inntekt
     }
 
     fun getResponse(): PreutfyltResponse {

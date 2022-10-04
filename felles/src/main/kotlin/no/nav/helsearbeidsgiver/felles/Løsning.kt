@@ -3,7 +3,7 @@
 package no.nav.helsearbeidsgiver.felles
 
 data class Løsning(
-    val behov: String,
+    val behovType: BehovType,
     val value: Any? = null,
     val error: Feilmelding? = null
 )

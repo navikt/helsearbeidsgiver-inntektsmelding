@@ -8,8 +8,10 @@ import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.Inntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattArbeidsforhold
+import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattPeriode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.PreutfyltResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
 import org.valiktor.ConstraintViolation
 import org.valiktor.ConstraintViolationException
@@ -52,6 +54,8 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
     }
 
     fun mapArbeidsforhold(): List<MottattArbeidsforhold> {
+        val arbeidsforhold = findLøsningByBehov(Behov.ARBEIDSFORHOLD)
+        sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $uuid")
         return listOf(MottattArbeidsforhold("arbeidsforhold1", "test", 100.0f))
     }
 
@@ -72,7 +76,9 @@ class PreutfyltMapper(val uuid: String, var resultat: Resultat, val request: Pre
     }
 
     fun mapInntekt(): Inntekt {
-        return findLøsningByBehov(Behov.INNTEKT).value as Inntekt
+        val inntekt = findLøsningByBehov(Behov.INNTEKT)
+        sikkerlogg.info("Fant inntekt $inntekt for $uuid")
+        return Inntekt(250000, listOf(MottattHistoriskInntekt("Januar", 32000)))
     }
 
     fun getResponse(): PreutfyltResponse {

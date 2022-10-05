@@ -3,13 +3,14 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Løsning
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.Inntekt
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattArbeidsforhold
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattHistoriskInntekt
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattPeriode
-import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.PreutfyltResponse
+import no.nav.helsearbeidsgiver.felles.MottattArbeidsforhold
+import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
+import no.nav.helsearbeidsgiver.felles.MottattPeriode
+import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PreutfyltResponse
+import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
 import org.valiktor.ConstraintViolation
@@ -24,7 +25,7 @@ class PreutfyltMapper(val uuid: String, var resultat: PreutfyltResultat, val req
     }
 
     fun findAll(): List<Løsning> {
-        return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT).filter { it != null } as List<Løsning>
+        return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT).filterNotNull()
     }
 
     fun getConstraintViolations(): List<ConstraintViolation> {
@@ -34,11 +35,10 @@ class PreutfyltMapper(val uuid: String, var resultat: PreutfyltResultat, val req
     }
 
     fun mapConstraint(løsning: Løsning): ConstraintViolation {
-        val behov = løsning.behovType
-        if (behov == BehovType.VIRKSOMHET) {
+        if (løsning is VirksomhetLøsning) {
             return DefaultConstraintViolation("orgnrUnderenhet", løsning.error!!.melding, FeilmeldingConstraint())
         }
-        if (behov == BehovType.FULLT_NAVN) {
+        if (løsning is NavnLøsning) {
             return DefaultConstraintViolation("identitetsnummer", løsning.error!!.melding, FeilmeldingConstraint())
         }
         return DefaultConstraintViolation("ukjent", løsning.error!!.melding, FeilmeldingConstraint())
@@ -71,11 +71,11 @@ class PreutfyltMapper(val uuid: String, var resultat: PreutfyltResultat, val req
     }
 
     fun mapFulltNavn(): String {
-        return resultat.FULLT_NAVN?.value as String
+        return resultat.FULLT_NAVN?.value ?: "Mangler navn"
     }
 
     fun mapVirksomhet(): String {
-        return resultat.VIRKSOMHET?.value as String
+        return resultat.VIRKSOMHET?.value ?: "Mangler virksomhet"
     }
 
     fun mapInntekt(): Inntekt {

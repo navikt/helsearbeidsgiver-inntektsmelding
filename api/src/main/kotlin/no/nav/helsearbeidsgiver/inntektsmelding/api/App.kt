@@ -24,8 +24,9 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api"
 
 fun main() {
     val env = System.getenv()
-    val redisUrl = System.getenv("REDIS_URL")
-    val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"), buildObjectMapper())
+    val redisUrl = env.get("REDIS_URL")
+    val objectMapper = buildObjectMapper()
+    val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"))
     RapidApplication.create(env).apply {
         logger.info("Starter InnsendingProducer...")
         val innsendingProducer = InnsendingProducer(this)
@@ -42,8 +43,8 @@ fun main() {
                 }
                 route("/api/v1") {
                     arbeidsgiverRoute()
-                    innsendingRoute(innsendingProducer, poller)
-                    preutfyltRoute(preutfyltProducer, poller, buildObjectMapper())
+                    innsendingRoute(innsendingProducer, poller, objectMapper)
+                    preutfyltRoute(preutfyltProducer, poller, objectMapper)
                 }
             }
         }.start(wait = true)

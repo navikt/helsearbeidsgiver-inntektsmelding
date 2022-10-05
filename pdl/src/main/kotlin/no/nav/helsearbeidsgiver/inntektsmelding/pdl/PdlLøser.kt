@@ -10,7 +10,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Løsning
+import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
 
@@ -44,10 +44,10 @@ class PdlLøser(
                 hentNavn(identitetsnummer)
             }
             sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
-            packet.setLøsning(BEHOV, Løsning(BEHOV, fulltNavn))
+            packet.setLøsning(BEHOV, NavnLøsning(fulltNavn))
             context.publish(packet.toJson())
         } catch (ex: Exception) {
-            packet.setLøsning(BEHOV, Løsning(BEHOV, error = Feilmelding("Klarte ikke hente navn")))
+            packet.setLøsning(BEHOV, NavnLøsning(error = Feilmelding("Klarte ikke hente navn")))
             sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
             context.publish(packet.toJson())
         }

@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
@@ -13,7 +15,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import org.valiktor.ConstraintViolationException
 
-fun Route.innsendingRoute(producer: InnsendingProducer, poller: RedisPoller) {
+fun Route.innsendingRoute(producer: InnsendingProducer, poller: RedisPoller, objectMapper: ObjectMapper) {
     route("/inntektsmelding") {
         post {
             val request = call.receive<InntektsmeldingRequest>()
@@ -24,7 +26,8 @@ fun Route.innsendingRoute(producer: InnsendingProducer, poller: RedisPoller) {
                 request.validate()
                 uuid = producer.publish(request)
                 logger.info("Publiserte til Rapid med uuid: $uuid")
-                val resultat = poller.getResultat(uuid, 5, 500)
+                val data = poller.getValue(uuid, 5, 500)
+                val resultat = objectMapper.readValue<InnsendingResultat>(data)
                 sikkerlogg.info("Fikk value: $resultat")
                 val mapper = InnsendingMapper(uuid, resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())

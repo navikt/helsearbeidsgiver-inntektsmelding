@@ -27,5 +27,5 @@ fun buildPoller(answers: List<String>): RedisPoller {
         redisClient.connect()
     } returns connection
 
-    return RedisPoller(redisClient, buildObjectMapper())
+    return RedisPoller(redisClient)
 }

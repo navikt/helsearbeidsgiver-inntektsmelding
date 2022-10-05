@@ -3,32 +3,35 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Løsning
-import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
 import org.valiktor.ConstraintViolation
 import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
 
-class InnsendingMapper(val uuid: String, var resultat: Resultat) {
+class InnsendingMapper(val uuid: String, var resultat: InnsendingResultat) {
+
+    fun findAll(): List<Løsning> {
+        return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT).filterNotNull()
+    }
 
     fun hasErrors(): Boolean {
-        return resultat.løsninger.any { it.error != null }
+        return findAll().any { it.error != null }
     }
 
     fun getConstraintViolations(): List<ConstraintViolation> {
-        return resultat.løsninger
+        return findAll()
             .filter { it.error != null && !it.error!!.melding.isBlank() }
             .map { mapConstraint(it) }
     }
 
     fun mapConstraint(løsning: Løsning): ConstraintViolation {
-        val behov = løsning.behovType
-        if (behov == BehovType.VIRKSOMHET) {
+        if (løsning is VirksomhetLøsning) {
             return DefaultConstraintViolation("orgnrUnderenhet", løsning.error!!.melding, FeilmeldingConstraint())
         }
-        if (behov == BehovType.FULLT_NAVN) {
+        if (løsning is NavnLøsning) {
             return DefaultConstraintViolation("identitetsnummer", løsning.error!!.melding, FeilmeldingConstraint())
         }
         return DefaultConstraintViolation("ukjent", løsning.error!!.melding, FeilmeldingConstraint())

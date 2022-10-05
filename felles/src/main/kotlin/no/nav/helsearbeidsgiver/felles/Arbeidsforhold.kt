@@ -1,9 +1,9 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.dto
+package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MottattArbeidsforhold(
+data class Arbeidsforhold(
     val arbeidsforholdId: String,
     val arbeidsforhold: String,
     val stillingsprosent: Float

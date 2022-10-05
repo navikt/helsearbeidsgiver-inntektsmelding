@@ -9,7 +9,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Løsning
+import no.nav.helsearbeidsgiver.felles.MottattPeriode
+import no.nav.helsearbeidsgiver.felles.Syk
+import no.nav.helsearbeidsgiver.felles.SykLøsning
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -38,11 +40,11 @@ class SykLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
             fravaersperiode.put(fnr, listOf(MottattPeriode(fra, fra.plusDays(10))))
             val behandlingsperiode = MottattPeriode(fra, fra.plusDays(10))
             val syk = Syk(fravaersperiode, behandlingsperiode)
-            packet.setLøsning(BEHOV, Løsning(BEHOV, syk))
+            packet.setLøsning(BEHOV, SykLøsning(syk))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant syk $syk for $fnr")
         } catch (ex: Exception) {
-            packet.setLøsning(BEHOV, Løsning(BEHOV, error = Feilmelding("Klarte ikke hente syk")))
+            packet.setLøsning(BEHOV, SykLøsning(error = Feilmelding("Klarte ikke hente syk")))
             sikkerlogg.info("Det oppstod en feil ved henting av syk for $fnr")
             sikkerlogg.error(ex.stackTraceToString())
             context.publish(packet.toJson())

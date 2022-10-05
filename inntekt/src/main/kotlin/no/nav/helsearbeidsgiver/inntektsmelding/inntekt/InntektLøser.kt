@@ -9,7 +9,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Løsning
+import no.nav.helsearbeidsgiver.felles.Inntekt
+import no.nav.helsearbeidsgiver.felles.InntektLøsning
+import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import org.slf4j.LoggerFactory
 
 class InntektLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
@@ -42,11 +44,11 @@ class InntektLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
         val fnr = packet["identitetsnummer"].asText()
         try {
             val inntekt = getInntekt(fnr)
-            packet.setLøsning(BEHOV, Løsning(BEHOV, inntekt))
+            packet.setLøsning(BEHOV, InntektLøsning(inntekt))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant inntekt $inntekt for $fnr")
         } catch (ex: Exception) {
-            packet.setLøsning(BEHOV, Løsning(BEHOV, error = Feilmelding("Klarte ikke hente inntekt")))
+            packet.setLøsning(BEHOV, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
             sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr")
             sikkerlogg.error(ex.stackTraceToString())
             context.publish(packet.toJson())

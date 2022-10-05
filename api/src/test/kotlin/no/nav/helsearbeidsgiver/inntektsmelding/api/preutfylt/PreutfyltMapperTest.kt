@@ -6,7 +6,6 @@ import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
-import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.Inntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.api.dto.MottattHistoriskInntekt
@@ -53,13 +52,14 @@ internal class PreutfyltMapperTest {
     }
 
     fun buildMapper(en: Boolean, to: Boolean, tre: Boolean): PreutfyltMapper {
-        val løsninger = mutableListOf<Løsning>()
-        løsninger.add(if (en) { løsningNavn } else { løsningFeil })
-        løsninger.add(if (to) { løsningVirksomhet } else { løsningFeil })
-        løsninger.add(if (tre) { løsningInntekt } else { løsningFeil })
-        løsninger.add(løsningArbeidsforhold)
-        løsninger.add(løsningSykdom)
+        val resultat = PreutfyltResultat(
+            FULLT_NAVN = if (en) { løsningNavn } else { løsningFeil },
+            VIRKSOMHET = if (to) { løsningVirksomhet } else { løsningFeil },
+            ARBEIDSFORHOLD = løsningArbeidsforhold,
+            SYK = løsningSykdom,
+            INNTEKT = if (tre) { løsningInntekt } else { løsningFeil }
+        )
         val request = PreutfyllRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
-        return PreutfyltMapper("uuid", Resultat(løsninger), request)
+        return PreutfyltMapper("uuid", resultat, request)
     }
 }

@@ -43,7 +43,7 @@ fun main() {
                 route("/api/v1") {
                     arbeidsgiverRoute()
                     innsendingRoute(innsendingProducer, poller)
-                    preutfyltRoute(preutfyltProducer, poller)
+                    preutfyltRoute(preutfyltProducer, poller, buildObjectMapper())
                 }
             }
         }.start(wait = true)

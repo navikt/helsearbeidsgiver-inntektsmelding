@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
@@ -16,7 +18,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import org.valiktor.ConstraintViolationException
 
-fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller) {
+fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller, objectMapper: ObjectMapper) {
     route("/preutfyll") {
         post {
             val request = call.receive<PreutfyllRequest>()
@@ -26,8 +28,9 @@ fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller) {
                 request.validate()
                 uuid = producer.publish(request)
                 logger.info("Publiserte behov uuid: $uuid")
-                val resultat = poller.getResultat(uuid, 5, 500)
-                sikkerlogg.info("Fikk resultat for $uuid : $resultat")
+                val data = poller.getValue(uuid, 5, 500)
+                sikkerlogg.info("Fikk resultat for $uuid : $data")
+                val resultat = objectMapper.readValue<PreutfyltResultat>(data)
                 val mapper = PreutfyltMapper(uuid, resultat, request)
                 call.respond(mapper.getStatus(), Json.encodeToString(mapper.getResponse()))
             } catch (ex2: ConstraintViolationException) {

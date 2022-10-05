@@ -1,5 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.headersOf
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.call
 import io.ktor.server.application.install
@@ -35,6 +38,7 @@ fun main() {
         embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
             install(ContentNegotiation) {
                 jackson()
+                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             }
             helsesjekkerRouting()
             routing {

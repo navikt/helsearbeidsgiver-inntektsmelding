@@ -6,7 +6,6 @@ import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.MottattArbeidsforhold
-import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PreutfyltResponse
@@ -51,7 +50,7 @@ class PreutfyltMapper(val uuid: String, var resultat: PreutfyltResultat, val req
     fun mapBehandlingsperiode(): MottattPeriode {
         val syk = resultat.SYK
         sikkerlogg.info("Fant behandlingsperiode $syk for $uuid")
-        return MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2))
+        return (syk?.value?.behandlingsperiode ?: null)!!
     }
 
     fun mapArbeidsforhold(): List<MottattArbeidsforhold> {
@@ -60,14 +59,10 @@ class PreutfyltMapper(val uuid: String, var resultat: PreutfyltResultat, val req
         return listOf(MottattArbeidsforhold("arbeidsforhold1", "test", 100.0f))
     }
 
-    fun mapFraværsperiode(): MutableMap<String, List<MottattPeriode>> {
+    fun mapFraværsperiode(): Map<String, List<MottattPeriode>> {
         val syk = resultat.SYK
         sikkerlogg.info("Fant fraværsperiode $syk for $uuid")
-        val map = mutableMapOf<String, List<MottattPeriode>>()
-        map.put("arbeidsforhold1", listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 1))))
-        map.put("arbeidsforhold2", listOf(MottattPeriode(LocalDate.of(2022, 1, 2), LocalDate.of(2022, 1, 2))))
-        map.put("arbeidsforhold3", listOf(MottattPeriode(LocalDate.of(2022, 1, 3), LocalDate.of(2022, 1, 3))))
-        return map
+        return syk?.value?.fravaersperiode!!
     }
 
     fun mapFulltNavn(): String {
@@ -80,7 +75,7 @@ class PreutfyltMapper(val uuid: String, var resultat: PreutfyltResultat, val req
 
     fun mapInntekt(): Inntekt {
         sikkerlogg.info("Fant inntekt ${resultat.INNTEKT} for $uuid")
-        return Inntekt(250000, listOf(MottattHistoriskInntekt("Januar", 32000)))
+        return resultat?.INNTEKT?.value!!
     }
 
     fun getResponse(): PreutfyltResponse {

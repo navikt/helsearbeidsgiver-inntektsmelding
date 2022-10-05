@@ -9,6 +9,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
@@ -28,7 +29,7 @@ fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller, objec
                 logger.info("Publiserte behov uuid: $uuid")
                 val data = poller.getValue(uuid, 5, 500)
                 sikkerlogg.info("Fikk resultat for $uuid : $data")
-                val resultat = objectMapper.readValue<PreutfyltResultat>(data)
+                val resultat = objectMapper.readValue<Resultat>(data)
                 sikkerlogg.info("Klarte tolke resultat for $uuid : $resultat")
                 val mapper = PreutfyltMapper(uuid, resultat, request)
                 sikkerlogg.info("Klarte mappe resultat for $uuid : $resultat")

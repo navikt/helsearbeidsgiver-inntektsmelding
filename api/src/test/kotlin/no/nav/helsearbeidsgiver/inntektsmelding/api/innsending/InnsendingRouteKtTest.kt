@@ -20,6 +20,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.DummyConstraintViolation
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -38,8 +39,8 @@ internal class InnsendingRouteKtTest {
     val UGYLDIG_REQUEST = InntektsmeldingRequest(TestData.notValidOrgNr, TestData.notValidIdentitetsnummer)
 
     val UUID = "abc-123"
-    val RESULTAT_OK = InnsendingResultat(FULLT_NAVN = NavnLøsning("verdi"))
-    val RESULTAT_FEIL = InnsendingResultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
+    val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning("verdi"))
+    val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
 
     @Test
     fun `skal godta og returnere kvittering`() = testApplication {

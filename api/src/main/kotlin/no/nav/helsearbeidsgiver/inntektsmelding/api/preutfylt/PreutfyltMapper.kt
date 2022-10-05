@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.MottattArbeidsforhold
 import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PreutfyltResponse
+import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
@@ -17,7 +18,7 @@ import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
 import java.time.LocalDate
 
-class PreutfyltMapper(val uuid: String, var resultat: PreutfyltResultat, val request: PreutfyllRequest) {
+class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: PreutfyllRequest) {
 
     fun hasErrors(): Boolean {
         return findAll().any { it.error != null }
@@ -74,8 +75,7 @@ class PreutfyltMapper(val uuid: String, var resultat: PreutfyltResultat, val req
     }
 
     fun mapInntekt(): Inntekt {
-        sikkerlogg.info("Fant inntekt ${resultat.INNTEKT} for $uuid")
-        return resultat?.INNTEKT?.value!!
+        return resultat.INNTEKT?.value!!
     }
 
     fun getResponse(): PreutfyltResponse {

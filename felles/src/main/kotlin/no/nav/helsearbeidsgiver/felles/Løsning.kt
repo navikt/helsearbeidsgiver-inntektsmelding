@@ -28,7 +28,7 @@ data class InntektLøsning(
 ) : Løsning(error)
 
 data class ArbeidsforholdLøsning(
-    var value: List<Arbeidsforhold> = emptyList<Arbeidsforhold>(),
+    var value: List<Arbeidsforhold> = emptyList(),
     override var error: Feilmelding? = null
 ) : Løsning(error)
 

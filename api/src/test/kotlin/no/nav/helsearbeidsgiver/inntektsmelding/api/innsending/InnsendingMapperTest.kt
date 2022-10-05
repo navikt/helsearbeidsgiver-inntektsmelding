@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -53,7 +54,7 @@ internal class InnsendingMapperTest {
         løsninger.add(if (to) { løsningOk } else { løsningFeil })
         return InnsendingMapper(
             "uuid",
-            InnsendingResultat(
+            Resultat(
                 FULLT_NAVN = if (en) { løsningOk } else { løsningFeil },
                 VIRKSOMHET = if (to) { løsningVirksomhet } else { løsningVirksomhetFeil }
             )

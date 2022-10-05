@@ -5,13 +5,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
 import org.valiktor.ConstraintViolation
 import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
 
-class InnsendingMapper(val uuid: String, var resultat: InnsendingResultat) {
+class InnsendingMapper(val uuid: String, var resultat: Resultat) {
 
     fun findAll(): List<Løsning> {
         return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT).filterNotNull()

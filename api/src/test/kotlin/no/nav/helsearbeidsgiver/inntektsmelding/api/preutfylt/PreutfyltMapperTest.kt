@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Syk
 import no.nav.helsearbeidsgiver.felles.SykLøsning
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
@@ -76,7 +77,7 @@ internal class PreutfyltMapperTest {
     }
 
     fun buildMapper(en: Boolean, to: Boolean, tre: Boolean): PreutfyltMapper {
-        val resultat = PreutfyltResultat(
+        val resultat = Resultat(
             FULLT_NAVN = if (en) { løsningNavn } else { løsningFeil },
             VIRKSOMHET = if (to) { løsningVirksomhet } else { VirksomhetLøsning(error = Feilmelding("Feil")) },
             ARBEIDSFORHOLD = løsningArbeidsforhold,

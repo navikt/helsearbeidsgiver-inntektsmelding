@@ -9,6 +9,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
@@ -27,7 +28,7 @@ fun Route.innsendingRoute(producer: InnsendingProducer, poller: RedisPoller, obj
                 uuid = producer.publish(request)
                 logger.info("Publiserte til Rapid med uuid: $uuid")
                 val data = poller.getValue(uuid, 5, 500)
-                val resultat = objectMapper.readValue<InnsendingResultat>(data)
+                val resultat = objectMapper.readValue<Resultat>(data)
                 sikkerlogg.info("Fikk value: $resultat")
                 val mapper = InnsendingMapper(uuid, resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())

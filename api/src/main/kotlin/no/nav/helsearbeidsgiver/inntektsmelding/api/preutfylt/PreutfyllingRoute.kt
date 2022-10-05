@@ -34,7 +34,7 @@ fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller, objec
                 sikkerlogg.info("Klarte mappe resultat for $uuid : $resultat")
                 val res = mapper.getResponse()
                 sikkerlogg.info("Klarte response resultat for $uuid : $res")
-                call.respond(mapper.getStatus(), res)
+                call.respond(mapper.getStatus(), objectMapper.writeValueAsString(res))
             } catch (ex2: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for $uuid")
                 call.respond(HttpStatusCode.BadRequest, ex2.constraintViolations)

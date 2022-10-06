@@ -4,4 +4,4 @@ azure:
 ingress: https://helsearbeidsgiver-im-inntekt.dev.nav.no
 env:
 - name: INNTEKT_URL
-  value: "https://localhost"
+  value: "https://app-q1.adeo.no/inntektskomponenten-ws/rs"

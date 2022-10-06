@@ -18,6 +18,6 @@ internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starting...")
-    AaregLøser(rapidsConnection)
+    ArbeidsforholdLøser(rapidsConnection)
     return rapidsConnection
 }

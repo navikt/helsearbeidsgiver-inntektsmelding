@@ -13,7 +13,7 @@ import io.mockk.verify
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Løsning
+import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -30,9 +30,9 @@ internal class AkkumulatorTest {
     private val UUID_BRREG = "uuid_" + BEHOV_BRREG
     private val UUID_PDL = "uuid_" + BEHOV_PDL
 
-    val LØSNING_FEIL = Løsning(BehovType.FULLT_NAVN, error = Feilmelding("Fikk 500"))
-    val LØSNING_OK = Løsning(BehovType.FULLT_NAVN, value = "abc")
-    val PDL_OK = Løsning(BehovType.FULLT_NAVN, value = "xyz")
+    val LØSNING_FEIL = NavnLøsning(error = Feilmelding("Fikk 500"))
+    val LØSNING_OK = NavnLøsning(value = "abc")
+    val PDL_OK = NavnLøsning(value = "xyz")
 
     internal val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

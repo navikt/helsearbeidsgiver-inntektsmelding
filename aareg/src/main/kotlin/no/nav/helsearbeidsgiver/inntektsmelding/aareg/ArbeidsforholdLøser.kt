@@ -2,18 +2,23 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
+import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import org.slf4j.LoggerFactory
 
-class ArbeidsforholdLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+class ArbeidsforholdLøser(
+    rapidsConnection: RapidsConnection,
+    private val aaregClient: AaregClient
+) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val BEHOV = BehovType.ARBEIDSFORHOLD
@@ -30,13 +35,12 @@ class ArbeidsforholdLøser(rapidsConnection: RapidsConnection) : River.PacketLis
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
+        val id = packet["@id"].asText()
+        logger.info("Løser behov $BEHOV med id $id")
         val fnr = packet["identitetsnummer"].asText()
         try {
-            val arbeidsforhold = listOf(
-                Arbeidsforhold("af-1", "Norge AS", 80f),
-                Arbeidsforhold("af-2", "Norge AS", 20f)
-            )
+            @Suppress("UNCHECKED_CAST")
+            val arbeidsforhold = runBlocking { aaregClient.hentArbeidsforhold(fnr, id) } as List<Arbeidsforhold>
             packet.setLøsning(BEHOV, ArbeidsforholdLøsning(arbeidsforhold))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $fnr")

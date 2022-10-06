@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import org.slf4j.LoggerFactory
 
-class BrregLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient) : River.PacketListener {
+class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val BEHOV = BehovType.VIRKSOMHET

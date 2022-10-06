@@ -24,10 +24,6 @@ allprojects {
             kotlinOptions.jvmTarget = jvmTargetVersion
         }
 
-        withType<Wrapper> {
-            gradleVersion = gradleWrapperVersion
-        }
-
         withType<Test> {
             useJUnitPlatform()
             testLogging {

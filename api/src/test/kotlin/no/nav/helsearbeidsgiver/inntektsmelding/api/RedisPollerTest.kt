@@ -3,11 +3,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import kotlinx.coroutines.runBlocking
-import no.nav.helsearbeidsgiver.felles.Løsning
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 internal class RedisPollerTest {
 
@@ -16,17 +14,6 @@ internal class RedisPollerTest {
     private val TOM = ""
     private val UGYLDIG_LISTE = listOf(TOM, TOM, TOM, TOM)
     private val GYLDIG_LISTE = listOf(TOM, TOM, TOM, TOM, DATA)
-
-    @Test
-    fun `skal hente ut resultat`() {
-        val map = mutableMapOf<String, Løsning>()
-        map.put("behov1", Løsning("behov1", "verdi1"))
-        map.put("behov2", Løsning("behov2", "verdi2"))
-        val data = buildObjectMapper().writeValueAsString(map)
-        val resultat = buildPoller(UGYLDIG_LISTE).transformResultat(data, "uuid")
-        assertNotNull(resultat)
-        assertEquals(2, resultat.løsninger.size)
-    }
 
     @Test
     fun skal_gi_opp_etter_mange_forsøk() {

@@ -11,9 +11,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.Behov
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Løsning
+import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -24,15 +24,15 @@ internal class AkkumulatorTest {
     private var akkumulator: Akkumulator
     private val timeout = 600L
 
-    private val BEHOV_PDL = Behov.FULLT_NAVN.toString()
-    private val BEHOV_BRREG = Behov.VIRKSOMHET.toString()
+    private val BEHOV_PDL = BehovType.FULLT_NAVN.toString()
+    private val BEHOV_BRREG = BehovType.VIRKSOMHET.toString()
 
     private val UUID_BRREG = "uuid_" + BEHOV_BRREG
     private val UUID_PDL = "uuid_" + BEHOV_PDL
 
-    val LØSNING_FEIL = Løsning(Behov.FULLT_NAVN.name, error = Feilmelding("Fikk 500"))
-    val LØSNING_OK = Løsning(Behov.FULLT_NAVN.name, value = "abc")
-    val PDL_OK = Løsning(Behov.FULLT_NAVN.name, value = "xyz")
+    val LØSNING_FEIL = NavnLøsning(error = Feilmelding("Fikk 500"))
+    val LØSNING_OK = NavnLøsning(value = "abc")
+    val PDL_OK = NavnLøsning(value = "xyz")
 
     internal val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

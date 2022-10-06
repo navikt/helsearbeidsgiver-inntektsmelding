@@ -2,6 +2,9 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -19,7 +22,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Løsning
+import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.DummyConstraintViolation
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -39,8 +42,8 @@ internal class InnsendingRouteKtTest {
     val UGYLDIG_REQUEST = InntektsmeldingRequest(TestData.notValidOrgNr, TestData.notValidIdentitetsnummer)
 
     val UUID = "abc-123"
-    val RESULTAT_OK = Resultat(listOf<Løsning>(Løsning("behov1", "verdi")))
-    val RESULTAT_FEIL = Resultat(listOf<Løsning>(Løsning("FULLT_NAVN", Feilmelding("feil", 500))))
+    val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning("verdi"))
+    val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
 
     @Test
     fun `skal godta og returnere kvittering`() = testApplication {
@@ -59,7 +62,11 @@ internal class InnsendingRouteKtTest {
         }
         application {
             install(ContentNegotiation) {
-                jackson()
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    registerModule(JavaTimeModule())
+                }
             }
             routing {
                 innsendingRoute(producer, poller)
@@ -90,7 +97,11 @@ internal class InnsendingRouteKtTest {
         }
         application {
             install(ContentNegotiation) {
-                jackson()
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    registerModule(JavaTimeModule())
+                }
             }
             routing {
                 innsendingRoute(producer, poller)
@@ -126,7 +137,11 @@ internal class InnsendingRouteKtTest {
         }
         application {
             install(ContentNegotiation) {
-                jackson()
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    registerModule(JavaTimeModule())
+                }
             }
             routing {
                 innsendingRoute(producer, poller)
@@ -157,7 +172,11 @@ internal class InnsendingRouteKtTest {
         }
         application {
             install(ContentNegotiation) {
-                jackson()
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    registerModule(JavaTimeModule())
+                }
             }
             routing {
                 innsendingRoute(producer, poller)

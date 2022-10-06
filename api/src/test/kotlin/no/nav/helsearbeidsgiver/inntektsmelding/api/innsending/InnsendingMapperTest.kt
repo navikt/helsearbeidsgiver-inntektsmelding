@@ -3,10 +3,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.Behov
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Løsning
+import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -16,8 +17,10 @@ import org.valiktor.ConstraintViolationException
 
 internal class InnsendingMapperTest {
 
-    val løsningOk = Løsning(Behov.FULLT_NAVN.name, "abc")
-    val løsningFeil = Løsning(Behov.FULLT_NAVN.name, error = Feilmelding("Oops"))
+    val løsningOk = NavnLøsning("abc")
+    val løsningVirksomhet = VirksomhetLøsning("abc")
+    val løsningVirksomhetFeil = VirksomhetLøsning(error = Feilmelding("Oops"))
+    val løsningFeil = NavnLøsning(error = Feilmelding("Oops"))
 
     @Test
     fun `skal kaste constraints exception når feil oppstår`() {
@@ -27,7 +30,7 @@ internal class InnsendingMapperTest {
         }
         val constraints = mapper.getConstraintViolations()
         assertEquals(1, constraints.size)
-        assertEquals("identitetsnummer", constraints[0].property)
+        assertEquals("orgnrUnderenhet", constraints[0].property)
         assertEquals("Oops", constraints[0].value)
     }
 
@@ -49,6 +52,12 @@ internal class InnsendingMapperTest {
         val løsninger = mutableListOf<Løsning>()
         løsninger.add(if (en) { løsningOk } else { løsningFeil })
         løsninger.add(if (to) { løsningOk } else { løsningFeil })
-        return InnsendingMapper("uuid", Resultat(løsninger))
+        return InnsendingMapper(
+            "uuid",
+            Resultat(
+                FULLT_NAVN = if (en) { løsningOk } else { løsningFeil },
+                VIRKSOMHET = if (to) { løsningVirksomhet } else { løsningVirksomhetFeil }
+            )
+        )
     }
 }

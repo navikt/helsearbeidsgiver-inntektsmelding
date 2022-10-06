@@ -2,16 +2,17 @@ package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
+import java.time.YearMonth
 
 @Serializable
 data class MottattHistoriskInntekt(
-    val maanedsnavn: String,
-    val inntekt: Long
+    val maanedsnavn: YearMonth?,
+    val inntekt: Double?
 )
 
 @Serializable
 data class Inntekt(
-    val bruttoInntekt: Long,
+    val bruttoInntekt: Double,
     val historisk: List<MottattHistoriskInntekt>
 )
 
@@ -19,5 +20,5 @@ data class Inntekt(
 data class MottattNaturalytelse(
     val type: String,
     val bortfallsdato: LocalDate,
-    val verdi: Long
+    val verdi: Double
 )

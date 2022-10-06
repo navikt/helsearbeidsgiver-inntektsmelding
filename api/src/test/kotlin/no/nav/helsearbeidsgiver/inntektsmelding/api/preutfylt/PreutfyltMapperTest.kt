@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import org.junit.jupiter.api.Test
 import org.valiktor.ConstraintViolationException
 import java.time.LocalDate
+import java.time.YearMonth
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -27,7 +28,7 @@ internal class PreutfyltMapperTest {
 
     val løsningNavn = NavnLøsning("abc")
     val løsningVirksomhet = VirksomhetLøsning("xyz")
-    val løsningInntekt = InntektLøsning(Inntekt(250000, listOf(MottattHistoriskInntekt("Januar", 32000))))
+    val løsningInntekt = InntektLøsning(Inntekt(250000.0, listOf(MottattHistoriskInntekt(YearMonth.now(), 32000.0))))
     val løsningArbeidsforhold = buildArbeidsforhold()
     val løsningSykdom = buildSykdom()
     val løsningFeil = NavnLøsning(error = Feilmelding("Feil"))

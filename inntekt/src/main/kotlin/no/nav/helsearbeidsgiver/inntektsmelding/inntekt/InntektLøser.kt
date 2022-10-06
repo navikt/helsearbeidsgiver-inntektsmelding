@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
+import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -11,10 +12,11 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
-import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
+import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
-class InntektLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val BEHOV = BehovType.INNTEKT
@@ -30,20 +32,19 @@ class InntektLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
         }.register(this)
     }
 
-    fun getInntekt(fnr: String): Inntekt {
-        val historisk = listOf(
-            MottattHistoriskInntekt("Januar", 31000),
-            MottattHistoriskInntekt("Februar", 32000),
-            MottattHistoriskInntekt("Mars", 33000)
-        )
-        return Inntekt(32000 * 12, historisk)
+    fun hentInntekt(fom: LocalDate?, tom: LocalDate?, fnr: String, callId: String): Inntekt {
+        val response = runBlocking {
+            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fom, tom)
+        }
+        return mapInntekt(response)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
+        val uuid = packet["@id"].asText()
+        logger.info("Løser behov $BEHOV med id $uuid")
         val fnr = packet["identitetsnummer"].asText()
         try {
-            val inntekt = getInntekt(fnr)
+            val inntekt = hentInntekt(null, null, fnr, "helsearbeidsgiver-im-inntekt-$uuid")
             packet.setLøsning(BEHOV, InntektLøsning(inntekt))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant inntekt $inntekt for $fnr")

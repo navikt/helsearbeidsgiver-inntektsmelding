@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Syk
 import no.nav.helsearbeidsgiver.felles.SykLøsning
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import java.time.LocalDate
+import java.time.YearMonth
 
 object TestData {
     val validIdentitetsnummer = "20015001543"
@@ -35,6 +36,6 @@ fun buildResultat(): Resultat {
         SYK = SykLøsning(Syk(fravaersperiode, behandlingsperiode)),
         VIRKSOMHET = VirksomhetLøsning("Virksomhet AS"),
         ARBEIDSFORHOLD = ArbeidsforholdLøsning(arbeidsforhold),
-        INNTEKT = InntektLøsning(Inntekt(300L, listOf(MottattHistoriskInntekt("Januar", 32000))))
+        INNTEKT = InntektLøsning(Inntekt(300.0, listOf(MottattHistoriskInntekt(YearMonth.of(fra.year, fra.month), 32000.0))))
     )
 }

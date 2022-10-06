@@ -51,7 +51,7 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
     fun mapBehandlingsperiode(): MottattPeriode {
         val syk = resultat.SYK
         sikkerlogg.info("Fant behandlingsperiode $syk for $uuid")
-        return (syk?.value?.behandlingsperiode ?: null)!!
+        return syk?.value?.behandlingsperiode!!
     }
 
     fun mapArbeidsforhold(): List<MottattArbeidsforhold> {
@@ -90,7 +90,7 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
             orgnrUnderenhet = request.orgnrUnderenhet,
             fravaersperiode = mapFraværsperiode(),
             egenmeldingsperioder = mapEgenmeldingsperioder(),
-            bruttoinntekt = inntekt.bruttoInntekt,
+            bruttoinntekt = inntekt.bruttoInntekt.toLong(),
             tidligereinntekt = inntekt.historisk,
             behandlingsperiode = mapBehandlingsperiode(),
             arbeidsforhold = mapArbeidsforhold()

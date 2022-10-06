@@ -22,7 +22,7 @@ internal fun createApp(environment: Environment): RapidsConnection {
     val tokenProvider = OAuth2ClientConfig(environment)
     val pdl = PdlClient(environment.pdlUrl) { tokenProvider.getToken() }
 
-    PdlLøser(rapidsConnection, pdl)
+    FulltNavnLøser(rapidsConnection, pdl)
 
     return rapidsConnection
 }

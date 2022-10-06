@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
 
-class PdlLøser(
+class FulltNavnLøser(
     rapidsConnection: RapidsConnection,
     private val pdlClient: PdlClient
 ) : River.PacketListener {

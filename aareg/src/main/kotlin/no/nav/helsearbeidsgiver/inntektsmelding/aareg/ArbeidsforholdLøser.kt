@@ -1,4 +1,4 @@
-@file:Suppress("NonAsciiCharacters")
+@file:Suppress("NonAsciiCharacters", "ClassName")
 
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import org.slf4j.LoggerFactory
 
-class AaregLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+class ArbeidsforholdLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val BEHOV = BehovType.ARBEIDSFORHOLD

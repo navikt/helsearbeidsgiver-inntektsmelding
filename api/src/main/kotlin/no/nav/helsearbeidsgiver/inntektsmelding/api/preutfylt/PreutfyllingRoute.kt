@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
@@ -9,7 +7,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
@@ -17,7 +14,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import org.valiktor.ConstraintViolationException
 
-fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller, objectMapper: ObjectMapper) {
+fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller) {
     route("/preutfyll") {
         post {
             val request = call.receive<PreutfyllRequest>()
@@ -27,10 +24,8 @@ fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller, objec
                 request.validate()
                 uuid = producer.publish(request)
                 logger.info("Publiserte behov uuid: $uuid")
-                val data = poller.getValue(uuid, 5, 500)
-                sikkerlogg.info("Fikk resultat for $uuid : $data")
-                val resultat = objectMapper.readValue<Resultat>(data)
-                sikkerlogg.info("Klarte tolke resultat for $uuid : $resultat")
+                val resultat = poller.getResultat(uuid, 5, 500)
+                sikkerlogg.info("Fikk resultat for $uuid : $resultat")
                 val mapper = PreutfyltMapper(uuid, resultat, request)
                 sikkerlogg.info("Klarte mappe resultat for $uuid : $resultat")
                 call.respond(mapper.getStatus(), mapper.getResponse())

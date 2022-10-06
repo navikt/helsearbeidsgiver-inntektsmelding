@@ -2,6 +2,9 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -49,9 +52,9 @@ internal class InnsendingRouteKtTest {
         } returns UUID
         every {
             runBlocking {
-                poller.getValue(any(), any(), any())
+                poller.getResultat(any(), any(), any())
             }
-        } returns objectMapper.writeValueAsString(RESULTAT_OK)
+        } returns RESULTAT_OK
         val client = createClient {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
                 json()
@@ -59,10 +62,14 @@ internal class InnsendingRouteKtTest {
         }
         application {
             install(ContentNegotiation) {
-                jackson()
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    registerModule(JavaTimeModule())
+                }
             }
             routing {
-                innsendingRoute(producer, poller, objectMapper)
+                innsendingRoute(producer, poller)
             }
         }
         val response = client.post("/inntektsmelding") {
@@ -80,9 +87,9 @@ internal class InnsendingRouteKtTest {
         } returns UUID
         every {
             runBlocking {
-                poller.getValue(any(), any(), any())
+                poller.getResultat(any(), any(), any())
             }
-        } returns objectMapper.writeValueAsString(RESULTAT_FEIL)
+        } returns RESULTAT_FEIL
         val client = createClient {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
                 json()
@@ -90,10 +97,14 @@ internal class InnsendingRouteKtTest {
         }
         application {
             install(ContentNegotiation) {
-                jackson()
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    registerModule(JavaTimeModule())
+                }
             }
             routing {
-                innsendingRoute(producer, poller, objectMapper)
+                innsendingRoute(producer, poller)
             }
         }
         val response = client.post("/inntektsmelding") {
@@ -116,7 +127,7 @@ internal class InnsendingRouteKtTest {
         } returns UUID
         every {
             runBlocking {
-                poller.getValue(any(), any(), any())
+                poller.getResultat(any(), any(), any())
             }
         } throws RedisPollerTimeoutException(UUID)
         val client = createClient {
@@ -126,10 +137,14 @@ internal class InnsendingRouteKtTest {
         }
         application {
             install(ContentNegotiation) {
-                jackson()
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    registerModule(JavaTimeModule())
+                }
             }
             routing {
-                innsendingRoute(producer, poller, objectMapper)
+                innsendingRoute(producer, poller)
             }
         }
         val response = client.post("/inntektsmelding") {
@@ -147,9 +162,9 @@ internal class InnsendingRouteKtTest {
         } returns UUID
         every {
             runBlocking {
-                poller.getValue(any(), any(), any())
+                poller.getResultat(any(), any(), any())
             }
-        } returns objectMapper.writeValueAsString(RESULTAT_FEIL)
+        } returns RESULTAT_FEIL
         val client = createClient {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
                 json()
@@ -157,10 +172,14 @@ internal class InnsendingRouteKtTest {
         }
         application {
             install(ContentNegotiation) {
-                jackson()
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    registerModule(JavaTimeModule())
+                }
             }
             routing {
-                innsendingRoute(producer, poller, objectMapper)
+                innsendingRoute(producer, poller)
             }
         }
         val response = client.post("/inntektsmelding") {

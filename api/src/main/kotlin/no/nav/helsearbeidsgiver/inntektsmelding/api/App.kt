@@ -1,6 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import io.ktor.serialization.kotlinx.json.json
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
@@ -26,7 +29,7 @@ fun main() {
     val env = System.getenv()
     val redisUrl = env.get("REDIS_URL")
     val objectMapper = buildObjectMapper()
-    val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"))
+    val poller = RedisPoller(RedisClient.create("redis://$redisUrl:6379/0"), objectMapper)
     RapidApplication.create(env).apply {
         logger.info("Starter InnsendingProducer...")
         val innsendingProducer = InnsendingProducer(this)
@@ -34,7 +37,11 @@ fun main() {
         val preutfyltProducer = PreutfyltProducer(this)
         embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
             install(ContentNegotiation) {
-                json()
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    registerModule(JavaTimeModule())
+                }
             }
             helsesjekkerRouting()
             routing {
@@ -43,8 +50,8 @@ fun main() {
                 }
                 route("/api/v1") {
                     arbeidsgiverRoute()
-                    innsendingRoute(innsendingProducer, poller, objectMapper)
-                    preutfyltRoute(preutfyltProducer, poller, objectMapper)
+                    innsendingRoute(innsendingProducer, poller)
+                    preutfyltRoute(preutfyltProducer, poller)
                 }
             }
         }.start(wait = true)

@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 'preprod/**'
+      - preprod/**
 env:
   DOCKER_REGISTRY: docker.pkg.github.com
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
@@ -47,7 +47,7 @@ jobs:
       - name: Determine changes files
         run: |
           # Create a comma-separated list of changed files for use in build.gradle.kts
-          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r $GITHUB_SHA | tr '\r\n' ',' | sed -e 's/,$//')
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r -m $GITHUB_SHA | tr '\r\n' ',' | sed -e 's/,$//')
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
 
       - name: Determine projects to deploy

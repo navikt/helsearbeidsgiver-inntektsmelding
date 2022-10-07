@@ -18,7 +18,6 @@ buildscript {
 allprojects {
     tasks {
         val jvmTargetVersion: String by project
-        val gradleWrapperVersion: String by project
 
         withType<KotlinCompile> {
             kotlinOptions.jvmTarget = jvmTargetVersion

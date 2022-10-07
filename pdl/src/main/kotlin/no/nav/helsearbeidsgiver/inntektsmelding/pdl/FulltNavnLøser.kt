@@ -8,24 +8,24 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.Behov
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Løsning
+import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
 
-class PdlLøser(
+class FulltNavnLøser(
     rapidsConnection: RapidsConnection,
     private val pdlClient: PdlClient
 ) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private val BEHOV = Behov.FULLT_NAVN.name
+    private val BEHOV = BehovType.FULLT_NAVN
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", listOf(BEHOV))
+                it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
                 it.requireKey("identitetsnummer")
                 it.rejectKey("@løsning")
@@ -44,10 +44,10 @@ class PdlLøser(
                 hentNavn(identitetsnummer)
             }
             sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
-            packet.setLøsning(BEHOV, Løsning(BEHOV, fulltNavn))
+            packet.setLøsning(BEHOV, NavnLøsning(fulltNavn))
             context.publish(packet.toJson())
         } catch (ex: Exception) {
-            packet.setLøsning(BEHOV, Løsning(BEHOV, error = Feilmelding("Klarte ikke hente navn")))
+            packet.setLøsning(BEHOV, NavnLøsning(error = Feilmelding("Klarte ikke hente navn")))
             sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
             context.publish(packet.toJson())
         }
@@ -62,9 +62,9 @@ class PdlLøser(
         }
     }
 
-    private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {
+    private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
         this["@løsning"] = mapOf(
-            nøkkel to data
+            nøkkel.name to data
         )
     }
 

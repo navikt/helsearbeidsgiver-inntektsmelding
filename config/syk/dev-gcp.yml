@@ -1,0 +1,7 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+ingress: https://helsearbeidsgiver-im-syk.dev.nav.no
+env:
+- name: SYK_URL
+  value: "https://localhost"

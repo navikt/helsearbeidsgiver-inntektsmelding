@@ -25,14 +25,14 @@ fun Route.innsendingRoute(producer: InnsendingProducer, poller: RedisPoller) {
                 uuid = producer.publish(request)
                 logger.info("Publiserte til Rapid med uuid: $uuid")
                 val resultat = poller.getResultat(uuid, 5, 500)
-                sikkerlogg.info("Fikk value: $resultat")
+                sikkerlogg.info("Fikk resultat: $resultat")
                 val mapper = InnsendingMapper(uuid, resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (ex2: ConstraintViolationException) {
-                logger.info("Valideringsfeil!")
+                logger.info("Fikk valideringsfeil for $uuid")
                 call.respond(HttpStatusCode.BadRequest, ex2.constraintViolations)
             } catch (ex: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout!")
+                logger.info("Fikk timeout for $uuid")
                 call.respond(HttpStatusCode.InternalServerError, InnsendingFeilet(uuid, "Brukte for lang tid"))
             }
         }

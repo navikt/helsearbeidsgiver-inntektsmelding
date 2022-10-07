@@ -24,10 +24,6 @@ allprojects {
             kotlinOptions.jvmTarget = jvmTargetVersion
         }
 
-        withType<Wrapper> {
-            gradleVersion = gradleWrapperVersion
-        }
-
         withType<Test> {
             useJUnitPlatform()
             testLogging {
@@ -117,10 +113,9 @@ tasks {
 
     create("buildMatrix") {
         doLast {
-            mapper.asString(
+            mapper.taskOutput(
                 "project" to getBuildableProjects()
             )
-                .also(::println)
         }
     }
 
@@ -132,41 +127,52 @@ tasks {
                 exclusions
             ) = getDeployMatrixVariables()
 
-            mapper.asString(
-                "cluster" to clusters,
+            mapper.taskOutput(
                 "project" to deployableProjects,
-                "exclude" to exclusions
+                "cluster" to clusters,
+                "exclude" to exclusions.map { (project, cluster) ->
+                    mapOf(
+                        "project" to project,
+                        "cluster" to cluster
+                    )
+                }
             )
-                .also(::println)
         }
     }
 }
 
 fun getBuildableProjects(): List<String> {
     val changedFiles = System.getenv("CHANGED_FILES")
+        ?.takeIf(String::isNotBlank)
         ?.split(",")
-        .orEmpty()
+        ?: throw IllegalStateException("Ingen endrede filer funnet.")
 
-    val hasCommonChanges = changedFiles.any {
-        it.startsWith("felles/") ||
-            it.startsWith("build.gradle.kts") ||
-            it.contains("config/nais.yml") ||
-            it == ".github/workflows/build.yml" ||
-            it == "Dockerfile"
-    }
+    val hasCommonChanges = changedFiles.any { it.startsWith("felles/") } ||
+        changedFiles.containsAny(
+            ".github/workflows/build.yml",
+            "config/nais.yml",
+            "build.gradle.kts",
+            "Dockerfile",
+            "gradle.properties"
+        )
 
     return subprojects.map { it.name }
         .let { projects ->
-            if (changedFiles.isEmpty() || hasCommonChanges) projects
-            else projects.filter { changedFiles.anyContains("$it/") }
+            if (hasCommonChanges) projects
+            else projects.filter {
+                changedFiles.any {
+                    it.startsWith("$it/") ||
+                        it.startsWith("config/$it/")
+                }
+            }
         }
 }
 
-fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Map<String, String>>> {
+fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Pair<String, String>>> {
     // map of cluster to list of apps
     val deployableProjects = getBuildableProjects().filter { File("config", it).isDirectory }
 
-    val environments = deployableProjects.associateWith { project ->
+    val clustersByProject = deployableProjects.associateWith { project ->
         File("config", project)
             .listFiles()
             ?.filter { it.isFile && it.name.endsWith(".yml") }
@@ -175,25 +181,16 @@ fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Map<Strin
             .orEmpty()
     }
 
-    val clusters = environments.values.flatten().toSet()
+    val allClusters = clustersByProject.values.flatten().toSet()
 
-    val exclusions = environments
-        .mapValues { (_, configs) ->
-            clusters.subtract(configs)
-        }
-        .filterValues { it.isNotEmpty() }
-        .flatMap { (project, excludedClusters) ->
-            excludedClusters.map {
-                mapOf(
-                    "project" to project,
-                    "cluster" to it
-                )
-            }
-        }
+    val exclusions = clustersByProject.flatMap { (project, clusters) ->
+        allClusters.subtract(clusters)
+            .map { Pair(project, it) }
+    }
 
     return Triple(
         deployableProjects,
-        clusters,
+        allClusters,
         exclusions
     )
 }
@@ -212,8 +209,7 @@ fun Task.validateMainClassFound(mainClass: String) {
         ?.output
         ?.classesDirs
         ?.asFileTree
-        ?.map { it.path }
-        ?.anyContains(mainClassOsSpecific)
+        ?.any { it.path.contains(mainClassOsSpecific) }
         ?: false
 
     if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
@@ -225,10 +221,11 @@ fun Project.mainClass() =
 fun Project.erFellesmodul() =
     name == "felles"
 
-fun ObjectMapper.asString(vararg keyValuePairs: Pair<String, Any>): String =
-    writeValueAsString(
-        mapOf(*keyValuePairs)
-    )
+fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
+    mapOf(*keyValuePairs)
+        .let(this::writeValueAsString)
+        .let(::println)
+}
 
-fun List<String>.anyContains(other: String): Boolean =
-    this.any { it.contains(other) }
+fun List<String>.containsAny(vararg others: String) =
+    this.intersect(others.toSet()).isNotEmpty()

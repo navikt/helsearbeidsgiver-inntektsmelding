@@ -1,0 +1,7 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+ingress: https://helsearbeidsgiver-im-inntekt.dev.nav.no
+env:
+- name: INNTEKT_URL
+  value: "https://app-q1.adeo.no/inntektskomponenten-ws/rs"

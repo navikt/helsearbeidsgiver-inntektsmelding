@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.dto
+package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
 

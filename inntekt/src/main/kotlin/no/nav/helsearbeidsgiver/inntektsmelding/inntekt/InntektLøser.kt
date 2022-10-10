@@ -32,7 +32,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         }.register(this)
     }
 
-    fun hentInntekt(fom: LocalDate?, tom: LocalDate?, fnr: String, callId: String): Inntekt {
+    private fun hentInntekt(fom: LocalDate?, tom: LocalDate?, fnr: String, callId: String): Inntekt {
         val response = runBlocking {
             inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fom, tom)
         }

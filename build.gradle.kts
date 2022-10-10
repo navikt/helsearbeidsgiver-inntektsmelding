@@ -18,8 +18,6 @@ allprojects {
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
-
-
     repositories {
         val githubPassword: String by project
 
@@ -64,7 +62,6 @@ allprojects {
         withType<Wrapper> {
             gradleVersion = "7.4.2"
         }
-
     }
 }
 

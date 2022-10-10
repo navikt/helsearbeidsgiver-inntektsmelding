@@ -37,7 +37,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
             val til = LocalDate.now()
             val fra = til.minusDays(90)
             sikkerlogg.info("Henter inntekt for $fnr i perioden $fra til $til (callId: $callId)")
-            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", null, null, "MedlemskapA-inntekt", "Medlemskap")
+            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fra, til, "MedlemskapA-inntekt", "Medlemskap")
         }
         return mapInntekt(response)
     }

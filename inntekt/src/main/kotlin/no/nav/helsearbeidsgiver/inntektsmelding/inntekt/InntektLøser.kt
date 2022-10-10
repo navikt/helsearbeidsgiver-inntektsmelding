@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 
@@ -32,9 +31,10 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         }.register(this)
     }
 
-    private fun hentInntekt(fom: LocalDate?, tom: LocalDate?, fnr: String, callId: String): Inntekt {
+    private fun hentInntekt(fnr: String, callId: String): Inntekt {
         val response = runBlocking {
-            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fom, tom)
+            sikkerlogg.info("Henter inntekt for $fnr (callId: $callId)")
+            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", null, null, "MedlemskapA-inntekt", "Medlemskap")
         }
         return mapInntekt(response)
     }
@@ -44,7 +44,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         logger.info("Løser behov $BEHOV med id $uuid")
         val fnr = packet["identitetsnummer"].asText()
         try {
-            val inntekt = hentInntekt(null, null, fnr, "helsearbeidsgiver-im-inntekt-$uuid")
+            val inntekt = hentInntekt(fnr, "helsearbeidsgiver-im-inntekt-$uuid")
             packet.setLøsning(BEHOV, InntektLøsning(inntekt))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant inntekt $inntekt for $fnr")

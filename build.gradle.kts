@@ -158,10 +158,10 @@ fun getBuildableProjects(): List<String> {
     return subprojects.map { it.name }
         .let { projects ->
             if (hasCommonChanges) projects
-            else projects.filter {
+            else projects.filter { project ->
                 changedFiles.any {
-                    it.startsWith("$it/") ||
-                        it.startsWith("config/$it/")
+                    it.startsWith("$project/") ||
+                        it.startsWith("config/$project/")
                 }
             }
         }

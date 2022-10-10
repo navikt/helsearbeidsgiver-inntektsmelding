@@ -47,7 +47,7 @@ jobs:
       - name: Determine changes files
         run: |
           # Create a comma-separated list of changed files for use in build.gradle.kts
-          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r -m $GITHUB_SHA | tr '\r\n' ',' | sed -e 's/,$//')
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r -m $GITHUB_SHA | tr '\r\n' ',' | sed -e 's/,$//' | tr -d '"')
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
 
       - name: Determine projects to deploy

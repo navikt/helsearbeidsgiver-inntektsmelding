@@ -3,16 +3,22 @@ plugins {
 }
 
 val jacksonVersion = "2.13.4"
-val junitJupiterVersion = "5.9.0"
 val logbackClassicVersion = "1.2.11"
 val logstashVersion = "7.2"
 val jvmTargetVersion = "17"
+
+val junitJupiterVersion: String by project
+val ktorVersion: String by project
+val mockkVersion: String by project
+val rapidsAndRiversVersion: String by project
 
 allprojects {
     group = "no.nav.helsearbeidsgiver"
     version = properties["version"] ?: "local-build"
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
+
+
 
     repositories {
         val githubPassword: String by project
@@ -38,14 +44,9 @@ allprojects {
          dependencyResolutionManagement i settings.gradle.kts
      */
     dependencies {
-        implementation("ch.qos.logback:logback-classic:$logbackClassicVersion")
-        implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion") {
-            exclude("com.fasterxml.jackson.core")
-            exclude("com.fasterxml.jackson.dataformat")
-        }
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
 
+        testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
+        testImplementation("io.mockk:mockk:$mockkVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
@@ -69,6 +70,9 @@ allprojects {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
+
+    group = "no.nav.helsearbeidsgiver.inntektsmelding"
+    version = properties["version"] ?: "local-build"
 
     tasks {
         withType<Test> {

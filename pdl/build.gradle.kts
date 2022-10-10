@@ -1,6 +1,7 @@
 val ktorVersion: String by project
 
 dependencies {
+    implementation(project(":felles"))
     implementation("no.nav.helsearbeidsgiver:pdl-client:0.2.1")
     implementation("no.nav.helsearbeidsgiver:tokenprovider:0.2.6")
     implementation("no.nav.security:token-client-core:2.1.4")

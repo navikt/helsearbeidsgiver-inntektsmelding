@@ -9,6 +9,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":felles"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("org.valiktor:valiktor-core:$valiktorVersion")

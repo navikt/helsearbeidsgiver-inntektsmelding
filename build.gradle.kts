@@ -2,11 +2,7 @@ plugins {
     kotlin("jvm") version "1.7.0"
 }
 
-val jacksonVersion = "2.13.4"
-val logbackClassicVersion = "1.2.11"
-val logstashVersion = "7.2"
-val jvmTargetVersion = "17"
-
+val jvmTargetVersion: String by project
 val junitJupiterVersion: String by project
 val ktorVersion: String by project
 val mockkVersion: String by project
@@ -32,22 +28,6 @@ allprojects {
                 password = githubPassword
             }
         }
-    }
-
-    /*
-        avhengigheter man legger til her blir lagt på -alle- prosjekter.
-        med mindre alle submodulene (modellen, apiet, jobs, osv) har behov for samme avhengighet,
-        bør det heller legges til de enkelte som har behov.
-        Dersom det er flere som har behov så kan det være lurt å legge avhengigheten til
-         dependencyResolutionManagement i settings.gradle.kts
-     */
-    dependencies {
-
-        testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
-        testImplementation("io.mockk:mockk:$mockkVersion")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 
     tasks {
@@ -82,6 +62,8 @@ subprojects {
     }
 
     dependencies {
+        testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
+        testImplementation("io.mockk:mockk:$mockkVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")

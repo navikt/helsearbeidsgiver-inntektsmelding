@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 
@@ -33,7 +34,9 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
 
     private fun hentInntekt(fnr: String, callId: String): Inntekt {
         val response = runBlocking {
-            sikkerlogg.info("Henter inntekt for $fnr (callId: $callId)")
+            val til = LocalDate.now()
+            val fra = til.minusDays(90)
+            sikkerlogg.info("Henter inntekt for $fnr i perioden $fra til $til (callId: $callId)")
             inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", null, null, "MedlemskapA-inntekt", "Medlemskap")
         }
         return mapInntekt(response)

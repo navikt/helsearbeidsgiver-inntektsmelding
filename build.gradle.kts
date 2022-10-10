@@ -1,35 +1,18 @@
-import com.fasterxml.jackson.databind.ObjectMapper
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    kotlin("jvm")
-    id("org.jmailen.kotlinter")
+    kotlin("jvm") version "1.7.0"
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4")
-    }
-}
+val jacksonVersion = "2.13.4"
+val junitJupiterVersion = "5.9.0"
+val logbackClassicVersion = "1.2.11"
+val logstashVersion = "7.2"
+val jvmTargetVersion = "17"
 
 allprojects {
-    tasks {
-        val jvmTargetVersion: String by project
+    group = "no.nav.helsearbeidsgiver"
+    version = properties["version"] ?: "local-build"
 
-        withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = jvmTargetVersion
-        }
-
-        withType<Test> {
-            useJUnitPlatform()
-            testLogging {
-                events("skipped", "failed")
-            }
-        }
-    }
+    apply(plugin = "org.jetbrains.kotlin.jvm")
 
     repositories {
         val githubPassword: String by project
@@ -46,185 +29,60 @@ allprojects {
             }
         }
     }
+
+    /*
+        avhengigheter man legger til her blir lagt på -alle- prosjekter.
+        med mindre alle submodulene (modellen, apiet, jobs, osv) har behov for samme avhengighet,
+        bør det heller legges til de enkelte som har behov.
+        Dersom det er flere som har behov så kan det være lurt å legge avhengigheten til
+         dependencyResolutionManagement i settings.gradle.kts
+     */
+    dependencies {
+        implementation("ch.qos.logback:logback-classic:$logbackClassicVersion")
+        implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion") {
+            exclude("com.fasterxml.jackson.core")
+            exclude("com.fasterxml.jackson.dataformat")
+        }
+        implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+
+        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+        testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+    }
+
+    tasks {
+        compileKotlin {
+            kotlinOptions.jvmTarget = jvmTargetVersion
+        }
+
+        compileTestKotlin {
+            kotlinOptions.jvmTarget = jvmTargetVersion
+        }
+
+        withType<Wrapper> {
+            gradleVersion = "7.4.2"
+        }
+
+    }
 }
 
 subprojects {
-    group = "no.nav.helsearbeidsgiver.inntektsmelding"
-    version = properties["version"] ?: "local-build"
-
-    applyPlugins(
-        "org.jetbrains.kotlin.jvm",
-        "org.jmailen.kotlinter"
-    )
+    apply(plugin = "org.jetbrains.kotlin.jvm")
 
     tasks {
-        if (!project.erFellesmodul()) {
-            named<Jar>("jar") {
-                archiveBaseName.set("app")
-
-                val mainClass = project.mainClass()
-
-                doLast {
-                    validateMainClassFound(mainClass)
-                }
-
-                manifest {
-                    attributes["Main-Class"] = mainClass
-                    attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") { it.name }
-                }
-
-                doLast {
-                    configurations.runtimeClasspath.get().forEach { file ->
-                        File("$buildDir/libs/${file.name}")
-                            .takeUnless(File::exists)
-                            ?.let(file::copyTo)
-                    }
-                }
+        withType<Test> {
+            maxHeapSize = "6G"
+            useJUnitPlatform()
+            testLogging {
+                events("skipped", "failed")
             }
         }
     }
 
-    val junitJupiterVersion: String by project
-    val ktorVersion: String by project
-    val mockkVersion: String by project
-    val rapidsAndRiversVersion: String by project
-
-    ext {
-        set("ktorVersion", ktorVersion)
-        set("rapidsAndRiversVersion", rapidsAndRiversVersion)
-    }
-
     dependencies {
-        if (!erFellesmodul()) {
-            implementation(project(":felles"))
-        }
-
-        testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
-        testImplementation("io.mockk:mockk:$mockkVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 }
-
-tasks {
-    val mapper = ObjectMapper()
-
-    create("buildMatrix") {
-        doLast {
-            mapper.taskOutput(
-                "project" to getBuildableProjects()
-            )
-        }
-    }
-
-    create("deployMatrix") {
-        doLast {
-            val (
-                deployableProjects,
-                clusters,
-                exclusions
-            ) = getDeployMatrixVariables()
-
-            mapper.taskOutput(
-                "project" to deployableProjects,
-                "cluster" to clusters,
-                "exclude" to exclusions.map { (project, cluster) ->
-                    mapOf(
-                        "project" to project,
-                        "cluster" to cluster
-                    )
-                }
-            )
-        }
-    }
-}
-
-fun getBuildableProjects(): List<String> {
-    val changedFiles = System.getenv("CHANGED_FILES")
-        ?.takeIf(String::isNotBlank)
-        ?.split(",")
-        ?: throw IllegalStateException("Ingen endrede filer funnet.")
-
-    val hasCommonChanges = changedFiles.any { it.startsWith("felles/") } ||
-        changedFiles.containsAny(
-            ".github/workflows/build.yml",
-            "config/nais.yml",
-            "build.gradle.kts",
-            "Dockerfile",
-            "gradle.properties"
-        )
-
-    return subprojects.map { it.name }
-        .let { projects ->
-            if (hasCommonChanges) projects
-            else projects.filter { project ->
-                changedFiles.any {
-                    it.startsWith("$project/") ||
-                        it.startsWith("config/$project/")
-                }
-            }
-        }
-}
-
-fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Pair<String, String>>> {
-    // map of cluster to list of apps
-    val deployableProjects = getBuildableProjects().filter { File("config", it).isDirectory }
-
-    val clustersByProject = deployableProjects.associateWith { project ->
-        File("config", project)
-            .listFiles()
-            ?.filter { it.isFile && it.name.endsWith(".yml") }
-            ?.map { it.name.removeSuffix(".yml") }
-            ?.toSet()
-            .orEmpty()
-    }
-
-    val allClusters = clustersByProject.values.flatten().toSet()
-
-    val exclusions = clustersByProject.flatMap { (project, clusters) ->
-        allClusters.subtract(clusters)
-            .map { Pair(project, it) }
-    }
-
-    return Triple(
-        deployableProjects,
-        allClusters,
-        exclusions
-    )
-}
-
-fun PluginAware.applyPlugins(vararg ids: String) {
-    ids.forEach {
-        apply(plugin = it)
-    }
-}
-
-fun Task.validateMainClassFound(mainClass: String) {
-    val mainClassOsSpecific = mainClass.replace(".", File.separator)
-
-    val mainClassFound = this.project.sourceSets
-        .findByName("main")
-        ?.output
-        ?.classesDirs
-        ?.asFileTree
-        ?.any { it.path.contains(mainClassOsSpecific) }
-        ?: false
-
-    if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
-}
-
-fun Project.mainClass() =
-    "$group.${name.replace("-", "")}.AppKt"
-
-fun Project.erFellesmodul() =
-    name == "felles"
-
-fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
-    mapOf(*keyValuePairs)
-        .let(this::writeValueAsString)
-        .let(::println)
-}
-
-fun List<String>.containsAny(vararg others: String) =
-    this.intersect(others.toSet()).isNotEmpty()

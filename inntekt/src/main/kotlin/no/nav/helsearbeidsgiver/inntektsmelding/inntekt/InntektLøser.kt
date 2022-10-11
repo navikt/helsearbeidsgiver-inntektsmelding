@@ -53,8 +53,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
             sikkerlogg.info("Fant inntekt $inntekt for $fnr")
         } catch (ex: Exception) {
             packet.setLøsning(BEHOV, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
-            sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr")
-            sikkerlogg.error(ex.stackTraceToString())
+            sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr", ex)
             context.publish(packet.toJson())
         }
     }

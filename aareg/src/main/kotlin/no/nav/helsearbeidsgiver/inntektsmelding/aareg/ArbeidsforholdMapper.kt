@@ -12,12 +12,12 @@ fun arbeidsforholdMapper(arbeidsforhold: List<Arbeidsforhold>): List<Arbeidsforh
             type = it.arbeidsgiver.type,
             organisasjonsnummer = it.arbeidsgiver.organisasjonsnummer
         ),
-        ansettelsesperiode = Ansettelsesperiode(
+        Ansettelsesperiode(
             Periode(
                 it.ansettelsesperiode.periode.fom,
                 it.ansettelsesperiode.periode.tom
             )
         ),
-        registrert = it.registrert
+        it.registrert
     )
 }

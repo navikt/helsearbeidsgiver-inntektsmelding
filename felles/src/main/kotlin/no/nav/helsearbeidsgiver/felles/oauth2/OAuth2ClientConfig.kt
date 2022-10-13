@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.pdl
+package no.nav.helsearbeidsgiver.felles.oauth2
 
 import com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod
 import no.nav.helsearbeidsgiver.tokenprovider.DefaultOAuth2HttpClient
@@ -13,7 +13,7 @@ import no.nav.security.token.support.client.core.oauth2.OnBehalfOfTokenClient
 import no.nav.security.token.support.client.core.oauth2.TokenExchangeClient
 import java.net.URI
 
-fun OAuth2ClientConfig(environment: Environment): OAuth2TokenProvider {
+fun OAuth2ClientConfig(environment: AzureOAuth2Environment): OAuth2TokenProvider {
     val oauth2HttpClient = DefaultOAuth2HttpClient()
     val oauth2Service = OAuth2AccessTokenService(
         TokenResolver(),

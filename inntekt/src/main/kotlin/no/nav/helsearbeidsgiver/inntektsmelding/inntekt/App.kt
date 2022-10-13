@@ -6,6 +6,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,7 +23,7 @@ fun main() {
 internal fun createApp(environment: Environment): RapidsConnection {
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starter tokenprovider...")
-    val tokenProvider = OAuth2ClientConfig(environment)
+    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
     logger.info("Starter InntektKlient...")
     val inntektKlient = InntektKlient(environment.inntektUrl, tokenProvider, buildClient())
     logger.info("Starting RapidApplication...")

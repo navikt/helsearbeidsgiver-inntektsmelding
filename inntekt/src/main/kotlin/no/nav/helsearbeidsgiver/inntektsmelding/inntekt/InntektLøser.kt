@@ -39,7 +39,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
     private fun hentInntekt(fnr: String, fra: LocalDate, til: LocalDate, callId: String): Inntekt {
         val response = runBlocking {
             sikkerlogg.info("Henter inntekt for $fnr i perioden $fra til $til (callId: $callId)")
-            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fra, til, "8-28", "Medlemskap")
+            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fra, til, "8-28", "Sykepenger")
         }
         return mapInntekt(response)
     }

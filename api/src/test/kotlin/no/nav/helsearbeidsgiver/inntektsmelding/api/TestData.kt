@@ -1,17 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
-import no.nav.helsearbeidsgiver.felles.Inntekt
-import no.nav.helsearbeidsgiver.felles.InntektLøsning
-import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
-import no.nav.helsearbeidsgiver.felles.MottattPeriode
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
-import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.Syk
-import no.nav.helsearbeidsgiver.felles.SykLøsning
-import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
+import no.nav.helsearbeidsgiver.felles.*
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.YearMonth
 
 object TestData {
@@ -24,8 +15,19 @@ object TestData {
 
 fun buildResultat(): Resultat {
     val arbeidsforhold = listOf(
-        Arbeidsforhold("af-1", "Norge AS", 80f),
-        Arbeidsforhold("af-2", "Norge AS", 20f)
+        Arbeidsforhold(
+            Arbeidsgiver(
+                type = "Underenhet",
+                organisasjonsnummer = "810007842"
+            ),
+            Ansettelsesperiode(
+                Periode(
+                    fom = LocalDate.of(2021, 1, 1),
+                    tom = LocalDate.of(2021, 1, 10)
+                )
+            ),
+            registrert = LocalDateTime.of(2021, 1, 3, 6, 30, 40, 50000)
+        )
     )
     val fra = LocalDate.of(2022, 10, 5)
     val fravaersperiode = mutableMapOf<String, List<MottattPeriode>>()

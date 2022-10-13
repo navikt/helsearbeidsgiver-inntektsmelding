@@ -2,8 +2,6 @@
 
 package no.nav.helsearbeidsgiver.felles
 
-import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
-
 sealed class Løsning(
     // var value: Any? = null,
     open var error: Feilmelding? = null

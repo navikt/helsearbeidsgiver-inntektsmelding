@@ -9,5 +9,4 @@ dependencies {
     implementation("no.nav.security:token-client-core:$tokenClientVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-client-serialization:$ktorVersion")
-    implementation("no.nav.helsearbeidsgiver:aareg-client:0.2.0")
 }

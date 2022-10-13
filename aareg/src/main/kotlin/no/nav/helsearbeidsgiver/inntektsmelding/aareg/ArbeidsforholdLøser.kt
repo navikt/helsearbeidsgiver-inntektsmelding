@@ -39,7 +39,8 @@ class ArbeidsforholdLøser(
         val fnr = packet["identitetsnummer"].asText()
         try {
             val arbeidsforhold = runBlocking { aaregClient.hentArbeidsforhold(fnr, id) }
-            packet.setLøsning(BEHOV, ArbeidsforholdLøsning(arbeidsforhold))
+            val mappedArbeidsforhold = arbeidsforholdMapper(arbeidsforhold)
+            packet.setLøsning(BEHOV, ArbeidsforholdLøsning(mappedArbeidsforhold))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $fnr")
         } catch (ex: Exception) {

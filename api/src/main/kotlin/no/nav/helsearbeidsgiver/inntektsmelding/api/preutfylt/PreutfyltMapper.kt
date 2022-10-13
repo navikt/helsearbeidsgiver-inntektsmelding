@@ -93,7 +93,7 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
             bruttoinntekt = inntekt.bruttoInntekt.toLong(),
             tidligereinntekt = inntekt.historisk,
             behandlingsperiode = mapBehandlingsperiode(),
-            arbeidsforhold = mapArbeidsforhold()
+            arbeidsforhold = resultat.ARBEIDSFORHOLD!!.value
         )
     }
 

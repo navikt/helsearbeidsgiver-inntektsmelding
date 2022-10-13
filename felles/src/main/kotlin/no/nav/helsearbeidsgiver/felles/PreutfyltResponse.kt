@@ -23,5 +23,5 @@ data class PreutfyltResponse(
     // TODO - behandlingsperiode? sykemelding søknad
     val behandlingsperiode: MottattPeriode,
     // Aareg
-    val arbeidsforhold: List<MottattArbeidsforhold>
+    val arbeidsforhold: List<Arbeidsforhold>
 )

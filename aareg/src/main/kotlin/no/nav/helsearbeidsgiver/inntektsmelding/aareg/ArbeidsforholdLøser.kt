@@ -9,7 +9,6 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
@@ -39,8 +38,7 @@ class ArbeidsforholdLøser(
         logger.info("Løser behov $BEHOV med id $id")
         val fnr = packet["identitetsnummer"].asText()
         try {
-            @Suppress("UNCHECKED_CAST")
-            val arbeidsforhold = runBlocking { aaregClient.hentArbeidsforhold(fnr, id) } as List<Arbeidsforhold>
+            val arbeidsforhold = runBlocking { aaregClient.hentArbeidsforhold(fnr, id) }
             packet.setLøsning(BEHOV, ArbeidsforholdLøsning(arbeidsforhold))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $fnr")

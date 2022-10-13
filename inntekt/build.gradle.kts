@@ -1,9 +1,7 @@
 val ktorVersion: String by project
 
 dependencies {
-    implementation("no.nav.helsearbeidsgiver:tokenprovider:0.2.6")
     implementation("no.nav.helsearbeidsgiver:inntekt-klient:0.1.5")
-    implementation("no.nav.security:token-client-core:2.1.4")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-json:$ktorVersion")

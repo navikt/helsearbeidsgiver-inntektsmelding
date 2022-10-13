@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,7 +20,7 @@ internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
 
     val rapidsConnection = RapidApplication.create(environment.raw)
-    val tokenProvider = OAuth2ClientConfig(environment)
+    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
     val pdl = PdlClient(environment.pdlUrl) { tokenProvider.getToken() }
 
     FulltNavnLøser(rapidsConnection, pdl)

@@ -1,6 +1,19 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import no.nav.helsearbeidsgiver.felles.*
+import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
+import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
+import no.nav.helsearbeidsgiver.felles.Inntekt
+import no.nav.helsearbeidsgiver.felles.InntektLøsning
+import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
+import no.nav.helsearbeidsgiver.felles.MottattPeriode
+import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.felles.Syk
+import no.nav.helsearbeidsgiver.felles.SykLøsning
+import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth

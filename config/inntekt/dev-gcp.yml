@@ -4,4 +4,6 @@ azure:
 ingress: https://helsearbeidsgiver-im-inntekt.dev.nav.no
 env:
 - name: INNTEKT_URL
-  value: "https://app-q1.adeo.no/inntektskomponenten-ws/rs"
+  value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/inntekt"
+- name: PROXY_SCOPE
+  value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"

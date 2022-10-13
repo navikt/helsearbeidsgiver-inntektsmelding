@@ -18,9 +18,10 @@ fun main() {
 internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
     val rapidsConnection = RapidApplication.create(environment.raw)
-    logger.info("Starting...")
     val tokenProvider = OAuth2ClientConfig(environment)
     val aaregClient = AaregClient(environment.aaregUrl) { tokenProvider.getToken() }
+    logger.info("Starter løser...")
     ArbeidsforholdLøser(rapidsConnection, aaregClient)
+    logger.info("Løser klar...")
     return rapidsConnection
 }

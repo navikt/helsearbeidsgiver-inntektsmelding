@@ -16,6 +16,10 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
+fun finnStartMnd(now: LocalDate = LocalDate.now()): LocalDate? {
+    return LocalDate.of(now.year, now.month, 1)
+}
+
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -32,9 +36,10 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         }.register(this)
     }
 
-    fun hentInntekt(fom: LocalDate?, tom: LocalDate?, fnr: String, callId: String): Inntekt {
+    private fun hentInntekt(fnr: String, fra: LocalDate, til: LocalDate, callId: String): Inntekt {
         val response = runBlocking {
-            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fom, tom)
+            sikkerlogg.info("Henter inntekt for $fnr i perioden $fra til $til (callId: $callId)")
+            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fra, til, "8-28", "Sykepenger")
         }
         return mapInntekt(response)
     }
@@ -44,14 +49,15 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         logger.info("Løser behov $BEHOV med id $uuid")
         val fnr = packet["identitetsnummer"].asText()
         try {
-            val inntekt = hentInntekt(null, null, fnr, "helsearbeidsgiver-im-inntekt-$uuid")
+            val til = finnStartMnd()
+            val fra = til!!.minusMonths(3)
+            val inntekt = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
             packet.setLøsning(BEHOV, InntektLøsning(inntekt))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant inntekt $inntekt for $fnr")
         } catch (ex: Exception) {
             packet.setLøsning(BEHOV, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
-            sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr")
-            sikkerlogg.error(ex.stackTraceToString())
+            sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr", ex)
             context.publish(packet.toJson())
         }
     }

@@ -31,21 +31,29 @@ class SykLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
         }.register(this)
     }
 
+    fun hentSykdomsdata(identitetsnummer: String): Syk {
+        if (identitetsnummer.endsWith("000000000")) {
+            throw RuntimeException("Identitestnummer kan ikke være 000000000")
+        }
+        val fra = LocalDate.of(2022, 10, 5)
+        val fravaersperiode = mutableMapOf<String, List<MottattPeriode>>()
+        fravaersperiode.put(identitetsnummer, listOf(MottattPeriode(fra, fra.plusDays(10))))
+        val behandlingsperiode = MottattPeriode(fra, fra.plusDays(10))
+        return Syk(fravaersperiode, behandlingsperiode)
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
-        val fnr = packet["identitetsnummer"].asText()
+        val identitetsnummer = packet["identitetsnummer"].asText()
+        sikkerlogg.info("Fant behov for: $identitetsnummer")
         try {
-            val fra = LocalDate.of(2022, 10, 5)
-            val fravaersperiode = mutableMapOf<String, List<MottattPeriode>>()
-            fravaersperiode.put(fnr, listOf(MottattPeriode(fra, fra.plusDays(10))))
-            val behandlingsperiode = MottattPeriode(fra, fra.plusDays(10))
-            val syk = Syk(fravaersperiode, behandlingsperiode)
+            val syk = hentSykdomsdata(identitetsnummer)
             packet.setLøsning(BEHOV, SykLøsning(syk))
             context.publish(packet.toJson())
-            sikkerlogg.info("Fant syk $syk for $fnr")
+            sikkerlogg.info("Fant syk $syk for $identitetsnummer")
         } catch (ex: Exception) {
             packet.setLøsning(BEHOV, SykLøsning(error = Feilmelding("Klarte ikke hente syk")))
-            sikkerlogg.info("Det oppstod en feil ved henting av syk for $fnr")
+            sikkerlogg.info("Det oppstod en feil ved henting av syk for $identitetsnummer")
             sikkerlogg.error(ex.stackTraceToString())
             context.publish(packet.toJson())
         }

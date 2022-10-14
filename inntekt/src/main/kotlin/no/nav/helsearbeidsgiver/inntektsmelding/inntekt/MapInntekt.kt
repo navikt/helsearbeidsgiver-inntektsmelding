@@ -7,9 +7,10 @@ import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 fun mapInntekt(response: InntektskomponentResponse): Inntekt {
     val list = mutableListOf<MottattHistoriskInntekt>()
     response.arbeidsInntektMaaned?.forEach { maaned ->
-        maaned.arbeidsInntektInformasjon?.inntektListe?.forEach { inntekt ->
-            MottattHistoriskInntekt(maaned.aarMaaned, inntekt.beloep)
+        maaned.arbeidsInntektInformasjon?.inntektListe?.map { inntekt ->
+            list.add(MottattHistoriskInntekt(maaned.aarMaaned, inntekt.beloep ?: 0.0))
         }
     }
-    return Inntekt(0.0, list)
+    val total: Double = list.sumOf { it.inntekt ?: 0.0 }
+    return Inntekt(total, list)
 }

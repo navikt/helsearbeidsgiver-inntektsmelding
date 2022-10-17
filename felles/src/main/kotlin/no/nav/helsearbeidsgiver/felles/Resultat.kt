@@ -8,5 +8,6 @@ data class Resultat(
     val VIRKSOMHET: VirksomhetLøsning? = null,
     val ARBEIDSFORHOLD: ArbeidsforholdLøsning? = null,
     val SYK: SykLøsning? = null,
-    val INNTEKT: InntektLøsning? = null
+    val INNTEKT: InntektLøsning? = null,
+    val EGENMELDING: EgenmeldingLøsning? = null
 )

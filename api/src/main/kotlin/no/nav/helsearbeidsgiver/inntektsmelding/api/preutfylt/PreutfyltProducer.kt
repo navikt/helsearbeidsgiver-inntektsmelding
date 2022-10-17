@@ -21,6 +21,7 @@ class PreutfyltProducer(
                     BehovType.FULLT_NAVN.name,
                     BehovType.INNTEKT.name,
                     BehovType.ARBEIDSFORHOLD.name,
+                    BehovType.EGENMELDING.name,
                     BehovType.SYK.name
                 ),
                 "@id" to uuid,

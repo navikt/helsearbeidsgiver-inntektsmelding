@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstr
 import org.valiktor.ConstraintViolation
 import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
-import java.time.LocalDate
 
 class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: PreutfyllRequest) {
 
@@ -25,7 +24,7 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
     }
 
     fun findAll(): List<Løsning> {
-        return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT).filterNotNull()
+        return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT, resultat.EGENMELDING).filterNotNull()
     }
 
     fun getConstraintViolations(): List<ConstraintViolation> {
@@ -45,7 +44,9 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
     }
 
     fun mapEgenmeldingsperioder(): List<MottattPeriode> {
-        return listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)))
+        val egenmelding = resultat.EGENMELDING
+        sikkerlogg.info("Fant egenmelding for $uuid")
+        return egenmelding?.value ?: emptyList()
     }
 
     fun mapBehandlingsperiode(): MottattPeriode {

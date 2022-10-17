@@ -36,3 +36,8 @@ data class SykLøsning(
     var value: Syk? = null,
     override var error: Feilmelding? = null
 ) : Løsning(error)
+
+data class EgenmeldingLøsning(
+    var value: List<MottattPeriode>? = null,
+    override var error: Feilmelding? = null
+) : Løsning(error)

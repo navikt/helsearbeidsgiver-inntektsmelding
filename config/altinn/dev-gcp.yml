@@ -1,0 +1,11 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+ingress: https://helsearbeidsgiver-im-altinn.dev.nav.no
+envFrom:
+  - secret: altinn-api-gw-keys
+env:
+  - name: ALTINN_URL
+    value: https://api-gw-q1.oera.no/ekstern/altinn/api/serviceowner
+  - name: ALTINN_SERVICE_CODE
+    value: 4936

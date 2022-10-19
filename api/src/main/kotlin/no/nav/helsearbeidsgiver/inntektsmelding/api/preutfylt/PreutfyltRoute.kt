@@ -17,7 +17,7 @@ import org.valiktor.ConstraintViolationException
 fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller) {
     route("/preutfyll") {
         post {
-            val request = call.receive<PreutfyllRequest>()
+            val request = call.receive<PreutfyltRequest>()
             var uuid = "ukjent uuid"
             sikkerlogg.info("Mottok preutfylt $request")
             try {

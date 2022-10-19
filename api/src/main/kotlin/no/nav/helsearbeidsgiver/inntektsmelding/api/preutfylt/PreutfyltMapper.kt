@@ -17,7 +17,7 @@ import org.valiktor.ConstraintViolation
 import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
 
-class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: PreutfyllRequest) {
+class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: PreutfyltRequest) {
 
     fun hasErrors(): Boolean {
         return findAll().any { it.error != null }

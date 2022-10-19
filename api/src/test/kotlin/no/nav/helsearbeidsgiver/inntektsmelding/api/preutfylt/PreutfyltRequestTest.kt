@@ -7,17 +7,17 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException
 
-internal class PreutfyllRequestTest {
+internal class PreutfyltRequestTest {
 
     @Test
     fun `skal akseptere dersom gyldig orgnummer og fnr`() {
-        val request = PreutfyllRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
+        val request = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
         request.validate()
     }
 
     @Test
     fun `skal gi feilmelding når orgnummer er ugyldig`() {
-        val request = PreutfyllRequest(TestData.notValidOrgNr, TestData.validIdentitetsnummer)
+        val request = PreutfyltRequest(TestData.notValidOrgNr, TestData.validIdentitetsnummer)
         assertThrows<ConstraintViolationException> {
             request.validate()
         }
@@ -25,7 +25,7 @@ internal class PreutfyllRequestTest {
 
     @Test
     fun `skal gi feilmelding når fnr er ugyldig`() {
-        val request = PreutfyllRequest(TestData.validOrgNr, TestData.notValidIdentitetsnummer)
+        val request = PreutfyltRequest(TestData.validOrgNr, TestData.notValidIdentitetsnummer)
         assertThrows<ConstraintViolationException> {
             request.validate()
         }

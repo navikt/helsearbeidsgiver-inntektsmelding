@@ -6,14 +6,14 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidOrganisasj
 import org.valiktor.validate
 
 @Serializable
-data class PreutfyllRequest(
+data class PreutfyltRequest(
     val orgnrUnderenhet: String,
     val identitetsnummer: String
 ) {
     fun validate() {
         validate(this) {
-            validate(PreutfyllRequest::orgnrUnderenhet).isValidOrganisasjonsnummer()
-            validate(PreutfyllRequest::identitetsnummer).isValidIdentitetsnummer()
+            validate(PreutfyltRequest::orgnrUnderenhet).isValidOrganisasjonsnummer()
+            validate(PreutfyltRequest::identitetsnummer).isValidIdentitetsnummer()
         }
     }
 }

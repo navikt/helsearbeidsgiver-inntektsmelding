@@ -23,13 +23,13 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.buildResultat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class PreutfyllingRouteKtTest {
+internal class PreutfyltRouteKtTest {
 
     private val producer = mockk<PreutfyltProducer>()
     private val poller = mockk<RedisPoller>()
 
     private val UUID = "abc-123"
-    private val GYLDIG_REQUEST = PreutfyllRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
+    private val GYLDIG_REQUEST = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
     private val RESULTAT_OK = buildResultat()
 
     @Test

@@ -6,18 +6,13 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.LocalDateSerializer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isBefore
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isBekreftetInntekt
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isBekreftetOpplysninger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOpphørerValid
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isUbetalerFull
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isUtbetalerHele
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBehandlingsdager
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBrutto
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidEgenmeldinger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidIdentitetsnummer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidNaturalytelser
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidOrganisasjonsnummer
+import org.valiktor.functions.isGreaterThan
+import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isNotNull
+import org.valiktor.functions.isTrue
 import org.valiktor.validate
 import java.time.LocalDate
 
@@ -33,31 +28,45 @@ data class InnsendingRequest(
     val bruttoBekreftet: Boolean,
     val utbetalerFull: Boolean,
     val begrunnelseRedusert: BegrunnelseIngenEllerRedusertUtbetalingKode?,
-    val utbetalerHele: Boolean,
+    val utbetalerHeleEllerDeler: Boolean,
     val refusjonPrMnd: Double?,
-    val opphørerKravet: Boolean,
+    val opphørerKravet: Boolean?,
     val opphørSisteDag: LocalDate?,
     val naturalytelser: List<Naturalytelse>,
     val bekreftOpplysninger: Boolean
 ) {
     fun validate() {
         validate(this) {
+            // Den ansatte
             validate(InnsendingRequest::orgnrUnderenhet).isValidOrganisasjonsnummer()
+            // Arbeidsgiver
             validate(InnsendingRequest::identitetsnummer).isValidIdentitetsnummer()
+            // Fraværsperiode
             validate(InnsendingRequest::behandlingsdagerFom).isNotNull()
             validate(InnsendingRequest::behandlingsdagerTom).isNotNull()
             validate(InnsendingRequest::behandlingsdagerFom).isBefore(behandlingsdagerTom)
-            validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager()
-            validate(InnsendingRequest::egenmeldinger).isValidEgenmeldinger()
-            validate(InnsendingRequest::bruttonInntekt).isValidBrutto()
-
-            validate(InnsendingRequest::bruttoBekreftet).isBekreftetInntekt()
-            validate(InnsendingRequest::opphørerKravet).isOpphørerValid(opphørSisteDag)
-
-            validate(InnsendingRequest::utbetalerFull).isUbetalerFull(begrunnelseRedusert)
-            validate(InnsendingRequest::utbetalerHele).isUtbetalerHele(refusjonPrMnd)
-            validate(InnsendingRequest::naturalytelser).isValidNaturalytelser()
-            validate(InnsendingRequest::bekreftOpplysninger).isBekreftetOpplysninger()
+            validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
+            // Egenmelding
+            egenmeldinger?.forEach { it.validate() }
+            // Brutto inntekt
+            validate(InnsendingRequest::bruttonInntekt).isGreaterThan(0.0)
+            validate(InnsendingRequest::bruttonInntekt).isLessThan(1000000.0)
+            validate(InnsendingRequest::bruttoBekreftet).isTrue()
+            // Refusjon til arbeidsgiver
+            if (!utbetalerFull) {
+                validate(InnsendingRequest::begrunnelseRedusert).isNotNull()
+            }
+            if (utbetalerHeleEllerDeler) {
+                validate(InnsendingRequest::refusjonPrMnd).isGreaterThan(0.0)
+                validate(InnsendingRequest::refusjonPrMnd).isLessThan(1000000.0)
+                validate(InnsendingRequest::opphørerKravet).isNotNull()
+                if (opphørerKravet!!) {
+                    validate(InnsendingRequest::opphørSisteDag).isNotNull()
+                }
+            }
+            // Naturalytelser
+            naturalytelser.forEach { it.validate() }
+            validate(InnsendingRequest::bekreftOpplysninger).isTrue()
         }
     }
 }

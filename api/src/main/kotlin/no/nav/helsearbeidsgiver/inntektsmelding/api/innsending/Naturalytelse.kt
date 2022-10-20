@@ -5,6 +5,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.LocalDateSerializer
+import org.valiktor.functions.isGreaterThan
+import org.valiktor.functions.isLessThan
+import org.valiktor.functions.isNotNull
 import java.time.LocalDate
 
 @Serializable
@@ -12,7 +15,17 @@ data class Naturalytelse(
     val naturalytelseKode: NaturalytelseKode,
     val dato: LocalDate,
     val beløp: Double
-)
+) {
+    fun validate() {
+        org.valiktor.validate(this) {
+            validate(Naturalytelse::naturalytelseKode).isNotNull()
+            validate(Naturalytelse::dato).isNotNull()
+            validate(Naturalytelse::beløp).isNotNull()
+            validate(Naturalytelse::beløp).isGreaterThan(1.0)
+            validate(Naturalytelse::beløp).isLessThan(1000000.0)
+        }
+    }
+}
 
 /**
  * https://github.com/navikt/tjenestespesifikasjoner/blob/IM_nye_kodeverdier/nav-altinn-inntektsmelding/src/main/xsd/Inntektsmelding_kodelister_20210216.xsd

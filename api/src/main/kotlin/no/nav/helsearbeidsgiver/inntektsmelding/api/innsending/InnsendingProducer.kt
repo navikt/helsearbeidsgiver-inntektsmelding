@@ -11,7 +11,7 @@ import java.util.UUID
 class InnsendingProducer(
     private val rapidsConnection: RapidsConnection
 ) {
-    fun publish(request: InntektsmeldingRequest): String {
+    fun publish(request: InnsendingRequest): String {
         val uuid = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(

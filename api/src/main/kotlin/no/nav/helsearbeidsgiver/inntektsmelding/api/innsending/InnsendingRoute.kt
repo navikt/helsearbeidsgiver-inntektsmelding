@@ -16,7 +16,7 @@ import org.valiktor.ConstraintViolationException
 fun Route.innsendingRoute(producer: InnsendingProducer, poller: RedisPoller) {
     route("/inntektsmelding") {
         post {
-            val request = call.receive<InntektsmeldingRequest>()
+            val request = call.receive<InnsendingRequest>()
             var uuid = "ukjent uuid"
             sikkerlogg.info("Mottok innsending $request")
             try {

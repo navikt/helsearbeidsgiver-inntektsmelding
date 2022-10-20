@@ -38,8 +38,8 @@ internal class InnsendingRouteKtTest {
     val producer = mockk<InnsendingProducer>()
     val poller = mockk<RedisPoller>()
     val objectMapper = buildObjectMapper()
-    val GYLDIG_REQUEST = InntektsmeldingRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
-    val UGYLDIG_REQUEST = InntektsmeldingRequest(TestData.notValidOrgNr, TestData.notValidIdentitetsnummer)
+    val GYLDIG_REQUEST = GYLDIG
+    val UGYLDIG_REQUEST = GYLDIG.copy(identitetsnummer = TestData.notValidIdentitetsnummer, orgnrUnderenhet = TestData.notValidOrgNr)
 
     val UUID = "abc-123"
     val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning("verdi"))

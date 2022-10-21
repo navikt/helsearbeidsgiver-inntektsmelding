@@ -3,10 +3,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
+import no.nav.helsearbeidsgiver.inntektsmelding.api.buildObjectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException
 import java.time.LocalDate
+import kotlin.test.assertEquals
 
 internal class InnsendingRequestTest {
 
@@ -15,11 +17,16 @@ internal class InnsendingRequestTest {
     private val MAX_REFUSJON: Double = 1000001.0
     private val BELØP_NULL: Double = 0.0
     private val NEGATIVT_BELØP: Double = -0.1
-    private val MAX_NATURAL_BELØP: Double = 1000001.0
+    private val MAX_NATURAL_BELØP: Double = 1000000.0
 
     @Test
     fun `skal akseptere gyldig`() {
         GYLDIG.validate()
+    }
+
+    @Test
+    fun `skal kunne konvertere til json`() {
+        println(buildObjectMapper().writeValueAsString(GYLDIG))
     }
 
     @Test
@@ -161,6 +168,23 @@ internal class InnsendingRequestTest {
     fun `skal gi feil dersom opplysninger ikke er bekreftet`() {
         assertThrows<ConstraintViolationException> {
             GYLDIG.copy(bekreftOpplysninger = false).validate()
+        }
+    }
+
+    @Test
+    fun `skal bruke språkfil for feil`() {
+        try {
+            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.kostDoegn, NOW, MAX_NATURAL_BELØP + 1))).validate()
+        } catch (ex: ConstraintViolationException) {
+            ex.constraintViolations.forEach {
+                println(it)
+                assertEquals("naturalytelser[0].beløp", it.property)
+                assertEquals(MAX_NATURAL_BELØP + 1, it.value)
+                assertEquals("Less", it.constraint.name)
+                assertEquals("org/valiktor/messages", it.constraint.messageBundle)
+                assertEquals("org.valiktor.constraints.Less.message", it.constraint.messageKey)
+                it.constraint.messageParams.forEach { assertEquals(MAX_NATURAL_BELØP, it.value) }
+            }
         }
     }
 }

@@ -24,11 +24,11 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.inntektsmelding.api.DummyConstraintViolation
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.buildObjectMapper
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
@@ -39,7 +39,11 @@ internal class InnsendingRouteKtTest {
     val poller = mockk<RedisPoller>()
     val objectMapper = buildObjectMapper()
     val GYLDIG_REQUEST = GYLDIG
-    val UGYLDIG_REQUEST = GYLDIG.copy(identitetsnummer = TestData.notValidIdentitetsnummer, orgnrUnderenhet = TestData.notValidOrgNr)
+    val UGYLDIG_REQUEST = GYLDIG.copy(
+        identitetsnummer = TestData.notValidIdentitetsnummer,
+        orgnrUnderenhet = TestData.notValidOrgNr,
+        refusjonPrMnd = -1.0
+    )
 
     val UUID = "abc-123"
     val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning("verdi"))
@@ -114,8 +118,8 @@ internal class InnsendingRouteKtTest {
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
         val data: String = response.bodyAsText()
-        val violations = objectMapper.readValue<List<DummyConstraintViolation>>(data)
-        assertEquals(2, violations.size)
+        val violations = objectMapper.readValue<ValidationResponse>(data).errors
+        assertEquals(3, violations.size)
         assertEquals("orgnrUnderenhet", violations[0].property)
         assertEquals("identitetsnummer", violations[1].property)
     }
@@ -189,7 +193,7 @@ internal class InnsendingRouteKtTest {
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
         val data: String = response.bodyAsText()
-        val violations = objectMapper.readValue<List<DummyConstraintViolation>>(data)
-        assertEquals(2, violations.size)
+        val violations = objectMapper.readValue<ValidationResponse>(data).errors
+        assertEquals(3, violations.size)
     }
 }

@@ -7,7 +7,9 @@ import java.util.Locale
 fun validationResponseMapper(violations: Set<ConstraintViolation>): ValidationResponse {
     return ValidationResponse(
         violations
-            .mapToMessage(baseName = "messages", locale = Locale.ENGLISH)
-            .map { ValidationError(it.property, it.message) }
+            .mapToMessage(baseName = "messages", locale = Locale.forLanguageTag("no"))
+            .map {
+                ValidationError(it.property, it.message)
+            }
     )
 }

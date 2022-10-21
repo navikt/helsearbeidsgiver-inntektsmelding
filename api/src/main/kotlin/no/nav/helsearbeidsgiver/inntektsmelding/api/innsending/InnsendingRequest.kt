@@ -5,10 +5,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.LocalDateSerializer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isBefore
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBehandlingsdager
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidIdentitetsnummer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidOrganisasjonsnummer
 import org.valiktor.functions.isGreaterThan
 import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isNotNull
@@ -39,19 +38,21 @@ data class InnsendingRequest(
     fun validate() {
         validate(this) {
             // Den ansatte
-            validate(InnsendingRequest::orgnrUnderenhet).isValidOrganisasjonsnummer()
+            validate(InnsendingRequest::orgnrUnderenhet).isNotNull()
+            validate(InnsendingRequest::orgnrUnderenhet).isOrganisasjonsnummer()
             // Arbeidsgiver
-            validate(InnsendingRequest::identitetsnummer).isValidIdentitetsnummer()
+            validate(InnsendingRequest::identitetsnummer).isNotNull()
+            validate(InnsendingRequest::identitetsnummer).isIdentitetsnummer()
             // Fraværsperiode
             validate(InnsendingRequest::behandlingsdagerFom).isNotNull()
             validate(InnsendingRequest::behandlingsdagerTom).isNotNull()
-            validate(InnsendingRequest::behandlingsdagerFom).isBefore(behandlingsdagerTom)
+            validate(InnsendingRequest::behandlingsdagerFom).isLessThan(behandlingsdagerTom)
             validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
             // Egenmelding
             validate(InnsendingRequest::egenmeldinger).validateForEach {
                 validate(Egenmelding::fom).isNotNull()
                 validate(Egenmelding::tom).isNotNull()
-                validate(Egenmelding::fom).isBefore(it.tom)
+                validate(Egenmelding::tom).isGreaterThan(it.fom)
             }
             // Brutto inntekt
             validate(InnsendingRequest::bruttonInntekt).isGreaterThan(0.0)

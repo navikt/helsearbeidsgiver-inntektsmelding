@@ -4,7 +4,7 @@ import org.valiktor.Constraint
 
 interface CustomConstraint : Constraint {
     override val messageBundle: String
-        get() = "validation-messages"
+        get() = "messages"
 }
 
 class FeilmeldingConstraint : CustomConstraint

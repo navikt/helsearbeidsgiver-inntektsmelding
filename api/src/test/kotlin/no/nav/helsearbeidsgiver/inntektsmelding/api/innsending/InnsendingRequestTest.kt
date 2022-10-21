@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.buildObjectMapper
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException
@@ -176,15 +177,9 @@ internal class InnsendingRequestTest {
         try {
             GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.kostDoegn, NOW, MAX_NATURAL_BELØP + 1))).validate()
         } catch (ex: ConstraintViolationException) {
-            ex.constraintViolations.forEach {
-                println(it)
-                assertEquals("naturalytelser[0].beløp", it.property)
-                assertEquals(MAX_NATURAL_BELØP + 1, it.value)
-                assertEquals("Less", it.constraint.name)
-                assertEquals("org/valiktor/messages", it.constraint.messageBundle)
-                assertEquals("org.valiktor.constraints.Less.message", it.constraint.messageKey)
-                it.constraint.messageParams.forEach { assertEquals(MAX_NATURAL_BELØP, it.value) }
-            }
+            val response = validationResponseMapper(ex.constraintViolations)
+            assertEquals("naturalytelser[0].beløp", response.errors[0].property)
+            assertEquals("Må være mindre enn 1 000 000", response.errors[0].error)
         }
     }
 }

@@ -13,6 +13,7 @@ import org.valiktor.functions.isGreaterThan
 import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isNotNull
 import org.valiktor.functions.isTrue
+import org.valiktor.functions.validateForEach
 import org.valiktor.validate
 import java.time.LocalDate
 
@@ -22,8 +23,8 @@ data class InnsendingRequest(
     val identitetsnummer: String,
     val behandlingsdagerFom: LocalDate,
     val behandlingsdagerTom: LocalDate,
-    val behandlingsdager: List<LocalDate>?,
-    val egenmeldinger: List<Egenmelding>?,
+    val behandlingsdager: List<LocalDate>,
+    val egenmeldinger: List<Egenmelding>,
     val bruttonInntekt: Double,
     val bruttoBekreftet: Boolean,
     val utbetalerFull: Boolean,
@@ -47,7 +48,11 @@ data class InnsendingRequest(
             validate(InnsendingRequest::behandlingsdagerFom).isBefore(behandlingsdagerTom)
             validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
             // Egenmelding
-            egenmeldinger?.forEach { it.validate() }
+            validate(InnsendingRequest::egenmeldinger).validateForEach {
+                validate(Egenmelding::fom).isNotNull()
+                validate(Egenmelding::tom).isNotNull()
+                validate(Egenmelding::fom).isBefore(it.tom)
+            }
             // Brutto inntekt
             validate(InnsendingRequest::bruttonInntekt).isGreaterThan(0.0)
             validate(InnsendingRequest::bruttonInntekt).isLessThan(1000000.0)
@@ -65,7 +70,13 @@ data class InnsendingRequest(
                 }
             }
             // Naturalytelser
-            naturalytelser.forEach { it.validate() }
+            validate(InnsendingRequest::naturalytelser).validateForEach {
+                validate(Naturalytelse::naturalytelseKode).isNotNull()
+                validate(Naturalytelse::dato).isNotNull()
+                validate(Naturalytelse::beløp).isNotNull()
+                validate(Naturalytelse::beløp).isGreaterThan(1.0)
+                validate(Naturalytelse::beløp).isLessThan(1000000.0)
+            }
             validate(InnsendingRequest::bekreftOpplysninger).isTrue()
         }
     }

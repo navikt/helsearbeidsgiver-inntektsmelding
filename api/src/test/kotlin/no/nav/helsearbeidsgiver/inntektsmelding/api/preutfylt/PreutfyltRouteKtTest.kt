@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -59,7 +61,7 @@ internal class PreutfyltRouteKtTest {
                 }
             }
             routing {
-                preutfyltRoute(producer, poller)
+                PreutfyltRoute(producer, poller)
             }
         }
         val client = createClient {
@@ -93,7 +95,7 @@ internal class PreutfyltRouteKtTest {
                 }
             }
             routing {
-                preutfyltRoute(producer, poller)
+                PreutfyltRoute(producer, poller)
             }
         }
         val client = createClient {
@@ -131,7 +133,7 @@ internal class PreutfyltRouteKtTest {
                 }
             }
             routing {
-                preutfyltRoute(producer, poller)
+                PreutfyltRoute(producer, poller)
             }
         }
         val client = createClient {

@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 
-fun Route.preutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller) {
+fun Route.PreutfyltRoute(producer: PreutfyltProducer, poller: RedisPoller) {
     route("/preutfyll") {
         post {
             val request = call.receive<PreutfyltRequest>()

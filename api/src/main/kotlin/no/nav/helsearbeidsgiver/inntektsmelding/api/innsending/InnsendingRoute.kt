@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 
-fun Route.innsendingRoute(producer: InnsendingProducer, poller: RedisPoller) {
+fun Route.InnsendingRoute(producer: InnsendingProducer, poller: RedisPoller) {
     route("/inntektsmelding") {
         post {
             val request = call.receive<InnsendingRequest>()

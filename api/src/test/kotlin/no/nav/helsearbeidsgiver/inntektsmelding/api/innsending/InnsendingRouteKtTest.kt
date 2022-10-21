@@ -73,7 +73,7 @@ internal class InnsendingRouteKtTest {
                 }
             }
             routing {
-                innsendingRoute(producer, poller)
+                InnsendingRoute(producer, poller)
             }
         }
         val response = client.post("/inntektsmelding") {
@@ -108,7 +108,7 @@ internal class InnsendingRouteKtTest {
                 }
             }
             routing {
-                innsendingRoute(producer, poller)
+                InnsendingRoute(producer, poller)
             }
         }
         val response = client.post("/inntektsmelding") {
@@ -148,7 +148,7 @@ internal class InnsendingRouteKtTest {
                 }
             }
             routing {
-                innsendingRoute(producer, poller)
+                InnsendingRoute(producer, poller)
             }
         }
         val response = client.post("/inntektsmelding") {
@@ -183,7 +183,7 @@ internal class InnsendingRouteKtTest {
                 }
             }
             routing {
-                innsendingRoute(producer, poller)
+                InnsendingRoute(producer, poller)
             }
         }
         val response = client.post("/inntektsmelding") {

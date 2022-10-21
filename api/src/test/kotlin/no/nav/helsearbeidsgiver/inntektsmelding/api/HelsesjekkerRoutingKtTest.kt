@@ -7,12 +7,12 @@ import io.ktor.server.testing.testApplication
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class HelsesjekkerKtTest {
+internal class HelsesjekkerRoutingKtTest {
 
     @Test
     fun is_alive_skal_virke() = testApplication {
         application {
-            helsesjekkerRouting()
+            HelsesjekkerRouting()
         }
         val response = client.get("isalive")
         assertEquals("I'm alive", response.bodyAsText())
@@ -22,7 +22,7 @@ internal class HelsesjekkerKtTest {
     @Test
     fun is_ready_skal_virke() = testApplication {
         application {
-            helsesjekkerRouting()
+            HelsesjekkerRouting()
         }
         val response = client.get("isready")
         assertEquals("I'm ready", response.bodyAsText())

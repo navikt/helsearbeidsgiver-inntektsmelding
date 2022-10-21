@@ -15,10 +15,11 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.lettuce.core.RedisClient
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgiver.ArbeidsgiverRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.preutfyltRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltRoute
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -43,15 +44,15 @@ fun main() {
                     registerModule(JavaTimeModule())
                 }
             }
-            helsesjekkerRouting()
+            HelsesjekkerRouting()
             routing {
                 get("/") {
                     call.respondText("helsearbeidsgiver inntektsmelding")
                 }
                 route("/api/v1") {
-                    arbeidsgiverRoute()
-                    innsendingRoute(innsendingProducer, poller)
-                    preutfyltRoute(preutfyltProducer, poller)
+                    ArbeidsgiverRoute()
+                    InnsendingRoute(innsendingProducer, poller)
+                    PreutfyltRoute(preutfyltProducer, poller)
                 }
             }
         }.start(wait = true)

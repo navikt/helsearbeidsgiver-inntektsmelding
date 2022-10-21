@@ -1,4 +1,5 @@
 @file:UseSerializers(LocalDateSerializer::class)
+@file:Suppress("NonAsciiCharacters")
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
@@ -46,7 +47,7 @@ data class InnsendingRequest(
             // Fraværsperiode
             validate(InnsendingRequest::behandlingsdagerFom).isNotNull()
             validate(InnsendingRequest::behandlingsdagerTom).isNotNull()
-            validate(InnsendingRequest::behandlingsdagerFom).isLessThan(behandlingsdagerTom)
+            validate(InnsendingRequest::behandlingsdagerTom).isGreaterThan(behandlingsdagerFom)
             validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
             // Egenmelding
             validate(InnsendingRequest::egenmeldinger).validateForEach {
@@ -75,7 +76,7 @@ data class InnsendingRequest(
                 validate(Naturalytelse::naturalytelseKode).isNotNull()
                 validate(Naturalytelse::dato).isNotNull()
                 validate(Naturalytelse::beløp).isNotNull()
-                validate(Naturalytelse::beløp).isGreaterThan(1.0)
+                validate(Naturalytelse::beløp).isGreaterThan(0.0)
                 validate(Naturalytelse::beløp).isLessThan(1000000.0)
             }
             validate(InnsendingRequest::bekreftOpplysninger).isTrue()

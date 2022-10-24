@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -23,16 +24,14 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
                 it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
                 it.rejectKey("@løsning")
-                it.requireKey("identitetsnummer")
-                it.requireKey("orgnrUnderenhet")
                 it.requireKey("inntektsmelding")
             }
         }.register(this)
     }
 
-    fun opprettJournalpost(fnr: String, orgnr: String, data: String): String {
+    fun opprettJournalpost(data: JsonNode): String {
         sikkerlogg.info("Bruker inntektsinformasjon $data")
-        if (fnr.equals("000")) {
+        if (data.get("identitetsnummer").asText().equals("000")) {
             throw Exception("Ukjent feil")
         }
         return "jp-123"
@@ -41,15 +40,14 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet["@id"].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
-        val fnr = packet["identitetsnummer"].asText()
-        val orgnr = packet["orgnrUnderenhet"].asText()
         try {
-            sikkerlogg.info("Skal journalføre for $fnr i $orgnr")
-            val journalpostId = opprettJournalpost(fnr, orgnr, packet["inntektsmelding"].asText())
+            val inntektsmelding = packet["inntektsmelding"]
+            sikkerlogg.info("Skal journalføre $inntektsmelding")
+            val journalpostId = opprettJournalpost(inntektsmelding)
             packet.setLøsning(BEHOV, JournalpostLøsning(journalpostId))
             context.publish(packet.toJson())
         } catch (ex: Exception) {
-            sikkerlogg.info("Klarte ikke journalføre for $fnr i $orgnr", ex)
+            sikkerlogg.info("Klarte ikke journalføre!", ex)
             packet.setLøsning(BEHOV, JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre")))
             context.publish(packet.toJson())
         }
@@ -62,6 +60,5 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        sikkerlogg.error("Fikk error $problems")
     }
 }

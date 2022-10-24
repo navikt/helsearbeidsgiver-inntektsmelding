@@ -20,9 +20,7 @@ class InnsendingProducer(
                 "@id" to uuid,
                 "@opprettet" to LocalDateTime.now(),
                 "uuid" to uuid,
-                "inntektsmelding" to request,
-                "orgnrUnderenhet" to request.orgnrUnderenhet,
-                "identitetsnummer" to request.identitetsnummer
+                "inntektsmelding" to request
             )
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())

@@ -36,9 +36,10 @@ internal class JournalførInntektsmeldingLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                "identitetsnummer" to "123",
-                "orgnrUnderenhet" to "abc",
-                "inntektsmelding" to "xyz"
+                "inntektsmelding" to mapOf(
+                    "identitetsnummer" to "123",
+                    "orgnrUnderenhet" to "abc"
+                )
             )
         )
         assertEquals("jp-123", løsning.value)

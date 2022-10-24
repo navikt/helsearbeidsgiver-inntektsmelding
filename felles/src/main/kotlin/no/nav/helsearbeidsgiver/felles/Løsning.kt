@@ -41,3 +41,8 @@ data class EgenmeldingLøsning(
     var value: List<MottattPeriode>? = null,
     override var error: Feilmelding? = null
 ) : Løsning(error)
+
+data class JournalpostLøsning(
+    var value: String? = null,
+    override var error: Feilmelding? = null
+) : Løsning(error)

@@ -9,7 +9,7 @@ fun validationResponseMapper(violations: Set<ConstraintViolation>): ValidationRe
         violations
             .mapToMessage(baseName = "messages", locale = Locale.forLanguageTag("no"))
             .map {
-                ValidationError(it.property, it.message)
+                ValidationError(it.property, it.message, it.value.toString())
             }
     )
 }

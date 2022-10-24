@@ -6,5 +6,6 @@ class ValidationResponse(
 
 class ValidationError(
     val property: String,
-    val error: String
+    val error: String,
+    val value: String
 )

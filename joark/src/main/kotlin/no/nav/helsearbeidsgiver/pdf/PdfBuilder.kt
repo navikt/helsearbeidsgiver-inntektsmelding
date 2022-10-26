@@ -56,6 +56,8 @@ class PdfBuilder(
         val page = PDPage()
         doc.addPage(page)
         val contentStream = PDPageContentStream(doc, page)
+        contentStream.addRect(456f * RATIO, MAX - 390f * RATIO, 550f * RATIO, -300f * RATIO)
+        contentStream.stroke()
         list.forEach {
             if (LINETEXT.equals(it.value)) {
                 contentStream.moveTo(it.x.toFloat() * RATIO, MAX - (it.y.toFloat() - 20) * RATIO)

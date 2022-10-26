@@ -1,8 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgiver
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
-import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -15,6 +12,8 @@ import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 
 fun RouteExtra.ArbeidsgiverRoute() {
     route.get("/arbeidsgivere") {
@@ -27,9 +26,9 @@ fun RouteExtra.ArbeidsgiverRoute() {
 
         when (løsning) {
             is LøsningSuccess ->
-                call.respond(løsning.resultat.arbeidsgivere)
+                respondOk(løsning.resultat.arbeidsgivere)
             is LøsningFailure ->
-                call.respond(HttpStatusCode.InternalServerError, løsning.feilmelding)
+                respondInternalServerError(løsning.feilmelding)
         }
     }
 }

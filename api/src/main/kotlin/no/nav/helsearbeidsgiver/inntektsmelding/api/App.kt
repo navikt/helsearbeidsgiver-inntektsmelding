@@ -7,9 +7,9 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgiver.arbeidsgiverRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.preutfyltRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgiver.ArbeidsgiverRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.contentNegotiation
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routingExtra
 import org.slf4j.Logger
@@ -30,7 +30,7 @@ private fun startServer(connection: RapidsConnection) {
     embeddedServer(Netty, port = 8080) {
         contentNegotiation()
 
-        helsesjekkerRouting()
+        HelsesjekkerRouting()
 
         routingExtra(connection, RedisPoller()) {
             routing.get("/") {
@@ -38,9 +38,9 @@ private fun startServer(connection: RapidsConnection) {
             }
 
             routeExtra("/api/v1") {
-                arbeidsgiverRoute()
-                innsendingRoute()
-                preutfyltRoute()
+                ArbeidsgiverRoute()
+                InnsendingRoute()
+                PreutfyltRoute()
             }
         }
     }.start(wait = true)

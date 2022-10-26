@@ -41,3 +41,8 @@ data class EgenmeldingLøsning(
     override val value: List<MottattPeriode>? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
+
+data class JournalpostLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()

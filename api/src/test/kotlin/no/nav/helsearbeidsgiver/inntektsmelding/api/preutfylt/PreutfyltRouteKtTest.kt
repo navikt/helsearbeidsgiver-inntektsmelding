@@ -1,6 +1,6 @@
 @file:Suppress("NonAsciiCharacters")
 
-package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
+package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.statement.bodyAsText
@@ -9,54 +9,44 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.mockk
-import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
-import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RouteTester
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
+import no.nav.helsearbeidsgiver.inntektsmelding.api.buildResultat
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 
-class InnsendingRouteKtTest {
-    val objectMapper = customObjectMapper()
+internal class PreutfyltRouteKtTest {
+    private val objectMapper = customObjectMapper()
 
-    val poller = mockk<RedisPoller>()
+    private val poller = mockk<RedisPoller>()
 
-    val GYLDIG_REQUEST = GYLDIG
-    val UGYLDIG_REQUEST = GYLDIG.copy(
-        identitetsnummer = TestData.notValidIdentitetsnummer,
-        orgnrUnderenhet = TestData.notValidOrgNr,
-        refusjonPrMnd = -1.0
-    )
-
-    val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning("verdi"))
-    val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
+    private val GYLDIG_REQUEST = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
+    private val UGYLDIG_REQUEST = PreutfyltRequest(TestData.notValidOrgNr, TestData.notValidIdentitetsnummer)
+    private val RESULTAT_OK = buildResultat()
 
     @Test
     fun `skal godta og returnere kvittering`() = testApplication {
-        val routeTester = routeTester()
-
         coEvery {
             poller.getResultat(any(), any(), any())
         } returns RESULTAT_OK
 
-        val response = routeTester.post(GYLDIG_REQUEST)
+        val response = routeTester().post(GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals(objectMapper.writeValueAsString(InnsendingResponse(routeTester.mockUuid.toString())), response.bodyAsText())
     }
 
     @Test
-    fun `skal returnere valideringsfeil ved ugyldig request`() = testApplication {
+    fun `skal håndtere bad request`() = testApplication {
         coEvery {
             poller.getResultat(any(), any(), any())
-        } returns RESULTAT_FEIL
+        } returns RESULTAT_OK
 
         val response = routeTester().post(UGYLDIG_REQUEST)
 
@@ -64,13 +54,11 @@ class InnsendingRouteKtTest {
         assertNotNull(response.bodyAsText())
         val data: String = response.bodyAsText()
         val violations = objectMapper.readValue<ValidationResponse>(data).errors
-        assertEquals(3, violations.size)
-        assertEquals("orgnrUnderenhet", violations[0].property)
-        assertEquals("identitetsnummer", violations[1].property)
+        assertEquals(2, violations.size)
     }
 
     @Test
-    fun `skal returnere feilmelding ved timeout fra Redis`() = testApplication {
+    fun `skal håndtere server error`() = testApplication {
         val routeTester = routeTester()
 
         coEvery {
@@ -83,26 +71,11 @@ class InnsendingRouteKtTest {
         assertEquals(objectMapper.writeValueAsString(InnsendingFeilet(routeTester.mockUuid.toString(), "Brukte for lang tid")), response.bodyAsText())
     }
 
-    @Test
-    fun `skal vise feil når et behov feiler`() = testApplication {
-        coEvery {
-            poller.getResultat(any(), any(), any())
-        } returns RESULTAT_FEIL
-
-        val response = routeTester().post(UGYLDIG_REQUEST)
-
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertNotNull(response.bodyAsText())
-        val data: String = response.bodyAsText()
-        val violations = objectMapper.readValue<ValidationResponse>(data).errors
-        assertEquals(3, violations.size)
-    }
-
     private fun ApplicationTestBuilder.routeTester(): RouteTester =
         RouteTester(
             this,
             poller,
-            "/inntektsmelding",
-            RouteExtra::InnsendingRoute
+            "/preutfyll",
+            RouteExtra::PreutfyltRoute
         )
 }

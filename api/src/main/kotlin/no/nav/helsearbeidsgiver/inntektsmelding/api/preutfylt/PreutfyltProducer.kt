@@ -15,7 +15,7 @@ class PreutfyltProducer(
         logger.info("Starter PreutfyltProducer...")
     }
 
-    fun publish(request: PreutfyllRequest): String {
+    fun publish(request: PreutfyltRequest): String {
         val uuid = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(

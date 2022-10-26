@@ -9,6 +9,7 @@ enum class BehovType {
     ARBEIDSFORHOLD,
     EGENMELDING,
     SYK,
+    JOURNALFOER,
     ARBEIDSGIVERE
 }
 
@@ -35,6 +36,10 @@ annotation class JsonAliasEgenmelding
 @Target(AnnotationTarget.PROPERTY)
 @JsonAlias("SYK")
 annotation class JsonAliasSyk
+
+@Target(AnnotationTarget.PROPERTY)
+@JsonAlias("JOURNALFOER")
+annotation class JsonAliasJournalfoer
 
 @Target(AnnotationTarget.PROPERTY)
 @JsonAlias("ARBEIDSGIVERE")

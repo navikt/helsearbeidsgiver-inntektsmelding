@@ -11,14 +11,15 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 
-fun RouteExtra.preutfyltRoute() {
+fun RouteExtra.PreutfyltRoute() {
     val producer = PreutfyltProducer(connection)
 
     route.route("/preutfyll") {
         post {
-            val request = call.receive<PreutfyllRequest>()
+            val request = call.receive<PreutfyltRequest>()
             var uuid = "ukjent uuid"
             sikkerlogg.info("Mottok preutfylt $request")
             try {
@@ -32,7 +33,7 @@ fun RouteExtra.preutfyltRoute() {
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (ex2: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for $uuid")
-                call.respond(HttpStatusCode.BadRequest, ex2.constraintViolations)
+                call.respond(HttpStatusCode.BadRequest, validationResponseMapper(ex2.constraintViolations))
             } catch (ex: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for $uuid")
                 call.respond(HttpStatusCode.InternalServerError, InnsendingFeilet(uuid, "Brukte for lang tid"))

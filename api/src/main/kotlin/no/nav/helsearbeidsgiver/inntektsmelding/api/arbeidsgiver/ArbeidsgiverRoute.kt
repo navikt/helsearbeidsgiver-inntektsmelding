@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 
-fun RouteExtra.arbeidsgiverRoute() {
+fun RouteExtra.ArbeidsgiverRoute() {
     route.get("/arbeidsgivere") {
         val id = connection.publiser(
             // TODO Behov må være liste. Dette bør endres i Akkumulatoren.

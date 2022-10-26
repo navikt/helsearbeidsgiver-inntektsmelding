@@ -1,52 +1,64 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import org.slf4j.LoggerFactory
 
 class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
-    companion object {
-        internal const val behov = "JournalførInntektsmeldingLøser"
-    }
+    private val BEHOV = BehovType.JOURNALFOER
 
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name", "inntektsmelding_inn") }
-            validate { it.requireContains("@behov", behov) }
-            validate { it.requireValue("@løsning", "persistert") }
+            validate {
+                it.demandAll("@behov", BEHOV)
+                it.requireKey("@id")
+                it.rejectKey("@løsning")
+                it.requireKey("inntektsmelding")
+            }
         }.register(this)
     }
 
+    fun opprettJournalpost(data: JsonNode): String {
+        sikkerlogg.info("Bruker inntektsinformasjon $data")
+        if (data.get("identitetsnummer").asText().equals("000")) {
+            throw Exception("Ukjent feil")
+        }
+        return "jp-123"
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Skal journalføre: $packet")
-        // TODO - Ferdigstill journalpost
-        val journalpostID = "JP-123"
-        //
-        packet.setBehov(behov, packet)
-        packet.setLøsning(journalpostID, packet)
-        context.publish(packet.toJson())
+        val uuid = packet["@id"].asText()
+        logger.info("Løser behov $BEHOV med id $uuid")
+        try {
+            val inntektsmelding = packet["inntektsmelding"]
+            sikkerlogg.info("Skal journalføre $inntektsmelding")
+            val journalpostId = opprettJournalpost(inntektsmelding)
+            packet.setLøsning(BEHOV, JournalpostLøsning(journalpostId))
+            context.publish(packet.toJson())
+        } catch (ex: Exception) {
+            sikkerlogg.info("Klarte ikke journalføre!", ex)
+            packet.setLøsning(BEHOV, JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre")))
+            context.publish(packet.toJson())
+        }
     }
 
-    private fun JsonMessage.setBehov(nøkkel: String, data: Any) {
-        this["@behov"] = mapOf(
-            nøkkel to data
-        )
-    }
-
-    private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {
+    private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
         this["@løsning"] = mapOf(
-            nøkkel to data
+            nøkkel.name to data
         )
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        logger.error("Fikk error $problems")
     }
 }

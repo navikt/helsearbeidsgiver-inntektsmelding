@@ -29,14 +29,18 @@ class ArbeidsforholdLøser(rapidsConnection: RapidsConnection) : River.PacketLis
         }.register(this)
     }
 
+    fun hentArbeidsforhold(fnr: String): List<Arbeidsforhold> {
+        return listOf(
+            Arbeidsforhold("af-1", "Norge AS", 80f),
+            Arbeidsforhold("af-2", "Norge AS", 20f)
+        )
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
         val fnr = packet["identitetsnummer"].asText()
         try {
-            val arbeidsforhold = listOf(
-                Arbeidsforhold("af-1", "Norge AS", 80f),
-                Arbeidsforhold("af-2", "Norge AS", 20f)
-            )
+            val arbeidsforhold = hentArbeidsforhold(fnr)
             packet.setLøsning(BEHOV, ArbeidsforholdLøsning(arbeidsforhold))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $fnr")

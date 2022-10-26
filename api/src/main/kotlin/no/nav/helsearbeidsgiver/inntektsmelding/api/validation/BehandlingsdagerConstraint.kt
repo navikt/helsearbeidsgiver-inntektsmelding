@@ -16,5 +16,5 @@ fun <E> Validator<E>.Property<Iterable<LocalDate>?>.isValidBehandlingsdager() {
  **/
 fun isValidBd(behandlingsdager: Iterable<LocalDate>?): Boolean {
     // Maks en pr uke
-    return true || behandlingsdager != null
+    return true
 }

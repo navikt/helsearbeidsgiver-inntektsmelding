@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
@@ -24,21 +26,23 @@ class Kvittering {
         b.addBold("Egenmelding", 0, fraværsperiodeY + 35)
         lagPeriode(b, 0, fraværsperiodeY + 80, "01.10.2021", "06.10.2021")
         b.addBold("Fravær knyttet til sykmelding", 0, fraværsperiodeY + 145)
-        val antalFravær = 0
+        val antalFravær = 3
         val fraværY = fraværsperiodeY + 180
         for (i in 1..antalFravær) {
             lagPeriode(b, 0, fraværY + (i - 1) * 60, "01.10.2021", "06.10.2021")
         }
         val bestemmendeX = 430
         val bestemmendeY = 420
-        b.addBold("Bestemmende fraværsdag", bestemmendeX, bestemmendeY)
-        b.addBody("Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.", bestemmendeX, bestemmendeY + 30)
-        b.addBold("Dato", bestemmendeX, bestemmendeY + 60)
-        b.addBody("22.10.2021", bestemmendeX, bestemmendeY + 90)
-        b.addBold("Arbeidsgiverperiode", bestemmendeX, bestemmendeY + 120)
-        b.addBody("Arbeidsgivers har ansvar vanligvis for å betale lønn til", bestemmendeX, bestemmendeY + 150)
-        b.addBody("den sykemeldte under arbeidsgiverperioden", bestemmendeX, bestemmendeY + 180)
-        // lagPeriode(b, bestemmendeY + 210, "01.10.2021", "16.10.2021")
+        lagLabel(b, bestemmendeX, bestemmendeY, "Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.")
+        lagLabel(b, bestemmendeX, bestemmendeY + 60, "Dato", "22.10.2021")
+        lagLabel(
+            b,
+            bestemmendeX,
+            bestemmendeY + 120,
+            "Arbeidsgiverperiode",
+            "Arbeidsgivers har ansvar vanligvis for å betale lønn til den sykemeldte under arbeidsgiverperioden"
+        )
+        lagPeriode(b, bestemmendeX, bestemmendeY + 180, "01.10.2021", "16.10.2021")
         val bruttoInntektY = fraværY + (antalFravær * 60) + 30
         b.addLine(0, bruttoInntektY)
         b.addSection("Bruttoinntekt siste 3 måneder", 0, bruttoInntektY + 30)

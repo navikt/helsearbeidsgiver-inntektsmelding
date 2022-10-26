@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.felles.fromEnv
 
 fun main() {
     AltinnLøser(
@@ -12,6 +13,3 @@ fun main() {
         )
     )
 }
-
-private fun String.fromEnv(): String =
-    System.getenv(this) ?: throw IllegalStateException("Environment missing variable '$this'.")

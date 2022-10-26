@@ -11,6 +11,10 @@ import java.util.UUID
 class InnsendingProducer(
     private val rapidsConnection: RapidsConnection
 ) {
+    init {
+        logger.info("Starter InnsendingProducer...")
+    }
+
     fun publish(request: InntektsmeldingRequest): String {
         val uuid = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(

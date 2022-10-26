@@ -2,10 +2,10 @@
 
 package no.nav.helsearbeidsgiver.felles
 
-sealed class Løsning(
-    // var value: Any? = null,
-    open var error: Feilmelding? = null
-)
+sealed class Løsning {
+    abstract val value: Any?
+    abstract val error: Feilmelding?
+}
 
 data class Feilmelding(
     val melding: String,
@@ -13,31 +13,31 @@ data class Feilmelding(
 )
 
 data class NavnLøsning(
-    var value: String? = null,
-    override var error: Feilmelding? = null
-) : Løsning(error)
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
 
 data class VirksomhetLøsning(
-    var value: String? = null,
-    override var error: Feilmelding? = null
-) : Løsning(error)
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
 
 data class InntektLøsning(
-    var value: Inntekt? = null,
-    override var error: Feilmelding? = null
-) : Løsning(error)
+    override val value: Inntekt? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
 
 data class ArbeidsforholdLøsning(
-    var value: List<Arbeidsforhold> = emptyList(),
-    override var error: Feilmelding? = null
-) : Løsning(error)
+    override val value: List<Arbeidsforhold> = emptyList(),
+    override val error: Feilmelding? = null
+) : Løsning()
 
 data class SykLøsning(
-    var value: Syk? = null,
-    override var error: Feilmelding? = null
-) : Løsning(error)
+    override val value: Syk? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
 
 data class EgenmeldingLøsning(
-    var value: List<MottattPeriode>? = null,
-    override var error: Feilmelding? = null
-) : Løsning(error)
+    override val value: List<MottattPeriode>? = null,
+    override val error: Feilmelding? = null
+) : Løsning()

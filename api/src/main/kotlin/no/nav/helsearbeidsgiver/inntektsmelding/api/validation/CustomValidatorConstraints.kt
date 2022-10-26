@@ -3,19 +3,19 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.validation
 import org.valiktor.Constraint
 import org.valiktor.Validator
 
-interface CustomConstraint : Constraint {
+sealed interface CustomConstraint : Constraint {
     override val messageBundle: String
         get() = "validation-messages"
 }
 
-class FeilmeldingConstraint : CustomConstraint
+object FeilmeldingConstraint : CustomConstraint
 fun <E> Validator<E>.Property<String?>.isError() =
-    this.validate(FeilmeldingConstraint()) { false }
+    this.validate(FeilmeldingConstraint) { false }
 
-class IdentitetsnummerConstraint : CustomConstraint
+object IdentitetsnummerConstraint : CustomConstraint
 fun <E> Validator<E>.Property<String?>.isValidIdentitetsnummer() =
-    this.validate(IdentitetsnummerConstraint()) { FoedselsNrValidator.isValid(it) }
+    this.validate(IdentitetsnummerConstraint) { FoedselsNrValidator.isValid(it) }
 
-class OrganisasjonsnummerConstraint : CustomConstraint
+object OrganisasjonsnummerConstraint : CustomConstraint
 fun <E> Validator<E>.Property<String?>.isValidOrganisasjonsnummer() =
-    this.validate(OrganisasjonsnummerConstraint()) { OrganisasjonsnummerValidator.isValid(it) }
+    this.validate(OrganisasjonsnummerConstraint) { OrganisasjonsnummerValidator.isValid(it) }

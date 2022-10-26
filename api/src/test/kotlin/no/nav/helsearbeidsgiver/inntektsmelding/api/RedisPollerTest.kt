@@ -3,40 +3,48 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import kotlinx.coroutines.runBlocking
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 
-internal class RedisPollerTest {
+class RedisPollerTest {
+    private val objectMapper = customObjectMapper()
 
-    private val FNR = "123"
-    private val DATA = "Someone"
-    private val TOM = ""
-    private val UGYLDIG_LISTE = listOf(TOM, TOM, TOM, TOM)
-    private val GYLDIG_LISTE = listOf(TOM, TOM, TOM, TOM, DATA)
+    private val ID = "123"
+    private val DATA = LøsningSuccess("noe data")
+    private val GYLDIG_LISTE = List(4) { "" } + DATA.let(objectMapper::writeValueAsString)
 
     @Test
-    fun skal_gi_opp_etter_mange_forsøk() {
-        runBlocking {
-            assertThrows<RedisPollerTimeoutException> {
-                buildPoller(UGYLDIG_LISTE).getValue(FNR, 2, 0)
+    fun `skal gi opp etter mange forsøk`() {
+        val redisPoller = mockRedisPoller(GYLDIG_LISTE)
+
+        assertThrows<RedisPollerTimeoutException> {
+            runBlocking {
+                redisPoller.hent<String>(ID, 2, 0)
             }
         }
     }
 
     @Test
-    fun skal_ikke_finne_etter_maks_forsøk() {
-        runBlocking {
-            assertThrows<RedisPollerTimeoutException> {
-                buildPoller(GYLDIG_LISTE).getValue(FNR, 1, 0)
+    fun `skal ikke finne etter maks forsøk`() {
+        val redisPoller = mockRedisPoller(GYLDIG_LISTE)
+
+        assertThrows<RedisPollerTimeoutException> {
+            runBlocking {
+                redisPoller.hent<String>(ID, 1, 0)
             }
         }
     }
 
     @Test
-    fun skal_finne_med_tillatt_forsøk() {
+    fun `skal finne med tillatt forsøk`() {
+        val redisPoller = mockRedisPoller(GYLDIG_LISTE)
+
         runBlocking {
-            val data = buildPoller(GYLDIG_LISTE).getValue(FNR, 5, 0)
+            val data = redisPoller.hent<String>(ID, 5, 0)
+
             assertEquals(DATA, data)
         }
     }

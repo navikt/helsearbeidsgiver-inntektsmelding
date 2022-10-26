@@ -35,12 +35,12 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
 
     fun mapConstraint(løsning: Løsning): ConstraintViolation {
         if (løsning is VirksomhetLøsning) {
-            return DefaultConstraintViolation("orgnrUnderenhet", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint())
+            return DefaultConstraintViolation("orgnrUnderenhet", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
         }
         if (løsning is NavnLøsning) {
-            return DefaultConstraintViolation("identitetsnummer", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint())
+            return DefaultConstraintViolation("identitetsnummer", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
         }
-        return DefaultConstraintViolation("ukjent", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint())
+        return DefaultConstraintViolation("ukjent", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
     }
 
     fun mapEgenmeldingsperioder(): List<MottattPeriode> {

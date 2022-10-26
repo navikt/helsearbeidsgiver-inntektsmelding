@@ -1,12 +1,9 @@
 package no.nav.helsearbeidsgiver.felles.loeser
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.value
 
 /**
  * Grunnlaget for en enkel løser som lytter etter [behovType] og bruker [løs] for å finne løsningen på behovet.
@@ -72,74 +69,12 @@ abstract class Løser {
         fun readFn(key: Key): Behov.() -> String {
             behovReadingKeys.add(key)
 
-            return { value(key) }
+            return { packet.value(key).asText() }
         }
     }
 
     /** Tilgjengeliggjør funksjoner opprettet i [createReaders]. */
     inner class Behov internal constructor(
-        private val packet: JsonMessage
-    ) {
-        /** Les verdi for [key] fra [Behov]. */
-        internal fun value(key: Key): String =
-            packet[key.str].asText()
-    }
+        internal val packet: JsonMessage
+    )
 }
-
-/**
- * Implementerer logikken for rapids-and-rivers.
- *
- * Bruker [Løser] for å lytte etter behov og løse dem.
- */
-private class PacketSolver(
-    private val løser: Løser
-) : River.PacketListener {
-    val defaultErrorMessage = "Ukjent feil."
-
-    init {
-        val rapidsConnection = RapidApplication.create(System.getenv())
-
-        River(rapidsConnection)
-            .apply {
-                validate { packet ->
-                    packet.demandAll(Key.BEHOV.str, løser.behovType)
-                    packet.rejectKey(Key.LØSNING.str)
-
-                    løser.behovReadingKeys.forEach { packet.requireKey(it.str) }
-                }
-            }
-            .register(this)
-
-        rapidsConnection.start()
-    }
-
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val løsning = runCatching {
-            løser.løsBehov(packet)
-        }
-            .map(::LøsningSuksess)
-            .getOrElse {
-                it.message
-                    .orDefault(defaultErrorMessage)
-                    .let(::Feilmelding)
-                    .let(::LøsningFeil)
-            }
-
-        packet[Key.LØSNING.str] = løsning
-
-        context.publish(packet.toJson())
-    }
-}
-
-private sealed class Løsning
-
-private class LøsningSuksess(
-    val value: Any
-) : Løsning()
-
-private class LøsningFeil(
-    val error: Feilmelding
-) : Løsning()
-
-private fun <T> T?.orDefault(default: T) =
-    this ?: default

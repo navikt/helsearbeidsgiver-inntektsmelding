@@ -1,9 +1,23 @@
 package no.nav.helsearbeidsgiver.felles
 
-enum class Key(val str: String) {
-    BEHOV("@behov"),
-    ID("@id"),
-    LØSNING("@løsning"),
+import com.fasterxml.jackson.databind.JsonNode
+import no.nav.helse.rapids_rivers.JsonMessage
 
-    IDENTITETSNUMMER("identitetsnummer")
+enum class Key(val str: String) {
+    // Predefinerte fra rapids-and-rivers-libet
+    ID("@id"),
+    EVENT_NAME("@event_name"),
+    BEHOV("@behov"),
+    LØSNING("@løsning"),
+    OPPRETTET("@opprettet"),
+
+    // Egendefinerte
+    IDENTITETSNUMMER("identitetsnummer"),
+    UUID("uuid");
+
+    override fun toString(): String =
+        str
 }
+
+fun JsonMessage.value(key: Key): JsonNode =
+    this[key.str]

@@ -7,6 +7,8 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font
 import java.io.ByteArrayOutputStream
 
 class PdfBuilder(
+    val paddingVertical: Int = 70,
+    val paddingHorisontal: Int = 45,
     val fontName: String = "Source Sans Pro Regular 400.ttf",
     val fontBold: String = "Source Sans Pro SemiBold 600.ttf",
     val fontItalic: String = "Source Sans Pro Italic 400.ttf"
@@ -39,7 +41,7 @@ class PdfBuilder(
     }
 
     fun addFootnote(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(16, title, false, false, x, y))
+        return add(Text(16, title, false, true, x, y))
     }
 
     fun add(text: Text): PdfBuilder {
@@ -58,10 +60,10 @@ class PdfBuilder(
     fun producePage(pageNr: Int, doc: PDDocument): PDPage {
         val FONT_NORMAL = PDType0Font.load(doc, this::class.java.classLoader.getResource(fontName).openStream())
         val FONT_BOLD = PDType0Font.load(doc, this::class.java.classLoader.getResource(fontBold).openStream())
-        val FONT_ITALIC = PDType0Font.load(doc, this::class.java.classLoader.getResource(fontBold).openStream())
+        val FONT_ITALIC = PDType0Font.load(doc, this::class.java.classLoader.getResource(fontItalic).openStream())
         val page = PDPage()
         val contentStream = PDPageContentStream(doc, page)
-        if (pageNr == 0) {
+        if (pageNr == 10000) {
             contentStream.addRect(456f * RATIO, MAX - 390f * RATIO, 550f * RATIO, -300f * RATIO)
             contentStream.stroke()
         }
@@ -70,7 +72,7 @@ class PdfBuilder(
         filteredList.forEach {
             if (LINETEXT.equals(it.value)) {
                 contentStream.moveTo(it.x.toFloat() * RATIO, MAX - (it.y.toFloat() - 20 - firstY) * RATIO)
-                contentStream.lineTo(585f, MAX - (it.y.toFloat() - 20 - firstY) * RATIO)
+                contentStream.lineTo(620f, MAX - (it.y.toFloat() - 20 - firstY) * RATIO)
                 contentStream.stroke()
             } else {
                 contentStream.beginText()

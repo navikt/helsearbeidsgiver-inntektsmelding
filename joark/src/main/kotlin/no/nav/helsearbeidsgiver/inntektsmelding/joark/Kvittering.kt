@@ -12,23 +12,19 @@ class Kvittering {
         val kolonneTo = 420
         val ansatteY = 60
         b.addSection("Den ansatte", 0, ansatteY)
-        b.addBold("Navn", 0, ansatteY + 47)
-        b.addBold("Personnummer", kolonneTo, ansatteY + 47)
-        b.addBody("Navn Navnesen", 0, ansatteY + 80)
-        b.addBody("12345678901", kolonneTo, ansatteY + 80)
+        lagLabel(b, 0, ansatteY + 47, "Navn", "Navn Navnesen")
+        lagLabel(b, 420, ansatteY + 80, "Personnummer", "12345678901")
         val arbeidsgiverY = 190
-        b.addSection("Arbeidsgiveren", 0, 190)
-        b.addBold("Virksomhetsnavn", 0, arbeidsgiverY + 47)
-        b.addBold("Organisasjonsnummer for underenhet", kolonneTo, arbeidsgiverY + 47)
-        b.addBody("Grunerløkka Pleiehjem", 0, arbeidsgiverY + 80)
-        b.addBody("123456789", kolonneTo, arbeidsgiverY + 80)
+        b.addSection("Arbeidsgiveren", 0, arbeidsgiverY)
+        lagLabel(b, 0, arbeidsgiverY + 47, "Virksomhetsnavn", "Grunerløkka Pleiehjem")
+        lagLabel(b, kolonneTo, arbeidsgiverY + 47, "Organisasjonsnummer for underenhet", "123456789")
         val fraværsperiodeY = 360
         b.addLine(0, fraværsperiodeY - 30)
         b.addSection("Fraværsperiode", 0, fraværsperiodeY)
         b.addBold("Egenmelding", 0, fraværsperiodeY + 35)
         lagPeriode(b, 0, fraværsperiodeY + 80, "01.10.2021", "06.10.2021")
         b.addBold("Fravær knyttet til sykmelding", 0, fraværsperiodeY + 145)
-        val antalFravær = 5
+        val antalFravær = 0
         val fraværY = fraværsperiodeY + 180
         for (i in 1..antalFravær) {
             lagPeriode(b, 0, fraværY + (i - 1) * 60, "01.10.2021", "06.10.2021")
@@ -51,13 +47,13 @@ class Kvittering {
         val refusjonY = bruttoInntektY + 180
         b.addLine(0, refusjonY - 30)
         b.addSection("Refusjon", 0, refusjonY)
-        lagLabel(b, refusjonY + 50, "Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", "Nei")
-        lagLabel(b, refusjonY + 100, "Begrunnelse", "Jobbet kortere en måned")
-        lagLabel(b, refusjonY + 150, "Utbetalt under arbeidsgiverperiode", "0 kr")
-        lagLabel(b, refusjonY + 200, "Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", "Ja")
-        lagLabel(b, refusjonY + 250, "Refusjonsbeløp pr måned", "42 000 kr/måned")
-        lagLabel(b, refusjonY + 300, "Opphører refusjonskravet i perioden", "Ja")
-        lagLabel(b, refusjonY + 350, "Siste dag dere krever refusjon for", "03.01.2022")
+        lagLabel(b, 0, refusjonY + 50, "Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", "Nei")
+        lagLabel(b, 0, refusjonY + 100, "Begrunnelse", "Jobbet kortere en måned")
+        lagLabel(b, 0, refusjonY + 150, "Utbetalt under arbeidsgiverperiode", "0 kr")
+        lagLabel(b, 0, refusjonY + 200, "Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", "Ja")
+        lagLabel(b, 0, refusjonY + 250, "Refusjonsbeløp pr måned", "42 000 kr/måned")
+        lagLabel(b, 0, refusjonY + 300, "Opphører refusjonskravet i perioden", "Ja")
+        lagLabel(b, 0, refusjonY + 350, "Siste dag dere krever refusjon for", "03.01.2022")
         val naturalytelseY = refusjonY + 450
         val antallNaturalytelser = 10
         b.addLine(0, naturalytelseY - 30)
@@ -85,9 +81,9 @@ class Kvittering {
         return b.export()
     }
 
-    fun lagLabel(b: PdfBuilder, y: Int, label: String, text: String) {
-        b.addBold(label, 0, y)
-        b.addBody(text, 0, y + 20)
+    fun lagLabel(b: PdfBuilder, x: Int, y: Int, label: String, text: String) {
+        b.addBold(label, x, y)
+        b.addBody(text, x, y + 20)
     }
 
     fun lagPeriode(b: PdfBuilder, x: Int = 0, y: Int, fom: String, tom: String) {

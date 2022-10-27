@@ -31,11 +31,11 @@ internal class JournalførInntektsmeldingLøserTest {
         løser = JournalførInntektsmeldingLøser(rapid)
     }
 
-    fun sendMessage(mapOf: Map<String, Any>): JournalpostLøsning {
+    fun sendMessage(packet: Map<String, Any>): JournalpostLøsning {
         rapid.reset()
         rapid.sendTestMessage(
             objectMapper.writeValueAsString(
-                mapOf
+                packet
             )
         )
         val losning: JsonNode = rapid.inspektør.message(0).path("@løsning")

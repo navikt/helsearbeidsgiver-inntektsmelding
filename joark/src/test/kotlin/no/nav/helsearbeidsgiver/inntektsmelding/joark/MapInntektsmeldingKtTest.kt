@@ -19,18 +19,17 @@ internal class MapInntektsmeldingKtTest {
 
     @Test
     fun skal_kaste_exception_ved_feil() {
-        val map = mapOf(
+        val packet = mapOf(
             "identitetsnummer" to ""
         )
-        val el = objectMapper.readTree(objectMapper.writeValueAsString(map))
         assertThrows<UgyldigFormatException> {
-            mapInntektsmelding(el)
+            mapInntektsmelding(objectMapper.readTree(objectMapper.writeValueAsString(packet)))
         }
     }
 
     @Test
     fun skal_mappe_alle_data() {
-        val map = mapOf(
+        val packet = mapOf(
             "identitetsnummer" to "123",
             "orgnrUnderenhet" to "abc",
             "behandlingsdagerFom" to "2022-10-01",
@@ -57,8 +56,7 @@ internal class MapInntektsmeldingKtTest {
             ),
             "bekreftOpplysninger" to "true"
         )
-        val el = objectMapper.readTree(objectMapper.writeValueAsString(map))
-        val im = mapInntektsmelding(el)
+        val im = mapInntektsmelding(objectMapper.readTree(objectMapper.writeValueAsString(packet)))
         assertEquals("123", im.identitetsnummer)
         assertEquals("abc", im.orgnrUnderenhet)
         assertEquals(LocalDate.of(2022, 10, 1), im.behandlingsdagerFom)

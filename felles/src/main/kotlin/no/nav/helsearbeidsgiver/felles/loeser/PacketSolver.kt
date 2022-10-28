@@ -56,7 +56,7 @@ internal class PacketSolver(
                 Key.BEHOV
             ),
             mapOf(
-                Key.INITIATE_ID to packet.id,
+                Key.INITIATE_ID to packet.id
             ),
             // TODO Midlertidig map som verdi her. Endring av dette krever endring i akkumulator som krever endring i alle løsere.
             Key.LØSNING to mapOf(behovType to løsning)

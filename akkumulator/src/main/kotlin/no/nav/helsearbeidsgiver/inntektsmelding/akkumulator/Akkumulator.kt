@@ -29,6 +29,7 @@ class Akkumulator(
                     Key.BEHOV.str,
                     Key.INITIATE_ID.str
                 )
+                it.interestedIn(Key.UUID.str)
             }
         }.register(this)
     }

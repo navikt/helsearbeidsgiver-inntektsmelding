@@ -27,9 +27,8 @@ class Akkumulator(
                 it.demandKey(Key.LØSNING.str)
                 it.requireKey(
                     Key.BEHOV.str,
-                    Key.ID.str
+                    Key.INITIATE_ID.str
                 )
-                it.interestedIn(Key.UUID.str)
             }
         }.register(this)
     }
@@ -38,7 +37,7 @@ class Akkumulator(
         val uuid = packet.value(Key.UUID).asText()
             .let {
                 if (it.isNullOrEmpty()) {
-                    packet.value(Key.ID).asText()
+                    packet.value(Key.INITIATE_ID).asText()
                 } else {
                     it
                 }

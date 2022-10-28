@@ -1,9 +1,11 @@
 package no.nav.helsearbeidsgiver.felles.loeser
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.value
 
@@ -25,6 +27,7 @@ internal class PacketSolver(
                 validate { packet ->
                     packet.demandAll(Key.BEHOV.str, løser.behovType)
                     packet.rejectKey(Key.LØSNING.str)
+                    packet.interestedIn(Key.INITIATE_ID.str)
 
                     løser.behovReadingKeys.forEach { packet.requireKey(it.str) }
                 }
@@ -46,8 +49,12 @@ internal class PacketSolver(
             }
 
         val answer = createPacket(
-            packet to setOf(
+            packet,
+            setOf(
                 Key.BEHOV
+            ),
+            mapOf(
+                Key.INITIATE_ID to packet.id,
             ),
             // TODO Midlertidig map som verdi her. Endring av dette krever endring i akkumulator som krever endring i alle løsere.
             Key.LØSNING to mapOf(Key.BEHOV.str to løsning)
@@ -58,11 +65,19 @@ internal class PacketSolver(
 }
 
 private fun createPacket(
-    copyFieldsFrom: Pair<JsonMessage, Set<Key>>,
+    copyFrom: JsonMessage,
+    copyFields: Set<Key>,
+    copyFieldOrDefaults: Map<Key, Any>,
     vararg newFields: Pair<Key, Any>
 ): JsonMessage {
-    val (copyPacket, copyKeys) = copyFieldsFrom
-    return copyKeys.associateWith(copyPacket::value)
+    val copiedFields = copyFields.associateWith(copyFrom::value)
+    val copiedFieldOrDefaults = copyFieldOrDefaults.mapValues { (key, default) ->
+        copyFrom.value(key)
+            .takeUnless(JsonNode::isMissingOrNull)
+            ?: default
+    }
+
+    return copiedFields.plus(copiedFieldOrDefaults)
         .plus(newFields)
         .mapKeys { (key, _) -> key.str }
         .let(JsonMessage::newMessage)

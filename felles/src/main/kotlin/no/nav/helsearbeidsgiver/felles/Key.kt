@@ -13,6 +13,7 @@ enum class Key(val str: String) {
 
     // Egendefinerte
     IDENTITETSNUMMER("identitetsnummer"),
+    INITIATE_ID("initiate_id"),
     UUID("uuid");
 
     override fun toString(): String =

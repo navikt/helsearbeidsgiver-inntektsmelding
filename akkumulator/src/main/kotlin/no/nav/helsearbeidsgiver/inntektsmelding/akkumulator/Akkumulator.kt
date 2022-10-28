@@ -26,10 +26,12 @@ class Akkumulator(
             validate {
                 it.demandKey(Key.LØSNING.str)
                 it.requireKey(
-                    Key.BEHOV.str,
-                    Key.INITIATE_ID.str
+                    Key.BEHOV.str
                 )
-                it.interestedIn(Key.UUID.str)
+                it.interestedIn(
+                    Key.INITIATE_ID.str,
+                    Key.UUID.str
+                )
             }
         }.register(this)
     }

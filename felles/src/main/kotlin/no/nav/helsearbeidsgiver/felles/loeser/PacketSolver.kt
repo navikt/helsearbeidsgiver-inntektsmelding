@@ -48,6 +48,8 @@ internal class PacketSolver(
                     .let(::LøsningFailure)
             }
 
+        val behovType = packet.value(Key.BEHOV)[0].asText()
+
         val answer = createPacket(
             packet,
             setOf(
@@ -57,7 +59,7 @@ internal class PacketSolver(
                 Key.INITIATE_ID to packet.id,
             ),
             // TODO Midlertidig map som verdi her. Endring av dette krever endring i akkumulator som krever endring i alle løsere.
-            Key.LØSNING to mapOf(Key.BEHOV.str to løsning)
+            Key.LØSNING to mapOf(behovType to løsning)
         )
 
         context.publish(answer.toJson())

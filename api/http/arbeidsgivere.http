@@ -1,0 +1,11 @@
+### Arbeidsgivere
+POST https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/arbeidsgivere
+Content-Type: application/json
+
+{ "identitetsnummer" : "16120101181" }
+
+> {%
+client.test("Response OK", () => {
+    client.assert(response.status === 200, "Response not OK: " + response.status)
+})
+%}

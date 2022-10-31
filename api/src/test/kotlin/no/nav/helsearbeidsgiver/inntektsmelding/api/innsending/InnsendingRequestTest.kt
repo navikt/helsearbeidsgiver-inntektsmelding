@@ -2,8 +2,8 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
-import no.nav.helsearbeidsgiver.inntektsmelding.api.buildObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -27,7 +27,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal kunne konvertere til json`() {
-        println(buildObjectMapper().writeValueAsString(GYLDIG))
+        println(customObjectMapper().writeValueAsString(GYLDIG))
     }
 
     @Test

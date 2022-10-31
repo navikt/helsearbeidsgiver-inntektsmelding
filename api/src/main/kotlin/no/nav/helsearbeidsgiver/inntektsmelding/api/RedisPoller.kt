@@ -1,17 +1,22 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.lettuce.core.RedisClient
 import kotlinx.coroutines.delay
 import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.felles.fromEnv
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 
-class RedisPoller(val redisClient: RedisClient, val objectMapper: ObjectMapper) {
+class RedisPoller() {
+    private val redisClient = RedisClient.create(
+        "redis://${"REDIS_URL".fromEnv()}:6379/0"
+    )
+    private val objectMapper = customObjectMapper()
 
     suspend fun getResultat(key: String, maxRetries: Int = 10, waitMillis: Long = 500): Resultat {
         val data = getValue(key, maxRetries, waitMillis)
-        try {
-            return objectMapper.readValue<Resultat>(data)
+        return try {
+            objectMapper.readValue(data)
         } catch (ex: Exception) {
             throw RedisPollerJsonException(key, data)
         }

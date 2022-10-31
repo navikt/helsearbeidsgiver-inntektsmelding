@@ -13,8 +13,8 @@ class RedisPollerTest {
     private val objectMapper = customObjectMapper()
 
     private val ID = "123"
-    private val DATA = LøsningSuccess("noe data")
-    private val GYLDIG_LISTE = List(4) { "" } + DATA.let(objectMapper::writeValueAsString)
+    private val DATA = LøsningSuccess("noe data").let(objectMapper::writeValueAsString)
+    private val GYLDIG_LISTE = List(4) { "" } + DATA
 
     @Test
     fun `skal gi opp etter mange forsøk`() {
@@ -22,7 +22,7 @@ class RedisPollerTest {
 
         assertThrows<RedisPollerTimeoutException> {
             runBlocking {
-                redisPoller.hent<String>(ID, 2, 0)
+                redisPoller.hent(ID, 2, 0)
             }
         }
     }
@@ -33,7 +33,7 @@ class RedisPollerTest {
 
         assertThrows<RedisPollerTimeoutException> {
             runBlocking {
-                redisPoller.hent<String>(ID, 1, 0)
+                redisPoller.hent(ID, 1, 0)
             }
         }
     }
@@ -43,9 +43,9 @@ class RedisPollerTest {
         val redisPoller = mockRedisPoller(GYLDIG_LISTE)
 
         runBlocking {
-            val data = redisPoller.hent<String>(ID, 5, 0)
+            val data = redisPoller.hent(ID, 5, 0)
 
-            assertEquals(DATA, data)
+            assertEquals(objectMapper.readTree(DATA), data)
         }
     }
 }

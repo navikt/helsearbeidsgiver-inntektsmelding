@@ -1,12 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.lettuce.core.RedisClient
 import kotlinx.coroutines.delay
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.fromEnv
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
@@ -15,10 +15,10 @@ class RedisPoller {
     )
     private val objectMapper = customObjectMapper()
 
-    suspend fun <T : Any> hent(id: String, maxRetries: Int = 10, waitMillis: Long = 500): Løsning<T> {
+    suspend fun hent(id: String, maxRetries: Int = 10, waitMillis: Long = 500): JsonNode {
         val data = getValue(id, maxRetries, waitMillis)
         return try {
-            Løsning.read(objectMapper, data)
+            objectMapper.readTree(data)
         } catch (e: Exception) {
             "JSON-parsing av data feilet.".let {
                 sikkerlogg.error("$it id=$id data=$data")

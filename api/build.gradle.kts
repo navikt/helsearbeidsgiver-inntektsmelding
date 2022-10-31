@@ -8,6 +8,12 @@ plugins {
     kotlin("plugin.serialization") version "1.7.10"
 }
 
+tasks {
+    test {
+        environment("REDIS_URL", "test_url")
+    }
+}
+
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
     implementation("io.lettuce:lettuce-core:$lettuceVersion")

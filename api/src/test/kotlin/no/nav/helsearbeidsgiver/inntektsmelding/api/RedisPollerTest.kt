@@ -19,7 +19,7 @@ internal class RedisPollerTest {
     fun skal_gi_opp_etter_mange_forsøk() {
         runBlocking {
             assertThrows<RedisPollerTimeoutException> {
-                buildPoller(UGYLDIG_LISTE).getValue(FNR, 2, 0)
+                mockRedisPoller(UGYLDIG_LISTE).getValue(FNR, 2, 0)
             }
         }
     }
@@ -28,7 +28,7 @@ internal class RedisPollerTest {
     fun skal_ikke_finne_etter_maks_forsøk() {
         runBlocking {
             assertThrows<RedisPollerTimeoutException> {
-                buildPoller(GYLDIG_LISTE).getValue(FNR, 1, 0)
+                mockRedisPoller(GYLDIG_LISTE).getValue(FNR, 1, 0)
             }
         }
     }
@@ -36,7 +36,7 @@ internal class RedisPollerTest {
     @Test
     fun skal_finne_med_tillatt_forsøk() {
         runBlocking {
-            val data = buildPoller(GYLDIG_LISTE).getValue(FNR, 5, 0)
+            val data = mockRedisPoller(GYLDIG_LISTE).getValue(FNR, 5, 0)
             assertEquals(DATA, data)
         }
     }

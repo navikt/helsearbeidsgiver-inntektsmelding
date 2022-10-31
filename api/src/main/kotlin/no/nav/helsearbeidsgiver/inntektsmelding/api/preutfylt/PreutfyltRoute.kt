@@ -31,10 +31,10 @@ fun RouteExtra.PreutfyltRoute() {
                 val mapper = PreutfyltMapper(uuid, resultat, request)
                 sikkerlogg.info("Klarte mappe resultat for $uuid : $resultat")
                 call.respond(mapper.getStatus(), mapper.getResponse())
-            } catch (ex2: ConstraintViolationException) {
+            } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for $uuid")
-                call.respond(HttpStatusCode.BadRequest, validationResponseMapper(ex2.constraintViolations))
-            } catch (ex: RedisPollerTimeoutException) {
+                call.respond(HttpStatusCode.BadRequest, validationResponseMapper(e.constraintViolations))
+            } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for $uuid")
                 call.respond(HttpStatusCode.InternalServerError, InnsendingFeilet(uuid, "Brukte for lang tid"))
             }

@@ -9,6 +9,12 @@ tasks {
     }
 }
 
+tasks {
+    test {
+        environment("REDIS_URL", "test_url")
+    }
+}
+
 dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")

@@ -5,6 +5,3 @@ fun getEnvVar(varName: String, defaultValue: String? = null) =
 
 fun String.fromEnv(): String =
     getEnvVar(this)
-
-fun isLocal(): Boolean =
-    getEnvVar("KTOR_ENV", "local") == "local"

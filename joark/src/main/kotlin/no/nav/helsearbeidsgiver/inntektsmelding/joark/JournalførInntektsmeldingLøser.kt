@@ -1,6 +1,7 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -14,7 +15,6 @@ import org.slf4j.LoggerFactory
 class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
     private val BEHOV = BehovType.JOURNALFOER
-
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -29,9 +29,9 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
         }.register(this)
     }
 
-    fun opprettJournalpost(data: JsonNode): String {
+    fun opprettJournalpost(data: Inntektsmelding): String {
         sikkerlogg.info("Bruker inntektsinformasjon $data")
-        if (data.get("identitetsnummer").asText().equals("000")) {
+        if (data.identitetsnummer.equals("000")) {
             throw Exception("Ukjent feil")
         }
         return "jp-123"
@@ -41,10 +41,14 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
         val uuid = packet["@id"].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         try {
-            val inntektsmelding = packet["inntektsmelding"]
+            val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"])
             sikkerlogg.info("Skal journalføre $inntektsmelding")
             val journalpostId = opprettJournalpost(inntektsmelding)
             packet.setLøsning(BEHOV, JournalpostLøsning(journalpostId))
+            context.publish(packet.toJson())
+        } catch (ex2: UgyldigFormatException) {
+            sikkerlogg.info("Klarte ikke journalføre: feil format!", ex2)
+            packet.setLøsning(BEHOV, JournalpostLøsning(error = Feilmelding("Feil format i inntektsmelding")))
             context.publish(packet.toJson())
         } catch (ex: Exception) {
             sikkerlogg.info("Klarte ikke journalføre!", ex)

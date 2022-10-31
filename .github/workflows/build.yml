@@ -111,7 +111,7 @@ jobs:
 
       - name: Check app.jar existence
         id: app_jar
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
           files: "${{ matrix.project }}/build/libs/app.jar"
 

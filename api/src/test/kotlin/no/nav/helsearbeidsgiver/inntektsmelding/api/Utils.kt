@@ -28,7 +28,7 @@ class RouteTester(
     private val testPath: String,
     private val testRoute: RouteExtra.() -> Unit
 ) {
-    val mockUuid = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
+    val mockUuid: UUID = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
 
     private val testClient: HttpClient
 

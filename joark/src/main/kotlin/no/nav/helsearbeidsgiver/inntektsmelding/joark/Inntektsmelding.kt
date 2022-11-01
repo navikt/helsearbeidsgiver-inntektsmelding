@@ -5,7 +5,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.helsearbeidsgiver.felles.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import java.time.LocalDate
 
 @Serializable

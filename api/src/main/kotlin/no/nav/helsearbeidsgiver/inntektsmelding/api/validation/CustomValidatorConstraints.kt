@@ -7,4 +7,4 @@ interface CustomConstraint : Constraint {
         get() = "messages"
 }
 
-class FeilmeldingConstraint : CustomConstraint
+object FeilmeldingConstraint : CustomConstraint

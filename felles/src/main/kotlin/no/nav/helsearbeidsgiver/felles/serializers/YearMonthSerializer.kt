@@ -9,7 +9,7 @@ import kotlinx.serialization.encoding.Encoder
 import java.time.YearMonth
 
 object YearMonthSerializer : KSerializer<YearMonth> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("java.YearMonth", PrimitiveKind.STRING)
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("java.time.YearMonth", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: YearMonth) = value.toString().let(encoder::encodeString)
     override fun deserialize(decoder: Decoder): YearMonth = decoder.decodeString().let(YearMonth::parse)
 }

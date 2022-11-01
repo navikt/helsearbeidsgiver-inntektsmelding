@@ -12,7 +12,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4")
+        classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4.2")
     }
 }
 
@@ -90,17 +90,7 @@ subprojects {
     val kotestVersion: String by project
     val kotlinCoroutinesVersion: String by project
     val kotlinSerializationVersion: String by project
-    val ktorVersion: String by project
-    val lettuceVersion: String by project
     val mockkVersion: String by project
-    val rapidsAndRiversVersion: String by project
-
-    // TODO trenger vi denne om vi har versjonene i gradle.properties?
-    ext {
-        set("ktorVersion", ktorVersion)
-        set("lettuceVersion", lettuceVersion)
-        set("rapidsAndRiversVersion", rapidsAndRiversVersion)
-    }
 
     dependencies {
         if (!erFellesmodul()) {
@@ -112,7 +102,6 @@ subprojects {
 
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-        testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
         testImplementation("io.mockk:mockk:$mockkVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")

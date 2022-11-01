@@ -1,0 +1,8 @@
+### Arbeidsgivere
+GET https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/arbeidsgivere
+
+> {%
+client.test("Response OK", () => {
+    client.assert(response.status === 200, "Response not OK: " + response.status)
+})
+%}

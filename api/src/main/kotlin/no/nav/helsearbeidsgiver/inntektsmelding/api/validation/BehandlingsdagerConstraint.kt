@@ -3,10 +3,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.validation
 import org.valiktor.Validator
 import java.time.LocalDate
 
-class BehandlingsdagerConstraint : CustomConstraint
+object BehandlingsdagerConstraint : CustomConstraint
 
 fun <E> Validator<E>.Property<Iterable<LocalDate>?>.isValidBehandlingsdager() {
-    this.validate(BehandlingsdagerConstraint()) { isValidBd(it) }
+    this.validate(BehandlingsdagerConstraint) { isValidBd(it) }
 }
 
 /**

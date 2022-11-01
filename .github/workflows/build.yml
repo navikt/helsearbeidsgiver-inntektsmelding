@@ -160,7 +160,7 @@ jobs:
       - name: Confirm app configuration file existence
         id: confirm_config_file
         if: env.IMAGE_EXISTS == 'true'
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
           files: "${{ env.VARS }}"
 

@@ -1,11 +1,5 @@
-@file:UseSerializers(LocalDateSerializer::class)
-
 package no.nav.helsearbeidsgiver.felles
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
-
-@Serializable
 data class PreutfyltResponse(
     val navn: String,
     val identitetsnummer: String,

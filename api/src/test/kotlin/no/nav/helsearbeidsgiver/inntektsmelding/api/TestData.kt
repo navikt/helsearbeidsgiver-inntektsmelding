@@ -27,21 +27,7 @@ object TestData {
 }
 
 fun buildResultat(): Resultat {
-    val arbeidsforhold = listOf(
-        Arbeidsforhold(
-            Arbeidsgiver(
-                type = "Underenhet",
-                organisasjonsnummer = "810007842"
-            ),
-            Ansettelsesperiode(
-                Periode(
-                    fom = LocalDate.of(2021, 1, 1),
-                    tom = LocalDate.of(2021, 1, 10)
-                )
-            ),
-            registrert = LocalDateTime.of(2021, 1, 3, 6, 30, 40, 50000)
-        )
-    )
+    val arbeidsforhold = listOf(mockArbeidsforhold())
     val fra = LocalDate.of(2022, 10, 5)
     val fravaersperiode = mutableMapOf<String, List<MottattPeriode>>()
     fravaersperiode.put(TestData.validIdentitetsnummer, listOf(MottattPeriode(fra, fra.plusDays(10))))
@@ -54,3 +40,18 @@ fun buildResultat(): Resultat {
         INNTEKT = InntektLøsning(Inntekt(300.0, listOf(MottattHistoriskInntekt(YearMonth.of(fra.year, fra.month), 32000.0))))
     )
 }
+
+fun mockArbeidsforhold(): Arbeidsforhold =
+    Arbeidsforhold(
+        Arbeidsgiver(
+            type = "Underenhet",
+            organisasjonsnummer = "810007842"
+        ),
+        Ansettelsesperiode(
+            Periode(
+                fom = LocalDate.of(2021, 1, 1),
+                tom = LocalDate.of(2021, 1, 10)
+            )
+        ),
+        registrert = LocalDateTime.of(2021, 1, 3, 6, 30, 40, 50000)
+    )

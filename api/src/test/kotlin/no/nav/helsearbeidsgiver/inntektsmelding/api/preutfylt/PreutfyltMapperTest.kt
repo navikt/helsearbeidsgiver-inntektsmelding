@@ -3,26 +3,22 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
-import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Syk
 import no.nav.helsearbeidsgiver.felles.SykLøsning
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
+import no.nav.helsearbeidsgiver.inntektsmelding.api.mockArbeidsforhold
 import org.junit.jupiter.api.Test
 import org.valiktor.ConstraintViolationException
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.YearMonth
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -37,24 +33,10 @@ internal class PreutfyltMapperTest {
     val løsningSykdom = buildSykdom()
     val løsningFeil = NavnLøsning(error = Feilmelding("Feil"))
 
-    fun buildArbeidsforhold(): ArbeidsforholdLøsning {
-        val arbeidsforhold = listOf(
-            Arbeidsforhold(
-                Arbeidsgiver(
-                    type = "Underenhet",
-                    organisasjonsnummer = "810007842"
-                ),
-                Ansettelsesperiode(
-                    Periode(
-                        fom = LocalDate.of(2021, 1, 1),
-                        tom = LocalDate.of(2021, 1, 10)
-                    )
-                ),
-                registrert = LocalDateTime.of(2021, 1, 3, 6, 30, 40, 50000)
-            )
-        )
-        return ArbeidsforholdLøsning(arbeidsforhold)
-    }
+    fun buildArbeidsforhold(): ArbeidsforholdLøsning =
+        mockArbeidsforhold()
+            .let(::listOf)
+            .let(::ArbeidsforholdLøsning)
 
     fun buildSykdom(): SykLøsning {
         val fnr = TestData.validIdentitetsnummer

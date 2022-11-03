@@ -1,7 +1,11 @@
+@file:UseSerializers(LocalDateSerializer::class, LocalDateTimeSerializer::class)
+
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.serializers.LocalDateTimeSerializer
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -9,7 +13,6 @@ import java.time.LocalDateTime
 data class Arbeidsforhold(
     val arbeidsgiver: Arbeidsgiver,
     val ansettelsesperiode: Ansettelsesperiode,
-    @Serializable(with = LocalDateTimeSerializer::class)
     val registrert: LocalDateTime
 )
 
@@ -26,8 +29,6 @@ data class Arbeidsgiver(
 
 @Serializable
 data class Periode(
-    @Serializable(with = LocalDateSerializer::class)
     val fom: LocalDate?,
-    @Serializable(with = LocalDateSerializer::class)
     val tom: LocalDate? = null
 )

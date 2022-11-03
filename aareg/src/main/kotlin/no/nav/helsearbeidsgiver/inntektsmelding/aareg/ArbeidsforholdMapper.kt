@@ -6,18 +6,17 @@ import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold as ArbeidsforholdResultat
 
-fun arbeidsforholdMapper(arbeidsforhold: List<Arbeidsforhold>): List<ArbeidsforholdResultat> = arbeidsforhold.map {
+fun Arbeidsforhold.tilArbeidsforhold(): ArbeidsforholdResultat =
     ArbeidsforholdResultat(
         Arbeidsgiver(
-            type = it.arbeidsgiver.type,
-            organisasjonsnummer = it.arbeidsgiver.organisasjonsnummer
+            type = arbeidsgiver.type,
+            organisasjonsnummer = arbeidsgiver.organisasjonsnummer
         ),
         Ansettelsesperiode(
             Periode(
-                it.ansettelsesperiode.periode.fom,
-                it.ansettelsesperiode.periode.tom
+                ansettelsesperiode.periode.fom,
+                ansettelsesperiode.periode.tom
             )
         ),
-        it.registrert
+        registrert
     )
-}

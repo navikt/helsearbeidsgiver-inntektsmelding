@@ -20,7 +20,7 @@ internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
     val rapidsConnection = RapidApplication.create(environment.raw)
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    val aaregClient = AaregClient(environment.aaregUrl) { tokenProvider.getToken() }
+    val aaregClient = AaregClient(environment.aaregUrl, tokenProvider::getToken)
     logger.info("Starter løser...")
     ArbeidsforholdLøser(rapidsConnection, aaregClient)
     logger.info("Løser klar...")

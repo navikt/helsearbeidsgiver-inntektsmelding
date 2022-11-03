@@ -75,24 +75,14 @@ internal class PreutfyltMapperTest {
     }
 
     fun buildMapper(en: Boolean, to: Boolean, tre: Boolean): PreutfyltMapper {
+        val feilmelding = Feilmelding("Feil")
+
         val resultat = Resultat(
-            FULLT_NAVN = if (en) {
-                løsningNavn
-            } else {
-                løsningFeil
-            },
-            VIRKSOMHET = if (to) {
-                løsningVirksomhet
-            } else {
-                VirksomhetLøsning(error = Feilmelding("Feil"))
-            },
+            FULLT_NAVN = if (en) løsningNavn else løsningFeil,
+            VIRKSOMHET = if (to) løsningVirksomhet else VirksomhetLøsning(error = feilmelding),
             ARBEIDSFORHOLD = løsningArbeidsforhold,
             SYK = løsningSykdom,
-            INNTEKT = if (tre) {
-                løsningInntekt
-            } else {
-                InntektLøsning(error = Feilmelding("Feil"))
-            }
+            INNTEKT = if (tre) løsningInntekt else InntektLøsning(error = feilmelding)
         )
         val request = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
         return PreutfyltMapper("uuid", resultat, request)

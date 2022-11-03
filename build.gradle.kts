@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
+    id("org.jetbrains.kotlinx.kover") version "0.6.1"
 }
 
 buildscript {

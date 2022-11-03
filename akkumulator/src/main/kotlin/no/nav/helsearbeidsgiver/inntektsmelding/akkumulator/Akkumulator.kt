@@ -2,14 +2,16 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.value
 
 class Akkumulator(
     rapidsConnection: RapidsConnection,
@@ -17,26 +19,34 @@ class Akkumulator(
     private val timeout: Long = 600
 ) : River.PacketListener {
 
-    val objectMapper = ObjectMapper()
+    private val objectMapper = ObjectMapper()
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.requireKey("@id")
-                it.requireKey("uuid")
-                it.requireKey("@behov") //
-                it.demandKey("@løsning")
+                it.demandKey(Key.LØSNING.str)
+                it.requireKey(
+                    Key.BEHOV.str
+                )
+                it.interestedIn(
+                    Key.INITIATE_ID.str,
+                    Key.UUID.str
+                )
             }
         }.register(this)
     }
 
-    fun getRedisKey(uuid: String, løser: String): String {
-        return "${uuid}_$løser"
-    }
-
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val uuid = packet.value(Key.UUID).asText()
+            .let {
+                if (it.isNullOrEmpty()) {
+                    packet.value(Key.INITIATE_ID).asText()
+                } else {
+                    it
+                }
+            }
+
         sikkerlogg.info("Pakke med behov: $packet")
-        val uuid = packet["uuid"].asText()
         logger.info("Behov: $uuid")
 
         val mangler = mutableListOf<String>()
@@ -44,47 +54,61 @@ class Akkumulator(
         val results: ObjectNode = objectMapper.createObjectNode()
 
         // Finn alle løsninger og lagre ny til Redis
-        packet["@behov"].map { it.asText() }.toList().forEach { behovNavn ->
-            val løsning = packet["@løsning"].get(behovNavn) // Finn løsning JSON
-            if (løsning == null) { // Fant ikke løsning i pakke
-                val stored = redisStore.get(getRedisKey(uuid, behovNavn))
-                if (stored.isNullOrEmpty()) { // Ingenting i Redis
-                    sikkerlogg.info("Behov: $behovNavn. Løsning: n/a")
-                    mangler.add(behovNavn)
-                } else { // Fant i Redis
-                    val node = objectMapper.readTree(stored)
-                    sikkerlogg.info("Behov: $behovNavn. Løsning: (Redis) $node")
-                    results.putIfAbsent(behovNavn, node)
+        packet.value(Key.BEHOV).map(JsonNode::asText)
+            .forEach { behovType ->
+                val redisKey = "${uuid}_$behovType"
+
+                // Finn løsning JSON
+                val løsning = packet.value(Key.LØSNING)
+                    .get(behovType)
+                    ?.toString()
+
+                if (løsning == null) { // Fant ikke løsning i pakke
+                    val stored = redisStore.get(redisKey)
+                    if (stored.isNullOrEmpty()) { // Ingenting i Redis
+                        sikkerlogg.info("Behov: $behovType. Løsning: n/a")
+                        mangler.add(behovType)
+                    } else { // Fant i Redis
+                        val node = objectMapper.readTree(stored)
+                        sikkerlogg.info("Behov: $behovType. Løsning: (Redis) $node")
+                        results.putIfAbsent(behovType, node)
+                    }
+                } else { // Fant løsning i pakke
+                    sikkerlogg.info("Behov: $behovType. Løsning: $løsning")
+                    // Lagre løsning
+                    redisStore.set(redisKey, løsning, timeout)
+
+                    val node = objectMapper.readTree(løsning)
+                    val errorNode = node.get("error")
+                    if (errorNode != null && !errorNode.isMissingOrNull()) {
+                        feil.add(behovType)
+                    }
+
+                    results.putIfAbsent(behovType, node)
                 }
-            } else { // Fant løsning i pakke
-                val data = løsning.toString()
-                sikkerlogg.info("Behov: $behovNavn. Løsning: $data")
-                // Lagre løsning
-                redisStore.set(getRedisKey(uuid, behovNavn), data, timeout)
-                val node = objectMapper.readTree(data)
-                val errorNode = node.get("error")
-                if (errorNode != null && !errorNode.isMissingOrNull()) {
-                    feil.add(behovNavn)
-                }
-                results.putIfAbsent(behovNavn, node)
+            }
+
+        when {
+            feil.isNotEmpty() -> {
+                val data = results.toString()
+
+                logger.info("Behov: $uuid har feil $feil")
+                sikkerlogg.info("Publiserer løsning: $data")
+
+                redisStore.set(uuid, data, timeout)
+            }
+            mangler.isNotEmpty() -> {
+                logger.info("Behov: $uuid er ikke komplett ennå. Mangler $mangler")
+            }
+            else -> {
+                val data = results.toString()
+
+                println("Komplett: $data")
+                logger.info("Behov: $uuid er komplett.")
+                sikkerlogg.info("Publiserer løsning: $data")
+
+                redisStore.set(uuid, data, timeout)
             }
         }
-
-        if (feil.isNotEmpty()) {
-            logger.info("Behov: $uuid har feil $feil")
-            val data = results.toString()
-            sikkerlogg.info("Publiserer løsning: $data")
-            redisStore.set(uuid, data, timeout)
-        } else if (mangler.isNotEmpty()) {
-            logger.info("Behov: $uuid er ikke komplett ennå. Mangler $mangler")
-        } else {
-            logger.info("Behov: $uuid er komplett.")
-            val data = results.toString()
-            println("Komplett: " + data)
-            sikkerlogg.info("Publiserer løsning: $data")
-            redisStore.set(uuid, data, timeout)
-        }
     }
-
-    override fun onError(problems: MessageProblems, context: MessageContext) {}
 }

@@ -1,8 +1,5 @@
 package no.nav.helsearbeidsgiver.felles
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class PreutfyltResponse(
     val navn: String,
     val identitetsnummer: String,

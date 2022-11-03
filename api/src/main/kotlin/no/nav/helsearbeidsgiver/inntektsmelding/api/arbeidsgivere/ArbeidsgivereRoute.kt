@@ -2,9 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
-import io.ktor.server.application.call
-import io.ktor.server.request.receive
-import io.ktor.server.routing.post
+import io.ktor.server.routing.get
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.isMissingOrNull
@@ -24,13 +22,14 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 private val objectMapper = customObjectMapper()
 
 fun RouteExtra.ArbeidsgivereRoute() {
-    route.post("/arbeidsgivere") {
-        val request = call.receive<ArbeidsgivereRequest>()
+    route.get("/arbeidsgivere") {
+        // TODO hardkoder denne foreløpig. identitetsnummer må hentes ut fra token fra wonderwall (oidc?)
+        val identitetsnummer = "16120101181"
 
         val id = connection.publiser(
             // TODO Behov må være liste. Dette bør endres i Akkumulatoren.
             Key.BEHOV to listOf(BehovType.ARBEIDSGIVERE),
-            Key.IDENTITETSNUMMER to request.identitetsnummer
+            Key.IDENTITETSNUMMER to identitetsnummer
         )
 
         val resultat = redis.hent(id).tilResultat()
@@ -43,10 +42,6 @@ fun RouteExtra.ArbeidsgivereRoute() {
         }
     }
 }
-
-private data class ArbeidsgivereRequest(
-    val identitetsnummer: String
-)
 
 private data class Resultat(
     val arbeidsgivere: Løsning<Set<AltinnOrganisasjon>>

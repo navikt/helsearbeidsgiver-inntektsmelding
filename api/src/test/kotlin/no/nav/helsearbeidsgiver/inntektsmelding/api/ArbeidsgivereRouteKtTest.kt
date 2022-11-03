@@ -30,7 +30,7 @@ class ArbeidsgivereRouteKtTest {
             poller.hent(any(), any(), any())
         } returns MockOk.response
 
-        val response = routeTester().post(MockOk.request)
+        val response = routeTester().get()
 
         Assertions.assertEquals(HttpStatusCode.OK, response.status)
 
@@ -44,7 +44,7 @@ class ArbeidsgivereRouteKtTest {
             poller.hent(any(), any(), any())
         } returns MockInternalServerError.response
 
-        val response = routeTester().post(MockOk.request)
+        val response = routeTester().get()
 
         Assertions.assertEquals(HttpStatusCode.InternalServerError, response.status)
 
@@ -62,11 +62,6 @@ class ArbeidsgivereRouteKtTest {
 }
 
 private object MockOk {
-    val request = mapOf(
-        "identitetsnummer" to "16120101181"
-    )
-        .toJsonNode()
-
     val responseBody = setOf(
         AltinnOrganisasjon(
             name = "1_mockName",

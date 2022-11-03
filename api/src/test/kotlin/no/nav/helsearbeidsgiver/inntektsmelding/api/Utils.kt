@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -56,15 +57,25 @@ class RouteTester(
         }
     }
 
+    fun get(): HttpResponse =
+        withMockUuid {
+            testClient.get(testPath)
+        }
+
     fun post(request: Any): HttpResponse =
+        withMockUuid {
+            testClient.post(testPath) {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+        }
+
+    private fun withMockUuid(callFn: suspend () -> HttpResponse): HttpResponse =
         mockStatic(UUID::class) {
             every { UUID.randomUUID() } returns mockUuid
 
             runBlocking {
-                testClient.post(testPath) {
-                    contentType(ContentType.Application.Json)
-                    setBody(request)
-                }
+                callFn()
             }
         }
 }

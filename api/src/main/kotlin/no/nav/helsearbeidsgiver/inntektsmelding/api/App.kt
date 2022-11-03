@@ -7,7 +7,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgiver.ArbeidsgivereRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.contentNegotiation

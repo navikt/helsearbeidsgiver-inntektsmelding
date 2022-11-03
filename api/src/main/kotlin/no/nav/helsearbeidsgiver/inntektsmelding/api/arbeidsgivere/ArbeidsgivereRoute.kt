@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgiver
+package no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
@@ -10,7 +10,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.JsonAliasArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
@@ -50,7 +49,6 @@ private data class ArbeidsgivereRequest(
 )
 
 private data class Resultat(
-    @JsonAliasArbeidsgivere
     val arbeidsgivere: Løsning<Set<AltinnOrganisasjon>>
 )
 

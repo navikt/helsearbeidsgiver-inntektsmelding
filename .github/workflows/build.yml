@@ -42,7 +42,7 @@ jobs:
         id: set_short_sha
         run: |
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c 1-7)
-          echo "::set-output name=short_sha::$SHORT_SHA"
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
 
       - name: Determine changes files
         run: |
@@ -60,21 +60,21 @@ jobs:
 
           if [ "$MATRIX_SIZE" == '0' ]; then
             echo "Empty matrix"
-            echo "::set-output name=matrix::[]" # to prevent error because matrix is empty
-            echo "::set-output name=is_matrix_empty::true"
+            echo "matrix=[]" >> $GITHUB_OUTPUT # to prevent error because matrix is empty
+            echo "is_matrix_empty=true" >> $GITHUB_OUTPUT
           else
             echo Setting matrix to $MATRIX
-            echo "::set-output name=matrix::$MATRIX"
-            echo "::set-output name=is_matrix_empty::false"
+            echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+            echo "is_matrix_empty=false" >> $GITHUB_OUTPUT
           fi
           if [ "$DEPLOY_MATRIX_SIZE" == '0' ]; then
             echo "Empty deploy matrix"
-            echo "::set-output name=deploy_matrix::[]" # to prevent error because matrix is empty
-            echo "::set-output name=is_deploy_matrix_empty::true"
+            echo "deploy_matrix=[]" >> $GITHUB_OUTPUT # to prevent error because matrix is empty
+            echo "is_deploy_matrix_empty=true" >> $GITHUB_OUTPUT
           else
             echo Setting deploy matrix to $DEPLOY_MATRIX
-            echo "::set-output name=deploy_matrix::$DEPLOY_MATRIX"
-            echo "::set-output name=is_deploy_matrix_empty::false"
+            echo "deploy_matrix=$DEPLOY_MATRIX" >> $GITHUB_OUTPUT
+            echo "is_deploy_matrix_empty=false" >> $GITHUB_OUTPUT
           fi
 
   build:
@@ -111,7 +111,7 @@ jobs:
 
       - name: Check app.jar existence
         id: app_jar
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
           files: "${{ matrix.project }}/build/libs/app.jar"
 
@@ -160,7 +160,7 @@ jobs:
       - name: Confirm app configuration file existence
         id: confirm_config_file
         if: env.IMAGE_EXISTS == 'true'
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
           files: "${{ env.VARS }}"
 

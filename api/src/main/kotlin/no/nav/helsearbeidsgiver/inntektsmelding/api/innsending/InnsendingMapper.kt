@@ -30,12 +30,12 @@ class InnsendingMapper(val uuid: String, var resultat: Resultat) {
 
     fun mapConstraint(løsning: Løsning): ConstraintViolation {
         if (løsning is VirksomhetLøsning) {
-            return DefaultConstraintViolation("orgnrUnderenhet", løsning.error!!.melding, FeilmeldingConstraint())
+            return DefaultConstraintViolation("orgnrUnderenhet", løsning.error!!.melding, FeilmeldingConstraint)
         }
         if (løsning is NavnLøsning) {
-            return DefaultConstraintViolation("identitetsnummer", løsning.error!!.melding, FeilmeldingConstraint())
+            return DefaultConstraintViolation("identitetsnummer", løsning.error!!.melding, FeilmeldingConstraint)
         }
-        return DefaultConstraintViolation("ukjent", løsning.error!!.melding, FeilmeldingConstraint())
+        return DefaultConstraintViolation("ukjent", løsning.error!!.melding, FeilmeldingConstraint)
     }
 
     fun getResponse(): InnsendingResponse {

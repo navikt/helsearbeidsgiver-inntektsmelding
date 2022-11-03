@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
 }
 
@@ -11,7 +12,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4")
+        classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4.2")
     }
 }
 
@@ -54,6 +55,7 @@ subprojects {
 
     applyPlugins(
         "org.jetbrains.kotlin.jvm",
+        "org.jetbrains.kotlin.plugin.serialization",
         "org.jmailen.kotlinter"
     )
 
@@ -85,24 +87,25 @@ subprojects {
     }
 
     val junitJupiterVersion: String by project
-    val ktorVersion: String by project
+    val kotestVersion: String by project
+    val kotlinCoroutinesVersion: String by project
+    val kotlinSerializationVersion: String by project
     val mockkVersion: String by project
-    val rapidsAndRiversVersion: String by project
-
-    ext {
-        set("ktorVersion", ktorVersion)
-        set("rapidsAndRiversVersion", rapidsAndRiversVersion)
-    }
 
     dependencies {
         if (!erFellesmodul()) {
             implementation(project(":felles"))
         }
 
-        testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
+
+        testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+        testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
         testImplementation("io.mockk:mockk:$mockkVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 }

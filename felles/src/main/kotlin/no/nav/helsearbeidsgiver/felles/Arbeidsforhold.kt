@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
+import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import java.time.LocalDate
 import java.time.LocalDateTime
 

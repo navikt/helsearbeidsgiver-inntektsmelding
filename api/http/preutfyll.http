@@ -1,0 +1,14 @@
+### Preutfyll
+POST https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/preutfyll
+Content-Type: application/json
+
+{
+  "orgnrUnderenhet": "811307602",
+  "identitetsnummer": "16120101181"
+}
+
+> {%
+client.test("Response OK", () => {
+    client.assert(response.status === 200, "Response not OK: " + response.status)
+})
+%}

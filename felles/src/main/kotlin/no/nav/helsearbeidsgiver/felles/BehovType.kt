@@ -5,5 +5,8 @@ enum class BehovType {
     VIRKSOMHET,
     INNTEKT,
     ARBEIDSFORHOLD,
-    SYK
+    EGENMELDING,
+    SYK,
+    JOURNALFOER,
+    ARBEIDSGIVERE
 }

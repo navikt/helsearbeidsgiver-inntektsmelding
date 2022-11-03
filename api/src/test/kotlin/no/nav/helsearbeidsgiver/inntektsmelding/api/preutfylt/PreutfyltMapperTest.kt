@@ -112,7 +112,7 @@ internal class PreutfyltMapperTest {
                 InntektLøsning(error = Feilmelding("Feil"))
             }
         )
-        val request = PreutfyllRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
+        val request = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
         return PreutfyltMapper("uuid", resultat, request)
     }
 }

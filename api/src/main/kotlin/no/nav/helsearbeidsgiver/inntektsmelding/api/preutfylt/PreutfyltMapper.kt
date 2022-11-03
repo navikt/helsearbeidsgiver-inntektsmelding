@@ -3,9 +3,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Løsning
-import no.nav.helsearbeidsgiver.felles.MottattArbeidsforhold
 import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PreutfyltResponse
@@ -16,16 +16,15 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstr
 import org.valiktor.ConstraintViolation
 import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
-import java.time.LocalDate
 
-class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: PreutfyllRequest) {
+class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: PreutfyltRequest) {
 
     fun hasErrors(): Boolean {
         return findAll().any { it.error != null }
     }
 
     fun findAll(): List<Løsning> {
-        return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT).filterNotNull()
+        return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT, resultat.EGENMELDING).filterNotNull()
     }
 
     fun getConstraintViolations(): List<ConstraintViolation> {
@@ -36,16 +35,18 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
 
     fun mapConstraint(løsning: Løsning): ConstraintViolation {
         if (løsning is VirksomhetLøsning) {
-            return DefaultConstraintViolation("orgnrUnderenhet", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint())
+            return DefaultConstraintViolation("orgnrUnderenhet", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
         }
         if (løsning is NavnLøsning) {
-            return DefaultConstraintViolation("identitetsnummer", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint())
+            return DefaultConstraintViolation("identitetsnummer", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
         }
-        return DefaultConstraintViolation("ukjent", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint())
+        return DefaultConstraintViolation("ukjent", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
     }
 
     fun mapEgenmeldingsperioder(): List<MottattPeriode> {
-        return listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)))
+        val egenmelding = resultat.EGENMELDING
+        sikkerlogg.info("Fant egenmelding for $uuid")
+        return egenmelding?.value ?: emptyList()
     }
 
     fun mapBehandlingsperiode(): MottattPeriode {
@@ -54,16 +55,16 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
         return syk?.value?.behandlingsperiode!!
     }
 
-    fun mapArbeidsforhold(): List<MottattArbeidsforhold> {
+    fun mapArbeidsforhold(): List<Arbeidsforhold> {
         val arbeidsforhold = resultat.ARBEIDSFORHOLD
         sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $uuid")
-        return listOf(MottattArbeidsforhold("arbeidsforhold1", "test", 100.0f))
+        return arbeidsforhold?.value!!
     }
 
     fun mapFraværsperiode(): Map<String, List<MottattPeriode>> {
         val syk = resultat.SYK
         sikkerlogg.info("Fant fraværsperiode $syk for $uuid")
-        return syk?.value?.fravaersperiode!!
+        return syk?.value?.fravaersperiode ?: emptyMap()
     }
 
     fun mapFulltNavn(): String {
@@ -93,7 +94,7 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
             bruttoinntekt = inntekt.bruttoInntekt.toLong(),
             tidligereinntekt = inntekt.historisk,
             behandlingsperiode = mapBehandlingsperiode(),
-            arbeidsforhold = resultat.ARBEIDSFORHOLD!!.value
+            arbeidsforhold = mapArbeidsforhold()
         )
     }
 

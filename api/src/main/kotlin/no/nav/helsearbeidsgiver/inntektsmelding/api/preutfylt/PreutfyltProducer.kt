@@ -11,7 +11,11 @@ import java.util.UUID
 class PreutfyltProducer(
     private val rapidsConnection: RapidsConnection
 ) {
-    fun publish(request: PreutfyllRequest): String {
+    init {
+        logger.info("Starter PreutfyltProducer...")
+    }
+
+    fun publish(request: PreutfyltRequest): String {
         val uuid = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
@@ -21,6 +25,7 @@ class PreutfyltProducer(
                     BehovType.FULLT_NAVN.name,
                     BehovType.INNTEKT.name,
                     BehovType.ARBEIDSFORHOLD.name,
+                    BehovType.EGENMELDING.name,
                     BehovType.SYK.name
                 ),
                 "@id" to uuid,

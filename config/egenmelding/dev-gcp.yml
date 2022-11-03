@@ -1,0 +1,7 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+ingress: https://helsearbeidsgiver-im-egenmelding.dev.nav.no
+env:
+- name: EGENMELDING_URL
+  value: "https://localhost"

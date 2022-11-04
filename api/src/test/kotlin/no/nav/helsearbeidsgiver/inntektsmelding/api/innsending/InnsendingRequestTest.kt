@@ -14,11 +14,11 @@ import kotlin.test.assertEquals
 internal class InnsendingRequestTest {
 
     private val NOW = LocalDate.now()
-    private val MAX_INNTEKT: Double = 1000001.0
-    private val MAX_REFUSJON: Double = 1000001.0
+    private val MAX_INNTEKT: Double = 1_000_001.0
+    private val MAX_REFUSJON: Double = 1_000_001.0
     private val BELØP_NULL: Double = 0.0
     private val NEGATIVT_BELØP: Double = -0.1
-    private val MAX_NATURAL_BELØP: Double = 1000000.0
+    private val MAX_NATURAL_BELØP: Double = 1_000_000.0
 
     @Test
     fun `skal akseptere gyldig`() {
@@ -83,21 +83,21 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom bruttoInntekt er tom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(bruttonInntekt = 0.0).validate()
+            GYLDIG.copy(bruttoInntekt = 0.0).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt er for høy`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(bruttonInntekt = MAX_INNTEKT).validate()
+            GYLDIG.copy(bruttoInntekt = MAX_INNTEKT).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt er negativ`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(bruttonInntekt = NEGATIVT_BELØP).validate()
+            GYLDIG.copy(bruttoInntekt = NEGATIVT_BELØP).validate()
         }
     }
 

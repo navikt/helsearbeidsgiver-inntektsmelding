@@ -46,7 +46,7 @@ class Akkumulator(
                 }
             }
 
-        sikkerlogg.info("Pakke med behov: $packet")
+        sikkerlogg.info("Pakke med behov: ${packet.toJson()}")
         logger.info("Behov: $uuid")
 
         val mangler = mutableListOf<String>()

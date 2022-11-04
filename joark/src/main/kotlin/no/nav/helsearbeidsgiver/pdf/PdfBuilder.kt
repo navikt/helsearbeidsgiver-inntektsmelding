@@ -60,7 +60,7 @@ class PdfBuilder(
     fun producePage(pageNr: Int, doc: PDDocument, FONT_NORMAL: PDType0Font, FONT_BOLD: PDType0Font, FONT_ITALIC: PDType0Font): PDPage {
         val page = PDPage()
         val contentStream = PDPageContentStream(doc, page)
-        if (pageNr == 10000) {
+        if (pageNr == 10_000) {
             contentStream.addRect(456f * RATIO, MAX - 390f * RATIO, 550f * RATIO, -300f * RATIO)
             contentStream.stroke()
         }

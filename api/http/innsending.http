@@ -1,0 +1,48 @@
+### Preutfyll
+POST https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/inntektsmelding
+Content-Type: application/json
+
+{
+  "orgnrUnderenhet": "811307602",
+  "identitetsnummer": "16120101181",
+  "behandlingsdagerFom": "2022-12-24",
+  "behandlingsdagerTom": "2022-12-31",
+  "behandlingsdager": [
+    "2022-12-24",
+    "2022-12-25",
+    "2022-12-26",
+    "2022-12-27",
+    "2022-12-28",
+    "2022-12-29",
+    "2022-12-30",
+    "2022-12-31"
+  ],
+  "egenmeldinger": [
+    {
+      "fom": "2022-12-20",
+      "tom": "2022-12-23"
+    }
+  ],
+  "bruttoInntekt": 500000.0,
+  "bruttoBekreftet": true,
+  "utbetalerFull": true,
+  "begrunnelseRedusert": null,
+  "utbetalerHeleEllerDeler": true,
+  "refusjonPrMnd": null,
+  "opphørerKravet": true,
+  "opphørSisteDag": "2023-01-31",
+  "naturalytelser": [
+    {
+      "naturalytelseKode": "elektroniskKommunikasjon",
+      "dato": "2022-01-01",
+      "beløp": 10000.0
+    }
+  ],
+  "bekreftOpplysninger": true
+}
+
+> {%
+client.test("Response OK", () => {
+    client.assert(response.status === 200, "Response not OK: " + response.status)
+})
+%}

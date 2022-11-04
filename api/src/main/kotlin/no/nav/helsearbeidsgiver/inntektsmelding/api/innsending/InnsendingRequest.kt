@@ -25,7 +25,7 @@ data class InnsendingRequest(
     val behandlingsdagerTom: LocalDate,
     val behandlingsdager: List<LocalDate>,
     val egenmeldinger: List<Egenmelding>,
-    val bruttonInntekt: Double,
+    val bruttoInntekt: Double,
     val bruttoBekreftet: Boolean,
     val utbetalerFull: Boolean,
     val begrunnelseRedusert: BegrunnelseIngenEllerRedusertUtbetalingKode?,
@@ -56,8 +56,8 @@ data class InnsendingRequest(
                 validate(Egenmelding::tom).isGreaterThan(it.fom)
             }
             // Brutto inntekt
-            validate(InnsendingRequest::bruttonInntekt).isGreaterThan(0.0)
-            validate(InnsendingRequest::bruttonInntekt).isLessThan(1_000_000.0)
+            validate(InnsendingRequest::bruttoInntekt).isGreaterThan(0.0)
+            validate(InnsendingRequest::bruttoInntekt).isLessThan(1_000_000.0)
             validate(InnsendingRequest::bruttoBekreftet).isTrue()
             // Refusjon til arbeidsgiver
             if (!utbetalerFull) {

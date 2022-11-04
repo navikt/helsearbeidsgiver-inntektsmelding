@@ -36,6 +36,6 @@ fun buildResultat(): Resultat {
         SYK = SykLøsning(Syk(fravaersperiode, behandlingsperiode)),
         VIRKSOMHET = VirksomhetLøsning("Virksomhet AS"),
         ARBEIDSFORHOLD = ArbeidsforholdLøsning(arbeidsforhold),
-        INNTEKT = InntektLøsning(Inntekt(300.0, listOf(MottattHistoriskInntekt(YearMonth.of(fra.year, fra.month), 32000.0))))
+        INNTEKT = InntektLøsning(Inntekt(300.0, listOf(MottattHistoriskInntekt(YearMonth.of(fra.year, fra.month), 32_000.0))))
     )
 }

@@ -14,11 +14,11 @@ import kotlin.test.assertEquals
 internal class InnsendingRequestTest {
 
     private val NOW = LocalDate.now()
-    private val MAX_INNTEKT: Double = 1000001.0
-    private val MAX_REFUSJON: Double = 1000001.0
+    private val MAX_INNTEKT: Double = 1_000_001.0
+    private val MAX_REFUSJON: Double = 1_000_001.0
     private val BELØP_NULL: Double = 0.0
     private val NEGATIVT_BELØP: Double = -0.1
-    private val MAX_NATURAL_BELØP: Double = 1000000.0
+    private val MAX_NATURAL_BELØP: Double = 1_000_000.0
 
     @Test
     fun `skal akseptere gyldig`() {

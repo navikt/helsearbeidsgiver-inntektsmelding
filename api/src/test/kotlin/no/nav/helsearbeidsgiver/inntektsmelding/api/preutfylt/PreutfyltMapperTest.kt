@@ -28,7 +28,7 @@ internal class PreutfyltMapperTest {
 
     val løsningNavn = NavnLøsning("abc")
     val løsningVirksomhet = VirksomhetLøsning("xyz")
-    val løsningInntekt = InntektLøsning(Inntekt(250000.0, listOf(MottattHistoriskInntekt(YearMonth.now(), 32000.0))))
+    val løsningInntekt = InntektLøsning(Inntekt(250_000.0, listOf(MottattHistoriskInntekt(YearMonth.now(), 32_000.0))))
     val løsningArbeidsforhold = buildArbeidsforhold()
     val løsningSykdom = buildSykdom()
     val løsningFeil = NavnLøsning(error = Feilmelding("Feil"))

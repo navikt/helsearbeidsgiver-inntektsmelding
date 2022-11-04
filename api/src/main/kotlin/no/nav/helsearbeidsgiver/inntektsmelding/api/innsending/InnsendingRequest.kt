@@ -57,7 +57,7 @@ data class InnsendingRequest(
             }
             // Brutto inntekt
             validate(InnsendingRequest::bruttonInntekt).isGreaterThan(0.0)
-            validate(InnsendingRequest::bruttonInntekt).isLessThan(1000000.0)
+            validate(InnsendingRequest::bruttonInntekt).isLessThan(1_000_000.0)
             validate(InnsendingRequest::bruttoBekreftet).isTrue()
             // Refusjon til arbeidsgiver
             if (!utbetalerFull) {
@@ -65,7 +65,7 @@ data class InnsendingRequest(
             }
             if (utbetalerHeleEllerDeler) {
                 validate(InnsendingRequest::refusjonPrMnd).isGreaterThan(0.0)
-                validate(InnsendingRequest::refusjonPrMnd).isLessThan(1000000.0)
+                validate(InnsendingRequest::refusjonPrMnd).isLessThan(1_000_000.0)
                 validate(InnsendingRequest::opphørerKravet).isNotNull()
                 if (opphørerKravet!!) {
                     validate(InnsendingRequest::opphørSisteDag).isNotNull()
@@ -77,7 +77,7 @@ data class InnsendingRequest(
                 validate(Naturalytelse::dato).isNotNull()
                 validate(Naturalytelse::beløp).isNotNull()
                 validate(Naturalytelse::beløp).isGreaterThan(0.0)
-                validate(Naturalytelse::beløp).isLessThan(1000000.0)
+                validate(Naturalytelse::beløp).isLessThan(1_000_000.0)
             }
             validate(InnsendingRequest::bekreftOpplysninger).isTrue()
         }

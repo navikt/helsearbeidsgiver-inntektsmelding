@@ -37,7 +37,7 @@ class ArbeidsforholdLøser(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val id = packet["@id"].asText()
         logger.info("Løser behov $BEHOV med id $id")
-        val fnr = packet["inntektsmelding"]["identitetsnummer"].asText()
+        val fnr = packet["inntektsmelding.identitetsnummer"].asText()
         try {
             val arbeidsforhold = runBlocking { aaregClient.hentArbeidsforhold(fnr, id) }
             val mappedArbeidsforhold = arbeidsforhold.map(Arbeidsforhold::tilArbeidsforhold)

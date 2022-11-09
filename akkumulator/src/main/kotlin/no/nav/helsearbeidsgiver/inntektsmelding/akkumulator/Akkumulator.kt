@@ -67,7 +67,7 @@ class Akkumulator(
                     .get(behovType)
                     ?.toString()
 
-                if (løsning == null) { // Fant ikke løsning i pakke
+                if (løsning.isNullOrEmpty()) { // Fant ikke løsning i pakke
                     val stored = redisStore.get(redisKey)
                     if (stored.isNullOrEmpty()) { // Ingenting i Redis
                         sikkerlogg.info("Behov: $behovType. Løsning: n/a")

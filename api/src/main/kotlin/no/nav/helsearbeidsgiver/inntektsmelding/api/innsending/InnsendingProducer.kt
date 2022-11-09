@@ -22,7 +22,6 @@ class InnsendingProducer(
                 "@event_name" to "inntektsmelding_inn",
                 "@behov" to listOf(BehovType.VIRKSOMHET.name),
                 "@id" to uuid,
-                "@extra" to BehovType.JOURNALFOER.name,
                 "@opprettet" to LocalDateTime.now(),
                 "uuid" to uuid,
                 "inntektsmelding" to request

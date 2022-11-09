@@ -21,7 +21,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", BEHOV)
+                it.demandAll("@behov", listOf(BehovType.JOURNALFOER.name))
                 it.requireKey("@id")
                 it.rejectKey("@løsning")
                 it.requireKey("inntektsmelding")

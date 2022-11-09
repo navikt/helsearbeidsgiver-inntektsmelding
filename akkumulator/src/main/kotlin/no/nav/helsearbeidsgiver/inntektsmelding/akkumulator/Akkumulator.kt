@@ -31,6 +31,7 @@ class Akkumulator(
                 it.interestedIn(
                     Key.INITIATE_ID.str,
                     Key.UUID.str,
+                    Key.IDENTITETSNUMMER.str,
                     Key.EXTRA.str
                 )
             }

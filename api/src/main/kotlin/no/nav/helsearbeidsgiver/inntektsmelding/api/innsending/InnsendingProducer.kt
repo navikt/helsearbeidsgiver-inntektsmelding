@@ -20,7 +20,7 @@ class InnsendingProducer(
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 "@event_name" to "inntektsmelding_inn",
-                "@behov" to listOf(BehovType.FULLT_NAVN.name, BehovType.VIRKSOMHET.name),
+                "@behov" to listOf(BehovType.VIRKSOMHET.name),
                 "@id" to uuid,
                 "@extra" to BehovType.JOURNALFOER.name,
                 "@opprettet" to LocalDateTime.now(),

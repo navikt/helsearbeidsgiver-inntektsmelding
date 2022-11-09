@@ -46,13 +46,11 @@ class Akkumulator(
                     it
                 }
             }
-
-        sikkerlogg.info("Pakke med behov: ${packet.toJson()}")
-        logger.info("Behov: $uuid")
+        val eventName = packet.value(Key.EVENT_NAME).asText()
+        val behov = packet.value(Key.BEHOV).asText()
         val extra = packet.value(Key.EXTRA).asText()
-        logger.info("ExtraBehov: $extra")
-        println("Fant extra: $extra")
-
+        sikkerlogg.info("Event: $eventName Behov: $behov Extra: $extra Uuid: $uuid Pakke: ${packet.toJson()}")
+        logger.info("Event: $eventName Behov: $behov Extra: $extra Uuid: $uuid")
         val mangler = mutableListOf<String>()
         val feil = mutableListOf<String>()
         val results: ObjectNode = objectMapper.createObjectNode()
@@ -108,6 +106,7 @@ class Akkumulator(
                     logger.info("Behov: $uuid er komplett.")
                     sikkerlogg.info("Publiserer løsning: $data")
                     redisStore.set(uuid, data, timeout)
+                    // Publiser ny event
                 } else {
                     val list = packet.value(Key.BEHOV).map(JsonNode::asText).map { it }.toMutableList()
                     logger.info("Legger til extra behov $extra til $list")

@@ -9,6 +9,7 @@ enum class Key(val str: String) {
     EVENT_NAME("@event_name"),
     BEHOV("@behov"),
     LØSNING("@løsning"),
+    EXTRA("@extra"),
     OPPRETTET("@opprettet"),
 
     // Egendefinerte

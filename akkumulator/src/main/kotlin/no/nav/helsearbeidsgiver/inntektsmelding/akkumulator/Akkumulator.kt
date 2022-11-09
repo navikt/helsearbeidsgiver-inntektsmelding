@@ -30,7 +30,8 @@ class Akkumulator(
                 )
                 it.interestedIn(
                     Key.INITIATE_ID.str,
-                    Key.UUID.str
+                    Key.UUID.str,
+                    Key.EXTRA.str
                 )
             }
         }.register(this)
@@ -48,6 +49,9 @@ class Akkumulator(
 
         sikkerlogg.info("Pakke med behov: ${packet.toJson()}")
         logger.info("Behov: $uuid")
+        val extra = packet.value(Key.EXTRA).asText()
+        logger.info("ExtraBehov: $extra")
+        println("Fant extra: $extra")
 
         val mangler = mutableListOf<String>()
         val feil = mutableListOf<String>()
@@ -91,10 +95,8 @@ class Akkumulator(
         when {
             feil.isNotEmpty() -> {
                 val data = results.toString()
-
                 logger.info("Behov: $uuid har feil $feil")
                 sikkerlogg.info("Publiserer løsning: $data")
-
                 redisStore.set(uuid, data, timeout)
             }
             mangler.isNotEmpty() -> {
@@ -102,12 +104,19 @@ class Akkumulator(
             }
             else -> {
                 val data = results.toString()
-
-                println("Komplett: $data")
-                logger.info("Behov: $uuid er komplett.")
-                sikkerlogg.info("Publiserer løsning: $data")
-
-                redisStore.set(uuid, data, timeout)
+                if (extra.isNullOrBlank()) {
+                    logger.info("Behov: $uuid er komplett.")
+                    sikkerlogg.info("Publiserer løsning: $data")
+                    redisStore.set(uuid, data, timeout)
+                } else {
+                    val list = packet.value(Key.BEHOV).map(JsonNode::asText).map { it }.toMutableList()
+                    logger.info("Legger til extra behov $extra til $list")
+                    sikkerlogg.info("Legger til extra behov $extra til $list")
+                    list.add(extra)
+                    packet.set("@behov", list)
+                    packet.set("@løsning", "")
+                    context.publish(packet.toJson())
+                }
             }
         }
     }

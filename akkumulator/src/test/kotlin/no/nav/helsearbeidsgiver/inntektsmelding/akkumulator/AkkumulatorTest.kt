@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -14,6 +15,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -26,6 +28,7 @@ internal class AkkumulatorTest {
 
     private val BEHOV_PDL = BehovType.FULLT_NAVN.toString()
     private val BEHOV_BRREG = BehovType.VIRKSOMHET.toString()
+    private val BEHOV_VALIDERING = BehovType.IM_VALIDERING.toString()
 
     private val UUID_BRREG = "uuid_" + BEHOV_BRREG
     private val UUID_PDL = "uuid_" + BEHOV_PDL
@@ -41,6 +44,37 @@ internal class AkkumulatorTest {
 
     init {
         akkumulator = Akkumulator(rapid, redisStore, timeout)
+    }
+
+    @Test
+    fun `skal publisere ekstrabehov`() {
+        every { redisStore.set(any(), any(), timeout) } returns Unit
+        val melding = mapOf(
+            "@id" to UUID.randomUUID(),
+            "uuid" to "uuid",
+            "@behov" to listOf(BEHOV_PDL),
+            "@extra" to BehovType.IM_VALIDERING.toString(),
+            "@løsning" to mapOf(
+                BEHOV_PDL to PDL_OK
+            ),
+            "inntektsmelding" to "placeholder"
+        )
+        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+        verify(exactly = 1) {
+            redisStore.set(UUID_PDL, objectMapper.writeValueAsString(PDL_OK), timeout)
+        }
+        verify(exactly = 0) {
+            redisStore.set("uuid", any(), any())
+        }
+        val behov: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("@behov")
+        val løsning: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("@løsning")
+        // Skal beholde eksisterende verdier
+        assertEquals("placeholder", rapid.inspektør.message(rapid.inspektør.size - 1).path("inntektsmelding").asText())
+        assertEquals("uuid", rapid.inspektør.message(rapid.inspektør.size - 1).path("uuid").asText())
+        // Nytt behov
+        assertEquals("", løsning.asText())
+        assertEquals(BEHOV_PDL, behov.get(0).asText())
+        assertEquals(BEHOV_VALIDERING, behov.get(1).asText())
     }
 
     @Test

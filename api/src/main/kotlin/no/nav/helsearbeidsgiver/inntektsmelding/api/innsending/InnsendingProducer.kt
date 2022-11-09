@@ -28,6 +28,7 @@ class InnsendingProducer(
                 "@opprettet" to LocalDateTime.now(),
                 "uuid" to uuid,
                 "orgnrUnderenhet" to request.orgnrUnderenhet,
+                "identitetsnummer" to request.identitetsnummer,
                 "inntektsmelding" to request
             )
         )

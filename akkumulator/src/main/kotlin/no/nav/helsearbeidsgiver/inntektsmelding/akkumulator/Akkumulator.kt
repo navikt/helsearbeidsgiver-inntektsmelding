@@ -49,7 +49,8 @@ class Akkumulator(
         val eventName = packet.value(Key.EVENT_NAME).asText()
         val behov = packet.value(Key.BEHOV).asText()
         val extra = packet.value(Key.EXTRA).asText()
-        sikkerlogg.info("Event: $eventName Behov: $behov Extra: $extra Uuid: $uuid Pakke: ${packet.toJson()}")
+        val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
+        sikkerlogg.info("Event: $eventName Behov: $behov Extra: $extra Fnr: $identitetsnummer Uuid: $uuid Pakke: ${packet.toJson()}")
         logger.info("Event: $eventName Behov: $behov Extra: $extra Uuid: $uuid")
         val mangler = mutableListOf<String>()
         val feil = mutableListOf<String>()
@@ -114,7 +115,7 @@ class Akkumulator(
                     list.add(extra)
                     packet.set("@behov", list)
                     packet.set("@løsning", "")
-                    context.publish(packet.toJson())
+                    context.publish(identitetsnummer, packet.toJson())
                 }
             }
         }

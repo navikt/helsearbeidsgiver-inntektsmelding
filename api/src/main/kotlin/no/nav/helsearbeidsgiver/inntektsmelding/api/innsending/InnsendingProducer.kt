@@ -23,7 +23,7 @@ class InnsendingProducer(
                 "@behov" to listOf(
                     BehovType.VIRKSOMHET.name
                 ),
-                "@extra" to BehovType.JOURNALFOER.name,
+                // "@extra" to BehovType.JOURNALFOER.name,
                 "@id" to uuid,
                 "@opprettet" to LocalDateTime.now(),
                 "uuid" to uuid,

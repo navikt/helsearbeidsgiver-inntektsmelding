@@ -25,6 +25,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
                 it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
                 it.rejectKey("@løsning")
+                it.requireKey("inntektsmelding")
             }
         }.register(this)
     }

@@ -22,10 +22,9 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
         logger.info("Starter JournalførInntektsmeldingLøser...")
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", listOf(BehovType.JOURNALFOER.name))
+                it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
                 it.rejectKey("@løsning")
-                it.requireKey("inntektsmelding")
             }
         }.register(this)
     }

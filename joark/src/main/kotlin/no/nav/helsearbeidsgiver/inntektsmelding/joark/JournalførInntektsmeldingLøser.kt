@@ -19,6 +19,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
+        logger.info("Starter JournalførInntektsmeldingLøser...")
         River(rapidsConnection).apply {
             validate {
                 it.demandAll("@behov", listOf(BehovType.JOURNALFOER.name))

@@ -114,8 +114,11 @@ class Akkumulator(
                     logger.info("Legger til extra behov $extra til $list")
                     sikkerlogg.info("Legger til extra behov $extra til $list")
                     list.add(extra)
+                    // Utvid behov
                     packet.set("@behov", list)
                     packet.set("@løsning", "")
+                    // Fjern gammel utvidelse
+                    packet.set("@extra", "")
                     context.publish(identitetsnummer, packet.toJson())
                 }
             }

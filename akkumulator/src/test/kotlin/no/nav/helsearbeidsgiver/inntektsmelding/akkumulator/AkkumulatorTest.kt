@@ -74,7 +74,7 @@ internal class AkkumulatorTest {
         assertEquals("uuid", rapid.inspektør.message(rapid.inspektør.size - 1).path("uuid").asText())
         // Nytt behov
         assertEquals("", løsning.asText())
-        assertEquals("", extra.asText())
+        assertEquals("", extra.asText()) // Fjerne neste behov
         assertEquals(BEHOV_PDL, behov.get(0).asText())
         assertEquals(BEHOV_VALIDERING, behov.get(1).asText())
     }

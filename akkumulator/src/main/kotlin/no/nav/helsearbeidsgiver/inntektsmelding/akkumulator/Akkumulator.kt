@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.value
 
 class Akkumulator(
-    rapidsConnection: RapidsConnection,
+    val rapidsConnection: RapidsConnection,
     private val redisStore: RedisStore,
     private val timeout: Long = 600
 ) : River.PacketListener {
@@ -119,7 +119,7 @@ class Akkumulator(
                     packet.set("@løsning", "")
                     // Fjern gammel utvidelse
                     packet.set("@extra", "")
-                    context.publish(identitetsnummer, packet.toJson())
+                    rapidsConnection.publish(identitetsnummer, packet.toJson())
                 }
             }
         }

@@ -10,6 +10,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.value
 
@@ -110,21 +111,12 @@ class Akkumulator(
                     redisStore.set(uuid, data, timeout)
                     // Publiser ny event
                 } else {
-                    val list = packet.value(Key.BEHOV).map(JsonNode::asText).map { it }.toMutableList()
-                    logger.info("Legger til extra behov $extra til $list")
-                    sikkerlogg.info("Legger til extra behov $extra til $list")
-                    list.add(extra)
-                    // Utvid behov
-                    packet.set("@behov", list)
-                    rapidsConnection.publish(identitetsnummer, removeFields(packet))
+                    logger.info("Legger til extra behov $extra")
+                    val ny = mapExtraPacket(BehovType.valueOf(extra), packet, objectMapper).toString()
+                    sikkerlogg.info("Legger til extra behov $extra Json: $ny")
+                    rapidsConnection.publish(identitetsnummer, ny)
                 }
             }
         }
-    }
-
-    fun removeFields(packet: JsonMessage): String {
-        val jsonNode: JsonNode = objectMapper.readTree(packet.toJson())
-        jsonNode.removeAll { it.has("@løsning") || it.has("@extra") }
-        return jsonNode.toString()
     }
 }

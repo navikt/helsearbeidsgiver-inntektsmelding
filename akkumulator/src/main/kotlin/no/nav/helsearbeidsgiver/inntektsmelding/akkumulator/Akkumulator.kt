@@ -116,12 +116,15 @@ class Akkumulator(
                     list.add(extra)
                     // Utvid behov
                     packet.set("@behov", list)
-                    packet.set("@løsning", "")
-                    // Fjern gammel utvidelse
-                    packet.set("@extra", "")
-                    rapidsConnection.publish(identitetsnummer, packet.toJson())
+                    rapidsConnection.publish(identitetsnummer, removeFields(packet))
                 }
             }
         }
+    }
+
+    fun removeFields(packet: JsonMessage): String {
+        val jsonNode: JsonNode = objectMapper.readTree(packet.toJson())
+        jsonNode.removeAll { it.has("@løsning") || it.has("@extra") }
+        return jsonNode.toString()
     }
 }

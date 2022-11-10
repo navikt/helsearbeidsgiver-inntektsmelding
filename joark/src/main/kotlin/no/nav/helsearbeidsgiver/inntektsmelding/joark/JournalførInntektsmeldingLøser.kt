@@ -41,7 +41,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet["@id"].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
-        sikkerlogg.info("Fikk pakke: $packet")
+        sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         try {
             val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"])
             sikkerlogg.info("Skal journalføre $inntektsmelding")

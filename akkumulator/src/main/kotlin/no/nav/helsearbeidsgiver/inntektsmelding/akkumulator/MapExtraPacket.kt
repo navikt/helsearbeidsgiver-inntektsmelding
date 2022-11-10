@@ -23,8 +23,7 @@ fun mapExtraPacket(extra: BehovType, packet: JsonMessage, objectMapper: ObjectMa
         jsonNode.remove(Key.EXTRA.str)
         jsonNode.remove(Key.LØSNING.str)
         jsonNode.replace(Key.ID.str, TextNode(UUID.randomUUID().toString()))
-        val arrNode = jsonNode.putArray(Key.BEHOV.str)
-        arrNode.addAll(arr)
+        jsonNode.putArray(Key.BEHOV.str).addAll(arr)
     }
     return jsonNode
 }

@@ -10,7 +10,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import java.util.UUID
 
 /**
- * Sletter løsning og extra - legger til nytt behov
+ * Sletter løsning og extra - legger til nytt behov. Samtidig beholde
+ * alle andre verdier uendret
  */
 fun mapExtraPacket(extra: BehovType, packet: JsonMessage, objectMapper: ObjectMapper): JsonNode {
     val jsonNode: JsonNode = objectMapper.readTree(packet.toJson())
@@ -19,13 +20,10 @@ fun mapExtraPacket(extra: BehovType, packet: JsonMessage, objectMapper: ObjectMa
     list.forEach { arr.add(it) }
     arr.add(extra.name)
     (jsonNode as ObjectNode).apply {
-        jsonNode.remove("@id")
-        jsonNode.remove("@extra")
-        jsonNode.remove("@løsning")
-        jsonNode.remove("@behov")
-        jsonNode.put("@behov", list.toString())
-        jsonNode.replace("@id", TextNode(UUID.randomUUID().toString()))
-        val arrNode = jsonNode.putArray("@behov")
+        jsonNode.remove(Key.EXTRA.str)
+        jsonNode.remove(Key.LØSNING.str)
+        jsonNode.replace(Key.ID.str, TextNode(UUID.randomUUID().toString()))
+        val arrNode = jsonNode.putArray(Key.BEHOV.str)
         arrNode.addAll(arr)
     }
     return jsonNode

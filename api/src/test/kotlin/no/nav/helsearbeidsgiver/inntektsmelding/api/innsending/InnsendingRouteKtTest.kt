@@ -14,8 +14,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.MockUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.testApi
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -23,7 +23,7 @@ import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.INNSENDING
 
-class InnsendingRouteKtTest {
+class InnsendingRouteKtTest : ApiTest() {
     val objectMapper = customObjectMapper()
 
     val GYLDIG_REQUEST = GYLDIG

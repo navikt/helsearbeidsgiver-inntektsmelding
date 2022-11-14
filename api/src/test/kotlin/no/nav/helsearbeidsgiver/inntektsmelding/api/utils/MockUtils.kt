@@ -8,21 +8,35 @@ import io.mockk.unmockkConstructor
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.runBlocking
 import no.nav.security.mock.oauth2.MockOAuth2Server
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import java.util.UUID
 import kotlin.reflect.KClass
 
-// Denne ligger utenfor MockAuthToken slik at den initialiseres "eagerly"
-private val mockOAuth2Server = MockOAuth2Server().apply { start(6666) }
+abstract class MockAuthToken {
+    private val mockOAuth2Server = MockOAuth2Server()
+    private val port = 6666
 
-val mockSubject = "mockSubject"
+    val mockSubject = "mockSubject"
 
-fun mockAuthToken(): String =
-    mockOAuth2Server.issueToken(
-        subject = mockSubject,
-        issuerId = "loginservice-issuer",
-        audience = "aud-localhost"
-    )
-        .serialize()
+    fun mockAuthToken(): String =
+        mockOAuth2Server.issueToken(
+            subject = mockSubject,
+            issuerId = "loginservice-issuer",
+            audience = "aud-localhost"
+        )
+            .serialize()
+
+    @BeforeEach
+    fun start() {
+        mockOAuth2Server.start(port)
+    }
+
+    @AfterEach
+    fun stop() {
+        mockOAuth2Server.shutdown()
+    }
+}
 
 object MockUuid {
     const val STRING = "01234567-abcd-0123-abcd-012345678901"

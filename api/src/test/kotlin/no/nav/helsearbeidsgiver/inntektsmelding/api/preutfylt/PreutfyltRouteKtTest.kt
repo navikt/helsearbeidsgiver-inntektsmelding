@@ -13,8 +13,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.buildResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.MockUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.testApi
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -22,7 +22,7 @@ import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.PREUTFYLT
 
-class PreutfyltRouteKtTest {
+class PreutfyltRouteKtTest : ApiTest() {
     private val objectMapper = customObjectMapper()
 
     private val GYLDIG_REQUEST = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)

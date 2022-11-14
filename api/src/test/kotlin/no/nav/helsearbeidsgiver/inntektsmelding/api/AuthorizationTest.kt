@@ -7,17 +7,16 @@ import io.ktor.server.auth.authentication
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.TestClient
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.identitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.mainAppConfig
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.mockSubject
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.testApi
 import no.nav.security.token.support.v2.tokenValidationSupport
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class AuthorizationTest {
+class AuthorizationTest : ApiTest() {
 
     @Test
     fun `stopp uautoriserte kall mot API`() = testApi {
@@ -62,7 +61,7 @@ class AuthorizationTest {
             }
         }
 
-        val testClient = TestClient(this)
+        val testClient = TestClient(this) { mockAuthToken() }
 
         val response = testClient.get(path)
 

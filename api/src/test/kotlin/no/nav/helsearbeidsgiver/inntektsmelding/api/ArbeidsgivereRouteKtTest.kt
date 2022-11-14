@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.testApi
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -18,7 +18,7 @@ private val objectMapper = customObjectMapper()
 
 private const val PATH = Routes.PREFIX + Routes.ARBEIDSGIVERE
 
-class ArbeidsgivereRouteKtTest {
+class ArbeidsgivereRouteKtTest : ApiTest() {
 
     @Test
     fun `gyldig request gir 200 OK med arbeidsgivere`() = testApi {

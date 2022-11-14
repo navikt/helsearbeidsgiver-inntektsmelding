@@ -20,24 +20,27 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 
 val mainAppConfig = ApplicationConfig("src/main/resources/application.conf")
 
-fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {
-    environment {
-        config = mainAppConfig
-    }
+abstract class ApiTest : MockAuthToken() {
+    fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {
+        environment {
+            config = mainAppConfig
+        }
 
-    application {
-        apiModule(mockk(relaxed = true))
-    }
+        application {
+            apiModule(mockk(relaxed = true))
+        }
 
-    val testClient = TestClient(this)
+        val testClient = TestClient(this) { mockAuthToken() }
 
-    mockConstructor(RedisPoller::class) {
-        testClient.block()
+        mockConstructor(RedisPoller::class) {
+            testClient.block()
+        }
     }
 }
 
 class TestClient(
-    appTestBuilder: ApplicationTestBuilder
+    appTestBuilder: ApplicationTestBuilder,
+    val authToken: () -> String
 ) {
     private val httpClient = appTestBuilder.createClient {
         install(ContentNegotiation) {
@@ -49,7 +52,7 @@ class TestClient(
 
     fun get(
         path: String,
-        block: HttpRequestBuilder.() -> Unit = HttpRequestBuilder::withAuth
+        block: HttpRequestBuilder.() -> Unit = { withAuth() }
     ): HttpResponse =
         MockUuid.with {
             httpClient.get(path) {
@@ -60,7 +63,7 @@ class TestClient(
     fun post(
         path: String,
         body: Any,
-        block: HttpRequestBuilder.() -> Unit = HttpRequestBuilder::withAuth
+        block: HttpRequestBuilder.() -> Unit = { withAuth() }
     ): HttpResponse =
         MockUuid.with {
             httpClient.post(path) {
@@ -70,8 +73,8 @@ class TestClient(
                 block()
             }
         }
-}
 
-private fun HttpRequestBuilder.withAuth() {
-    bearerAuth(mockAuthToken())
+    private fun HttpRequestBuilder.withAuth() {
+        bearerAuth(authToken())
+    }
 }

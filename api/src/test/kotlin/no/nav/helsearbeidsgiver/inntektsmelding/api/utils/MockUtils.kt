@@ -11,6 +11,19 @@ import no.nav.security.mock.oauth2.MockOAuth2Server
 import java.util.UUID
 import kotlin.reflect.KClass
 
+// Denne ligger utenfor MockAuthToken slik at den initialiseres "eagerly"
+private val mockOAuth2Server = MockOAuth2Server().apply { start(6666) }
+
+val mockSubject = "mockSubject"
+
+fun mockAuthToken(): String =
+    mockOAuth2Server.issueToken(
+        subject = mockSubject,
+        issuerId = "loginservice-issuer",
+        audience = "aud-localhost"
+    )
+        .serialize()
+
 object MockUuid {
     const val STRING = "01234567-abcd-0123-abcd-012345678901"
     private val uuid = STRING.let(UUID::fromString)
@@ -23,18 +36,6 @@ object MockUuid {
                 callFn()
             }
         }
-}
-
-object MockAuthToken {
-    private val server = MockOAuth2Server().apply { start(6666) }
-
-    fun get(): String =
-        server.issueToken(
-            subject = "mockSubject",
-            issuerId = "loginservice-issuer",
-            audience = "aud-localhost"
-        )
-            .serialize()
 }
 
 fun <T> mockStatic(klass: KClass<*>, block: () -> T): T {

@@ -18,9 +18,11 @@ import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 
+val mainAppConfig = ApplicationConfig("src/main/resources/application.conf")
+
 fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {
     environment {
-        config = ApplicationConfig("src/main/resources/application.conf")
+        config = mainAppConfig
     }
 
     application {
@@ -71,5 +73,5 @@ class TestClient(
 }
 
 private fun HttpRequestBuilder.withAuth() {
-    bearerAuth(MockAuthToken.get())
+    bearerAuth(mockAuthToken())
 }

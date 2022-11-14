@@ -1,23 +1,20 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.utils
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.jackson.jackson
-import io.ktor.server.application.Application
+import io.ktor.http.auth.AuthScheme
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.PluginInstance
 import io.ktor.server.application.call
-import io.ktor.server.application.install
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.authorization
 import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
-import no.nav.helsearbeidsgiver.felles.json.configure
+import no.nav.security.token.support.core.jwt.JwtToken
 
-fun Application.contentNegotiation(): PluginInstance =
-    install(ContentNegotiation) {
-        jackson {
-            configure()
-        }
-    }
+fun PipelineContext<Unit, ApplicationCall>.identitetsnummer(): String =
+    call.request.authorization()
+        ?.removePrefix("${AuthScheme.Bearer} ")
+        ?.let(::JwtToken)
+        ?.subject
+        ?: throw IllegalAccessException("Du må angi et token i Authorization-headeren (med identitetsnummer).")
 
 suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.respondOk(message: T) {
     call.respond(HttpStatusCode.OK, message)

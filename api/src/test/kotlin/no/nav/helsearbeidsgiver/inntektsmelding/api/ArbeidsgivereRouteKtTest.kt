@@ -3,34 +3,30 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
-import io.mockk.mockk
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
-import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.testApi
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 private val objectMapper = customObjectMapper()
 
+private const val PATH = "api/v1/arbeidsgivere"
+
 class ArbeidsgivereRouteKtTest {
 
-    private val poller = mockk<RedisPoller>()
-
     @Test
-    fun `gyldig request gir 200 OK med arbeidsgivere`() = testApplication {
+    fun `gyldig request gir 200 OK med arbeidsgivere`() = testApi {
         coEvery {
-            poller.hent(any(), any(), any())
+            anyConstructed<RedisPoller>().hent(any(), any(), any())
         } returns MockOk.response
 
-        val response = routeTester().get()
+        val response = get(PATH)
 
         Assertions.assertEquals(HttpStatusCode.OK, response.status)
 
@@ -39,26 +35,18 @@ class ArbeidsgivereRouteKtTest {
     }
 
     @Test
-    fun `feil fra løser gir 500 Internal Server Error med feilmelding`() = testApplication {
+    fun `feil fra løser gir 500 Internal Server Error med feilmelding`() = testApi {
         coEvery {
-            poller.hent(any(), any(), any())
+            anyConstructed<RedisPoller>().hent(any(), any(), any())
         } returns MockInternalServerError.response
 
-        val response = routeTester().get()
+        val response = get(PATH)
 
         Assertions.assertEquals(HttpStatusCode.InternalServerError, response.status)
 
         val responseBody = response.body<String>()
         Assertions.assertEquals(responseBody, MockInternalServerError.responseBody)
     }
-
-    private fun ApplicationTestBuilder.routeTester(): RouteTester =
-        RouteTester(
-            this,
-            poller,
-            "/arbeidsgivere",
-            RouteExtra::ArbeidsgivereRoute
-        )
 }
 
 private object MockOk {

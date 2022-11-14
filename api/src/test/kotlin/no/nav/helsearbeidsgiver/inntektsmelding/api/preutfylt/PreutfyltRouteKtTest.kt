@@ -9,6 +9,7 @@ import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.buildResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
@@ -19,7 +20,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 
-private const val PATH = "api/v1/preutfyll"
+private const val PATH = Routes.PREFIX + Routes.PREUTFYLT
 
 class PreutfyltRouteKtTest {
     private val objectMapper = customObjectMapper()

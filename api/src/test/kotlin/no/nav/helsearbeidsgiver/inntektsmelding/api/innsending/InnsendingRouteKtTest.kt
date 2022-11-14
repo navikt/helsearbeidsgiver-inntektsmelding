@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.MockUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.testApi
@@ -20,7 +21,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 
-private const val PATH = "api/v1/inntektsmelding"
+private const val PATH = Routes.PREFIX + Routes.INNSENDING
 
 class InnsendingRouteKtTest {
     val objectMapper = customObjectMapper()

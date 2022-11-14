@@ -27,6 +27,14 @@ import org.slf4j.LoggerFactory
 val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api")
 
+object Routes {
+    const val PREFIX = "/api/v1"
+
+    const val ARBEIDSGIVERE = "/arbeidsgivere"
+    const val INNSENDING = "/inntektsmelding"
+    const val PREUTFYLT = "/preutfyll"
+}
+
 fun main() {
     val env = System.getenv()
 
@@ -60,7 +68,7 @@ fun Application.apiModule(connection: RapidsConnection) {
         }
 
         authenticate {
-            route("/api/v1") {
+            route(Routes.PREFIX) {
                 routeExtra(connection, RedisPoller()) {
                     ArbeidsgivereRoute()
                     InnsendingRoute()

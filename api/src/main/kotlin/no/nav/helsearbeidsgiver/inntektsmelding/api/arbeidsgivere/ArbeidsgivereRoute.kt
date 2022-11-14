@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
@@ -23,7 +24,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 private val objectMapper = customObjectMapper()
 
 fun RouteExtra.ArbeidsgivereRoute() {
-    route.get("/arbeidsgivere") {
+    route.get(Routes.ARBEIDSGIVERE) {
         val identitetsnummer = identitetsnummer()
 
         val id = connection.publiser(

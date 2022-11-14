@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 
 private val objectMapper = customObjectMapper()
 
-private const val PATH = "api/v1/arbeidsgivere"
+private const val PATH = Routes.PREFIX + Routes.ARBEIDSGIVERE
 
 class ArbeidsgivereRouteKtTest {
 

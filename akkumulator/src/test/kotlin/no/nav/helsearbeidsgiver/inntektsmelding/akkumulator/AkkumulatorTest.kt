@@ -53,7 +53,7 @@ internal class AkkumulatorTest {
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
             "@behov" to listOf(BEHOV_PDL),
-            "@extra" to BehovType.IM_VALIDERING.toString(),
+            "@extra" to listOf(BehovType.IM_VALIDERING.toString()),
             "@løsning" to mapOf(
                 BEHOV_PDL to PDL_OK
             ),

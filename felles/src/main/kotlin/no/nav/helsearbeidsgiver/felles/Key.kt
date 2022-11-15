@@ -13,7 +13,7 @@ enum class Key(val str: String) {
 
     // Egendefinerte
     SESSION("session"),
-    EXTRA("extra"),
+    NESTE_BEHOV("neste_behov"),
     IDENTITETSNUMMER("identitetsnummer"),
     INITIATE_ID("initiate_id"),
     UUID("uuid");

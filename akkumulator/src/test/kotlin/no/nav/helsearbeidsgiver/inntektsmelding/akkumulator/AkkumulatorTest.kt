@@ -53,7 +53,7 @@ internal class AkkumulatorTest {
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
             "@behov" to listOf(BEHOV_PDL),
-            "extra" to listOf(BehovType.IM_VALIDERING.toString()),
+            "neste_behov" to listOf(BehovType.IM_VALIDERING.toString()),
             "@løsning" to mapOf(
                 BEHOV_PDL to PDL_OK
             ),
@@ -68,13 +68,13 @@ internal class AkkumulatorTest {
         }
         val behov: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("@behov")
         val løsning: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("@løsning")
-        val extra: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("extra")
+        val neste_behov: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("neste_behov")
         // Skal beholde eksisterende verdier
         assertEquals("placeholder", rapid.inspektør.message(rapid.inspektør.size - 1).path("inntektsmelding").asText())
         assertEquals("uuid", rapid.inspektør.message(rapid.inspektør.size - 1).path("uuid").asText())
         // Nytt behov
         assertEquals("", løsning.asText())
-        assertEquals("", extra.asText()) // Fjerne neste behov
+        assertEquals("", neste_behov.asText()) // Fjerne neste behov
         assertEquals(BEHOV_PDL, behov.get(0).asText())
         assertEquals(BEHOV_VALIDERING, behov.get(1).asText())
     }

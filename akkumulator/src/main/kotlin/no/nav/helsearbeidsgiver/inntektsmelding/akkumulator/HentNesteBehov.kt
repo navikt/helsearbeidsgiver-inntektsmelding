@@ -9,18 +9,18 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 
 /**
- * Sletter løsning og extra - legger til nytt behov. Samtidig beholde
+ * Flytter neste behov fra extra til behov. Samtidig beholde
  * alle andre verdier uendret
  *
  * @param løsninger En Json node med akkumulerte løsninger så langt
  * @param extraBehov Liste over kommende behov
  */
-fun mapExtraPacket(løsninger: ObjectNode, packet: JsonMessage, objectMapper: ObjectMapper): JsonNode {
+fun hentNesteBehov(løsninger: ObjectNode, packet: JsonMessage, objectMapper: ObjectMapper): JsonNode {
     val jsonNode: JsonNode = objectMapper.readTree(packet.toJson())
     (jsonNode as ObjectNode).apply {
         val nodeBehov = jsonNode.get(Key.BEHOV.str) as ArrayNode
-        val nodeExtra = jsonNode.get(Key.EXTRA.str) as ArrayNode
-        nodeBehov.flytt(nodeExtra)
+        val nodeNESTEBEHOV = jsonNode.get(Key.NESTE_BEHOV.str) as ArrayNode
+        nodeBehov.flyttBehov(nodeNESTEBEHOV)
         jsonNode.remove(Key.LØSNING.str)
         if (!løsninger.isEmpty) {
             jsonNode.put(Key.SESSION.str, løsninger)
@@ -31,7 +31,7 @@ fun mapExtraPacket(løsninger: ObjectNode, packet: JsonMessage, objectMapper: Ob
     return jsonNode
 }
 
-fun ArrayNode.flytt(extra: ArrayNode) {
+fun ArrayNode.flyttBehov(extra: ArrayNode) {
     val index = extra.indexOfFirst { it.getBehovType() == BehovType.PAUSE }
     if (index < 0) {
         this.addAll(extra)

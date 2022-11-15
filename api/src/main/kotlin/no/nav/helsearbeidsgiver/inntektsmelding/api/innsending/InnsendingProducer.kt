@@ -24,7 +24,7 @@ class InnsendingProducer(
                 Key.BEHOV.str to listOf(
                     BehovType.VIRKSOMHET.name
                 ),
-                Key.EXTRA.str to listOf(
+                Key.NESTE_BEHOV.str to listOf(
                     BehovType.JOURNALFOER.name
                 ),
                 Key.ID.str to uuid,

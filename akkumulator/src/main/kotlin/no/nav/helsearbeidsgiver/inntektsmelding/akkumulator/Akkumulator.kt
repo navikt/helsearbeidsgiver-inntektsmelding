@@ -33,7 +33,7 @@ class Akkumulator(
                     Key.INITIATE_ID.str,
                     Key.UUID.str,
                     Key.IDENTITETSNUMMER.str,
-                    Key.EXTRA.str
+                    Key.NESTE_BEHOV.str
                 )
             }
         }.register(this)
@@ -50,10 +50,10 @@ class Akkumulator(
             }
         val eventName = packet.value(Key.EVENT_NAME).asText()
         val behov = packet.value(Key.BEHOV).asText()
-        val extra = packet.get(Key.EXTRA.str).map(JsonNode::asText).map { BehovType.valueOf(it) }.toMutableList()
+        val NESTEBEHOV = packet.get(Key.NESTE_BEHOV.str).map(JsonNode::asText).map { BehovType.valueOf(it) }.toMutableList()
         val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
-        sikkerlogg.info("Event: $eventName Behov: $behov Extra: $extra Fnr: $identitetsnummer Uuid: $uuid Pakke: ${packet.toJson()}")
-        logger.info("Event: $eventName Behov: $behov Extra: $extra Uuid: $uuid")
+        sikkerlogg.info("Event: $eventName Behov: $behov Neste: $NESTEBEHOV Fnr: $identitetsnummer Uuid: $uuid Pakke: ${packet.toJson()}")
+        logger.info("Event: $eventName Behov: $behov Neste: $NESTEBEHOV Uuid: $uuid")
         val mangler = mutableListOf<String>()
         val feil = mutableListOf<String>()
         val results: ObjectNode = objectMapper.createObjectNode()
@@ -105,14 +105,14 @@ class Akkumulator(
             }
             else -> {
                 val data = results.toString()
-                if (extra.isEmpty()) {
+                if (NESTEBEHOV.isEmpty()) {
                     logger.info("Behov: $uuid er komplett.")
                     sikkerlogg.info("Publiserer løsning: $data")
                     redisStore.set(uuid, data, timeout)
                 } else {
-                    logger.info("Legger til extra behov $extra")
-                    val ny = mapExtraPacket(results, packet, objectMapper).toString()
-                    sikkerlogg.info("Legger til extra behov $extra Json: $ny")
+                    logger.info("Legger til Neste behov $NESTEBEHOV")
+                    val ny = hentNesteBehov(results, packet, objectMapper).toString()
+                    sikkerlogg.info("Legger til Neste behov $NESTEBEHOV Json: $ny")
                     rapidsConnection.publish(identitetsnummer, ny)
                 }
             }

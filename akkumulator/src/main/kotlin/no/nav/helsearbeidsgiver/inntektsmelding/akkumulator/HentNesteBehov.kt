@@ -9,11 +9,10 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 
 /**
- * Flytter neste behov fra extra til behov. Samtidig beholde
+ * Flytter fra neste_behov til @behov. Samtidig beholde
  * alle andre verdier uendret
  *
  * @param løsninger En Json node med akkumulerte løsninger så langt
- * @param extraBehov Liste over kommende behov
  */
 fun hentNesteBehov(løsninger: ObjectNode, packet: JsonMessage, objectMapper: ObjectMapper): JsonNode {
     val jsonNode: JsonNode = objectMapper.readTree(packet.toJson())
@@ -23,26 +22,26 @@ fun hentNesteBehov(løsninger: ObjectNode, packet: JsonMessage, objectMapper: Ob
         nodeBehov.flyttBehov(nodeNESTEBEHOV)
         jsonNode.remove(Key.LØSNING.str)
         if (!løsninger.isEmpty) {
-            jsonNode.put(Key.SESSION.str, løsninger)
+            jsonNode.set(Key.SESSION.str, løsninger)
         } else {
-            jsonNode.put(Key.SESSION.str, objectMapper.createObjectNode())
+            jsonNode.set(Key.SESSION.str, objectMapper.createObjectNode())
         }
     }
     return jsonNode
 }
 
-fun ArrayNode.flyttBehov(extra: ArrayNode) {
-    val index = extra.indexOfFirst { it.getBehovType() == BehovType.PAUSE }
+fun ArrayNode.flyttBehov(node: ArrayNode) {
+    val index = node.indexOfFirst { it.getBehovType() == BehovType.PAUSE }
     if (index < 0) {
-        this.addAll(extra)
-        extra.removeAll()
+        this.addAll(node)
+        node.removeAll()
         return
     }
     for (i in 0..index) {
         if (i == index) {
-            extra.remove(0)
+            node.remove(0)
         } else {
-            this.add(extra.remove(0))
+            this.add(node.remove(0))
         }
     }
 }

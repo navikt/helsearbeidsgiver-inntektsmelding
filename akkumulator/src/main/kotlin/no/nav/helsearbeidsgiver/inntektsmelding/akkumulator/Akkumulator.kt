@@ -50,10 +50,10 @@ class Akkumulator(
             }
         val eventName = packet.value(Key.EVENT_NAME).asText()
         val behov = packet.value(Key.BEHOV).asText()
-        val NESTEBEHOV = packet.get(Key.NESTE_BEHOV.str).map(JsonNode::asText).map { BehovType.valueOf(it) }.toMutableList()
+        val nesteBehov = packet.get(Key.NESTE_BEHOV.str).map(JsonNode::asText).map { BehovType.valueOf(it) }.toMutableList()
         val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
-        sikkerlogg.info("Event: $eventName Behov: $behov Neste: $NESTEBEHOV Fnr: $identitetsnummer Uuid: $uuid Pakke: ${packet.toJson()}")
-        logger.info("Event: $eventName Behov: $behov Neste: $NESTEBEHOV Uuid: $uuid")
+        sikkerlogg.info("Event: $eventName Behov: $behov Neste: $nesteBehov Fnr: $identitetsnummer Uuid: $uuid Pakke: ${packet.toJson()}")
+        logger.info("Event: $eventName Behov: $behov Neste: $nesteBehov Uuid: $uuid")
         val mangler = mutableListOf<String>()
         val feil = mutableListOf<String>()
         val results: ObjectNode = objectMapper.createObjectNode()
@@ -105,14 +105,14 @@ class Akkumulator(
             }
             else -> {
                 val data = results.toString()
-                if (NESTEBEHOV.isEmpty()) {
+                if (nesteBehov.isEmpty()) {
                     logger.info("Behov: $uuid er komplett.")
                     sikkerlogg.info("Publiserer løsning: $data")
                     redisStore.set(uuid, data, timeout)
                 } else {
-                    logger.info("Legger til Neste behov $NESTEBEHOV")
+                    logger.info("Legger til Neste behov $nesteBehov")
                     val ny = hentNesteBehov(results, packet, objectMapper).toString()
-                    sikkerlogg.info("Legger til Neste behov $NESTEBEHOV Json: $ny")
+                    sikkerlogg.info("Legger til Neste behov $nesteBehov Json: $ny")
                     rapidsConnection.publish(identitetsnummer, ny)
                 }
             }

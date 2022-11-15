@@ -47,7 +47,7 @@ internal class AkkumulatorTest {
     }
 
     @Test
-    fun `skal publisere ekstrabehov`() {
+    fun `skal publisere neste behov`() {
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),

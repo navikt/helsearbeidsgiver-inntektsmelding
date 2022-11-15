@@ -26,12 +26,12 @@ internal class AkkumulatorTest {
     private var akkumulator: Akkumulator
     private val timeout = 600L
 
-    private val BEHOV_PDL = BehovType.FULLT_NAVN.toString()
+    private val BEHOV_FULLT_NAVN = BehovType.FULLT_NAVN.toString()
     private val BEHOV_BRREG = BehovType.VIRKSOMHET.toString()
     private val BEHOV_ARBEIDSGIVERE = BehovType.ARBEIDSGIVERE.toString()
 
     private val UUID_BRREG = "uuid_" + BEHOV_BRREG
-    private val UUID_PDL = "uuid_" + BEHOV_PDL
+    private val UUID_PDL = "uuid_" + BEHOV_FULLT_NAVN
 
     val LØSNING_FEIL = NavnLøsning(error = Feilmelding("Fikk 500"))
     val LØSNING_OK = NavnLøsning(value = "abc")
@@ -52,10 +52,10 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL),
+            "@behov" to listOf(BEHOV_FULLT_NAVN),
             "neste_behov" to listOf(BehovType.ARBEIDSGIVERE.toString()),
             "@løsning" to mapOf(
-                BEHOV_PDL to PDL_OK
+                BEHOV_FULLT_NAVN to PDL_OK
             ),
             "inntektsmelding" to "placeholder"
         )
@@ -75,7 +75,7 @@ internal class AkkumulatorTest {
         // Nytt behov
         assertEquals("", løsning.asText())
         assertEquals("", neste_behov.asText()) // Fjerne neste behov
-        assertEquals(BEHOV_PDL, behov.get(0).asText())
+        assertEquals(BEHOV_FULLT_NAVN, behov.get(0).asText())
         assertEquals(BEHOV_ARBEIDSGIVERE, behov.get(1).asText())
     }
 
@@ -86,9 +86,9 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_PDL to PDL_OK
+                BEHOV_FULLT_NAVN to PDL_OK
             )
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
@@ -110,13 +110,13 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_PDL to LØSNING_FEIL
+                BEHOV_FULLT_NAVN to LØSNING_FEIL
             )
         )
         val løsningResultat = mapOf(
-            BEHOV_PDL to LØSNING_FEIL
+            BEHOV_FULLT_NAVN to LØSNING_FEIL
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
@@ -135,13 +135,13 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf( // PDL feiler først
-                BEHOV_PDL to LØSNING_FEIL
+                BEHOV_FULLT_NAVN to LØSNING_FEIL
             )
         )
         val resultat = mapOf(
-            BEHOV_PDL to LØSNING_FEIL
+            BEHOV_FULLT_NAVN to LØSNING_FEIL
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
@@ -158,14 +158,14 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_PDL to LØSNING_OK,
+                BEHOV_FULLT_NAVN to LØSNING_OK,
                 BEHOV_BRREG to LØSNING_OK
             )
         )
         val løsningResultat = mapOf(
-            BEHOV_PDL to LØSNING_OK,
+            BEHOV_FULLT_NAVN to LØSNING_OK,
             BEHOV_BRREG to LØSNING_OK
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
@@ -182,7 +182,7 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf(
                 BEHOV_BRREG to ""
             )

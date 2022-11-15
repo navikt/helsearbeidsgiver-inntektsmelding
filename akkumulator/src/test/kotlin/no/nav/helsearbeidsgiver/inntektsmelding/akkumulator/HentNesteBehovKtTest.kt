@@ -17,7 +17,7 @@ internal class HentNesteBehovKtTest {
     private val objectMapper = ObjectMapper()
 
     @Test
-    fun `skal håndtere at det ikke er ekstra behov`() {
+    fun `skal håndtere at det ikke er neste behov`() {
         val resultat = sendMelding(
             mapOf(
                 "uuid" to "uuid",
@@ -37,7 +37,7 @@ internal class HentNesteBehovKtTest {
     }
 
     @Test
-    fun `skal håndtere at det er et ekstra behov uten pause`() {
+    fun `skal håndtere at det er et neste behov uten pause`() {
         val resultat = sendMelding(
             mapOf(
                 "uuid" to "uuid",
@@ -58,7 +58,7 @@ internal class HentNesteBehovKtTest {
     }
 
     @Test
-    fun `skal håndtere at det er flere ekstra behov med pause`() {
+    fun `skal håndtere at det er flere neste behov med pause`() {
         val resultat = sendMelding(
             mapOf(
                 "@behov" to listOf(BehovType.FULLT_NAVN.toString(), BehovType.INNTEKT.toString()),

@@ -50,7 +50,7 @@ class Akkumulator(
             }
         val eventName = packet.value(Key.EVENT_NAME).asText()
         val behov = packet.value(Key.BEHOV).asText()
-        val extra = packet.value(Key.EXTRA).asText()
+        val extra = packet.get(Key.EXTRA.str).map(JsonNode::asText).map { BehovType.valueOf(it) }.toMutableList()
         val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
         sikkerlogg.info("Event: $eventName Behov: $behov Extra: $extra Fnr: $identitetsnummer Uuid: $uuid Pakke: ${packet.toJson()}")
         logger.info("Event: $eventName Behov: $behov Extra: $extra Uuid: $uuid")
@@ -105,14 +105,13 @@ class Akkumulator(
             }
             else -> {
                 val data = results.toString()
-                if (extra.isNullOrBlank()) {
+                if (extra.isEmpty()) {
                     logger.info("Behov: $uuid er komplett.")
                     sikkerlogg.info("Publiserer løsning: $data")
                     redisStore.set(uuid, data, timeout)
-                    // Publiser ny event
                 } else {
                     logger.info("Legger til extra behov $extra")
-                    val ny = mapExtraPacket(BehovType.valueOf(extra), packet, objectMapper).toString()
+                    val ny = mapExtraPacket(results, packet, objectMapper).toString()
                     sikkerlogg.info("Legger til extra behov $extra Json: $ny")
                     rapidsConnection.publish(identitetsnummer, ny)
                 }

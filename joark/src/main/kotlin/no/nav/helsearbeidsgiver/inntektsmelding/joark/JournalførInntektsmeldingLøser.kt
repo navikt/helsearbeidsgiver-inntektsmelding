@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -10,6 +11,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
+import no.nav.helsearbeidsgiver.felles.Key
 import org.slf4j.LoggerFactory
 
 class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
@@ -26,6 +28,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
                 it.requireKey("@id")
                 it.rejectKey("@løsning")
                 it.interestedIn("inntektsmelding")
+                it.interestedIn("session")
             }
         }.register(this)
     }
@@ -44,7 +47,9 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         try {
             val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"])
-            sikkerlogg.info("Skal journalføre $inntektsmelding")
+            val session = packet[Key.SESSION.str]
+            sikkerlogg.info("Fant session: $session")
+            sikkerlogg.info("Skal journalføre: $inntektsmelding")
             val journalpostId = opprettJournalpost(inntektsmelding)
             packet.setLøsning(BEHOV, JournalpostLøsning(journalpostId))
             context.publish(packet.toJson())

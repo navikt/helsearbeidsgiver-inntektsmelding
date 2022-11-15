@@ -25,9 +25,7 @@ class InnsendingProducer(
                     BehovType.VIRKSOMHET.name
                 ),
                 Key.EXTRA.str to listOf(
-                    BehovType.JOURNALFOER.name,
-                    BehovType.PAUSE.name,
-                    BehovType.EGENMELDING.name
+                    BehovType.JOURNALFOER.name
                 ),
                 Key.ID.str to uuid,
                 Key.OPPRETTET.str to LocalDateTime.now(),

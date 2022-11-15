@@ -24,6 +24,8 @@ fun mapExtraPacket(løsninger: ObjectNode, packet: JsonMessage, objectMapper: Ob
         jsonNode.remove(Key.LØSNING.str)
         if (!løsninger.isEmpty) {
             jsonNode.put(Key.SESSION.str, løsninger)
+        } else {
+            jsonNode.put(Key.SESSION.str, objectMapper.createObjectNode())
         }
     }
     return jsonNode

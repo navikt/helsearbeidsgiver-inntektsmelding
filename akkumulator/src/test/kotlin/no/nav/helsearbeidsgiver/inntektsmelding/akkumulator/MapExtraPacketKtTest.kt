@@ -23,14 +23,14 @@ internal class MapExtraPacketKtTest {
                 "@løsning" to mapOf(
                     BehovType.FULLT_NAVN.toString() to FULLT_NAVN_OK
                 ),
-                "@extra" to emptyList<String>()
+                "extra" to emptyList<String>()
             )
         )
         val behov = resultat[Key.BEHOV.str]
         assertEquals(2, behov.size(), "Skal beholde behov uforandret")
         assertEquals(BehovType.FULLT_NAVN.toString(), behov[0].asText())
         assertEquals(BehovType.INNTEKT.toString(), behov[1].asText())
-        val extra = resultat.get("@extra")
+        val extra = resultat.get("extra")
         assertEquals(0, extra.size(), "Extra skal bli tom")
     }
 
@@ -43,7 +43,7 @@ internal class MapExtraPacketKtTest {
                 "@løsning" to mapOf(
                     BehovType.FULLT_NAVN.toString() to FULLT_NAVN_OK
                 ),
-                "@extra" to listOf(BehovType.VIRKSOMHET)
+                "extra" to listOf(BehovType.VIRKSOMHET)
             )
         )
         val behov = resultat[Key.BEHOV.str]
@@ -51,7 +51,7 @@ internal class MapExtraPacketKtTest {
         assertEquals(BehovType.FULLT_NAVN.toString(), behov[0].asText())
         assertEquals(BehovType.INNTEKT.toString(), behov[1].asText())
         assertEquals(BehovType.VIRKSOMHET.toString(), behov[2].asText())
-        val extra = resultat.get("@extra")
+        val extra = resultat.get("extra")
         assertEquals(0, extra.size(), "Extra skal bli tom")
     }
 
@@ -60,7 +60,7 @@ internal class MapExtraPacketKtTest {
         val resultat = sendMelding(
             mapOf(
                 "@behov" to listOf(BehovType.FULLT_NAVN.toString(), BehovType.INNTEKT.toString()),
-                "@extra" to listOf(BehovType.VIRKSOMHET, BehovType.PAUSE, BehovType.IM_VALIDERING, BehovType.PAUSE, BehovType.JOURNALFOER)
+                "extra" to listOf(BehovType.VIRKSOMHET, BehovType.PAUSE, BehovType.IM_VALIDERING, BehovType.PAUSE, BehovType.JOURNALFOER)
             )
         )
         val behov = resultat[Key.BEHOV.str]
@@ -68,7 +68,7 @@ internal class MapExtraPacketKtTest {
         assertEquals(BehovType.FULLT_NAVN.toString(), behov[0].asText())
         assertEquals(BehovType.INNTEKT.toString(), behov[1].asText())
         assertEquals(BehovType.VIRKSOMHET.toString(), behov[2].asText())
-        val extra = resultat.get("@extra")
+        val extra = resultat.get("extra")
         assertEquals(3, extra.size(), "Extra skal inneholde resten")
     }
 

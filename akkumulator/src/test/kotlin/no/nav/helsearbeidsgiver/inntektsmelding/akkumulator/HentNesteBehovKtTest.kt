@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
 import com.fasterxml.jackson.databind.JsonNode
@@ -60,7 +62,7 @@ internal class HentNesteBehovKtTest {
         val resultat = sendMelding(
             mapOf(
                 "@behov" to listOf(BehovType.FULLT_NAVN.toString(), BehovType.INNTEKT.toString()),
-                "neste_behov" to listOf(BehovType.VIRKSOMHET, BehovType.PAUSE, BehovType.IM_VALIDERING, BehovType.PAUSE, BehovType.JOURNALFOER)
+                "neste_behov" to listOf(BehovType.VIRKSOMHET, BehovType.PAUSE, BehovType.ARBEIDSGIVERE, BehovType.PAUSE, BehovType.JOURNALFOER)
             )
         )
         val behov = resultat[Key.BEHOV.str]

@@ -18,8 +18,8 @@ fun hentNesteBehov(løsninger: ObjectNode, packet: JsonMessage, objectMapper: Ob
     val jsonNode: JsonNode = objectMapper.readTree(packet.toJson())
     (jsonNode as ObjectNode).apply {
         val nodeBehov = jsonNode.get(Key.BEHOV.str) as ArrayNode
-        val nodeNESTEBEHOV = jsonNode.get(Key.NESTE_BEHOV.str) as ArrayNode
-        nodeBehov.flyttBehov(nodeNESTEBEHOV)
+        val nodeNesteBehov = jsonNode.get(Key.NESTE_BEHOV.str) as ArrayNode
+        nodeBehov.flyttBehov(nodeNesteBehov)
         jsonNode.remove(Key.LØSNING.str)
         if (!løsninger.isEmpty) {
             jsonNode.set(Key.SESSION.str, løsninger)

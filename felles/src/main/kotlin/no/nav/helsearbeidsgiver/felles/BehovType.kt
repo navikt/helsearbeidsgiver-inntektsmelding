@@ -8,7 +8,6 @@ enum class BehovType {
     ARBEIDSFORHOLD,
     EGENMELDING,
     SYK,
-    IM_VALIDERING,
     JOURNALFOER,
     ARBEIDSGIVERE
 }

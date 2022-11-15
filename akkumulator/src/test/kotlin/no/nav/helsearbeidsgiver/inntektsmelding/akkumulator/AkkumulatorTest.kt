@@ -28,7 +28,7 @@ internal class AkkumulatorTest {
 
     private val BEHOV_PDL = BehovType.FULLT_NAVN.toString()
     private val BEHOV_BRREG = BehovType.VIRKSOMHET.toString()
-    private val BEHOV_VALIDERING = BehovType.IM_VALIDERING.toString()
+    private val BEHOV_ARBEIDSGIVERE = BehovType.ARBEIDSGIVERE.toString()
 
     private val UUID_BRREG = "uuid_" + BEHOV_BRREG
     private val UUID_PDL = "uuid_" + BEHOV_PDL
@@ -53,7 +53,7 @@ internal class AkkumulatorTest {
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
             "@behov" to listOf(BEHOV_PDL),
-            "neste_behov" to listOf(BehovType.IM_VALIDERING.toString()),
+            "neste_behov" to listOf(BehovType.ARBEIDSGIVERE.toString()),
             "@løsning" to mapOf(
                 BEHOV_PDL to PDL_OK
             ),
@@ -76,7 +76,7 @@ internal class AkkumulatorTest {
         assertEquals("", løsning.asText())
         assertEquals("", neste_behov.asText()) // Fjerne neste behov
         assertEquals(BEHOV_PDL, behov.get(0).asText())
-        assertEquals(BEHOV_VALIDERING, behov.get(1).asText())
+        assertEquals(BEHOV_ARBEIDSGIVERE, behov.get(1).asText())
     }
 
     @Test

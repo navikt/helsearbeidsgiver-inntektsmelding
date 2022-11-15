@@ -16,7 +16,7 @@ data class Inntektsmelding(
     val behandlingsdagerTom: LocalDate,
     val behandlingsdager: List<LocalDate>,
     val egenmeldinger: List<Egenmelding>,
-    val bruttonInntekt: Double,
+    val bruttoInntekt: Double,
     val bruttoBekreftet: Boolean,
     val utbetalerFull: Boolean,
     val begrunnelseRedusert: String?,

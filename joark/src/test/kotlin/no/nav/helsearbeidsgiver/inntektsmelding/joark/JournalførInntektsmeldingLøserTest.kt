@@ -59,7 +59,7 @@ internal class JournalførInntektsmeldingLøserTest {
                         mapOf("fom" to "2022-09-01", "tom" to "2022-09-05"),
                         mapOf("fom" to "2022-09-06", "tom" to "2022-09-15")
                     ),
-                    "bruttonInntekt" to "25300",
+                    "bruttoInntekt" to "25300",
                     "bruttoBekreftet" to "true",
                     "utbetalerFull" to "true",
                     "begrunnelseRedusert" to "BeskjedGittForSent",

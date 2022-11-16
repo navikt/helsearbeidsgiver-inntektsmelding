@@ -1,12 +1,13 @@
 @file:Suppress("NonAsciiCharacters")
 
-package no.nav.helsearbeidsgiver.inntektsmelding.joark
+package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.Inntektsmelding
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
 
-class Kvittering {
+class PdfDokument {
 
-    fun export(): ByteArray {
+    fun export(inntektsmelding: Inntektsmelding): ByteArray {
         val b = PdfBuilder()
         b.addTitle("Kvittering - innsendt inntektsmelding", 0, 0)
         val kolonneTo = 420

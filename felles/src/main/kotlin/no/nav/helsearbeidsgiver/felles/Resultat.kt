@@ -6,5 +6,6 @@ data class Resultat(
     val ARBEIDSFORHOLD: ArbeidsforholdLøsning? = null,
     val SYK: SykLøsning? = null,
     val INNTEKT: InntektLøsning? = null,
-    val EGENMELDING: EgenmeldingLøsning? = null
+    val EGENMELDING: EgenmeldingLøsning? = null,
+    val JOURNALFOER: JournalpostLøsning? = null
 )

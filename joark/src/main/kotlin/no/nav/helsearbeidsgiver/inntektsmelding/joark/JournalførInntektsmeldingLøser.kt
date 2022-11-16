@@ -2,25 +2,26 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import org.slf4j.LoggerFactory
 
-class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : River.PacketListener {
 
     private val BEHOV = BehovType.JOURNALFOER
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
-        logger.info("Starter JournalførInntektsmeldingLøser...")
         River(rapidsConnection).apply {
             validate {
                 it.demandAll("@behov", BEHOV)
@@ -28,20 +29,18 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
                 it.rejectKey("@løsning")
                 it.interestedIn("inntektsmelding")
                 it.interestedIn("session")
+                it.interestedIn("uuid")
             }
         }.register(this)
     }
 
-    fun opprettJournalpost(data: Inntektsmelding): String {
-        sikkerlogg.info("Bruker inntektsinformasjon $data")
-        if (data.identitetsnummer.equals("000")) {
-            throw Exception("Ukjent feil")
-        }
-        return "jp-123"
+    suspend fun opprettJournalpost(uuid: String, inntektsmelding: Inntektsmelding): String {
+        sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
+        return dokarkivClient.opprettJournalpost(mapOpprettJournalpostRequest(uuid, inntektsmelding), true, "callId_$uuid").journalpostId
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val uuid = packet["@id"].asText()
+        val uuid = packet[Key.UUID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         try {
@@ -49,7 +48,10 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
             val session = packet[Key.SESSION.str]
             sikkerlogg.info("Fant session: $session")
             sikkerlogg.info("Skal journalføre: $inntektsmelding")
-            val journalpostId = opprettJournalpost(inntektsmelding)
+            val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
+            // TODO Lag kvittering til Altinn?
+            // TODO Lag innboks melding i NAV?
+            // TODO Publiser på Kafka (spinn skal lese)?
             packet.setLøsning(BEHOV, JournalpostLøsning(journalpostId))
             context.publish(packet.toJson())
         } catch (ex2: UgyldigFormatException) {

@@ -9,7 +9,11 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.mockk.coEvery
+import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,9 +30,10 @@ internal class JournalførInntektsmeldingLøserTest {
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .registerModule(JavaTimeModule())
+    private val dokArkivClient = mockk<DokArkivClient>()
 
     init {
-        løser = JournalførInntektsmeldingLøser(rapid)
+        løser = JournalførInntektsmeldingLøser(rapid, dokArkivClient)
     }
 
     fun sendMessage(packet: Map<String, Any>): JournalpostLøsning {
@@ -44,6 +49,9 @@ internal class JournalførInntektsmeldingLøserTest {
 
     @Test
     fun `skal journalføre når gyldige data`() {
+        coEvery {
+            dokArkivClient.opprettJournalpost(any(), any(), any())
+        } returns OpprettJournalpostResponse("jp-123", journalpostFerdigstilt = true, "FERDIGSTILT", "", emptyList())
         val løsning = sendMessage(
             mapOf(
                 "@behov" to listOf(BEHOV),

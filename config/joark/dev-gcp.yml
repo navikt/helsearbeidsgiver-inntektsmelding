@@ -3,5 +3,5 @@ azure:
   enabled: true
 ingress: https://helsearbeidsgiver-im-joark.dev.nav.no
 env:
-- name: ENHETSREGISTERET_URL
-  value: "https://data.brreg.no/enhetsregisteret/api/underenheter/"
+- name: PROXY_SCOPE
+  value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"

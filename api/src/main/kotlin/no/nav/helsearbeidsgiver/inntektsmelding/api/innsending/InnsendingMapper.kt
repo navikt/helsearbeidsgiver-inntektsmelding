@@ -15,7 +15,15 @@ import org.valiktor.DefaultConstraintViolation
 class InnsendingMapper(val uuid: String, var resultat: Resultat) {
 
     fun findAll(): List<Løsning> {
-        return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT).filterNotNull()
+        return listOf(
+            resultat.FULLT_NAVN,
+            resultat.VIRKSOMHET,
+            resultat.ARBEIDSFORHOLD,
+            resultat.SYK,
+            resultat.INNTEKT,
+            resultat.JOURNALFOER,
+            resultat.EGENMELDING
+        ).filterNotNull()
     }
 
     fun hasErrors(): Boolean {

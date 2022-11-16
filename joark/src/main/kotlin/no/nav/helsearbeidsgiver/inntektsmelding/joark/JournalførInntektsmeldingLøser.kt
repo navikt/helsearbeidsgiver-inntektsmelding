@@ -9,6 +9,8 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
+import no.nav.helsearbeidsgiver.dokarkiv.DokArkivStatusException
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
@@ -36,13 +38,15 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
 
     suspend fun opprettJournalpost(uuid: String, inntektsmelding: Inntektsmelding): String {
         sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
-        return dokarkivClient.opprettJournalpost(mapOpprettJournalpostRequest(uuid, inntektsmelding), true, "callId_$uuid").journalpostId
+        val request = mapOpprettJournalpostRequest(uuid, inntektsmelding)
+        return dokarkivClient.opprettJournalpost(request, true, "callId_$uuid").journalpostId
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
+        var løsning = JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
         try {
             val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"])
             val session = packet[Key.SESSION.str]
@@ -52,15 +56,20 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
             // TODO Lag kvittering til Altinn?
             // TODO Lag innboks melding i NAV?
             // TODO Publiser på Kafka (spinn skal lese)?
-            packet.setLøsning(BEHOV, JournalpostLøsning(journalpostId))
-            context.publish(packet.toJson())
-        } catch (ex2: UgyldigFormatException) {
-            sikkerlogg.info("Klarte ikke journalføre: feil format!", ex2)
-            packet.setLøsning(BEHOV, JournalpostLøsning(error = Feilmelding("Feil format i inntektsmelding")))
-            context.publish(packet.toJson())
+            løsning = JournalpostLøsning(journalpostId)
+        } catch (ex: DokArkivStatusException) {
+            sikkerlogg.info("Klarte ikke journalføre: Dokarkiv svarte med feil", ex)
+            løsning = JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet", ex.status))
+        } catch (ex: DokArkivException) {
+            sikkerlogg.info("Klarte ikke journalføre: Dokarkiv svarte med feil", ex)
+            løsning = JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet"))
+        } catch (ex: UgyldigFormatException) {
+            sikkerlogg.info("Klarte ikke journalføre: feil format!", ex)
+            løsning = JournalpostLøsning(error = Feilmelding("Feil format i inntektsmelding"))
         } catch (ex: Exception) {
             sikkerlogg.info("Klarte ikke journalføre!", ex)
-            packet.setLøsning(BEHOV, JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre")))
+        } finally {
+            packet.setLøsning(BEHOV, løsning)
             context.publish(packet.toJson())
         }
     }

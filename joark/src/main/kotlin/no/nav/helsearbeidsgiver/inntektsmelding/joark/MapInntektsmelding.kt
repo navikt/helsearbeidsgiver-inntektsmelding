@@ -8,6 +8,7 @@ fun mapInntektsmelding(jsonNode: JsonNode): Inntektsmelding {
     try {
         return parseInntektsmelding(jsonNode)
     } catch (ex: Exception) {
+        ex.printStackTrace()
         throw UgyldigFormatException(ex)
     }
 }

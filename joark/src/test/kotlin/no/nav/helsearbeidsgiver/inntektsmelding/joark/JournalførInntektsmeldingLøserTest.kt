@@ -13,6 +13,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
@@ -45,6 +46,24 @@ internal class JournalførInntektsmeldingLøserTest {
         )
         val losning: JsonNode = rapid.inspektør.message(0).path("@løsning")
         return objectMapper.readValue<JournalpostLøsning>(losning.get(BEHOV).toString())
+    }
+
+    @Test
+    fun `skal håndtere at dokarkiv feiler`() {
+        coEvery {
+            dokArkivClient.opprettJournalpost(any(), any(), any())
+        } throws DokArkivException("feil!")
+        val løsning = sendMessage(
+            mapOf(
+                "@behov" to listOf(BEHOV),
+                "@id" to UUID.randomUUID(),
+                "uuid" to "uuid",
+                "identitetsnummer" to "000",
+                "orgnrUnderenhet" to "abc",
+                "inntektsmelding" to IM_VALID
+            )
+        )
+        assertEquals("Kall mot dokarkiv feilet", løsning.error?.melding)
     }
 
     @Test

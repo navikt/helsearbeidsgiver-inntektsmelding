@@ -10,6 +10,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
+import no.nav.helsearbeidsgiver.felles.Key
 import org.slf4j.LoggerFactory
 
 class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
@@ -19,12 +20,14 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
+        logger.info("Starter JournalførInntektsmeldingLøser...")
         River(rapidsConnection).apply {
             validate {
                 it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
                 it.rejectKey("@løsning")
-                it.requireKey("inntektsmelding")
+                it.interestedIn("inntektsmelding")
+                it.interestedIn("session")
             }
         }.register(this)
     }
@@ -40,9 +43,12 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection) : Riv
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet["@id"].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
+        sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         try {
             val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"])
-            sikkerlogg.info("Skal journalføre $inntektsmelding")
+            val session = packet[Key.SESSION.str]
+            sikkerlogg.info("Fant session: $session")
+            sikkerlogg.info("Skal journalføre: $inntektsmelding")
             val journalpostId = opprettJournalpost(inntektsmelding)
             packet.setLøsning(BEHOV, JournalpostLøsning(journalpostId))
             context.publish(packet.toJson())

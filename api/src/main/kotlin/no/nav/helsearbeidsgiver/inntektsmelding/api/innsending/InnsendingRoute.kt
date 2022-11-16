@@ -26,7 +26,7 @@ fun RouteExtra.InnsendingRoute() {
                 request.validate()
                 uuid = producer.publish(request)
                 logger.info("Publiserte til Rapid med uuid: $uuid")
-                val resultat = redis.getResultat(uuid, 5, 500)
+                val resultat = redis.getResultat(uuid, 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
                 val mapper = InnsendingMapper(uuid, resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())

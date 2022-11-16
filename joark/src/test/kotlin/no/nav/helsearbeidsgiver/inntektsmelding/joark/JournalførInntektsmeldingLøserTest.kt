@@ -75,6 +75,9 @@ internal class JournalførInntektsmeldingLøserTest {
                         )
                     ),
                     "bekreftOpplysninger" to "true"
+                ),
+                "session" to mapOf(
+                    "a" to "b"
                 )
             )
         )

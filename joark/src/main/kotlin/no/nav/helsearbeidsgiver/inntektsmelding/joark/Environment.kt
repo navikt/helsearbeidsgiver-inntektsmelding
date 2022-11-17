@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.felles.oauth2.AzureOAuth2Environment
 fun setUpEnvironment(): Environment {
     return Environment(
         raw = System.getenv(),
+        dokarkivUrl = getEnvVar("DOKARKIV_URL"),
         AzureOAuth2Environment(
             scope = getEnvVar("PROXY_SCOPE"),
             azureWellKnownUrl = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
@@ -19,5 +20,6 @@ fun setUpEnvironment(): Environment {
 
 data class Environment(
     val raw: Map<String, String>,
+    val dokarkivUrl: String,
     val azureOAuthEnvironment: AzureOAuth2Environment
 )

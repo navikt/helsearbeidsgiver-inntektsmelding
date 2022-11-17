@@ -5,11 +5,10 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.oauth2.AzureOAuth2Environment
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 
-fun buildDokArkivClient(azureOAuthEnvironment: AzureOAuth2Environment): DokArkivClient {
-    val tokenProvider = OAuth2ClientConfig(azureOAuthEnvironment)
+fun buildDokArkivClient(environment: Environment): DokArkivClient {
+    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
     val httpClient = HttpClient {
         install(ContentNegotiation) {
             json(
@@ -19,5 +18,5 @@ fun buildDokArkivClient(azureOAuthEnvironment: AzureOAuth2Environment): DokArkiv
             )
         }
     }
-    return DokArkivClient("http://localhost", tokenProvider, httpClient)
+    return DokArkivClient(environment.dokarkivUrl, tokenProvider, httpClient)
 }

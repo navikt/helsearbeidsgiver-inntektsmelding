@@ -8,15 +8,16 @@ import org.slf4j.LoggerFactory
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-joark")
 
 fun main() {
-    val environment = setUpEnvironment()
-    val app = createApp(environment)
-    app.start()
+    createApp(setUpEnvironment()).start()
 }
 
 internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starting JournalførInntektsmeldingLøser...")
-    JournalførInntektsmeldingLøser(rapidsConnection, buildDokArkivClient(environment.azureOAuthEnvironment))
+    JournalførInntektsmeldingLøser(
+        rapidsConnection,
+        buildDokArkivClient(environment)
+    )
     return rapidsConnection
 }

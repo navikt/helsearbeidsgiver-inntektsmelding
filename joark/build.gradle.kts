@@ -1,9 +1,10 @@
 val ktorVersion: String by project
+val dokarkiv_version: String by project
 
 dependencies {
     val pdfboxVersion: String by project
     implementation("org.apache.pdfbox:pdfbox:$pdfboxVersion")
-    implementation("no.nav.helsearbeidsgiver:dokarkiv-client:0.1.4")
+    implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkiv_version")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-json:$ktorVersion")

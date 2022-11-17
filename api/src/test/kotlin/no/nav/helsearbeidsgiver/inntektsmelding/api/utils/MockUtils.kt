@@ -17,13 +17,16 @@ abstract class MockAuthToken {
     private val mockOAuth2Server = MockOAuth2Server()
     private val port = 6666
 
-    val mockSubject = "mockSubject"
+    val mockPid = "mockPid"
 
     fun mockAuthToken(): String =
         mockOAuth2Server.issueToken(
-            subject = mockSubject,
             issuerId = "loginservice-issuer",
-            audience = "aud-localhost"
+            subject = "mockSubject",
+            audience = "aud-localhost",
+            claims = mapOf(
+                "pid" to mockPid
+            )
         )
             .serialize()
 

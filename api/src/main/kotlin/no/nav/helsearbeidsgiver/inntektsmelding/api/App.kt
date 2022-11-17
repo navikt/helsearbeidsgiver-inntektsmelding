@@ -15,11 +15,14 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.fromEnv
 import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
+import no.nav.security.token.support.v2.IssuerConfig
+import no.nav.security.token.support.v2.TokenSupportConfig
 import no.nav.security.token.support.v2.tokenValidationSupport
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -51,7 +54,9 @@ private fun startServer(connection: RapidsConnection) {
 
 fun Application.apiModule(connection: RapidsConnection) {
     authentication {
-        tokenValidationSupport(config = this@apiModule.environment.config)
+        tokenValidationSupport(
+            config = authConfig()
+        )
     }
 
     install(ContentNegotiation) {
@@ -78,3 +83,12 @@ fun Application.apiModule(connection: RapidsConnection) {
         }
     }
 }
+
+private fun authConfig(): TokenSupportConfig =
+    TokenSupportConfig(
+        IssuerConfig(
+            name = "loginservice-issuer",
+            discoveryUrl = "LOGINSERVICE_IDPORTEN_DISCOVERY_URL".fromEnv(),
+            acceptedAudience = "LOGINSERVICE_IDPORTEN_AUDIENCE".fromEnv().let(::listOf)
+        )
+    )

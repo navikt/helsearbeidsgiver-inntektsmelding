@@ -3,16 +3,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.authentication
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import io.mockk.mockk
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.TestClient
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.identitetsnummer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.mainAppConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.security.token.support.v2.tokenValidationSupport
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -40,9 +38,7 @@ class AuthorizationTest : ApiTest() {
         val path = "/test/auth"
 
         application {
-            authentication {
-                tokenValidationSupport(config = mainAppConfig)
-            }
+            apiModule(mockk(relaxed = true))
 
             routing {
                 authenticate {
@@ -53,7 +49,7 @@ class AuthorizationTest : ApiTest() {
                             Assertions.fail("Kunne ikke lese identitetsnummer pga. exception.", e)
                         }
 
-                        Assertions.assertEquals(mockSubject, identitetsnummer)
+                        Assertions.assertEquals(mockPid, identitetsnummer)
 
                         respondOk("")
                     }

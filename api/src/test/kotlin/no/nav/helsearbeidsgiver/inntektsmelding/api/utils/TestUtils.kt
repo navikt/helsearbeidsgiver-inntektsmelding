@@ -10,7 +10,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
-import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
@@ -18,14 +17,8 @@ import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 
-val mainAppConfig = ApplicationConfig("src/main/resources/application.conf")
-
 abstract class ApiTest : MockAuthToken() {
     fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {
-        environment {
-            config = mainAppConfig
-        }
-
         application {
             apiModule(mockk(relaxed = true))
         }

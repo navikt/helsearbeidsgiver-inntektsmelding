@@ -10,10 +10,12 @@ import io.ktor.util.pipeline.PipelineContext
 import no.nav.security.token.support.core.jwt.JwtToken
 
 fun PipelineContext<Unit, ApplicationCall>.identitetsnummer(): String =
-    call.request.authorization()
+    call.request
+        .authorization()
         ?.removePrefix("${AuthScheme.Bearer} ")
         ?.let(::JwtToken)
-        ?.subject
+        ?.jwtTokenClaims
+        ?.getStringClaim("pid")
         ?: throw IllegalAccessException("Du må angi et token i Authorization-headeren (med identitetsnummer).")
 
 suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.respondOk(message: T) {

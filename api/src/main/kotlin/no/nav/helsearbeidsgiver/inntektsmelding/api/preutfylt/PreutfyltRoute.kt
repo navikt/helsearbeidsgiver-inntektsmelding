@@ -27,7 +27,7 @@ fun RouteExtra.PreutfyltRoute() {
                 request.validate()
                 uuid = producer.publish(request)
                 logger.info("Publiserte behov uuid: $uuid")
-                val resultat = redis.getResultat(uuid, 5, 500)
+                val resultat = redis.getResultat(uuid, 10, 500)
                 sikkerlogg.info("Fikk resultat for $uuid : $resultat")
                 val mapper = PreutfyltMapper(uuid, resultat, request)
                 sikkerlogg.info("Klarte mappe resultat for $uuid : $resultat")

@@ -39,7 +39,7 @@ internal class MapInntektsmeldingKtTest {
                 mapOf("fom" to "2022-09-01", "tom" to "2022-09-05"),
                 mapOf("fom" to "2022-09-06", "tom" to "2022-09-15")
             ),
-            "bruttonInntekt" to "25300",
+            "bruttoInntekt" to "25300",
             "bruttoBekreftet" to "true",
             "utbetalerFull" to "true",
             "begrunnelseRedusert" to "BeskjedGittForSent",
@@ -69,7 +69,7 @@ internal class MapInntektsmeldingKtTest {
             ),
             im.egenmeldinger
         )
-        assertEquals(25300.0, im.bruttonInntekt)
+        assertEquals(25300.0, im.bruttoInntekt)
         assertEquals(true, im.bruttoBekreftet)
         assertEquals(true, im.utbetalerFull)
         assertEquals("BeskjedGittForSent", im.begrunnelseRedusert)

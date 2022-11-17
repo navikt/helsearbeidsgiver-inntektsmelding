@@ -10,11 +10,12 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.value
 
 class Akkumulator(
-    rapidsConnection: RapidsConnection,
+    val rapidsConnection: RapidsConnection,
     private val redisStore: RedisStore,
     private val timeout: Long = 600
 ) : River.PacketListener {
@@ -30,7 +31,9 @@ class Akkumulator(
                 )
                 it.interestedIn(
                     Key.INITIATE_ID.str,
-                    Key.UUID.str
+                    Key.UUID.str,
+                    Key.IDENTITETSNUMMER.str,
+                    Key.NESTE_BEHOV.str
                 )
             }
         }.register(this)
@@ -45,10 +48,12 @@ class Akkumulator(
                     it
                 }
             }
-
-        sikkerlogg.info("Pakke med behov: ${packet.toJson()}")
-        logger.info("Behov: $uuid")
-
+        val eventName = packet.value(Key.EVENT_NAME).asText()
+        val behov = packet.value(Key.BEHOV).asText()
+        val nesteBehov = packet.get(Key.NESTE_BEHOV.str).map(JsonNode::asText).map { BehovType.valueOf(it) }.toMutableList()
+        val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
+        sikkerlogg.info("Event: $eventName Behov: $behov Neste: $nesteBehov Fnr: $identitetsnummer Uuid: $uuid Pakke: ${packet.toJson()}")
+        logger.info("Event: $eventName Behov: $behov Neste: $nesteBehov Uuid: $uuid")
         val mangler = mutableListOf<String>()
         val feil = mutableListOf<String>()
         val results: ObjectNode = objectMapper.createObjectNode()
@@ -63,7 +68,7 @@ class Akkumulator(
                     .get(behovType)
                     ?.toString()
 
-                if (løsning == null) { // Fant ikke løsning i pakke
+                if (løsning.isNullOrEmpty()) { // Fant ikke løsning i pakke
                     val stored = redisStore.get(redisKey)
                     if (stored.isNullOrEmpty()) { // Ingenting i Redis
                         sikkerlogg.info("Behov: $behovType. Løsning: n/a")
@@ -91,10 +96,8 @@ class Akkumulator(
         when {
             feil.isNotEmpty() -> {
                 val data = results.toString()
-
                 logger.info("Behov: $uuid har feil $feil")
                 sikkerlogg.info("Publiserer løsning: $data")
-
                 redisStore.set(uuid, data, timeout)
             }
             mangler.isNotEmpty() -> {
@@ -102,12 +105,16 @@ class Akkumulator(
             }
             else -> {
                 val data = results.toString()
-
-                println("Komplett: $data")
-                logger.info("Behov: $uuid er komplett.")
-                sikkerlogg.info("Publiserer løsning: $data")
-
-                redisStore.set(uuid, data, timeout)
+                if (nesteBehov.isEmpty()) {
+                    logger.info("Behov: $uuid er komplett.")
+                    sikkerlogg.info("Publiserer løsning: $data")
+                    redisStore.set(uuid, data, timeout)
+                } else {
+                    logger.info("Legger til Neste behov $nesteBehov")
+                    val ny = hentNesteBehov(results, packet, objectMapper).toString()
+                    sikkerlogg.info("Legger til Neste behov $nesteBehov Json: $ny")
+                    rapidsConnection.publish(identitetsnummer, ny)
+                }
             }
         }
     }

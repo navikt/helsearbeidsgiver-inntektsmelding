@@ -9,7 +9,12 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.mockk.coEvery
+import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
+import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,9 +31,10 @@ internal class JournalførInntektsmeldingLøserTest {
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .registerModule(JavaTimeModule())
+    private val dokArkivClient = mockk<DokArkivClient>()
 
     init {
-        løser = JournalførInntektsmeldingLøser(rapid)
+        løser = JournalførInntektsmeldingLøser(rapid, dokArkivClient)
     }
 
     fun sendMessage(packet: Map<String, Any>): JournalpostLøsning {
@@ -43,7 +49,28 @@ internal class JournalførInntektsmeldingLøserTest {
     }
 
     @Test
+    fun `skal håndtere at dokarkiv feiler`() {
+        coEvery {
+            dokArkivClient.opprettJournalpost(any(), any(), any())
+        } throws DokArkivException("feil!")
+        val løsning = sendMessage(
+            mapOf(
+                "@behov" to listOf(BEHOV),
+                "@id" to UUID.randomUUID(),
+                "uuid" to "uuid",
+                "identitetsnummer" to "000",
+                "orgnrUnderenhet" to "abc",
+                "inntektsmelding" to IM_VALID
+            )
+        )
+        assertEquals("Kall mot dokarkiv feilet", løsning.error?.melding)
+    }
+
+    @Test
     fun `skal journalføre når gyldige data`() {
+        coEvery {
+            dokArkivClient.opprettJournalpost(any(), any(), any())
+        } returns OpprettJournalpostResponse("jp-123", journalpostFerdigstilt = true, "FERDIGSTILT", "", emptyList())
         val løsning = sendMessage(
             mapOf(
                 "@behov" to listOf(BEHOV),
@@ -59,7 +86,7 @@ internal class JournalførInntektsmeldingLøserTest {
                         mapOf("fom" to "2022-09-01", "tom" to "2022-09-05"),
                         mapOf("fom" to "2022-09-06", "tom" to "2022-09-15")
                     ),
-                    "bruttonInntekt" to "25300",
+                    "bruttoInntekt" to "25300",
                     "bruttoBekreftet" to "true",
                     "utbetalerFull" to "true",
                     "begrunnelseRedusert" to "BeskjedGittForSent",
@@ -75,6 +102,9 @@ internal class JournalførInntektsmeldingLøserTest {
                         )
                     ),
                     "bekreftOpplysninger" to "true"
+                ),
+                "session" to mapOf(
+                    "a" to "b"
                 )
             )
         )

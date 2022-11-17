@@ -8,6 +8,7 @@ fun mapInntektsmelding(jsonNode: JsonNode): Inntektsmelding {
     try {
         return parseInntektsmelding(jsonNode)
     } catch (ex: Exception) {
+        ex.printStackTrace()
         throw UgyldigFormatException(ex)
     }
 }
@@ -32,7 +33,7 @@ fun parseInntektsmelding(data: JsonNode): Inntektsmelding {
         data.get("behandlingsdagerTom").asLocalDate(),
         parseBehandlingsdager(data.get("behandlingsdager")),
         parseEgenmeldinger(data.get("egenmeldinger")),
-        data.get("bruttonInntekt").asDouble(),
+        data.get("bruttoInntekt").asDouble(),
         data.get("bruttoBekreftet").asBoolean(),
         data.get("utbetalerFull").asBoolean(),
         data.get("begrunnelseRedusert").asText(),

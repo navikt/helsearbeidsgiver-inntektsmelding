@@ -12,6 +12,8 @@ enum class Key(val str: String) {
     OPPRETTET("@opprettet"),
 
     // Egendefinerte
+    SESSION("session"),
+    NESTE_BEHOV("neste_behov"),
     IDENTITETSNUMMER("identitetsnummer"),
     INITIATE_ID("initiate_id"),
     UUID("uuid");

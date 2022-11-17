@@ -7,6 +7,7 @@ import io.ktor.server.application.call
 import io.ktor.server.request.authorization
 import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Auth
 import no.nav.security.token.support.core.jwt.JwtToken
 
 fun PipelineContext<Unit, ApplicationCall>.identitetsnummer(): String =
@@ -15,8 +16,7 @@ fun PipelineContext<Unit, ApplicationCall>.identitetsnummer(): String =
         ?.removePrefix("${AuthScheme.Bearer} ")
         ?.let(::JwtToken)
         ?.jwtTokenClaims
-        ?.getStringClaim("pid")
-        ?: throw IllegalAccessException("Du må angi et token i Authorization-headeren (med identitetsnummer).")
+        ?.getStringClaim(Auth.CLAIM_PID)!!
 
 suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.respondOk(message: T) {
     call.respond(HttpStatusCode.OK, message)

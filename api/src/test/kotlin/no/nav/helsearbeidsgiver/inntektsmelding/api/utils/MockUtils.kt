@@ -7,6 +7,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkConstructor
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.runBlocking
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Auth
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -17,15 +18,15 @@ abstract class MockAuthToken {
     private val mockOAuth2Server = MockOAuth2Server()
     private val port = 6666
 
-    val mockPid = "mockPid"
+    val mockPid = "12345678901"
 
     fun mockAuthToken(): String =
         mockOAuth2Server.issueToken(
-            issuerId = "loginservice-issuer",
+            issuerId = Auth.ISSUER,
             subject = "mockSubject",
             audience = "aud-localhost",
             claims = mapOf(
-                "pid" to mockPid
+                Auth.CLAIM_PID to mockPid
             )
         )
             .serialize()

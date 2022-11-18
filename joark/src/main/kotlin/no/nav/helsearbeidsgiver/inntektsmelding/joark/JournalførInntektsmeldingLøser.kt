@@ -11,7 +11,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
-import no.nav.helsearbeidsgiver.dokarkiv.DokArkivStatusException
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
@@ -62,11 +61,8 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
             // TODO Lag kvittering til Altinn?
             // TODO Lag innboks melding i NAV?
             løsning = JournalpostLøsning(journalpostId)
-        } catch (ex: DokArkivStatusException) {
-            sikkerlogg.info("Klarte ikke journalføre: Dokarkiv svarte med feil", ex)
-            løsning = JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet", ex.status))
         } catch (ex: DokArkivException) {
-            sikkerlogg.info("Klarte ikke journalføre: Dokarkiv svarte med feil", ex)
+            sikkerlogg.info("Klarte ikke journalføre", ex)
             løsning = JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet"))
         } catch (ex: UgyldigFormatException) {
             sikkerlogg.info("Klarte ikke journalføre: feil format!", ex)

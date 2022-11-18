@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import java.lang.Exception
 import java.util.UUID
 
 internal class JournalførInntektsmeldingLøserTest {
@@ -52,7 +53,7 @@ internal class JournalførInntektsmeldingLøserTest {
     fun `skal håndtere at dokarkiv feiler`() {
         coEvery {
             dokArkivClient.opprettJournalpost(any(), any(), any())
-        } throws DokArkivException("feil!")
+        } throws DokArkivException(Exception(""))
         val løsning = sendMessage(
             mapOf(
                 "@behov" to listOf(BEHOV),

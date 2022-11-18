@@ -16,7 +16,7 @@ import java.util.Base64
  * Journalføring til dagens løsning:
  * https://github.com/navikt/dokmotaltinn/blob/master/app/src/test/resources/__files/journalpostapi/opprettjournalpostrequest.json
  */
-fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: Inntektsmelding): OpprettJournalpostRequest {
+fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: Inntektsmelding, arbeidsgiver: String): OpprettJournalpostRequest {
     return OpprettJournalpostRequest(
         tema = "FOR",
         // behandlingsTema = "ab0326", TODO Skal vi ha med behandlingstema?
@@ -28,7 +28,7 @@ fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: Inntektsmelding)
         avsenderMottaker = AvsenderMottaker(
             id = inntektsmelding.orgnrUnderenhet,
             idType = IdType.ORGNR,
-            navn = "Arbeidsgiver" // TODO Skal vi bruke ekte navn på arbeidsgiver?
+            navn = arbeidsgiver
         ),
         dokumenter = listOf(
             Dokument(

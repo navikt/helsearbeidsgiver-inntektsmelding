@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -36,10 +37,14 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         }.register(this)
     }
 
-    suspend fun opprettJournalpost(uuid: String, inntektsmelding: Inntektsmelding): String {
+    suspend fun opprettJournalpost(uuid: String, inntektsmelding: Inntektsmelding, arbeidsgiverNavn: String): String {
         sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
-        val request = mapOpprettJournalpostRequest(uuid, inntektsmelding)
+        val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, arbeidsgiverNavn)
         return dokarkivClient.opprettJournalpost(request, true, "callId_$uuid").journalpostId
+    }
+
+    fun hentArbeidsgiver(session: JsonNode): String {
+        return session.get(BehovType.VIRKSOMHET.name)?.get("value")?.asText() ?: "Ukjent"
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
@@ -47,15 +52,15 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         var løsning = JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
+        val session = packet[Key.SESSION.str]
+        val arbeidsgiverNavn = hentArbeidsgiver(session)
         try {
             val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"])
-            val session = packet[Key.SESSION.str]
             sikkerlogg.info("Fant session: $session")
             sikkerlogg.info("Skal journalføre: $inntektsmelding")
-            val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
+            val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding, arbeidsgiverNavn) }
             // TODO Lag kvittering til Altinn?
             // TODO Lag innboks melding i NAV?
-            // TODO Publiser på Kafka (spinn skal lese)?
             løsning = JournalpostLøsning(journalpostId)
         } catch (ex: DokArkivStatusException) {
             sikkerlogg.info("Klarte ikke journalføre: Dokarkiv svarte med feil", ex)

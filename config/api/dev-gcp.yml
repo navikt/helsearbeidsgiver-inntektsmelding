@@ -2,8 +2,11 @@ kafkaPool: nav-dev
 azure:
   enabled: true
 ingress: https://helsearbeidsgiver-im-api.dev.nav.no
+envFrom:
+  - type: configmap
+    name: loginservice-idporten
 env:
-- name: DOKARKIV_URL
-  value: https://dokarkiv.dev-fss-pub.nais.io
-- name: REDIS_URL
-  value: helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local
+  - name: DOKARKIV_URL
+    value: https://dokarkiv.dev-fss-pub.nais.io
+  - name: REDIS_URL
+    value: helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local

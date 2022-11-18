@@ -13,18 +13,19 @@ import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.identitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 
 private val objectMapper = customObjectMapper()
 
 fun RouteExtra.ArbeidsgivereRoute() {
-    route.get("/arbeidsgivere") {
-        // TODO hardkoder denne foreløpig. identitetsnummer må hentes ut fra token fra wonderwall (oidc?)
-        val identitetsnummer = "16120101181"
+    route.get(Routes.ARBEIDSGIVERE) {
+        val identitetsnummer = identitetsnummer()
 
         val id = connection.publiser(
             // TODO Behov må være liste. Dette bør endres i Akkumulatoren.

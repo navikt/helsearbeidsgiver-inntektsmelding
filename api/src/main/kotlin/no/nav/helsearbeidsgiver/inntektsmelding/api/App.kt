@@ -63,13 +63,22 @@ fun Application.apiModule(connection: RapidsConnection) {
             call.respondText("helsearbeidsgiver inntektsmelding")
         }
 
+        val redisPoller = RedisPoller()
+
         authenticate {
             route(Routes.PREFIX) {
-                routeExtra(connection, RedisPoller()) {
+                routeExtra(connection, redisPoller) {
                     ArbeidsgivereRoute()
-                    InnsendingRoute()
                     PreutfyltRoute()
+                    // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
+                    // InnsendingRoute()
                 }
+            }
+        }
+
+        route(Routes.PREFIX) {
+            routeExtra(connection, redisPoller) {
+                InnsendingRoute()
             }
         }
     }

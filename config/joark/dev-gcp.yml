@@ -6,4 +6,4 @@ env:
 - name: PROXY_SCOPE
   value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
 - name: DOKARKIV_URL
-  value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/dokarkiv"
+  value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/dokarkiv/rest/journalpostapi/v1/"

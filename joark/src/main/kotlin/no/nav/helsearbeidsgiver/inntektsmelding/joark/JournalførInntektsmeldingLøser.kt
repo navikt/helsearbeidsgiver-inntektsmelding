@@ -39,7 +39,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
     suspend fun opprettJournalpost(uuid: String, inntektsmelding: Inntektsmelding, arbeidsgiverNavn: String): String {
         sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, arbeidsgiverNavn)
-        return dokarkivClient.opprettJournalpost(request, true, "callId_$uuid").journalpostId
+        return dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
     }
 
     fun hentArbeidsgiver(session: JsonNode): String {

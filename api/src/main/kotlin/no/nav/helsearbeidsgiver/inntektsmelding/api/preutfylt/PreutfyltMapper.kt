@@ -87,14 +87,12 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
         return PreutfyltResponse(
             navn = mapFulltNavn(),
             identitetsnummer = request.identitetsnummer,
-            virksomhetsnavn = mapVirksomhet(),
             orgnrUnderenhet = request.orgnrUnderenhet,
-            fravaersperiode = mapFraværsperiode(),
+            fravaersperioder = mapFraværsperiode(),
             egenmeldingsperioder = mapEgenmeldingsperioder(),
-            bruttoinntekt = inntekt.bruttoInntekt.toLong(),
-            tidligereinntekt = inntekt.historisk,
-            behandlingsperiode = mapBehandlingsperiode(),
-            arbeidsforhold = mapArbeidsforhold()
+            bruttoinntekt = inntekt.bruttoInntekt,
+            tidligereinntekter = inntekt.historisk,
+            behandlingsperiode = mapBehandlingsperiode()
         )
     }
 

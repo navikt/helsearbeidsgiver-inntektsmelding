@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Key
 import org.slf4j.LoggerFactory
 
 class ArbeidsforholdLøser(
@@ -26,22 +27,26 @@ class ArbeidsforholdLøser(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", BEHOV)
-                it.requireKey("@id")
-                it.requireKey("identitetsnummer")
-                it.rejectKey("@løsning")
+                it.demandAll(Key.BEHOV.str, BEHOV)
+                it.requireKey(Key.ID.str)
+                it.requireKey(Key.IDENTITETSNUMMER.str)
+                it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
     }
 
+    fun hentArbeidsforhold(fnr: String, callId: String): List<no.nav.helsearbeidsgiver.felles.Arbeidsforhold> {
+        val arbeidsforhold = runBlocking { aaregClient.hentArbeidsforhold(fnr, callId) }
+        return arbeidsforhold.map(Arbeidsforhold::tilArbeidsforhold)
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val id = packet["@id"].asText()
+        val id = packet[Key.ID.str].asText()
         logger.info("Løser behov $BEHOV med id $id")
-        val fnr = packet["identitetsnummer"].asText()
+        val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         try {
-            val arbeidsforhold = runBlocking { aaregClient.hentArbeidsforhold(fnr, id) }
-            val mappedArbeidsforhold = arbeidsforhold.map(Arbeidsforhold::tilArbeidsforhold)
-            packet.setLøsning(BEHOV, ArbeidsforholdLøsning(mappedArbeidsforhold))
+            val arbeidsforhold = hentArbeidsforhold(fnr, id)
+            packet.setLøsning(BEHOV, ArbeidsforholdLøsning(arbeidsforhold))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $fnr")
         } catch (ex: Exception) {

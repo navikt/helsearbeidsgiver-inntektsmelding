@@ -9,6 +9,6 @@ import java.time.LocalDate
 
 @Serializable
 data class MottattPeriode(
-    val fra: LocalDate,
-    val til: LocalDate
+    val fom: LocalDate,
+    val tom: LocalDate
 )

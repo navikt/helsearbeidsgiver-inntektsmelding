@@ -11,9 +11,7 @@ val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-aareg")
 
 fun main() {
-    val environment = setUpEnvironment()
-    val app = createApp(environment)
-    app.start()
+    createApp(setUpEnvironment()).start()
 }
 
 internal fun createApp(environment: Environment): RapidsConnection {

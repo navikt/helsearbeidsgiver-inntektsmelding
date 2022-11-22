@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -14,6 +15,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -24,11 +26,12 @@ internal class AkkumulatorTest {
     private var akkumulator: Akkumulator
     private val timeout = 600L
 
-    private val BEHOV_PDL = BehovType.FULLT_NAVN.toString()
+    private val BEHOV_FULLT_NAVN = BehovType.FULLT_NAVN.toString()
     private val BEHOV_BRREG = BehovType.VIRKSOMHET.toString()
+    private val BEHOV_ARBEIDSGIVERE = BehovType.ARBEIDSGIVERE.toString()
 
     private val UUID_BRREG = "uuid_" + BEHOV_BRREG
-    private val UUID_PDL = "uuid_" + BEHOV_PDL
+    private val UUID_PDL = "uuid_" + BEHOV_FULLT_NAVN
 
     val LØSNING_FEIL = NavnLøsning(error = Feilmelding("Fikk 500"))
     val LØSNING_OK = NavnLøsning(value = "abc")
@@ -44,15 +47,48 @@ internal class AkkumulatorTest {
     }
 
     @Test
+    fun `skal publisere neste behov`() {
+        every { redisStore.set(any(), any(), timeout) } returns Unit
+        val melding = mapOf(
+            "@id" to UUID.randomUUID(),
+            "uuid" to "uuid",
+            "@behov" to listOf(BEHOV_FULLT_NAVN),
+            "neste_behov" to listOf(BehovType.ARBEIDSGIVERE.toString()),
+            "@løsning" to mapOf(
+                BEHOV_FULLT_NAVN to PDL_OK
+            ),
+            "inntektsmelding" to "placeholder"
+        )
+        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+        verify(exactly = 1) {
+            redisStore.set(UUID_PDL, objectMapper.writeValueAsString(PDL_OK), timeout)
+        }
+        verify(exactly = 0) {
+            redisStore.set("uuid", any(), any())
+        }
+        val behov: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("@behov")
+        val løsning: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("@løsning")
+        val neste_behov: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("neste_behov")
+        // Skal beholde eksisterende verdier
+        assertEquals("placeholder", rapid.inspektør.message(rapid.inspektør.size - 1).path("inntektsmelding").asText())
+        assertEquals("uuid", rapid.inspektør.message(rapid.inspektør.size - 1).path("uuid").asText())
+        // Nytt behov
+        assertEquals("", løsning.asText())
+        assertEquals("", neste_behov.asText()) // Fjerne neste behov
+        assertEquals(BEHOV_FULLT_NAVN, behov.get(0).asText())
+        assertEquals(BEHOV_ARBEIDSGIVERE, behov.get(1).asText())
+    }
+
+    @Test
     fun `skal lagre verdi`() {
         every { redisStore.get(UUID_BRREG) } returns ""
         every { redisStore.set(any(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_PDL to PDL_OK
+                BEHOV_FULLT_NAVN to PDL_OK
             )
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
@@ -74,13 +110,13 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_PDL to LØSNING_FEIL
+                BEHOV_FULLT_NAVN to LØSNING_FEIL
             )
         )
         val løsningResultat = mapOf(
-            BEHOV_PDL to LØSNING_FEIL
+            BEHOV_FULLT_NAVN to LØSNING_FEIL
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
@@ -99,13 +135,13 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf( // PDL feiler først
-                BEHOV_PDL to LØSNING_FEIL
+                BEHOV_FULLT_NAVN to LØSNING_FEIL
             )
         )
         val resultat = mapOf(
-            BEHOV_PDL to LØSNING_FEIL
+            BEHOV_FULLT_NAVN to LØSNING_FEIL
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
@@ -122,14 +158,14 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf(
-                BEHOV_PDL to LØSNING_OK,
+                BEHOV_FULLT_NAVN to LØSNING_OK,
                 BEHOV_BRREG to LØSNING_OK
             )
         )
         val løsningResultat = mapOf(
-            BEHOV_PDL to LØSNING_OK,
+            BEHOV_FULLT_NAVN to LØSNING_OK,
             BEHOV_BRREG to LØSNING_OK
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
@@ -146,7 +182,7 @@ internal class AkkumulatorTest {
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "@behov" to listOf(BEHOV_PDL, BEHOV_BRREG),
+            "@behov" to listOf(BEHOV_FULLT_NAVN, BEHOV_BRREG),
             "@løsning" to mapOf(
                 BEHOV_BRREG to ""
             )

@@ -7,6 +7,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
@@ -17,7 +18,7 @@ import org.valiktor.ConstraintViolationException
 fun RouteExtra.PreutfyltRoute() {
     val producer = PreutfyltProducer(connection)
 
-    route.route("/preutfyll") {
+    route.route(Routes.PREUTFYLT) {
         post {
             val request = call.receive<PreutfyltRequest>()
             var uuid = "ukjent uuid"
@@ -26,7 +27,7 @@ fun RouteExtra.PreutfyltRoute() {
                 request.validate()
                 uuid = producer.publish(request)
                 logger.info("Publiserte behov uuid: $uuid")
-                val resultat = redis.getResultat(uuid, 5, 500)
+                val resultat = redis.getResultat(uuid, 10, 500)
                 sikkerlogg.info("Fikk resultat for $uuid : $resultat")
                 val mapper = PreutfyltMapper(uuid, resultat, request)
                 sikkerlogg.info("Klarte mappe resultat for $uuid : $resultat")

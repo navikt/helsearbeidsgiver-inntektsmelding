@@ -3,7 +3,8 @@ azure:
   enabled: true
 ingress: https://helsearbeidsgiver-im-altinn.dev.nav.no
 envFrom:
-  - altinn-api-gw-keys
+  - type: secret
+    name: altinn-api-gw-keys
 env:
   - name: ALTINN_URL
     value: https://api-gw-q1.oera.no/ekstern/altinn/api/serviceowner

@@ -7,6 +7,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
@@ -16,7 +17,7 @@ import org.valiktor.ConstraintViolationException
 fun RouteExtra.InnsendingRoute() {
     val producer = InnsendingProducer(connection)
 
-    route.route("/inntektsmelding") {
+    route.route(Routes.INNSENDING) {
         post {
             val request = call.receive<InnsendingRequest>()
             var uuid = "ukjent uuid"
@@ -26,7 +27,7 @@ fun RouteExtra.InnsendingRoute() {
                 request.validate()
                 uuid = producer.publish(request)
                 logger.info("Publiserte til Rapid med uuid: $uuid")
-                val resultat = redis.getResultat(uuid, 5, 500)
+                val resultat = redis.getResultat(uuid, 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
                 val mapper = InnsendingMapper(uuid, resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())

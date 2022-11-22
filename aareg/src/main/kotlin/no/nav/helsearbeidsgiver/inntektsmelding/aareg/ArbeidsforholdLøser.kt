@@ -9,7 +9,7 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
+import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
@@ -28,7 +28,7 @@ class ArbeidsforholdLøser(
             validate {
                 it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
-                it.requireKey("inntektsmelding.identitetsnummer")
+                it.requireKey("identitetsnummer")
                 it.rejectKey("@løsning")
             }
         }.register(this)

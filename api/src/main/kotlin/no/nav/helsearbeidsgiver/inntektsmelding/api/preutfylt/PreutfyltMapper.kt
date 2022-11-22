@@ -3,9 +3,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Løsning
-import no.nav.helsearbeidsgiver.felles.MottattArbeidsforhold
 import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PreutfyltResponse
@@ -55,10 +55,10 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
         return syk?.value?.behandlingsperiode!!
     }
 
-    fun mapArbeidsforhold(): List<MottattArbeidsforhold> {
+    fun mapArbeidsforhold(): List<Arbeidsforhold> {
         val arbeidsforhold = resultat.ARBEIDSFORHOLD
         sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $uuid")
-        return resultat.ARBEIDSFORHOLD?.value?.map { MottattArbeidsforhold(it.arbeidsforholdId, it.arbeidsforholdId, it.stillingsprosent) } ?: emptyList()
+        return arbeidsforhold?.value!!
     }
 
     fun mapFraværsperiode(): Map<String, List<MottattPeriode>> {

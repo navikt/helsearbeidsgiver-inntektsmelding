@@ -22,7 +22,8 @@ class InnsendingProducer(
             mapOf(
                 Key.EVENT_NAME.str to "inntektsmelding_inn",
                 Key.BEHOV.str to listOf(
-                    BehovType.VIRKSOMHET.name
+                    BehovType.VIRKSOMHET.name,
+                    BehovType.ARBEIDSFORHOLD.name
                 ),
                 Key.NESTE_BEHOV.str to listOf(
                     BehovType.JOURNALFOER.name

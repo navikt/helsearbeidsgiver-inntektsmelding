@@ -2,13 +2,14 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
+import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
+import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
@@ -33,19 +34,14 @@ class ArbeidsforholdLøser(
         }.register(this)
     }
 
-    fun hentArbeidsforhold(fnr: String): List<Arbeidsforhold> {
-        return listOf(
-            Arbeidsforhold("af-1", "Norge AS", 80f),
-            Arbeidsforhold("af-2", "Norge AS", 20f)
-        )
-    }
-
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
-        val fnr = packet["identitetsnummer"].asText()
+        val id = packet["@id"].asText()
+        logger.info("Løser behov $BEHOV med id $id")
+        val fnr = packet["inntektsmelding.identitetsnummer"].asText()
         try {
-            val arbeidsforhold = hentArbeidsforhold(fnr)
-            packet.setLøsning(BEHOV, ArbeidsforholdLøsning(arbeidsforhold))
+            val arbeidsforhold = runBlocking { aaregClient.hentArbeidsforhold(fnr, id) }
+            val mappedArbeidsforhold = arbeidsforhold.map(Arbeidsforhold::tilArbeidsforhold)
+            packet.setLøsning(BEHOV, ArbeidsforholdLøsning(mappedArbeidsforhold))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $fnr")
         } catch (ex: Exception) {

@@ -3,7 +3,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Inntekt
@@ -16,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.Syk
 import no.nav.helsearbeidsgiver.felles.SykLøsning
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
+import no.nav.helsearbeidsgiver.inntektsmelding.api.mockArbeidsforhold
 import org.junit.jupiter.api.Test
 import org.valiktor.ConstraintViolationException
 import java.time.LocalDate
@@ -33,13 +33,10 @@ internal class PreutfyltMapperTest {
     val løsningSykdom = buildSykdom()
     val løsningFeil = NavnLøsning(error = Feilmelding("Feil"))
 
-    fun buildArbeidsforhold(): ArbeidsforholdLøsning {
-        val arbeidsforhold = listOf(
-            Arbeidsforhold("af-1", "Norge AS", 80f),
-            Arbeidsforhold("af-2", "Norge AS", 20f)
-        )
-        return ArbeidsforholdLøsning(arbeidsforhold)
-    }
+    fun buildArbeidsforhold(): ArbeidsforholdLøsning =
+        mockArbeidsforhold()
+            .let(::listOf)
+            .let(::ArbeidsforholdLøsning)
 
     fun buildSykdom(): SykLøsning {
         val fnr = TestData.validIdentitetsnummer
@@ -78,12 +75,14 @@ internal class PreutfyltMapperTest {
     }
 
     fun buildMapper(en: Boolean, to: Boolean, tre: Boolean): PreutfyltMapper {
+        val feilmelding = Feilmelding("Feil")
+
         val resultat = Resultat(
-            FULLT_NAVN = if (en) { løsningNavn } else { løsningFeil },
-            VIRKSOMHET = if (to) { løsningVirksomhet } else { VirksomhetLøsning(error = Feilmelding("Feil")) },
+            FULLT_NAVN = if (en) løsningNavn else løsningFeil,
+            VIRKSOMHET = if (to) løsningVirksomhet else VirksomhetLøsning(error = feilmelding),
             ARBEIDSFORHOLD = løsningArbeidsforhold,
             SYK = løsningSykdom,
-            INNTEKT = if (tre) { løsningInntekt } else { InntektLøsning(error = Feilmelding("Feil")) }
+            INNTEKT = if (tre) løsningInntekt else InntektLøsning(error = feilmelding)
         )
         val request = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
         return PreutfyltMapper("uuid", resultat, request)

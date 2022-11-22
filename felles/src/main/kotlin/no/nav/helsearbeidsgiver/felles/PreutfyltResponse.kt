@@ -10,5 +10,5 @@ data class PreutfyltResponse(
     val bruttoinntekt: Long,
     val tidligereinntekt: List<MottattHistoriskInntekt>,
     val behandlingsperiode: MottattPeriode,
-    val arbeidsforhold: List<MottattArbeidsforhold>
+    val arbeidsforhold: List<Arbeidsforhold>
 )

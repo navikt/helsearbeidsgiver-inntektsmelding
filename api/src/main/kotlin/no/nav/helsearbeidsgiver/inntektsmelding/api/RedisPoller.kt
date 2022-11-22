@@ -5,13 +5,12 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.lettuce.core.RedisClient
 import kotlinx.coroutines.delay
 import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.fromEnv
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
     private val redisClient = RedisClient.create(
-        "redis://${"REDIS_URL".fromEnv()}:6379/0"
+        "redis://${Env.Redis.url}:6379/0"
     )
     private val objectMapper = customObjectMapper()
 

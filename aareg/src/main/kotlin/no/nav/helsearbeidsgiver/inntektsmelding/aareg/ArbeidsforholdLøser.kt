@@ -7,13 +7,17 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import org.slf4j.LoggerFactory
 
-class ArbeidsforholdLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+class ArbeidsforholdLøser(
+    rapidsConnection: RapidsConnection,
+    private val aaregClient: AaregClient
+) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val BEHOV = BehovType.ARBEIDSFORHOLD

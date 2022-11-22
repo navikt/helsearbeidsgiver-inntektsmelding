@@ -4,4 +4,6 @@ azure:
 ingress: https://helsearbeidsgiver-im-aareg.dev.nav.no
 env:
 - name: AAREG_URL
-  value: "https://localhost"
+  value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/aareg-arbeidsforhold"
+- name: PROXY_SCOPE
+  value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"

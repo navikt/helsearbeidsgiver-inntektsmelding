@@ -11,6 +11,10 @@ fun mapXmlDokument(inntektsmelding: Inntektsmelding): String {
         <aarsakTilInnsending>Ny</aarsakTilInnsending>
         <arbeidsgiver>
             <virksomhetsnummer>${inntektsmelding.orgnrUnderenhet}</virksomhetsnummer>
+            <kontaktinformasjon>
+                <kontaktinformasjonNavn>Fru Corporate</kontaktinformasjonNavn>
+                <telefonnummer>01010101</telefonnummer>
+            </kontaktinformasjon>
         </arbeidsgiver>
         <arbeidstakerFnr>${inntektsmelding.identitetsnummer}</arbeidstakerFnr>
         <naerRelasjon>false</naerRelasjon>
@@ -20,18 +24,27 @@ fun mapXmlDokument(inntektsmelding: Inntektsmelding): String {
                 <beloep>${inntektsmelding.bruttoInntekt}</beloep>
             </beregnetInntekt>
         </arbeidsforhold>
-        <avsendersystem>
-            <systemnavn>nav.no</systemnavn>
-            <systemversjon>1.0</systemversjon>
-        </avsendersystem>
-        <omsorgspenger>
-            <fravaersPerioder>
-                <fravaerPeriode>
+        <sykepengerIArbeidsgiverperioden>
+            <arbeidsgiverperiodeListe>
+                <arbeidsgiverperiode>
                     <fom>2018-01-01</fom>
                     <tom>2018-01-10</tom>
-                </fravaerPeriode>
-            </fravaersPerioder>
-        </omsorgspenger>
+                </arbeidsgiverperiode>
+            </arbeidsgiverperiodeListe>
+            <bruttoUtbetalt>5000</bruttoUtbetalt>
+        </sykepengerIArbeidsgiverperioden>
+        <opphoerAvNaturalytelseListe>
+            <opphoerAvNaturalytelse>
+                <naturalytelseType>elektroniskKommunikasjon</naturalytelseType>
+                <fom>2018-03-02</fom>
+                <beloepPrMnd>100</beloepPrMnd>
+            </opphoerAvNaturalytelse>
+        </opphoerAvNaturalytelseListe>
+        <avsendersystem>
+            <systemnavn>NAV_NO</systemnavn>
+            <systemversjon>1.0</systemversjon>
+        </avsendersystem>
     </Skjemainnhold>
-</melding>""".trim()
+</melding>
+""".trim()
 }

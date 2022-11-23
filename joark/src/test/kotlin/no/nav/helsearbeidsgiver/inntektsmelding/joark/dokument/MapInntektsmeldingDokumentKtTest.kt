@@ -19,19 +19,22 @@ internal class MapInntektsmeldingDokumentKtTest {
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .registerModule(JavaTimeModule())
 
+    val fulltNavn = "Kari Normann"
+    val arbeidsgiver = "Norge AS"
+
     @Test
     fun skal_kaste_exception_ved_feil() {
         val packet = mapOf(
             "identitetsnummer" to ""
         )
         assertThrows<UgyldigFormatException> {
-            mapInntektsmelding(objectMapper.readTree(objectMapper.writeValueAsString(packet)))
+            mapInntektsmelding(objectMapper.readTree(objectMapper.writeValueAsString(packet)), fulltNavn, arbeidsgiver)
         }
     }
 
     @Test
     fun skal_mappe_alle_data() {
-        val im = mapInntektsmelding(objectMapper.readTree(objectMapper.writeValueAsString(IM_VALID)))
+        val im = mapInntektsmelding(objectMapper.readTree(objectMapper.writeValueAsString(IM_VALID)), fulltNavn, arbeidsgiver)
         assertEquals("123", im.identitetsnummer)
         assertEquals("abc", im.orgnrUnderenhet)
         assertEquals(listOf(LocalDate.of(2022, 10, 27), LocalDate.of(2022, 10, 26)), im.behandlingsdager)

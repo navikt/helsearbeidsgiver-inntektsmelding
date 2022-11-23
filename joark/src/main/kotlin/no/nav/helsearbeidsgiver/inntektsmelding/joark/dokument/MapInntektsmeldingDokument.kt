@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.asLocalDate
 import java.time.LocalDate
 
-fun mapInntektsmelding(jsonNode: JsonNode): InntektsmeldingDokument {
+fun mapInntektsmelding(jsonNode: JsonNode, fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument {
     try {
-        return parseInntektsmelding(jsonNode)
+        return parseInntektsmelding(jsonNode, fulltNavn, arbeidsgiver)
     } catch (ex: Exception) {
         ex.printStackTrace()
         throw UgyldigFormatException(ex)
@@ -49,12 +49,12 @@ fun parseHeleEllerDeler(data: JsonNode): HeleEllerdeler {
     )
 }
 
-fun parseInntektsmelding(data: JsonNode): InntektsmeldingDokument {
+fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument {
     return InntektsmeldingDokument(
         data.get("orgnrUnderenhet").asText(),
         data.get("identitetsnummer").asText(),
-        data.get("fulltNavn").asText(),
-        data.get("virksomhetNavn").asText(),
+        fulltNavn,
+        arbeidsgiver,
         parseBehandlingsdager(data.get("behandlingsdager")),
         parseEgenmeldinger(data.get("egenmeldingsperioder")),
         parseBruttoInntekt(data.get("bruttoInntekt")),

@@ -3,6 +3,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
+import java.time.LocalDate
+
+fun LocalDate.toNorsk(): String {
+    return this.toString()
+}
+
+fun Double.toNorsk(): String {
+    return this.toString()
+}
 
 class PdfDokument {
 
@@ -45,7 +54,7 @@ class PdfDokument {
         b.addLine(0, bruttoInntektY)
         b.addSection("Bruttoinntekt siste 3 måneder", 0, bruttoInntektY + 30)
         b.addBold("Registrert inntekt (per 22.10.2021)", 0, bruttoInntektY + 60)
-        b.addBody("42 000 kr/måned", 0, bruttoInntektY + 90)
+        b.addBody(inntektsmeldingDokument.bruttoInntekt.bruttoInntekt.toNorsk() + " kr/måned", 0, bruttoInntektY + 90)
         val refusjonY = bruttoInntektY + 180
         b.addLine(0, refusjonY - 30)
         b.addSection("Refusjon", 0, refusjonY)
@@ -57,7 +66,7 @@ class PdfDokument {
         lagLabel(b, 0, refusjonY + 300, "Opphører refusjonskravet i perioden", "Ja")
         lagLabel(b, 0, refusjonY + 350, "Siste dag dere krever refusjon for", "03.01.2022")
         val naturalytelseY = refusjonY + 450
-        val antallNaturalytelser = 10
+        val antallNaturalytelser = inntektsmeldingDokument.naturalytelser?.size ?: 0
         b.addLine(0, naturalytelseY - 30)
         b.addSection("Eventuelle naturalytelser", 0, naturalytelseY)
         if (antallNaturalytelser == 0) {
@@ -71,10 +80,12 @@ class PdfDokument {
             b.addBold("Naturalytelser", 0, tabellY)
             b.addBold("Dato naturalytelse bortfaller", kolonne2, tabellY)
             b.addBold("Verdi naturalytelse - kr/måned", kolonne3, tabellY)
-            for (i in 1..antallNaturalytelser) {
+            var i = 1
+            inntektsmeldingDokument.naturalytelser?.forEach {
                 b.addBody("Fri transport", kolonne1, i * 30 + tabellY)
-                b.addBody("03.01.2022", kolonne2, i * 30 + tabellY)
-                b.addBody("1950", kolonne3, i * 30 + tabellY)
+                b.addBody(it.dato.toNorsk(), kolonne2, i * 30 + tabellY)
+                b.addBody(it.beløp.toNorsk(), kolonne3, i * 30 + tabellY)
+                i++
             }
         }
         val kvitteringY = naturalytelseY + ((antallNaturalytelser + 5) * 30) // 200

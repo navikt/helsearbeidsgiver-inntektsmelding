@@ -61,11 +61,11 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         val session = packet[Key.SESSION.str]
         sikkerlogg.info("Fant session: $session")
         try {
-            val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"])
-            inntektsmelding.virksomhetNavn = hentArbeidsgiver(session)
-            sikkerlogg.info("Fant virksomhetNavn: ${inntektsmelding.virksomhetNavn}")
-            inntektsmelding.fulltNavn = hentNavn(session)
-            sikkerlogg.info("Fant fulltNavn: ${inntektsmelding.fulltNavn}")
+            val arbeidsgiver = hentArbeidsgiver(session)
+            sikkerlogg.info("Fant fulltNavn: $arbeidsgiver")
+            val fulltNavn = hentNavn(session)
+            sikkerlogg.info("Fant fulltNavn: $fulltNavn")
+            val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"], fulltNavn, arbeidsgiver)
             sikkerlogg.info("Skal journalføre: $inntektsmelding")
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
             sikkerlogg.info("Journalførte inntektsmelding med journalpostid: $journalpostId")

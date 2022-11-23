@@ -19,7 +19,7 @@ internal class PdfDokumentTest {
         bruttoInntekt = Bruttoinntekt(true, 25000.0, "Ingen årsak", true),
         fullLønnIArbeidsgiverPerioden = FullLønnIArbeidsgiverPerioden(true, begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent),
         heleEllerdeler = HeleEllerdeler(true, 25000.0, dag.plusDays(3)),
-        naturalytelser = listOf(Naturalytelse("asd", dag.plusDays(5), 350.0)),
+        naturalytelser = listOf(Naturalytelse("Avis", dag.plusDays(5), 350.0)),
         bekreftOpplysninger = true
     )
 

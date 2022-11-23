@@ -13,7 +13,7 @@ class PdfDokument {
         val ansatteY = 60
         b.addSection("Den ansatte", 0, ansatteY)
         lagLabel(b, 0, ansatteY + 47, "Navn", inntektsmeldingDokument.fulltNavn)
-        lagLabel(b, 420, ansatteY + 80, "Personnummer", inntektsmeldingDokument.identitetsnummer)
+        lagLabel(b, 420, ansatteY + 47, "Personnummer", inntektsmeldingDokument.identitetsnummer)
         val arbeidsgiverY = 190
         b.addSection("Arbeidsgiveren", 0, arbeidsgiverY)
         lagLabel(b, 0, arbeidsgiverY + 47, "Virksomhetsnavn", inntektsmeldingDokument.virksomhetNavn)

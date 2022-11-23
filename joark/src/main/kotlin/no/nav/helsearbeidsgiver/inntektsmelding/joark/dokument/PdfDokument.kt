@@ -27,17 +27,20 @@ class PdfDokument {
     fun export(inntektsmeldingDokument: InntektsmeldingDokument): ByteArray {
         val b = PdfBuilder()
         b.addTitle("Kvittering - innsendt inntektsmelding", 0, 0)
+        //------------------- Ansatt
         val kolonneTo = 420
         val ansatteY = 60
         b.addSection("Den ansatte", 0, ansatteY)
         lagLabel(b, 0, ansatteY + 47, "Navn", inntektsmeldingDokument.fulltNavn)
         lagLabel(b, 420, ansatteY + 47, "Personnummer", inntektsmeldingDokument.identitetsnummer)
         val arbeidsgiverY = 190
+        //------------------- Arbeidsgiver
         b.addSection("Arbeidsgiveren", 0, arbeidsgiverY)
         lagLabel(b, 0, arbeidsgiverY + 47, "Virksomhetsnavn", inntektsmeldingDokument.virksomhetNavn)
         lagLabel(b, kolonneTo, arbeidsgiverY + 47, "Organisasjonsnummer for underenhet", inntektsmeldingDokument.orgnrUnderenhet)
         val fraværsperiodeY = 360
         b.addLine(0, fraværsperiodeY - 30)
+        //------------------- Fraværsperiode
         b.addSection("Fraværsperiode", 0, fraværsperiodeY)
         b.addBold("Egenmelding", 0, fraværsperiodeY + 35)
         lagPeriode(b, 0, fraværsperiodeY + 80, "01.10.2021", "06.10.2021")
@@ -51,19 +54,15 @@ class PdfDokument {
         val bestemmendeY = 420
         lagLabel(b, bestemmendeX, bestemmendeY, "Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.")
         lagLabel(b, bestemmendeX, bestemmendeY + 60, "Dato", inntektsmeldingDokument.bestemmendeFraværsdag.toNorsk())
-        lagLabel(
-            b,
-            bestemmendeX,
-            bestemmendeY + 120,
-            "Arbeidsgiverperiode",
-            "Arbeidsgivers har ansvar vanligvis for å betale lønn til den sykemeldte under arbeidsgiverperioden"
-        )
+        lagLabel(b, bestemmendeX, bestemmendeY + 120, "Arbeidsgiverperiode", "Arbeidsgivers har ansvar vanligvis for å betale lønn til den sykemeldte under arbeidsgiverperioden")
         lagPeriode(b, bestemmendeX, bestemmendeY + 180, "01.10.2021", "16.10.2021")
+        //------------------- Bruttoinntekt
         val bruttoInntektY = fraværY + (antalFravær * 60) + 30
         b.addLine(0, bruttoInntektY)
         b.addSection("Bruttoinntekt siste 3 måneder", 0, bruttoInntektY + 30)
-        b.addBold("Registrert inntekt (per 22.10.2021)", 0, bruttoInntektY + 60)
+        b.addBold("Registrert inntekt (per ${inntektsmeldingDokument.tidspunkt.toLocalDate().toNorsk()})", 0, bruttoInntektY + 60)
         b.addBody(inntektsmeldingDokument.bruttoInntekt.bruttoInntekt.toNorsk() + " kr/måned", 0, bruttoInntektY + 90)
+        //------------------- Refusjon
         val refusjonY = bruttoInntektY + 180
         b.addLine(0, refusjonY - 30)
         b.addSection("Refusjon", 0, refusjonY)

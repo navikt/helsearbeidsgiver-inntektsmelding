@@ -30,7 +30,7 @@ internal class PdfDokumentTest {
 
     @Test
     fun `skal lage kvittering`() {
-        val file = File(System.getProperty("user.home"), "/Desktop/inntektsmelding.pdf")
+        val file = File.createTempFile("kvittering", "pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument().export(im))
     }

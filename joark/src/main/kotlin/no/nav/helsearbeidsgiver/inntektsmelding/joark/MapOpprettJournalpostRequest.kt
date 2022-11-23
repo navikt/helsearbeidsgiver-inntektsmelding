@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.IdType
 import no.nav.helsearbeidsgiver.dokarkiv.Journalposttype
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapXmlDokument
 import java.time.LocalDate
@@ -16,7 +17,7 @@ import java.util.Base64
  * Journalføring til dagens løsning:
  * https://github.com/navikt/dokmotaltinn/blob/master/app/src/test/resources/__files/journalpostapi/opprettjournalpostrequest.json
  */
-fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: Inntektsmelding, arbeidsgiver: String): OpprettJournalpostRequest {
+fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingDokument, arbeidsgiver: String): OpprettJournalpostRequest {
     return OpprettJournalpostRequest(
         tema = "FOR",
         behandlingsTema = "ab0326",

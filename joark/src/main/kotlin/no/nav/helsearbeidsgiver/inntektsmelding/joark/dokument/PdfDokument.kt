@@ -2,12 +2,11 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.Inntektsmelding
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
 
 class PdfDokument {
 
-    fun export(inntektsmelding: Inntektsmelding): ByteArray {
+    fun export(inntektsmeldingDokument: InntektsmeldingDokument): ByteArray {
         val b = PdfBuilder()
         b.addTitle("Kvittering - innsendt inntektsmelding", 0, 0)
         val kolonneTo = 420

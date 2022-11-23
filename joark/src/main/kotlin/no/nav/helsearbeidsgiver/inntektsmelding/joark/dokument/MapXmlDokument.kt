@@ -1,8 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.Inntektsmelding
-
-fun mapXmlDokument(inntektsmelding: Inntektsmelding): String {
+fun mapXmlDokument(inntektsmeldingDokument: InntektsmeldingDokument): String {
     return """
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <melding xmlns="http://seres.no/xsd/NAV/Inntektsmelding_M/20180924">
@@ -10,18 +8,18 @@ fun mapXmlDokument(inntektsmelding: Inntektsmelding): String {
         <ytelse>Sykepenger</ytelse>
         <aarsakTilInnsending>Ny</aarsakTilInnsending>
         <arbeidsgiver>
-            <virksomhetsnummer>${inntektsmelding.orgnrUnderenhet}</virksomhetsnummer>
+            <virksomhetsnummer>${inntektsmeldingDokument.orgnrUnderenhet}</virksomhetsnummer>
             <kontaktinformasjon>
                 <kontaktinformasjonNavn>Fru Corporate</kontaktinformasjonNavn>
                 <telefonnummer>01010101</telefonnummer>
             </kontaktinformasjon>
         </arbeidsgiver>
-        <arbeidstakerFnr>${inntektsmelding.identitetsnummer}</arbeidstakerFnr>
+        <arbeidstakerFnr>${inntektsmeldingDokument.identitetsnummer}</arbeidstakerFnr>
         <naerRelasjon>false</naerRelasjon>
         <arbeidsforhold>
             <foersteFravaersdag>2018-10-26</foersteFravaersdag>
             <beregnetInntekt>
-                <beloep>${inntektsmelding.bruttoInntekt}</beloep>
+                <beloep>${inntektsmeldingDokument.bruttoInntekt}</beloep>
             </beregnetInntekt>
         </arbeidsforhold>
         <sykepengerIArbeidsgiverperioden>

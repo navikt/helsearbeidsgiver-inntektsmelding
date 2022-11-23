@@ -1,10 +1,10 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.joark
+package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.asLocalDate
 import java.time.LocalDate
 
-fun mapInntektsmelding(jsonNode: JsonNode): Inntektsmelding {
+fun mapInntektsmelding(jsonNode: JsonNode): InntektsmeldingDokument {
     try {
         return parseInntektsmelding(jsonNode)
     } catch (ex: Exception) {
@@ -49,8 +49,8 @@ fun parseHeleEllerDeler(data: JsonNode): HeleEllerdeler {
     )
 }
 
-fun parseInntektsmelding(data: JsonNode): Inntektsmelding {
-    return Inntektsmelding(
+fun parseInntektsmelding(data: JsonNode): InntektsmeldingDokument {
+    return InntektsmeldingDokument(
         data.get("orgnrUnderenhet").asText(),
         data.get("identitetsnummer").asText(),
         parseBehandlingsdager(data.get("behandlingsdager")),

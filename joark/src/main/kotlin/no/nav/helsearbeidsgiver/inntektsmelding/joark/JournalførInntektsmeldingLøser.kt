@@ -15,6 +15,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.UgyldigFormatException
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapInntektsmelding
 import org.slf4j.LoggerFactory
 
 class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : River.PacketListener {
@@ -36,7 +39,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         }.register(this)
     }
 
-    suspend fun opprettJournalpost(uuid: String, inntektsmelding: Inntektsmelding, arbeidsgiverNavn: String): String {
+    suspend fun opprettJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument, arbeidsgiverNavn: String): String {
         sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, arbeidsgiverNavn)
         return dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId

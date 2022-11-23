@@ -3,39 +3,37 @@ POST https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/inntektsmelding
 Content-Type: application/json
 
 {
-  "orgnrUnderenhet": "811307602",
-  "identitetsnummer": "16120101181",
-  "behandlingsdagerFom": "2022-12-24",
-  "behandlingsdagerTom": "2022-12-31",
+  "orgnrUnderenhet": "123456785",
+  "identitetsnummer": "10107400090",
   "behandlingsdager": [
-    "2022-12-24",
-    "2022-12-25",
-    "2022-12-26",
-    "2022-12-27",
-    "2022-12-28",
-    "2022-12-29",
-    "2022-12-30",
-    "2022-12-31"
+    "2022-10-21"
   ],
-  "egenmeldinger": [
+  "egenmeldingsperioder": [
     {
-      "fom": "2022-12-20",
-      "tom": "2022-12-23"
+      "fom": "2022-10-21",
+      "tom": "2022-10-23"
     }
   ],
-  "bruttoInntekt": 500000.0,
-  "bruttoBekreftet": true,
-  "utbetalerFull": true,
-  "begrunnelseRedusert": null,
-  "utbetalerHeleEllerDeler": true,
-  "refusjonPrMnd": null,
-  "opphørerKravet": true,
-  "opphørSisteDag": "2023-01-31",
+  "bruttoInntekt": {
+    "bekreftet": true,
+    "bruttoInntekt": 32100.0,
+    "endringaarsak": "asd",
+    "manueltKorrigert": true
+  },
+  "fullLønnIArbeidsgiverPerioden": {
+    "utbetalerFullLønn": true,
+    "begrunnelse": "ArbeidOpphoert"
+  },
+  "heleEllerdeler": {
+    "utbetalerHeleEllerDeler": true,
+    "refusjonPrMnd": 2500.0,
+    "opphørSisteDag": "2022-10-21"
+  },
   "naturalytelser": [
     {
-      "naturalytelseKode": "elektroniskKommunikasjon",
-      "dato": "2022-01-01",
-      "beløp": 10000.0
+      "naturalytelseKode": "kostDoegn",
+      "dato": "2022-10-21",
+      "beløp": 300.0
     }
   ],
   "bekreftOpplysninger": true

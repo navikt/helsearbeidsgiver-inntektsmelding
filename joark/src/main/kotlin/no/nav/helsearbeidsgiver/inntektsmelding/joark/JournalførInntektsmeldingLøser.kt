@@ -39,14 +39,18 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         }.register(this)
     }
 
-    suspend fun opprettJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument, arbeidsgiverNavn: String): String {
+    suspend fun opprettJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument): String {
         sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
-        val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, arbeidsgiverNavn)
+        val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
         return dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
     }
 
     fun hentArbeidsgiver(session: JsonNode): String {
         return session.get(BehovType.VIRKSOMHET.name)?.get("value")?.asText() ?: "Ukjent"
+    }
+
+    fun hentNavn(session: JsonNode): String {
+        return session.get(BehovType.FULLT_NAVN.name)?.get("value")?.asText() ?: "Ukjent"
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
@@ -55,12 +59,13 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         var løsning = JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
         val session = packet[Key.SESSION.str]
-        val arbeidsgiverNavn = hentArbeidsgiver(session)
         try {
             val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"])
+            inntektsmelding.virksomhetNavn = hentArbeidsgiver(session)
+            inntektsmelding.fulltNavn = hentNavn(session)
             sikkerlogg.info("Fant session: $session")
             sikkerlogg.info("Skal journalføre: $inntektsmelding")
-            val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding, arbeidsgiverNavn) }
+            val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
             // TODO Lag kvittering til Altinn?
             // TODO Lag innboks melding i NAV?
             løsning = JournalpostLøsning(journalpostId)

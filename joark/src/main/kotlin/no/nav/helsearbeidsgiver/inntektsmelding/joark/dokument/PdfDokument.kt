@@ -12,12 +12,12 @@ class PdfDokument {
         val kolonneTo = 420
         val ansatteY = 60
         b.addSection("Den ansatte", 0, ansatteY)
-        lagLabel(b, 0, ansatteY + 47, "Navn", "Navn Navnesen")
-        lagLabel(b, 420, ansatteY + 80, "Personnummer", "12345678901")
+        lagLabel(b, 0, ansatteY + 47, "Navn", inntektsmeldingDokument.fulltNavn)
+        lagLabel(b, 420, ansatteY + 80, "Personnummer", inntektsmeldingDokument.identitetsnummer)
         val arbeidsgiverY = 190
         b.addSection("Arbeidsgiveren", 0, arbeidsgiverY)
-        lagLabel(b, 0, arbeidsgiverY + 47, "Virksomhetsnavn", "Grunerløkka Pleiehjem")
-        lagLabel(b, kolonneTo, arbeidsgiverY + 47, "Organisasjonsnummer for underenhet", "123456789")
+        lagLabel(b, 0, arbeidsgiverY + 47, "Virksomhetsnavn", inntektsmeldingDokument.virksomhetNavn)
+        lagLabel(b, kolonneTo, arbeidsgiverY + 47, "Organisasjonsnummer for underenhet", inntektsmeldingDokument.orgnrUnderenhet)
         val fraværsperiodeY = 360
         b.addLine(0, fraværsperiodeY - 30)
         b.addSection("Fraværsperiode", 0, fraværsperiodeY)

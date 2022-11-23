@@ -3,6 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 val IM_VALID = mapOf(
     "orgnrUnderenhet" to "abc",
     "identitetsnummer" to "123",
+    "fulltNavn" to "Ola Normann",
+    "virksomhetNavn" to "Norge AS",
     "behandlingsdager" to listOf("2022-10-27", "2022-10-26"),
     "egenmeldingsperioder" to listOf(
         mapOf("fom" to "2022-09-01", "tom" to "2022-09-05"),

@@ -12,6 +12,8 @@ import java.time.LocalDate
 data class InntektsmeldingDokument(
     val orgnrUnderenhet: String,
     val identitetsnummer: String,
+    var fulltNavn: String,
+    var virksomhetNavn: String,
     val behandlingsdager: List<LocalDate>,
     val egenmeldingsperioder: List<EgenmeldingPeriode>,
     val bruttoInntekt: Bruttoinntekt,

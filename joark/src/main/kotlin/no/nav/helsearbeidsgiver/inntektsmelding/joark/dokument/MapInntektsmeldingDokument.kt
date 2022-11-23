@@ -53,6 +53,8 @@ fun parseInntektsmelding(data: JsonNode): InntektsmeldingDokument {
     return InntektsmeldingDokument(
         data.get("orgnrUnderenhet").asText(),
         data.get("identitetsnummer").asText(),
+        data.get("fulltNavn").asText(),
+        data.get("virksomhetNavn").asText(),
         parseBehandlingsdager(data.get("behandlingsdager")),
         parseEgenmeldinger(data.get("egenmeldingsperioder")),
         parseBruttoInntekt(data.get("bruttoInntekt")),

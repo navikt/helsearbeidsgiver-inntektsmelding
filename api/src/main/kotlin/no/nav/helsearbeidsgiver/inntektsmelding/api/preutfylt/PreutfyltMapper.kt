@@ -61,10 +61,10 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
         return arbeidsforhold?.value!!
     }
 
-    fun mapFraværsperiode(): Map<String, List<MottattPeriode>> {
+    fun mapFraværsperiode(): List<MottattPeriode> {
         val syk = resultat.SYK
         sikkerlogg.info("Fant fraværsperiode $syk for $uuid")
-        return syk?.value?.fravaersperiode ?: emptyMap()
+        return syk?.value?.fravaersperiode ?: emptyList()
     }
 
     fun mapFulltNavn(): String {

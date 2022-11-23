@@ -36,8 +36,7 @@ class SykLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
             throw RuntimeException("Identitestnummer kan ikke være 000000000")
         }
         val fra = LocalDate.of(2022, 10, 5)
-        val fravaersperiode = mutableMapOf<String, List<MottattPeriode>>()
-        fravaersperiode.put(identitetsnummer, listOf(MottattPeriode(fra, fra.plusDays(10))))
+        val fravaersperiode = listOf(MottattPeriode(fra, fra.plusDays(10)))
         val behandlingsperiode = MottattPeriode(fra, fra.plusDays(10))
         return Syk(fravaersperiode, behandlingsperiode)
     }

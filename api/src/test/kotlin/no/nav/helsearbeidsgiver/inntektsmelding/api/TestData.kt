@@ -29,8 +29,7 @@ object TestData {
 fun buildResultat(): Resultat {
     val arbeidsforhold = listOf(mockArbeidsforhold())
     val fra = LocalDate.of(2022, 10, 5)
-    val fravaersperiode = mutableMapOf<String, List<MottattPeriode>>()
-    fravaersperiode.put(TestData.validIdentitetsnummer, listOf(MottattPeriode(fra, fra.plusDays(10))))
+    val fravaersperiode = listOf(MottattPeriode(fra, fra.plusDays(10)))
     val behandlingsperiode = MottattPeriode(fra, fra.plusDays(10))
     return Resultat(
         FULLT_NAVN = NavnLøsning("Navn Navnesen"),

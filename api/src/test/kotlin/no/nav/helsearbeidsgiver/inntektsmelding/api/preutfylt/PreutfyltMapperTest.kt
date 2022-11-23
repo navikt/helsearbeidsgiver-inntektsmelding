@@ -41,8 +41,7 @@ internal class PreutfyltMapperTest {
     fun buildSykdom(): SykLøsning {
         val fnr = TestData.validIdentitetsnummer
         val fra = LocalDate.of(2022, 10, 5)
-        val fravaersperiode = mutableMapOf<String, List<MottattPeriode>>()
-        fravaersperiode.put(fnr, listOf(MottattPeriode(fra, fra.plusDays(10))))
+        val fravaersperiode = listOf(MottattPeriode(fra, fra.plusDays(10)))
         val behandlingsperiode = MottattPeriode(fra, fra.plusDays(10))
         return SykLøsning(Syk(fravaersperiode = fravaersperiode, behandlingsperiode))
     }

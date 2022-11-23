@@ -20,7 +20,7 @@ class InnsendingProducer(
         val uuid = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to "inntektsmelding_inn",
+                Key.EVENT_NAME.str to "inntektsmelding",
                 Key.BEHOV.str to listOf(
                     BehovType.VIRKSOMHET.name,
                     BehovType.ARBEIDSFORHOLD.name

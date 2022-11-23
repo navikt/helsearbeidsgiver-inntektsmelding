@@ -12,24 +12,20 @@ import java.time.LocalDate
 data class Inntektsmelding(
     val orgnrUnderenhet: String,
     val identitetsnummer: String,
-    val behandlingsdagerFom: LocalDate,
-    val behandlingsdagerTom: LocalDate,
     val behandlingsdager: List<LocalDate>,
-    val egenmeldinger: List<Egenmelding>,
-    val bruttoInntekt: Double,
-    val bruttoBekreftet: Boolean,
-    val utbetalerFull: Boolean,
-    val begrunnelseRedusert: String?,
-    val utbetalerHeleEllerDeler: Boolean,
-    val refusjonPrMnd: Double?,
-    val opphørerKravet: Boolean?,
-    val opphørSisteDag: LocalDate?,
-    val naturalytelser: List<Naturalytelse>,
+    val egenmeldingsperioder: List<EgenmeldingPeriode>,
+    val bruttoInntekt: Bruttoinntekt,
+    // Betaljer arbeidsgiver full lønn til arbeidstaker
+    val fullLønnIArbeidsgiverPerioden: FullLønnIArbeidsgiverPerioden,
+    // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
+    val heleEllerdeler: HeleEllerdeler,
+    // Naturalytelser
+    val naturalytelser: List<Naturalytelse>? = null,
     val bekreftOpplysninger: Boolean
 )
 
 @Serializable
-data class Egenmelding(
+data class EgenmeldingPeriode(
     val fom: LocalDate,
     val tom: LocalDate
 )
@@ -40,3 +36,42 @@ data class Naturalytelse(
     val dato: LocalDate,
     val beløp: Double
 )
+
+@Serializable
+data class Bruttoinntekt(
+    var bekreftet: Boolean,
+    var bruttoInntekt: Double,
+    val endringaarsak: String? = null, // TODO Lage enum?
+    val manueltKorrigert: Boolean
+)
+
+@Serializable
+data class FullLønnIArbeidsgiverPerioden(
+    val utbetalerFullLønn: Boolean,
+    val begrunnelse: BegrunnelseIngenEllerRedusertUtbetalingKode? = null
+)
+
+@Serializable
+data class HeleEllerdeler(
+    val utbetalerHeleEllerDeler: Boolean,
+    val refusjonPrMnd: Double? = null,
+    val opphørSisteDag: LocalDate? = null
+)
+
+enum class BegrunnelseIngenEllerRedusertUtbetalingKode {
+    LovligFravaer,
+    FravaerUtenGyldigGrunn,
+    ArbeidOpphoert,
+    BeskjedGittForSent,
+    ManglerOpptjening,
+    IkkeLoenn,
+    BetvilerArbeidsufoerhet,
+    IkkeFravaer,
+    StreikEllerLockout,
+    Permittering,
+    FiskerMedHyre,
+    Saerregler,
+    FerieEllerAvspasering,
+    IkkeFullStillingsandel,
+    TidligereVirksomhet
+}

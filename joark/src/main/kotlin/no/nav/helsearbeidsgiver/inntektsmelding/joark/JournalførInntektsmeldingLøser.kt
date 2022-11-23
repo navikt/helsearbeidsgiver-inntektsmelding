@@ -59,15 +59,17 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         var løsning = JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
         val session = packet[Key.SESSION.str]
+        sikkerlogg.info("Fant session: $session")
         try {
             val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"])
             inntektsmelding.virksomhetNavn = hentArbeidsgiver(session)
+            sikkerlogg.info("Fant virksomhetNavn: ${inntektsmelding.virksomhetNavn}")
             inntektsmelding.fulltNavn = hentNavn(session)
-            sikkerlogg.info("Fant session: $session")
+            sikkerlogg.info("Fant fulltNavn: ${inntektsmelding.fulltNavn}")
             sikkerlogg.info("Skal journalføre: $inntektsmelding")
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
-            // TODO Lag kvittering til Altinn?
-            // TODO Lag innboks melding i NAV?
+            sikkerlogg.info("Journalførte inntektsmelding med journalpostid: $journalpostId")
+            logger.info("Journalførte inntektsmelding med journalpostid: $journalpostId")
             løsning = JournalpostLøsning(journalpostId)
         } catch (ex: DokArkivException) {
             sikkerlogg.info("Klarte ikke journalføre", ex)

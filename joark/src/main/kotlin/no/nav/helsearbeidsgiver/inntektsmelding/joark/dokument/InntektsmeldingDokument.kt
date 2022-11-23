@@ -1,4 +1,4 @@
-@file:UseSerializers(LocalDateSerializer::class)
+@file:UseSerializers(LocalDateSerializer::class, LocalDateTimeSerializer::class)
 @file:Suppress("NonAsciiCharacters")
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
@@ -6,7 +6,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.serializers.LocalDateTimeSerializer
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Serializable
 data class InntektsmeldingDokument(
@@ -15,7 +17,10 @@ data class InntektsmeldingDokument(
     var fulltNavn: String,
     var virksomhetNavn: String,
     val behandlingsdager: List<LocalDate>,
-    val egenmeldingsperioder: List<EgenmeldingPeriode>,
+    val egenmeldingsperioder: List<Periode>,
+    val bestemmendeFraværsdag: LocalDate,
+    val fravaersperioder: List<Periode>,
+    val arbeidsgiverperioder: List<Periode>,
     val bruttoInntekt: Bruttoinntekt,
     // Betaljer arbeidsgiver full lønn til arbeidstaker
     val fullLønnIArbeidsgiverPerioden: FullLønnIArbeidsgiverPerioden,
@@ -23,11 +28,12 @@ data class InntektsmeldingDokument(
     val heleEllerdeler: HeleEllerdeler,
     // Naturalytelser
     val naturalytelser: List<Naturalytelse>? = null,
-    val bekreftOpplysninger: Boolean
+    val bekreftOpplysninger: Boolean,
+    val tidspunkt: LocalDateTime
 )
 
 @Serializable
-data class EgenmeldingPeriode(
+data class Periode(
     val fom: LocalDate,
     val tom: LocalDate
 )
@@ -50,7 +56,8 @@ data class Bruttoinntekt(
 @Serializable
 data class FullLønnIArbeidsgiverPerioden(
     val utbetalerFullLønn: Boolean,
-    val begrunnelse: BegrunnelseIngenEllerRedusertUtbetalingKode? = null
+    val begrunnelse: BegrunnelseIngenEllerRedusertUtbetalingKode? = null,
+    val utbetalt: Double? = null
 )
 
 @Serializable

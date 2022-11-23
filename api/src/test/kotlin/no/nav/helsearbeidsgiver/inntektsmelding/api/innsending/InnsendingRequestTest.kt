@@ -62,7 +62,7 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal ikke godta egenmeldinger hvor tom er før fom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(egenmeldingsperioder = listOf(EgenmeldingPeriode(NOW.plusDays(1), NOW))).validate()
+            GYLDIG.copy(egenmeldingsperioder = listOf(Periode(NOW.plusDays(1), NOW))).validate()
         }
     }
 

@@ -4,13 +4,22 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 fun LocalDate.toNorsk(): String {
     return this.toString()
 }
 
+fun LocalDateTime.toNorsk(): String {
+    return this.toString()
+}
+
 fun Double.toNorsk(): String {
     return this.toString()
+}
+
+fun Boolean.toNorsk(): String {
+    return if (this) { "Ja" } else { "Nei" }
 }
 
 class PdfDokument {
@@ -41,7 +50,7 @@ class PdfDokument {
         val bestemmendeX = 430
         val bestemmendeY = 420
         lagLabel(b, bestemmendeX, bestemmendeY, "Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.")
-        lagLabel(b, bestemmendeX, bestemmendeY + 60, "Dato", "22.10.2021")
+        lagLabel(b, bestemmendeX, bestemmendeY + 60, "Dato", inntektsmeldingDokument.bestemmendeFraværsdag.toNorsk())
         lagLabel(
             b,
             bestemmendeX,
@@ -58,13 +67,15 @@ class PdfDokument {
         val refusjonY = bruttoInntektY + 180
         b.addLine(0, refusjonY - 30)
         b.addSection("Refusjon", 0, refusjonY)
-        lagLabel(b, 0, refusjonY + 50, "Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", "Nei")
-        lagLabel(b, 0, refusjonY + 100, "Begrunnelse", "Jobbet kortere en måned")
-        lagLabel(b, 0, refusjonY + 150, "Utbetalt under arbeidsgiverperiode", "0 kr")
-        lagLabel(b, 0, refusjonY + 200, "Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", "Ja")
-        lagLabel(b, 0, refusjonY + 250, "Refusjonsbeløp pr måned", "42 000 kr/måned")
-        lagLabel(b, 0, refusjonY + 300, "Opphører refusjonskravet i perioden", "Ja")
-        lagLabel(b, 0, refusjonY + 350, "Siste dag dere krever refusjon for", "03.01.2022")
+        val full = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden
+        val deler = inntektsmeldingDokument.heleEllerdeler
+        lagLabel(b, 0, refusjonY + 50, "Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", full.utbetalerFullLønn.toNorsk())
+        lagLabel(b, 0, refusjonY + 100, "Begrunnelse", full.begrunnelse?.name ?: "-")
+        lagLabel(b, 0, refusjonY + 150, "Utbetalt under arbeidsgiverperiode", (full.utbetalt?.toNorsk() ?: "-") + " kr")
+        lagLabel(b, 0, refusjonY + 200, "Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", deler.utbetalerHeleEllerDeler.toNorsk())
+        lagLabel(b, 0, refusjonY + 250, "Refusjonsbeløp pr måned", (deler.refusjonPrMnd?.toNorsk() ?: "-") + " kr/måned") // Arbeidsgiver
+        lagLabel(b, 0, refusjonY + 300, "Opphører refusjonskravet i perioden", deler.opphørSisteDag?.toNorsk() ?: "-")
+        lagLabel(b, 0, refusjonY + 350, "Siste dag dere krever refusjon for", deler.opphørSisteDag?.toNorsk() ?: "-")
         val naturalytelseY = refusjonY + 450
         val antallNaturalytelser = inntektsmeldingDokument.naturalytelser?.size ?: 0
         b.addLine(0, naturalytelseY - 30)
@@ -90,7 +101,7 @@ class PdfDokument {
         }
         val kvitteringY = naturalytelseY + ((antallNaturalytelser + 5) * 30) // 200
         b.addLine(0, kvitteringY)
-        b.addItalics("Kvittering - innsendt inntektsmelding - 12.05.2021 kl. 12.23", 0, kvitteringY + 30)
+        b.addItalics("Kvittering - innsendt inntektsmelding - ${inntektsmeldingDokument.tidspunkt.toNorsk()}", 0, kvitteringY + 30)
         return b.export()
     }
 

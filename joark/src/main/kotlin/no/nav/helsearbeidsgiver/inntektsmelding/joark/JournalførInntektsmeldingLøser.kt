@@ -62,13 +62,13 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         sikkerlogg.info("Fant session: $session")
         try {
             val arbeidsgiver = hentArbeidsgiver(session)
-            sikkerlogg.info("Fant fulltNavn: $arbeidsgiver")
+            sikkerlogg.info("Fant arbeidsgiver: $arbeidsgiver")
             val fulltNavn = hentNavn(session)
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
             val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"], fulltNavn, arbeidsgiver)
             sikkerlogg.info("Skal journalføre: $inntektsmelding")
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
-            sikkerlogg.info("Journalførte inntektsmelding med journalpostid: $journalpostId")
+            sikkerlogg.info("Journalførte inntektsmelding for $fulltNavn ($arbeidsgiver) med journalpostid: $journalpostId")
             logger.info("Journalførte inntektsmelding med journalpostid: $journalpostId")
             løsning = JournalpostLøsning(journalpostId)
         } catch (ex: DokArkivException) {

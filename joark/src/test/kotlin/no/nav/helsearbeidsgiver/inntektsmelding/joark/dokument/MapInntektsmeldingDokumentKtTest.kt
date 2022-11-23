@@ -40,8 +40,8 @@ internal class MapInntektsmeldingDokumentKtTest {
         assertEquals(listOf(LocalDate.of(2022, 10, 27), LocalDate.of(2022, 10, 26)), im.behandlingsdager)
         assertEquals(
             listOf(
-                EgenmeldingPeriode(LocalDate.of(2022, 9, 1), LocalDate.of(2022, 9, 5)),
-                EgenmeldingPeriode(LocalDate.of(2022, 9, 6), LocalDate.of(2022, 9, 15))
+                Periode(LocalDate.of(2022, 9, 1), LocalDate.of(2022, 9, 5)),
+                Periode(LocalDate.of(2022, 9, 6), LocalDate.of(2022, 9, 15))
             ),
             im.egenmeldingsperioder
         )

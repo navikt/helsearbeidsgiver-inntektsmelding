@@ -29,7 +29,8 @@ data class Bruttoinntekt(
 @Serializable
 data class FullLønnIArbeidsgiverPerioden(
     val utbetalerFullLønn: Boolean,
-    val begrunnelse: BegrunnelseIngenEllerRedusertUtbetalingKode? = null
+    val begrunnelse: BegrunnelseIngenEllerRedusertUtbetalingKode? = null,
+    val utbetalt: Double? = null
 )
 
 @Serializable
@@ -41,10 +42,13 @@ data class HeleEllerdeler(
 
 @Serializable
 data class InnsendingRequest(
-    val orgnrUnderenhet: String, // OK
-    val identitetsnummer: String, // OK
-    val behandlingsdager: List<LocalDate>, // OK
-    val egenmeldingsperioder: List<EgenmeldingPeriode>,
+    val orgnrUnderenhet: String,
+    val identitetsnummer: String,
+    val behandlingsdager: List<LocalDate>,
+    val egenmeldingsperioder: List<Periode>,
+    val arbeidsgiverperioder: List<Periode>,
+    val bestemmendeFraværsdag: LocalDate,
+    val fravaersperioder: List<Periode>,
     val bruttoInntekt: Bruttoinntekt,
     // Betaljer arbeidsgiver full lønn til arbeidstaker
     val fullLønnIArbeidsgiverPerioden: FullLønnIArbeidsgiverPerioden,
@@ -66,9 +70,9 @@ data class InnsendingRequest(
             validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
             // Egenmelding
             validate(InnsendingRequest::egenmeldingsperioder).validateForEach {
-                validate(EgenmeldingPeriode::fom).isNotNull()
-                validate(EgenmeldingPeriode::tom).isNotNull()
-                validate(EgenmeldingPeriode::tom).isGreaterThan(it.fom)
+                validate(Periode::fom).isNotNull()
+                validate(Periode::tom).isNotNull()
+                validate(Periode::tom).isGreaterThan(it.fom)
             }
             // Brutto inntekt
             validate(InnsendingRequest::bruttoInntekt).validate {

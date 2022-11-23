@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.asLocalDate
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 fun mapInntektsmelding(jsonNode: JsonNode, fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument {
     try {
@@ -17,8 +18,8 @@ fun parseBehandlingsdager(data: JsonNode): List<LocalDate> {
     return data.map { it.asLocalDate() }
 }
 
-fun parseEgenmeldinger(data: JsonNode): List<EgenmeldingPeriode> {
-    return data.map { EgenmeldingPeriode(it.get("fom").asLocalDate(), it.get("tom").asLocalDate()) }
+fun parseEgenmeldinger(data: JsonNode): List<Periode> {
+    return data.map { Periode(it.get("fom").asLocalDate(), it.get("tom").asLocalDate()) }
 }
 
 fun parseNaturalytelser(data: JsonNode): List<Naturalytelse> {
@@ -57,11 +58,15 @@ fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String
         arbeidsgiver,
         parseBehandlingsdager(data.get("behandlingsdager")),
         parseEgenmeldinger(data.get("egenmeldingsperioder")),
+        LocalDate.now(),
+        emptyList(), // Todo
+        emptyList(), // Todo
         parseBruttoInntekt(data.get("bruttoInntekt")),
         parseFullLønnIPerioden(data.get("fullLønnIArbeidsgiverPerioden")),
         parseHeleEllerDeler(data.get("heleEllerdeler")),
         parseNaturalytelser(data.get("naturalytelser")),
-        data.get("bekreftOpplysninger").asBoolean()
+        data.get("bekreftOpplysninger").asBoolean(),
+        LocalDateTime.now()
     )
 }
 

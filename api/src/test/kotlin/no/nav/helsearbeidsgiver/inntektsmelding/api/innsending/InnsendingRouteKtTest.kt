@@ -29,8 +29,7 @@ class InnsendingRouteKtTest : ApiTest() {
     val GYLDIG_REQUEST = GYLDIG
     val UGYLDIG_REQUEST = GYLDIG.copy(
         identitetsnummer = TestData.notValidIdentitetsnummer,
-        orgnrUnderenhet = TestData.notValidOrgNr,
-        refusjonPrMnd = -1.0
+        orgnrUnderenhet = TestData.notValidOrgNr
     )
 
     val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning("verdi"))
@@ -60,7 +59,7 @@ class InnsendingRouteKtTest : ApiTest() {
         assertNotNull(response.bodyAsText())
         val data: String = response.bodyAsText()
         val violations = objectMapper.readValue<ValidationResponse>(data).errors
-        assertEquals(3, violations.size)
+        assertEquals(2, violations.size)
         assertEquals("orgnrUnderenhet", violations[0].property)
         assertEquals("identitetsnummer", violations[1].property)
     }
@@ -89,6 +88,6 @@ class InnsendingRouteKtTest : ApiTest() {
         assertNotNull(response.bodyAsText())
         val data: String = response.bodyAsText()
         val violations = objectMapper.readValue<ValidationResponse>(data).errors
-        assertEquals(3, violations.size)
+        assertEquals(2, violations.size)
     }
 }

@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import java.time.LocalDate
 
 @Serializable
-data class Egenmelding(
+data class EgenmeldingPeriode(
     val fom: LocalDate,
     val tom: LocalDate
 )

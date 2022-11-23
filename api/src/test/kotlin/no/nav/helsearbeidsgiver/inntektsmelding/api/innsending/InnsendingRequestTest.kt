@@ -16,7 +16,6 @@ internal class InnsendingRequestTest {
     private val NOW = LocalDate.now()
     private val MAX_INNTEKT: Double = 1_000_001.0
     private val MAX_REFUSJON: Double = 1_000_001.0
-    private val BELØP_NULL: Double = 0.0
     private val NEGATIVT_BELØP: Double = -0.1
     private val MAX_NATURAL_BELØP: Double = 1_000_000.0
 
@@ -51,104 +50,80 @@ internal class InnsendingRequestTest {
     }
 
     @Test
-    fun `skal gi feilmelding når behandlingsperiode tom er før fom`() {
-        assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(behandlingsdagerFom = NOW, behandlingsdagerTom = NOW.minusDays(3)).validate()
-        }
-        GYLDIG.copy(behandlingsdagerFom = NOW, behandlingsdagerTom = NOW.plusDays(3)).validate()
-    }
-
-    @Test
     fun `skal godta tom liste med behandlingsdager`() {
         GYLDIG.copy(behandlingsdager = emptyList()).validate()
     }
 
     @Test
-    fun `skal gi feil dersom det er brudd på regler for behandlingsdager`() {
-        // TODO
-    }
-
-    @Test
     fun `skal godta tom liste med egenmeldinger`() {
-        GYLDIG.copy(egenmeldinger = emptyList()).validate()
+        GYLDIG.copy(egenmeldingsperioder = emptyList()).validate()
     }
 
     @Test
     fun `skal ikke godta egenmeldinger hvor tom er før fom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(egenmeldinger = listOf(Egenmelding(NOW.plusDays(1), NOW))).validate()
-        }
-    }
-
-    @Test
-    fun `skal gi feil dersom bruttoInntekt er tom`() {
-        assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(bruttoInntekt = 0.0).validate()
+            GYLDIG.copy(egenmeldingsperioder = listOf(EgenmeldingPeriode(NOW.plusDays(1), NOW))).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt er for høy`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(bruttoInntekt = MAX_INNTEKT).validate()
+            val inntekt = GYLDIG.bruttoInntekt.copy()
+            inntekt.bruttoInntekt = MAX_INNTEKT
+            GYLDIG.copy(bruttoInntekt = inntekt).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt er negativ`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(bruttoInntekt = NEGATIVT_BELØP).validate()
+            val inntekt = GYLDIG.bruttoInntekt.copy()
+            inntekt.bruttoInntekt = NEGATIVT_BELØP
+            GYLDIG.copy(bruttoInntekt = inntekt).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt ikke er bekreftet`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(bruttoBekreftet = false).validate()
+            val inntekt = GYLDIG.bruttoInntekt.copy()
+            inntekt.bekreftet = false
+            GYLDIG.copy(bruttoInntekt = inntekt).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom arbeidsgiver ikke betaler lønn og refusjonsbeløp er tom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(utbetalerFull = true, refusjonPrMnd = BELØP_NULL).validate()
+            GYLDIG.copy(fullLønnIArbeidsgiverPerioden = FullLønnIArbeidsgiverPerioden(false)).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom refusjonsbeløp er for høyt`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(utbetalerFull = true, refusjonPrMnd = MAX_REFUSJON).validate()
+            GYLDIG.copy(heleEllerdeler = HeleEllerdeler(true, MAX_REFUSJON)).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom refusjonsbeløp er negativt`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(utbetalerFull = true, refusjonPrMnd = NEGATIVT_BELØP).validate()
+            GYLDIG.copy(heleEllerdeler = HeleEllerdeler(true, NEGATIVT_BELØP, LocalDate.now())).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom refusjonskravet opphører i perioden og dato er tom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(opphørerKravet = true, opphørSisteDag = null).validate()
+            GYLDIG.copy(heleEllerdeler = HeleEllerdeler(true, NEGATIVT_BELØP)).validate()
         }
-    }
-
-    @Test
-    fun `skal ikke gi feil dersom refusjonskravet opphører i perioden og dato er tom`() {
-        GYLDIG.copy(opphørerKravet = false, opphørSisteDag = null).validate()
     }
 
     @Test
     fun `skal godta tom liste med naturalytelser`() {
         GYLDIG.copy(naturalytelser = emptyList()).validate()
-    }
-
-    @Test
-    fun `skal ikke godta ytelse som ikke er i lista`() {
-        // TODO
     }
 
     @Test

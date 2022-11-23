@@ -13,27 +13,45 @@ import org.valiktor.functions.isGreaterThan
 import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isNotNull
 import org.valiktor.functions.isTrue
+import org.valiktor.functions.validate
 import org.valiktor.functions.validateForEach
 import org.valiktor.validate
 import java.time.LocalDate
 
 @Serializable
-data class InnsendingRequest(
-    val orgnrUnderenhet: String,
-    val identitetsnummer: String,
-    val behandlingsdagerFom: LocalDate,
-    val behandlingsdagerTom: LocalDate,
-    val behandlingsdager: List<LocalDate>,
-    val egenmeldinger: List<Egenmelding>,
-    val bruttoInntekt: Double,
-    val bruttoBekreftet: Boolean,
-    val utbetalerFull: Boolean,
-    val begrunnelseRedusert: BegrunnelseIngenEllerRedusertUtbetalingKode?,
+data class Bruttoinntekt(
+    var bekreftet: Boolean,
+    var bruttoInntekt: Double,
+    val endringaarsak: String? = null, // TODO Lage enum?
+    val manueltKorrigert: Boolean
+)
+
+@Serializable
+data class FullLønnIArbeidsgiverPerioden(
+    val utbetalerFullLønn: Boolean,
+    val begrunnelse: BegrunnelseIngenEllerRedusertUtbetalingKode? = null
+)
+
+@Serializable
+data class HeleEllerdeler(
     val utbetalerHeleEllerDeler: Boolean,
-    val refusjonPrMnd: Double?,
-    val opphørerKravet: Boolean?,
-    val opphørSisteDag: LocalDate?,
-    val naturalytelser: List<Naturalytelse>,
+    val refusjonPrMnd: Double? = null,
+    val opphørSisteDag: LocalDate? = null
+)
+
+@Serializable
+data class InnsendingRequest(
+    val orgnrUnderenhet: String, // OK
+    val identitetsnummer: String, // OK
+    val behandlingsdager: List<LocalDate>, // OK
+    val egenmeldingsperioder: List<EgenmeldingPeriode>,
+    val bruttoInntekt: Bruttoinntekt,
+    // Betaljer arbeidsgiver full lønn til arbeidstaker
+    val fullLønnIArbeidsgiverPerioden: FullLønnIArbeidsgiverPerioden,
+    // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
+    val heleEllerdeler: HeleEllerdeler,
+    // Naturalytelser
+    val naturalytelser: List<Naturalytelse>? = null,
     val bekreftOpplysninger: Boolean
 ) {
     fun validate() {
@@ -45,30 +63,33 @@ data class InnsendingRequest(
             validate(InnsendingRequest::identitetsnummer).isNotNull()
             validate(InnsendingRequest::identitetsnummer).isIdentitetsnummer()
             // Fraværsperiode
-            validate(InnsendingRequest::behandlingsdagerFom).isNotNull()
-            validate(InnsendingRequest::behandlingsdagerTom).isNotNull()
-            validate(InnsendingRequest::behandlingsdagerTom).isGreaterThan(behandlingsdagerFom)
             validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
             // Egenmelding
-            validate(InnsendingRequest::egenmeldinger).validateForEach {
-                validate(Egenmelding::fom).isNotNull()
-                validate(Egenmelding::tom).isNotNull()
-                validate(Egenmelding::tom).isGreaterThan(it.fom)
+            validate(InnsendingRequest::egenmeldingsperioder).validateForEach {
+                validate(EgenmeldingPeriode::fom).isNotNull()
+                validate(EgenmeldingPeriode::tom).isNotNull()
+                validate(EgenmeldingPeriode::tom).isGreaterThan(it.fom)
             }
             // Brutto inntekt
-            validate(InnsendingRequest::bruttoInntekt).isGreaterThan(0.0)
-            validate(InnsendingRequest::bruttoInntekt).isLessThan(1_000_000.0)
-            validate(InnsendingRequest::bruttoBekreftet).isTrue()
-            // Refusjon til arbeidsgiver
-            if (!utbetalerFull) {
-                validate(InnsendingRequest::begrunnelseRedusert).isNotNull()
+            validate(InnsendingRequest::bruttoInntekt).validate {
+                validate(Bruttoinntekt::bekreftet).isTrue()
+                validate(Bruttoinntekt::bruttoInntekt).isGreaterThan(0.0)
+                validate(Bruttoinntekt::bruttoInntekt).isLessThan(1_000_000.0)
+                if (it.manueltKorrigert) {
+                    validate(Bruttoinntekt::endringaarsak).isNotNull()
+                }
             }
-            if (utbetalerHeleEllerDeler) {
-                validate(InnsendingRequest::refusjonPrMnd).isGreaterThan(0.0)
-                validate(InnsendingRequest::refusjonPrMnd).isLessThan(1_000_000.0)
-                validate(InnsendingRequest::opphørerKravet).isNotNull()
-                if (opphørerKravet!!) {
-                    validate(InnsendingRequest::opphørSisteDag).isNotNull()
+            // Betaler arbeidsgiver full lønn til arbeidstaker
+            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {
+                if (!it.utbetalerFullLønn) {
+                    validate(FullLønnIArbeidsgiverPerioden::begrunnelse).isNotNull()
+                }
+            }
+            // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
+            validate(InnsendingRequest::heleEllerdeler).validate {
+                if (it.utbetalerHeleEllerDeler) {
+                    validate(HeleEllerdeler::refusjonPrMnd).isGreaterThan(0.0)
+                    validate(HeleEllerdeler::refusjonPrMnd).isLessThan(1_000_000.0)
                 }
             }
             // Naturalytelser

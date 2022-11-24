@@ -46,7 +46,7 @@ fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingD
                     DokumentVariant(
                         filtype = "PDFA",
                         variantFormat = "ARKIV",
-                        fysiskDokument = Base64.getEncoder().encodeToString(PdfDokument().export(inntektsmelding)),
+                        fysiskDokument = Base64.getEncoder().encodeToString(PdfDokument(inntektsmelding).export()),
                         filnavn = "ari-$uuid.pdf"
                     )
                 )

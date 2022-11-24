@@ -16,22 +16,22 @@ internal class PdfDokumentTest {
         fulltNavn = "Ola Normann",
         virksomhetNavn = "Norge AS",
         behandlingsdager = listOf(dag),
-        egenmeldingsperioder = listOf(Periode(dag, dag.plusDays(2))),
+        egenmeldingsperioder = listOf(Periode(dag, dag.plusDays(2)), Periode(dag.plusDays(3), dag.plusDays(4))),
         bruttoInntekt = Bruttoinntekt(true, 25000.0, "Ingen årsak", true),
         fullLønnIArbeidsgiverPerioden = FullLønnIArbeidsgiverPerioden(true, begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent),
         heleEllerdeler = HeleEllerdeler(true, 25000.0, dag.plusDays(3)),
         naturalytelser = listOf(Naturalytelse("asd", dag.plusDays(5), 350.0)),
         bekreftOpplysninger = true,
-        fravaersperioder = emptyList(),
-        arbeidsgiverperioder = emptyList(),
-        bestemmendeFraværsdag = dag.plusDays(6),
+        fravaersperioder = listOf(Periode(dag, dag.plusDays(55))),
+        arbeidsgiverperioder = listOf(Periode(dag, dag.plusDays(80))),
+        bestemmendeFraværsdag = dag.plusDays(90),
         tidspunkt = LocalDateTime.now()
     )
 
     @Test
     fun `skal lage kvittering`() {
-        val file = File.createTempFile("kvittering", "pdf")
+        val file = File(System.getProperty("user.home"), "/Desktop/inntektsmelding.pdf")
         val writer = FileOutputStream(file)
-        writer.write(PdfDokument().export(im))
+        writer.write(PdfDokument(im).export())
     }
 }

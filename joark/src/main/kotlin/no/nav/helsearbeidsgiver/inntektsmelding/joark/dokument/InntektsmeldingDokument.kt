@@ -22,11 +22,8 @@ data class InntektsmeldingDokument(
     val fravaersperioder: List<Periode>,
     val arbeidsgiverperioder: List<Periode>,
     val bruttoInntekt: Bruttoinntekt,
-    // Betaljer arbeidsgiver full lønn til arbeidstaker
     val fullLønnIArbeidsgiverPerioden: FullLønnIArbeidsgiverPerioden,
-    // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
     val heleEllerdeler: HeleEllerdeler,
-    // Naturalytelser
     val naturalytelser: List<Naturalytelse>? = null,
     val bekreftOpplysninger: Boolean,
     val tidspunkt: LocalDateTime

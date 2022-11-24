@@ -5,9 +5,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 fun LocalDate.toNorsk(): String {
-    return this.toString()
+    return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 }
 
 fun LocalDateTime.toNorsk(): String {
@@ -22,33 +23,61 @@ fun Boolean.toNorsk(): String {
     return if (this) { "Ja" } else { "Nei" }
 }
 
-class PdfDokument {
+class PdfDokument(val inntektsmeldingDokument: InntektsmeldingDokument) {
 
-    fun export(inntektsmeldingDokument: InntektsmeldingDokument): ByteArray {
-        val b = PdfBuilder()
-        b.addTitle("Kvittering - innsendt inntektsmelding", 0, 0)
-        // ------------------- Ansatt
-        val kolonneTo = 420
-        val ansatteY = 60
+    private val b = PdfBuilder()
+    private var y = 0
+    private val kolonneTo = 420
+    private val SPACING = 30
+
+    fun moveCursorBy(y: Int) {
+        this.y += y
+    }
+
+    fun addHeader() {
+        b.addTitle("Kvittering - innsendt inntektsmelding", 0, y)
+        moveCursorBy(60)
+    }
+
+    fun addAnsatte() {
+        val ansatteY = y
         b.addSection("Den ansatte", 0, ansatteY)
         lagLabel(b, 0, ansatteY + 47, "Navn", inntektsmeldingDokument.fulltNavn)
         lagLabel(b, 420, ansatteY + 47, "Personnummer", inntektsmeldingDokument.identitetsnummer)
-        val arbeidsgiverY = 190
-        // ------------------- Arbeidsgiver
+        y += 120
+    }
+
+    fun addArbeidsgiver() {
+        val arbeidsgiverY = y
         b.addSection("Arbeidsgiveren", 0, arbeidsgiverY)
         lagLabel(b, 0, arbeidsgiverY + 47, "Virksomhetsnavn", inntektsmeldingDokument.virksomhetNavn)
         lagLabel(b, kolonneTo, arbeidsgiverY + 47, "Organisasjonsnummer for underenhet", inntektsmeldingDokument.orgnrUnderenhet)
+    }
+
+    fun export(): ByteArray {
+        addHeader()
+        addAnsatte()
+        addArbeidsgiver()
+
         val fraværsperiodeY = 360
         b.addLine(0, fraværsperiodeY - 30)
+
         // ------------------- Fraværsperiode
         b.addSection("Fraværsperiode", 0, fraværsperiodeY)
         b.addBold("Egenmelding", 0, fraværsperiodeY + 35)
-        lagPeriode(b, 0, fraværsperiodeY + 80, "01.10.2021", "06.10.2021")
+        var egenmeldingIndex = 1
+        inntektsmeldingDokument.egenmeldingsperioder.forEach {
+            lagPeriode(b, 0, fraværsperiodeY + 80 + egenmeldingIndex * 30, it.fom.toNorsk(), it.tom.toNorsk())
+            egenmeldingIndex++
+        }
+
         b.addBold("Fravær knyttet til sykmelding", 0, fraværsperiodeY + 145)
         val antalFravær = 3
         val fraværY = fraværsperiodeY + 180
-        for (i in 1..antalFravær) {
-            lagPeriode(b, 0, fraværY + (i - 1) * 60, "01.10.2021", "06.10.2021")
+        var i = 1
+        inntektsmeldingDokument.fravaersperioder.forEach {
+            lagPeriode(b, 0, fraværY + (i - 1) * 60, it.fom.toNorsk(), it.tom.toNorsk())
+            i++
         }
         val bestemmendeX = 430
         val bestemmendeY = 420
@@ -61,7 +90,9 @@ class PdfDokument {
             "Arbeidsgiverperiode",
             "Arbeidsgivers har ansvar vanligvis for å betale lønn til den sykemeldte under arbeidsgiverperioden"
         )
-        lagPeriode(b, bestemmendeX, bestemmendeY + 180, "01.10.2021", "16.10.2021")
+        inntektsmeldingDokument.arbeidsgiverperioder.forEach {
+            lagPeriode(b, bestemmendeX, bestemmendeY + 180, it.fom.toNorsk(), it.tom.toNorsk())
+        }
         // ------------------- Bruttoinntekt
         val bruttoInntektY = fraværY + (antalFravær * 60) + 30
         b.addLine(0, bruttoInntektY)

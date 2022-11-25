@@ -44,7 +44,7 @@ Content-Type: application/json
   },
   "naturalytelser": [
     {
-      "naturalytelseKode": "kostDoegn",
+      "naturalytelse": "kostDoegn",
       "dato": "2022-10-21",
       "beløp": 300.0
     }

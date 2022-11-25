@@ -108,7 +108,7 @@ data class InnsendingRequest(
             }
             // Naturalytelser
             validate(InnsendingRequest::naturalytelser).validateForEach {
-                validate(Naturalytelse::naturalytelseKode).isNotNull()
+                validate(Naturalytelse::naturalytelse).isNotNull()
                 validate(Naturalytelse::dato).isNotNull()
                 validate(Naturalytelse::beløp).isNotNull()
                 validate(Naturalytelse::beløp).isGreaterThan(0.0)

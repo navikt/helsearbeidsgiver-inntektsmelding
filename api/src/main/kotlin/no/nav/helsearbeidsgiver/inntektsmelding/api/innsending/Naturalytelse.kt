@@ -9,7 +9,7 @@ import java.time.LocalDate
 
 @Serializable
 data class Naturalytelse(
-    val naturalytelseKode: NaturalytelseKode,
+    val naturalytelse: NaturalytelseKode,
     val dato: LocalDate,
     val beløp: Double
 )

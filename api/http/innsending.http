@@ -14,24 +14,19 @@ Content-Type: application/json
       "tom": "2022-10-23"
     }
   ],
-  "bruttoInntekt": {
-    "bekreftet": true,
-    "bruttoInntekt": 32100.0,
-    "endringaarsak": "asd",
-    "manueltKorrigert": true
-  },
+  "beregnetInntekt": 32100.0,
+  "beregnetInntektEndringÅrsak": "Tariffendring",
   "fullLønnIArbeidsgiverPerioden": {
     "utbetalerFullLønn": true,
     "begrunnelse": "ArbeidOpphoert"
   },
-  "heleEllerdeler": {
-    "utbetalerHeleEllerDeler": true,
+  "refusjon": {
     "refusjonPrMnd": 2500.0,
-    "opphørSisteDag": "2022-10-21"
+    "refusjonOpphører": "2022-10-21"
   },
   "naturalytelser": [
     {
-      "naturalytelseKode": "kostDoegn",
+      "naturalytelse": "Bil",
       "dato": "2022-10-21",
       "beløp": 300.0
     }

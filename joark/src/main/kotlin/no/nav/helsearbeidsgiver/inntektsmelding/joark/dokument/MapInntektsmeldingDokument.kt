@@ -23,16 +23,13 @@ fun parseEgenmeldinger(data: JsonNode): List<Periode> {
 }
 
 fun parseNaturalytelser(data: JsonNode): List<Naturalytelse> {
-    return data.map { Naturalytelse(it.get("naturalytelseKode").asText(), it.get("dato").asLocalDate(), it.get("beløp").asDouble()) }
-}
-
-fun parseBruttoInntekt(data: JsonNode): Bruttoinntekt {
-    return Bruttoinntekt(
-        data.get("bekreftet").asBoolean(),
-        data.get("bruttoInntekt").asDouble(),
-        data.get("endringaarsak").asText(),
-        data.get("manueltKorrigert").asBoolean()
-    )
+    return data.map {
+        Naturalytelse(
+            NaturalytelseKode.valueOf(it.get("naturalytelse").asText()),
+            it.get("dato").asLocalDate(),
+            it.get("beløp").asDouble()
+        )
+    }
 }
 
 fun parseFullLønnIPerioden(data: JsonNode): FullLønnIArbeidsgiverPerioden {
@@ -42,11 +39,10 @@ fun parseFullLønnIPerioden(data: JsonNode): FullLønnIArbeidsgiverPerioden {
     )
 }
 
-fun parseHeleEllerDeler(data: JsonNode): HeleEllerdeler {
-    return HeleEllerdeler(
-        data.get("utbetalerHeleEllerDeler").asBoolean(),
+fun parseHeleEllerDeler(data: JsonNode): Refusjon {
+    return Refusjon(
         data.get("refusjonPrMnd").asDouble(),
-        data.get("opphørSisteDag").asLocalDate()
+        data.get("refusjonOpphører").asLocalDate()
     )
 }
 
@@ -58,15 +54,17 @@ fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String
         arbeidsgiver,
         parseBehandlingsdager(data.get("behandlingsdager")),
         parseEgenmeldinger(data.get("egenmeldingsperioder")),
-        LocalDate.now(),
-        emptyList(), // Todo
-        emptyList(), // Todo
-        parseBruttoInntekt(data.get("bruttoInntekt")),
+        LocalDate.now(), // TODO Bestemmende fraværsdag
+        emptyList(), // Todo Fraværsperioder
+        emptyList(), // TODO Arbeidsgiverperioder
+        data.get("beregnetInntekt").asDouble(),
+        ÅrsakBeregnetInntektEndringKodeliste.valueOf(data.get("beregnetInntektEndringÅrsak").asText()),
         parseFullLønnIPerioden(data.get("fullLønnIArbeidsgiverPerioden")),
-        parseHeleEllerDeler(data.get("heleEllerdeler")),
+        parseHeleEllerDeler(data.get("refusjon")),
         parseNaturalytelser(data.get("naturalytelser")),
-        data.get("bekreftOpplysninger").asBoolean(),
-        LocalDateTime.now()
+        LocalDateTime.now(), // TODO Innsendingstidspunkt
+        ÅrsakInnsending.valueOf(data.get("årsakInnsending").asText()),
+        data.get("identitetsnummerInnsender").asText()
     )
 }
 

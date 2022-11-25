@@ -75,7 +75,7 @@ class PdfDokument(val inntektsmeldingDokument: InntektsmeldingDokument) {
         val antalFravær = 3
         val fraværY = fraværsperiodeY + 180
         var i = 1
-        inntektsmeldingDokument.fravaersperioder.forEach {
+        inntektsmeldingDokument.fraværsperioder.forEach {
             lagPeriode(b, 0, fraværY + (i - 1) * 60, it.fom.toNorsk(), it.tom.toNorsk())
             i++
         }
@@ -98,20 +98,20 @@ class PdfDokument(val inntektsmeldingDokument: InntektsmeldingDokument) {
         b.addLine(0, bruttoInntektY)
         b.addSection("Bruttoinntekt siste 3 måneder", 0, bruttoInntektY + 30)
         b.addBold("Registrert inntekt (per ${inntektsmeldingDokument.tidspunkt.toLocalDate().toNorsk()})", 0, bruttoInntektY + 60)
-        b.addBody(inntektsmeldingDokument.bruttoInntekt.bruttoInntekt.toNorsk() + " kr/måned", 0, bruttoInntektY + 90)
+        b.addBody(inntektsmeldingDokument.beregnetInntekt.toNorsk() + " kr/måned", 0, bruttoInntektY + 90)
         // ------------------- Refusjon
         val refusjonY = bruttoInntektY + 180
         b.addLine(0, refusjonY - 30)
         b.addSection("Refusjon", 0, refusjonY)
         val full = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden
-        val deler = inntektsmeldingDokument.heleEllerdeler
+        val refusjon = inntektsmeldingDokument.refusjon
         lagLabel(b, 0, refusjonY + 50, "Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", full.utbetalerFullLønn.toNorsk())
         lagLabel(b, 0, refusjonY + 100, "Begrunnelse", full.begrunnelse?.name ?: "-")
         lagLabel(b, 0, refusjonY + 150, "Utbetalt under arbeidsgiverperiode", (full.utbetalt?.toNorsk() ?: "-") + " kr")
-        lagLabel(b, 0, refusjonY + 200, "Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", deler.utbetalerHeleEllerDeler.toNorsk())
-        lagLabel(b, 0, refusjonY + 250, "Refusjonsbeløp pr måned", (deler.refusjonPrMnd?.toNorsk() ?: "-") + " kr/måned") // Arbeidsgiver
-        lagLabel(b, 0, refusjonY + 300, "Opphører refusjonskravet i perioden", deler.opphørSisteDag?.toNorsk() ?: "-")
-        lagLabel(b, 0, refusjonY + 350, "Siste dag dere krever refusjon for", deler.opphørSisteDag?.toNorsk() ?: "-")
+        lagLabel(b, 0, refusjonY + 200, "Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", "Ja")
+        lagLabel(b, 0, refusjonY + 250, "Refusjonsbeløp pr måned", (refusjon.refusjonPrMnd?.toNorsk() ?: "-") + " kr/måned") // Arbeidsgiver
+        lagLabel(b, 0, refusjonY + 300, "Opphører refusjonskravet i perioden", refusjon.refusjonOpphører?.toNorsk() ?: "-")
+        lagLabel(b, 0, refusjonY + 350, "Siste dag dere krever refusjon for", refusjon.refusjonOpphører?.toNorsk() ?: "-")
         val naturalytelseY = refusjonY + 450
         val antallNaturalytelser = inntektsmeldingDokument.naturalytelser?.size ?: 0
         b.addLine(0, naturalytelseY - 30)

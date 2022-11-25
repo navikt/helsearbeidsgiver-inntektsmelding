@@ -19,7 +19,7 @@ fun mapXmlDokument(inntektsmeldingDokument: InntektsmeldingDokument): String {
         <arbeidsforhold>
             <foersteFravaersdag>2018-10-26</foersteFravaersdag>
             <beregnetInntekt>
-                <beloep>${inntektsmeldingDokument.bruttoInntekt}</beloep>
+                <beloep>${inntektsmeldingDokument.beregnetInntekt}</beloep>
             </beregnetInntekt>
         </arbeidsforhold>
         <sykepengerIArbeidsgiverperioden>

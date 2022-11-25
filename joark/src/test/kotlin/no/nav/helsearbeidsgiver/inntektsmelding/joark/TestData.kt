@@ -10,27 +10,23 @@ val IM_VALID = mapOf(
         mapOf("fom" to "2022-09-01", "tom" to "2022-09-05"),
         mapOf("fom" to "2022-09-06", "tom" to "2022-09-15")
     ),
-    "bruttoInntekt" to mapOf(
-        "bruttoInntekt" to "25300",
-        "bekreftet" to "true",
-        "endringaarsak" to "Årsak",
-        "manueltKorrigert" to "true"
-    ),
+    "beregnetInntekt" to "25300",
+    "beregnetInntektEndringÅrsak" to "Tariffendring",
     "fullLønnIArbeidsgiverPerioden" to mapOf(
         "utbetalerFullLønn" to "true",
         "begrunnelse" to "BeskjedGittForSent"
     ),
-    "heleEllerdeler" to mapOf(
-        "utbetalerHeleEllerDeler" to "true",
+    "refusjon" to mapOf(
         "refusjonPrMnd" to "123123",
-        "opphørSisteDag" to "2022-09-06"
+        "refusjonOpphører" to "2022-09-06"
     ),
     "naturalytelser" to listOf(
         mapOf(
-            "naturalytelseKode" to "abc",
+            "naturalytelse" to "Bil",
             "dato" to "2022-08-08",
             "beløp" to "123"
         )
     ),
-    "bekreftOpplysninger" to "true"
+    "årsakInnsending" to "Endring",
+    "identitetsnummerInnsender" to "456"
 )

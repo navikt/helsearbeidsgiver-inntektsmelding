@@ -17,15 +17,17 @@ internal class PdfDokumentTest {
         virksomhetNavn = "Norge AS",
         behandlingsdager = listOf(dag),
         egenmeldingsperioder = listOf(Periode(dag, dag.plusDays(2)), Periode(dag.plusDays(3), dag.plusDays(4))),
-        bruttoInntekt = Bruttoinntekt(true, 25000.0, "Ingen årsak", true),
+        beregnetInntektEndringÅrsak = ÅrsakBeregnetInntektEndringKodeliste.FeilInntekt,
+        beregnetInntekt = 25000.0,
         fullLønnIArbeidsgiverPerioden = FullLønnIArbeidsgiverPerioden(true, begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent),
-        heleEllerdeler = HeleEllerdeler(true, 25000.0, dag.plusDays(3)),
-        naturalytelser = listOf(Naturalytelse("asd", dag.plusDays(5), 350.0)),
-        bekreftOpplysninger = true,
-        fravaersperioder = listOf(Periode(dag, dag.plusDays(55))),
+        refusjon = Refusjon(25000.0, dag.plusDays(3)),
+        naturalytelser = listOf(Naturalytelse(NaturalytelseKode.Bil, dag.plusDays(5), 350.0)),
+        fraværsperioder = listOf(Periode(dag, dag.plusDays(55))),
         arbeidsgiverperioder = listOf(Periode(dag, dag.plusDays(80))),
         bestemmendeFraværsdag = dag.plusDays(90),
-        tidspunkt = LocalDateTime.now()
+        tidspunkt = LocalDateTime.now(),
+        årsakInnsending = ÅrsakInnsending.Ny,
+        identitetsnummerInnsender = "123123123123123"
     )
 
     @Test

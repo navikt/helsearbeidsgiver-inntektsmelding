@@ -19,14 +19,16 @@ data class InntektsmeldingDokument(
     val behandlingsdager: List<LocalDate>,
     val egenmeldingsperioder: List<Periode>,
     val bestemmendeFraværsdag: LocalDate,
-    val fravaersperioder: List<Periode>,
+    val fraværsperioder: List<Periode>,
     val arbeidsgiverperioder: List<Periode>,
-    val bruttoInntekt: Bruttoinntekt,
+    var beregnetInntekt: Double,
+    val beregnetInntektEndringÅrsak: ÅrsakBeregnetInntektEndringKodeliste? = null,
     val fullLønnIArbeidsgiverPerioden: FullLønnIArbeidsgiverPerioden,
-    val heleEllerdeler: HeleEllerdeler,
+    val refusjon: Refusjon,
     val naturalytelser: List<Naturalytelse>? = null,
-    val bekreftOpplysninger: Boolean,
-    val tidspunkt: LocalDateTime
+    val tidspunkt: LocalDateTime,
+    val årsakInnsending: ÅrsakInnsending,
+    val identitetsnummerInnsender: String
 )
 
 @Serializable
@@ -37,17 +39,9 @@ data class Periode(
 
 @Serializable
 data class Naturalytelse(
-    val naturalytelseKode: String,
+    val naturalytelse: NaturalytelseKode,
     val dato: LocalDate,
     val beløp: Double
-)
-
-@Serializable
-data class Bruttoinntekt(
-    var bekreftet: Boolean,
-    var bruttoInntekt: Double,
-    val endringaarsak: String? = null, // TODO Lage enum?
-    val manueltKorrigert: Boolean
 )
 
 @Serializable
@@ -58,10 +52,9 @@ data class FullLønnIArbeidsgiverPerioden(
 )
 
 @Serializable
-data class HeleEllerdeler(
-    val utbetalerHeleEllerDeler: Boolean,
+data class Refusjon(
     val refusjonPrMnd: Double? = null,
-    val opphørSisteDag: LocalDate? = null
+    val refusjonOpphører: LocalDate? = null
 )
 
 enum class BegrunnelseIngenEllerRedusertUtbetalingKode {
@@ -80,4 +73,39 @@ enum class BegrunnelseIngenEllerRedusertUtbetalingKode {
     FerieEllerAvspasering,
     IkkeFullStillingsandel,
     TidligereVirksomhet
+}
+
+@Serializable
+enum class ÅrsakInnsending {
+    Ny,
+    Endring
+}
+
+@Serializable
+enum class ÅrsakBeregnetInntektEndringKodeliste {
+    Tariffendring,
+    FeilInntekt
+}
+
+@Serializable
+enum class NaturalytelseKode {
+    AksjerGrunnfondsbevisTilUnderkurs,
+    Losji,
+    KostDoegn,
+    BesoeksreiserHjemmetAnnet,
+    KostbesparelseIHjemmet,
+    RentefordelLaan,
+    Bil,
+    KostDager,
+    Bolig,
+    SkattepliktigDelForsikringer,
+    FriTransport,
+    Opsjoner,
+    TilskuddBarnehageplass,
+    Annet,
+    Bedriftsbarnehageplass,
+    YrkebilTjenestligbehovKilometer,
+    YrkebilTjenestligbehovListepris,
+    InnbetalingTilUtenlandskPensjonsordning,
+    ElektroniskKommunikasjon
 }

@@ -7,7 +7,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.IM_VALID
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -45,15 +44,12 @@ internal class MapInntektsmeldingDokumentKtTest {
             ),
             im.egenmeldingsperioder
         )
-        assertNotNull(im.bruttoInntekt)
-        assertEquals(25300.0, im.bruttoInntekt.bruttoInntekt)
-        assertEquals(true, im.bruttoInntekt.bekreftet)
+        assertEquals(25300.0, im.beregnetInntekt)
         assertEquals(true, im.fullLønnIArbeidsgiverPerioden.utbetalerFullLønn)
         assertEquals("BeskjedGittForSent", im.fullLønnIArbeidsgiverPerioden.begrunnelse?.name)
-        assertEquals(true, im.heleEllerdeler.utbetalerHeleEllerDeler)
-        assertEquals(123123.0, im.heleEllerdeler.refusjonPrMnd)
-        assertEquals(LocalDate.of(2022, 9, 6), im.heleEllerdeler.opphørSisteDag)
-        assertEquals(listOf(Naturalytelse("abc", LocalDate.of(2022, 8, 8), 123.0)), im.naturalytelser)
-        assertEquals(true, im.bekreftOpplysninger)
+        // assertEquals(true, im.refusjon.utbetalerHeleEllerDeler)
+        assertEquals(123123.0, im.refusjon.refusjonPrMnd)
+        assertEquals(LocalDate.of(2022, 9, 6), im.refusjon.refusjonOpphører)
+        assertEquals(listOf(Naturalytelse(NaturalytelseKode.Bil, LocalDate.of(2022, 8, 8), 123.0)), im.naturalytelser)
     }
 }

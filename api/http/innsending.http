@@ -27,9 +27,9 @@ Content-Type: application/json
       "tom": "2022-10-23"
     }
   ],
-  "bruttoInntekt": {
+  "inntekt": {
     "bekreftet": true,
-    "bruttoInntekt": 32100.0,
+    "beregnetInntekt": 32100.0,
     "endringÅrsak": "FeilInntekt",
     "manueltKorrigert": true
   },
@@ -49,6 +49,7 @@ Content-Type: application/json
       "beløp": 300.0
     }
   ],
+  "tidspunkt": "22-09-05 12:13:14",
   "årsakInnsending": "Ny",
   "bekreftOpplysninger": true
 }

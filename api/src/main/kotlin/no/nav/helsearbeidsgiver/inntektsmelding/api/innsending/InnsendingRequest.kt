@@ -19,9 +19,9 @@ import org.valiktor.validate
 import java.time.LocalDate
 
 @Serializable
-data class Bruttoinntekt(
+data class Inntekt(
     var bekreftet: Boolean,
-    var bruttoInntekt: Double,
+    var beregnetInntekt: Double,
     val endringÅrsak: ÅrsakBeregnetInntektEndringKodeliste? = null,
     val manueltKorrigert: Boolean
 )
@@ -61,7 +61,7 @@ data class InnsendingRequest(
     val arbeidsgiverperioder: List<Periode>,
     val bestemmendeFraværsdag: LocalDate,
     val fraværsperioder: List<Periode>,
-    val bruttoInntekt: Bruttoinntekt,
+    val inntekt: Inntekt,
     val fullLønnIArbeidsgiverPerioden: FullLønnIArbeidsgiverPerioden,
     val refusjon: Refusjon,
     val naturalytelser: List<Naturalytelse>? = null,
@@ -85,12 +85,12 @@ data class InnsendingRequest(
                 validate(Periode::tom).isGreaterThan(it.fom)
             }
             // Brutto inntekt
-            validate(InnsendingRequest::bruttoInntekt).validate {
-                validate(Bruttoinntekt::bekreftet).isTrue()
-                validate(Bruttoinntekt::bruttoInntekt).isGreaterThan(0.0)
-                validate(Bruttoinntekt::bruttoInntekt).isLessThan(1_000_000.0)
+            validate(InnsendingRequest::inntekt).validate {
+                validate(Inntekt::bekreftet).isTrue()
+                validate(Inntekt::beregnetInntekt).isGreaterThan(0.0)
+                validate(Inntekt::beregnetInntekt).isLessThan(1_000_000.0)
                 if (it.manueltKorrigert) {
-                    validate(Bruttoinntekt::endringÅrsak).isNotNull()
+                    validate(Inntekt::endringÅrsak).isNotNull()
                 }
             }
             // Betaler arbeidsgiver full lønn til arbeidstaker

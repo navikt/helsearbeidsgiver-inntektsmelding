@@ -48,6 +48,13 @@ fun parseRefusjon(data: JsonNode): Refusjon {
     )
 }
 
+fun parseÅrsakBeregnetInntektEndringKodeliste(data: JsonNode): ÅrsakBeregnetInntektEndringKodeliste? {
+    if (!data.isEmpty) {
+        return ÅrsakBeregnetInntektEndringKodeliste.valueOf(data.asText())
+    }
+    return null
+}
+
 fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument {
     return InntektsmeldingDokument(
         data.get("orgnrUnderenhet").asText(),
@@ -59,8 +66,8 @@ fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String
         data.get("bestemmendeFraværsdag").asLocalDate(),
         parsePerioder(data.get("fraværsperioder")),
         parsePerioder(data.get("arbeidsgiverperioder")),
-        data.get("bruttoInntekt").asDouble(),
-        ÅrsakBeregnetInntektEndringKodeliste.valueOf(data.get("beregnetInntektEndringÅrsak").asText()),
+        data.get("inntekt").get("beregnetInntekt").asDouble(),
+        parseÅrsakBeregnetInntektEndringKodeliste(data.get("inntekt").get("endringÅrsak")),
         parseFullLønnIPerioden(data.get("fullLønnIArbeidsgiverPerioden")),
         parseRefusjon(data.get("refusjon")),
         parseNaturalytelser(data.get("naturalytelser")),

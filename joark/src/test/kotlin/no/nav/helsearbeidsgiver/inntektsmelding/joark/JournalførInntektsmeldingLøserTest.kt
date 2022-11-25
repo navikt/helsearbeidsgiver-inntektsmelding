@@ -61,7 +61,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 "uuid" to "uuid",
                 "identitetsnummer" to "000",
                 "orgnrUnderenhet" to "abc",
-                "inntektsmelding" to IM_VALID
+                "inntektsmelding" to INNTEKTMELDING_REQUEST
             )
         )
         assertEquals("Kall mot dokarkiv feilet", løsning.error?.melding)
@@ -77,7 +77,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                "inntektsmelding" to IM_VALID,
+                "inntektsmelding" to INNTEKTMELDING_REQUEST,
                 "session" to mapOf(
                     "Virksomhet" to mapOf(
                         "value" to "Norge AS"

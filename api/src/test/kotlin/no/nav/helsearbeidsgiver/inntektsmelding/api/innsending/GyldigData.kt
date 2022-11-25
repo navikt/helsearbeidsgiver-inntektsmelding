@@ -11,7 +11,7 @@ val GYLDIG = InnsendingRequest(
     emptyList(),
     LocalDate.now(),
     emptyList(),
-    Bruttoinntekt(true, 32100.0, endringÅrsak = null, false),
+    Inntekt(true, 32100.0, endringÅrsak = null, false),
     FullLønnIArbeidsgiverPerioden(true, BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert),
     Refusjon(true, 200.0, LocalDate.now()),
     listOf(Naturalytelse(NaturalytelseKode.kostDoegn, LocalDate.now(), 300.0)),

@@ -5,8 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.IM_VALID
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.INNTEKTMELDING_REQUEST
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -33,7 +34,7 @@ internal class MapInntektsmeldingDokumentKtTest {
 
     @Test
     fun skal_mappe_alle_data() {
-        val im = mapInntektsmeldingDokument(objectMapper.readTree(objectMapper.writeValueAsString(IM_VALID)), fulltNavn, arbeidsgiver)
+        val im = mapInntektsmeldingDokument(objectMapper.readTree(objectMapper.writeValueAsString(INNTEKTMELDING_REQUEST)), fulltNavn, arbeidsgiver)
         assertEquals("123", im.identitetsnummer)
         assertEquals("abc", im.orgnrUnderenhet)
         assertEquals(listOf(LocalDate.of(2022, 10, 27), LocalDate.of(2022, 10, 26)), im.behandlingsdager)
@@ -42,14 +43,33 @@ internal class MapInntektsmeldingDokumentKtTest {
                 Periode(LocalDate.of(2022, 9, 1), LocalDate.of(2022, 9, 5)),
                 Periode(LocalDate.of(2022, 9, 6), LocalDate.of(2022, 9, 15))
             ),
-            im.egenmeldingsperioder
+            im.egenmeldingsperioder,
+            "Egenmeldingsperioder"
         )
-        assertEquals(25300.0, im.beregnetInntekt)
+        assertEquals(
+            listOf(
+                Periode(LocalDate.of(2022, 8, 1), LocalDate.of(2022, 8, 2)),
+                Periode(LocalDate.of(2022, 8, 3), LocalDate.of(2022, 8, 4))
+            ),
+            im.arbeidsgiverperioder,
+            "Arbeidsgiverperioder"
+        )
+        assertEquals(LocalDate.of(2022, 9, 5), im.bestemmendeFraværsdag, "bestemmendeFraværsdag")
+        assertEquals(
+            listOf(
+                Periode(LocalDate.of(2022, 7, 1), LocalDate.of(2022, 7, 2)),
+                Periode(LocalDate.of(2022, 7, 3), LocalDate.of(2022, 7, 4))
+            ),
+            im.fraværsperioder,
+            "Fraværsperioder"
+        )
+        assertEquals(25300.0, im.beregnetInntekt, "beregnetInntekt")
         assertEquals(true, im.fullLønnIArbeidsgiverPerioden.utbetalerFullLønn)
-        assertEquals("BeskjedGittForSent", im.fullLønnIArbeidsgiverPerioden.begrunnelse?.name)
-        // assertEquals(true, im.refusjon.utbetalerHeleEllerDeler)
+        assertEquals("BeskjedGittForSent", im.fullLønnIArbeidsgiverPerioden.begrunnelse?.name, "begrunnelse")
         assertEquals(123123.0, im.refusjon.refusjonPrMnd)
         assertEquals(LocalDate.of(2022, 9, 6), im.refusjon.refusjonOpphører)
         assertEquals(listOf(Naturalytelse(NaturalytelseKode.Bil, LocalDate.of(2022, 8, 8), 123.0)), im.naturalytelser)
+        assertNotNull(im.tidspunkt)
+        assertNotNull(im.identitetsnummerInnsender)
     }
 }

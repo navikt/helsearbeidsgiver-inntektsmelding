@@ -69,27 +69,27 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom bruttoInntekt er for høy`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG.bruttoInntekt.copy()
-            inntekt.bruttoInntekt = MAX_INNTEKT
-            GYLDIG.copy(bruttoInntekt = inntekt).validate()
+            val inntekt = GYLDIG.inntekt.copy()
+            inntekt.beregnetInntekt = MAX_INNTEKT
+            GYLDIG.copy(inntekt = inntekt).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt er negativ`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG.bruttoInntekt.copy()
-            inntekt.bruttoInntekt = NEGATIVT_BELØP
-            GYLDIG.copy(bruttoInntekt = inntekt).validate()
+            val inntekt = GYLDIG.inntekt.copy()
+            inntekt.beregnetInntekt = NEGATIVT_BELØP
+            GYLDIG.copy(inntekt = inntekt).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt ikke er bekreftet`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG.bruttoInntekt.copy()
+            val inntekt = GYLDIG.inntekt.copy()
             inntekt.bekreftet = false
-            GYLDIG.copy(bruttoInntekt = inntekt).validate()
+            GYLDIG.copy(inntekt = inntekt).validate()
         }
     }
 

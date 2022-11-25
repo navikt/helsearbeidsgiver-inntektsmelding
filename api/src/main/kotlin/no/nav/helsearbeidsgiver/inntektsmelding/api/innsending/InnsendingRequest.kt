@@ -22,7 +22,7 @@ import java.time.LocalDate
 data class Bruttoinntekt(
     var bekreftet: Boolean,
     var bruttoInntekt: Double,
-    val endringaarsak: String? = null, // TODO Lage enum?
+    val endringÅrsak: ÅrsakBeregnetInntektEndringKodeliste? = null,
     val manueltKorrigert: Boolean
 )
 
@@ -34,11 +34,17 @@ data class FullLønnIArbeidsgiverPerioden(
 )
 
 @Serializable
-data class HeleEllerdeler(
+data class Refusjon(
     val utbetalerHeleEllerDeler: Boolean,
     val refusjonPrMnd: Double? = null,
-    val opphørSisteDag: LocalDate? = null
+    val refusjonOpphører: LocalDate? = null
 )
+
+@Serializable
+enum class ÅrsakBeregnetInntektEndringKodeliste {
+    Tariffendring,
+    FeilInntekt
+}
 
 @Serializable
 data class InnsendingRequest(
@@ -48,13 +54,10 @@ data class InnsendingRequest(
     val egenmeldingsperioder: List<Periode>,
     val arbeidsgiverperioder: List<Periode>,
     val bestemmendeFraværsdag: LocalDate,
-    val fravaersperioder: List<Periode>,
+    val fraværsperioder: List<Periode>,
     val bruttoInntekt: Bruttoinntekt,
-    // Betaljer arbeidsgiver full lønn til arbeidstaker
     val fullLønnIArbeidsgiverPerioden: FullLønnIArbeidsgiverPerioden,
-    // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
-    val heleEllerdeler: HeleEllerdeler,
-    // Naturalytelser
+    val refusjon: Refusjon,
     val naturalytelser: List<Naturalytelse>? = null,
     val bekreftOpplysninger: Boolean
 ) {
@@ -80,7 +83,7 @@ data class InnsendingRequest(
                 validate(Bruttoinntekt::bruttoInntekt).isGreaterThan(0.0)
                 validate(Bruttoinntekt::bruttoInntekt).isLessThan(1_000_000.0)
                 if (it.manueltKorrigert) {
-                    validate(Bruttoinntekt::endringaarsak).isNotNull()
+                    validate(Bruttoinntekt::endringÅrsak).isNotNull()
                 }
             }
             // Betaler arbeidsgiver full lønn til arbeidstaker
@@ -90,10 +93,10 @@ data class InnsendingRequest(
                 }
             }
             // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
-            validate(InnsendingRequest::heleEllerdeler).validate {
+            validate(InnsendingRequest::refusjon).validate {
                 if (it.utbetalerHeleEllerDeler) {
-                    validate(HeleEllerdeler::refusjonPrMnd).isGreaterThan(0.0)
-                    validate(HeleEllerdeler::refusjonPrMnd).isLessThan(1_000_000.0)
+                    validate(Refusjon::refusjonPrMnd).isGreaterThan(0.0)
+                    validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0)
                 }
             }
             // Naturalytelser

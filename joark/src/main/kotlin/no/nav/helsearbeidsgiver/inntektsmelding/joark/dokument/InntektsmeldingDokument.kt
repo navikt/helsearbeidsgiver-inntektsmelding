@@ -69,10 +69,7 @@ enum class BegrunnelseIngenEllerRedusertUtbetalingKode {
     StreikEllerLockout,
     Permittering,
     FiskerMedHyre,
-    Saerregler,
-    FerieEllerAvspasering,
-    IkkeFullStillingsandel,
-    TidligereVirksomhet
+    Saerregler
 }
 
 @Serializable

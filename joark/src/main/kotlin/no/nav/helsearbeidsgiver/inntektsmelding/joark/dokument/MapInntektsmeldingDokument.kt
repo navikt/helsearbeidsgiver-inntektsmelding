@@ -39,7 +39,7 @@ fun parseFullLønnIPerioden(data: JsonNode): FullLønnIArbeidsgiverPerioden {
     )
 }
 
-fun parseHeleEllerDeler(data: JsonNode): Refusjon {
+fun parseRefusjon(data: JsonNode): Refusjon {
     return Refusjon(
         data.get("refusjonPrMnd").asDouble(),
         data.get("refusjonOpphører").asLocalDate()
@@ -60,7 +60,7 @@ fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String
         data.get("beregnetInntekt").asDouble(),
         ÅrsakBeregnetInntektEndringKodeliste.valueOf(data.get("beregnetInntektEndringÅrsak").asText()),
         parseFullLønnIPerioden(data.get("fullLønnIArbeidsgiverPerioden")),
-        parseHeleEllerDeler(data.get("refusjon")),
+        parseRefusjon(data.get("refusjon")),
         parseNaturalytelser(data.get("naturalytelser")),
         LocalDateTime.now(), // TODO Innsendingstidspunkt
         ÅrsakInnsending.valueOf(data.get("årsakInnsending").asText()),

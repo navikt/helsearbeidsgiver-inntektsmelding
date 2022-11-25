@@ -103,21 +103,21 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom refusjonsbeløp er for høyt`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(heleEllerdeler = HeleEllerdeler(true, MAX_REFUSJON)).validate()
+            GYLDIG.copy(refusjon = Refusjon(true, MAX_REFUSJON)).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom refusjonsbeløp er negativt`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(heleEllerdeler = HeleEllerdeler(true, NEGATIVT_BELØP, LocalDate.now())).validate()
+            GYLDIG.copy(refusjon = Refusjon(true, NEGATIVT_BELØP, LocalDate.now())).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom refusjonskravet opphører i perioden og dato er tom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(heleEllerdeler = HeleEllerdeler(true, NEGATIVT_BELØP)).validate()
+            GYLDIG.copy(refusjon = Refusjon(true, NEGATIVT_BELØP)).validate()
         }
     }
 

@@ -8,7 +8,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest
 import org.junit.jupiter.api.Test
@@ -23,15 +22,15 @@ class AltinnLøserTest : LøserTest() {
         )
     }
 
-    private val testRapid = mockRapid { AltinnLøser(mockAltinnClient) }
+    private val altinnLøser = withTestRapid { AltinnLøser(mockAltinnClient) }
 
     @Test
     fun `Løser henter organisasjonsrettigheter med id fra behov`() {
-        val id = "long-john-silver"
+        val mockId = "long-john-silver"
 
         val behov: Map<Key, JsonElement> = mapOf(
-            Key.BEHOV to listOf(BehovType.ARBEIDSGIVERE).toJson(),
-            Key.IDENTITETSNUMMER to id.toJson()
+            Key.BEHOV to altinnLøser.behovType.let(::listOf).toJson(),
+            Key.IDENTITETSNUMMER to mockId.toJson()
         )
 
         val behovJson = behov.mapKeys { (key, _) -> key.str }
@@ -40,7 +39,7 @@ class AltinnLøserTest : LøserTest() {
 
         testRapid.sendTestMessage(behovJson)
 
-        coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(id) }
+        coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(mockId) }
     }
 }
 

@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
+import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -16,7 +17,8 @@ fun LocalDateTime.toNorsk(): String {
 }
 
 fun Double.toNorsk(): String {
-    return this.toString()
+    val format = DecimalFormat("#,###.##")
+    return format.format(this)
 }
 
 fun Boolean.toNorsk(): String {
@@ -34,54 +36,53 @@ class PdfDokument(val inntektsmeldingDokument: InntektsmeldingDokument) {
         this.y += y
     }
 
+    fun addLine() {
+        moveCursorBy(20)
+        b.addLine(0, y)
+        moveCursorBy(20)
+    }
+
     fun addHeader() {
         b.addTitle("Kvittering - innsendt inntektsmelding", 0, y)
         moveCursorBy(60)
     }
 
     fun addAnsatte() {
-        val ansatteY = y
-        b.addSection("Den ansatte", 0, ansatteY)
-        lagLabel(b, 0, ansatteY + 47, "Navn", inntektsmeldingDokument.fulltNavn)
-        lagLabel(b, 420, ansatteY + 47, "Personnummer", inntektsmeldingDokument.identitetsnummer)
-        y += 120
+        b.addSection("Den ansatte", 0, y)
+        lagLabel(b, 0, y + 47, "Navn", inntektsmeldingDokument.fulltNavn)
+        lagLabel(b, 420, y + 47, "Personnummer", inntektsmeldingDokument.identitetsnummer)
+        moveCursorBy(120)
     }
 
     fun addArbeidsgiver() {
-        val arbeidsgiverY = y
-        b.addSection("Arbeidsgiveren", 0, arbeidsgiverY)
-        lagLabel(b, 0, arbeidsgiverY + 47, "Virksomhetsnavn", inntektsmeldingDokument.virksomhetNavn)
-        lagLabel(b, kolonneTo, arbeidsgiverY + 47, "Organisasjonsnummer for underenhet", inntektsmeldingDokument.orgnrUnderenhet)
+        b.addSection("Arbeidsgiveren", 0, y)
+        lagLabel(b, 0, y + 47, "Virksomhetsnavn", inntektsmeldingDokument.virksomhetNavn)
+        lagLabel(b, kolonneTo, y + 47, "Organisasjonsnummer for underenhet", inntektsmeldingDokument.orgnrUnderenhet)
+        moveCursorBy(120)
     }
 
-    fun export(): ByteArray {
-        addHeader()
-        addAnsatte()
-        addArbeidsgiver()
-
-        val fraværsperiodeY = 360
-        b.addLine(0, fraværsperiodeY - 30)
-
-        // ------------------- Fraværsperiode
-        b.addSection("Fraværsperiode", 0, fraværsperiodeY)
-        b.addBold("Egenmelding", 0, fraværsperiodeY + 35)
+    fun addFraværsperiode() {
+        val startY = y
+        b.addSection("Fraværsperiode", 0, y)
+        // LISTE
+        b.addBold("Egenmelding", 0, y + 35)
         var egenmeldingIndex = 1
+        var egenmeldingY = y
         inntektsmeldingDokument.egenmeldingsperioder.forEach {
-            lagPeriode(b, 0, fraværsperiodeY + 80 + egenmeldingIndex * 30, it.fom.toNorsk(), it.tom.toNorsk())
+            egenmeldingY = y + 10 + egenmeldingIndex * 60
+            lagPeriode(b, 0, egenmeldingY, it.fom.toNorsk(), it.tom.toNorsk())
             egenmeldingIndex++
         }
-
-        b.addBold("Fravær knyttet til sykmelding", 0, fraværsperiodeY + 145)
-        val antalFravær = 3
-        val fraværY = fraværsperiodeY + 180
-        var i = 1
+        // LISTE
+        var fraværsY = egenmeldingY + 80
+        b.addBold("Fravær knyttet til sykmelding", 0, fraværsY)
         inntektsmeldingDokument.fraværsperioder.forEach {
-            lagPeriode(b, 0, fraværY + (i - 1) * 60, it.fom.toNorsk(), it.tom.toNorsk())
-            i++
+            fraværsY += 60
+            lagPeriode(b, 0, fraværsY - 20, it.fom.toNorsk(), it.tom.toNorsk())
         }
         val bestemmendeX = 430
         val bestemmendeY = 420
-        lagLabel(b, bestemmendeX, bestemmendeY, "Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.")
+        lagLabel(b, bestemmendeX, y + 80, "Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.")
         lagLabel(b, bestemmendeX, bestemmendeY + 60, "Dato", inntektsmeldingDokument.bestemmendeFraværsdag.toNorsk())
         lagLabel(
             b,
@@ -90,40 +91,52 @@ class PdfDokument(val inntektsmeldingDokument: InntektsmeldingDokument) {
             "Arbeidsgiverperiode",
             "Arbeidsgivers har ansvar vanligvis for å betale lønn til den sykemeldte under arbeidsgiverperioden"
         )
+        // LISTE
+        var arbeidsgiverperiodeY = startY + 200
         inntektsmeldingDokument.arbeidsgiverperioder.forEach {
-            lagPeriode(b, bestemmendeX, bestemmendeY + 180, it.fom.toNorsk(), it.tom.toNorsk())
+            arbeidsgiverperiodeY += 60
+            lagPeriode(b, bestemmendeX, arbeidsgiverperiodeY, it.fom.toNorsk(), it.tom.toNorsk())
         }
-        // ------------------- Bruttoinntekt
-        val bruttoInntektY = fraværY + (antalFravær * 60) + 30
-        b.addLine(0, bruttoInntektY)
-        b.addSection("Bruttoinntekt siste 3 måneder", 0, bruttoInntektY + 30)
-        b.addBold("Registrert inntekt (per ${inntektsmeldingDokument.tidspunkt.toLocalDate().toNorsk()})", 0, bruttoInntektY + 60)
-        b.addBody(inntektsmeldingDokument.beregnetInntekt.toNorsk() + " kr/måned", 0, bruttoInntektY + 90)
-        // ------------------- Refusjon
-        val refusjonY = bruttoInntektY + 180
-        b.addLine(0, refusjonY - 30)
-        b.addSection("Refusjon", 0, refusjonY)
+        if (arbeidsgiverperiodeY > fraværsY) {
+            moveCursorBy(arbeidsgiverperiodeY - startY + 40)
+        } else {
+            moveCursorBy(fraværsY - startY + 40)
+        }
+    }
+
+    fun addInntekt() {
+        b.addSection("Bruttoinntekt siste 3 måneder", 0, y)
+        b.addBold("Registrert inntekt (per ${inntektsmeldingDokument.tidspunkt.toLocalDate().toNorsk()})", 0, y + 30)
+        b.addBody(inntektsmeldingDokument.beregnetInntekt.toNorsk() + " kr/måned", 0, y + 60)
+        moveCursorBy(90)
+    }
+
+    fun addRefusjon() {
+        b.addSection("Refusjon", 0, y)
         val full = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden
         val refusjon = inntektsmeldingDokument.refusjon
-        lagLabel(b, 0, refusjonY + 50, "Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", full.utbetalerFullLønn.toNorsk())
-        lagLabel(b, 0, refusjonY + 100, "Begrunnelse", full.begrunnelse?.name ?: "-")
-        lagLabel(b, 0, refusjonY + 150, "Utbetalt under arbeidsgiverperiode", (full.utbetalt?.toNorsk() ?: "-") + " kr")
-        lagLabel(b, 0, refusjonY + 200, "Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", "Ja")
-        lagLabel(b, 0, refusjonY + 250, "Refusjonsbeløp pr måned", (refusjon.refusjonPrMnd?.toNorsk() ?: "-") + " kr/måned") // Arbeidsgiver
-        lagLabel(b, 0, refusjonY + 300, "Opphører refusjonskravet i perioden", refusjon.refusjonOpphører?.toNorsk() ?: "-")
-        lagLabel(b, 0, refusjonY + 350, "Siste dag dere krever refusjon for", refusjon.refusjonOpphører?.toNorsk() ?: "-")
-        val naturalytelseY = refusjonY + 450
+        lagLabel(b, 0, y + 50, "Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", full.utbetalerFullLønn.toNorsk())
+        lagLabel(b, 0, y + 100, "Begrunnelse", full.begrunnelse?.name ?: "-")
+        lagLabel(b, 0, y + 150, "Utbetalt under arbeidsgiverperiode", (full.utbetalt?.toNorsk() ?: "-") + " kr")
+        lagLabel(b, 0, y + 200, "Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", "Ja")
+        lagLabel(b, 0, y + 250, "Refusjonsbeløp pr måned", (refusjon.refusjonPrMnd?.toNorsk() ?: "-") + " kr/måned") // Arbeidsgiver
+        lagLabel(b, 0, y + 300, "Opphører refusjonskravet i perioden", refusjon.refusjonOpphører?.toNorsk() ?: "-")
+        lagLabel(b, 0, y + 350, "Siste dag dere krever refusjon for", refusjon.refusjonOpphører?.toNorsk() ?: "-")
+        moveCursorBy(400)
+    }
+
+    fun addNaturalytelser() {
         val antallNaturalytelser = inntektsmeldingDokument.naturalytelser?.size ?: 0
-        b.addLine(0, naturalytelseY - 30)
-        b.addSection("Eventuelle naturalytelser", 0, naturalytelseY)
+        b.addSection("Eventuelle naturalytelser", 0, y)
         if (antallNaturalytelser == 0) {
-            b.addBody("Nei", 0, naturalytelseY + 30)
+            b.addBody("Nei", 0, y + 30)
+            moveCursorBy(60)
         } else {
-            b.addBody("Ja", 0, naturalytelseY + 30)
+            b.addBody("Ja", 0, y + 30)
             val kolonne1 = 0
             val kolonne2 = 150
             val kolonne3 = 385
-            val tabellY = naturalytelseY + 60
+            val tabellY = y + 60
             b.addBold("Naturalytelser", 0, tabellY)
             b.addBold("Dato naturalytelse bortfaller", kolonne2, tabellY)
             b.addBold("Verdi naturalytelse - kr/måned", kolonne3, tabellY)
@@ -134,10 +147,29 @@ class PdfDokument(val inntektsmeldingDokument: InntektsmeldingDokument) {
                 b.addBody(it.beløp.toNorsk(), kolonne3, i * 30 + tabellY)
                 i++
             }
+            moveCursorBy((antallNaturalytelser + 3) * 30)
         }
-        val kvitteringY = naturalytelseY + ((antallNaturalytelser + 5) * 30) // 200
-        b.addLine(0, kvitteringY)
-        b.addItalics("Kvittering - innsendt inntektsmelding - ${inntektsmeldingDokument.tidspunkt.toNorsk()}", 0, kvitteringY + 30)
+    }
+
+    fun addTidspunkt() {
+        b.addItalics("Kvittering - innsendt inntektsmelding - ${inntektsmeldingDokument.tidspunkt.toNorsk()}", 0, y)
+        moveCursorBy(20)
+    }
+
+    fun export(): ByteArray {
+        addHeader()
+        addAnsatte()
+        addArbeidsgiver()
+        addLine()
+        addFraværsperiode()
+        addLine()
+        addInntekt()
+        addLine()
+        addRefusjon()
+        addLine()
+        addNaturalytelser()
+        addLine()
+        addTidspunkt()
         return b.export()
     }
 

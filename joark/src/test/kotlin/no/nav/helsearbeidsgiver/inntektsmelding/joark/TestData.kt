@@ -19,7 +19,7 @@ val IM_VALID = mapOf(
         mapOf("fom" to "2022-09-01", "tom" to "2022-09-05"),
         mapOf("fom" to "2022-09-06", "tom" to "2022-09-15")
     ),
-    "beregnetInntekt" to "25300",
+    "bruttoInntekt" to "25300",
     "beregnetInntektEndringÅrsak" to "Tariffendring",
     "fullLønnIArbeidsgiverPerioden" to mapOf(
         "utbetalerFullLønn" to "true",

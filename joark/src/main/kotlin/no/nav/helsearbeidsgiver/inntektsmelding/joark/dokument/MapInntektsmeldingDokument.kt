@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import com.fasterxml.jackson.databind.JsonNode
@@ -57,7 +59,7 @@ fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String
         data.get("bestemmendeFraværsdag").asLocalDate(),
         parsePerioder(data.get("fraværsperioder")),
         parsePerioder(data.get("arbeidsgiverperioder")),
-        data.get("beregnetInntekt").asDouble(),
+        data.get("bruttoInntekt").asDouble(),
         ÅrsakBeregnetInntektEndringKodeliste.valueOf(data.get("beregnetInntektEndringÅrsak").asText()),
         parseFullLønnIPerioden(data.get("fullLønnIArbeidsgiverPerioden")),
         parseRefusjon(data.get("refusjon")),

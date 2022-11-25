@@ -73,7 +73,7 @@ fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String
         parseNaturalytelser(data.get("naturalytelser")),
         LocalDateTime.now(),
         ÅrsakInnsending.valueOf(data.get("årsakInnsending").asText()),
-        data.get("identitetsnummerInnsender").asText()
+        data.get("identitetsnummer").asText()
     )
 }
 

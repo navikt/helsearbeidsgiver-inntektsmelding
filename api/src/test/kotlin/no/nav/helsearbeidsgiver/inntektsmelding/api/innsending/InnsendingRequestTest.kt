@@ -129,14 +129,14 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal ikke godta naturalytelser med negativt beløp`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.kostDoegn, NOW, NEGATIVT_BELØP))).validate()
+            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.KostDoegn, NOW, NEGATIVT_BELØP))).validate()
         }
     }
 
     @Test
     fun `skal ikke godta naturalytelser med for høyt beløp`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.kostDoegn, NOW, MAX_NATURAL_BELØP))).validate()
+            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.KostDoegn, NOW, MAX_NATURAL_BELØP))).validate()
         }
     }
 
@@ -150,7 +150,7 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal bruke språkfil for feil`() {
         try {
-            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.kostDoegn, NOW, MAX_NATURAL_BELØP + 1))).validate()
+            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.KostDoegn, NOW, MAX_NATURAL_BELØP + 1))).validate()
         } catch (ex: ConstraintViolationException) {
             val response = validationResponseMapper(ex.constraintViolations)
             assertEquals("naturalytelser[0].beløp", response.errors[0].property)

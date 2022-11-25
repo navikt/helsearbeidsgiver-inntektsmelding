@@ -60,7 +60,7 @@ subprojects {
     )
 
     tasks {
-        if (!project.erFellesmodul()) {
+        if (!project.erFellesModul() && !project.erFellesTestModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -93,8 +93,11 @@ subprojects {
     val mockkVersion: String by project
 
     dependencies {
-        if (!erFellesmodul()) {
+        if (!erFellesModul()) {
             implementation(project(":felles"))
+        }
+        if (!erFellesTestModul()) {
+            testImplementation(project(":felles-test"))
         }
 
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
@@ -220,8 +223,11 @@ fun Task.validateMainClassFound(mainClass: String) {
 fun Project.mainClass() =
     "$group.${name.replace("-", "")}.AppKt"
 
-fun Project.erFellesmodul() =
+fun Project.erFellesModul() =
     name == "felles"
+
+fun Project.erFellesTestModul() =
+    name == "felles-test"
 
 fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
     mapOf(*keyValuePairs)

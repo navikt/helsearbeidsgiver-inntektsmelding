@@ -1,4 +1,4 @@
-### Preutfyll
+### Innsending
 POST https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/inntektsmelding
 Content-Type: application/json
 

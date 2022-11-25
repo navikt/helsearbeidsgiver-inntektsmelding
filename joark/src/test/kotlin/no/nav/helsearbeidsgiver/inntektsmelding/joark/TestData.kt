@@ -6,6 +6,15 @@ val IM_VALID = mapOf(
     "fulltNavn" to "Ola Normann",
     "virksomhetNavn" to "Norge AS",
     "behandlingsdager" to listOf("2022-10-27", "2022-10-26"),
+    "fraværsperioder" to listOf(
+        mapOf("fom" to "2022-09-01", "tom" to "2022-09-05"),
+        mapOf("fom" to "2022-09-06", "tom" to "2022-09-15")
+    ),
+    "arbeidsgiverperioder" to listOf(
+        mapOf("fom" to "2022-09-01", "tom" to "2022-09-05"),
+        mapOf("fom" to "2022-09-06", "tom" to "2022-09-15")
+    ),
+    "bestemmendeFraværsdag" to "2022-09-05",
     "egenmeldingsperioder" to listOf(
         mapOf("fom" to "2022-09-01", "tom" to "2022-09-05"),
         mapOf("fom" to "2022-09-06", "tom" to "2022-09-15")

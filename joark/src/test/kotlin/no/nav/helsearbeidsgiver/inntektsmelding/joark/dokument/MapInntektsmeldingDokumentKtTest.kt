@@ -27,13 +27,13 @@ internal class MapInntektsmeldingDokumentKtTest {
             "identitetsnummer" to ""
         )
         assertThrows<UgyldigFormatException> {
-            mapInntektsmelding(objectMapper.readTree(objectMapper.writeValueAsString(packet)), fulltNavn, arbeidsgiver)
+            mapInntektsmeldingDokument(objectMapper.readTree(objectMapper.writeValueAsString(packet)), fulltNavn, arbeidsgiver)
         }
     }
 
     @Test
     fun skal_mappe_alle_data() {
-        val im = mapInntektsmelding(objectMapper.readTree(objectMapper.writeValueAsString(IM_VALID)), fulltNavn, arbeidsgiver)
+        val im = mapInntektsmeldingDokument(objectMapper.readTree(objectMapper.writeValueAsString(IM_VALID)), fulltNavn, arbeidsgiver)
         assertEquals("123", im.identitetsnummer)
         assertEquals("abc", im.orgnrUnderenhet)
         assertEquals(listOf(LocalDate.of(2022, 10, 27), LocalDate.of(2022, 10, 26)), im.behandlingsdager)

@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.UgyldigFormatException
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapInntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapInntektsmeldingDokument
 import org.slf4j.LoggerFactory
 
 class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : River.PacketListener {
@@ -65,7 +65,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
             sikkerlogg.info("Fant arbeidsgiver: $arbeidsgiver")
             val fulltNavn = hentNavn(session)
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
-            val inntektsmelding = mapInntektsmelding(packet["inntektsmelding"], fulltNavn, arbeidsgiver)
+            val inntektsmelding = mapInntektsmeldingDokument(packet["inntektsmelding"], fulltNavn, arbeidsgiver)
             sikkerlogg.info("Skal journalføre: $inntektsmelding")
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
             sikkerlogg.info("Journalførte inntektsmelding for $fulltNavn ($arbeidsgiver) med journalpostid: $journalpostId")

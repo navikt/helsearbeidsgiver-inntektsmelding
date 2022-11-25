@@ -47,6 +47,12 @@ enum class ÅrsakBeregnetInntektEndringKodeliste {
 }
 
 @Serializable
+enum class ÅrsakInnsending {
+    Ny,
+    Endring
+}
+
+@Serializable
 data class InnsendingRequest(
     val orgnrUnderenhet: String,
     val identitetsnummer: String,
@@ -59,6 +65,7 @@ data class InnsendingRequest(
     val fullLønnIArbeidsgiverPerioden: FullLønnIArbeidsgiverPerioden,
     val refusjon: Refusjon,
     val naturalytelser: List<Naturalytelse>? = null,
+    val årsakInnsending: ÅrsakInnsending,
     val bekreftOpplysninger: Boolean
 ) {
     fun validate() {

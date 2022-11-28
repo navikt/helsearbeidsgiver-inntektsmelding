@@ -34,23 +34,32 @@ fun parseNaturalytelser(data: JsonNode): List<Naturalytelse> {
     }
 }
 
+fun JsonNode.hasText(name: String): Boolean {
+    return this.has(name) && !this.get(name).asText().isEmpty()
+}
+
 fun parseFullLønnIPerioden(data: JsonNode): FullLønnIArbeidsgiverPerioden {
     return FullLønnIArbeidsgiverPerioden(
         data.get("utbetalerFullLønn").asBoolean(),
-        BegrunnelseIngenEllerRedusertUtbetalingKode.valueOf(data.get("begrunnelse").asText())
+        if (data.hasText("begrunnelse")) BegrunnelseIngenEllerRedusertUtbetalingKode.valueOf(data.get("begrunnelse").asText()) else null,
+        if (data.hasText("utbetalt")) data.get("utbetalt").asDouble() else null
     )
 }
 
 fun parseRefusjon(data: JsonNode): Refusjon {
     return Refusjon(
-        data.get("refusjonPrMnd").asDouble(),
-        data.get("refusjonOpphører").asLocalDate()
+        if (data.hasText("refusjonPrMnd")) data.get("refusjonPrMnd").asDouble() else null,
+        if (data.hasText("refusjonOpphører")) data.get("refusjonOpphører").asLocalDate() else null
     )
 }
 
 fun parseÅrsakBeregnetInntektEndringKodeliste(data: JsonNode): ÅrsakBeregnetInntektEndringKodeliste? {
-    if (!data.isEmpty) {
-        return ÅrsakBeregnetInntektEndringKodeliste.valueOf(data.asText())
+    if (data.hasNonNull("endringÅrsak")) {
+        val text = data.get("endringÅrsak").asText()
+        if (text.isEmpty()) {
+            return null
+        }
+        return ÅrsakBeregnetInntektEndringKodeliste.valueOf(text)
     }
     return null
 }
@@ -67,7 +76,7 @@ fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String
         parsePerioder(data.get("fraværsperioder")),
         parsePerioder(data.get("arbeidsgiverperioder")),
         data.get("inntekt").get("beregnetInntekt").asDouble(),
-        parseÅrsakBeregnetInntektEndringKodeliste(data.get("inntekt").get("endringÅrsak")),
+        parseÅrsakBeregnetInntektEndringKodeliste(data.get("inntekt")),
         parseFullLønnIPerioden(data.get("fullLønnIArbeidsgiverPerioden")),
         parseRefusjon(data.get("refusjon")),
         parseNaturalytelser(data.get("naturalytelser")),

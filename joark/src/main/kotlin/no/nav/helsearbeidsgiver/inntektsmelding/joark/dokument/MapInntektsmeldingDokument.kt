@@ -41,7 +41,7 @@ fun JsonNode.hasText(name: String): Boolean {
 fun parseFullLønnIPerioden(data: JsonNode): FullLønnIArbeidsgiverPerioden {
     return FullLønnIArbeidsgiverPerioden(
         data.get("utbetalerFullLønn").asBoolean(),
-        if (data.hasText("begrunnelse")) BegrunnelseIngenEllerRedusertUtbetalingKode.valueOf(data.get("begrunnelse").asText()) else null,
+        mapBegrunnelseIngenEllerRedusertUtbetalingKode(data),
         if (data.hasText("utbetalt")) data.get("utbetalt").asDouble() else null
     )
 }

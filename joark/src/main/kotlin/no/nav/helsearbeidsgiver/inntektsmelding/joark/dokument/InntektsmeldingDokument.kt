@@ -3,7 +3,6 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
@@ -71,17 +70,6 @@ enum class BegrunnelseIngenEllerRedusertUtbetalingKode {
     Permittering,
     FiskerMedHyre,
     Saerregler
-}
-
-fun mapBegrunnelseIngenEllerRedusertUtbetalingKode(node: JsonNode): BegrunnelseIngenEllerRedusertUtbetalingKode? {
-    if (node.get("begrunnelse") == null) {
-        return null
-    }
-    val begrunnelse = node.get("begrunnelse").asText()
-    if (begrunnelse.isNullOrBlank()) {
-        return null
-    }
-    return BegrunnelseIngenEllerRedusertUtbetalingKode.valueOf(begrunnelse)
 }
 
 @Serializable

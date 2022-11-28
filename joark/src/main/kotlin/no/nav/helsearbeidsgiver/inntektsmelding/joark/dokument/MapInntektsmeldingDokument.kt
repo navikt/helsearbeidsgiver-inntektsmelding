@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.asLocalDate
+import no.nav.helse.rapids_rivers.asOptionalLocalDate
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -34,32 +35,47 @@ fun parseNaturalytelser(data: JsonNode): List<Naturalytelse> {
     }
 }
 
-fun JsonNode.hasText(name: String): Boolean {
-    return this.has(name) && !this.get(name).asText().isEmpty()
+fun JsonNode.getOptionalDouble(name: String): Double? {
+    if (this.hasNonNull(name)) {
+        val node = this.get(name)
+        return node.asDouble()
+    }
+    return null
 }
 
 fun parseFullLønnIPerioden(data: JsonNode): FullLønnIArbeidsgiverPerioden {
     return FullLønnIArbeidsgiverPerioden(
         data.get("utbetalerFullLønn").asBoolean(),
-        mapBegrunnelseIngenEllerRedusertUtbetalingKode(data),
-        if (data.hasText("utbetalt")) data.get("utbetalt").asDouble() else null
+        data.getOptionalBegrunnelseIngenEllerRedusertUtbetalingKode("begrunnelse"),
+        data.getOptionalDouble("utbetalt")
     )
+}
+
+fun JsonNode.getOptionalBegrunnelseIngenEllerRedusertUtbetalingKode(name: String): BegrunnelseIngenEllerRedusertUtbetalingKode? {
+    if (this.hasNonNull(name)) {
+        return BegrunnelseIngenEllerRedusertUtbetalingKode.valueOf(this.get(name).asText())
+    }
+    return null
+}
+
+fun JsonNode.getOptionalLocalDate(name: String): LocalDate? {
+    if (this.hasNonNull(name)) {
+        val node = this.get(name)
+        return node.asOptionalLocalDate()
+    }
+    return null
 }
 
 fun parseRefusjon(data: JsonNode): Refusjon {
     return Refusjon(
-        if (data.hasText("refusjonPrMnd")) data.get("refusjonPrMnd").asDouble() else null,
-        if (data.hasText("refusjonOpphører")) data.get("refusjonOpphører").asLocalDate() else null
+        data.getOptionalDouble("refusjonPrMnd"),
+        data.getOptionalLocalDate("refusjonOpphører")
     )
 }
 
-fun parseÅrsakBeregnetInntektEndringKodeliste(data: JsonNode): ÅrsakBeregnetInntektEndringKodeliste? {
-    if (data.hasNonNull("endringÅrsak")) {
-        val text = data.get("endringÅrsak").asText()
-        if (text.isEmpty()) {
-            return null
-        }
-        return ÅrsakBeregnetInntektEndringKodeliste.valueOf(text)
+fun JsonNode.getOptionalÅrsakBeregnetInntektEndringKodeliste(name: String): ÅrsakBeregnetInntektEndringKodeliste? {
+    if (this.hasNonNull(name)) {
+        return ÅrsakBeregnetInntektEndringKodeliste.valueOf(this.get(name).asText())
     }
     return null
 }
@@ -76,7 +92,7 @@ fun parseInntektsmelding(data: JsonNode, fulltNavn: String, arbeidsgiver: String
         parsePerioder(data.get("fraværsperioder")),
         parsePerioder(data.get("arbeidsgiverperioder")),
         data.get("inntekt").get("beregnetInntekt").asDouble(),
-        parseÅrsakBeregnetInntektEndringKodeliste(data.get("inntekt")),
+        data.get("inntekt").getOptionalÅrsakBeregnetInntektEndringKodeliste("endringÅrsak"),
         parseFullLønnIPerioden(data.get("fullLønnIArbeidsgiverPerioden")),
         parseRefusjon(data.get("refusjon")),
         parseNaturalytelser(data.get("naturalytelser")),

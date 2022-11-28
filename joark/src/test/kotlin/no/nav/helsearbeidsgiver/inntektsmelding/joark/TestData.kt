@@ -105,18 +105,18 @@ val INNTEKTMELDING_REQUEST_FNUTT = mapOf(
     "inntekt" to mapOf(
         "bekreftet" to "true",
         "beregnetInntekt" to "25300.0",
-        "endringÅrsak" to "",
+        "endringÅrsak" to null,
         "manueltKorrigert" to "true"
     ),
     "fullLønnIArbeidsgiverPerioden" to mapOf(
         "utbetalerFullLønn" to "true",
-        "begrunnelse" to "",
-        "utbetalt" to ""
+        "begrunnelse" to null,
+        "utbetalt" to null
     ),
     "refusjon" to mapOf(
         "utbetalerHeleEllerDeler" to "true",
-        "refusjonPrMnd" to "",
-        "refusjonOpphører" to ""
+        "refusjonPrMnd" to null,
+        "refusjonOpphører" to null
     ),
     "naturalytelser" to listOf(
         mapOf(

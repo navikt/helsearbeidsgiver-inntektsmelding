@@ -19,7 +19,7 @@ import java.util.Base64
  */
 fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingDokument, arbeidsgiver: String): OpprettJournalpostRequest {
     return OpprettJournalpostRequest(
-        tema = "FOR",
+        tema = "SYK",
         behandlingsTema = "ab0326",
         tittel = "Inntektsmelding",
         journalposttype = Journalposttype.INNGAAENDE,

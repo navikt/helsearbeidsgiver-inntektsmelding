@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import org.slf4j.LoggerFactory
 
 val logger = LoggerFactory.getLogger("helsebro-main")
+val loggerSikker = LoggerFactory.getLogger("tjenestekall")
 
 /*
 Denne appen skal snakke med helsearbeidsgiver-bro-sykepenger etterhvert.

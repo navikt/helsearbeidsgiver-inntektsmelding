@@ -34,24 +34,32 @@ fun parseNaturalytelser(data: JsonNode): List<Naturalytelse> {
     }
 }
 
+fun JsonNode.hasText(name: String): Boolean {
+    return this.has(name) && !this.get(name).asText().isEmpty()
+}
+
 fun parseFullLønnIPerioden(data: JsonNode): FullLønnIArbeidsgiverPerioden {
     return FullLønnIArbeidsgiverPerioden(
         data.get("utbetalerFullLønn").asBoolean(),
-        if (data.has("begrunnelse")) BegrunnelseIngenEllerRedusertUtbetalingKode.valueOf(data.get("begrunnelse").asText()) else null,
-        if (data.has("utbetalt")) data.get("utbetalt").asDouble() else null
+        if (data.hasText("begrunnelse")) BegrunnelseIngenEllerRedusertUtbetalingKode.valueOf(data.get("begrunnelse").asText()) else null,
+        if (data.hasText("utbetalt")) data.get("utbetalt").asDouble() else null
     )
 }
 
 fun parseRefusjon(data: JsonNode): Refusjon {
     return Refusjon(
-        if (data.has("refusjonPrMnd")) data.get("refusjonPrMnd").asDouble() else null,
-        if (data.has("refusjonOpphører")) data.get("refusjonOpphører").asLocalDate() else null
+        if (data.hasText("refusjonPrMnd")) data.get("refusjonPrMnd").asDouble() else null,
+        if (data.hasText("refusjonOpphører")) data.get("refusjonOpphører").asLocalDate() else null
     )
 }
 
 fun parseÅrsakBeregnetInntektEndringKodeliste(data: JsonNode): ÅrsakBeregnetInntektEndringKodeliste? {
-    if (data.has("endringÅrsak")) {
-        return ÅrsakBeregnetInntektEndringKodeliste.valueOf(data.get("endringÅrsak").asText())
+    if (data.hasNonNull("endringÅrsak")) {
+        val text = data.get("endringÅrsak").asText()
+        if (text.isEmpty()) {
+            return null
+        }
+        return ÅrsakBeregnetInntektEndringKodeliste.valueOf(text)
     }
     return null
 }

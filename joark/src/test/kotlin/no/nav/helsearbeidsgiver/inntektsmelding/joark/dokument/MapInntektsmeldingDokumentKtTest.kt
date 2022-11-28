@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.INNTEKTMELDING_REQUEST
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.INNTEKTMELDING_REQUEST_FNUTT
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.INNTEKTMELDING_REQUEST_OPTIONALS
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -85,6 +86,20 @@ internal class MapInntektsmeldingDokumentKtTest {
     @Test
     fun skal_håndtere_valgfrie_felter() {
         val im = mapInntektsmeldingDokument(objectMapper.readTree(objectMapper.writeValueAsString(INNTEKTMELDING_REQUEST_OPTIONALS)), fulltNavn, arbeidsgiver)
+        // Inntekt
+        assertNull(im.beregnetInntektEndringÅrsak, "endringÅrsak")
+        // FullLønnIArbeidsgiverPerioden
+        assertEquals(true, im.fullLønnIArbeidsgiverPerioden.utbetalerFullLønn)
+        assertNull(im.fullLønnIArbeidsgiverPerioden.begrunnelse, "begrunnelse")
+        assertNull(im.fullLønnIArbeidsgiverPerioden.utbetalt, "ubetalt")
+        // Refusjon
+        assertNull(im.refusjon.refusjonPrMnd, "refusjonPrMnd")
+        assertNull(im.refusjon.refusjonOpphører, "refusjonOpphører")
+    }
+
+    @Test
+    fun skal_håndtere_valgfrie_felter_fnutt_fnutt() {
+        val im = mapInntektsmeldingDokument(objectMapper.readTree(objectMapper.writeValueAsString(INNTEKTMELDING_REQUEST_FNUTT)), fulltNavn, arbeidsgiver)
         // Inntekt
         assertNull(im.beregnetInntektEndringÅrsak, "endringÅrsak")
         // FullLønnIArbeidsgiverPerioden

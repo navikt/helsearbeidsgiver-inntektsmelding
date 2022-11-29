@@ -9,5 +9,6 @@ enum class BehovType {
     EGENMELDING,
     SYK,
     JOURNALFOER,
-    ARBEIDSGIVERE
+    ARBEIDSGIVERE,
+    NOTIFIKASJON
 }

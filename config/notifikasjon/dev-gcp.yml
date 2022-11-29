@@ -1,0 +1,7 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+ingress: https://helsearbeidsgiver-im-notifikasjon.dev.nav.no
+env:
+- name: NOTIFIKASJON_URL
+  value: "https://localhost"

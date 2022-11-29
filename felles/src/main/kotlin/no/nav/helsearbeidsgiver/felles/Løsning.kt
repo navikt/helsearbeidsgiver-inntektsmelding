@@ -46,3 +46,8 @@ data class JournalpostLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
+
+data class NotifikasjonLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()

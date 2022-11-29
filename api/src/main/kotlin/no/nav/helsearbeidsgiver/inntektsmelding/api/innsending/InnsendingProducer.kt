@@ -24,7 +24,7 @@ class InnsendingProducer(
                 Key.BEHOV.str to listOf(
                     BehovType.VIRKSOMHET.name,
                     BehovType.ARBEIDSFORHOLD.name,
-                    BehovType.NOTIFIKASJON.name,
+                    BehovType.NOTIFIKASJON.name
                 ),
                 Key.NESTE_BEHOV.str to listOf(
                     BehovType.JOURNALFOER.name

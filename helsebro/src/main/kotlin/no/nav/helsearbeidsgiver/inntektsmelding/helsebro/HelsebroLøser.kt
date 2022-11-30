@@ -5,7 +5,10 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
-class HelsebroLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+class HelsebroLøser(
+    rapidsConnection: RapidsConnection,
+    private val priProducer: PriProducer
+) : River.PacketListener {
     init {
         River(rapidsConnection).apply {
             validate {
@@ -19,7 +22,16 @@ class HelsebroLøser(rapidsConnection: RapidsConnection) : River.PacketListener 
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding.")
+        logger.info("Mottok melding om ${packet["eventType"].asText()}")
         loggerSikker.info("Mottok melding:\n${packet.toJson()}")
+
+        val trengerForespurtData = TrengerForespurtData(
+            orgnr = packet["orgnr"].asText(),
+            fnr = packet["fnr"].asText()
+        )
+        priProducer.send(trengerForespurtData)
+
+        logger.info("Publiserte melding om ${trengerForespurtData.eventType}")
+        loggerSikker.info("Publiserte melding:\n${trengerForespurtData.toJson()}")
     }
 }

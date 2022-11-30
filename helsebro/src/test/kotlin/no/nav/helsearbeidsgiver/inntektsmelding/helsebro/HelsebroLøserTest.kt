@@ -1,40 +1,39 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.read.ListAppender
+import io.kotest.core.spec.style.FunSpec
+import io.mockk.mockk
+import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
 
-class HelsebroLøserTest {
-    private val loggerSikkerCollector = ListAppender<ILoggingEvent>().also {
-        (loggerSikker as Logger).addAppender(it)
-        it.start()
-    }
+class HelsebroLøserTest : FunSpec({
 
-    private val testRapid = TestRapid()
+    val testRapid = TestRapid()
+    val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
-    init {
-        HelsebroLøser(testRapid)
-    }
+    HelsebroLøser(testRapid, mockPriProducer)
 
-    @Test
-    fun `Løser mottar melding om mottatt forespørsel`() {
-        val event = mapOf(
-            "eventType" to "FORESPØRSEL_MOTTATT",
-            "orgnr" to "123",
-            "fnr" to "abc"
+    test("Løser mottar melding om mottatt forespørsel") {
+        val expectedTrengerForespurtData = TrengerForespurtData(
+            "123",
+            "abc"
         )
-            .let(JsonMessage::newMessage)
-            .toJson()
 
-        testRapid.sendTestMessage(event)
+        testRapid.sendJson(
+            "eventType" to "FORESPØRSEL_MOTTATT",
+            "orgnr" to expectedTrengerForespurtData.orgnr,
+            "fnr" to expectedTrengerForespurtData.fnr
+        )
 
-        Assertions.assertEquals(1, loggerSikkerCollector.list.size)
-        loggerSikkerCollector.list.single {
-            it.message.contains("Mottok melding:")
+        verifySequence {
+            mockPriProducer.send(expectedTrengerForespurtData)
         }
     }
+})
+
+private fun TestRapid.sendJson(vararg pair: Pair<String, String>) {
+    pair.toMap()
+        .let(JsonMessage::newMessage)
+        .toJson()
+        .let(this::sendTestMessage)
 }

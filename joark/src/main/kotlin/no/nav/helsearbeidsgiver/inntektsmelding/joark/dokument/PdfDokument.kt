@@ -13,7 +13,7 @@ fun LocalDate.toNorsk(): String {
 }
 
 fun LocalDateTime.toNorsk(): String {
-    return this.toString()
+    return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
 }
 
 fun Double.toNorsk(): String {
@@ -43,7 +43,7 @@ class PdfDokument(val inntektsmeldingDokument: InntektsmeldingDokument) {
     }
 
     fun addHeader() {
-        b.addTitle("Kvittering - innsendt inntektsmelding", 0, y)
+        b.addTitle("Inntektsmelding", 0, y)
         moveCursorBy(60)
     }
 
@@ -152,7 +152,7 @@ class PdfDokument(val inntektsmeldingDokument: InntektsmeldingDokument) {
     }
 
     fun addTidspunkt() {
-        b.addItalics("Kvittering - innsendt inntektsmelding - ${inntektsmeldingDokument.tidspunkt.toNorsk()}", 0, y)
+        b.addItalics("Innsendt: ${inntektsmeldingDokument.tidspunkt.toNorsk()}", 0, y)
         moveCursorBy(20)
     }
 

@@ -21,7 +21,7 @@ class PdfBuilder(
     private val PAGE_HEIGHT = 1560 - paddingVertical * 2 // 1560
 
     fun addTitle(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(20, title, false, false, x, y))
+        return add(Text(30, title, false, false, x, y))
     }
 
     fun addSection(title: String, x: Int = 0, y: Int = 0): PdfBuilder {

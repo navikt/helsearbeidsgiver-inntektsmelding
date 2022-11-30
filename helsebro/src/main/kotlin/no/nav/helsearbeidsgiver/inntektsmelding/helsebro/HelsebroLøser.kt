@@ -9,6 +9,7 @@ class HelsebroLøser(rapidsConnection: RapidsConnection) : River.PacketListener 
     init {
         River(rapidsConnection).apply {
             validate {
+                loggerSikker.info("validerer pakke: \n${it.toJson()}")
                 it.demandValue("eventType", "FORESPØRSEL_MOTTATT")
                 it.requireKey(
                     "orgnr",

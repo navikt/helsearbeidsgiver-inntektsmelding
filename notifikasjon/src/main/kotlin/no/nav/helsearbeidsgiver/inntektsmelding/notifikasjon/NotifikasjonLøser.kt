@@ -9,6 +9,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NotifikasjonLøsning
 import org.slf4j.LoggerFactory
 
@@ -20,12 +21,11 @@ class NotifikasjonLøser(rapidsConnection: RapidsConnection) : River.PacketListe
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", BEHOV)
-                it.requireKey("@id")
+                it.demandAll(Key.BEHOV.str, BEHOV)
+                it.requireKey(Key.ID.str)
                 it.requireKey("inntektsmelding")
-                it.requireKey("identitetsnummer")
-                it.requireKey("inntektsmelding_journalført")
-                it.rejectKey("@løsning")
+                it.requireKey(Key.IDENTITETSNUMMER.str)
+                it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
     }

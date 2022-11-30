@@ -40,18 +40,20 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         try {
             val navn = hentVirksomhet(orgnr)
             sikkerlogg.info("Fant $navn for $orgnr")
-            packet.setLøsning(BEHOV, VirksomhetLøsning(navn))
-            context.publish(packet.toJson())
+            publiserLøsning(VirksomhetLøsning(navn), packet, context)
         } catch (ex: FantIkkeVirksomhetException) {
-            packet.setLøsning(BEHOV, VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")))
             sikkerlogg.info("Fant ikke virksomhet for $orgnr")
-            context.publish(packet.toJson())
+            publiserLøsning(VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")), packet, context)
         } catch (ex: Exception) {
-            packet.setLøsning(BEHOV, VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")))
             sikkerlogg.info("Det oppstod en feil ved henting for $orgnr")
             sikkerlogg.error(ex.stackTraceToString())
-            context.publish(packet.toJson())
+            publiserLøsning(VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")), packet, context)
         }
+    }
+
+    fun publiserLøsning(virksomhetLøsning: VirksomhetLøsning, packet: JsonMessage, context: MessageContext) {
+        packet.setLøsning(BEHOV, virksomhetLøsning)
+        context.publish(packet.toJson())
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

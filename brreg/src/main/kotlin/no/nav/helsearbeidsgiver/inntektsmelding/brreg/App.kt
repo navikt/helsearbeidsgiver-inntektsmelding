@@ -32,6 +32,6 @@ internal fun createApp(environment: Environment): RapidsConnection {
         }
     }
     logger.info("Starting BrregLøser...")
-    VirksomhetLøser(rapidsConnection, BrregClient(environment.brregUrl, httpClient))
+    VirksomhetLøser(rapidsConnection, BrregClient(environment.brregUrl))
     return rapidsConnection
 }

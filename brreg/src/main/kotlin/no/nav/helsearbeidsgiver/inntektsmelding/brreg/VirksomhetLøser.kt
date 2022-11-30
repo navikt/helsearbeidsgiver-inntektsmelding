@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
+import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -29,14 +30,22 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         }.register(this)
     }
 
+    fun hentVirksomhet(orgnr: String): String {
+        return runBlocking { brregClient.hentVirksomhetNavn(orgnr) } ?: throw FantIkkeVirksomhetException(orgnr)
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
         val orgnr = packet["orgnrUnderenhet"].asText()
         try {
-            val navn = brregClient.getVirksomhetsNavn(orgnr)
+            val navn = hentVirksomhet(orgnr)
+            sikkerlogg.info("Fant $navn for $orgnr")
             packet.setLøsning(BEHOV, VirksomhetLøsning(navn))
             context.publish(packet.toJson())
-            sikkerlogg.info("Fant $navn for $orgnr")
+        } catch (ex: FantIkkeVirksomhetException) {
+            packet.setLøsning(BEHOV, VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")))
+            sikkerlogg.info("Fant ikke virksomhet for $orgnr")
+            context.publish(packet.toJson())
         } catch (ex: Exception) {
             packet.setLøsning(BEHOV, VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")))
             sikkerlogg.info("Det oppstod en feil ved henting for $orgnr")

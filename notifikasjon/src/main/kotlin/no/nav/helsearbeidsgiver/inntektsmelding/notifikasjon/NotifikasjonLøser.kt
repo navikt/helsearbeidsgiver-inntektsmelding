@@ -22,7 +22,9 @@ class NotifikasjonLøser(rapidsConnection: RapidsConnection) : River.PacketListe
             validate {
                 it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
+                it.requireKey("inntektsmelding")
                 it.requireKey("identitetsnummer")
+                it.requireKey("inntektsmelding_journalført")
                 it.rejectKey("@løsning")
             }
         }.register(this)

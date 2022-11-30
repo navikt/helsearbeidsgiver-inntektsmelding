@@ -19,8 +19,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.InntektsmeldingDo
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.UgyldigFormatException
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapInntektsmeldingDokument
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 
-class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : River.PacketListener {
+class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : River.PacketListener {
 
     private val BEHOV = BehovType.JOURNALFOER
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
@@ -53,11 +54,27 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         return session.get(BehovType.FULLT_NAVN.name)?.get("value")?.asText() ?: "Ukjent"
     }
 
+    fun sendNotifikasjon(uuid: String, inntektsmelding: InntektsmeldingDokument) {
+        val packet: JsonMessage = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to "inntektsmelding_journalført",
+                Key.BEHOV.str to listOf(
+                    BehovType.NOTIFIKASJON.name
+                ),
+                Key.ID.str to uuid,
+                Key.OPPRETTET.str to LocalDateTime.now(),
+                "uuid" to uuid,
+                "inntektsmelding" to inntektsmelding,
+                "identitetsnummer" to inntektsmelding.identitetsnummer
+            )
+        )
+        rapidsConnection.publish(inntektsmelding.identitetsnummer, packet.toJson())
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
-        var løsning = JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
         val session = packet[Key.SESSION.str]
         sikkerlogg.info("Fant session: $session")
         try {
@@ -70,19 +87,28 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
             sikkerlogg.info("Journalførte inntektsmelding for $fulltNavn ($arbeidsgiver) med journalpostid: $journalpostId")
             logger.info("Journalførte inntektsmelding med journalpostid: $journalpostId")
-            løsning = JournalpostLøsning(journalpostId)
+            publiserLøsning(JournalpostLøsning(journalpostId), packet, context)
+            try {
+                sendNotifikasjon(uuid, inntektsmelding)
+                sikkerlogg.error("Registrere melding om notifikasjon for $inntektsmelding")
+            } catch (ex: Exception) {
+                sikkerlogg.error("Klarte ikke registrere melding om notifikasjon for $inntektsmelding", ex)
+            }
         } catch (ex: DokArkivException) {
             sikkerlogg.info("Klarte ikke journalføre", ex)
-            løsning = JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet"))
+            publiserLøsning(JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet")), packet, context)
         } catch (ex: UgyldigFormatException) {
             sikkerlogg.info("Klarte ikke journalføre: feil format!", ex)
-            løsning = JournalpostLøsning(error = Feilmelding("Feil format i inntektsmelding"))
+            publiserLøsning(JournalpostLøsning(error = Feilmelding("Feil format i inntektsmelding")), packet, context)
         } catch (ex: Exception) {
             sikkerlogg.info("Klarte ikke journalføre!", ex)
-        } finally {
-            packet.setLøsning(BEHOV, løsning)
-            context.publish(packet.toJson())
+            JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
         }
+    }
+
+    fun publiserLøsning(løsning: JournalpostLøsning, packet: JsonMessage, context: MessageContext) {
+        packet.setLøsning(BEHOV, løsning)
+        context.publish(packet.toJson())
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

@@ -32,7 +32,7 @@ class HelsebroLøserTest {
 
         testRapid.sendTestMessage(event)
 
-        Assertions.assertEquals(1, loggerSikkerCollector.list.size)
+        Assertions.assertEquals(2, loggerSikkerCollector.list.size)
         loggerSikkerCollector.list.single {
             it.message.contains("Mottok melding:")
         }

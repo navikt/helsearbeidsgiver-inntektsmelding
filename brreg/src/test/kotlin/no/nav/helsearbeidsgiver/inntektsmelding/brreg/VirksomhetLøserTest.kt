@@ -34,7 +34,7 @@ internal class VirksomhetLøserTest {
     private val VIRKSOMHET_NAVN = "Norge AS"
 
     init {
-        løser = VirksomhetLøser(rapid, brregClient)
+        løser = VirksomhetLøser(rapid, brregClient, false)
     }
 
     fun sendMessage(packet: Map<String, Any>): VirksomhetLøsning {

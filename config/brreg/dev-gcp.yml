@@ -4,4 +4,4 @@ azure:
 ingress: https://helsearbeidsgiver-im-brreg.dev.nav.no
 env:
 - name: ENHETSREGISTERET_URL
-  value: "https://data.brreg.no/enhetsregisteret/api/underenheter/"
+  value: "http://localhost"

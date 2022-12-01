@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import org.slf4j.LoggerFactory
 
-class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient) : River.PacketListener {
+class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient, private val isPreProd: Boolean) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val BEHOV = BehovType.VIRKSOMHET
@@ -31,6 +31,15 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
     }
 
     fun hentVirksomhet(orgnr: String): String {
+        if (isPreProd) {
+            when (orgnr) {
+                "810007702" -> return "ANSTENDIG PIGGSVIN BYDEL"
+                "810007842" -> return "ANSTENDIG PIGGSVIN BARNEHAGE"
+                "810008032" -> return "ANSTENDIG PIGGSVIN BRANNVESEN"
+                "810007982" -> return "ANSTENDIG PIGGSVIN SYKEHJEM"
+            }
+            return "Ukjent arbeidsgiver"
+        }
         return runBlocking { brregClient.hentVirksomhetNavn(orgnr) } ?: throw FantIkkeVirksomhetException(orgnr)
     }
 

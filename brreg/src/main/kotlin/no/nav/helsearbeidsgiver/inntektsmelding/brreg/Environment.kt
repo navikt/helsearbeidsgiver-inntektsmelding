@@ -6,8 +6,7 @@ fun setUpEnvironment(): Environment {
     return Environment(
         raw = System.getenv(),
         brregUrl = getEnvVar(
-            "ENHETSREGISTERET_URL",
-            "https://data.brreg.no/enhetsregisteret/api/underenheter/"
+            "ENHETSREGISTERET_URL"
         )
     )
 }

@@ -1,9 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.brreg.BrregClient
@@ -14,24 +10,14 @@ val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-brreg")
 
 fun main() {
-    val environment = setUpEnvironment()
-    val app = createApp(environment)
-    app.start()
+    createApp(setUpEnvironment()).start()
 }
 
 internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
     val rapidsConnection = RapidApplication.create(environment.raw)
-    val httpClient = HttpClient {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
-    }
-    logger.info("Starting BrregLøser...")
-    VirksomhetLøser(rapidsConnection, BrregClient(environment.brregUrl))
+    val isDevelopmentMode = environment.brregUrl.contains("localhost")
+    logger.info("Starting BrregLøser... developmentMode: $isDevelopmentMode")
+    VirksomhetLøser(rapidsConnection, BrregClient(environment.brregUrl), isDevelopmentMode)
     return rapidsConnection
 }

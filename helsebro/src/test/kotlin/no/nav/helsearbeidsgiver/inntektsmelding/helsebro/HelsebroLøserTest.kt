@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import java.util.UUID
 
 class HelsebroLøserTest : FunSpec({
 
@@ -16,13 +17,15 @@ class HelsebroLøserTest : FunSpec({
     test("Løser mottar melding om mottatt forespørsel") {
         val expectedTrengerForespurtData = TrengerForespurtData(
             "123",
-            "abc"
+            "abc",
+            UUID.randomUUID()
         )
 
         testRapid.sendJson(
             "eventType" to "FORESPØRSEL_MOTTATT",
             "orgnr" to expectedTrengerForespurtData.orgnr,
-            "fnr" to expectedTrengerForespurtData.fnr
+            "fnr" to expectedTrengerForespurtData.fnr,
+            "vedtaksperiodeId" to expectedTrengerForespurtData.vedtaksperiodeId.toString()
         )
 
         verifySequence {

@@ -11,6 +11,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
+import java.util.UUID
 
 class PriProducerTest : FunSpec({
     val mockProducer = mockk<KafkaProducer<String, TrengerForespurtData>>()
@@ -56,7 +57,8 @@ class PriProducerTest : FunSpec({
 private fun mockTrengerForespurtData(): TrengerForespurtData =
     TrengerForespurtData(
         orgnr = "123",
-        fnr = "abc"
+        fnr = "abc",
+        UUID.randomUUID()
     )
 
 private fun mockRecordMetadata(): RecordMetadata =

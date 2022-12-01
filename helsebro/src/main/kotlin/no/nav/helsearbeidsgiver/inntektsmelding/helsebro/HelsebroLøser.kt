@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import java.util.UUID
 
 class HelsebroLøser(
     rapidsConnection: RapidsConnection,
@@ -15,7 +16,8 @@ class HelsebroLøser(
                 it.demandValue("eventType", "FORESPØRSEL_MOTTATT")
                 it.requireKey(
                     "orgnr",
-                    "fnr"
+                    "fnr",
+                    "vedtaksperiodeId"
                 )
             }
         }.register(this)
@@ -27,7 +29,8 @@ class HelsebroLøser(
 
         val trengerForespurtData = TrengerForespurtData(
             orgnr = packet["orgnr"].asText(),
-            fnr = packet["fnr"].asText()
+            fnr = packet["fnr"].asText(),
+            vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
         )
         priProducer.send(trengerForespurtData)
 

@@ -3,55 +3,48 @@ POST https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/inntektsmelding
 Content-Type: application/json
 
 {
-  "orgnrUnderenhet": "123456785",
-  "identitetsnummer": "10107400090",
-  "behandlingsdager": [
-    "2022-10-21"
-  ],
+  "orgnrUnderenhet": "810007982",
+  "identitetsnummer": "22506614191",
   "egenmeldingsperioder": [
     {
-      "fom": "2022-10-21",
-      "tom": "2022-10-23"
+      "fom": "2022-01-01",
+      "tom": "2022-01-02"
+    }
+  ],
+  "fraværsperioder": [
+    {
+      "fom": "2022-10-05",
+      "tom": "2022-10-15"
     }
   ],
   "arbeidsgiverperioder": [
     {
-      "fom": "2022-10-21",
-      "tom": "2022-10-23"
-    }
-  ],
-  "bestemmendeFraværsdag": "2022-10-21",
-  "fraværsperioder": [
+      "fom": "2022-01-01",
+      "tom": "2022-01-02"
+    },
     {
-      "fom": "2022-10-21",
-      "tom": "2022-10-23"
+      "fom": "2022-10-05",
+      "tom": "2022-10-15"
     }
   ],
   "inntekt": {
     "bekreftet": true,
-    "beregnetInntekt": 32100.0,
-    "endringÅrsak": "FeilInntekt",
-    "manueltKorrigert": true
+    "beregnetInntekt": 12345,
+    "manueltKorrigert": true,
+    "endringÅrsak": "FeilInntekt"
   },
+  "bestemmendeFraværsdag": "2022-10-05",
   "fullLønnIArbeidsgiverPerioden": {
-    "utbetalerFullLønn": true,
-    "begrunnelse": "ArbeidOpphoert"
+    "utbetalerFullLønn": true
   },
   "refusjon": {
-    "utbetalerHeleEllerDeler": true,
-    "refusjonPrMnd": 2500.0,
-    "refusjonOpphører": "2022-10-21"
+    "utbetalerHeleEllerDeler": false
   },
-  "naturalytelser": [
-    {
-      "naturalytelse": "kostDoegn",
-      "dato": "2022-10-21",
-      "beløp": 300.0
-    }
+  "bekreftOpplysninger": true,
+  "behandlingsdager": [
+    "2022-10-06"
   ],
-  "tidspunkt": "22-09-05 12:13:14",
-  "årsakInnsending": "Ny",
-  "bekreftOpplysninger": true
+  "årsakInnsending": "Ny"
 }
 
 > {%

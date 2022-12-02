@@ -3,7 +3,7 @@
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=navikt_helsearbeidsgiver-inntektsmelding)](https://sonarcloud.io/summary/new_code?id=navikt_helsearbeidsgiver-inntektsmelding)
 
 
-Mono repo for team HelseArbeidsgiver
+Mono repo for team HelseArbeidsgiver 
 
 ### For testing
 

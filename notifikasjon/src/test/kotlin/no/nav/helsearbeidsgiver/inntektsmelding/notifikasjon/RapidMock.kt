@@ -26,7 +26,7 @@ abstract class RapidMock {
 
     fun sendMessage(packet: Map<String, Any>, response: String, status: HttpStatusCode): NotifikasjonLøsning {
         klient = buildClient(response, status)
-        løser = NotifikasjonLøser(rapid, klient)
+        løser = NotifikasjonLøser(rapid, klient, "")
         rapid.reset()
         rapid.sendTestMessage(
             objectMapper.writeValueAsString(

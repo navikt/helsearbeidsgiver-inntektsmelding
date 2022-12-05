@@ -17,7 +17,11 @@ import no.nav.helsearbeidsgiver.felles.NotifikasjonLøsning
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class NotifikasjonLøser(rapidsConnection: RapidsConnection, private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient) : River.PacketListener {
+class NotifikasjonLøser(
+    rapidsConnection: RapidsConnection,
+    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    private val linkUrl: String
+) : River.PacketListener {
 
     private val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
     private val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-notifikasjon")
@@ -44,7 +48,7 @@ class NotifikasjonLøser(rapidsConnection: RapidsConnection, private val arbeids
                     merkelapp = "Inntektsmelding",
                     virksomhetsnummer = orgnr,
                     tittel = "Mottatt inntektsmelding",
-                    lenke = "https://arbeidsgiver.dev.nav.no/im-dialog/kvittering/$uuid",
+                    lenke = "$linkUrl/im-dialog/kvittering/$uuid",
                     harddeleteOm = "dummy"
                 )
             } catch (ex: Exception) {

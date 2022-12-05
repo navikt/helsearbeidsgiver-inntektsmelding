@@ -4,4 +4,4 @@ azure:
 ingress: https://helsearbeidsgiver-im-notifikasjon.dev.nav.no
 env:
 - name: NOTIFIKASJON_URL
-  value: "https://localhost"
+  value: "https://notifikasjon-fake-produsent-api.labs.nais.io/"

@@ -3,9 +3,9 @@ azure:
   enabled: true
 ingress: https://helsearbeidsgiver-im-notifikasjon.dev.nav.no
 env:
-- name: NOTIFIKASJON_URL
+- name: ARBEIDSGIVER_NOTIFIKASJON_API_URL
   value: "https://ag-notifikasjon-produsent-api.dev.nav.no/"
+- name: ARBEIDSGIVER_NOTIFIKASJON_SCOPE
+  value: "api://dev-gcp.fager.notifikasjon-produsent-api/.default"
 - name: LINK_URL
   value: "https://arbeidsgiver.dev.nav.no"
-- name: PROXY_SCOPE
-  value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"

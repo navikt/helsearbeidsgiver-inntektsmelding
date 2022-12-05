@@ -6,10 +6,10 @@ import no.nav.helsearbeidsgiver.felles.oauth2.AzureOAuth2Environment
 fun setUpEnvironment(): Environment {
     return Environment(
         raw = System.getenv(),
-        notifikasjonUrl = getEnvVar("NOTIFIKASJON_URL"),
+        notifikasjonUrl = getEnvVar("ARBEIDSGIVER_NOTIFIKASJON_API_URL"),
         linkUrl = getEnvVar("LINK_URL"),
         AzureOAuth2Environment(
-            scope = getEnvVar("PROXY_SCOPE"),
+            scope = getEnvVar("ARBEIDSGIVER_NOTIFIKASJON_SCOPE"),
             azureWellKnownUrl = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
             azureTokenEndpointUrl = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
             azureAppClientID = getEnvVar("AZURE_APP_CLIENT_ID"),

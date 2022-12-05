@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import java.util.UUID
 
-class TrengerForespurtDataTest : FunSpec({
+class TrengerForespørselTest : FunSpec({
     test("data serialiseres korrekt") {
         val trengerForespørsel = TrengerForespørsel(
             orgnr = "123",

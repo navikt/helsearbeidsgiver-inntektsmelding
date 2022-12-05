@@ -11,11 +11,11 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 
 class PriProducer(
-    private val producer: KafkaProducer<String, TrengerForespurtData> = createProducer()
+    private val producer: KafkaProducer<String, TrengerForespørsel> = createProducer()
 ) {
     private val topic = "helsearbeidsgiver.pri"
 
-    fun send(trengerForespurtData: TrengerForespurtData): Boolean =
+    fun send(trengerForespurtData: TrengerForespørsel): Boolean =
         trengerForespurtData.toRecord()
             .runCatching {
                 producer.send(this).get()
@@ -26,7 +26,7 @@ class PriProducer(
         ProducerRecord(topic, this)
 }
 
-private fun createProducer(): KafkaProducer<String, TrengerForespurtData> =
+private fun createProducer(): KafkaProducer<String, TrengerForespørsel> =
     KafkaProducer(
         kafkaProperties(),
         StringSerializer(),
@@ -53,8 +53,8 @@ private fun kafkaProperties(): Properties =
         )
     }
 
-private class TrengerForespurtDataSerializer : Serializer<TrengerForespurtData> {
-    override fun serialize(topic: String, data: TrengerForespurtData): ByteArray =
+private class TrengerForespurtDataSerializer : Serializer<TrengerForespørsel> {
+    override fun serialize(topic: String, data: TrengerForespørsel): ByteArray =
         data.toJson()
             .toByteArray()
 }

@@ -6,7 +6,7 @@ import java.util.UUID
 
 class TrengerForespurtDataTest : FunSpec({
     test("data serialiseres korrekt") {
-        val trengerForespurtData = TrengerForespurtData(
+        val trengerForespørsel = TrengerForespørsel(
             orgnr = "123",
             fnr = "abc",
             UUID.randomUUID()
@@ -14,14 +14,14 @@ class TrengerForespurtDataTest : FunSpec({
 
         val expectedJson = """
             {
-                "orgnr": "${trengerForespurtData.orgnr}",
-                "fnr": "${trengerForespurtData.fnr}",
-                "vedtaksperiodeId": "${trengerForespurtData.vedtaksperiodeId}",
-                "eventType": "${trengerForespurtData.eventType}"
+                "orgnr": "${trengerForespørsel.orgnr}",
+                "fnr": "${trengerForespørsel.fnr}",
+                "vedtaksperiodeId": "${trengerForespørsel.vedtaksperiodeId}",
+                "eventType": "${trengerForespørsel.eventType}"
             }
         """.removeJsonWhitespace()
 
-        val actualJson = trengerForespurtData.toJson()
+        val actualJson = trengerForespørsel.toJson()
 
         actualJson shouldBeEqualComparingTo expectedJson
     }

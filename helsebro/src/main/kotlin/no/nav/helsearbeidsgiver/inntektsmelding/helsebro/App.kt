@@ -14,7 +14,8 @@ fun main() {
 
     RapidApplication.create(System.getenv())
         .also {
-            HelsebroLøser(it, PriProducer())
+            ForespørselMottattLøser(it, PriProducer())
+            ForespørselSvarLøser(it)
         }
         .start()
 

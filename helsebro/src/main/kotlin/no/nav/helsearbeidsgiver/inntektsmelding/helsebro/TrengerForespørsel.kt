@@ -14,12 +14,12 @@ private val jsonBuilder = Json {
 }
 
 @Serializable
-data class TrengerForespurtData(
+data class TrengerForespørsel(
     val orgnr: String,
     val fnr: String,
     val vedtaksperiodeId: UUID
 ) {
-    val eventType = "TRENGER_FORESPURT_DATA"
+    val eventType = "TRENGER_FORESPØRSEL"
 
     fun toJson(): String =
         jsonBuilder.encodeToString(this)

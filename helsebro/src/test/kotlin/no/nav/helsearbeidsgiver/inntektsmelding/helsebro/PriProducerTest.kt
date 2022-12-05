@@ -14,7 +14,7 @@ import org.apache.kafka.common.errors.TimeoutException
 import java.util.UUID
 
 class PriProducerTest : FunSpec({
-    val mockProducer = mockk<KafkaProducer<String, TrengerForespurtData>>()
+    val mockProducer = mockk<KafkaProducer<String, TrengerForespørsel>>()
 
     val priProducer = PriProducer(
         producer = mockProducer
@@ -33,7 +33,7 @@ class PriProducerTest : FunSpec({
 
         bleMeldingSendt.shouldBeTrue()
 
-        val expected = ProducerRecord<String, TrengerForespurtData>(
+        val expected = ProducerRecord<String, TrengerForespørsel>(
             "helsearbeidsgiver.pri",
             trengerForespurtData
         )
@@ -54,8 +54,8 @@ class PriProducerTest : FunSpec({
     }
 })
 
-private fun mockTrengerForespurtData(): TrengerForespurtData =
-    TrengerForespurtData(
+private fun mockTrengerForespurtData(): TrengerForespørsel =
+    TrengerForespørsel(
         orgnr = "123",
         fnr = "abc",
         UUID.randomUUID()

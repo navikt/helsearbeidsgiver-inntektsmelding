@@ -6,7 +6,11 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import java.util.UUID
 
-class HelsebroLøser(
+/**
+ * Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger.
+ * Skal i fremtiden trigge opprettelse av arbeidsgiver-notifikasjon om at vi trenger opplysninger.
+ */
+class ForespørselMottattLøser(
     rapidsConnection: RapidsConnection,
     private val priProducer: PriProducer
 ) : River.PacketListener {
@@ -27,14 +31,14 @@ class HelsebroLøser(
         logger.info("Mottok melding om ${packet["eventType"].asText()}")
         loggerSikker.info("Mottok melding:\n${packet.toJson()}")
 
-        val trengerForespurtData = TrengerForespurtData(
+        val trengerForespørsel = TrengerForespørsel(
             orgnr = packet["orgnr"].asText(),
             fnr = packet["fnr"].asText(),
             vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
         )
-        priProducer.send(trengerForespurtData)
+        priProducer.send(trengerForespørsel)
 
-        logger.info("Publiserte melding om ${trengerForespurtData.eventType}")
-        loggerSikker.info("Publiserte melding:\n${trengerForespurtData.toJson()}")
+        logger.info("Publiserte melding om ${trengerForespørsel.eventType}")
+        loggerSikker.info("Publiserte melding:\n${trengerForespørsel.toJson()}")
     }
 }

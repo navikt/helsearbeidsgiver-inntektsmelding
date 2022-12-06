@@ -49,7 +49,7 @@ class NotifikasjonLøser(
                     virksomhetsnummer = orgnr,
                     tittel = "Mottatt inntektsmelding",
                     lenke = "$linkUrl/im-dialog/kvittering/$uuid",
-                    harddeleteOm = "dummy"
+                    harddeleteOm = "P5M"
                 )
             } catch (ex: Exception) {
                 println(ex.printStackTrace())

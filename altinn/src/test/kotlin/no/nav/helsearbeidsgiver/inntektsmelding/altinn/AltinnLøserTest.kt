@@ -16,7 +16,7 @@ class AltinnLøserTest : LøserTest() {
     private val mockAltinnClient = mockk<AltinnClient> {
         coEvery { hentRettighetOrganisasjoner(any()) } returns setOf(
             AltinnOrganisasjon(
-                name = "Pippin's Breakfast & Breakfast",
+                navn = "Pippin's Breakfast & Breakfast",
                 type = "gluttonous"
             )
         )

@@ -4,7 +4,7 @@ azure:
 ingress: https://helsearbeidsgiver-im-notifikasjon.dev.nav.no
 env:
 - name: ARBEIDSGIVER_NOTIFIKASJON_API_URL
-  value: "https://ag-notifikasjon-produsent-api.dev.nav.no/"
+  value: "https://ag-notifikasjon-produsent-api.dev.nav.no/api/graphql"
 - name: ARBEIDSGIVER_NOTIFIKASJON_SCOPE
   value: "api://dev-gcp.fager.notifikasjon-produsent-api/.default"
 - name: LINK_URL

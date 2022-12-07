@@ -66,7 +66,7 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
                 "uuid" to uuid,
                 "inntektsmelding" to inntektsmelding,
                 "identitetsnummer" to inntektsmelding.identitetsnummer,
-                "orgnrUnderenhet" to inntektsmelding.orgnrUnderenhet
+                Key.ORGNRUNDERENHET.str to inntektsmelding.orgnrUnderenhet
             )
         )
         rapidsConnection.publish(inntektsmelding.identitetsnummer, packet.toJson())

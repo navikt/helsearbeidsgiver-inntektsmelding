@@ -31,7 +31,7 @@ class InnsendingProducer(
                 Key.ID.str to uuid,
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 "uuid" to uuid,
-                "orgnrUnderenhet" to request.orgnrUnderenhet,
+                Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
                 "identitetsnummer" to request.identitetsnummer,
                 "inntektsmelding" to request
             )

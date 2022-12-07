@@ -26,7 +26,6 @@ class NotifikasjonLøser(
 
     private val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
     private val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-notifikasjon")
-    private val BEHOV = BehovType.NOTIFIKASJON
 
     init {
         River(rapidsConnection).apply {
@@ -34,7 +33,7 @@ class NotifikasjonLøser(
                 it.demandAllOrAny(Key.BEHOV.str, listOf(BehovType.NOTIFIKASJON.name, BehovType.NOTIFIKASJON_TRENGER_IM.name))
                 it.interestedIn(Key.ID.str)
                 it.interestedIn(Key.IDENTITETSNUMMER.str)
-                it.interestedIn("orgnrUnderenhet")
+                it.interestedIn(Key.ORGNRUNDERENHET.str)
                 it.interestedIn("uuid")
                 it.rejectKey(Key.LØSNING.str)
             }
@@ -84,7 +83,7 @@ class NotifikasjonLøser(
         val behovType = BehovType.valueOf(behovStr)
         logger.info("Fikk notifikasjon $uuid for behov $behovType")
         val identitetsnummer = packet["identitetsnummer"].asText()
-        val orgnrUnderenhet = packet["orgnrUnderenhet"].asText()
+        val orgnrUnderenhet = packet[Key.ORGNRUNDERENHET.str].asText()
         sikkerlogg.info("Fant behov for: $identitetsnummer")
         try {
             val notifikasjonId = opprettNotifikasjon(behovType, uuid, orgnrUnderenhet)

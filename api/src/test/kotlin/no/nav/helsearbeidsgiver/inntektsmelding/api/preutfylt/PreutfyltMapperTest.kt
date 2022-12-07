@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
@@ -54,7 +55,7 @@ internal class PreutfyltMapperTest {
         }
         val constraints = mapper.getConstraintViolations()
         assertEquals(2, constraints.size)
-        assertEquals("orgnrUnderenhet", constraints[0].property)
+        assertEquals(Key.ORGNRUNDERENHET.str, constraints[0].property)
         assertEquals("Feil", constraints[0].value)
     }
 

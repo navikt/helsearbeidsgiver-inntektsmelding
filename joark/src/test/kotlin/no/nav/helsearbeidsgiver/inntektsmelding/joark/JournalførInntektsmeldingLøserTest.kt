@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
+import no.nav.helsearbeidsgiver.felles.Key
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -60,7 +61,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
                 "identitetsnummer" to "000",
-                "orgnrUnderenhet" to "abc",
+                Key.ORGNRUNDERENHET.str to "abc",
                 "inntektsmelding" to INNTEKTMELDING_REQUEST
             )
         )
@@ -96,7 +97,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
                 "identitetsnummer" to "000",
-                "orgnrUnderenhet" to "abc",
+                Key.ORGNRUNDERENHET.str to "abc",
                 "inntektsmelding" to "xyz"
             )
         )

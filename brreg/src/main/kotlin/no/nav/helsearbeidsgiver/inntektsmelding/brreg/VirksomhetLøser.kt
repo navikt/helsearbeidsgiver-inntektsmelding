@@ -11,6 +11,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import org.slf4j.LoggerFactory
 
@@ -24,7 +25,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             validate {
                 it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
-                it.requireKey("orgnrUnderenhet")
+                it.requireKey(Key.ORGNRUNDERENHET.str)
                 it.rejectKey("@løsning")
             }
         }.register(this)
@@ -45,7 +46,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
-        val orgnr = packet["orgnrUnderenhet"].asText()
+        val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         try {
             val navn = hentVirksomhet(orgnr)
             sikkerlogg.info("Fant $navn for $orgnr")

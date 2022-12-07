@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import java.time.LocalDateTime
@@ -31,7 +32,7 @@ class PreutfyltProducer(
                 "@id" to uuid,
                 "@opprettet" to LocalDateTime.now(),
                 "uuid" to uuid,
-                "orgnrUnderenhet" to request.orgnrUnderenhet,
+                Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
                 "identitetsnummer" to request.identitetsnummer
             )
         )

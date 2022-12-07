@@ -14,6 +14,7 @@ import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -58,7 +59,7 @@ internal class VirksomhetLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                "orgnrUnderenhet" to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR
             )
         )
         assertEquals("Ugyldig virksomhet $ORGNR", løsning.error?.melding)
@@ -74,7 +75,7 @@ internal class VirksomhetLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                "orgnrUnderenhet" to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR
             )
         )
         assertEquals(VIRKSOMHET_NAVN, løsning.value)
@@ -86,7 +87,7 @@ internal class VirksomhetLøserTest {
             mapOf(
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
-                "orgnrUnderenhet" to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR
             )
         )
         assertNotNull(løsning.error)

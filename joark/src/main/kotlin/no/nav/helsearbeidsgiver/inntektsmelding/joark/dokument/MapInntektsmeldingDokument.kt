@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.asLocalDate
+import no.nav.helsearbeidsgiver.felles.Key
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -70,7 +71,7 @@ fun JsonNode.asÅrsakInnsending(): ÅrsakInnsending {
 
 fun JsonNode.parseInntektsmelding(fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument {
     return InntektsmeldingDokument(
-        this.get("orgnrUnderenhet").asText(),
+        this.get(Key.ORGNRUNDERENHET.str).asText(),
         this.get("identitetsnummer").asText(),
         fulltNavn,
         arbeidsgiver,

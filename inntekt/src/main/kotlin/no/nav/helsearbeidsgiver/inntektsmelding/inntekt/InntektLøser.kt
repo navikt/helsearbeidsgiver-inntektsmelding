@@ -50,7 +50,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val fnr = packet["identitetsnummer"].asText()
         try {
             val til = finnStartMnd()
-            val fra = til!!.minusMonths(3)
+            val fra = til!!.minusMonths(9)
             val inntekt = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
             packet.setLøsning(BEHOV, InntektLøsning(inntekt))
             context.publish(packet.toJson())

@@ -42,35 +42,32 @@ class NotifikasjonLøser(
 
     fun opprettNotifikasjon(uuid: String, orgnr: String): String {
         return runBlocking {
-            try {
-                arbeidsgiverNotifikasjonKlient.opprettNySak(
-                    grupperingsid = uuid,
-                    merkelapp = "Inntektsmelding",
-                    virksomhetsnummer = orgnr,
-                    tittel = "Mottatt inntektsmelding",
-                    lenke = "$linkUrl/im-dialog/kvittering/$uuid",
-                    harddeleteOm = "P5M"
-                )
-            } catch (ex: Exception) {
-                println(ex.printStackTrace())
-                throw(ex)
-            }
+            arbeidsgiverNotifikasjonKlient.opprettNySak(
+                grupperingsid = uuid,
+                merkelapp = "Inntektsmelding",
+                virksomhetsnummer = orgnr,
+                tittel = "Mottatt inntektsmelding",
+                lenke = "$linkUrl/im-dialog/kvittering/$uuid",
+                harddeleteOm = "P5M"
+            )
         }
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
+        val uuid = packet["uuid"].asText()
+        logger.info("Fikk notifikasjon $uuid")
         val identitetsnummer = packet["identitetsnummer"].asText()
         val orgnrUnderenhet = packet["orgnrUnderenhet"].asText()
-        val uuid = packet["uuid"].asText()
         sikkerlogg.info("Fant behov for: $identitetsnummer")
         try {
             val notifikasjonId = opprettNotifikasjon(uuid, orgnrUnderenhet)
             publiserLøsning(NotifikasjonLøsning(notifikasjonId), packet, context)
             sikkerlogg.info("Sendte notifikasjon id=$notifikasjonId for $identitetsnummer")
+            logger.info("Sendte notifikasjon for $uuid")
         } catch (ex: Exception) {
             sikkerlogg.error("Det oppstod en feil ved sending til $identitetsnummer for orgnr: $orgnrUnderenhet", ex)
             publiserLøsning(NotifikasjonLøsning(error = Feilmelding("Klarte ikke sende notifikasjon")), packet, context)
+            logger.info("Klarte ikke sende notifikasjon for $uuid")
         }
     }
 

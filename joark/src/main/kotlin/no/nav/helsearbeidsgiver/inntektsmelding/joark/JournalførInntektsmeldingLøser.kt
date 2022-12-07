@@ -65,7 +65,8 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 "uuid" to uuid,
                 "inntektsmelding" to inntektsmelding,
-                "identitetsnummer" to inntektsmelding.identitetsnummer
+                "identitetsnummer" to inntektsmelding.identitetsnummer,
+                "orgnrUnderenhet" to inntektsmelding.orgnrUnderenhet,
             )
         )
         rapidsConnection.publish(inntektsmelding.identitetsnummer, packet.toJson())

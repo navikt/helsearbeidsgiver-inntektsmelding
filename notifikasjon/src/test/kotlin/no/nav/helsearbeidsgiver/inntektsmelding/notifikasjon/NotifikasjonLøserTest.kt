@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Key
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -25,7 +26,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
                 "identitetsnummer" to FNR,
-                "orgnrUnderenhet" to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR
             ),
             readResource("opprettNySak/gyldig.json"),
             HttpStatusCode.OK
@@ -43,7 +44,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
                 "identitetsnummer" to FNR,
-                "orgnrUnderenhet" to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR
             ),
             readResource("opprettNySak/gyldig.json"),
             HttpStatusCode.OK
@@ -61,7 +62,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
                 "identitetsnummer" to FNR,
-                "orgnrUnderenhet" to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR
             ),
             NOTIFIKASJON_ID,
             HttpStatusCode.InternalServerError
@@ -77,7 +78,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
             mapOf(
                 "@behov" to listOf(BehovType.NOTIFIKASJON),
                 "@id" to UUID.randomUUID(),
-                "orgnrUnderenhet" to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR
             ),
             NOTIFIKASJON_ID,
             HttpStatusCode.Forbidden

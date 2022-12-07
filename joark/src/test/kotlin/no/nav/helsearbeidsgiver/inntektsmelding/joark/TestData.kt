@@ -1,7 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import no.nav.helsearbeidsgiver.felles.Key
+
 val INNTEKTMELDING_REQUEST = mapOf(
-    "orgnrUnderenhet" to "abc",
+    Key.ORGNRUNDERENHET.str to "abc",
     "identitetsnummer" to "123",
     "behandlingsdager" to listOf("2022-10-27", "2022-10-26"),
     "egenmeldingsperioder" to listOf(
@@ -46,7 +48,7 @@ val INNTEKTMELDING_REQUEST = mapOf(
 )
 
 val INNTEKTMELDING_REQUEST_OPTIONALS = mapOf(
-    "orgnrUnderenhet" to "abc",
+    Key.ORGNRUNDERENHET.str to "abc",
     "identitetsnummer" to "123",
     "behandlingsdager" to listOf("2022-10-27", "2022-10-26"),
     "egenmeldingsperioder" to listOf(
@@ -86,7 +88,7 @@ val INNTEKTMELDING_REQUEST_OPTIONALS = mapOf(
 )
 
 val INNTEKTMELDING_REQUEST_FNUTT = mapOf(
-    "orgnrUnderenhet" to "abc",
+    Key.ORGNRUNDERENHET.str to "abc",
     "identitetsnummer" to "123",
     "behandlingsdager" to listOf("2022-10-27", "2022-10-26"),
     "egenmeldingsperioder" to listOf(

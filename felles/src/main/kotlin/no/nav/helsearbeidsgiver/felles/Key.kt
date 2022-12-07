@@ -16,6 +16,7 @@ enum class Key(val str: String) {
     NESTE_BEHOV("neste_behov"),
     IDENTITETSNUMMER("identitetsnummer"),
     INITIATE_ID("initiate_id"),
+    ORGNRUNDERENHET("orgnrUnderenhet"),
     UUID("uuid");
 
     override fun toString(): String =

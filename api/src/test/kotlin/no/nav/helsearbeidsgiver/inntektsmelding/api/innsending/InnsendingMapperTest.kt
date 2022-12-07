@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
@@ -30,7 +31,7 @@ internal class InnsendingMapperTest {
         }
         val constraints = mapper.getConstraintViolations()
         assertEquals(1, constraints.size)
-        assertEquals("orgnrUnderenhet", constraints[0].property)
+        assertEquals(Key.ORGNRUNDERENHET.str, constraints[0].property)
         assertEquals("Oops", constraints[0].value)
     }
 

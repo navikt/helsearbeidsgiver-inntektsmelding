@@ -7,6 +7,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -60,7 +61,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val data: String = response.bodyAsText()
         val violations = objectMapper.readValue<ValidationResponse>(data).errors
         assertEquals(2, violations.size)
-        assertEquals("orgnrUnderenhet", violations[0].property)
+        assertEquals(Key.ORGNRUNDERENHET.str, violations[0].property)
         assertEquals("identitetsnummer", violations[1].property)
     }
 

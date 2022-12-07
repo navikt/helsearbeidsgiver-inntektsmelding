@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.NotifikasjonLøsning
 
 abstract class RapidMock {
 
-    internal val BEHOV_NOTIFIKASJON = BehovType.NOTIFIKASJON.name
     private val rapid = TestRapid()
     internal val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -24,7 +23,7 @@ abstract class RapidMock {
     private lateinit var løser: NotifikasjonLøser
     private lateinit var klient: ArbeidsgiverNotifikasjonKlient
 
-    fun sendMessage(packet: Map<String, Any>, response: String, status: HttpStatusCode): NotifikasjonLøsning {
+    fun sendMessage(behovType: BehovType, packet: Map<String, Any>, response: String, status: HttpStatusCode): NotifikasjonLøsning {
         klient = buildClient(response, status)
         løser = NotifikasjonLøser(rapid, klient, "")
         rapid.reset()
@@ -34,6 +33,6 @@ abstract class RapidMock {
             )
         )
         val losning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        return objectMapper.readValue(losning.get(BEHOV_NOTIFIKASJON).toString())
+        return objectMapper.readValue(losning.get(behovType.name).toString())
     }
 }

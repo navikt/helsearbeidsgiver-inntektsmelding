@@ -43,7 +43,7 @@ class ForespørselMottattLøser(
         )
 
         context.publish(
-            Key.BEHOV to BehovType.NOTIFIKASJON_TRENGER_IM,
+            Key.BEHOV to listOf(BehovType.NOTIFIKASJON_TRENGER_IM),
             Key.ORGNRUNDERENHET to orgnr,
             Key.IDENTITETSNUMMER to fnr,
             Key.UUID to UUID.randomUUID()

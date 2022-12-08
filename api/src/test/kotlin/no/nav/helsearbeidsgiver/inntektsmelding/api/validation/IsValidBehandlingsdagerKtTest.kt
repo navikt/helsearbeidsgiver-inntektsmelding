@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.validation
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -16,7 +15,7 @@ internal class IsValidBehandlingsdagerKtTest {
     }
 
     @Test
-    fun `skal godta kun en dato`() {
+    fun `skal godta en dato`() {
         assertTrue(isValidBehandlingsdager(listOf(now)))
     }
 
@@ -36,14 +35,22 @@ internal class IsValidBehandlingsdagerKtTest {
     }
 
     @Test
-    @Disabled
     fun `skal ikke godta flere samme uke`() {
-        assertFalse(isValidBehandlingsdager(listOf(now, now.plusDays(1))))
+        assertFalse(isValidBehandlingsdager(listOf(now, now.plusDays(1))), "Skal feile dagen etterpå")
     }
 
     @Test
-    @Disabled
-    fun `skal ikke godta opphold på mer enn 15 dager`() {
-        assertFalse(isValidBehandlingsdager(listOf(now, now.plusDays(16))))
+    fun `skal godta neste uke`() {
+        assertTrue(isValidBehandlingsdager(listOf(now, now.plusDays(7))), "Skal godta uken etterpå")
+    }
+
+    @Test
+    fun `skal godta opphold på inntil 15 dager`() {
+        assertTrue(isValidBehandlingsdager(listOf(now, now.plusDays(15))), "Skal godta inntil 15 dager")
+    }
+
+    @Test
+    fun `skal ikke godta opphold på mer enn 16 dager`() {
+        assertFalse(isValidBehandlingsdager(listOf(now, now.plusDays(16))), "Skal ikke godta 16 dager eller mer")
     }
 }

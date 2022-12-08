@@ -3,7 +3,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Løsning
@@ -56,12 +55,6 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
         return syk?.value?.behandlingsperiode!!
     }
 
-    fun mapArbeidsforhold(): List<Arbeidsforhold> {
-        val arbeidsforhold = resultat.ARBEIDSFORHOLD
-        sikkerlogg.info("Fant arbeidsforhold $arbeidsforhold for $uuid")
-        return arbeidsforhold?.value!!
-    }
-
     fun mapFraværsperiode(): List<MottattPeriode> {
         val syk = resultat.SYK
         sikkerlogg.info("Fant fraværsperiode $syk for $uuid")
@@ -70,10 +63,6 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
 
     fun mapFulltNavn(): String {
         return resultat.FULLT_NAVN?.value ?: "Mangler navn"
-    }
-
-    fun mapVirksomhet(): String {
-        return resultat.VIRKSOMHET?.value ?: "Mangler virksomhet"
     }
 
     fun mapInntekt(): Inntekt {

@@ -5,7 +5,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -16,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NotifikasjonLøsning
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.lang.IllegalArgumentException
 
 class NotifikasjonLøser(
     rapidsConnection: RapidsConnection,
@@ -46,7 +44,7 @@ class NotifikasjonLøser(
                 grupperingsid = uuid,
                 merkelapp = "Inntektsmelding",
                 virksomhetsnummer = orgnr,
-                tittel = "Trenger inntektsmelding",
+                tittel = "NAV trenger inntektsmelding",
                 lenke = "$linkUrl/im-dialog/trenger/$uuid",
                 harddeleteOm = "P5M"
             )
@@ -107,6 +105,4 @@ class NotifikasjonLøser(
             nøkkel.name to data
         )
     }
-
-    override fun onError(problems: MessageProblems, context: MessageContext) {}
 }

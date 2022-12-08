@@ -1,7 +1,6 @@
 val ktorVersion: String by project
 
 dependencies {
-    implementation("no.nav.helsearbeidsgiver:inntekt-klient:0.1.5")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-json:$ktorVersion")

@@ -5,6 +5,10 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
+    java
+    jacoco
+    `jacoco-report-aggregation`
+    `jvm-test-suite`
 }
 
 buildscript {
@@ -56,9 +60,18 @@ subprojects {
     applyPlugins(
         "org.jetbrains.kotlin.jvm",
         "org.jetbrains.kotlin.plugin.serialization",
-        "org.jmailen.kotlinter"
+        "org.jmailen.kotlinter",
+        "java",
+        "jacoco"
     )
-
+    tasks.jacocoTestReport {
+        dependsOn(tasks.test)
+        reports {
+            xml.required.set(true)
+            csv.required.set(false)
+            html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+        }
+    }
     tasks {
         if (!project.erFellesModul() && !project.erFellesTestModul()) {
             named<Jar>("jar") {

@@ -1,7 +1,8 @@
 val ktorVersion: String by project
+val inntektKlientVersion: String by project
 
 dependencies {
-    implementation("no.nav.helsearbeidsgiver:inntekt-klient:0.1.8")
+    implementation("no.nav.helsearbeidsgiver:inntekt-klient:$inntektKlientVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-json:$ktorVersion")

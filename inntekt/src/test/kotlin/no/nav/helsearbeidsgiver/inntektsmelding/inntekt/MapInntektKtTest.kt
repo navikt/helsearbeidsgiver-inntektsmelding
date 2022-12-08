@@ -32,6 +32,14 @@ internal class MapInntektKtTest {
     fun `skal mappe riktig total`() {
         val response = objectMapper.readValue<InntektskomponentResponse>("response.json".loadFromResources())
         val inntekt = mapInntekt(response)
-        assertEquals(567.0, inntekt.bruttoInntekt)
+        assertEquals(567.0, inntekt.total)
+    }
+
+    @Test
+    fun test_float_feil_i_total() {
+        val response = objectMapper.readValue<InntektskomponentResponse>("kjip_total.json".loadFromResources())
+        //10 * 0.1 bør bli 1.0 ?! Men blir feil om man benytter Double i utregning..
+        val inntekt = mapInntekt(response)
+        assertEquals(1.0, inntekt.total)
     }
 }

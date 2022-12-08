@@ -5,6 +5,8 @@ package no.nav.helsearbeidsgiver.felles
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.serializers.YearMonthSerializer
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.YearMonth
 
 @Serializable
@@ -15,6 +17,12 @@ data class MottattHistoriskInntekt(
 
 @Serializable
 data class Inntekt(
-    val bruttoInntekt: Double,
+    val total: Double,
     val historisk: List<MottattHistoriskInntekt>
-)
+
+) {
+    fun gjennomsnitt(): Double {
+        if (historisk.size <= 1) return total
+        return BigDecimal.valueOf(total).divide(BigDecimal(historisk.size), RoundingMode.HALF_UP).toDouble()
+    }
+}

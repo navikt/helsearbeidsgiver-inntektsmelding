@@ -4,6 +4,8 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Key
 import java.util.UUID
 
 /**
@@ -31,14 +33,33 @@ class ForespørselMottattLøser(
         logger.info("Mottok melding om ${packet["eventType"].asText()}")
         loggerSikker.info("Mottok melding:\n${packet.toJson()}")
 
+        val orgnr = packet["orgnr"].asText()
+        val fnr = packet["fnr"].asText()
+
         val trengerForespørsel = TrengerForespørsel(
-            orgnr = packet["orgnr"].asText(),
-            fnr = packet["fnr"].asText(),
+            orgnr = orgnr,
+            fnr = fnr,
             vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
         )
+
+        context.publish(
+            Key.BEHOV to BehovType.NOTIFIKASJON_TRENGER_IM,
+            Key.ORGNRUNDERENHET to orgnr,
+            Key.IDENTITETSNUMMER to fnr,
+            Key.UUID to UUID.randomUUID()
+        )
+
         priProducer.send(trengerForespørsel)
 
         logger.info("Publiserte melding om ${trengerForespørsel.eventType}")
         loggerSikker.info("Publiserte melding:\n${trengerForespørsel.toJson()}")
     }
+}
+
+private fun MessageContext.publish(vararg keyValuePairs: Pair<Key, Any>) {
+    keyValuePairs.toMap()
+        .mapKeys { (key, _) -> key.str }
+        .let(JsonMessage::newMessage)
+        .toJson()
+        .let(this::publish)
 }

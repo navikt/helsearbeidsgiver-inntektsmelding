@@ -7,4 +7,5 @@ dependencies {
     api("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
 
     implementation("no.nav.security:token-client-core:$tokenClientVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }

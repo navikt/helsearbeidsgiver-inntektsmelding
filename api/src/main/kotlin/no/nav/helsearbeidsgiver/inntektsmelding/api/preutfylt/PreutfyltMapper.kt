@@ -90,7 +90,7 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
             orgnrUnderenhet = request.orgnrUnderenhet,
             fravaersperioder = mapFraværsperiode(),
             egenmeldingsperioder = mapEgenmeldingsperioder(),
-            bruttoinntekt = inntekt.bruttoInntekt,
+            bruttoinntekt = inntekt.total,
             tidligereinntekter = inntekt.historisk,
             behandlingsperiode = mapBehandlingsperiode()
         )

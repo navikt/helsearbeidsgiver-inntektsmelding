@@ -10,6 +10,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
@@ -27,7 +28,7 @@ class FulltNavnLøser(
             validate {
                 it.demandAll("@behov", BEHOV)
                 it.requireKey("@id")
-                it.requireKey("identitetsnummer")
+                it.requireKey(Key.IDENTITETSNUMMER.str)
                 it.rejectKey("@løsning")
             }
         }.register(this)

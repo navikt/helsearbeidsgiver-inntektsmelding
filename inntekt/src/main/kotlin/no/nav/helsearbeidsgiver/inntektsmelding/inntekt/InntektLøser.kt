@@ -51,7 +51,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val fnr = packet["identitetsnummer"].asText()
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val til = finnStartMnd()
-        val fra = til!!.minusMonths(9) // TODO: skal endres til 3 mnd
+        val fra = til!!.minusMonths(9) // TODO: skal endres tilbake til 3 mnd
         try {
             val inntektResponse = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
             val inntekt = mapInntekt(inntektResponse, orgnr)

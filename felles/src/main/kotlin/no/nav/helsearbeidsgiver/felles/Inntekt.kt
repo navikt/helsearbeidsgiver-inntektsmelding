@@ -20,9 +20,15 @@ data class Inntekt(
     val total: Double,
     val historisk: List<MottattHistoriskInntekt>
 ) {
-    val bruttoInntekt = gjennomsnitt() // kanskje vi skal finne forslag på en annen måte senere
+    val bruttoInntekt: Double = gjennomsnitt()
+
+    // Beholder navnet bruttoInntekt for nå, er mer et "forslag til bruttoInntekt" som akkurat nå beregnes ved snitt...
     fun gjennomsnitt(): Double {
         if (historisk.size <= 1) return total
         return BigDecimal.valueOf(total).divide(BigDecimal(historisk.size), RoundingMode.HALF_UP).toDouble()
+    }
+
+    override fun toString(): String {
+        return "Inntekt(total=$total, historisk=$historisk, bruttoInntekt=$bruttoInntekt)"
     }
 }

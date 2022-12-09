@@ -27,7 +27,7 @@ internal class InntektTest {
         val total = inntekter.values.sum()
         val inntekt = Inntekt(total, genererHistoriskInntekt(inntekter))
         val forventetSnitt = total / inntekter.size
-        assertEquals(forventetSnitt, inntekt.gjennomsnitt())
+        assertEquals(forventetSnitt, inntekt.bruttoInntekt)
     }
 
     @Test

@@ -20,7 +20,7 @@ data class Inntekt(
     val total: Double,
     val historisk: List<MottattHistoriskInntekt>
 ) {
-    val bruttoInntekt = gjennomsnitt() //kanskje vi skal finne forslag på en annen måte senere
+    val bruttoInntekt = gjennomsnitt() // kanskje vi skal finne forslag på en annen måte senere
     fun gjennomsnitt(): Double {
         if (historisk.size <= 1) return total
         return BigDecimal.valueOf(total).divide(BigDecimal(historisk.size), RoundingMode.HALF_UP).toDouble()

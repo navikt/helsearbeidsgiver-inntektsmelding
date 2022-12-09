@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.felles
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.YearMonth
 

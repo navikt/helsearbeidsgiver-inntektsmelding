@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -61,7 +62,8 @@ internal class InntektLøserTest {
             "@behov" to listOf(BEHOV_PDL, BEHOV_INNTEKT),
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "identitetsnummer" to "abc"
+            "identitetsnummer" to "abc",
+            Key.ORGNRUNDERENHET.str to "123456789"
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
@@ -83,7 +85,8 @@ internal class InntektLøserTest {
             "@behov" to listOf(BEHOV_PDL, BEHOV_INNTEKT),
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
-            "identitetsnummer" to "abc"
+            "identitetsnummer" to "abc",
+            Key.ORGNRUNDERENHET.str to "123456789"
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")

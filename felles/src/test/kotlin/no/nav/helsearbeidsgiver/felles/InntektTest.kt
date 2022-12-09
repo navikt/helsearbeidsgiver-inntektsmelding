@@ -36,11 +36,11 @@ internal class InntektTest {
         for (x in 1..11) {
             inntekter.put(x, 0.2)
         }
-        //val total = inntekter.values.sum() Funker ikke..!
+        // val total = inntekter.values.sum() Funker ikke..!
         val total = 2.2
         val inntekt = Inntekt(total, genererHistoriskInntekt(inntekter))
         val forventetSnitt = total / inntekter.size
-        assertEquals(forventetSnitt, inntekt.gjennomsnitt())
+        assertEquals(forventetSnitt, inntekt.bruttoInntekt)
     }
 
     private fun genererHistoriskInntekt(inntekter: Map<Int, Double>): List<MottattHistoriskInntekt> {

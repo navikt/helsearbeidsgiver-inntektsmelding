@@ -20,7 +20,7 @@ data class Inntekt(
     val total: Double,
     val historisk: List<MottattHistoriskInntekt>
 ) {
-    val bruttoInntekt: Double = gjennomsnitt()
+    val bruttoInntekt = gjennomsnitt()
 
     // Beholder navnet bruttoInntekt for nå, er mer et "forslag til bruttoInntekt" som akkurat nå beregnes ved snitt...
     fun gjennomsnitt(): Double {

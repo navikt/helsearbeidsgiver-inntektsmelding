@@ -27,8 +27,4 @@ data class Inntekt(
         if (historisk.size <= 1) return total
         return BigDecimal.valueOf(total).divide(BigDecimal(historisk.size), RoundingMode.HALF_UP).toDouble()
     }
-
-    override fun toString(): String {
-        return "Inntekt(total=$total, historisk=$historisk, bruttoInntekt=$bruttoInntekt)"
-    }
 }

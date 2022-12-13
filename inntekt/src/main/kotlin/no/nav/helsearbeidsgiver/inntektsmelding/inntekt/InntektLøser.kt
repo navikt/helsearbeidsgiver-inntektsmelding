@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
-fun finnStartMnd(now: LocalDate = LocalDate.now()): LocalDate? {
+fun finnStartMnd(now: LocalDate = LocalDate.now()): LocalDate {
     return LocalDate.of(now.year, now.month, 1)
 }
 
@@ -30,9 +30,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         River(rapidsConnection).apply {
             validate {
                 it.demandAll("@behov", BEHOV)
-                it.requireKey("@id")
-                it.requireKey("identitetsnummer")
-                it.requireKey(Key.ORGNRUNDERENHET.str)
+                it.requireKey("@id", "identitetsnummer", Key.ORGNRUNDERENHET.str)
                 it.rejectKey("@løsning")
             }
         }.register(this)
@@ -51,7 +49,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val fnr = packet["identitetsnummer"].asText()
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val til = finnStartMnd()
-        val fra = til!!.minusMonths(9) // TODO: skal endres til 3 mnd
+        val fra = til.minusMonths(9) // TODO: skal endres til 3 mnd
         try {
             val inntektResponse = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
             val inntekt = mapInntekt(inntektResponse, orgnr)

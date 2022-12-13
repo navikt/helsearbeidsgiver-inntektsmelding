@@ -7,13 +7,13 @@ import java.time.YearMonth
 internal class InntektTest {
 
     @Test
-    fun gjennomsnitt_Ingen_Inntekt_er_0() {
+    fun `gjennomsnitt av ingen Inntekt er 0`() {
         val inntekt = Inntekt(0.0, emptyList())
         assertEquals(0.0, inntekt.gjennomsnitt())
     }
 
     @Test
-    fun gjennomsnitt_for_en_eller_ingen_maaned_er_lik_som_total() {
+    fun `gjennomsnitt for en eller ingen maaned er lik som total`() {
         val total = 50000.0
         val inntekt = Inntekt(total, emptyList()) // spesialtilfelle, liste bør aldri være tom, men håndter det likevel
         assertEquals(total, inntekt.gjennomsnitt())
@@ -22,7 +22,7 @@ internal class InntektTest {
     }
 
     @Test
-    fun gjennomsnitt_for_to_maaneder() {
+    fun `gjennomsnitt for to maaneder`() {
         val inntekter = mapOf(1 to 10.0, 2 to 20.0)
         val total = inntekter.values.sum()
         val inntekt = Inntekt(total, genererHistoriskInntekt(inntekter))
@@ -31,12 +31,11 @@ internal class InntektTest {
     }
 
     @Test
-    fun test_float_feil() {
+    fun `test float feil`() {
         val inntekter = mutableMapOf<Int, Double>()
         for (x in 1..11) {
             inntekter.put(x, 0.2)
         }
-        // val total = inntekter.values.sum() Funker ikke..!
         val total = 2.2
         val inntekt = Inntekt(total, genererHistoriskInntekt(inntekter))
         val forventetSnitt = total / inntekter.size
@@ -44,11 +43,8 @@ internal class InntektTest {
     }
 
     private fun genererHistoriskInntekt(inntekter: Map<Int, Double>): List<MottattHistoriskInntekt> {
-        val historiskInntekt = mutableListOf<MottattHistoriskInntekt>()
-        if (inntekter.isEmpty()) return historiskInntekt
-        for ((_, inntekt) in inntekter) {
-            historiskInntekt.add(MottattHistoriskInntekt(null, inntekt))
+        return inntekter.map {
+            MottattHistoriskInntekt(null, it.value)
         }
-        return historiskInntekt
     }
 }

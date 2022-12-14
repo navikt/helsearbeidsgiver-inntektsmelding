@@ -15,6 +15,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NotifikasjonLøsning
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 class NotifikasjonLøser(
     rapidsConnection: RapidsConnection,
@@ -38,14 +40,20 @@ class NotifikasjonLøser(
         }.register(this)
     }
 
-    fun trengerIM(uuid: String, orgnr: String): String {
+    fun trengerIM(
+        uuid: String,
+        orgnr: String,
+        navn: String = "Ola Normann",
+        fødselsdato: LocalDate = LocalDate.now(),
+        tidspunkt: LocalDateTime = LocalDateTime.now()
+    ): String {
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNySak(
                 grupperingsid = uuid,
                 merkelapp = "Inntektsmelding",
                 virksomhetsnummer = orgnr,
-                tittel = "NAV trenger inntektsmelding",
-                lenke = "$linkUrl/im-dialog/trenger/$uuid",
+                tittel = "Inntektsmelding for $navn: f. $fødselsdato",
+                lenke = "$linkUrl/im-dialog/$uuid",
                 harddeleteOm = "P5M"
             )
         }

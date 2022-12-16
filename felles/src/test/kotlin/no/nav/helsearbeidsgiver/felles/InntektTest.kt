@@ -8,25 +8,22 @@ internal class InntektTest {
 
     @Test
     fun `gjennomsnitt av ingen Inntekt er 0`() {
-        val inntekt = Inntekt(0.0, emptyList())
+        val inntekt = Inntekt(emptyList())
         assertEquals(0.0, inntekt.gjennomsnitt())
     }
 
     @Test
-    fun `gjennomsnitt for en eller ingen maaned er lik som total`() {
+    fun `gjennomsnitt for en maaned er lik som total`() {
         val total = 50000.0
-        val inntekt = Inntekt(total, emptyList()) // spesialtilfelle, liste bør aldri være tom, men håndter det likevel
+        val inntekt = Inntekt(listOf(MottattHistoriskInntekt(YearMonth.now(), total)))
         assertEquals(total, inntekt.gjennomsnitt())
-        val inntekt2 = Inntekt(total, listOf(MottattHistoriskInntekt(YearMonth.now(), total)))
-        assertEquals(total, inntekt2.gjennomsnitt())
     }
 
     @Test
     fun `gjennomsnitt for to maaneder`() {
         val inntekter = mapOf(1 to 10.0, 2 to 20.0)
-        val total = inntekter.values.sum()
-        val inntekt = Inntekt(total, genererHistoriskInntekt(inntekter))
-        val forventetSnitt = total / inntekter.size
+        val inntekt = Inntekt(genererHistoriskInntekt(inntekter))
+        val forventetSnitt = 15.0
         assertEquals(forventetSnitt, inntekt.bruttoInntekt)
     }
 
@@ -34,7 +31,7 @@ internal class InntektTest {
     fun `test float feil`() {
         val inntekter = List(11) { it to 0.2 }.toMap()
         val total = 2.2
-        val inntekt = Inntekt(total, genererHistoriskInntekt(inntekter))
+        val inntekt = Inntekt(genererHistoriskInntekt(inntekter))
         val forventetSnitt = total / inntekter.size
         assertEquals(forventetSnitt, inntekt.bruttoInntekt)
     }

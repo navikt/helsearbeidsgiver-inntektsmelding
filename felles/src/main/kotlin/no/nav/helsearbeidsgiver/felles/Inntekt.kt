@@ -17,14 +17,19 @@ data class MottattHistoriskInntekt(
 
 @Serializable
 data class Inntekt(
-    val total: Double,
     val historisk: List<MottattHistoriskInntekt>
 ) {
     val bruttoInntekt = gjennomsnitt()
 
+    fun total(): Double =
+        historisk.map { BigDecimal.valueOf(it.inntekt ?: 0.0) }
+            .fold(BigDecimal.ZERO) { sum, delsum -> sum + delsum }
+            .toDouble()
+
     // Beholder navnet bruttoInntekt for nå, er mer et "forslag til bruttoInntekt" som akkurat nå beregnes ved snitt...
     fun gjennomsnitt(): Double {
-        if (historisk.size <= 1) return total
-        return BigDecimal.valueOf(total).divide(BigDecimal(historisk.size), RoundingMode.HALF_UP).toDouble()
+        if (historisk.size <= 1) return total()
+        return BigDecimal.valueOf(total()).divide(BigDecimal(historisk.size), RoundingMode.HALF_UP)
+            .toDouble()
     }
 }

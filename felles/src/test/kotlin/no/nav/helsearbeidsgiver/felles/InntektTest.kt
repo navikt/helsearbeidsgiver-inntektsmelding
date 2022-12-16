@@ -32,10 +32,7 @@ internal class InntektTest {
 
     @Test
     fun `test float feil`() {
-        val inntekter = mutableMapOf<Int, Double>()
-        for (x in 1..11) {
-            inntekter.put(x, 0.2)
-        }
+        val inntekter = List(11) { it to 0.2 }.toMap()
         val total = 2.2
         val inntekt = Inntekt(total, genererHistoriskInntekt(inntekter))
         val forventetSnitt = total / inntekter.size

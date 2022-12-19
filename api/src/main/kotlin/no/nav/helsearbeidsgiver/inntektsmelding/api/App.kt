@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -31,6 +32,7 @@ object Routes {
     const val ARBEIDSGIVERE = "/arbeidsgivere"
     const val INNSENDING = "/inntektsmelding"
     const val PREUTFYLT = "/preutfyll"
+    const val TRENGER = "/trenger"
 }
 
 fun main() {
@@ -79,6 +81,7 @@ fun Application.apiModule(connection: RapidsConnection) {
         route(Routes.PREFIX) {
             routeExtra(connection, redisPoller) {
                 InnsendingRoute()
+                TrengerRoute()
             }
         }
     }

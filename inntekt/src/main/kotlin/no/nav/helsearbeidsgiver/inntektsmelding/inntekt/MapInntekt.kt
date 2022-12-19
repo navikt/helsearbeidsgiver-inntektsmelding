@@ -5,7 +5,7 @@ import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 
 fun mapInntekt(response: InntektskomponentResponse, orgnr: String): Inntekt {
-    if (orgnr.isNullOrEmpty()) {
+    if (orgnr.isEmpty()) {
         return Inntekt(emptyList())
     }
     val list = response.arbeidsInntektMaaned?.map { it.aarMaaned to it.arbeidsInntektInformasjon?.inntektListe }
@@ -13,7 +13,7 @@ fun mapInntekt(response: InntektskomponentResponse, orgnr: String): Inntekt {
         ?.filterKeyAndValueNotNull()
         ?.flatMap { (maaned, inntekter) ->
             inntekter.filter {
-                it.virksomhet?.identifikator.equals(orgnr)
+                it.virksomhet?.identifikator == orgnr
             }
                 .map {
                     val belop = it.beloep ?: 0.0

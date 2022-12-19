@@ -28,7 +28,7 @@ internal class InntektTest {
     }
 
     @Test
-    fun `test float feil`() {
+    fun `test korrekt float ved beregning av gjennomsnitt`() {
         val inntekter = List(11) { it to 0.2 }.toMap()
         val total = 2.2
         val inntekt = Inntekt(genererHistoriskInntekt(inntekter))

@@ -70,5 +70,5 @@ internal class MapInntektKtTest {
         assertEquals(1.0, inntekt.total())
     }
 
-    private fun lagRespons(filnavn: String) = objectMapper.readValue<InntektskomponentResponse>(filnavn.loadFromResources())
+    private fun lagRespons(filnavn: String): InntektskomponentResponse = objectMapper.readValue(filnavn.loadFromResources())
 }

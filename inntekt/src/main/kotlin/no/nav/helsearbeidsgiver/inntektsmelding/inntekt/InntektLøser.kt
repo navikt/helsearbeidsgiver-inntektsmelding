@@ -10,13 +10,15 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
+import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
-fun finnStartMnd(now: LocalDate = LocalDate.now()): LocalDate? {
+fun finnStartMnd(now: LocalDate = LocalDate.now()): LocalDate {
     return LocalDate.of(now.year, now.month, 1)
 }
 
@@ -29,33 +31,33 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         River(rapidsConnection).apply {
             validate {
                 it.demandAll("@behov", BEHOV)
-                it.requireKey("@id")
-                it.requireKey("identitetsnummer")
+                it.requireKey("@id", "identitetsnummer", Key.ORGNRUNDERENHET.str)
                 it.rejectKey("@løsning")
             }
         }.register(this)
     }
 
-    private fun hentInntekt(fnr: String, fra: LocalDate, til: LocalDate, callId: String): Inntekt {
-        val response = runBlocking {
+    private fun hentInntekt(fnr: String, fra: LocalDate, til: LocalDate, callId: String): InntektskomponentResponse =
+        runBlocking {
             sikkerlogg.info("Henter inntekt for $fnr i perioden $fra til $til (callId: $callId)")
             inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fra, til, "8-28", "Sykepenger")
         }
-        return mapInntekt(response)
-    }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet["@id"].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         val fnr = packet["identitetsnummer"].asText()
+        val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
+        val til = finnStartMnd()
+        val fra = til.minusMonths(9) // TODO: skal endres til 3 mnd
         try {
-            val til = finnStartMnd()
-            val fra = til!!.minusMonths(9)
-            val inntekt = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
+            val inntektResponse = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
+            val inntekt = mapInntekt(inntektResponse, orgnr)
             packet.setLøsning(BEHOV, InntektLøsning(inntekt))
             context.publish(packet.toJson())
-            sikkerlogg.info("Fant inntekt $inntekt for $fnr")
+            sikkerlogg.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
         } catch (ex: Exception) {
+            logger.error("Feil!", ex)
             packet.setLøsning(BEHOV, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
             sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr", ex)
             context.publish(packet.toJson())

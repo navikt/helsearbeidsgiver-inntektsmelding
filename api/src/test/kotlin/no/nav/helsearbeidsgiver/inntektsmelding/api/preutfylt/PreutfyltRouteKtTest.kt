@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.buildResultat
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
+import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.MockUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
@@ -64,6 +64,6 @@ class PreutfyltRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals(objectMapper.writeValueAsString(InnsendingFeilet(MockUuid.STRING, "Brukte for lang tid")), response.bodyAsText())
+        assertEquals(objectMapper.writeValueAsString(RedisTimeoutResponse(MockUuid.STRING, "Brukte for lang tid")), response.bodyAsText())
     }
 }

@@ -2,7 +2,6 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 
-import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Løsning
@@ -11,29 +10,15 @@ import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PreutfyltResponse
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
+import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.ResultatMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
 import org.valiktor.ConstraintViolation
-import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
 
-class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: PreutfyltRequest) {
+class PreutfyltMapper(val uuid: String, resultat: Resultat, val request: PreutfyltRequest) : ResultatMapper<PreutfyltResponse>(resultat) {
 
-    fun hasErrors(): Boolean {
-        return findAll().any { it.error != null }
-    }
-
-    fun findAll(): List<Løsning> {
-        return listOf(resultat.FULLT_NAVN, resultat.VIRKSOMHET, resultat.ARBEIDSFORHOLD, resultat.SYK, resultat.INNTEKT, resultat.EGENMELDING).filterNotNull()
-    }
-
-    fun getConstraintViolations(): List<ConstraintViolation> {
-        return findAll()
-            .filter { it.error != null && !it.error!!.melding.isBlank() }
-            .map { mapConstraint(it) }
-    }
-
-    fun mapConstraint(løsning: Løsning): ConstraintViolation {
+    override fun mapConstraint(løsning: Løsning): ConstraintViolation {
         if (løsning is VirksomhetLøsning) {
             return DefaultConstraintViolation(Key.ORGNRUNDERENHET.str, løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
         }
@@ -69,10 +54,7 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
         return resultat.INNTEKT?.value!!
     }
 
-    fun getResponse(): PreutfyltResponse {
-        if (hasErrors()) {
-            throw ConstraintViolationException(getConstraintViolations().toSet())
-        }
+    override fun getResultatResponse(): PreutfyltResponse {
         val inntekt = mapInntekt()
         return PreutfyltResponse(
             navn = mapFulltNavn(),
@@ -84,12 +66,5 @@ class PreutfyltMapper(val uuid: String, val resultat: Resultat, val request: Pre
             tidligereinntekter = inntekt.historisk,
             behandlingsperiode = mapBehandlingsperiode()
         )
-    }
-
-    fun getStatus(): HttpStatusCode {
-        if (hasErrors()) {
-            return HttpStatusCode.InternalServerError
-        }
-        return HttpStatusCode.Created
     }
 }

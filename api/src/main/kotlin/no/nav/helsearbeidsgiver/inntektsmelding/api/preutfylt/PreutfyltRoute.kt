@@ -8,8 +8,8 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingFeilet
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
@@ -37,7 +37,7 @@ fun RouteExtra.PreutfyltRoute() {
                 call.respond(HttpStatusCode.BadRequest, validationResponseMapper(e.constraintViolations))
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for $uuid")
-                call.respond(HttpStatusCode.InternalServerError, InnsendingFeilet(uuid, "Brukte for lang tid"))
+                call.respond(HttpStatusCode.InternalServerError, RedisTimeoutResponse(uuid))
             }
         }
     }

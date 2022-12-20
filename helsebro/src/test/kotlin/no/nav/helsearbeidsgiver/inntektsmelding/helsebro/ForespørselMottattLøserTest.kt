@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.felles.test.json.tryToJson
 import java.util.UUID
 
 class ForespørselMottattLøserTest : FunSpec({

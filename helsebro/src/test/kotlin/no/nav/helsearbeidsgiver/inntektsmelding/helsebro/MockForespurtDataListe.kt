@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
+import no.nav.helsearbeidsgiver.felles.test.date.januar
+
 fun mockForespurtDataListe(): List<ForespurtData> =
     listOf(
         ArbeidsgiverPeriode(

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
+import no.nav.helsearbeidsgiver.felles.test.json.removeJsonWhitespace
 import java.util.UUID
 
 class TrengerForespørselTest : FunSpec({

@@ -12,12 +12,16 @@ enum class Key(val str: String) {
     OPPRETTET("@opprettet"),
 
     // Egendefinerte
+    NOTIS("notis"),
     SESSION("session"),
     NESTE_BEHOV("neste_behov"),
     IDENTITETSNUMMER("identitetsnummer"),
     INITIATE_ID("initiate_id"),
+    UUID("uuid"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
-    UUID("uuid");
+    ORGNR("orgnr"),
+    FNR("fnr"),
+    VEDTAKSPERIODE_ID("vedtaksperiodeId");
 
     override fun toString(): String =
         str

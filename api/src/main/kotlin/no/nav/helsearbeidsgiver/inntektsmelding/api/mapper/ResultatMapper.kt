@@ -46,5 +46,5 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
         return getResultatResponse()
     }
 
-    abstract fun getResultatResponse(): T
+    protected abstract fun getResultatResponse(): T
 }

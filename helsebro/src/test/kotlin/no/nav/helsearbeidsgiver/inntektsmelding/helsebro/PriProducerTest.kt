@@ -35,7 +35,7 @@ class PriProducerTest : FunSpec({
         bleMeldingSendt.shouldBeTrue()
 
         val expected = ProducerRecord<String, TrengerForespoersel>(
-            Pri.NAME,
+            Pri.TOPIC,
             trengerForespoersel
         )
 

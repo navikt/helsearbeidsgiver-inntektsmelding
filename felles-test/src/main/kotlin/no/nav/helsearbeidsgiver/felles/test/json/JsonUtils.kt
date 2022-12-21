@@ -26,5 +26,5 @@ fun Enum<*>.toJson(): JsonElement =
 fun Map<String, JsonElement>.toJson(): JsonElement =
     Json.encodeToJsonElement(this)
 
-fun <T : Any> List<T>.toJson(elementToJson: T.() -> JsonElement): JsonElement =
-    map { it.elementToJson() }.let(Json::encodeToJsonElement)
+fun <T : Any> List<T>.toJson(elementToJson: (T) -> JsonElement): JsonElement =
+    map { elementToJson(it) }.let(Json::encodeToJsonElement)

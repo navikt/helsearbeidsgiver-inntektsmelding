@@ -15,10 +15,10 @@ import java.util.Properties
 class PriProducer(
     private val producer: KafkaProducer<String, TrengerForespoersel> = createProducer()
 ) {
-    private val topic = Pri.NAME
+    private val topic = Pri.TOPIC
 
-    fun send(trengerForespurtData: TrengerForespoersel): Boolean =
-        trengerForespurtData.toRecord()
+    fun send(trengerForespoersel: TrengerForespoersel): Boolean =
+        trengerForespoersel.toRecord()
             .runCatching {
                 producer.send(this).get()
             }
@@ -32,7 +32,7 @@ private fun createProducer(): KafkaProducer<String, TrengerForespoersel> =
     KafkaProducer(
         kafkaProperties(),
         StringSerializer(),
-        TrengerForespurtDataSerializer()
+        TrengerForespoerselDataSerializer()
     )
 
 private fun kafkaProperties(): Properties =
@@ -55,8 +55,9 @@ private fun kafkaProperties(): Properties =
         )
     }
 
-private class TrengerForespurtDataSerializer : Serializer<TrengerForespoersel> {
+private class TrengerForespoerselDataSerializer : Serializer<TrengerForespoersel> {
     override fun serialize(topic: String, data: TrengerForespoersel): ByteArray =
         data.toJson()
+            .toString()
             .toByteArray()
 }

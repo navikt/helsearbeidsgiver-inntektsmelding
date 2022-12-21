@@ -19,7 +19,7 @@ class TrengerForespoerselTest : FunSpec({
             }
         """.removeJsonWhitespace()
 
-        val actualJson = trengerForespoersel.toJson()
+        val actualJson = trengerForespoersel.toJson().toString()
 
         actualJson shouldBeEqualComparingTo expectedJson
     }

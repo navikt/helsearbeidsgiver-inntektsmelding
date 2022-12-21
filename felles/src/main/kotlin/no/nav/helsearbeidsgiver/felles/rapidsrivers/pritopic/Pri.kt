@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
 
 object Pri {
-    const val NAME = "helsearbeidsgiver.pri"
+    const val TOPIC = "helsearbeidsgiver.pri"
 
     enum class Key(val str: String) {
         // Predefinerte fra rapids-and-rivers-biblioteket

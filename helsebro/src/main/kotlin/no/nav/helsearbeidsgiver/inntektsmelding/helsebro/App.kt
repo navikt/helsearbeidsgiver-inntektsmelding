@@ -1,21 +1,19 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import no.nav.helse.rapids_rivers.RapidApplication
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.felles.log.logger
+import no.nav.helsearbeidsgiver.felles.log.loggerSikker
 
-val logger = LoggerFactory.getLogger("helsebro-main")
-val loggerSikker = LoggerFactory.getLogger("tjenestekall")
+val logger = "im-helsebro".logger()
+val loggerSikker = loggerSikker()
 
-/*
-Denne appen skal snakke med helsearbeidsgiver-bro-sykepenger etterhvert.
-*/
 fun main() {
     logger.info("im-helsebro er oppe og kjører!")
 
     RapidApplication.create(System.getenv())
         .also {
-            ForespørselMottattLøser(it, PriProducer())
-            ForespørselSvarLøser(it)
+            TrengerForespoerselLøser(it, PriProducer())
+            ForespoerselSvarLøser(it)
         }
         .start()
 

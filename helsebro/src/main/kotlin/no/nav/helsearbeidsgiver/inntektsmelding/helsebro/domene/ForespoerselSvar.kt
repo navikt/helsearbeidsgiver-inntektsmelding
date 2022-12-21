@@ -1,6 +1,6 @@
 @file:UseSerializers(UuidSerializer::class, LocalDateSerializer::class)
 
-package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
+package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
@@ -10,7 +10,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Serializable
-data class ForespørselSvar(
+data class ForespoerselSvar(
     val orgnr: String,
     val fnr: String,
     val vedtaksperiodeId: UUID,

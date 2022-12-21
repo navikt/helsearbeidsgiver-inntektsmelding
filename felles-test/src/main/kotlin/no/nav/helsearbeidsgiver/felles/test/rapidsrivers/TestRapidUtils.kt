@@ -3,12 +3,16 @@ package no.nav.helsearbeidsgiver.felles.test.rapidsrivers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.test.json.tryToJson
+import no.nav.helsearbeidsgiver.felles.test.json.toJson
 
 fun TestRapid.sendJson(vararg keyValuePairs: Pair<Key, JsonElement>) {
     keyValuePairs.toMap()
         .mapKeys { (key, _) -> key.str }
-        .tryToJson()
+        .let(this::sendJson)
+}
+
+internal fun TestRapid.sendJson(keyValuePairs: Map<String, JsonElement>) {
+    keyValuePairs.toJson()
         .toString()
         .let(this::sendTestMessage)
 }

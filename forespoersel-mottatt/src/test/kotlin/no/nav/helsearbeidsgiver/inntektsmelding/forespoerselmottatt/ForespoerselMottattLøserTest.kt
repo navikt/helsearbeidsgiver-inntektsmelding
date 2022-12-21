@@ -10,10 +10,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.test.json.tryToJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import java.util.UUID
 
 class ForespoerselMottattLøserTest : FunSpec({
@@ -25,18 +25,13 @@ class ForespoerselMottattLøserTest : FunSpec({
     ForespoerselMottattLøser(testRapid)
 
     test("Ved notis om mottatt forespørsel publiseres behov om notifikasjon") {
-        val expected = Published(
-            behov = listOf(BehovType.NOTIFIKASJON_TRENGER_IM),
-            orgnrUnderenhet = "123",
-            identitetsnummer = "abc",
-            uuid = UUID.randomUUID().toString()
-        )
+        val expected = Published.mock()
 
         testRapid.sendJson(
-            Key.NOTIS to BehovType.FORESPØRSEL_MOTTATT.tryToJson(),
-            Key.ORGNR to expected.orgnrUnderenhet.tryToJson(),
-            Key.FNR to expected.identitetsnummer.tryToJson(),
-            Key.VEDTAKSPERIODE_ID to expected.uuid.tryToJson()
+            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(),
+            Pri.Key.ORGNR to expected.orgnrUnderenhet.toJson(),
+            Pri.Key.FNR to expected.identitetsnummer.toJson(),
+            Pri.Key.VEDTAKSPERIODE_ID to expected.uuid.toJson()
         )
 
         val actual = testRapid.lastMessageJson().let(Published::fromJson)
@@ -62,5 +57,13 @@ private data class Published(
 
         fun fromJson(json: String): Published =
             jsonBuilder.decodeFromString(json)
+
+        fun mock(): Published =
+            Published(
+                behov = listOf(BehovType.NOTIFIKASJON_TRENGER_IM),
+                orgnrUnderenhet = "certainly-stereo-facsimile",
+                identitetsnummer = "resort-cringe-huddle",
+                uuid = UUID.randomUUID().toString()
+            )
     }
 }

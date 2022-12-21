@@ -7,6 +7,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.orDefault
 import no.nav.helsearbeidsgiver.felles.value
 
 private const val DEFAULT_ERROR_MESSAGE = "Ukjent feil."
@@ -84,6 +85,3 @@ private fun createPacket(
         .mapKeys { (key, _) -> key.str }
         .let(JsonMessage::newMessage)
 }
-
-private fun <T> T?.orDefault(default: T) =
-    this ?: default

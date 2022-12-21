@@ -7,10 +7,11 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValue
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.value
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
-import no.nav.helsearbeidsgiver.felles.value
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLøser(
@@ -19,30 +20,30 @@ class ForespoerselMottattLøser(
     init {
         River(rapid).apply {
             validate {
-                // TODO i dag er nøkkel "eventType"
-                it.demandValue(Key.NOTIS, BehovType.FORESPØRSEL_MOTTATT)
+                it.demandValue(Pri.Key.NOTIS, Pri.NotisType.FORESPØRSEL_MOTTATT)
                 it.requireKeys(
-                    Key.ORGNR,
-                    Key.FNR,
-                    Key.VEDTAKSPERIODE_ID
+                    Pri.Key.ORGNR,
+                    Pri.Key.FNR,
+                    Pri.Key.VEDTAKSPERIODE_ID
                 )
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding om ${packet.value(Key.NOTIS).asText()}")
-        loggerSikker.info("Mottok melding:\n${packet.toJson()}")
+        logger.info("Mottok melding på pri-topic om ${packet.value(Pri.Key.NOTIS).asText()}.")
+        loggerSikker.info("Mottok melding på pri-topic:\n${packet.toJson()}")
 
-        val orgnr = packet.value(Key.ORGNR).asText()
-        val fnr = packet.value(Key.FNR).asText()
-        val vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asUuid()
+        val orgnr = Pri.Key.ORGNR.let(packet::value).asText()
+        val fnr = Pri.Key.FNR.let(packet::value).asText()
+        val vedtaksperiodeId = Pri.Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid()
 
 //        val uuid = UUID.randomUUID()
 
 //        forespoerselDao.lagre(uuid, vedtaksperiodeId)
 
         context.publish(
+            // TODO burde være notis
             Key.BEHOV to listOf(BehovType.NOTIFIKASJON_TRENGER_IM),
             Key.ORGNRUNDERENHET to orgnr,
             Key.IDENTITETSNUMMER to fnr,

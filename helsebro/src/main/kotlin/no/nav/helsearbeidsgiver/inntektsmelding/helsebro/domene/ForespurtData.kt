@@ -1,6 +1,6 @@
 @file:UseSerializers(LocalDateSerializer::class)
 
-package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
+package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName

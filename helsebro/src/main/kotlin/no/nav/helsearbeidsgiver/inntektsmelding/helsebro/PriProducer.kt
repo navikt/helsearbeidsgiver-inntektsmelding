@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -11,11 +13,11 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 
 class PriProducer(
-    private val producer: KafkaProducer<String, TrengerForespørsel> = createProducer()
+    private val producer: KafkaProducer<String, TrengerForespoersel> = createProducer()
 ) {
-    private val topic = "helsearbeidsgiver.pri"
+    private val topic = Pri.NAME
 
-    fun send(trengerForespurtData: TrengerForespørsel): Boolean =
+    fun send(trengerForespurtData: TrengerForespoersel): Boolean =
         trengerForespurtData.toRecord()
             .runCatching {
                 producer.send(this).get()
@@ -26,7 +28,7 @@ class PriProducer(
         ProducerRecord(topic, this)
 }
 
-private fun createProducer(): KafkaProducer<String, TrengerForespørsel> =
+private fun createProducer(): KafkaProducer<String, TrengerForespoersel> =
     KafkaProducer(
         kafkaProperties(),
         StringSerializer(),
@@ -53,8 +55,8 @@ private fun kafkaProperties(): Properties =
         )
     }
 
-private class TrengerForespurtDataSerializer : Serializer<TrengerForespørsel> {
-    override fun serialize(topic: String, data: TrengerForespørsel): ByteArray =
+private class TrengerForespurtDataSerializer : Serializer<TrengerForespoersel> {
+    override fun serialize(topic: String, data: TrengerForespoersel): ByteArray =
         data.toJson()
             .toByteArray()
 }

@@ -7,14 +7,15 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
-import java.util.UUID
 
 class PriProducerTest : FunSpec({
-    val mockProducer = mockk<KafkaProducer<String, TrengerForespørsel>>()
+    val mockProducer = mockk<KafkaProducer<String, TrengerForespoersel>>()
 
     val priProducer = PriProducer(
         producer = mockProducer
@@ -27,15 +28,15 @@ class PriProducerTest : FunSpec({
     test("gir true ved sendt melding til kafka stream") {
         every { mockProducer.send(any()).get() } returns mockRecordMetadata()
 
-        val trengerForespurtData = mockTrengerForespurtData()
+        val trengerForespoersel = mockTrengerForespoersel()
 
-        val bleMeldingSendt = priProducer.send(trengerForespurtData)
+        val bleMeldingSendt = priProducer.send(trengerForespoersel)
 
         bleMeldingSendt.shouldBeTrue()
 
-        val expected = ProducerRecord<String, TrengerForespørsel>(
-            "helsearbeidsgiver.pri",
-            trengerForespurtData
+        val expected = ProducerRecord<String, TrengerForespoersel>(
+            Pri.NAME,
+            trengerForespoersel
         )
 
         verifySequence { mockProducer.send(expected) }
@@ -44,22 +45,15 @@ class PriProducerTest : FunSpec({
     test("gir false ved feilet sending til kafka stream") {
         every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
 
-        val trengerForespurtData = mockTrengerForespurtData()
+        val trengerForespoersel = mockTrengerForespoersel()
 
-        val bleMeldingSendt = priProducer.send(trengerForespurtData)
+        val bleMeldingSendt = priProducer.send(trengerForespoersel)
 
         bleMeldingSendt.shouldBeFalse()
 
         verifySequence { mockProducer.send(any()) }
     }
 })
-
-private fun mockTrengerForespurtData(): TrengerForespørsel =
-    TrengerForespørsel(
-        orgnr = "123",
-        fnr = "abc",
-        UUID.randomUUID()
-    )
 
 private fun mockRecordMetadata(): RecordMetadata =
     RecordMetadata(null, 0, 0, 0, 0, 0)

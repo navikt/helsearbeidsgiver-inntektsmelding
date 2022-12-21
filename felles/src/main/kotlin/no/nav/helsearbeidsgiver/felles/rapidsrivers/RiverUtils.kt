@@ -7,8 +7,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import java.util.UUID
 
-fun JsonMessage.demandValue(key: Key, value: BehovType) {
-    demandValue(key.str, value.name)
+fun JsonMessage.demandAll(key: Key, values: List<BehovType>) {
+    demandAll(key.str, values.map(BehovType::name))
 }
 
 fun JsonMessage.requireKeys(vararg keys: Key) {

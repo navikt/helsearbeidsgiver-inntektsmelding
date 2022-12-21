@@ -18,7 +18,7 @@ fun JsonMessage.requireKeys(vararg keys: Pri.Key) {
 fun JsonMessage.value(key: Pri.Key): JsonNode =
     this[key.str]
 
-fun jsonOf(vararg keyValuePairs: Pair<Pri.Key, String>): JsonElement =
+fun jsonOf(vararg keyValuePairs: Pair<Pri.Key, JsonElement>): JsonElement =
     keyValuePairs.toMap()
         .mapKeys { (key, _) -> key.str }
         .let(Json::encodeToJsonElement)

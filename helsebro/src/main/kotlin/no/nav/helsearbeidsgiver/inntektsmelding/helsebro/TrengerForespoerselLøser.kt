@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ifFalse
 import no.nav.helsearbeidsgiver.felles.ifTrue
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
@@ -23,6 +24,7 @@ class TrengerForespoerselLøser(
             validate {
                 it.demandAll(Key.BEHOV, listOf(BehovType.HENT_TRENGER_IM))
                 it.requireKeys(
+                    Key.UUID,
                     Key.ORGNR,
                     Key.FNR,
                     Key.VEDTAKSPERIODE_ID
@@ -38,7 +40,10 @@ class TrengerForespoerselLøser(
         val trengerForespoersel = TrengerForespoersel(
             orgnr = Key.ORGNR.let(packet::value).asText(),
             fnr = Key.FNR.let(packet::value).asText(),
-            vedtaksperiodeId = Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid()
+            vedtaksperiodeId = Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid(),
+            boomerang = mapOf(
+                Key.INITIATE_ID.str to Key.UUID.let(packet::value).asUuid().toJson()
+            )
         )
 
         priProducer.send(trengerForespoersel)

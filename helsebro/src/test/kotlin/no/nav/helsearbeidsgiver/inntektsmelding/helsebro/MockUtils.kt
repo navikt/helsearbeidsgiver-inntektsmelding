@@ -1,5 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
+import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
@@ -32,7 +35,8 @@ fun mockTrengerForespoersel(): TrengerForespoersel =
     TrengerForespoersel(
         orgnr = "yelp-domestic-breeder",
         fnr = "relic-numerous-italicize",
-        vedtaksperiodeId = UUID.randomUUID()
+        vedtaksperiodeId = UUID.randomUUID(),
+        boomerang = mockBoomerang()
     )
 
 fun mockForespoerselSvar(): ForespoerselSvar =
@@ -42,5 +46,11 @@ fun mockForespoerselSvar(): ForespoerselSvar =
         vedtaksperiodeId = UUID.randomUUID(),
         fom = 1.januar,
         tom = 16.januar,
-        forespurtData = mockForespurtDataListe()
+        forespurtData = mockForespurtDataListe(),
+        boomerang = mockBoomerang()
+    )
+
+private fun mockBoomerang(): Map<String, JsonElement> =
+    mapOf(
+        Key.INITIATE_ID.str to UUID.randomUUID().toJson()
     )

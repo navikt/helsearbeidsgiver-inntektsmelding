@@ -16,7 +16,7 @@ enum class Key(val str: String) {
     SESSION("session"),
     NESTE_BEHOV("neste_behov"),
     IDENTITETSNUMMER("identitetsnummer"),
-    INITIATE_ID("initiate_id"),
+    INITIATE_ID("initiateId"),
     UUID("uuid"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNR("orgnr"),

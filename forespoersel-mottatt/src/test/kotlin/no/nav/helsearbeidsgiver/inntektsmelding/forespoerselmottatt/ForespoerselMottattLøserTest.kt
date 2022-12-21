@@ -10,8 +10,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.test.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import java.util.UUID

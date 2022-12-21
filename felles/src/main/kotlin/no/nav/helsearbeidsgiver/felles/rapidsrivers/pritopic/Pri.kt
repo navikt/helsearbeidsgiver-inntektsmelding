@@ -10,6 +10,7 @@ object Pri {
 
         // Egendefinerte
         NOTIS("notis"),
+        BOOMERANG("boomerang"),
         ORGNR("orgnr"),
         FNR("fnr"),
         VEDTAKSPERIODE_ID("vedtaksperiodeId"),

@@ -30,7 +30,7 @@ fun RouteExtra.TrengerRoute() {
                 request.validate()
                 // TODO Hent orgnr og fnr dynamisk
                 val fnr = "22506614191"
-                val orgnr = "810007842"
+                val orgnr = "810007982"
                 //
                 val preutfyltRequest = PreutfyltRequest(orgnr, fnr)
                 uuid = preutfyltProducer.publish(preutfyltRequest)

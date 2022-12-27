@@ -19,26 +19,31 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationRespons
 import org.valiktor.ConstraintViolationException
 
 fun RouteExtra.TrengerRoute() {
+    val trengerProducer = TrengerProducer(connection)
     val preutfyltProducer = PreutfyltProducer(connection)
 
     route.route(Routes.TRENGER) {
         post {
             val request = call.receive<TrengerRequest>()
-            var uuid = "ukjent uuid"
-            sikkerlogg.info("Mottok Trenger $request")
+            var uuid = request.uuid
+            logger.info("Henter data for uuid: $uuid")
             try {
+                // Valider requesten
                 request.validate()
-                // TODO Hent orgnr og fnr dynamisk
-                val fnr = "22506614191"
-                val orgnr = "810007982"
-                //
-                val preutfyltRequest = PreutfyltRequest(orgnr, fnr)
+                // Hent orgnr og fnr basert på request
+                val uuidTrenger = trengerProducer.publish(request)
+                val resultatTrengerInntekt = redis.getResultat(uuidTrenger)
+                sikkerlogg.info("Fikk resultat for $uuid: $resultatTrengerInntekt")
+                val trengerMapper = TrengerMapper(uuidTrenger, resultatTrengerInntekt, request)
+                val inntektResponse = trengerMapper.getResponse()
+                // Hent ferdig utfylt
+                val preutfyltRequest = PreutfyltRequest(inntektResponse.orgnr, inntektResponse.fnr)
                 uuid = preutfyltProducer.publish(preutfyltRequest)
                 logger.info("Publiserte behov uuid: $uuid")
-                val resultat = redis.getResultat(uuid, 10, 500)
-                sikkerlogg.info("Fikk resultat for $uuid : $resultat")
-                val mapper = PreutfyltMapper(uuid, resultat, preutfyltRequest)
-                sikkerlogg.info("Klarte mappe resultat for $uuid : $resultat")
+                val resultatPreutfylt = redis.getResultat(uuid)
+                sikkerlogg.info("Fikk resultat for $uuid : $resultatPreutfylt")
+                val mapper = PreutfyltMapper(uuid, resultatPreutfylt, preutfyltRequest)
+                sikkerlogg.info("Klarte mappe resultat for $uuid : $resultatPreutfylt")
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for $uuid")

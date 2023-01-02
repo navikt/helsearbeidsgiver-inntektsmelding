@@ -14,8 +14,6 @@ class TrengerForespoerselTest : FunSpec({
         val expectedJson = """
             {
                 "${Pri.Key.BEHOV}": "${trengerForespoersel.behov}",
-                "${Pri.Key.ORGNR}": "${trengerForespoersel.orgnr}",
-                "${Pri.Key.FNR}": "${trengerForespoersel.fnr}",
                 "${Pri.Key.VEDTAKSPERIODE_ID}": "${trengerForespoersel.vedtaksperiodeId}",
                 "${Pri.Key.BOOMERANG}": ${trengerForespoersel.boomerang.toJson()}
             }

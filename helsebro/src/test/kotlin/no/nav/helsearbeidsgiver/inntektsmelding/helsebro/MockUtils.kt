@@ -33,8 +33,6 @@ fun mockForespurtDataListe(): List<ForespurtData> =
 
 fun mockTrengerForespoersel(): TrengerForespoersel =
     TrengerForespoersel(
-        orgnr = "yelp-domestic-breeder",
-        fnr = "relic-numerous-italicize",
         vedtaksperiodeId = UUID.randomUUID(),
         boomerang = mockBoomerang()
     )

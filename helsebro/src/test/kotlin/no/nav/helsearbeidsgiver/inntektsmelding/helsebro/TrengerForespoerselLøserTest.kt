@@ -22,8 +22,6 @@ class TrengerForespoerselLøserTest : FunSpec({
         testRapid.sendJson(
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(Enum<*>::toJson),
             Key.UUID to expectedPublished.boomerang[Key.INITIATE_ID.str].shouldNotBeNull(),
-            Key.ORGNR to expectedPublished.orgnr.toJson(),
-            Key.FNR to expectedPublished.fnr.toJson(),
             Key.VEDTAKSPERIODE_ID to expectedPublished.vedtaksperiodeId.toJson()
         )
 

@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import java.util.UUID
@@ -23,7 +24,8 @@ class TrengerProducer(
                     BehovType.HENT_TRENGER_IM.name
                 ),
                 "@id" to uuid,
-                "uuid" to uuid
+                "uuid" to uuid,
+                Key.VEDTAKSPERIODE_ID.str to request.uuid
             )
         )
         rapidsConnection.publish(request.uuid, packet.toJson())

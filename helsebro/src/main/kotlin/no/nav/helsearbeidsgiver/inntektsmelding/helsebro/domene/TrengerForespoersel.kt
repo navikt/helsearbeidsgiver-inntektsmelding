@@ -11,8 +11,6 @@ import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import java.util.UUID
 
 data class TrengerForespoersel(
-    val orgnr: String,
-    val fnr: String,
     val vedtaksperiodeId: UUID,
     val boomerang: Map<String, JsonElement>
 ) {
@@ -21,8 +19,6 @@ data class TrengerForespoersel(
     fun toJson(): JsonElement =
         jsonOf(
             Pri.Key.BEHOV to behov.toJson(),
-            Pri.Key.ORGNR to orgnr.toJson(),
-            Pri.Key.FNR to fnr.toJson(),
             Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
             Pri.Key.BOOMERANG to boomerang.toJson()
         )

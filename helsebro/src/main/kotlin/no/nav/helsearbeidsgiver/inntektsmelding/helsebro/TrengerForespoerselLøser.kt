@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.ifTrue
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
@@ -24,6 +25,7 @@ class TrengerForespoerselLøser(
         River(rapid).apply {
             validate {
                 it.demandAll(Key.BEHOV, listOf(BehovType.HENT_TRENGER_IM))
+                it.rejectKeys(Key.LØSNING)
                 it.requireKeys(
                     Key.UUID,
                     Key.VEDTAKSPERIODE_ID

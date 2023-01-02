@@ -11,6 +11,11 @@ fun JsonMessage.demandAll(key: Key, values: List<BehovType>) {
     demandAll(key.str, values.map(BehovType::name))
 }
 
+fun JsonMessage.rejectKeys(vararg keys: Key) {
+    val keysAsStr = keys.map(Key::str).toTypedArray()
+    this.rejectKey(*keysAsStr)
+}
+
 fun JsonMessage.requireKeys(vararg keys: Key) {
     val keysAsStr = keys.map(Key::str).toTypedArray()
     this.requireKey(*keysAsStr)

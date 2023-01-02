@@ -38,8 +38,8 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding på pri-topic om ${packet.value(Pri.Key.LØSNING).asText()}.")
-        loggerSikker.info("Mottok melding på pri-topic:\n${packet.toJson()}")
+        logger.info("Mottok løsning på pri-topic om ${packet.value(Pri.Key.LØSNING).asText()}.")
+        loggerSikker.info("Mottok løsning på pri-topic:\n${packet.toJson()}")
 
         val forespoerselSvar = ForespoerselSvar(
             orgnr = Pri.Key.ORGNR.let(packet::value).asText(),

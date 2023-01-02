@@ -1,4 +1,4 @@
-@file:UseSerializers(LocalDateSerializer::class)
+@file:UseSerializers(LocalDateSerializer::class, YearMonthSerializer::class)
 
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene
 
@@ -7,8 +7,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonClassDiscriminator
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
-import java.time.LocalDate
+import no.nav.helsearbeidsgiver.felles.serializers.YearMonthSerializer
+import java.time.YearMonth
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
@@ -17,18 +19,21 @@ sealed class ForespurtData
 
 @Serializable
 @SerialName("Arbeidsgiverperiode")
-data class ArbeidsgiverPeriode(val forslag: List<Forslag>) : ForespurtData()
+data class ArbeidsgiverPeriode(val forslag: List<Periode>) : ForespurtData()
+
+@Serializable
+@SerialName("Inntekt")
+data class Inntekt(val forslag: ForslagInntekt) : ForespurtData()
+
+@Serializable
+@SerialName("FastsattInntekt")
+data class FastsattInntekt(val fastsattInntekt: Double) : ForespurtData()
 
 @Serializable
 @SerialName("Refusjon")
 object Refusjon : ForespurtData()
 
 @Serializable
-@SerialName("Inntekt")
-object Inntekt : ForespurtData()
-
-@Serializable
-data class Forslag(
-    val fom: LocalDate,
-    val tom: LocalDate
+data class ForslagInntekt(
+    val beregningsmåneder: List<YearMonth>
 )

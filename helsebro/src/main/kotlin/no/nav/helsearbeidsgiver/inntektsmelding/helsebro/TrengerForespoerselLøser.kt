@@ -32,8 +32,8 @@ class TrengerForespoerselLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding om ${packet.value(Key.BEHOV).asText()}")
-        loggerSikker.info("Mottok melding:\n${packet.toJson()}")
+        logger.info("Mottok behov om ${packet.value(Key.BEHOV).asText()}")
+        loggerSikker.info("Mottok behov:\n${packet.toJson()}")
 
         val trengerForespoersel = TrengerForespoersel(
             vedtaksperiodeId = Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid(),

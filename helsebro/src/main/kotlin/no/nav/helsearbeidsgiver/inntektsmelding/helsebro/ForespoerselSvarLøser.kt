@@ -61,10 +61,13 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
 
         context.publish(
             Key.LØSNING to listOf(BehovType.HENT_TRENGER_IM),
+            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM),
             Key.UUID to initiateId,
             Key.ORGNR to forespoerselSvar.orgnr,
             Key.FNR to forespoerselSvar.fnr,
             Key.VEDTAKSPERIODE_ID to forespoerselSvar.vedtaksperiodeId
         )
+
+        logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")
     }
 }

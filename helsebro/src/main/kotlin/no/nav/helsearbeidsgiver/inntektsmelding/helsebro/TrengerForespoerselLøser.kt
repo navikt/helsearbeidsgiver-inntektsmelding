@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -32,7 +33,7 @@ class TrengerForespoerselLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok behov om ${packet.value(Key.BEHOV).asText()}")
+        logger.info("Mottok behov om ${packet.value(Key.BEHOV).map(JsonNode::asText)}")
         loggerSikker.info("Mottok behov:\n${packet.toJson()}")
 
         val trengerForespoersel = TrengerForespoersel(

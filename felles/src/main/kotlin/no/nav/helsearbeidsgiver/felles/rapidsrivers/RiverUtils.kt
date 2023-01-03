@@ -13,12 +13,18 @@ fun JsonMessage.demandAll(key: Key, values: List<BehovType>) {
 
 fun JsonMessage.rejectKeys(vararg keys: Key) {
     val keysAsStr = keys.map(Key::str).toTypedArray()
-    this.rejectKey(*keysAsStr)
+    rejectKey(*keysAsStr)
 }
 
 fun JsonMessage.requireKeys(vararg keys: Key) {
     val keysAsStr = keys.map(Key::str).toTypedArray()
-    this.requireKey(*keysAsStr)
+    requireKey(*keysAsStr)
+}
+
+fun JsonMessage.requireTypes(vararg keys: Pair<Key, (JsonNode) -> Any>) {
+    keys.forEach { (key, block) ->
+        this.require(key.str, block)
+    }
 }
 
 fun JsonNode.asUuid(): UUID =

@@ -9,7 +9,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
@@ -60,12 +62,16 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             ?: throw BoomerangContentException()
 
         context.publish(
-            Key.LØSNING to listOf(BehovType.HENT_TRENGER_IM),
+            Key.LØSNING to mapOf(
+                BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
+                    value = TrengerInntekt(
+                        orgnr = forespoerselSvar.orgnr,
+                        fnr = forespoerselSvar.fnr
+                    )
+                )
+            ),
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM),
-            Key.UUID to initiateId,
-            Key.ORGNR to forespoerselSvar.orgnr,
-            Key.FNR to forespoerselSvar.fnr,
-            Key.VEDTAKSPERIODE_ID to forespoerselSvar.vedtaksperiodeId
+            Key.UUID to initiateId
         )
 
         logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")

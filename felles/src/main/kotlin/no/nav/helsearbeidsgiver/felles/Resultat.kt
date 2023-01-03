@@ -9,5 +9,5 @@ data class Resultat(
     val EGENMELDING: EgenmeldingLøsning? = null,
     val JOURNALFOER: JournalpostLøsning? = null,
     val NOTIFIKASJON: NotifikasjonLøsning? = null,
-    val TRENGER_INNTEKT: TrengerInntektLøsning? = null
+    val HENT_TRENGER_IM: HentTrengerImLøsning? = null
 )

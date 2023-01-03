@@ -15,13 +15,14 @@ class TrengerMapper(val uuid: String, resultat: Resultat, val request: TrengerRe
     }
 
     override fun getResultatResponse(): TrengerInntektResponse {
-        if (hasErrors()) {
+        val spleisForespoersel = resultat.HENT_TRENGER_IM?.value
+        if (hasErrors() || spleisForespoersel == null) {
             throw ConstraintViolationException(getConstraintViolations().toSet())
         }
         return TrengerInntektResponse(
             uuid = request.uuid,
-            fnr = "10107400090",
-            orgnr = "810007842"
+            fnr = spleisForespoersel.fnr,
+            orgnr = spleisForespoersel.orgnr
         )
     }
 }

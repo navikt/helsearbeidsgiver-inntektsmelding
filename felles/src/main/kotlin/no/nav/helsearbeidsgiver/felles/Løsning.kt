@@ -52,7 +52,7 @@ data class NotifikasjonLøsning(
     override val error: Feilmelding? = null
 ) : Løsning()
 
-data class TrengerInntektLøsning(
+data class HentTrengerImLøsning(
     override val value: TrengerInntekt? = null,
     override val error: Feilmelding? = null
 ) : Løsning()

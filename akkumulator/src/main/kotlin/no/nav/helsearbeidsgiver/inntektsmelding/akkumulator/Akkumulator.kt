@@ -48,50 +48,53 @@ class Akkumulator(
                     it
                 }
             }
+
         val eventName = packet.value(Key.EVENT_NAME).asText()
-        val behov = packet.value(Key.BEHOV).asText()
-        val nesteBehov = packet.get(Key.NESTE_BEHOV.str).map(JsonNode::asText).map { BehovType.valueOf(it) }.toMutableList()
+        val behovListe = packet.value(Key.BEHOV).map(JsonNode::asText)
+        val nesteBehov = packet.value(Key.NESTE_BEHOV).map(JsonNode::asText).map(BehovType::valueOf)
         val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
-        sikkerlogg.info("Event: $eventName Behov: $behov Neste: $nesteBehov Fnr: $identitetsnummer Uuid: $uuid Pakke: ${packet.toJson()}")
-        logger.info("Event: $eventName Behov: $behov Neste: $nesteBehov Uuid: $uuid")
+        "Event: $eventName Behov: $behovListe Neste: $nesteBehov Uuid: $uuid".let {
+            logger.info(it)
+            sikkerlogg.info("$it Fnr: $identitetsnummer Pakke: ${packet.toJson()}")
+        }
+
         val mangler = mutableListOf<String>()
         val feil = mutableListOf<String>()
         val results: ObjectNode = objectMapper.createObjectNode()
 
         // Finn alle løsninger og lagre ny til Redis
-        packet.value(Key.BEHOV).map(JsonNode::asText)
-            .forEach { behovType ->
-                val redisKey = "${uuid}_$behovType"
+        behovListe.forEach { behovType ->
+            val redisKey = "${uuid}_$behovType"
 
-                // Finn løsning JSON
-                val løsning = packet.value(Key.LØSNING)
-                    .get(behovType)
-                    ?.toString()
+            // Finn løsning JSON
+            val løsning = packet.value(Key.LØSNING)
+                .get(behovType)
+                ?.toString()
 
-                if (løsning.isNullOrEmpty()) { // Fant ikke løsning i pakke
-                    val stored = redisStore.get(redisKey)
-                    if (stored.isNullOrEmpty()) { // Ingenting i Redis
-                        sikkerlogg.info("Behov: $behovType. Løsning: n/a")
-                        mangler.add(behovType)
-                    } else { // Fant i Redis
-                        val node = objectMapper.readTree(stored)
-                        sikkerlogg.info("Behov: $behovType. Løsning: (Redis) $node")
-                        results.putIfAbsent(behovType, node)
-                    }
-                } else { // Fant løsning i pakke
-                    sikkerlogg.info("Behov: $behovType. Løsning: $løsning")
-                    // Lagre løsning
-                    redisStore.set(redisKey, løsning, timeout)
-
-                    val node = objectMapper.readTree(løsning)
-                    val errorNode = node.get("error")
-                    if (errorNode != null && !errorNode.isMissingOrNull()) {
-                        feil.add(behovType)
-                    }
-
+            if (løsning.isNullOrEmpty()) { // Fant ikke løsning i pakke
+                val stored = redisStore.get(redisKey)
+                if (stored.isNullOrEmpty()) { // Ingenting i Redis
+                    sikkerlogg.info("Behov: $behovType. Løsning: n/a")
+                    mangler.add(behovType)
+                } else { // Fant i Redis
+                    val node = objectMapper.readTree(stored)
+                    sikkerlogg.info("Behov: $behovType. Løsning: (Redis) $node")
                     results.putIfAbsent(behovType, node)
                 }
+            } else { // Fant løsning i pakke
+                sikkerlogg.info("Behov: $behovType. Løsning: $løsning")
+                // Lagre løsning
+                redisStore.set(redisKey, løsning, timeout)
+
+                val node = objectMapper.readTree(løsning)
+                val errorNode = node.get("error")
+                if (errorNode != null && !errorNode.isMissingOrNull()) {
+                    feil.add(behovType)
+                }
+
+                results.putIfAbsent(behovType, node)
             }
+        }
 
         when {
             feil.isNotEmpty() -> {

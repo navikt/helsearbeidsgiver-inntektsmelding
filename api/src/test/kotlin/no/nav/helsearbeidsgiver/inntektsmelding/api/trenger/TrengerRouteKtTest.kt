@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.EgenmeldingLøsning
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.MottattPeriode
@@ -15,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Syk
 import no.nav.helsearbeidsgiver.felles.SykLøsning
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.TrengerInntektLøsning
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -38,7 +38,7 @@ internal class TrengerRouteKtTest : ApiTest() {
     val UGYLDIG_REQUEST = TrengerRequest(" ")
 
     val RESULTAT_TRENGER_INNTEKT = Resultat(
-        TRENGER_INNTEKT = TrengerInntektLøsning(TrengerInntekt("abc", "123")),
+        HENT_TRENGER_IM = HentTrengerImLøsning(TrengerInntekt("abc", "123")),
         INNTEKT = InntektLøsning(Inntekt(historisk = emptyList())),
         VIRKSOMHET = VirksomhetLøsning("Norge AS"),
         ARBEIDSFORHOLD = ArbeidsforholdLøsning(),
@@ -46,7 +46,7 @@ internal class TrengerRouteKtTest : ApiTest() {
         SYK = SykLøsning(Syk(fravaersperiode = emptyList(), behandlingsperiode = MottattPeriode(LocalDate.now(), LocalDate.now().plusDays(1)))),
         FULLT_NAVN = NavnLøsning("Ola Normann")
     )
-    val RESULTAT_FEIL = Resultat(TRENGER_INNTEKT = TrengerInntektLøsning(error = Feilmelding("feil", 500)))
+    val RESULTAT_FEIL = Resultat(HENT_TRENGER_IM = HentTrengerImLøsning(error = Feilmelding("feil", 500)))
     val RESULTAT_OK = buildResultat()
 
     @Test

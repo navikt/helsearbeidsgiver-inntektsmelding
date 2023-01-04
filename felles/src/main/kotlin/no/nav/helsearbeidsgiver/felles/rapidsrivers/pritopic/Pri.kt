@@ -14,9 +14,7 @@ object Pri {
         ORGNR("orgnr"),
         FNR("fnr"),
         VEDTAKSPERIODE_ID("vedtaksperiodeId"),
-        SYKMELINGSPERIODER("sykmelingsperioder"),
-        FOM("fom"),
-        TOM("tom"),
+        SYKMELDINGSPERIODER("sykmeldingsperioder"),
         FORESPURT_DATA("forespurtData");
 
         override fun toString(): String =

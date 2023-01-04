@@ -29,7 +29,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                     Pri.Key.ORGNR,
                     Pri.Key.FNR,
                     Pri.Key.VEDTAKSPERIODE_ID,
-                    Pri.Key.SYKMELINGSPERIODER,
+                    Pri.Key.SYKMELDINGSPERIODER,
                     Pri.Key.FORESPURT_DATA,
                     Pri.Key.BOOMERANG
                 )
@@ -45,7 +45,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             orgnr = Pri.Key.ORGNR.let(packet::value).asText(),
             fnr = Pri.Key.FNR.let(packet::value).asText(),
             vedtaksperiodeId = Pri.Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid(),
-            sykmeldingsperioder = Pri.Key.SYKMELINGSPERIODER.let(packet::value).toString().let(Json::decodeFromString),
+            sykmeldingsperioder = Pri.Key.SYKMELDINGSPERIODER.let(packet::value).toString().let(Json::decodeFromString),
             forespurtData = Pri.Key.FORESPURT_DATA.let(packet::value).toString().let(Json::decodeFromString),
             boomerang = Pri.Key.BOOMERANG.let(packet::value).toString().let(Json::decodeFromString)
         )

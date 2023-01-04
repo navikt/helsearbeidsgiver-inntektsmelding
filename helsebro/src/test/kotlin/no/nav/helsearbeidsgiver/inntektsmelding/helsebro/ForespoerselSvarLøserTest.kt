@@ -33,8 +33,7 @@ class ForespoerselSvarLøserTest : FunSpec({
             Pri.Key.ORGNR to expectedIncoming.orgnr.toJson(),
             Pri.Key.FNR to expectedIncoming.fnr.toJson(),
             Pri.Key.VEDTAKSPERIODE_ID to expectedIncoming.vedtaksperiodeId.toJson(),
-            Pri.Key.FOM to expectedIncoming.fom.toJson(),
-            Pri.Key.TOM to expectedIncoming.tom.toJson(),
+            Pri.Key.SYKMELDINGSPERIODER to expectedIncoming.sykmeldingsperioder.let(Json::encodeToJsonElement),
             Pri.Key.FORESPURT_DATA to expectedIncoming.forespurtData.let(Json::encodeToJsonElement),
             Pri.Key.BOOMERANG to expectedIncoming.boomerang.toJson()
         )
@@ -54,8 +53,7 @@ class ForespoerselSvarLøserTest : FunSpec({
                 Pri.Key.ORGNR to expectedIncoming.orgnr.toJson(),
                 Pri.Key.FNR to expectedIncoming.fnr.toJson(),
                 Pri.Key.VEDTAKSPERIODE_ID to expectedIncoming.vedtaksperiodeId.toJson(),
-                Pri.Key.FOM to expectedIncoming.fom.toJson(),
-                Pri.Key.TOM to expectedIncoming.tom.toJson(),
+                Pri.Key.SYKMELDINGSPERIODER to expectedIncoming.sykmeldingsperioder.let(Json::encodeToJsonElement),
                 Pri.Key.FORESPURT_DATA to expectedIncoming.forespurtData.let(Json::encodeToJsonElement),
                 Pri.Key.BOOMERANG to emptyMap<String, JsonElement>().toJson()
             )

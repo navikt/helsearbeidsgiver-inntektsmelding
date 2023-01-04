@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
-import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold as ArbeidsforholdResultat
 
 fun Arbeidsforhold.tilArbeidsforhold(): ArbeidsforholdResultat =
@@ -13,7 +13,7 @@ fun Arbeidsforhold.tilArbeidsforhold(): ArbeidsforholdResultat =
             organisasjonsnummer = arbeidsgiver.organisasjonsnummer
         ),
         Ansettelsesperiode(
-            Periode(
+            PeriodeNullable(
                 ansettelsesperiode.periode.fom,
                 ansettelsesperiode.periode.tom
             )

@@ -72,8 +72,7 @@ fun mockForespoerselSvar(): ForespoerselSvar =
         orgnr = "hungry-traitor-chaplain",
         fnr = "deputize-snowy-quirk",
         vedtaksperiodeId = UUID.randomUUID(),
-        fom = 1.januar,
-        tom = 16.januar,
+        sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
         forespurtData = mockForespurtDataListe(),
         boomerang = mockBoomerang()
     )

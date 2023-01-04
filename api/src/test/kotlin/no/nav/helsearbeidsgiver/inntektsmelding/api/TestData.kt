@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
-import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Syk
 import no.nav.helsearbeidsgiver.felles.SykLøsning
@@ -47,7 +47,7 @@ fun mockArbeidsforhold(): Arbeidsforhold =
             organisasjonsnummer = "810007842"
         ),
         Ansettelsesperiode(
-            Periode(
+            PeriodeNullable(
                 fom = LocalDate.of(2021, 1, 1),
                 tom = LocalDate.of(2021, 1, 10)
             )

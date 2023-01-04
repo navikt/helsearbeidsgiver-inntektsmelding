@@ -4,9 +4,9 @@ data class PreutfyltResponse(
     val navn: String,
     val identitetsnummer: String,
     val orgnrUnderenhet: String,
-    val fravaersperioder: List<MottattPeriode>, // TODO Gjør om til liste og ikke MAP
-    val egenmeldingsperioder: List<MottattPeriode>,
+    val fravaersperioder: List<Periode>,
+    val egenmeldingsperioder: List<Periode>,
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<MottattHistoriskInntekt>,
-    val behandlingsperiode: MottattPeriode
+    val behandlingsperiode: Periode
 )

@@ -5,8 +5,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Løsning
-import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.PreutfyltResponse
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
@@ -28,19 +28,19 @@ class PreutfyltMapper(val uuid: String, resultat: Resultat, val request: Preutfy
         return DefaultConstraintViolation("ukjent", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
     }
 
-    fun mapEgenmeldingsperioder(): List<MottattPeriode> {
+    fun mapEgenmeldingsperioder(): List<Periode> {
         val egenmelding = resultat.EGENMELDING
         sikkerlogg.info("Fant egenmelding for $uuid")
         return egenmelding?.value ?: emptyList()
     }
 
-    fun mapBehandlingsperiode(): MottattPeriode {
+    fun mapBehandlingsperiode(): Periode {
         val syk = resultat.SYK
         sikkerlogg.info("Fant behandlingsperiode $syk for $uuid")
         return syk?.value?.behandlingsperiode!!
     }
 
-    fun mapFraværsperiode(): List<MottattPeriode> {
+    fun mapFraværsperiode(): List<Periode> {
         val syk = resultat.SYK
         sikkerlogg.info("Fant fraværsperiode $syk for $uuid")
         return syk?.value?.fravaersperiode ?: emptyList()

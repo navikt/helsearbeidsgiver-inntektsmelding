@@ -9,8 +9,8 @@ import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
-import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Syk
 import no.nav.helsearbeidsgiver.felles.SykLøsning
@@ -42,8 +42,8 @@ internal class PreutfyltMapperTest {
     fun buildSykdom(): SykLøsning {
         val fnr = TestData.validIdentitetsnummer
         val fra = LocalDate.of(2022, 10, 5)
-        val fravaersperiode = listOf(MottattPeriode(fra, fra.plusDays(10)))
-        val behandlingsperiode = MottattPeriode(fra, fra.plusDays(10))
+        val fravaersperiode = listOf(Periode(fra, fra.plusDays(10)))
+        val behandlingsperiode = Periode(fra, fra.plusDays(10))
         return SykLøsning(Syk(fravaersperiode = fravaersperiode, behandlingsperiode))
     }
 

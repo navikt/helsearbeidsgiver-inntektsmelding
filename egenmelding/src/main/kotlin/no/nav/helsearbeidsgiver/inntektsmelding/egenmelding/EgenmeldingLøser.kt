@@ -10,7 +10,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EgenmeldingLøsning
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.MottattPeriode
+import no.nav.helsearbeidsgiver.felles.Periode
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -30,11 +30,11 @@ class EgenmeldingLøser(rapidsConnection: RapidsConnection) : River.PacketListen
         }.register(this)
     }
 
-    fun hentPerioder(identitetsnummer: String): List<MottattPeriode> {
+    fun hentPerioder(identitetsnummer: String): List<Periode> {
         if (identitetsnummer.endsWith("000000000")) {
             throw RuntimeException("Identitestnummer kan ikke være 000000000")
         }
-        return listOf(MottattPeriode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)))
+        return listOf(Periode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)))
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

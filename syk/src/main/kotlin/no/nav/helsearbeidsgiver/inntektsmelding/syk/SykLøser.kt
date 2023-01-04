@@ -9,7 +9,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.MottattPeriode
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.Syk
 import no.nav.helsearbeidsgiver.felles.SykLøsning
 import org.slf4j.LoggerFactory
@@ -36,8 +36,8 @@ class SykLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
             throw RuntimeException("Identitestnummer kan ikke være 000000000")
         }
         val fra = LocalDate.of(2022, 10, 5)
-        val fravaersperiode = listOf(MottattPeriode(fra, fra.plusDays(10)))
-        val behandlingsperiode = MottattPeriode(fra, fra.plusDays(10))
+        val fravaersperiode = listOf(Periode(fra, fra.plusDays(10)))
+        val behandlingsperiode = Periode(fra, fra.plusDays(10))
         return Syk(fravaersperiode, behandlingsperiode)
     }
 

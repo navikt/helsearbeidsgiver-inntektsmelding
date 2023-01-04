@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Syk(
-    val fravaersperiode: List<MottattPeriode>,
-    val behandlingsperiode: MottattPeriode
+    val fravaersperiode: List<Periode>,
+    val behandlingsperiode: Periode
 )

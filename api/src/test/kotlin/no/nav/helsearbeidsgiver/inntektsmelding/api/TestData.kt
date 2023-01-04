@@ -7,8 +7,8 @@ import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
-import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Syk
@@ -29,8 +29,8 @@ object TestData {
 fun buildResultat(): Resultat {
     val arbeidsforhold = listOf(mockArbeidsforhold())
     val fra = LocalDate.of(2022, 10, 5)
-    val fravaersperiode = listOf(MottattPeriode(fra, fra.plusDays(10)))
-    val behandlingsperiode = MottattPeriode(fra, fra.plusDays(10))
+    val fravaersperiode = listOf(Periode(fra, fra.plusDays(10)))
+    val behandlingsperiode = Periode(fra, fra.plusDays(10))
     return Resultat(
         FULLT_NAVN = NavnLøsning("Navn Navnesen"),
         SYK = SykLøsning(Syk(fravaersperiode, behandlingsperiode)),

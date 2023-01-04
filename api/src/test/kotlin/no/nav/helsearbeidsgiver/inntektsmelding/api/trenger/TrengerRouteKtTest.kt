@@ -10,8 +10,8 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
-import no.nav.helsearbeidsgiver.felles.MottattPeriode
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Syk
 import no.nav.helsearbeidsgiver.felles.SykLøsning
@@ -43,7 +43,7 @@ internal class TrengerRouteKtTest : ApiTest() {
         VIRKSOMHET = VirksomhetLøsning("Norge AS"),
         ARBEIDSFORHOLD = ArbeidsforholdLøsning(),
         EGENMELDING = EgenmeldingLøsning(),
-        SYK = SykLøsning(Syk(fravaersperiode = emptyList(), behandlingsperiode = MottattPeriode(LocalDate.now(), LocalDate.now().plusDays(1)))),
+        SYK = SykLøsning(Syk(fravaersperiode = emptyList(), behandlingsperiode = Periode(LocalDate.now(), LocalDate.now().plusDays(1)))),
         FULLT_NAVN = NavnLøsning("Ola Normann")
     )
     val RESULTAT_FEIL = Resultat(HENT_TRENGER_IM = HentTrengerImLøsning(error = Feilmelding("feil", 500)))

@@ -38,7 +38,7 @@ data class SykLøsning(
 ) : Løsning()
 
 data class EgenmeldingLøsning(
-    override val value: List<MottattPeriode>? = null,
+    override val value: List<Periode>? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 

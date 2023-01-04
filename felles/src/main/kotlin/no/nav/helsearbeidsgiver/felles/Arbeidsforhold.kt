@@ -18,7 +18,7 @@ data class Arbeidsforhold(
 
 @Serializable
 data class Ansettelsesperiode(
-    val periode: Periode
+    val periode: PeriodeNullable
 )
 
 @Serializable
@@ -28,7 +28,7 @@ data class Arbeidsgiver(
 )
 
 @Serializable
-data class Periode(
+data class PeriodeNullable(
     val fom: LocalDate?,
     val tom: LocalDate? = null
 )

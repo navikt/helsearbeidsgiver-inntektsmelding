@@ -36,7 +36,7 @@ class ForespoerselMottattLøser(
 
         val orgnr = Pri.Key.ORGNR.let(packet::value).asText()
         val fnr = Pri.Key.FNR.let(packet::value).asText()
-        val vedtaksperiodeId = Pri.Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid()
+        val vedtaksperiodeId = Pri.Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid() // TODO: burde være en egen id
 
 //        val uuid = UUID.randomUUID()
 

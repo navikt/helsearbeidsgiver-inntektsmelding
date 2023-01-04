@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
@@ -30,8 +29,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                     Pri.Key.ORGNR,
                     Pri.Key.FNR,
                     Pri.Key.VEDTAKSPERIODE_ID,
-                    Pri.Key.FOM,
-                    Pri.Key.TOM,
+                    Pri.Key.SYKMELINGSPERIODER,
                     Pri.Key.FORESPURT_DATA,
                     Pri.Key.BOOMERANG
                 )
@@ -47,8 +45,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             orgnr = Pri.Key.ORGNR.let(packet::value).asText(),
             fnr = Pri.Key.FNR.let(packet::value).asText(),
             vedtaksperiodeId = Pri.Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid(),
-            fom = Pri.Key.FOM.let(packet::value).asLocalDate(),
-            tom = Pri.Key.TOM.let(packet::value).asLocalDate(),
+            sykmeldingsperioder = Pri.Key.SYKMELINGSPERIODER.let(packet::value).toString().let(Json::decodeFromString),
             forespurtData = Pri.Key.FORESPURT_DATA.let(packet::value).toString().let(Json::decodeFromString),
             boomerang = Pri.Key.BOOMERANG.let(packet::value).toString().let(Json::decodeFromString)
         )

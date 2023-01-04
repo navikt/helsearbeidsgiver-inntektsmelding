@@ -14,6 +14,7 @@ object Pri {
         ORGNR("orgnr"),
         FNR("fnr"),
         VEDTAKSPERIODE_ID("vedtaksperiodeId"),
+        SYKMELINGSPERIODER("sykmelingsperioder"),
         FOM("fom"),
         TOM("tom"),
         FORESPURT_DATA("forespurtData");

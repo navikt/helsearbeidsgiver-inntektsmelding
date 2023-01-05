@@ -34,5 +34,4 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
         // context.publish(packet.toJson())
         sikkerlogg.info("Ville ha publisert: ${packet.toJson()}")
     }
-
 }

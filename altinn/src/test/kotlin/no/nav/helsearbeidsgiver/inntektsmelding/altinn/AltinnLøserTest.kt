@@ -1,25 +1,24 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import io.mockk.mockk
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest
+import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import org.junit.jupiter.api.Test
 
 class AltinnLøserTest : LøserTest() {
     private val mockAltinnClient = mockk<AltinnClient> {
-        coEvery { hentRettighetOrganisasjoner(any()) } returns setOf(
-            AltinnOrganisasjon(
-                name = "Pippin's Breakfast & Breakfast",
-                type = "gluttonous"
-            )
-        )
+        coEvery { hentRettighetOrganisasjoner(any()) } returns mockAltinnOrganisasjonSet()
     }
 
     private val altinnLøser = withTestRapid { AltinnLøser(mockAltinnClient) }
@@ -28,21 +27,31 @@ class AltinnLøserTest : LøserTest() {
     fun `Løser henter organisasjonsrettigheter med id fra behov`() {
         val mockId = "long-john-silver"
 
-        val behov: Map<Key, JsonElement> = mapOf(
-            Key.BEHOV to altinnLøser.behovType.let(::listOf).toJson(),
+        val expectedAnswer = LøserAnswer(
+            behovType = altinnLøser.behovType,
+            initiateId = MockUuid.uuid,
+            løsning = mockAltinnOrganisasjonSet().let(::LøsningSuccess)
+        )
+
+        testRapid.sendJson(
+            Key.BEHOV to expectedAnswer.behovType.let(::listOf).toJson(BehovType::toJson),
+            Key.ID to expectedAnswer.initiateId.toJson(),
             Key.IDENTITETSNUMMER to mockId.toJson()
         )
 
-        val behovJson = behov.mapKeys { (key, _) -> key.str }
-            .toJson()
-            .toString()
-
-        testRapid.sendTestMessage(behovJson)
+        val actualAnswer = testRapid.lastMessageJson().let {
+            LøserAnswer.fromJson<Set<AltinnOrganisasjon>>(it)
+        }
 
         coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(mockId) }
+        actualAnswer shouldBe expectedAnswer
     }
 }
 
-/** Obs! Denne kan feile runtime. */
-private inline fun <reified T : Any> T.toJson(): JsonElement =
-    Json.encodeToJsonElement(this)
+private fun mockAltinnOrganisasjonSet(): Set<AltinnOrganisasjon> =
+    setOf(
+        AltinnOrganisasjon(
+            name = "Pippin's Breakfast & Breakfast",
+            type = "gluttonous"
+        )
+    )

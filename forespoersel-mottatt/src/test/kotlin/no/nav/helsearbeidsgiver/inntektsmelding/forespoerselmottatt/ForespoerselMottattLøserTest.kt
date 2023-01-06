@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -37,7 +37,7 @@ class ForespoerselMottattLøserTest : FunSpec({
         val actual = testRapid.lastMessageJson().let(Published::fromJson)
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual shouldBeEqualToComparingFields expected
+        actual shouldBe expected
     }
 })
 

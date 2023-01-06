@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.felles
 
+import java.time.LocalDate
+
 data class PreutfyltResponse(
     val navn: String,
     val identitetsnummer: String,
@@ -8,5 +10,6 @@ data class PreutfyltResponse(
     val egenmeldingsperioder: List<Periode>,
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<MottattHistoriskInntekt>,
-    val behandlingsperiode: Periode
+    val behandlingsperiode: Periode,
+    val behandlingsdager: List<LocalDate> = listOf(LocalDate.of(2022, 10, 3), LocalDate.of(2022, 10, 11))
 )

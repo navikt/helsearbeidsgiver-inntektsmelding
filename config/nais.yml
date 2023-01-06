@@ -53,7 +53,7 @@ spec:
   {{#if database}}
   gcp:
     sqlInstances:
-      - type: POSTGRES_15
+      - type: POSTGRES_14
         databases:
           - name: {{ database }}
   {{/if}}

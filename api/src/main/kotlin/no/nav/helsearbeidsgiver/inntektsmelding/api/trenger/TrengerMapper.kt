@@ -22,7 +22,8 @@ class TrengerMapper(val uuid: String, resultat: Resultat, val request: TrengerRe
         return TrengerInntektResponse(
             uuid = request.uuid,
             fnr = spleisForespoersel.fnr,
-            orgnr = spleisForespoersel.orgnr
+            orgnr = spleisForespoersel.orgnr,
+            sykemeldingsperioder = spleisForespoersel.sykemeldingsperioder
         )
     }
 }

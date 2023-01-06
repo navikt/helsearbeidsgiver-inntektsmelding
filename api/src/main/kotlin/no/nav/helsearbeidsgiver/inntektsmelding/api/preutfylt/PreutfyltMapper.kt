@@ -16,7 +16,12 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstr
 import org.valiktor.ConstraintViolation
 import org.valiktor.DefaultConstraintViolation
 
-class PreutfyltMapper(val uuid: String, resultat: Resultat, val request: PreutfyltRequest) : ResultatMapper<PreutfyltResponse>(resultat) {
+class PreutfyltMapper(
+    val uuid: String,
+    resultat: Resultat,
+    val request: PreutfyltRequest,
+    var sykemeldingsperioder: List<Periode>
+) : ResultatMapper<PreutfyltResponse>(resultat) {
 
     override fun mapConstraint(løsning: Løsning): ConstraintViolation {
         if (løsning is VirksomhetLøsning) {
@@ -35,9 +40,9 @@ class PreutfyltMapper(val uuid: String, resultat: Resultat, val request: Preutfy
     }
 
     fun mapFraværsperiode(): List<Periode> {
-        val syk = resultat.SYK
-        sikkerlogg.info("Fant fraværsperiode $syk for $uuid")
-        return syk?.value?.fravaersperiode ?: emptyList()
+        val trenger = resultat.HENT_TRENGER_IM
+        sikkerlogg.info("Fant fraværsperiode data: $trenger for $uuid")
+        return trenger?.value?.sykemeldingsperioder ?: sykemeldingsperioder
     }
 
     fun mapFulltNavn(): String {

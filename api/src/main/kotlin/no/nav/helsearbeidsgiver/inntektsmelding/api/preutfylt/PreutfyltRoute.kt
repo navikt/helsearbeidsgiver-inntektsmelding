@@ -29,7 +29,7 @@ fun RouteExtra.PreutfyltRoute() {
                 logger.info("Publiserte behov uuid: $uuid")
                 val resultat = redis.getResultat(uuid, 10, 500)
                 sikkerlogg.info("Fikk resultat for $uuid : $resultat")
-                val mapper = PreutfyltMapper(uuid, resultat, request)
+                val mapper = PreutfyltMapper(uuid, resultat, request, emptyList())
                 sikkerlogg.info("Klarte mappe resultat for $uuid : $resultat")
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (e: ConstraintViolationException) {

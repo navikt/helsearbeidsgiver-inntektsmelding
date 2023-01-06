@@ -6,6 +6,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
@@ -17,6 +18,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
+import java.time.LocalDate
 
 fun RouteExtra.TrengerRoute() {
     val trengerProducer = TrengerProducer(connection)
@@ -31,7 +33,7 @@ fun RouteExtra.TrengerRoute() {
                 // Valider requesten
                 request.validate()
                 val inntektResponse = if ("test".equals(uuid)) {
-                    TrengerInntektResponse(uuid, "810007982", "22506614191")
+                    TrengerInntektResponse(uuid, "810007982", "22506614191", listOf(Periode(LocalDate.now().minusDays(6), LocalDate.now())))
                 } else {
                     // Hent orgnr og fnr basert på request
                     val uuidTrenger = trengerProducer.publish(request)
@@ -46,7 +48,7 @@ fun RouteExtra.TrengerRoute() {
                 logger.info("Publiserte behov uuid: $uuid")
                 val resultatPreutfylt = redis.getResultat(uuid)
                 sikkerlogg.info("Fikk resultat for $uuid : $resultatPreutfylt")
-                val mapper = PreutfyltMapper(uuid, resultatPreutfylt, preutfyltRequest)
+                val mapper = PreutfyltMapper(uuid, resultatPreutfylt, preutfyltRequest, inntektResponse.sykemeldingsperioder)
                 sikkerlogg.info("Klarte mappe resultat for $uuid : $resultatPreutfylt")
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (e: ConstraintViolationException) {

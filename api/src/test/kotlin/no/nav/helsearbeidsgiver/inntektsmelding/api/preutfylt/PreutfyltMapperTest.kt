@@ -40,7 +40,6 @@ internal class PreutfyltMapperTest {
             .let(::ArbeidsforholdLøsning)
 
     fun buildSykdom(): SykLøsning {
-        val fnr = TestData.validIdentitetsnummer
         val fra = LocalDate.of(2022, 10, 5)
         val fravaersperiode = listOf(Periode(fra, fra.plusDays(10)))
         val behandlingsperiode = Periode(fra, fra.plusDays(10))
@@ -85,6 +84,6 @@ internal class PreutfyltMapperTest {
             INNTEKT = if (tre) løsningInntekt else InntektLøsning(error = feilmelding)
         )
         val request = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
-        return PreutfyltMapper("uuid", resultat, request)
+        return PreutfyltMapper("uuid", resultat, request, emptyList())
     }
 }

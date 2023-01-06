@@ -10,6 +10,6 @@ data class PreutfyltResponse(
     val egenmeldingsperioder: List<Periode>,
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<MottattHistoriskInntekt>,
-    val behandlingsperiode: Periode,
-    val behandlingsdager: List<LocalDate> = listOf(LocalDate.of(2022, 10, 3), LocalDate.of(2022, 10, 11))
+    val behandlingsperiode: Periode?,
+    val behandlingsdager: List<LocalDate>
 )

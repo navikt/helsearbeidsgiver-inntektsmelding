@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.EgenmeldingLøsning
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Periode
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 
 class EgenmeldingLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
@@ -34,7 +33,7 @@ class EgenmeldingLøser(rapidsConnection: RapidsConnection) : River.PacketListen
         if (identitetsnummer.endsWith("000000000")) {
             throw RuntimeException("Identitestnummer kan ikke være 000000000")
         }
-        return listOf(Periode(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2)))
+        return emptyList()
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

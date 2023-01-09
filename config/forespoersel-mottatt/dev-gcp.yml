@@ -1,6 +1,7 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
+database: spleis-forespoersel
 env:
   - name: KAFKA_EXTRA_TOPIC
     value: helsearbeidsgiver.pri

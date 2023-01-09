@@ -27,29 +27,30 @@ fun RouteExtra.TrengerRoute() {
     route.route(Routes.TRENGER) {
         post {
             val request = call.receive<TrengerRequest>()
-            var uuid = request.uuid
+            val uuid = request.uuid
             logger.info("Henter data for uuid: $uuid")
             try {
                 // Valider requesten
                 request.validate()
                 val inntektResponse = if ("test".equals(uuid)) {
+                    sikkerlogg.info("Link: bruker testperson")
                     TrengerInntektResponse(uuid, "810007982", "22506614191", listOf(Periode(LocalDate.now().minusDays(6), LocalDate.now())))
                 } else {
                     // Hent orgnr og fnr basert på request
                     val uuidTrenger = trengerProducer.publish(request)
                     val resultatTrengerInntekt = redis.getResultat(uuidTrenger)
-                    sikkerlogg.info("Fikk resultat for $uuid: $resultatTrengerInntekt")
+                    sikkerlogg.info("Link: $resultatTrengerInntekt")
                     val trengerMapper = TrengerMapper(uuidTrenger, resultatTrengerInntekt, request)
                     trengerMapper.getResponse()
                 }
                 // Hent ferdig utfylt
                 val preutfyltRequest = PreutfyltRequest(inntektResponse.orgnr, inntektResponse.fnr)
-                uuid = preutfyltProducer.publish(preutfyltRequest)
-                logger.info("Publiserte behov uuid: $uuid")
-                val resultatPreutfylt = redis.getResultat(uuid)
-                sikkerlogg.info("Fikk resultat for $uuid : $resultatPreutfylt")
-                val mapper = PreutfyltMapper(uuid, resultatPreutfylt, preutfyltRequest, inntektResponse.sykemeldingsperioder)
-                sikkerlogg.info("Klarte mappe resultat for $uuid : $resultatPreutfylt")
+                val preutfyltUuid = preutfyltProducer.publish(preutfyltRequest)
+                logger.info("Publiserte behov uuid: $preutfyltUuid")
+                val resultatPreutfylt = redis.getResultat(preutfyltUuid)
+                sikkerlogg.info("Fikk preutfylt resultat: $resultatPreutfylt")
+                val mapper = PreutfyltMapper(preutfyltUuid, resultatPreutfylt, preutfyltRequest, inntektResponse.sykemeldingsperioder)
+                sikkerlogg.info("Klarte mappe resultat: $resultatPreutfylt")
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for $uuid")

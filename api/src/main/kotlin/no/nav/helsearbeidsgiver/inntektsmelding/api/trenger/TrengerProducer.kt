@@ -19,17 +19,17 @@ class TrengerProducer(
         val uuid = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                "@event_name" to "HENT_TRENGER_INNTEKT",
-                "@behov" to listOf(
+                Key.EVENT_NAME.str to "HENT_TRENGER_INNTEKT",
+                Key.BEHOV.str to listOf(
                     BehovType.HENT_TRENGER_IM.name
                 ),
-                "uuid" to uuid,
+                Key.UUID.str to uuid,
                 Key.VEDTAKSPERIODE_ID.str to request.uuid
             )
         )
-        rapidsConnection.publish(request.uuid, packet.toJson())
-        logger.info("Publiserte til kafka id=$uuid")
-        sikkerlogg.info("Publiserte til kafka id=$uuid json=${packet.toJson()}")
+        rapidsConnection.publish(uuid.toString(), packet.toJson())
+        logger.info("Publiserte trenger behov id=$uuid")
+        sikkerlogg.info("Publiserte trenger behov id=$uuid json=${packet.toJson()}")
         return uuid.toString()
     }
 }

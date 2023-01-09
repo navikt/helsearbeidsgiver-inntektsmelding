@@ -33,21 +33,20 @@ fun RouteExtra.TrengerRoute() {
                 // Valider requesten
                 request.validate()
                 val inntektResponse = if ("test".equals(uuid)) {
-                    sikkerlogg.info("Link: bruker testperson")
                     TrengerInntektResponse(uuid, "810007982", "22506614191", listOf(Periode(LocalDate.now().minusDays(6), LocalDate.now())))
                 } else {
                     // Hent orgnr og fnr basert på request
                     val uuidTrenger = trengerProducer.publish(request)
-                    val resultatTrengerInntekt = redis.getResultat(uuidTrenger)
-                    sikkerlogg.info("Link: $resultatTrengerInntekt")
+                    val resultatTrengerInntekt = redis.getResultat(uuidTrenger, 10, 500)
                     val trengerMapper = TrengerMapper(uuidTrenger, resultatTrengerInntekt, request)
                     trengerMapper.getResponse()
                 }
+                sikkerlogg.info("Fikk inntekt: $inntektResponse")
                 // Hent ferdig utfylt
                 val preutfyltRequest = PreutfyltRequest(inntektResponse.orgnr, inntektResponse.fnr)
                 val preutfyltUuid = preutfyltProducer.publish(preutfyltRequest)
                 logger.info("Publiserte behov uuid: $preutfyltUuid")
-                val resultatPreutfylt = redis.getResultat(preutfyltUuid)
+                val resultatPreutfylt = redis.getResultat(preutfyltUuid, 10, 500)
                 sikkerlogg.info("Fikk preutfylt resultat: $resultatPreutfylt")
                 val mapper = PreutfyltMapper(preutfyltUuid, resultatPreutfylt, preutfyltRequest, inntektResponse.sykemeldingsperioder)
                 sikkerlogg.info("Klarte mappe resultat: $resultatPreutfylt")

@@ -20,8 +20,8 @@ class PreutfyltProducer(
         val uuid = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                "@event_name" to "preutfylt",
-                "@behov" to listOf(
+                Key.EVENT_NAME.str to "preutfylt",
+                Key.BEHOV.str to listOf(
                     BehovType.VIRKSOMHET.name,
                     BehovType.FULLT_NAVN.name,
                     BehovType.INNTEKT.name,
@@ -29,15 +29,15 @@ class PreutfyltProducer(
                     BehovType.EGENMELDING.name,
                     BehovType.SYK.name
                 ),
-                "@opprettet" to LocalDateTime.now(),
-                "uuid" to uuid,
+                Key.OPPRETTET.str to LocalDateTime.now(),
+                Key.UUID.str to uuid,
                 Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
-                "identitetsnummer" to request.identitetsnummer
+                Key.IDENTITETSNUMMER.str to request.identitetsnummer
             )
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())
-        logger.info("Publiserte til kafka id=$uuid")
-        sikkerlogg.info("Publiserte til kafka id=$uuid json=${packet.toJson()}")
+        logger.info("Publiserte preutfylt behov id=$uuid")
+        sikkerlogg.info("Publiserte preutfylt behov id=$uuid json=${packet.toJson()}")
         return uuid.toString()
     }
 }

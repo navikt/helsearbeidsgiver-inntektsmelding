@@ -16,7 +16,7 @@ class TrengerProducer(
     }
 
     fun publish(request: TrengerRequest): String {
-        val uuid = UUID.randomUUID()
+        val uuid = UUID.randomUUID().toString()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to "HENT_TRENGER_INNTEKT",
@@ -27,9 +27,9 @@ class TrengerProducer(
                 Key.VEDTAKSPERIODE_ID.str to request.uuid
             )
         )
-        rapidsConnection.publish(uuid.toString(), packet.toJson())
+        rapidsConnection.publish(uuid, packet.toJson())
         logger.info("Publiserte trenger behov id=$uuid")
         sikkerlogg.info("Publiserte trenger behov id=$uuid json=${packet.toJson()}")
-        return uuid.toString()
+        return uuid
     }
 }

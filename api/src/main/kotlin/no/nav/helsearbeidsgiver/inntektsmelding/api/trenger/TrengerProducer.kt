@@ -23,7 +23,6 @@ class TrengerProducer(
                 "@behov" to listOf(
                     BehovType.HENT_TRENGER_IM.name
                 ),
-                "@id" to uuid,
                 "uuid" to uuid,
                 Key.VEDTAKSPERIODE_ID.str to request.uuid
             )

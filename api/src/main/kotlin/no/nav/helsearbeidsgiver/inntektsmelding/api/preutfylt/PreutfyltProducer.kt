@@ -29,7 +29,6 @@ class PreutfyltProducer(
                     BehovType.EGENMELDING.name,
                     BehovType.SYK.name
                 ),
-                "@id" to uuid,
                 "@opprettet" to LocalDateTime.now(),
                 "uuid" to uuid,
                 Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,

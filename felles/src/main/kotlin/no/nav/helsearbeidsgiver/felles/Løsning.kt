@@ -2,11 +2,14 @@
 
 package no.nav.helsearbeidsgiver.felles
 
+import kotlinx.serialization.Serializable
+
 sealed class Løsning {
     abstract val value: Any?
     abstract val error: Feilmelding?
 }
 
+@Serializable
 data class Feilmelding(
     val melding: String,
     val status: Int? = null
@@ -27,6 +30,7 @@ data class InntektLøsning(
     override val error: Feilmelding? = null
 ) : Løsning()
 
+@Serializable
 data class ArbeidsforholdLøsning(
     override val value: List<Arbeidsforhold> = emptyList(),
     override val error: Feilmelding? = null

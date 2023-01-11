@@ -21,7 +21,7 @@ class PriProducerTest : FunSpec({
         producer = mockProducer
     )
 
-    beforeTest {
+    beforeEach {
         clearAllMocks()
     }
 

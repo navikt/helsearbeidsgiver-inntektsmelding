@@ -1,22 +1,22 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
-import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold as ArbeidsforholdResultat
+import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
-fun Arbeidsforhold.tilArbeidsforhold(): ArbeidsforholdResultat =
-    ArbeidsforholdResultat(
-        Arbeidsgiver(
+fun KlientArbeidsforhold.tilArbeidsforhold(): Arbeidsforhold =
+    Arbeidsforhold(
+        arbeidsgiver = Arbeidsgiver(
             type = arbeidsgiver.type,
             organisasjonsnummer = arbeidsgiver.organisasjonsnummer
         ),
-        Ansettelsesperiode(
+        ansettelsesperiode = Ansettelsesperiode(
             PeriodeNullable(
                 ansettelsesperiode.periode.fom,
                 ansettelsesperiode.periode.tom
             )
         ),
-        registrert
+        registrert = registrert
     )

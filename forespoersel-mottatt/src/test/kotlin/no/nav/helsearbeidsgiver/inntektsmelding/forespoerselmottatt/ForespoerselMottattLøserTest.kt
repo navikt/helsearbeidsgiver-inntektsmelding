@@ -5,13 +5,12 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import java.util.UUID
@@ -51,13 +50,6 @@ private data class Published(
     val uuid: String
 ) {
     companion object {
-        private val jsonBuilder = Json {
-            ignoreUnknownKeys = true
-        }
-
-        fun fromJson(json: String): Published =
-            jsonBuilder.decodeFromString(json)
-
         fun mock(): Published =
             Published(
                 behov = listOf(BehovType.NOTIFIKASJON_TRENGER_IM),
@@ -65,5 +57,8 @@ private data class Published(
                 identitetsnummer = "resort-cringe-huddle",
                 uuid = UUID.randomUUID().toString()
             )
+
+        fun fromJson(json: String): Published =
+            JsonIgnoreUnknown.fromJson(serializer(), json)
     }
 }

@@ -10,7 +10,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -19,7 +18,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.value
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import java.time.LocalDate
 import java.util.UUID
 
 class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
@@ -66,8 +64,8 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                     value = TrengerInntekt(
                         orgnr = forespoerselSvar.orgnr,
                         fnr = forespoerselSvar.fnr,
-                        sykemeldingsperioder = listOf(Periode(LocalDate.now().minusDays(10), LocalDate.now())),
-                        egenmeldingsperioder = listOf(Periode(LocalDate.now().minusDays(20), LocalDate.now()))
+                        sykemeldingsperioder = forespoerselSvar.sykmeldingsperioder,
+                        egenmeldingsperioder = emptyList()
                     )
                 )
             ),

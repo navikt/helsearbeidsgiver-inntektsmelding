@@ -26,19 +26,19 @@ class FulltNavnLøser(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", BEHOV)
-                it.requireKey("@id")
+                it.demandAll(Key.BEHOV.str, BEHOV)
+                it.requireKey(Key.ID.str)
                 it.requireKey(Key.IDENTITETSNUMMER.str)
-                it.rejectKey("@løsning")
+                it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val identitetsnummer = packet["identitetsnummer"].asText()
+        val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
 
         sikkerlogg.info("Henter navn for identitetsnummer $identitetsnummer")
-        logger.info("Løser id ${packet["@id"].asText()}")
+        logger.info("Løser id ${packet[Key.ID.str].asText()}")
 
         try {
             val fulltNavn = runBlocking {
@@ -64,7 +64,7 @@ class FulltNavnLøser(
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this["@løsning"] = mapOf(
+        this[Key.LØSNING.str] = mapOf(
             nøkkel.name to data
         )
     }

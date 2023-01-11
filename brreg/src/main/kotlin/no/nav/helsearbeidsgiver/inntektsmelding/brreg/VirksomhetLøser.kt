@@ -23,10 +23,10 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", BEHOV)
-                it.requireKey("@id")
+                it.demandAll(Key.BEHOV.str, BEHOV)
+                it.requireKey(Key.ID.str)
                 it.requireKey(Key.ORGNRUNDERENHET.str)
-                it.rejectKey("@løsning")
+                it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
     }
@@ -45,7 +45,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Løser behov $BEHOV med id ${packet["@id"].asText()}")
+        logger.info("Løser behov $BEHOV med id ${packet[Key.ID.str].asText()}")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         try {
             val navn = hentVirksomhet(orgnr)
@@ -67,7 +67,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this["@løsning"] = mapOf(
+        this[Key.LØSNING.str] = mapOf(
             nøkkel.name to data
         )
     }

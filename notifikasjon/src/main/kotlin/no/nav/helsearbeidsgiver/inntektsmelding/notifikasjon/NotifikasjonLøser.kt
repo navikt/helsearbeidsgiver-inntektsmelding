@@ -34,7 +34,7 @@ class NotifikasjonLøser(
                 it.interestedIn(Key.ID.str)
                 it.interestedIn(Key.IDENTITETSNUMMER.str)
                 it.interestedIn(Key.ORGNRUNDERENHET.str)
-                it.interestedIn("uuid")
+                it.interestedIn(Key.UUID.str)
                 it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
@@ -83,12 +83,12 @@ class NotifikasjonLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val uuid = packet["uuid"].asText()
-        val behovStr: String = packet["@behov"][0].textValue()
+        val uuid = packet[Key.UUID.str].asText()
+        val behovStr: String = packet[Key.BEHOV.str][0].textValue()
         logger.info("Behov: $behovStr")
         val behovType = BehovType.valueOf(behovStr)
         logger.info("Fikk notifikasjon $uuid for behov $behovType")
-        val identitetsnummer = packet["identitetsnummer"].asText()
+        val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnrUnderenhet = packet[Key.ORGNRUNDERENHET.str].asText()
         sikkerlogg.info("Fant behov for: $identitetsnummer")
         try {
@@ -109,7 +109,7 @@ class NotifikasjonLøser(
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this["@løsning"] = mapOf(
+        this[Key.LØSNING.str] = mapOf(
             nøkkel.name to data
         )
     }

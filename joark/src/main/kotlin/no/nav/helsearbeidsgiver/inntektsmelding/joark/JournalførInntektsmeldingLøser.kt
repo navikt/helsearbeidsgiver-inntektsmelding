@@ -30,12 +30,12 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", BEHOV)
-                it.requireKey("@id")
-                it.rejectKey("@løsning")
-                it.interestedIn("inntektsmelding")
-                it.interestedIn("session")
-                it.interestedIn("uuid")
+                it.demandAll(Key.BEHOV.str, BEHOV)
+                it.requireKey(Key.ID.str)
+                it.rejectKey(Key.LØSNING.str)
+                it.interestedIn(Key.INNTEKTSMELDING.str)
+                it.interestedIn(Key.SESSION.str)
+                it.interestedIn(Key.UUID.str)
             }
         }.register(this)
     }
@@ -63,9 +63,9 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
                 ),
                 Key.ID.str to uuid,
                 Key.OPPRETTET.str to LocalDateTime.now(),
-                "uuid" to uuid,
-                "inntektsmelding" to inntektsmelding,
-                "identitetsnummer" to inntektsmelding.identitetsnummer,
+                Key.UUID.str to uuid,
+                Key.INNTEKTSMELDING.str to inntektsmelding,
+                Key.IDENTITETSNUMMER.str to inntektsmelding.identitetsnummer,
                 Key.ORGNRUNDERENHET.str to inntektsmelding.orgnrUnderenhet
             )
         )
@@ -83,7 +83,7 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
             sikkerlogg.info("Fant arbeidsgiver: $arbeidsgiver")
             val fulltNavn = hentNavn(session)
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
-            val inntektsmelding = mapInntektsmeldingDokument(packet["inntektsmelding"], fulltNavn, arbeidsgiver)
+            val inntektsmelding = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING.str], fulltNavn, arbeidsgiver)
             sikkerlogg.info("Skal journalføre: $inntektsmelding")
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
             sikkerlogg.info("Journalførte inntektsmelding for $fulltNavn ($arbeidsgiver) med journalpostid: $journalpostId")
@@ -113,7 +113,7 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this["@løsning"] = mapOf(
+        this[Key.LØSNING.str] = mapOf(
             nøkkel.name to data
         )
     }

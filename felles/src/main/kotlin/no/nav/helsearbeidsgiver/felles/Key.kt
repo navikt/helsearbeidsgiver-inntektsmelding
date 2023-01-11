@@ -21,7 +21,8 @@ enum class Key(val str: String) {
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNR("orgnr"),
     FNR("fnr"),
-    VEDTAKSPERIODE_ID("vedtaksperiodeId");
+    VEDTAKSPERIODE_ID("vedtaksperiodeId"),
+    INNTEKTSMELDING("inntektsmelding");
 
     override fun toString(): String =
         str

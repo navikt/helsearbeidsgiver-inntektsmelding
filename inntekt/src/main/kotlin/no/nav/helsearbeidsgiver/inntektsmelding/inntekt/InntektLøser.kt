@@ -30,9 +30,9 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll("@behov", BEHOV)
-                it.requireKey("@id", "identitetsnummer", Key.ORGNRUNDERENHET.str)
-                it.rejectKey("@løsning")
+                it.demandAll(Key.BEHOV.str, BEHOV)
+                it.requireKey(Key.ID.str, Key.IDENTITETSNUMMER.str, Key.ORGNRUNDERENHET.str)
+                it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
     }
@@ -44,9 +44,9 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val uuid = packet["@id"].asText()
+        val uuid = packet[Key.ID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
-        val fnr = packet["identitetsnummer"].asText()
+        val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
         val til = finnStartMnd()
         val fra = til.minusMonths(9) // TODO: skal endres til 3 mnd
@@ -65,7 +65,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this["@løsning"] = mapOf(
+        this[Key.LØSNING.str] = mapOf(
             nøkkel.name to data
         )
     }

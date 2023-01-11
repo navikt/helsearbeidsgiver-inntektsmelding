@@ -30,10 +30,10 @@ class InnsendingProducer(
                 ),
                 Key.ID.str to uuid,
                 Key.OPPRETTET.str to LocalDateTime.now(),
-                "uuid" to uuid,
+                Key.UUID.str to uuid,
                 Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
-                "identitetsnummer" to request.identitetsnummer,
-                "inntektsmelding" to request
+                Key.IDENTITETSNUMMER.str to request.identitetsnummer,
+                Key.INNTEKTSMELDING.str to request
             )
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())

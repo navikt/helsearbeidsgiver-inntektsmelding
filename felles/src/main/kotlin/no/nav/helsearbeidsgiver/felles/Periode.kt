@@ -12,3 +12,9 @@ data class Periode(
     val fom: LocalDate,
     val tom: LocalDate
 )
+
+infix fun LocalDate.til(tom: LocalDate): Periode =
+    Periode(
+        fom = this,
+        tom = tom
+    )

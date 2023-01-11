@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonPrimitive
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -11,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.json.toUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
@@ -18,7 +18,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.value
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import java.util.UUID
 
 class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
     init {
@@ -53,12 +52,11 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
         loggerSikker.info("Oversatte melding:\n$forespoerselSvar")
 
         val initiateId = forespoerselSvar.boomerang[Key.INITIATE_ID.str]
-            ?.jsonPrimitive
-            ?.content
-            ?.let(UUID::fromString)
+            ?.toUuid()
             ?: throw BoomerangContentException()
 
         context.publish(
+            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM),
             Key.LØSNING to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     value = TrengerInntekt(
@@ -69,7 +67,6 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                     )
                 )
             ),
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM),
             Key.UUID to initiateId
         )
 

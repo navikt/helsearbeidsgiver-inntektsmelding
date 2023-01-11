@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.felles.json
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
 import java.util.UUID
 
@@ -23,3 +24,8 @@ fun Map<String, JsonElement>.toJson(): JsonElement =
 
 fun <T : Any> List<T>.toJson(elementToJson: (T) -> JsonElement): JsonElement =
     map { elementToJson(it) }.let(Json::encodeToJsonElement)
+
+fun JsonElement.toUuid(): UUID =
+    jsonPrimitive
+        .content
+        .let(UUID::fromString)

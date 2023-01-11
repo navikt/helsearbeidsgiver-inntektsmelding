@@ -7,11 +7,11 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
 import kotlin.reflect.KClass
 
-interface PublishedLøsning<out T : Any> {
+interface PublishedLøsning {
     val behov: List<BehovType>
-    val løsning: Map<BehovType, T>
+    val løsning: Map<BehovType, Any>
 
-    abstract class CompanionObj<out P : PublishedLøsning<*>>(
+    abstract class CompanionObj<out P : PublishedLøsning>(
         private val klass: KClass<out P>
     ) {
         abstract fun mockSuccess(): P

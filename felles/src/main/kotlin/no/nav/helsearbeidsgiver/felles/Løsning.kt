@@ -46,6 +46,7 @@ data class NotifikasjonLøsning(
     override val error: Feilmelding? = null
 ) : Løsning()
 
+@Serializable
 data class HentTrengerImLøsning(
     override val value: TrengerInntekt? = null,
     override val error: Feilmelding? = null

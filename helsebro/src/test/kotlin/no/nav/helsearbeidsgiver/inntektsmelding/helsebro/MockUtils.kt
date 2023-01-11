@@ -2,9 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.date.januar
+import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.FastsattInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
@@ -19,14 +19,8 @@ fun mockForespurtDataListe(): List<ForespurtData> =
     listOf(
         ArbeidsgiverPeriode(
             forslag = listOf(
-                Periode(
-                    fom = 1.januar,
-                    tom = 10.januar
-                ),
-                Periode(
-                    fom = 15.januar,
-                    tom = 20.januar
-                )
+                1.januar til 10.januar,
+                15.januar til 20.januar
             )
         ),
         Inntekt(
@@ -45,14 +39,8 @@ fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtData> =
     listOf(
         ArbeidsgiverPeriode(
             forslag = listOf(
-                Periode(
-                    fom = 1.januar,
-                    tom = 10.januar
-                ),
-                Periode(
-                    fom = 15.januar,
-                    tom = 20.januar
-                )
+                1.januar til 10.januar,
+                15.januar til 20.januar
             )
         ),
         FastsattInntekt(
@@ -72,7 +60,7 @@ fun mockForespoerselSvar(): ForespoerselSvar =
         orgnr = "hungry-traitor-chaplain",
         fnr = "deputize-snowy-quirk",
         vedtaksperiodeId = UUID.randomUUID(),
-        sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
+        sykmeldingsperioder = listOf(1.januar til 16.januar),
         forespurtData = mockForespurtDataListe(),
         boomerang = mockBoomerang()
     )

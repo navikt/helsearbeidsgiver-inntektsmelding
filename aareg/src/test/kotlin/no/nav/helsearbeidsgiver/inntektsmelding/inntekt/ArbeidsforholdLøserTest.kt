@@ -79,7 +79,7 @@ private data class Published(
     @JsonNames("@løsning")
     override val løsning: Map<BehovType, ArbeidsforholdLøsning>,
     val identitetsnummer: String
-) : PublishedLøsning<ArbeidsforholdLøsning> {
+) : PublishedLøsning {
     companion object : PublishedLøsning.CompanionObj<Published>(Published::class) {
         private val behovType = BehovType.ARBEIDSFORHOLD
 

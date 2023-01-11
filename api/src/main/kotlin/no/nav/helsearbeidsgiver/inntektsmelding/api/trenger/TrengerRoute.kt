@@ -54,7 +54,13 @@ fun RouteExtra.TrengerRoute() {
                 logger.info("Publiserte behov uuid: $preutfyltUuid")
                 val resultatPreutfylt = redis.getResultat(preutfyltUuid, 10, 500)
                 sikkerlogg.info("Fikk preutfylt resultat: $resultatPreutfylt")
-                val mapper = PreutfyltMapper(preutfyltUuid, resultatPreutfylt, preutfyltRequest, inntektResponse.sykemeldingsperioder)
+                val mapper = PreutfyltMapper(
+                    preutfyltUuid,
+                    resultatPreutfylt,
+                    preutfyltRequest,
+                    inntektResponse.sykemeldingsperioder,
+                    inntektResponse.egenmeldingsperioder
+                )
                 sikkerlogg.info("Klarte mappe resultat: $resultatPreutfylt")
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (e: ConstraintViolationException) {

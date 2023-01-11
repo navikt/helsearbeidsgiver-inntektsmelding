@@ -84,6 +84,6 @@ internal class PreutfyltMapperTest {
             INNTEKT = if (tre) løsningInntekt else InntektLøsning(error = feilmelding)
         )
         val request = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
-        return PreutfyltMapper("uuid", resultat, request, emptyList())
+        return PreutfyltMapper("uuid", resultat, request, emptyList(), emptyList())
     }
 }

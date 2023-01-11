@@ -20,7 +20,8 @@ class PreutfyltMapper(
     val uuid: String,
     resultat: Resultat,
     val request: PreutfyltRequest,
-    var sykemeldingsperioder: List<Periode>
+    var sykemeldingsperioder: List<Periode>,
+    var egenmeldingsperioder: List<Periode>
 ) : ResultatMapper<PreutfyltResponse>(resultat) {
 
     override fun mapConstraint(løsning: Løsning): ConstraintViolation {
@@ -34,9 +35,9 @@ class PreutfyltMapper(
     }
 
     fun mapEgenmeldingsperioder(): List<Periode> {
-        val egenmelding = resultat.EGENMELDING
-        sikkerlogg.info("Fant egenmelding for $uuid")
-        return egenmelding?.value ?: emptyList()
+        val trenger = resultat.HENT_TRENGER_IM
+        sikkerlogg.info("Fant egenmeldingsperioder: $trenger for $uuid")
+        return trenger?.value?.egenmeldingsperioder ?: egenmeldingsperioder
     }
 
     fun mapFraværsperiode(): List<Periode> {

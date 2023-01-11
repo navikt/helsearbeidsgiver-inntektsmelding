@@ -25,9 +25,7 @@ class PreutfyltProducer(
                     BehovType.VIRKSOMHET.name,
                     BehovType.FULLT_NAVN.name,
                     BehovType.INNTEKT.name,
-                    BehovType.ARBEIDSFORHOLD.name,
-                    BehovType.EGENMELDING.name,
-                    BehovType.SYK.name
+                    BehovType.ARBEIDSFORHOLD.name
                 ),
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.UUID.str to uuid,

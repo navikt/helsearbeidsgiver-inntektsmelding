@@ -10,16 +10,12 @@ import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.Syk
-import no.nav.helsearbeidsgiver.felles.SykLøsning
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mockArbeidsforhold
 import org.junit.jupiter.api.Test
 import org.valiktor.ConstraintViolationException
-import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -31,20 +27,12 @@ internal class PreutfyltMapperTest {
     val løsningVirksomhet = VirksomhetLøsning("xyz")
     val løsningInntekt = InntektLøsning(Inntekt(listOf(MottattHistoriskInntekt(YearMonth.now(), 32_000.0))))
     val løsningArbeidsforhold = buildArbeidsforhold()
-    val løsningSykdom = buildSykdom()
     val løsningFeil = NavnLøsning(error = Feilmelding("Feil"))
 
     fun buildArbeidsforhold(): ArbeidsforholdLøsning =
         mockArbeidsforhold()
             .let(::listOf)
             .let(::ArbeidsforholdLøsning)
-
-    fun buildSykdom(): SykLøsning {
-        val fra = LocalDate.of(2022, 10, 5)
-        val fravaersperiode = listOf(Periode(fra, fra.plusDays(10)))
-        val behandlingsperiode = Periode(fra, fra.plusDays(10))
-        return SykLøsning(Syk(fravaersperiode = fravaersperiode, behandlingsperiode))
-    }
 
     @Test
     fun `skal kaste constraints exception når feil oppstår`() {
@@ -80,7 +68,6 @@ internal class PreutfyltMapperTest {
             FULLT_NAVN = if (en) løsningNavn else løsningFeil,
             VIRKSOMHET = if (to) løsningVirksomhet else VirksomhetLøsning(error = feilmelding),
             ARBEIDSFORHOLD = løsningArbeidsforhold,
-            SYK = løsningSykdom,
             INNTEKT = if (tre) løsningInntekt else InntektLøsning(error = feilmelding)
         )
         val request = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)

@@ -11,8 +11,6 @@ import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.Syk
-import no.nav.helsearbeidsgiver.felles.SykLøsning
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -33,7 +31,6 @@ fun buildResultat(): Resultat {
     val behandlingsperiode = Periode(fra, fra.plusDays(10))
     return Resultat(
         FULLT_NAVN = NavnLøsning("Navn Navnesen"),
-        SYK = SykLøsning(Syk(fravaersperiode, behandlingsperiode)),
         VIRKSOMHET = VirksomhetLøsning("Virksomhet AS"),
         ARBEIDSFORHOLD = ArbeidsforholdLøsning(arbeidsforhold),
         INNTEKT = InntektLøsning(Inntekt(listOf(MottattHistoriskInntekt(YearMonth.of(fra.year, fra.month), 32_000.0))))

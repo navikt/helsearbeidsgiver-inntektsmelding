@@ -5,16 +5,12 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
-import no.nav.helsearbeidsgiver.felles.EgenmeldingLøsning
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.Syk
-import no.nav.helsearbeidsgiver.felles.SykLøsning
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -25,7 +21,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.TRENGER
@@ -42,8 +37,6 @@ internal class TrengerRouteKtTest : ApiTest() {
         INNTEKT = InntektLøsning(Inntekt(historisk = emptyList())),
         VIRKSOMHET = VirksomhetLøsning("Norge AS"),
         ARBEIDSFORHOLD = ArbeidsforholdLøsning(),
-        EGENMELDING = EgenmeldingLøsning(),
-        SYK = SykLøsning(Syk(fravaersperiode = emptyList(), behandlingsperiode = Periode(LocalDate.now(), LocalDate.now().plusDays(1)))),
         FULLT_NAVN = NavnLøsning("Ola Normann")
     )
     val RESULTAT_FEIL = Resultat(HENT_TRENGER_IM = HentTrengerImLøsning(error = Feilmelding("feil", 500)))

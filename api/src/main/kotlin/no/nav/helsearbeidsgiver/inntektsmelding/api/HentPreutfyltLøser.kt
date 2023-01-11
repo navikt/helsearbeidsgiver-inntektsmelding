@@ -27,9 +27,7 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
             BehovType.VIRKSOMHET.name,
             BehovType.FULLT_NAVN.name,
             BehovType.INNTEKT.name,
-            BehovType.ARBEIDSFORHOLD.name,
-            BehovType.EGENMELDING.name,
-            BehovType.SYK.name
+            BehovType.ARBEIDSFORHOLD.name
         )
         // context.publish(packet.toJson())
         sikkerlogg.info("Ville ha publisert: ${packet.toJson()}")

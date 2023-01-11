@@ -34,7 +34,9 @@ fun RouteExtra.TrengerRoute() {
                 request.validate()
                 val inntektResponse = if ("test".equals(uuid)) {
                     TrengerInntektResponse(
-                        uuid, "810007982", "22506614191",
+                        uuid,
+                        "810007982",
+                        "22506614191",
                         listOf(Periode(LocalDate.now().minusDays(6), LocalDate.now())),
                         listOf(Periode(LocalDate.now().minusDays(12), LocalDate.now()))
                     )

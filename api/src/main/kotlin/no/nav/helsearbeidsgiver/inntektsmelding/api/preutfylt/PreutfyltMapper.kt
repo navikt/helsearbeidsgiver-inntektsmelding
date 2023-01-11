@@ -50,6 +50,10 @@ class PreutfyltMapper(
         return resultat.FULLT_NAVN?.value ?: "Mangler navn"
     }
 
+    fun mapArbeidsgiver(): String {
+        return resultat.VIRKSOMHET?.value ?: "Mangler arbeidsgivers navn"
+    }
+
     fun mapInntekt(): Inntekt {
         return resultat.INNTEKT?.value!!
     }
@@ -58,6 +62,7 @@ class PreutfyltMapper(
         val inntekt = mapInntekt()
         return PreutfyltResponse(
             navn = mapFulltNavn(),
+            orgNavn = mapArbeidsgiver(),
             identitetsnummer = request.identitetsnummer,
             orgnrUnderenhet = request.orgnrUnderenhet,
             fravaersperioder = mapFraværsperiode(),

@@ -4,6 +4,7 @@ import java.time.LocalDate
 
 data class PreutfyltResponse(
     val navn: String,
+    val orgNavn: String,
     val identitetsnummer: String,
     val orgnrUnderenhet: String,
     val fravaersperioder: List<Periode>,

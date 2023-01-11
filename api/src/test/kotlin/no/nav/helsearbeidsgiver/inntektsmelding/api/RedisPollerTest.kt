@@ -4,7 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
+import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -13,7 +13,7 @@ class RedisPollerTest {
     private val objectMapper = customObjectMapper()
 
     private val ID = "123"
-    private val DATA = LøsningSuccess("noe data").let(objectMapper::writeValueAsString)
+    private val DATA = Løsning.Success("noe data").let(objectMapper::writeValueAsString)
     private val GYLDIG_LISTE = List(4) { "" } + DATA
 
     @Test

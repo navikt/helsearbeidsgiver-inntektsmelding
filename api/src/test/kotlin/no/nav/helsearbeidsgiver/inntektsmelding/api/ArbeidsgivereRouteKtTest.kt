@@ -8,8 +8,8 @@ import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.loeser.LøsningFailure
-import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
+import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
+import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -71,7 +71,7 @@ private object MockOk {
         )
     )
 
-    val response = LøsningSuccess(responseBody)
+    val response = responseBody.toLøsningSuccess()
         .toBehovMap()
         .toJsonNode()
 }
@@ -79,7 +79,7 @@ private object MockOk {
 private object MockInternalServerError {
     const val responseBody = "uff da!"
 
-    val response = LøsningFailure(responseBody)
+    val response = responseBody.toLøsningFailure()
         .toBehovMap()
         .toJsonNode()
 }

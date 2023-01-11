@@ -42,11 +42,11 @@ internal class PacketSolver(
         val løsning = runCatching {
             løser.løsBehov(packet)
         }
-            .map(::LøsningSuccess)
+            .map { it.toLøsningSuccess() }
             .getOrElse {
                 it.message
                     .orDefault(DEFAULT_ERROR_MESSAGE)
-                    .let(::LøsningFailure)
+                    .toLøsningFailure()
             }
 
         val behovType = packet.value(Key.BEHOV)[0].asText()

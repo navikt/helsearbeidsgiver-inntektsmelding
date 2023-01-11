@@ -11,8 +11,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.loeser.LøsningFailure
-import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
+import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
+import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
@@ -36,9 +36,9 @@ fun RouteExtra.ArbeidsgivereRoute() {
         val resultat = redis.hent(id).tilResultat()
 
         when (resultat.arbeidsgivere) {
-            is LøsningSuccess ->
+            is Løsning.Success ->
                 respondOk(resultat.arbeidsgivere.resultat)
-            is LøsningFailure ->
+            is Løsning.Failure ->
                 respondInternalServerError(resultat.arbeidsgivere.feilmelding)
         }
     }
@@ -73,12 +73,12 @@ private fun JsonNode.tilResultat(): Resultat =
                 ?.let { setJson ->
                     setJson.map { objectMapper.convertValue(it, AltinnOrganisasjon::class.java) }.toSet()
                 }
-                ?.let(::LøsningSuccess)
+                ?.toLøsningSuccess()
 
             val løsningFailure = løsningJson.get("feilmelding")
                 ?.orNull()
                 ?.asText()
-                ?.let(::LøsningFailure)
+                ?.toLøsningFailure()
 
             løsningSuccess
                 ?: løsningFailure

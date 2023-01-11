@@ -16,8 +16,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.loeser.Løser
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.loeser.LøsningFailure
-import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
+import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
+import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.mock.mockObject
 import java.util.UUID
 
@@ -80,11 +80,11 @@ abstract class LøserTest {
 @PublishedApi
 internal inline fun <reified T : Any> JsonElement.toLøsning(): Løsning<T> =
     mapOf<String, (JsonElement) -> Løsning<T>>(
-        LøsningSuccess<*>::resultat.name to {
-            it.decode<T>().let(::LøsningSuccess)
+        Løsning.Success<*>::resultat.name to {
+            it.decode<T>().toLøsningSuccess()
         },
-        LøsningFailure::feilmelding.name to {
-            it.decode<String>().let(::LøsningFailure)
+        Løsning.Failure::feilmelding.name to {
+            it.decode<String>().toLøsningFailure()
         }
     )
         .firstNotNullOfOrNull { (field, transform) ->

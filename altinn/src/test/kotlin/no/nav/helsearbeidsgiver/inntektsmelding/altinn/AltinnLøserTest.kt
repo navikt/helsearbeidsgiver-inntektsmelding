@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.loeser.LøsningSuccess
+import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
@@ -30,7 +30,7 @@ class AltinnLøserTest : LøserTest() {
         val expectedAnswer = LøserAnswer(
             behovType = altinnLøser.behovType,
             initiateId = MockUuid.uuid,
-            løsning = mockAltinnOrganisasjonSet().let(::LøsningSuccess)
+            løsning = mockAltinnOrganisasjonSet().toLøsningSuccess()
         )
 
         testRapid.sendJson(

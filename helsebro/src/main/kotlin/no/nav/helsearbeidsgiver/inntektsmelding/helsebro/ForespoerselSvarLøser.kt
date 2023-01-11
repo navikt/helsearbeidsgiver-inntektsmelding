@@ -66,7 +66,8 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                     value = TrengerInntekt(
                         orgnr = forespoerselSvar.orgnr,
                         fnr = forespoerselSvar.fnr,
-                        sykemeldingsperioder = listOf(Periode(LocalDate.now().minusDays(10), LocalDate.now()))
+                        sykemeldingsperioder = listOf(Periode(LocalDate.now().minusDays(10), LocalDate.now())),
+                        egenmeldingsperioder = listOf(Periode(LocalDate.now().minusDays(20), LocalDate.now())),
                     )
                 )
             ),

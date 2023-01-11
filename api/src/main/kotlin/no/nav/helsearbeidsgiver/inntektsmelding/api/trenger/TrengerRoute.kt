@@ -33,7 +33,11 @@ fun RouteExtra.TrengerRoute() {
                 // Valider requesten
                 request.validate()
                 val inntektResponse = if ("test".equals(uuid)) {
-                    TrengerInntektResponse(uuid, "810007982", "22506614191", listOf(Periode(LocalDate.now().minusDays(6), LocalDate.now())))
+                    TrengerInntektResponse(
+                        uuid, "810007982", "22506614191",
+                        listOf(Periode(LocalDate.now().minusDays(6), LocalDate.now())),
+                        listOf(Periode(LocalDate.now().minusDays(12), LocalDate.now()))
+                    )
                 } else {
                     // Hent orgnr og fnr basert på request
                     val uuidTrenger = trengerProducer.publish(request)

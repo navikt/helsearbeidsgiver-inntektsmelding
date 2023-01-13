@@ -15,7 +15,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLøser(
-    rapid: RapidsConnection
+    rapid: RapidsConnection,
+    val forespoerselDao: ForespoerselDao
 ) : River.PacketListener {
     init {
         River(rapid).apply {
@@ -36,17 +37,16 @@ class ForespoerselMottattLøser(
 
         val orgnr = Pri.Key.ORGNR.let(packet::value).asText()
         val fnr = Pri.Key.FNR.let(packet::value).asText()
-        val vedtaksperiodeId = Pri.Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid() // TODO: burde være en egen id
+        val vedtaksperiodeId = Pri.Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid()
 
-//        val uuid = UUID.randomUUID()
-
-//        forespoerselDao.lagre(uuid, vedtaksperiodeId)
+        val forespoerselId = forespoerselDao.lagre(vedtaksperiodeId)
 
         context.publish(
             // TODO burde være notis
             Key.BEHOV to listOf(BehovType.NOTIFIKASJON_TRENGER_IM),
             Key.ORGNRUNDERENHET to orgnr,
             Key.IDENTITETSNUMMER to fnr,
+//            Key.UUID to forespoerselId // TODO kan brukes når vi kan mappe forespoerselId tilbake til vedtaksperiodeId
             Key.UUID to vedtaksperiodeId
         )
 

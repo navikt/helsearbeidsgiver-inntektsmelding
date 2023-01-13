@@ -3,6 +3,7 @@ val flywayVersion: String by project
 val hikariVersion: String by project
 val ktorVersion: String by project
 val postgresqlVersion: String by project
+val testcontainersPostgresqlVersion: String by project
 
 dependencies {
     implementation("com.zaxxer:HikariCP:$hikariVersion")
@@ -12,4 +13,6 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
 
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
+
+    testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
 }

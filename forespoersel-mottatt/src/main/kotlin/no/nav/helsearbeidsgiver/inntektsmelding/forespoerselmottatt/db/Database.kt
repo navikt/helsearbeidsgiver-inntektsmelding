@@ -1,23 +1,22 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
+package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.Env
 import org.flywaydb.core.Flyway
-import org.jetbrains.exposed.sql.Database
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
+import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
 private val DB_URL = "jdbc:postgresql://%s:%s/%s".format(Env.Database.host, Env.Database.port, Env.Database.name)
 
-class Db(
+class Database(
     dbConfig: HikariConfig = dbConfig()
 ) {
     val dataSource by lazy { HikariDataSource(dbConfig) }
-
-    // TODO rename
-    val db by lazy { Database.connect(dataSource) }
+    val db by lazy { ExposedDatabase.connect(dataSource) }
 
     fun migrate() {
         migrationConfig()

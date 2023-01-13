@@ -9,7 +9,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-private val DB_URL = "jdbc:postgresql://%s:%s/%s".format(Env.Database.host, Env.Database.port, "im-forespoersel-mottatt")
+private val DB_URL = "jdbc:postgresql://%s:%s/%s".format(Env.Database.host, Env.Database.port, Env.Database.name)
 
 class Db(
     dbConfig: HikariConfig = dbConfig()

@@ -51,3 +51,9 @@ data class HentTrengerImLøsning(
     override val value: TrengerInntekt? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
+
+@Serializable
+data class PreutfyltLøsning(
+    override val value: PersonLink? = null,
+    override val error: Feilmelding? = null
+) : Løsning()

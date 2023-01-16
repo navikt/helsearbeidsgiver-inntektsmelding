@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
-import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mockArbeidsforhold
 import org.junit.jupiter.api.Test
 import org.valiktor.ConstraintViolationException
@@ -70,7 +69,6 @@ internal class PreutfyltMapperTest {
             ARBEIDSFORHOLD = løsningArbeidsforhold,
             INNTEKT = if (tre) løsningInntekt else InntektLøsning(error = feilmelding)
         )
-        val request = PreutfyltRequest(TestData.validOrgNr, TestData.validIdentitetsnummer)
-        return PreutfyltMapper("uuid", resultat, request, emptyList(), emptyList())
+        return PreutfyltMapper("uuid", resultat)
     }
 }

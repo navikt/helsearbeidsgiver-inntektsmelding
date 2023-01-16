@@ -11,17 +11,13 @@ import no.nav.helsearbeidsgiver.felles.PreutfyltResponse
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.ResultatMapper
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
 import org.valiktor.ConstraintViolation
 import org.valiktor.DefaultConstraintViolation
 
 class PreutfyltMapper(
     val uuid: String,
-    resultat: Resultat,
-    val request: PreutfyltRequest,
-    var sykemeldingsperioder: List<Periode>,
-    var egenmeldingsperioder: List<Periode>
+    resultat: Resultat
 ) : ResultatMapper<PreutfyltResponse>(resultat) {
 
     override fun mapConstraint(løsning: Løsning): ConstraintViolation {
@@ -35,15 +31,11 @@ class PreutfyltMapper(
     }
 
     fun mapEgenmeldingsperioder(): List<Periode> {
-        val trenger = resultat.HENT_TRENGER_IM
-        sikkerlogg.info("Fant egenmeldingsperioder: $trenger for $uuid")
-        return trenger?.value?.egenmeldingsperioder ?: egenmeldingsperioder
+        return resultat.HENT_TRENGER_IM?.value?.egenmeldingsperioder ?: emptyList()
     }
 
     fun mapFraværsperiode(): List<Periode> {
-        val trenger = resultat.HENT_TRENGER_IM
-        sikkerlogg.info("Fant fraværsperiode data: $trenger for $uuid")
-        return trenger?.value?.sykemeldingsperioder ?: sykemeldingsperioder
+        return resultat.HENT_TRENGER_IM?.value?.sykemeldingsperioder ?: emptyList()
     }
 
     fun mapFulltNavn(): String {
@@ -55,7 +47,15 @@ class PreutfyltMapper(
     }
 
     fun mapInntekt(): Inntekt {
-        return resultat.INNTEKT?.value!!
+        return resultat.INNTEKT?.value ?: Inntekt(emptyList())
+    }
+
+    fun mapIdentitetsNummer(): String {
+        return resultat.HENT_TRENGER_IM?.value?.fnr ?: ""
+    }
+
+    fun mapOrgNummer(): String {
+        return resultat.HENT_TRENGER_IM?.value?.orgnr ?: ""
     }
 
     override fun getResultatResponse(): PreutfyltResponse {
@@ -63,8 +63,8 @@ class PreutfyltMapper(
         return PreutfyltResponse(
             navn = mapFulltNavn(),
             orgNavn = mapArbeidsgiver(),
-            identitetsnummer = request.identitetsnummer,
-            orgnrUnderenhet = request.orgnrUnderenhet,
+            identitetsnummer = mapIdentitetsNummer(),
+            orgnrUnderenhet = mapOrgNummer(),
             fravaersperioder = mapFraværsperiode(),
             egenmeldingsperioder = mapEgenmeldingsperioder(),
             bruttoinntekt = inntekt.bruttoInntekt,

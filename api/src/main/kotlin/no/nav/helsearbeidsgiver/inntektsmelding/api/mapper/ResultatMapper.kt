@@ -19,6 +19,7 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
             resultat.ARBEIDSFORHOLD,
             resultat.INNTEKT,
             resultat.HENT_TRENGER_IM,
+            resultat.PREUTFYLT,
             resultat.JOURNALFOER
         ).filterNotNull()
     }

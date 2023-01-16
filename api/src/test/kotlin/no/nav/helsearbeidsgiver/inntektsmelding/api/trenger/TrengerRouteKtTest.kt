@@ -59,7 +59,7 @@ internal class TrengerRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `skal returnere OK når trenger og preutfylt virker`() = testApi {
+    fun `skal returnere OK når trenger virker`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returnsMany listOf(RESULTAT_TRENGER_INNTEKT, RESULTAT_OK)
@@ -67,20 +67,5 @@ internal class TrengerRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.Created, response.status)
-    }
-
-    @Test
-    fun `skal håndtere at trenger virker men preutfylt feiler`() = testApi {
-        coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returnsMany listOf(RESULTAT_TRENGER_INNTEKT, RESULTAT_FEIL)
-
-        val response = post(PATH, GYLDIG_REQUEST)
-
-        assertNotNull(response.bodyAsText())
-        val data: String = response.bodyAsText()
-        val violations = objectMapper.readValue<ValidationResponse>(data).errors
-        assertEquals(1, violations.size)
-        assertEquals("ukjent", violations[0].property)
     }
 }

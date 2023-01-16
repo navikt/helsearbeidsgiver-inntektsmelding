@@ -17,7 +17,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import org.slf4j.Logger
@@ -31,7 +30,6 @@ object Routes {
 
     const val ARBEIDSGIVERE = "/arbeidsgivere"
     const val INNSENDING = "/inntektsmelding"
-    const val PREUTFYLT = "/preutfyll"
     const val TRENGER = "/trenger"
 }
 
@@ -71,7 +69,7 @@ fun Application.apiModule(connection: RapidsConnection) {
             route(Routes.PREFIX) {
                 routeExtra(connection, redisPoller) {
                     ArbeidsgivereRoute()
-                    PreutfyltRoute()
+                    TrengerRoute()
                     // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
                     // InnsendingRoute()
                 }
@@ -81,7 +79,6 @@ fun Application.apiModule(connection: RapidsConnection) {
         route(Routes.PREFIX) {
             routeExtra(connection, redisPoller) {
                 InnsendingRoute()
-                TrengerRoute()
             }
         }
     }

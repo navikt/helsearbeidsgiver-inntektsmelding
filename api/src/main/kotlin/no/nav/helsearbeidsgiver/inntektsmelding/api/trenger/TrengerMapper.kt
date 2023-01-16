@@ -1,6 +1,6 @@
 @file:Suppress("NonAsciiCharacters")
 
-package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
+package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstr
 import org.valiktor.ConstraintViolation
 import org.valiktor.DefaultConstraintViolation
 
-class PreutfyltMapper(
+class TrengerMapper(
     val uuid: String,
     resultat: Resultat
 ) : ResultatMapper<PreutfyltResponse>(resultat) {

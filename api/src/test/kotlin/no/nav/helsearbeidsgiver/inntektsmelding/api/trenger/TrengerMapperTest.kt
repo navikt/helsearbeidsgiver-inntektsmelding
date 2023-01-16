@@ -1,6 +1,6 @@
 @file:Suppress("NonAsciiCharacters")
 
-package no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt
+package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
@@ -20,7 +20,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-internal class PreutfyltMapperTest {
+internal class TrengerMapperTest {
 
     val løsningNavn = NavnLøsning("abc")
     val løsningVirksomhet = VirksomhetLøsning("xyz")
@@ -60,7 +60,7 @@ internal class PreutfyltMapperTest {
         buildMapper(true, true, true).getResponse()
     }
 
-    fun buildMapper(en: Boolean, to: Boolean, tre: Boolean): PreutfyltMapper {
+    fun buildMapper(en: Boolean, to: Boolean, tre: Boolean): TrengerMapper {
         val feilmelding = Feilmelding("Feil")
 
         val resultat = Resultat(
@@ -69,6 +69,6 @@ internal class PreutfyltMapperTest {
             ARBEIDSFORHOLD = løsningArbeidsforhold,
             INNTEKT = if (tre) løsningInntekt else InntektLøsning(error = feilmelding)
         )
-        return PreutfyltMapper("uuid", resultat)
+        return TrengerMapper("uuid", resultat)
     }
 }

@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.preutfylt.PreutfyltMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
@@ -28,7 +27,7 @@ fun RouteExtra.TrengerRoute() {
                 val uuid = trengerProducer.publish(request)
                 val resultat = redis.getResultat(uuid, 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
-                val mapper = PreutfyltMapper(uuid, resultat)
+                val mapper = TrengerMapper(uuid, resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for $request.uuid")

@@ -7,5 +7,6 @@ data class Resultat(
     val INNTEKT: InntektLøsning? = null,
     val JOURNALFOER: JournalpostLøsning? = null,
     val NOTIFIKASJON: NotifikasjonLøsning? = null,
-    val HENT_TRENGER_IM: HentTrengerImLøsning? = null
+    val HENT_TRENGER_IM: HentTrengerImLøsning? = null,
+    val PREUTFYLT: PreutfyltLøsning? = null
 )

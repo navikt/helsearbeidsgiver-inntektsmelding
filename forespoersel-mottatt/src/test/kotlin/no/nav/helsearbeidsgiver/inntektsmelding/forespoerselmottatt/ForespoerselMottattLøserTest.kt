@@ -5,9 +5,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verifySequence
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
@@ -20,32 +17,26 @@ import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
-import java.util.UUID
+import java.util.*
 
 class ForespoerselMottattLøserTest : FunSpec({
     val testRapid = TestRapid()
 
-    val mockForespoerselDao = mockk<ForespoerselDao>()
-
-    ForespoerselMottattLøser(testRapid, mockForespoerselDao)
+    ForespoerselMottattLøser(testRapid)
 
     test("Ved notis om mottatt forespørsel publiseres behov om notifikasjon") {
         val expected = Published.mock()
-//        val vedtaksperiodeId = UUID.randomUUID() // TODO kommenter inn når todo i ForespoerselMottattLøser er løst
-        val vedtaksperiodeId = expected.uuid
-
-        every { mockForespoerselDao.lagre(any()) } returns expected.uuid
+        val forespoerselId = expected.uuid
 
         testRapid.sendJson(
             Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(),
             Pri.Key.ORGNR to expected.orgnrUnderenhet.toJson(),
             Pri.Key.FNR to expected.identitetsnummer.toJson(),
-            Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson()
+            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
         val actual = testRapid.lastMessageJson().let(Published::fromJson)
 
-        verifySequence { mockForespoerselDao.lagre(vedtaksperiodeId) }
         testRapid.inspektør.size shouldBeExactly 1
         actual shouldBe expected
     }

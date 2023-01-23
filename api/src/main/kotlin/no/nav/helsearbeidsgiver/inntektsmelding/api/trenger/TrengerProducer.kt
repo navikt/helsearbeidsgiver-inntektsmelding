@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
-import java.util.*
+import java.util.UUID
 
 class TrengerProducer(
     private val rapidsConnection: RapidsConnection

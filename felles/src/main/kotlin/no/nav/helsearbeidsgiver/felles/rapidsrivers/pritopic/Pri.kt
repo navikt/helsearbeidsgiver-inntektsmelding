@@ -13,7 +13,7 @@ object Pri {
         BOOMERANG("boomerang"),
         ORGNR("orgnr"),
         FNR("fnr"),
-        VEDTAKSPERIODE_ID("vedtaksperiodeId"),
+        FORESPOERSEL_ID("forespoerselId"),
         SYKMELDINGSPERIODER("sykmeldingsperioder"),
         FORESPURT_DATA("forespurtData");
 

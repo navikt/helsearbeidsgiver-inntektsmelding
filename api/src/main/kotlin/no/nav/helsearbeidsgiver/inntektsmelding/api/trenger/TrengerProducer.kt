@@ -25,7 +25,7 @@ class TrengerProducer(
                 ),
                 Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL.name),
                 Key.UUID.str to uuid,
-                Key.VEDTAKSPERIODE_ID.str to request.uuid
+                Key.FORESPOERSEL_ID.str to request.uuid
             )
         )
         rapidsConnection.publish(uuid, packet.toJson())

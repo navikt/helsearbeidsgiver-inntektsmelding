@@ -14,7 +14,7 @@ import java.util.UUID
 data class ForespoerselSvar(
     val orgnr: String,
     val fnr: String,
-    val vedtaksperiodeId: UUID,
+    val forespoerselId: UUID,
     val sykmeldingsperioder: List<Periode>,
     val forespurtData: List<ForespurtData>,
     val boomerang: Map<String, JsonElement>

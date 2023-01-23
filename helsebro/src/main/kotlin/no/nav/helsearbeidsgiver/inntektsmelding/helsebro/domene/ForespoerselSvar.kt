@@ -8,13 +8,13 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
-import java.util.UUID
+import java.util.*
 
 @Serializable
 data class ForespoerselSvar(
     val orgnr: String,
     val fnr: String,
-    val vedtaksperiodeId: UUID,
+    val forespoerselId: UUID,
     val sykmeldingsperioder: List<Periode>,
     val forespurtData: List<ForespurtData>,
     val boomerang: Map<String, JsonElement>

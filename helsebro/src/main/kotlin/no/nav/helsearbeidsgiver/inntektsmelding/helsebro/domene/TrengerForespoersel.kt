@@ -8,10 +8,10 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.jsonOf
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
-import java.util.UUID
+import java.util.*
 
 data class TrengerForespoersel(
-    val vedtaksperiodeId: UUID,
+    val forespoerselId: UUID,
     val boomerang: Map<String, JsonElement>
 ) {
     val behov = Pri.BehovType.TRENGER_FORESPØRSEL
@@ -19,7 +19,7 @@ data class TrengerForespoersel(
     fun toJson(): JsonElement =
         jsonOf(
             Pri.Key.BEHOV to behov.toJson(),
-            Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
+            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Pri.Key.BOOMERANG to boomerang.toJson()
         )
 }

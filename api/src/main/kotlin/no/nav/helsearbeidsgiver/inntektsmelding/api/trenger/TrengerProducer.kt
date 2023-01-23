@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
-import java.util.UUID
+import java.util.*
 
 class TrengerProducer(
     private val rapidsConnection: RapidsConnection
@@ -25,7 +25,7 @@ class TrengerProducer(
                 ),
                 Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL.name),
                 Key.UUID.str to uuid,
-                Key.VEDTAKSPERIODE_ID.str to request.uuid
+                Key.FORESPOERSEL_ID.str to request.uuid
             )
         )
         rapidsConnection.publish(uuid, packet.toJson())

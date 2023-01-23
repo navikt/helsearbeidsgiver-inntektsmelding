@@ -51,7 +51,7 @@ fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtData> =
 
 fun mockTrengerForespoersel(): TrengerForespoersel =
     TrengerForespoersel(
-        vedtaksperiodeId = UUID.randomUUID(),
+        forespoerselId = UUID.randomUUID(),
         boomerang = mockBoomerang()
     )
 
@@ -59,7 +59,7 @@ fun mockForespoerselSvar(): ForespoerselSvar =
     ForespoerselSvar(
         orgnr = "hungry-traitor-chaplain",
         fnr = "deputize-snowy-quirk",
-        vedtaksperiodeId = UUID.randomUUID(),
+        forespoerselId = UUID.randomUUID(),
         sykmeldingsperioder = listOf(1.januar til 16.januar),
         forespurtData = mockForespurtDataListe(),
         boomerang = mockBoomerang()

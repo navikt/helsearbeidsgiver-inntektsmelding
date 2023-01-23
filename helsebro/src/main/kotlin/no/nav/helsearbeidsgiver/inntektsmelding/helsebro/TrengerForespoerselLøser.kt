@@ -28,7 +28,7 @@ class TrengerForespoerselLøser(
                 it.rejectKeys(Key.LØSNING)
                 it.requireTypes(
                     Key.UUID to JsonNode::asUuid,
-                    Key.VEDTAKSPERIODE_ID to JsonNode::asUuid
+                    Key.FORESPOERSEL_ID to JsonNode::asUuid
                 )
             }
         }.register(this)
@@ -39,7 +39,7 @@ class TrengerForespoerselLøser(
         loggerSikker.info("Mottok behov:\n${packet.toJson()}")
 
         val trengerForespoersel = TrengerForespoersel(
-            vedtaksperiodeId = Key.VEDTAKSPERIODE_ID.let(packet::value).asUuid(),
+            forespoerselId = Key.FORESPOERSEL_ID.let(packet::value).asUuid(),
             boomerang = mapOf(
                 Key.INITIATE_ID.str to Key.UUID.let(packet::value).asUuid().toJson()
             )

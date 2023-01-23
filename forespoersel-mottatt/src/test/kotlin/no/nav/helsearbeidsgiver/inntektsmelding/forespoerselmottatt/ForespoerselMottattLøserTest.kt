@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
-import java.util.*
+import java.util.UUID
 
 class ForespoerselMottattLøserTest : FunSpec({
     val testRapid = TestRapid()

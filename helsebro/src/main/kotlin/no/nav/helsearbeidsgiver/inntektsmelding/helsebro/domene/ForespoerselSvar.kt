@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
-import java.util.*
+import java.util.UUID
 
 @Serializable
 data class ForespoerselSvar(

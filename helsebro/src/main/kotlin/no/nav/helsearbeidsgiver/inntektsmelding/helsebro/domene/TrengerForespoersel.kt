@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.jsonOf
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
-import java.util.*
+import java.util.UUID
 
 data class TrengerForespoersel(
     val forespoerselId: UUID,

@@ -28,7 +28,7 @@ import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import java.util.*
+import java.util.UUID
 
 class ForespoerselSvarLøserTest : FunSpec({
     val testRapid = TestRapid()

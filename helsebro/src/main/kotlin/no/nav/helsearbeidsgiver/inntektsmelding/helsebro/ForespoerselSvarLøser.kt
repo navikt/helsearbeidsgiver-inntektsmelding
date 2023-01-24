@@ -10,13 +10,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.json.toUuid
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.value
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 
 class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
@@ -52,7 +53,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
         loggerSikker.info("Oversatte melding:\n$forespoerselSvar")
 
         val initiateId = forespoerselSvar.boomerang[Key.INITIATE_ID.str]
-            ?.toUuid()
+            ?.fromJson(UuidSerializer)
             ?: throw BoomerangContentException()
 
         context.publish(

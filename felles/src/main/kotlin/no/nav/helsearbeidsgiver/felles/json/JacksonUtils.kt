@@ -10,6 +10,6 @@ fun customObjectMapper(): ObjectMapper =
     jacksonObjectMapper().configure()
 
 fun ObjectMapper.configure(): ObjectMapper =
-    this.registerModule(JavaTimeModule())
+    registerModule(JavaTimeModule())
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)

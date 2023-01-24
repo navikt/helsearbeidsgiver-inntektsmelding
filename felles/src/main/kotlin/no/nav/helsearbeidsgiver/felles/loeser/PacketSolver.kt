@@ -48,15 +48,16 @@ internal class PacketSolver(
                     .orDefault(DEFAULT_ERROR_MESSAGE)
                     .toLøsningFailure()
             }
+            .toJsonNode()
 
         val behovType = packet.value(Key.BEHOV)[0].asText()
 
         val answer = createPacket(
-            packet,
-            setOf(
+            copyFrom = packet,
+            copyFields = setOf(
                 Key.BEHOV
             ),
-            mapOf(
+            copyFieldOrDefaults = mapOf(
                 Key.INITIATE_ID to packet.id
             ),
             // TODO Midlertidig map som verdi her. Endring av dette krever endring i akkumulator som krever endring i alle løsere.

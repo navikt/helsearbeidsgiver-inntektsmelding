@@ -19,8 +19,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.test.PublishedLøsning
@@ -99,7 +99,7 @@ private data class Published(
                         )
                 ),
                 uuid = forespoerselSvar.boomerang[Key.INITIATE_ID.str]
-                    ?.toUuid()
+                    ?.fromJson(UuidSerializer)
                     .shouldNotBeNull()
             )
 

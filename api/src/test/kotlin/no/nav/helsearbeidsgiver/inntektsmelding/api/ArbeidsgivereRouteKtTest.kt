@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
@@ -72,6 +72,8 @@ private object MockOk {
     )
 
     val response = responseBody.toLøsningSuccess()
+        .toJson()
+        .toJsonNode()
         .toBehovMap()
         .toJsonNode()
 }
@@ -80,14 +82,19 @@ private object MockInternalServerError {
     const val responseBody = "uff da!"
 
     val response = responseBody.toLøsningFailure()
+        .toJson()
+        .toJsonNode()
         .toBehovMap()
         .toJsonNode()
 }
 
-private fun Løsning<*>.toBehovMap(): Map<BehovType, Løsning<*>> =
+private fun JsonNode.toBehovMap(): Map<BehovType, JsonNode> =
     mapOf(
         BehovType.ARBEIDSGIVERE to this
     )
+
+private fun JsonElement.toJsonNode(): JsonNode =
+    toString().let(objectMapper::readTree)
 
 private fun Map<*, *>.toJsonNode(): JsonNode =
     objectMapper.valueToTree(this)

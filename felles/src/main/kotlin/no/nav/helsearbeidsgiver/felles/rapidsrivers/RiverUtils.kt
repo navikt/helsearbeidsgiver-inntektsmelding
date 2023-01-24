@@ -30,10 +30,15 @@ fun JsonMessage.requireTypes(vararg keys: Pair<Key, (JsonNode) -> Any>) {
 fun JsonNode.asUuid(): UUID =
     asText().let(UUID::fromString)
 
-fun MessageContext.publish(vararg keyValuePairs: Pair<Key, Any>) {
-    keyValuePairs.toMap()
+fun MessageContext.publish(
+    vararg messageFields: Pair<Key, Any>,
+    block: ((JsonMessage) -> Unit)? = null
+): String =
+    messageFields.toMap()
         .mapKeys { (key, _) -> key.str }
         .let(JsonMessage::newMessage)
-        .toJson()
-        .let(this::publish)
-}
+        .also {
+            publish(it.id, it.toJson())
+            if (block != null) block(it)
+        }
+        .id

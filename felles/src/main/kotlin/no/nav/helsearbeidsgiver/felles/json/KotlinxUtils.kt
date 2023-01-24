@@ -1,9 +1,11 @@
 package no.nav.helsearbeidsgiver.felles.json
 
+import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
 import java.util.UUID
 
@@ -25,7 +27,14 @@ fun Map<String, JsonElement>.toJson(): JsonElement =
 fun <T : Any> List<T>.toJson(elementToJson: (T) -> JsonElement): JsonElement =
     map { elementToJson(it) }.let(Json::encodeToJsonElement)
 
-fun JsonElement.toUuid(): UUID =
-    jsonPrimitive
-        .content
-        .let(UUID::fromString)
+inline fun <reified T : Any> JsonElement.fromJson(): T =
+    Json.decodeFromJsonElement(this)
+
+fun <T : Any> JsonElement.fromJson(ds: DeserializationStrategy<T>): T =
+    Json.decodeFromJsonElement(ds, this)
+
+fun String.parseJson(): JsonElement =
+    Json.parseToJsonElement(this)
+
+fun JsonNode.toJsonElement(): JsonElement =
+    toString().parseJson()

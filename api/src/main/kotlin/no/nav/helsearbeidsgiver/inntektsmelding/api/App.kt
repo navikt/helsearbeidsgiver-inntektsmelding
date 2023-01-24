@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -8,6 +9,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
@@ -53,6 +55,15 @@ fun Application.apiModule(connection: RapidsConnection) {
     install(ContentNegotiation) {
         jackson {
             configure()
+        }
+    }
+
+    install(StatusPages) {
+        exception<Throwable> { call, cause ->
+            call.respondText(
+                text = "Error 500: $cause",
+                status = HttpStatusCode.InternalServerError
+            )
         }
     }
 

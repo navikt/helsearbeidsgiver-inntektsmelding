@@ -18,6 +18,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnVersion")
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")

@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
@@ -40,10 +41,10 @@ class ForespoerselMottattLøser(
 
         context.publish(
             // TODO burde være notis
-            Key.BEHOV to listOf(BehovType.NOTIFIKASJON_TRENGER_IM),
-            Key.ORGNRUNDERENHET to orgnr,
-            Key.IDENTITETSNUMMER to fnr,
-            Key.UUID to forespoerselId
+            Key.BEHOV to listOf(BehovType.NOTIFIKASJON_TRENGER_IM).toJson(BehovType::toJson),
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
+            Key.IDENTITETSNUMMER to fnr.toJson(),
+            Key.UUID to forespoerselId.toJson()
         )
 
         logger.info("Publiserte behov om '${BehovType.NOTIFIKASJON_TRENGER_IM}' med uuid (forespørsel-ID-en) '$forespoerselId'.")

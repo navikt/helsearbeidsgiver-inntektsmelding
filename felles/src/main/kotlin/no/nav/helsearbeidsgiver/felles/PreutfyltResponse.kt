@@ -12,5 +12,6 @@ data class PreutfyltResponse(
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<MottattHistoriskInntekt>,
     val behandlingsperiode: Periode?,
-    val behandlingsdager: List<LocalDate>
+    val behandlingsdager: List<LocalDate>,
+    val forespurtData: List<ForespurtData>
 )

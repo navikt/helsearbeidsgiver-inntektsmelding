@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
+import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Løsning
@@ -35,8 +36,11 @@ class TrengerMapper(
     }
 
     fun mapFraværsperiode(): List<Periode> {
-        return resultat.HENT_TRENGER_IM?.value?.sykemeldingsperioder ?: emptyList()
+        return resultat.HENT_TRENGER_IM?.value?.sykmeldingsperioder ?: emptyList()
     }
+
+    fun mapForespurtData(): List<ForespurtData> =
+        resultat.HENT_TRENGER_IM?.value?.forespurtData ?: emptyList()
 
     fun mapFulltNavn(): String {
         return resultat.FULLT_NAVN?.value ?: "Mangler navn"
@@ -70,7 +74,8 @@ class TrengerMapper(
             bruttoinntekt = inntekt.bruttoInntekt,
             tidligereinntekter = inntekt.historisk,
             behandlingsperiode = null,
-            behandlingsdager = emptyList()
+            behandlingsdager = emptyList(),
+            forespurtData = mapForespurtData()
         )
     }
 }

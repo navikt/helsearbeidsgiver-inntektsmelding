@@ -94,7 +94,8 @@ private data class Published(
                             value = TrengerInntekt(
                                 orgnr = forespoerselSvar.orgnr,
                                 fnr = forespoerselSvar.fnr,
-                                sykemeldingsperioder = forespoerselSvar.sykmeldingsperioder
+                                sykmeldingsperioder = forespoerselSvar.sykmeldingsperioder,
+                                forespurtData = forespoerselSvar.forespurtData
                             )
                         )
                 ),

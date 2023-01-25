@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -11,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
@@ -57,18 +59,18 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             ?: throw BoomerangContentException()
 
         context.publish(
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM),
+            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType::toJson),
             Key.LØSNING to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     value = TrengerInntekt(
                         orgnr = forespoerselSvar.orgnr,
                         fnr = forespoerselSvar.fnr,
-                        sykemeldingsperioder = forespoerselSvar.sykmeldingsperioder,
-                        egenmeldingsperioder = emptyList()
+                        sykmeldingsperioder = forespoerselSvar.sykmeldingsperioder,
+                        forespurtData = forespoerselSvar.forespurtData
                     )
                 )
-            ),
-            Key.UUID to initiateId
+            ).let(Json::encodeToJsonElement),
+            Key.UUID to initiateId.toJson()
         )
 
         logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")

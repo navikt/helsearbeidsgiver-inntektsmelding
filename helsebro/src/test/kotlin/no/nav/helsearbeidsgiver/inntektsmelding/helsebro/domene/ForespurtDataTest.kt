@@ -8,9 +8,10 @@ import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.test.json.removeJsonWhitespace
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.mockForespurtDataListe
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.mockForespurtDataMedFastsattInntektListe
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntektListe
 
 class ForespurtDataTest : FunSpec({
     listOf(

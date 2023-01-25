@@ -33,7 +33,7 @@ internal class TrengerRouteKtTest : ApiTest() {
     val UGYLDIG_REQUEST = TrengerRequest(" ")
 
     val RESULTAT_TRENGER_INNTEKT = Resultat(
-        HENT_TRENGER_IM = HentTrengerImLøsning(TrengerInntekt("abc", "123")),
+        HENT_TRENGER_IM = HentTrengerImLøsning(TrengerInntekt("abc", "123", sykmeldingsperioder = emptyList(), forespurtData = emptyList())),
         INNTEKT = InntektLøsning(Inntekt(historisk = emptyList())),
         VIRKSOMHET = VirksomhetLøsning("Norge AS"),
         ARBEIDSFORHOLD = ArbeidsforholdLøsning(),

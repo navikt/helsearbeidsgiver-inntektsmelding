@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class TrengerInntekt(
     val fnr: String,
     val orgnr: String,
-    val sykemeldingsperioder: List<Periode> = emptyList(),
-    val egenmeldingsperioder: List<Periode> = emptyList()
+    val sykmeldingsperioder: List<Periode>,
+    val egenmeldingsperioder: List<Periode> = emptyList(),
+    val forespurtData: List<ForespurtData>
 )

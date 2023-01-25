@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning.Companion.toLøsning
@@ -25,8 +26,8 @@ fun RouteExtra.ArbeidsgivereRoute() {
     route.get(Routes.ARBEIDSGIVERE) {
         val messageId = connection.publish(
             // TODO Behov må være liste. Dette bør endres i Akkumulatoren.
-            Key.BEHOV to listOf(BehovType.ARBEIDSGIVERE),
-            Key.IDENTITETSNUMMER to identitetsnummer(),
+            Key.BEHOV to listOf(BehovType.ARBEIDSGIVERE).toJson(BehovType::toJson),
+            Key.IDENTITETSNUMMER to identitetsnummer().toJson(),
             block = ::loggPublisert
         )
 

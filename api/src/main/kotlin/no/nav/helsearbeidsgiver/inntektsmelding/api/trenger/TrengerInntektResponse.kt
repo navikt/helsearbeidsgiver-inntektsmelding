@@ -8,6 +8,6 @@ data class TrengerInntektResponse(
     val uuid: String,
     val orgnr: String,
     val fnr: String,
-    val sykemeldingsperioder: List<Periode>,
+    val sykmeldingsperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>
 )

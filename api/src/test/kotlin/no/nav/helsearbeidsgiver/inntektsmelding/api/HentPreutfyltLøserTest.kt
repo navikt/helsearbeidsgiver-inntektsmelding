@@ -33,8 +33,8 @@ internal class HentPreutfyltLøserTest {
                         value = TrengerInntekt(
                             orgnr = "123",
                             fnr = "456",
-                            sykemeldingsperioder = emptyList(),
-                            egenmeldingsperioder = emptyList()
+                            sykmeldingsperioder = emptyList(),
+                            forespurtData = emptyList()
                         )
                     )
                 )

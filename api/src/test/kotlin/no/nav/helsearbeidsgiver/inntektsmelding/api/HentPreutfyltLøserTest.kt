@@ -1,13 +1,18 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -25,20 +30,18 @@ internal class HentPreutfyltLøserTest {
     @Test
     fun `skal hente ut fnr og orgnr og publisere det samt neste behov`() {
         val resultat = sendMelding(
-            mapOf(
-                "@behov" to listOf(BEHOV),
-                "@id" to UUID.randomUUID(),
-                "@løsning" to mapOf(
-                    BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
-                        value = TrengerInntekt(
-                            orgnr = "123",
-                            fnr = "456",
-                            sykmeldingsperioder = emptyList(),
-                            forespurtData = emptyList()
-                        )
+            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.ID to UUID.randomUUID().toJson(),
+            Key.LØSNING to mapOf(
+                BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
+                    value = TrengerInntekt(
+                        orgnr = "123",
+                        fnr = "456",
+                        sykmeldingsperioder = emptyList(),
+                        forespurtData = mockForespurtDataListe()
                     )
                 )
-            )
+            ).let(Json::encodeToJsonElement)
         )
         val nesteBehov: JsonNode = resultat.path("neste_behov")
         assertEquals(4, nesteBehov.size())
@@ -51,15 +54,13 @@ internal class HentPreutfyltLøserTest {
     @Test
     fun `skal håndtere at det oppstod feil tidligere`() {
         val resultat = sendMelding(
-            mapOf(
-                "@behov" to listOf(BEHOV),
-                "@id" to UUID.randomUUID(),
-                "@løsning" to mapOf(
-                    BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
-                        error = Feilmelding("Feil")
-                    )
+            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.ID to UUID.randomUUID().toJson(),
+            Key.LØSNING to mapOf(
+                BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
+                    error = Feilmelding("Feil")
                 )
-            )
+            ).let(Json::encodeToJsonElement)
         )
         val nesteBehov: JsonNode = resultat.path("neste_behov")
         assertEquals(0, nesteBehov.size())
@@ -69,9 +70,9 @@ internal class HentPreutfyltLøserTest {
         assertEquals("", orgnrNode.asText())
     }
 
-    private fun sendMelding(melding: Map<String, Any>): JsonNode {
+    private fun sendMelding(vararg melding: Pair<Key, JsonElement>): JsonNode {
         rapid.reset()
-        rapid.sendTestMessage(customObjectMapper().writeValueAsString(melding))
+        rapid.sendJson(*melding.toList().toTypedArray())
         return rapid.inspektør.message(0)
     }
 }

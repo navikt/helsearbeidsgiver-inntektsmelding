@@ -3,8 +3,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
+import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
+import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -46,6 +51,31 @@ class RedisPollerTest {
             val data = redisPoller.hent(ID, 5, 0)
 
             assertEquals(objectMapper.readTree(DATA), data)
+        }
+    }
+
+    @Test
+    fun `skal parse liste med forespurt data korrekt`() {
+        val expectedTrengerInntekt = mockTrengerInntekt()
+        val expected = Resultat(HENT_TRENGER_IM = HentTrengerImLøsning(value = expectedTrengerInntekt))
+        val expectedJson = """
+            {
+                "HENT_TRENGER_IM": {
+                    "value": {
+                        "orgnr": "${expectedTrengerInntekt.orgnr}",
+                        "fnr": "${expectedTrengerInntekt.fnr}",
+                        "sykmeldingsperioder": ${expectedTrengerInntekt.sykmeldingsperioder.let(Json::encodeToString)},
+                        "forespurtData": ${expectedTrengerInntekt.forespurtData.let(Json::encodeToString)}
+                    }
+                }
+            }
+        """
+
+        val redisPoller = mockRedisPoller(listOf(expectedJson))
+
+        runBlocking {
+            val data = redisPoller.getResultat(ID, 1, 0)
+            assertEquals(expected, data)
         }
     }
 }

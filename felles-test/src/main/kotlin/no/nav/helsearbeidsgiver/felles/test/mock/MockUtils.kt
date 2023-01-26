@@ -2,15 +2,15 @@ package no.nav.helsearbeidsgiver.felles.test.mock
 
 import io.ktor.client.statement.HttpResponse
 import io.mockk.every
-import io.mockk.mockkConstructor
-import io.mockk.mockkObject
-import io.mockk.mockkStatic
-import io.mockk.unmockkConstructor
-import io.mockk.unmockkObject
-import io.mockk.unmockkStatic
-import kotlinx.coroutines.runBlocking
+import no.nav.helsearbeidsgiver.felles.ForespurtData
+import no.nav.helsearbeidsgiver.felles.ForslagInntekt
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.test.date.desember
+import no.nav.helsearbeidsgiver.felles.test.date.januar
+import no.nav.helsearbeidsgiver.felles.test.date.november
+import no.nav.helsearbeidsgiver.felles.test.date.oktober
+import no.nav.helsearbeidsgiver.felles.til
 import java.util.UUID
-import kotlin.reflect.KClass
 
 object MockUuid {
     const val STRING = "01234567-abcd-0123-abcd-012345678901"
@@ -24,38 +24,43 @@ object MockUuid {
         }
 }
 
-fun <T> mockStatic(klass: KClass<*>, block: suspend () -> T): T =
-    runWithSetup(
-        block = block,
-        setup = { mockkStatic(klass) },
-        teardown = { unmockkStatic(klass) }
+fun mockForespurtDataListe(): List<ForespurtData> =
+    listOf(
+        ForespurtData.ArbeidsgiverPeriode(
+            forslag = listOf(
+                1.januar til 10.januar,
+                15.januar til 20.januar
+            )
+        ),
+        ForespurtData.Inntekt(
+            forslag = ForslagInntekt(
+                beregningsmåneder = listOf(
+                    oktober(2017),
+                    november(2017),
+                    desember(2017)
+                )
+            )
+        ),
+        ForespurtData.Refusjon
     )
 
-fun <T> mockConstructor(klass: KClass<*>, block: suspend () -> T): T =
-    runWithSetup(
-        block = block,
-        setup = { mockkConstructor(klass) },
-        teardown = { unmockkConstructor(klass) }
+fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtData> =
+    listOf(
+        ForespurtData.ArbeidsgiverPeriode(
+            forslag = listOf(
+                1.januar til 10.januar,
+                15.januar til 20.januar
+            )
+        ),
+        ForespurtData.FastsattInntekt(
+            fastsattInntekt = 31415.92
+        ),
+        ForespurtData.Refusjon
     )
 
-fun <T> mockObject(obj: Any, block: suspend () -> T): T =
-    runWithSetup(
-        block = block,
-        setup = { mockkObject(obj) },
-        teardown = { unmockkObject(obj) }
-    )
-
-private fun <T> runWithSetup(
-    block: suspend () -> T,
-    setup: () -> Unit,
-    teardown: () -> Unit
-): T {
-    setup()
-    return try {
-        runBlocking {
-            block()
-        }
-    } finally {
-        teardown()
-    }
-}
+fun mockTrengerInntekt(): TrengerInntekt = TrengerInntekt(
+    orgnr = "123",
+    fnr = "456",
+    sykmeldingsperioder = listOf(1.januar til 31.januar),
+    forespurtData = mockForespurtDataListe()
+)

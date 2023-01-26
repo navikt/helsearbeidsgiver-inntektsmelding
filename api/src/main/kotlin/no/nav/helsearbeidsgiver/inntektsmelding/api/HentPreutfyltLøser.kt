@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -11,7 +10,8 @@ import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonLink
 import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 
 class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
@@ -28,7 +28,7 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
     fun hentLøsning(packet: JsonMessage): HentTrengerImLøsning {
         try {
             val løsning = packet[Key.LØSNING.str][BehovType.HENT_TRENGER_IM.name]
-            return customObjectMapper().readValue(løsning.toString())
+            return løsning.toJsonElement().fromJson()
         } catch (ex: Exception) {
             return HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
         }

@@ -1,5 +1,8 @@
 package no.nav.helsearbeidsgiver.felles
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Resultat(
     val FULLT_NAVN: NavnLøsning? = null,
     val VIRKSOMHET: VirksomhetLøsning? = null,

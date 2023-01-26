@@ -15,16 +15,19 @@ data class Feilmelding(
     val status: Int? = null
 )
 
+@Serializable
 data class NavnLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 
+@Serializable
 data class VirksomhetLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 
+@Serializable
 data class InntektLøsning(
     override val value: Inntekt? = null,
     override val error: Feilmelding? = null
@@ -36,11 +39,13 @@ data class ArbeidsforholdLøsning(
     override val error: Feilmelding? = null
 ) : Løsning()
 
+@Serializable
 data class JournalpostLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 
+@Serializable
 data class NotifikasjonLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null

@@ -1,11 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.lettuce.core.RedisClient
 import kotlinx.coroutines.delay
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.parseJson
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
@@ -29,7 +30,7 @@ class RedisPoller {
     suspend fun getResultat(key: String, maxRetries: Int = 10, waitMillis: Long = 500): Resultat {
         val data = getValue(key, maxRetries, waitMillis)
         return try {
-            objectMapper.readValue(data)
+            data.parseJson().fromJson()
         } catch (ex: Exception) {
             throw RedisPollerJsonException(key, data)
         }

@@ -38,7 +38,14 @@ data class FullLønnIArbeidsgiverPerioden(
 data class Refusjon(
     val utbetalerHeleEllerDeler: Boolean,
     val refusjonPrMnd: Double? = null,
-    val refusjonOpphører: LocalDate? = null
+    val refusjonOpphører: LocalDate? = null,
+    val refusjonEndringer: List<RefusjonEndring>? = null
+)
+
+@Serializable
+data class RefusjonEndring(
+    val beløp: Double,
+    val dato: LocalDate
 )
 
 @Serializable

@@ -56,8 +56,8 @@ spec:
       - type: POSTGRES_14
         cascadingDelete: true
         databases:
-          - name: spleis-forespoersel
-#          - name: im-db
+#          - name: spleis-forespoersel
+          - name: im-db
   {{/if}}
   prometheus:
     enabled: true

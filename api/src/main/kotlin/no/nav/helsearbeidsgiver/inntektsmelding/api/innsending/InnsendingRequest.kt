@@ -45,7 +45,7 @@ data class Refusjon(
 @Serializable
 data class RefusjonEndring(
     val beløp: Double,
-    val dato: LocalDate,
+    val dato: LocalDate
 )
 
 @Serializable

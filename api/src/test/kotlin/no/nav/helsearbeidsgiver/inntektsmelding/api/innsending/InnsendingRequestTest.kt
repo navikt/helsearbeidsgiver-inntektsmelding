@@ -158,4 +158,28 @@ internal class InnsendingRequestTest {
             assertEquals("Må være mindre enn 1 000 000", response.errors[0].error)
         }
     }
+
+    @Test
+    fun `skal godta årsak endringer`() {
+        val inntekt1 = Inntekt(
+            endringÅrsak = ÅrsakBeregnetInntektEndringKodeliste.FeilInntekt,
+            beregnetInntekt = 1.0,
+            bekreftet = true,
+            manueltKorrigert = false
+        )
+        GYLDIG.copy(inntekt = inntekt1).validate()
+        val inntekt2 = Inntekt(
+            endringÅrsak = ÅrsakBeregnetInntektEndringKodeliste.Tariffendring,
+            beregnetInntekt = 1.0,
+            bekreftet = true,
+            manueltKorrigert = false
+        )
+        GYLDIG.copy(inntekt = inntekt2).validate()
+    }
+
+    @Test
+    fun `skal godta ulike årsak innsendinger`() {
+        GYLDIG.copy(årsakInnsending = ÅrsakInnsending.Ny).validate()
+        GYLDIG.copy(årsakInnsending = ÅrsakInnsending.Endring).validate()
+    }
 }

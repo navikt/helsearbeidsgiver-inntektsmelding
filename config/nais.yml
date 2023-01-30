@@ -57,7 +57,7 @@ spec:
         cascadingDelete: true
         databases:
           - name: spleis-forespoersel
-          - name: im-db
+#          - name: im-db
   {{/if}}
   prometheus:
     enabled: true

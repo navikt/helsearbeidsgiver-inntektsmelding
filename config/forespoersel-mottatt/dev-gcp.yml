@@ -4,4 +4,3 @@ azure:
 env:
   - name: KAFKA_EXTRA_TOPIC
     value: helsearbeidsgiver.pri
-slettDatabaser: true

@@ -50,14 +50,12 @@ spec:
       tenant: {{ azure.tenant }}
       {{/if}}
   {{/if}}
-  {{#if slettDatabaser}}
+  {{#if database}}
   gcp:
     sqlInstances:
       - type: POSTGRES_14
-        cascadingDelete: true
         databases:
-#          - name: spleis-forespoersel
-          - name: im-db
+          - name: {{ database }}
   {{/if}}
   prometheus:
     enabled: true

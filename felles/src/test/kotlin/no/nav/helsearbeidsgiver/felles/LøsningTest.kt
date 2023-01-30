@@ -3,10 +3,13 @@ package no.nav.helsearbeidsgiver.felles
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.parseJson
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.loeser.Løsning.Companion.toLøsning
-import no.nav.helsearbeidsgiver.felles.loeser.LøsningDeserializationException
+import no.nav.helsearbeidsgiver.felles.loeser.LøsningSerializer
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.json.removeJsonWhitespace
@@ -15,11 +18,11 @@ import kotlin.reflect.KClass
 
 class LøsningTest : FunSpec({
     test("Løsning.Success kan serialiseres og deserialiseres") {
-        val successSerialized = Mock.Success.expectedResultat.toLøsningSuccess().toJson()
+        val successSerialized = Mock.Success.expectedResultat.toLøsningSuccess().let(Json::encodeToJsonElement)
 
         successSerialized shouldBe Mock.Success.expectedJson
 
-        val successDeserialized = successSerialized.toLøsning<Samwise, _>()
+        val successDeserialized = successSerialized.fromJson<Løsning<Samwise>>()
 
         when (successDeserialized) {
             is Løsning.Success ->
@@ -30,11 +33,11 @@ class LøsningTest : FunSpec({
     }
 
     test("Løsning.Failure kan serialiseres og deserialiseres") {
-        val failureSerialized = Mock.Failure.expectedFeilmelding.toLøsningFailure().toJson()
+        val failureSerialized = Mock.Failure.expectedFeilmelding.toLøsningFailure().let(Json::encodeToJsonElement)
 
         failureSerialized shouldBe Mock.Failure.expectedJson
 
-        val failureDeserialized = failureSerialized.toLøsning<String, _>()
+        val failureDeserialized = failureSerialized.fromJson<Løsning<Nothing>>()
 
         when (failureDeserialized) {
             is Løsning.Success ->
@@ -44,16 +47,29 @@ class LøsningTest : FunSpec({
         }
     }
 
-    test("Ugyldig Løsning-json gir LøsningDeserializationException") {
-        shouldThrowExactly<LøsningDeserializationException> {
+    test("Ufullstendig Løsning.Success-json gir DeserializationException") {
+        shouldThrowExactly<LøsningSerializer.DeserializationException> {
             """
                 {
-                    "neiognei": "lykke til med å lese denne"
+                   "løsningType": "SUCCESS"
                 }
             """
                 .removeJsonWhitespace()
                 .parseJson()
-                .toLøsning<Samwise, _>()
+                .fromJson<Løsning<Samwise>>()
+        }
+    }
+
+    test("Ufullstendig Løsning.Failure-json gir DeserializationException") {
+        shouldThrowExactly<LøsningSerializer.DeserializationException> {
+            """
+                {
+                   "løsningType": "FAILURE"
+                }
+            """
+                .removeJsonWhitespace()
+                .parseJson()
+                .fromJson<Løsning<Samwise>>()
         }
     }
 })
@@ -72,7 +88,7 @@ private object Mock {
 
         val expectedJson = """
             {
-                "løsningType": "success",
+                "løsningType": "SUCCESS",
                 "resultat": {
                     "nickname": "Samwise the Brave",
                     "friend": {
@@ -97,7 +113,7 @@ private object Mock {
 
         val expectedJson = """
             {
-                "løsningType": "failure",
+                "løsningType": "FAILURE",
                 "feilmelding":"$expectedFeilmelding"
             }
         """
@@ -106,20 +122,24 @@ private object Mock {
     }
 }
 
+@Serializable
 private data class Samwise(
     val nickname: String,
     val friend: Frodo
 )
 
+@Serializable
 private data class Frodo(
     val age: Int,
     val pal: Pippin
 )
 
+@Serializable
 private data class Pippin(
     val eats: List<Food>
 )
 
+@Serializable
 private data class Food(
     val food: String
 )

@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest
+import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest.LøserAnswer.Companion.toLøserAnswer
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -39,9 +40,8 @@ class AltinnLøserTest : LøserTest() {
             Key.IDENTITETSNUMMER to mockId.toJson()
         )
 
-        val actualAnswer = testRapid.lastMessageJson().let {
-            LøserAnswer.fromJson<Set<AltinnOrganisasjon>>(it)
-        }
+        val actualAnswer = testRapid.lastMessageJson()
+            .toLøserAnswer<Set<AltinnOrganisasjon>>()
 
         coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(mockId) }
         actualAnswer shouldBe expectedAnswer

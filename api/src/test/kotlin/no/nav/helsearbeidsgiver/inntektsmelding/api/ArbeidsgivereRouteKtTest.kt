@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -72,7 +74,7 @@ private object MockOk {
     )
 
     val response = responseBody.toLøsningSuccess()
-        .toJson()
+        .let(Json::encodeToJsonElement)
         .toJsonNode()
         .toBehovMap()
         .toJsonNode()
@@ -82,7 +84,7 @@ private object MockInternalServerError {
     const val responseBody = "uff da!"
 
     val response = responseBody.toLøsningFailure()
-        .toJson()
+        .let(Json::encodeToJsonElement)
         .toJsonNode()
         .toBehovMap()
         .toJsonNode()

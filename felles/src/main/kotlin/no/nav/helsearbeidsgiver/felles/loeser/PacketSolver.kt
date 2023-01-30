@@ -1,12 +1,15 @@
 package no.nav.helsearbeidsgiver.felles.loeser
 
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.orDefault
 import no.nav.helsearbeidsgiver.felles.value
 
@@ -18,7 +21,7 @@ private const val DEFAULT_ERROR_MESSAGE = "Ukjent feil."
  * Bruker [Løser] for å lytte etter behov og løse dem.
  */
 internal class PacketSolver(
-    private val løser: Løser
+    private val løser: Løser<*>
 ) : River.PacketListener {
     init {
         val connection = RapidApplication.create(System.getenv())
@@ -48,6 +51,7 @@ internal class PacketSolver(
                     .orDefault(DEFAULT_ERROR_MESSAGE)
                     .toLøsningFailure()
             }
+            .let(Json::encodeToJsonElement)
             .toJsonNode()
 
         val behovType = packet.value(Key.BEHOV)[0].asText()

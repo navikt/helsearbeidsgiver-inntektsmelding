@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -60,7 +61,7 @@ private data class Published(
                 uuid = UUID.randomUUID()
             )
 
-        fun fromJson(json: String): Published =
+        fun fromJson(json: JsonElement): Published =
             JsonIgnoreUnknown.fromJson(serializer(), json)
     }
 }

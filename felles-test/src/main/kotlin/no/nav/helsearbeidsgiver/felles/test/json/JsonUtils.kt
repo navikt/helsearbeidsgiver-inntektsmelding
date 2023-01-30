@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.felles.test.json
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 private val jsonWhitespaceRegex = Regex("""("(?:\\"|[^"])*")|\s""")
 
@@ -13,6 +14,6 @@ object JsonIgnoreUnknown {
         ignoreUnknownKeys = true
     }
 
-    fun <T : Any> fromJson(ds: DeserializationStrategy<T>, json: String): T =
-        jsonBuilder.decodeFromString(ds, json)
+    fun <T : Any> fromJson(ds: DeserializationStrategy<T>, json: JsonElement): T =
+        jsonBuilder.decodeFromJsonElement(ds, json)
 }

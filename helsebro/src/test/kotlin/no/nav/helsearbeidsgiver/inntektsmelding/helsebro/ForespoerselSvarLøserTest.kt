@@ -104,7 +104,7 @@ private data class Published(
                     .shouldNotBeNull()
             )
 
-        fun fromJson(json: String): Published =
+        fun fromJson(json: JsonElement): Published =
             JsonIgnoreUnknown.fromJson(serializer(), json)
     }
 }

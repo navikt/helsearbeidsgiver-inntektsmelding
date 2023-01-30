@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.felles.test
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializerOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
@@ -18,7 +19,7 @@ interface PublishedLøsning {
         abstract fun mockFailure(): P
 
         @OptIn(InternalSerializationApi::class)
-        fun fromJson(json: String): P =
+        fun fromJson(json: JsonElement): P =
             klass.serializerOrNull()
                 .shouldNotBeNull()
                 .let {

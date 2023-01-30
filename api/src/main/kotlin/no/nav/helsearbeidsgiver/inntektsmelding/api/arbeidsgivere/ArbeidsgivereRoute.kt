@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.loeser.Løsning.Companion.toLøsning
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
@@ -46,7 +45,7 @@ private fun JsonNode.toLøsning(): Løsning<Set<AltinnOrganisasjon>> =
     toJsonElement()
         .fromJson<Map<BehovType, JsonElement>>()
         .get(BehovType.ARBEIDSGIVERE)
-        ?.toLøsning<Set<AltinnOrganisasjon>, _>()
+        ?.fromJson()
         ?: throw ArbeidsgivereJsonMismatchedInputException("Fant ikke behov.")
 
 private fun loggPublisert(message: JsonMessage) {

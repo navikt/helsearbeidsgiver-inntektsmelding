@@ -13,7 +13,7 @@ import java.time.YearMonth
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
-@JsonClassDiscriminator("opplysningstype")
+@JsonClassDiscriminator("opplysningstype") // TODO fungerer ikke med Json.encodeToJsonElement pga. feil i 1.5.0-RC
 sealed class ForespurtData {
     @Serializable
     @SerialName("Arbeidsgiverperiode")

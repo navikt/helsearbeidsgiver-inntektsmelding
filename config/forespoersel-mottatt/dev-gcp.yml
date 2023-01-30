@@ -1,10 +1,6 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-database: spleis-forespoersel
-envFrom:
-  - type: secret
-    name: google-sql-im-forespoersel-mottatt
 env:
   - name: KAFKA_EXTRA_TOPIC
     value: helsearbeidsgiver.pri

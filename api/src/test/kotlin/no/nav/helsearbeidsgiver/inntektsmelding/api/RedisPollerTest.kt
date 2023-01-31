@@ -2,55 +2,53 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
 
 class RedisPollerTest {
-    private val objectMapper = customObjectMapper()
-
-    private val ID = "123"
-    private val DATA = "noe data".toLøsningSuccess().let(objectMapper::writeValueAsString)
-    private val GYLDIG_LISTE = List(4) { "" } + DATA
+    private val id = "123"
+    private val løsningSuccess = "noe data".toLøsningSuccess().let(Json::encodeToJsonElement)
+    private val gyldigRedisInnholdListe = List(4) { "" } + løsningSuccess.toString()
 
     @Test
-    fun `skal gi opp etter mange forsøk`() {
-        val redisPoller = mockRedisPoller(GYLDIG_LISTE)
+    fun `skal finne med tillatt antall forsøk`() {
+        val redisPoller = mockRedisPoller(gyldigRedisInnholdListe)
+
+        val json = runBlocking {
+            redisPoller.hent(id, 5, 0)
+        }
+
+        json shouldBe løsningSuccess
+    }
+
+    @Test
+    fun `skal gi opp etter flere forsøk`() {
+        val redisPoller = mockRedisPoller(gyldigRedisInnholdListe)
 
         assertThrows<RedisPollerTimeoutException> {
             runBlocking {
-                redisPoller.hent(ID, 2, 0)
+                redisPoller.hent(id, 2, 0)
             }
         }
     }
 
     @Test
     fun `skal ikke finne etter maks forsøk`() {
-        val redisPoller = mockRedisPoller(GYLDIG_LISTE)
+        val redisPoller = mockRedisPoller(gyldigRedisInnholdListe)
 
         assertThrows<RedisPollerTimeoutException> {
             runBlocking {
-                redisPoller.hent(ID, 1, 0)
+                redisPoller.hent(id, 1, 0)
             }
-        }
-    }
-
-    @Test
-    fun `skal finne med tillatt forsøk`() {
-        val redisPoller = mockRedisPoller(GYLDIG_LISTE)
-
-        runBlocking {
-            val data = redisPoller.hent(ID, 5, 0)
-
-            assertEquals(objectMapper.readTree(DATA), data)
         }
     }
 
@@ -74,8 +72,8 @@ class RedisPollerTest {
         val redisPoller = mockRedisPoller(listOf(expectedJson))
 
         runBlocking {
-            val data = redisPoller.getResultat(ID, 1, 0)
-            assertEquals(expected, data)
+            val resultat = redisPoller.getResultat(id, 1, 0)
+            resultat shouldBe expected
         }
     }
 }

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import io.ktor.server.routing.get
 import kotlinx.serialization.json.JsonElement
@@ -10,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -41,11 +39,9 @@ fun RouteExtra.ArbeidsgivereRoute() {
     }
 }
 
-private fun JsonNode.toLøsning(): Løsning<Set<AltinnOrganisasjon>> =
-    toJsonElement()
-        .fromJson<Map<BehovType, JsonElement>>()
+private fun JsonElement.toLøsning(): Løsning<Set<AltinnOrganisasjon>> =
+    fromJson<Map<BehovType, Løsning<Set<AltinnOrganisasjon>>>>()
         .get(BehovType.ARBEIDSGIVERE)
-        ?.fromJson()
         ?: throw ArbeidsgivereJsonMismatchedInputException("Fant ikke behov.")
 
 private fun loggPublisert(message: JsonMessage) {

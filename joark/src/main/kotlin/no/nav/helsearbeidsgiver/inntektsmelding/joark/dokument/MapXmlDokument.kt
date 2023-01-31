@@ -26,34 +26,22 @@ fun mapXmlDokument(inntektsmeldingDokument: InntektsmeldingDokument): String {
         </arbeidsforhold>
         <sykepengerIArbeidsgiverperioden>
             <arbeidsgiverperiodeListe>
-            {${inntektsmeldingDokument.arbeidsgiverperioder.map {
-        """
-                        <arbeidsgiverperiode>
-                            <fom>${it.fom}</fom>
-                            <tom>${it.tom}</tom>
-                        </arbeidsgiverperiode>
-        """.trimIndent()
-    }}}
+                ${mapArbeidsgiverperioder(inntektsmeldingDokument.arbeidsgiverperioder)}
             </arbeidsgiverperiodeListe>
-            <bruttoUtbetalt>0</bruttoUtbetalt>
+            <bruttoUtbetalt>${inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden.utbetalt}</bruttoUtbetalt>
             <begrunnelseForReduksjonEllerIkkeUtbetalt>${inntektsmeldingDokument.beregnetInntektEndringÅrsak}</begrunnelseForReduksjonEllerIkkeUtbetalt>
         </sykepengerIArbeidsgiverperioden>
         <refusjon>
             <refusjonsbeloepPrMnd>${inntektsmeldingDokument.refusjon.refusjonPrMnd}</refusjonsbeloepPrMnd>
             <refusjonsopphoersdato>${inntektsmeldingDokument.refusjon.refusjonOpphører}</refusjonsopphoersdato>
+            <endringIRefusjonListe>
+                ${mapRefusjonsEndringer(inntektsmeldingDokument.refusjon.refusjonEndringer)}
+            </endringIRefusjonListe>
         </refusjon>
         <gjenopptakelseNaturalytelseListe>
         </gjenopptakelseNaturalytelseListe>
         <opphoerAvNaturalytelseListe>
-            {${inntektsmeldingDokument.naturalytelser?.map {
-        """
-            <opphoerAvNaturalytelse>
-                <naturalytelseType>${it.naturalytelse}</naturalytelseType>
-                <fom>${it.dato}</fom>
-                <beloepPrMnd>${it.beløp}</beloepPrMnd>
-            </opphoerAvNaturalytelse>
-        """.trimIndent()
-    }}}
+            ${mapNaturalytelser(inntektsmeldingDokument.naturalytelser)}
         </opphoerAvNaturalytelseListe>
         <innsendingstidspunkt>${inntektsmeldingDokument.tidspunkt}</innsendingstidspunkt>
         <avsendersystem>
@@ -64,3 +52,24 @@ fun mapXmlDokument(inntektsmeldingDokument: InntektsmeldingDokument): String {
 </melding>
 """.trim()
 }
+
+fun mapArbeidsgiverperioder(arbeidsgiverperioder: List<Periode>): String = arbeidsgiverperioder.map {
+    "<arbeidsgiverperiode>" +
+        "<fom>${it.fom}</fom>" +
+        "<tom>${it.tom}</tom>" +
+        "</arbeidsgiverperiode>"
+}.joinToString("\n")
+
+fun mapRefusjonsEndringer(refusjonEndringer: List<RefusjonEndring>? = null): String = refusjonEndringer?.map {
+    "<endringIRefusjon>" +
+        "<endringsdato>${it.dato}</endringsdato>" +
+        "<refusjonsbeloepPrMnd>${it.beløp}</refusjonsbeloepPrMnd>" +
+        "</endringIRefusjon>"
+}?.joinToString("\n") ?: ""
+
+fun mapNaturalytelser(naturalytelser: List<Naturalytelse>? = null): String = naturalytelser?.map {
+    "<opphoerAvNaturalytelse>" +
+        "<naturalytelseType>${it.naturalytelse}</naturalytelseType>" +
+        "<fom>${it.dato}</fom><beloepPrMnd>${it.beløp}</beloepPrMnd>" +
+        "</opphoerAvNaturalytelse>"
+}?.joinToString("\n") ?: ""

@@ -54,7 +54,14 @@ data class FullLønnIArbeidsgiverPerioden(
 @Serializable
 data class Refusjon(
     val refusjonPrMnd: Double? = null,
-    val refusjonOpphører: LocalDate? = null
+    val refusjonOpphører: LocalDate? = null,
+    val refusjonEndringer: List<RefusjonEndring>? = null
+)
+
+@Serializable
+data class RefusjonEndring(
+    val beløp: Double,
+    val dato: LocalDate
 )
 
 enum class BegrunnelseIngenEllerRedusertUtbetalingKode {

@@ -10,8 +10,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.HttpStatusCode
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.NotifikasjonLøsning
+import no.nav.helsearbeidsgiver.felles.NotisType
 
 abstract class RapidMock {
 
@@ -23,7 +23,7 @@ abstract class RapidMock {
     private lateinit var løser: NotifikasjonLøser
     private lateinit var klient: ArbeidsgiverNotifikasjonKlient
 
-    fun sendMessage(behovType: BehovType, packet: Map<String, Any>, response: String, status: HttpStatusCode): NotifikasjonLøsning {
+    fun sendMessage(behovType: NotisType, packet: Map<String, Any>, response: String, status: HttpStatusCode): NotifikasjonLøsning {
         klient = buildClient(response, status)
         løser = NotifikasjonLøser(rapid, klient, "")
         rapid.reset()

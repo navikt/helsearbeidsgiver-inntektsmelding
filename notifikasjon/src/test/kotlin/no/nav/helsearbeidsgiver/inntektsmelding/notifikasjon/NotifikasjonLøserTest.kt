@@ -3,8 +3,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.NotisType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -20,12 +20,12 @@ internal class NotifikasjonLøserTest : RapidMock() {
     @Test
     fun `skal sende trenger inntektsmelding`() {
         val løsning = sendMessage(
-            BehovType.NOTIFIKASJON_TRENGER_IM,
+            NotisType.NOTIFIKASJON_TRENGER_IM,
             mapOf(
-                "@behov" to listOf(BehovType.NOTIFIKASJON_TRENGER_IM.name),
-                "@id" to UUID.randomUUID(),
-                "uuid" to "uuid",
-                "identitetsnummer" to FNR,
+                Key.NOTIS.str to listOf(NotisType.NOTIFIKASJON_TRENGER_IM.name),
+                Key.ID.str to UUID.randomUUID(),
+                Key.UUID.str to "uuid",
+                Key.IDENTITETSNUMMER.str to FNR,
                 Key.ORGNRUNDERENHET.str to ORGNR
             ),
             readResource("opprettNySak/gyldig.json"),
@@ -38,12 +38,12 @@ internal class NotifikasjonLøserTest : RapidMock() {
     @Test
     fun `skal sende kvittering`() {
         val løsning = sendMessage(
-            BehovType.NOTIFIKASJON,
+            NotisType.NOTIFIKASJON,
             mapOf(
-                "@behov" to listOf(BehovType.NOTIFIKASJON),
-                "@id" to UUID.randomUUID(),
-                "uuid" to "uuid",
-                "identitetsnummer" to FNR,
+                Key.NOTIS.str to listOf(NotisType.NOTIFIKASJON),
+                Key.ID.str to UUID.randomUUID(),
+                Key.UUID.str to "uuid",
+                Key.IDENTITETSNUMMER.str to FNR,
                 Key.ORGNRUNDERENHET.str to ORGNR
             ),
             readResource("opprettNySak/gyldig.json"),
@@ -56,12 +56,12 @@ internal class NotifikasjonLøserTest : RapidMock() {
     @Test
     fun `skal håndtere at klient feiler`() {
         val løsning = sendMessage(
-            BehovType.NOTIFIKASJON,
+            NotisType.NOTIFIKASJON,
             mapOf(
-                "@behov" to listOf(BehovType.NOTIFIKASJON),
-                "@id" to UUID.randomUUID(),
-                "uuid" to "uuid",
-                "identitetsnummer" to FNR,
+                Key.NOTIS.str to listOf(NotisType.NOTIFIKASJON),
+                Key.ID.str to UUID.randomUUID(),
+                Key.UUID.str to "uuid",
+                Key.IDENTITETSNUMMER.str to FNR,
                 Key.ORGNRUNDERENHET.str to ORGNR
             ),
             NOTIFIKASJON_ID,
@@ -74,10 +74,10 @@ internal class NotifikasjonLøserTest : RapidMock() {
     @Test
     fun `skal håndtere ukjente feil`() {
         val løsning = sendMessage(
-            BehovType.NOTIFIKASJON,
+            NotisType.NOTIFIKASJON,
             mapOf(
-                "@behov" to listOf(BehovType.NOTIFIKASJON),
-                "@id" to UUID.randomUUID(),
+                Key.NOTIS.str to listOf(NotisType.NOTIFIKASJON),
+                Key.ID.str to UUID.randomUUID(),
                 Key.ORGNRUNDERENHET.str to ORGNR
             ),
             NOTIFIKASJON_ID,

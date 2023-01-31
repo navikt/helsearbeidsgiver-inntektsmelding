@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.NotisType
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.UgyldigFormatException
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapInntektsmeldingDokument
@@ -58,8 +59,8 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to "inntektsmelding_journalført",
-                Key.BEHOV.str to listOf(
-                    BehovType.NOTIFIKASJON.name
+                Key.NOTIS.str to listOf(
+                    NotisType.NOTIFIKASJON.name
                 ),
                 Key.ID.str to uuid,
                 Key.OPPRETTET.str to LocalDateTime.now(),

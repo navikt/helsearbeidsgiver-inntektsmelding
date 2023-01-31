@@ -13,7 +13,8 @@ import java.time.YearMonth
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
-@JsonClassDiscriminator("opplysningstype") // TODO fungerer ikke med Json.encodeToJsonElement pga. feil i 1.5.0-RC
+// TODO fungerer ikke med Json.encodeToJsonElement pga. feil i 1.5.0-RC. Se https://github.com/Kotlin/kotlinx.serialization/issues/2179.
+@JsonClassDiscriminator("opplysningstype")
 sealed class ForespurtData {
     @Serializable
     @SerialName("Arbeidsgiverperiode")

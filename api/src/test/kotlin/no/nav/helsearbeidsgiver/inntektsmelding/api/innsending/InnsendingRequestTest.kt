@@ -160,26 +160,116 @@ internal class InnsendingRequestTest {
     }
 
     @Test
-    fun `skal godta årsak endringer`() {
-        val inntekt1 = Inntekt(
-            endringÅrsak = ÅrsakBeregnetInntektEndringKodeliste.FeilInntekt,
-            beregnetInntekt = 1.0,
-            bekreftet = true,
-            manueltKorrigert = false
-        )
-        GYLDIG.copy(inntekt = inntekt1).validate()
-        val inntekt2 = Inntekt(
-            endringÅrsak = ÅrsakBeregnetInntektEndringKodeliste.Tariffendring,
-            beregnetInntekt = 1.0,
-            bekreftet = true,
-            manueltKorrigert = false
-        )
-        GYLDIG.copy(inntekt = inntekt2).validate()
-    }
-
-    @Test
     fun `skal godta ulike årsak innsendinger`() {
         GYLDIG.copy(årsakInnsending = ÅrsakInnsending.Ny).validate()
         GYLDIG.copy(årsakInnsending = ÅrsakInnsending.Endring).validate()
+    }
+
+    @Test
+    fun `skal godta uten endringsårsak`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = null,
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Tariffendring`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Tariffendring(LocalDate.now(), LocalDate.now()),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Ferie`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Ferie(listOf(Periode(LocalDate.now(), LocalDate.now()))),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - VarigLønnsendring`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.VarigLønnsendring(LocalDate.now()),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Permisjon`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Permisjon(listOf(Periode(LocalDate.now(), LocalDate.now()))),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Permittering`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Permittering(listOf(Periode(LocalDate.now(), LocalDate.now()))),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - NyStilling`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.NyStilling(LocalDate.now()),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - NyStillingsprosent`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.NyStillingsprosent(LocalDate.now()),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Bonus`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Bonus,
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
     }
 }

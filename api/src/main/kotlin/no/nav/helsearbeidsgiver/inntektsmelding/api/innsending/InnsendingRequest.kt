@@ -20,47 +20,6 @@ import org.valiktor.validate
 import java.time.LocalDate
 
 @Serializable
-data class Inntekt(
-    var bekreftet: Boolean,
-    var beregnetInntekt: Double,
-    val endringÅrsak: ÅrsakBeregnetInntektEndringKodeliste? = null,
-    val manueltKorrigert: Boolean
-)
-
-@Serializable
-data class FullLønnIArbeidsgiverPerioden(
-    val utbetalerFullLønn: Boolean,
-    val begrunnelse: BegrunnelseIngenEllerRedusertUtbetalingKode? = null,
-    val utbetalt: Double? = null
-)
-
-@Serializable
-data class Refusjon(
-    val utbetalerHeleEllerDeler: Boolean,
-    val refusjonPrMnd: Double? = null,
-    val refusjonOpphører: LocalDate? = null,
-    val refusjonEndringer: List<RefusjonEndring>? = null
-)
-
-@Serializable
-data class RefusjonEndring(
-    val beløp: Double,
-    val dato: LocalDate
-)
-
-@Serializable
-enum class ÅrsakBeregnetInntektEndringKodeliste {
-    Tariffendring,
-    FeilInntekt
-}
-
-@Serializable
-enum class ÅrsakInnsending {
-    Ny,
-    Endring
-}
-
-@Serializable
 data class InnsendingRequest(
     val orgnrUnderenhet: String,
     val identitetsnummer: String,

@@ -62,3 +62,9 @@ data class PreutfyltLøsning(
     override val value: PersonLink? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
+
+@Serializable
+data class PersisterImLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()

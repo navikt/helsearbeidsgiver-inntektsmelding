@@ -9,7 +9,8 @@ enum class BehovType {
     JOURNALFOER,
     ARBEIDSGIVERE,
     HENT_TRENGER_IM,
-    PREUTFYLL
+    PREUTFYLL,
+    PERSISTER_IM
 }
 
 enum class NotisType {

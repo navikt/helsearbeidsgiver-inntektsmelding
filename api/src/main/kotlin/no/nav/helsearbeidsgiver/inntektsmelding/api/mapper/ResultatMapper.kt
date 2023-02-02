@@ -23,7 +23,8 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
             resultat.HENT_TRENGER_IM,
             resultat.PREUTFYLT,
             resultat.JOURNALFOER,
-            resultat.NOTIFIKASJON
+            resultat.NOTIFIKASJON,
+            resultat.PERSISTER_IM
         ).filterNotNull()
     }
 

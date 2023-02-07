@@ -3,4 +3,7 @@ azure:
   enabled: true
 ingress: https://helsearbeidsgiver-im-db.dev.nav.no
 database: inntektsmelding
+envFrom:
+  - type: secret
+    name: google-sql-im-db
 env:

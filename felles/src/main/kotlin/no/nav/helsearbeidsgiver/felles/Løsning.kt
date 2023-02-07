@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
 
 sealed class Løsning {
     abstract val value: Any?
@@ -66,5 +67,11 @@ data class PreutfyltLøsning(
 @Serializable
 data class PersisterImLøsning(
     override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
+
+@Serializable
+data class HentPersistertLøsning(
+    override val value: InntektsmeldingDokument? = null,
     override val error: Feilmelding? = null
 ) : Løsning()

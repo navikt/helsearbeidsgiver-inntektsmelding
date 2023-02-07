@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NotisType
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.UgyldigFormatException
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapInntektsmeldingDokument
 import org.slf4j.LoggerFactory

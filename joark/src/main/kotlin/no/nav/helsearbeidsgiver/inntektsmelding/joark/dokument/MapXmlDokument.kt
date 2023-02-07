@@ -1,5 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.RefusjonEndring
+
 fun mapXmlDokument(inntektsmeldingDokument: InntektsmeldingDokument): String {
     val kontaktNavn = "Ukjent kontaktperson" // TODO
     val kontaktTelefon = "" // TODO

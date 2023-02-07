@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.IdType
 import no.nav.helsearbeidsgiver.dokarkiv.Journalposttype
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostRequest
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapXmlDokument
 import java.time.LocalDate

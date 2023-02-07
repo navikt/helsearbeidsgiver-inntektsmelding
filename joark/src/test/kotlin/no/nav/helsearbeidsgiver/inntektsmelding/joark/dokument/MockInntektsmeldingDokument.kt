@@ -1,5 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.FullLønnIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.NaturalytelseKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.Refusjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.RefusjonEndring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.ÅrsakBeregnetInntektEndringKodeliste
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.ÅrsakInnsending
 import java.time.LocalDate
 import java.time.LocalDateTime
 

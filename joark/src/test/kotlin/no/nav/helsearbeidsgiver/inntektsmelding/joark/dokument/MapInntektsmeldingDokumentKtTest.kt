@@ -5,6 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.NaturalytelseKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.ÅrsakBeregnetInntektEndringKodeliste
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.INNTEKTMELDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.INNTEKTMELDING_REQUEST_FNUTT
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.INNTEKTMELDING_REQUEST_OPTIONALS

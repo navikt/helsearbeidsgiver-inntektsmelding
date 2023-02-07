@@ -1,7 +1,7 @@
 @file:UseSerializers(LocalDateSerializer::class, LocalDateTimeSerializer::class)
 @file:Suppress("NonAsciiCharacters")
 
-package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
+package no.nav.helsearbeidsgiver.felles.inntektsmelding
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers

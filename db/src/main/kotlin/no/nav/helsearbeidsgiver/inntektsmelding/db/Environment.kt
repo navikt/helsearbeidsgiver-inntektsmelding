@@ -4,7 +4,7 @@ import no.nav.helsearbeidsgiver.felles.fromEnv
 
 object Environment {
     object Database {
-        private const val prefix = "NAIS_DATABASE_IM_DB_IM_DB"
+        private const val prefix = "NAIS_DATABASE_IM_DB_INNTEKTSMELDING_DB"
         val host = "${prefix}_HOST".fromEnv()
         val port = "${prefix}_PORT".fromEnv()
         val name = "${prefix}_DATABASE".fromEnv()

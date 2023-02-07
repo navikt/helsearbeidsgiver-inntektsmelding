@@ -10,7 +10,8 @@ enum class BehovType {
     ARBEIDSGIVERE,
     HENT_TRENGER_IM,
     PREUTFYLL,
-    PERSISTER_IM
+    PERSISTER_IM,
+    HENT_PERSISTERT_IM
 }
 
 enum class NotisType {

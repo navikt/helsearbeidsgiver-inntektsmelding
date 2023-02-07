@@ -8,13 +8,13 @@ import org.slf4j.LoggerFactory
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 
 fun main() {
-    logger.info("Starting RapidApplication...")
+    logger.info("Starting im-db...")
     val database = Database()
     // val repository = Repository(database.db)
     RapidApplication.create(System.getenv()).also {
         // PersisterImLøser(it, repository)
         // HentPersistertLøser(it, repository)
-        // it.registerDbLifecycle(database)
+        it.registerDbLifecycle(database)
         it.start()
     }
 }

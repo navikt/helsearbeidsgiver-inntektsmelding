@@ -8,15 +8,25 @@ import org.slf4j.LoggerFactory
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 
 fun main() {
-    createApp(setUpEnvironment()).start()
+    logger.info("Starting RapidApplication...")
+    val database = Database()
+    // val repository = Repository(database.db)
+    RapidApplication.create(System.getenv()).also {
+        // PersisterImLøser(it, repository)
+        // HentPersistertLøser(it, repository)
+        // it.registerDbLifecycle(database)
+        it.start()
+    }
 }
 
-internal fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starting RapidApplication...")
-    val rapidsConnection = RapidApplication.create(environment.raw)
-    logger.info("Starting PersisterImLøser...")
-    PersisterImLøser(
-        rapidsConnection
-    )
-    return rapidsConnection
+private fun RapidsConnection.registerDbLifecycle(db: Database) {
+    register(object : RapidsConnection.StatusListener {
+        override fun onStartup(rapidsConnection: RapidsConnection) {
+            db.migrate()
+        }
+
+        override fun onShutdown(rapidsConnection: RapidsConnection) {
+            db.dataSource.close()
+        }
+    })
 }

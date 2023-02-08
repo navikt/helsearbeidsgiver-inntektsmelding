@@ -21,7 +21,7 @@ data class Inntekt(
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
-@JsonClassDiscriminator("årsakType")
+@JsonClassDiscriminator("type")
 sealed class InntektEndringÅrsak {
     @Serializable
     @SerialName("Tariffendring")

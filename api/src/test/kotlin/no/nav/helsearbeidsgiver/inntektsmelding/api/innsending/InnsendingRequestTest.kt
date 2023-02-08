@@ -2,6 +2,8 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
@@ -19,6 +21,27 @@ internal class InnsendingRequestTest {
     private val MAX_REFUSJON: Double = 1_000_001.0
     private val NEGATIVT_BELØP: Double = -0.1
     private val MAX_NATURAL_BELØP: Double = 1_000_000.0
+
+    fun String.loadFromResources(): String {
+        return ClassLoader.getSystemResource(this).readText()
+    }
+
+    @Test
+    fun `skal serialisere InntektEndringÅrsak`() {
+        val inntekt = Inntekt(
+            bekreftet = false,
+            beregnetInntekt = 300.0,
+            endringÅrsak = InntektEndringÅrsak.NyStilling(LocalDate.now()),
+            manueltKorrigert = false
+        )
+        println(customObjectMapper().writeValueAsString(inntekt))
+    }
+
+    @Test
+    fun `skal lese innsendingrequest`() {
+        val request: InnsendingRequest = Json.decodeFromString("innsendingrequest.json".loadFromResources())
+        request.validate()
+    }
 
     @Test
     fun `skal akseptere gyldig`() {

@@ -26,7 +26,7 @@ class InnsendingProducer(
                     BehovType.ARBEIDSFORHOLD.name
                 ),
                 Key.NESTE_BEHOV.str to listOf(
-                    BehovType.JOURNALFOER.name
+                    BehovType.PERSISTER_IM.name
                 ),
                 Key.ID.str to uuid,
                 Key.OPPRETTET.str to LocalDateTime.now(),

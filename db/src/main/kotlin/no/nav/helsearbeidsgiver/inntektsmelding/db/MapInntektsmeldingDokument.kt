@@ -1,6 +1,6 @@
 @file:Suppress("NonAsciiCharacters")
 
-package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
+package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.asLocalDate
@@ -21,7 +21,6 @@ fun mapInntektsmeldingDokument(jsonNode: JsonNode, fulltNavn: String, arbeidsgiv
     try {
         return jsonNode.parseInntektsmelding(fulltNavn, arbeidsgiver)
     } catch (ex: Exception) {
-        ex.printStackTrace()
         throw UgyldigFormatException(ex)
     }
 }

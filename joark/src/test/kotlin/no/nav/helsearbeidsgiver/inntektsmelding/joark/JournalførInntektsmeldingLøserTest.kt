@@ -18,10 +18,10 @@ import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.MockInntektsmeldingDokument
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import java.lang.Exception
 import java.util.UUID
 
 internal class JournalførInntektsmeldingLøserTest {
@@ -62,7 +62,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 "uuid" to "uuid",
                 "identitetsnummer" to "000",
                 Key.ORGNRUNDERENHET.str to "abc",
-                "inntektsmelding" to INNTEKTMELDING_REQUEST
+                Key.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument()
             )
         )
         assertEquals("Kall mot dokarkiv feilet", løsning.error?.melding)
@@ -78,7 +78,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                "inntektsmelding" to INNTEKTMELDING_REQUEST,
+                Key.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument(),
                 "session" to mapOf(
                     "Virksomhet" to mapOf(
                         "value" to "Norge AS"
@@ -98,7 +98,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 "uuid" to "uuid",
                 "identitetsnummer" to "000",
                 Key.ORGNRUNDERENHET.str to "abc",
-                "inntektsmelding" to "xyz"
+                Key.INNTEKTSMELDING_DOKUMENT.str to "xyz"
             )
         )
         assertNotNull(løsning.error)

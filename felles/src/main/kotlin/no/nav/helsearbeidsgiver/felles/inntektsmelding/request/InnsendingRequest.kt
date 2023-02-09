@@ -1,7 +1,7 @@
 @file:UseSerializers(LocalDateSerializer::class)
 @file:Suppress("NonAsciiCharacters")
 
-package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
+package no.nav.helsearbeidsgiver.felles.inntektsmelding.request
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName

@@ -5,6 +5,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.FullLønnIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InntektEndringÅrsak
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.NaturalytelseKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Refusjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper

@@ -1,6 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.FullLønnIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Refusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBehandlingsdager

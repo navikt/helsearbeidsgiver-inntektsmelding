@@ -5,15 +5,15 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.FullLønnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.NaturalytelseKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.ÅrsakBeregnetInntektEndringKodeliste
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.ÅrsakInnsending
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.NaturalytelseKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakBeregnetInntektEndringKodeliste
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakInnsending
 import java.time.LocalDate
 import java.time.LocalDateTime
 

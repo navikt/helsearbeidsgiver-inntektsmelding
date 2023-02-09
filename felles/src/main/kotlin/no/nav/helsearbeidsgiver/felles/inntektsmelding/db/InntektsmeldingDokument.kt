@@ -5,6 +5,12 @@ package no.nav.helsearbeidsgiver.felles.inntektsmelding.db
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.RefusjonEndring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakBeregnetInntektEndringKodeliste
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateTimeSerializer
 import java.time.LocalDate
@@ -32,19 +38,6 @@ data class InntektsmeldingDokument(
 )
 
 @Serializable
-data class Periode(
-    val fom: LocalDate,
-    val tom: LocalDate
-)
-
-@Serializable
-data class Naturalytelse(
-    val naturalytelse: NaturalytelseKode,
-    val dato: LocalDate,
-    val beløp: Double
-)
-
-@Serializable
 data class FullLønnIArbeidsgiverPerioden(
     val utbetalerFullLønn: Boolean,
     val begrunnelse: BegrunnelseIngenEllerRedusertUtbetalingKode? = null,
@@ -57,59 +50,3 @@ data class Refusjon(
     val refusjonOpphører: LocalDate? = null,
     val refusjonEndringer: List<RefusjonEndring>? = null
 )
-
-@Serializable
-data class RefusjonEndring(
-    val beløp: Double,
-    val dato: LocalDate
-)
-
-enum class BegrunnelseIngenEllerRedusertUtbetalingKode {
-    LovligFravaer,
-    FravaerUtenGyldigGrunn,
-    ArbeidOpphoert,
-    BeskjedGittForSent,
-    ManglerOpptjening,
-    IkkeLoenn,
-    BetvilerArbeidsufoerhet,
-    IkkeFravaer,
-    StreikEllerLockout,
-    Permittering,
-    FiskerMedHyre,
-    Saerregler
-}
-
-@Serializable
-enum class ÅrsakInnsending {
-    Ny,
-    Endring
-}
-
-@Serializable
-enum class ÅrsakBeregnetInntektEndringKodeliste {
-    Tariffendring,
-    FeilInntekt
-}
-
-@Serializable
-enum class NaturalytelseKode {
-    AksjerGrunnfondsbevisTilUnderkurs,
-    Losji,
-    KostDoegn,
-    BesoeksreiserHjemmetAnnet,
-    KostbesparelseIHjemmet,
-    RentefordelLaan,
-    Bil,
-    KostDager,
-    Bolig,
-    SkattepliktigDelForsikringer,
-    FriTransport,
-    Opsjoner,
-    TilskuddBarnehageplass,
-    Annet,
-    Bedriftsbarnehageplass,
-    YrkebilTjenestligbehovKilometer,
-    YrkebilTjenestligbehovListepris,
-    InnbetalingTilUtenlandskPensjonsordning,
-    ElektroniskKommunikasjon
-}

@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table

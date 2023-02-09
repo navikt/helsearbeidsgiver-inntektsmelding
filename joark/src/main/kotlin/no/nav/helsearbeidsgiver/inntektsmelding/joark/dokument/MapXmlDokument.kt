@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.RefusjonEndring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.RefusjonEndring
 
 fun mapXmlDokument(inntektsmeldingDokument: InntektsmeldingDokument): String {
     val kontaktNavn = "Ukjent kontaktperson" // TODO

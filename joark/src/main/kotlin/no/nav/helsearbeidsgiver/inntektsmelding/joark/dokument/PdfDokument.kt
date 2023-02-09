@@ -2,7 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
 import java.text.DecimalFormat
 import java.time.LocalDate

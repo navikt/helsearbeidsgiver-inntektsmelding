@@ -3,7 +3,7 @@
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 
 sealed class Løsning {
     abstract val value: Any?

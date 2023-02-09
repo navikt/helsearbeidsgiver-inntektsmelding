@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NotisType
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.slf4j.LoggerFactory

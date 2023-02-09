@@ -13,7 +13,7 @@ fun main() {
     val repository = Repository(database.db)
     RapidApplication.create(System.getenv()).also {
         PersisterImLøser(it, repository)
-        // HentPersistertLøser(it, repository)
+        HentPersistertLøser(it, repository)
         it.registerDbLifecycle(database)
         it.start()
     }

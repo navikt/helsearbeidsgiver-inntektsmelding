@@ -5,7 +5,6 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
@@ -52,12 +51,8 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         repository.lagre(UUID, DOK_2)
         repository.lagre(UUID, DOK_3)
 
-        val list: List<ResultRow> = repository.hentNyeste(UUID)
-
-        list.size.shouldBe(3)
-        list[0].get(InntektsmeldingEntitet.dokument).shouldBe(DOK_3)
-        list[1].get(InntektsmeldingEntitet.dokument).shouldBe(DOK_2)
-        list[2].get(InntektsmeldingEntitet.dokument).shouldBe(DOK_1)
+        val dok = repository.hentNyeste(UUID)
+        dok.shouldBe(DOK_3)
     }
 })
 

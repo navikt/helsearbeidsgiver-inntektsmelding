@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.InntektsmeldingDokument
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -21,10 +20,10 @@ class Repository(private val db: Database) {
             }
         }
 
-    fun hentNyeste(uuidLink: String): List<ResultRow> =
+    fun hentNyeste(uuidLink: String): InntektsmeldingDokument? =
         transaction(db) {
             InntektsmeldingEntitet.run {
                 select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)
-            }.take(100)
+            }.take(100).first().getOrNull(InntektsmeldingEntitet.dokument)
         }
 }

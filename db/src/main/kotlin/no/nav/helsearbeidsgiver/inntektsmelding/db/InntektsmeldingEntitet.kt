@@ -16,6 +16,7 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
     val dokument = json<InntektsmeldingDokument>("dokument")
     val opprettet = datetime("opprettet")
     val uuid = text("uuid")
+    val journalpostId = varchar("journalpostid", 30).nullable()
     override val primaryKey = PrimaryKey(id, name = "id")
 }
 

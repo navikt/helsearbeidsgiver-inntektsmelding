@@ -54,6 +54,28 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         val dok = repository.hentNyeste(UUID)
         dok.shouldBe(DOK_3)
     }
+
+    test("skal oppdatere journalpostId") {
+        transaction {
+            InntektsmeldingEntitet.selectAll().toList()
+        }.shouldBeEmpty()
+
+        val UUID = "abc-456"
+        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = LocalDateTime.now())
+        val DOK_2 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = LocalDateTime.now())
+        val JOURNALPOST_1 = "jp-1"
+        val JOURNALPOST_2 = "jp-2"
+
+        repository.lagre(UUID, DOK_1)
+        repository.oppdaterJournapostId(JOURNALPOST_1, UUID)
+        val dok1 = repository.hentNyeste(UUID)
+        dok1.shouldBe(DOK_1)
+
+        repository.lagre(UUID, DOK_2)
+        repository.oppdaterJournapostId(JOURNALPOST_2, UUID)
+        val dok2 = repository.hentNyeste(UUID)
+        dok2.shouldBe(DOK_2)
+    }
 })
 
 private fun all(vararg conditions: Op<Boolean>): Op<Boolean> =

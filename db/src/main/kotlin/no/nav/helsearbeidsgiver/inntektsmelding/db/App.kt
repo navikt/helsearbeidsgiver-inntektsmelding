@@ -12,9 +12,10 @@ fun main() {
     val database = Database()
     val repository = Repository(database.db)
     RapidApplication.create(System.getenv()).also {
+        it.registerDbLifecycle(database)
         PersisterImLøser(it, repository)
         HentPersistertLøser(it, repository)
-        it.registerDbLifecycle(database)
+        LagreJournalpostIdLøser(it, repository)
         it.start()
     }
 }

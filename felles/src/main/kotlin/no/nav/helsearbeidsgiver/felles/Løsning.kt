@@ -75,3 +75,9 @@ data class HentPersistertLøsning(
     override val value: InntektsmeldingDokument? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
+
+@Serializable
+data class JournalførtLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()

@@ -36,14 +36,17 @@ class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repositor
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         val journalpostLøsning: JournalpostLøsning = packet[Key.LØSNING.str].toJsonElement().fromJson()
-        var løsning = JournalførtLøsning(error = Feilmelding("Klarte ikke lagre journalpostId for $uuid"))
-        try {
-            val journalpostId = journalpostLøsning.value
-            løsning = JournalførtLøsning(journalpostId)
-            logger.info("Lagret journalpostId $journalpostId i database for $uuid")
-        } catch (ex: Exception) {
-            logger.info("Klarte ikke lagre journalpostId for $uuid")
-            sikkerlogg.error("Klarte ikke lagre journalpostId for $uuid", ex)
+        var løsning = JournalførtLøsning(error = Feilmelding("Klarte ikke lagre journalpostId for $uuid fordi den var tom"))
+        journalpostLøsning.value?.let {
+            try {
+                repository.oppdaterJournapostId(it, uuid)
+                løsning = JournalførtLøsning(it)
+                logger.info("Lagret journalpostId $it i database for $uuid")
+            } catch (ex: Exception) {
+                løsning = JournalførtLøsning(error = Feilmelding("Klarte ikke lagre journalpostId $it for $uuid"))
+                logger.info("Klarte ikke lagre journalpostId $it for $uuid")
+                sikkerlogg.error("Klarte ikke lagre journalpostId $it for $uuid", ex)
+            }
         }
         publiserLøsning(løsning, packet, context)
     }

@@ -14,31 +14,21 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.interestedIn
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.require
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.value
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.valueNullable
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvarFeil
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvarSuksess
 
 class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
     init {
         River(rapid).apply {
             validate { jsonMessage ->
-                jsonMessage.demandValue(Pri.Key.LØSNING, Pri.BehovType.TRENGER_FORESPØRSEL)
-                jsonMessage.requireKeys(
-                    Pri.Key.FORESPOERSEL_ID,
-                    Pri.Key.BOOMERANG
-                )
-                jsonMessage.interestedIn(
-                    Pri.Key.RESULTAT to { it.fromJson<ForespoerselSvarSuksess>() },
-                    Pri.Key.FEIL to { it.fromJson<ForespoerselSvarFeil>() }
+                jsonMessage.demandValue(Pri.Key.BEHOV, ForespoerselSvar.behovType)
+                jsonMessage.require(
+                    Pri.Key.LØSNING to { it.fromJson<ForespoerselSvar>() }
                 )
             }
         }.register(this)
@@ -48,12 +38,9 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
         logger.info("Mottok løsning på pri-topic om ${packet.value(Pri.Key.LØSNING).asText()}.")
         loggerSikker.info("Mottok løsning på pri-topic:\n${packet.toJson()}")
 
-        val forespoerselSvar = ForespoerselSvar(
-            forespoerselId = Pri.Key.FORESPOERSEL_ID.let(packet::value).asUuid(),
-            resultat = Pri.Key.RESULTAT.let(packet::valueNullable)?.toJsonElement()?.fromJson(),
-            feil = Pri.Key.FEIL.let(packet::valueNullable)?.toJsonElement()?.fromJson(),
-            boomerang = Pri.Key.BOOMERANG.let(packet::value).toJsonElement().fromJson()
-        )
+        val forespoerselSvar = Pri.Key.LØSNING.let(packet::value)
+            .toJsonElement()
+            .fromJson<ForespoerselSvar>()
 
         loggerSikker.info("Oversatte melding:\n$forespoerselSvar")
 
@@ -87,7 +74,7 @@ fun ForespoerselSvar.toHentTrengerImLøsning(): HentTrengerImLøsning =
             )
         )
     } else if (feil != null) {
-        HentTrengerImLøsning(error = Feilmelding(feil.feilmelding))
+        HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente forespørsel. Feilet med kode '$feil'."))
     } else {
         HentTrengerImLøsning(error = Feilmelding("Ukjent feil."))
     }

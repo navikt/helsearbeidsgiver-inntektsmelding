@@ -7,8 +7,6 @@ import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvarFeil
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import java.util.UUID
 
@@ -28,15 +26,12 @@ fun mockForespoerselSvarMedSuksess(): ForespoerselSvar = ForespoerselSvar(
 fun mockForespoerselSvarMedFeil(): ForespoerselSvar = ForespoerselSvar(
     forespoerselId = UUID.randomUUID(),
     resultat = null,
-    feil = ForespoerselSvarFeil(
-        feilkode = ForespoerselSvarFeil.Feilkode.FORESPOERSEL_IKKE_FUNNET,
-        feilmelding = "Vi fant ikke forespørselen eller meningen med livet."
-    ),
+    feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
     boomerang = mockBoomerang()
 )
 
-fun mockForespoerselSvarSuksess(): ForespoerselSvarSuksess =
-    ForespoerselSvarSuksess(
+fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
+    ForespoerselSvar.Suksess(
         orgnr = "hungry-traitor-chaplain",
         fnr = "deputize-snowy-quirk",
         sykmeldingsperioder = listOf(1.januar til 16.januar),

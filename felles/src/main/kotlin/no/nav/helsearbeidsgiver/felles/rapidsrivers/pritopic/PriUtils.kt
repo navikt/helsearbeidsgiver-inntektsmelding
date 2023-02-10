@@ -5,7 +5,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 
 fun JsonMessage.demandValue(key: Pri.Key, value: Pri.ValueEnum) {
@@ -17,9 +16,9 @@ fun JsonMessage.requireKeys(vararg keys: Pri.Key) {
     this.requireKey(*keysAsStr)
 }
 
-fun JsonMessage.interestedIn(vararg keys: Pair<Pri.Key, (JsonElement) -> Any>) {
+fun JsonMessage.require(vararg keys: Pair<Pri.Key, (JsonElement) -> Any>) {
     keys.forEach { (key, block) ->
-        this.interestedIn(key.str) {
+        this.require(key.str) {
             it.toJsonElement().let(block)
         }
     }
@@ -27,9 +26,6 @@ fun JsonMessage.interestedIn(vararg keys: Pair<Pri.Key, (JsonElement) -> Any>) {
 
 fun JsonMessage.value(key: Pri.Key): JsonNode =
     this[key.str]
-
-fun JsonMessage.valueNullable(key: Pri.Key): JsonNode? =
-    value(key).takeUnless(JsonNode::isMissingOrNull)
 
 fun jsonOf(vararg keyValuePairs: Pair<Pri.Key, JsonElement>): JsonElement =
     keyValuePairs.toMap()

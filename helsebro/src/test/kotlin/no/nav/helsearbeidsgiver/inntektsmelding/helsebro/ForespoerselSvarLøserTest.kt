@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -32,48 +33,21 @@ class ForespoerselSvarLøserTest : FunSpec({
 
     ForespoerselSvarLøser(testRapid)
 
-    beforeEach {
+    beforeTest {
         testRapid.reset()
     }
 
-    test("Ved suksessfull løsning på behov så publiseres løsning på simba-rapid") {
-        val expectedIncoming = mockForespoerselSvarMedSuksess()
-        val expectedResultat = expectedIncoming.resultat.shouldNotBeNull()
-
-        val expected = Published.mock(expectedIncoming)
-
-        testRapid.sendJson(
-            Pri.Key.LØSNING to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
-            Pri.Key.FORESPOERSEL_ID to expectedIncoming.forespoerselId.toJson(),
-            Pri.Key.RESULTAT to mapOf(
-                "orgnr" to expectedResultat.orgnr.toJson(),
-                "fnr" to expectedResultat.fnr.toJson(),
-                "sykmeldingsperioder" to expectedResultat.sykmeldingsperioder.let(Json::encodeToJsonElement),
-                "forespurtData" to expectedResultat.forespurtData.let(Json::encodeToJsonElement)
-            ).toJson(),
-            Pri.Key.BOOMERANG to expectedIncoming.boomerang.toJson()
+    withData(
+        mapOf(
+            "Ved suksessfull løsning på behov så publiseres løsning på simba-rapid" to mockForespoerselSvarMedSuksess(),
+            "Ved feil så publiseres feil på simba-rapid" to mockForespoerselSvarMedFeil()
         )
-
-        val actual = testRapid.lastMessageJson().let(Published::fromJson)
-
-        testRapid.inspektør.size shouldBeExactly 1
-        actual shouldBe expected
-    }
-
-    test("Ved feil så publiseres feil på simba-rapid") {
-        val expectedIncoming = mockForespoerselSvarMedFeil()
-        val expectedFeil = expectedIncoming.feil.shouldNotBeNull()
-
+    ) { expectedIncoming ->
         val expected = Published.mock(expectedIncoming)
 
         testRapid.sendJson(
-            Pri.Key.LØSNING to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
-            Pri.Key.FORESPOERSEL_ID to expectedIncoming.forespoerselId.toJson(),
-            Pri.Key.FEIL to mapOf(
-                "feilkode" to expectedFeil.feilkode.toJson(),
-                "feilmelding" to expectedFeil.feilmelding.toJson()
-            ).toJson(),
-            Pri.Key.BOOMERANG to expectedIncoming.boomerang.toJson()
+            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
+            Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement)
         )
 
         val actual = testRapid.lastMessageJson().let(Published::fromJson)
@@ -84,18 +58,11 @@ class ForespoerselSvarLøserTest : FunSpec({
 
     test("Ved løsning med tom boomerang så publiseres ingenting på simba-rapid") {
         val expectedIncoming = mockForespoerselSvarMedSuksess()
-        val expectedResultat = expectedIncoming.resultat.shouldNotBeNull()
+            .copy(boomerang = emptyMap<String, Nothing>())
 
         testRapid.sendJson(
-            Pri.Key.LØSNING to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
-            Pri.Key.FORESPOERSEL_ID to expectedIncoming.forespoerselId.toJson(),
-            Pri.Key.RESULTAT to mapOf(
-                "orgnr" to expectedResultat.orgnr.toJson(),
-                "fnr" to expectedResultat.fnr.toJson(),
-                "sykmeldingsperioder" to expectedResultat.sykmeldingsperioder.let(Json::encodeToJsonElement),
-                "forespurt_data" to expectedResultat.forespurtData.let(Json::encodeToJsonElement)
-            ).toJson(),
-            Pri.Key.BOOMERANG to emptyMap<String, Nothing>().toJson()
+            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
+            Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement)
         )
 
         testRapid.inspektør.size shouldBeExactly 0

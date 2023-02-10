@@ -11,6 +11,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersisterImLøsning
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.slf4j.LoggerFactory
 
 class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
@@ -51,7 +54,8 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             sikkerlogg.info("Fant arbeidsgiver: $arbeidsgiver")
             val fulltNavn = hentNavn(session)
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
-            val inntektsmeldingDokument = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING.str], fulltNavn, arbeidsgiver)
+            val innsendingRequest: InnsendingRequest = packet[Key.INNTEKTSMELDING.str].toJsonElement().fromJson()
+            val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
             val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)
             sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid")
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument

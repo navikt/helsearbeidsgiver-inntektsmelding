@@ -1,14 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.FullLønnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.FullLønnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Naturalytelse
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.NaturalytelseKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.RefusjonEndring
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakBeregnetInntektEndringKodeliste
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakInnsending
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -23,10 +22,10 @@ fun MockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): In
         Periode(dag, dag.plusDays(2)),
         Periode(dag.plusDays(3), dag.plusDays(4))
     ),
-    beregnetInntektEndringÅrsak = ÅrsakBeregnetInntektEndringKodeliste.FeilInntekt,
     beregnetInntekt = 25000.0,
     fullLønnIArbeidsgiverPerioden = FullLønnIArbeidsgiverPerioden(true, begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent),
     refusjon = Refusjon(
+        true,
         25000.0,
         dag.plusDays(3),
         listOf(

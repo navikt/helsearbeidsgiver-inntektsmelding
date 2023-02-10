@@ -34,7 +34,7 @@ fun mapXmlDokument(inntektsmeldingDokument: InntektsmeldingDokument): String {
                 ${mapArbeidsgiverperioder(inntektsmeldingDokument.arbeidsgiverperioder)}
             </arbeidsgiverperiodeListe>
             <bruttoUtbetalt>${inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden.utbetalt}</bruttoUtbetalt>
-            <begrunnelseForReduksjonEllerIkkeUtbetalt>${inntektsmeldingDokument.beregnetInntektEndringÅrsak}</begrunnelseForReduksjonEllerIkkeUtbetalt>
+            <begrunnelseForReduksjonEllerIkkeUtbetalt></begrunnelseForReduksjonEllerIkkeUtbetalt>
         </sykepengerIArbeidsgiverperioden>
         <refusjon>
             <refusjonsbeloepPrMnd>${inntektsmeldingDokument.refusjon.refusjonPrMnd}</refusjonsbeloepPrMnd>

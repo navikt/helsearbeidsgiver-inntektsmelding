@@ -44,8 +44,11 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        logger.info("Mottar pakke")
+        sikkerlogg.info("Mottar pakke: $packet")
         val uuid = packet[Key.ID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
+        sikkerlogg.info("Løser behov $BEHOV med id $uuid")
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
         val til = finnStartMnd()

@@ -19,3 +19,7 @@ enum class NotisType {
     NOTIFIKASJON,
     NOTIFIKASJON_TRENGER_IM
 }
+
+enum class EventName {
+    InntektsmeldingMottatt
+}

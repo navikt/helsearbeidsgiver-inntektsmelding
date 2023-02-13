@@ -1,6 +1,4 @@
-@file:Suppress("unused")
-
-package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
+package no.nav.helsearbeidsgiver.felles.inntektsmelding.felles
 
 import kotlinx.serialization.Serializable
 

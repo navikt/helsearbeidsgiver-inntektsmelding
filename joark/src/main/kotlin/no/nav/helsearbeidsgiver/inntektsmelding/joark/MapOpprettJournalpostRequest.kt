@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.dokarkiv.AvsenderMottaker
 import no.nav.helsearbeidsgiver.dokarkiv.Bruker
 import no.nav.helsearbeidsgiver.dokarkiv.Dokument
@@ -7,9 +9,8 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.IdType
 import no.nav.helsearbeidsgiver.dokarkiv.Journalposttype
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostRequest
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapXmlDokument
 import java.time.LocalDate
 import java.util.Base64
 
@@ -26,7 +27,7 @@ fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingD
         journalfoerendeEnhet = null,
         kanal = "NAV_NO",
         bruker = Bruker(inntektsmelding.identitetsnummer, IdType.FNR), //  Bruker.id er fnr til personen kravet gjelder for
-        eksternReferanseId = "ARI-$uuid", // TODO Hva skal vi bruke som ekstern referanse?
+        eksternReferanseId = "ARI-$uuid",
         avsenderMottaker = AvsenderMottaker(
             id = inntektsmelding.orgnrUnderenhet,
             idType = IdType.ORGNR,
@@ -38,10 +39,10 @@ fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingD
                 brevkode = "4936",
                 dokumentVarianter = listOf(
                     DokumentVariant(
-                        filtype = "XML",
-                        fysiskDokument = Base64.getEncoder().encodeToString(mapXmlDokument(inntektsmelding).toByteArray()),
+                        filtype = "JSON",
+                        fysiskDokument = Base64.getEncoder().encodeToString(Json.encodeToString(inntektsmelding).toByteArray()),
                         variantFormat = "ORIGINAL",
-                        filnavn = "ari-$uuid.xml"
+                        filnavn = "ari-$uuid.json"
                     ),
                     DokumentVariant(
                         filtype = "PDFA",

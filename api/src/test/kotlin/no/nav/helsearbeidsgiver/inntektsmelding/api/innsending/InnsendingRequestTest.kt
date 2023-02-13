@@ -2,7 +2,17 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import no.nav.helsearbeidsgiver.felles.Periode
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.FullLønnIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.InntektEndringÅrsak
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.NaturalytelseKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Refusjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakInnsending
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Inntekt
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
@@ -19,6 +29,27 @@ internal class InnsendingRequestTest {
     private val MAX_REFUSJON: Double = 1_000_001.0
     private val NEGATIVT_BELØP: Double = -0.1
     private val MAX_NATURAL_BELØP: Double = 1_000_000.0
+
+    fun String.loadFromResources(): String {
+        return ClassLoader.getSystemResource(this).readText()
+    }
+
+    @Test
+    fun `skal serialisere InntektEndringÅrsak`() {
+        val inntekt = Inntekt(
+            bekreftet = false,
+            beregnetInntekt = 300.0,
+            endringÅrsak = InntektEndringÅrsak.NyStilling(LocalDate.now()),
+            manueltKorrigert = false
+        )
+        println(customObjectMapper().writeValueAsString(inntekt))
+    }
+
+    @Test
+    fun `skal lese innsendingrequest`() {
+        val request: InnsendingRequest = Json.decodeFromString("innsendingrequest.json".loadFromResources())
+        request.validate()
+    }
 
     @Test
     fun `skal akseptere gyldig`() {
@@ -160,26 +191,116 @@ internal class InnsendingRequestTest {
     }
 
     @Test
-    fun `skal godta årsak endringer`() {
-        val inntekt1 = Inntekt(
-            endringÅrsak = ÅrsakBeregnetInntektEndringKodeliste.FeilInntekt,
-            beregnetInntekt = 1.0,
-            bekreftet = true,
-            manueltKorrigert = false
-        )
-        GYLDIG.copy(inntekt = inntekt1).validate()
-        val inntekt2 = Inntekt(
-            endringÅrsak = ÅrsakBeregnetInntektEndringKodeliste.Tariffendring,
-            beregnetInntekt = 1.0,
-            bekreftet = true,
-            manueltKorrigert = false
-        )
-        GYLDIG.copy(inntekt = inntekt2).validate()
-    }
-
-    @Test
     fun `skal godta ulike årsak innsendinger`() {
         GYLDIG.copy(årsakInnsending = ÅrsakInnsending.Ny).validate()
         GYLDIG.copy(årsakInnsending = ÅrsakInnsending.Endring).validate()
+    }
+
+    @Test
+    fun `skal godta uten endringsårsak`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = null,
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Tariffendring`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Tariffendring(LocalDate.now(), LocalDate.now()),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Ferie`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Ferie(listOf(Periode(LocalDate.now(), LocalDate.now()))),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - VarigLønnsendring`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.VarigLønnsendring(LocalDate.now()),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Permisjon`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Permisjon(listOf(Periode(LocalDate.now(), LocalDate.now()))),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Permittering`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Permittering(listOf(Periode(LocalDate.now(), LocalDate.now()))),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - NyStilling`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.NyStilling(LocalDate.now()),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - NyStillingsprosent`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.NyStillingsprosent(LocalDate.now()),
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Bonus`() {
+        GYLDIG.copy(
+            inntekt = Inntekt(
+                endringÅrsak = InntektEndringÅrsak.Bonus,
+                beregnetInntekt = 1.0,
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
     }
 }

@@ -21,12 +21,14 @@ fun main() {
 }
 
 internal fun createApp(environment: Environment): RapidsConnection {
+    logger.info("Starter Inntekt rapid...")
+    sikkerlogg.info("Starter Inntekt rapid...")
     val rapidsConnection = RapidApplication.create(environment.raw)
-    logger.info("Starter tokenprovider...")
+    sikkerlogg.info("Starter tokenprovider...")
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    logger.info("Starter InntektKlient...")
+    sikkerlogg.info("Starter InntektKlient...")
     val inntektKlient = InntektKlient(environment.inntektUrl, tokenProvider, buildClient())
-    logger.info("Starting RapidApplication...")
+    sikkerlogg.info("Starter InntektLøser...")
     InntektLøser(rapidsConnection, inntektKlient)
     return rapidsConnection
 }

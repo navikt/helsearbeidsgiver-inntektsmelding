@@ -18,7 +18,7 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll(Key.BEHOV.str, BehovType.PREUTFYLL)
+                it.demandAll(Key.BEHOV.str, BehovType.HENT_TRENGER_IM)
                 it.requireKey(Key.LØSNING.str)
                 it.interestedIn(Key.ORGNR.str, Key.FNR.str)
             }
@@ -35,7 +35,10 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        logger.info("Fikk pakke")
+        sikkerlogg.info("Fikk pakke")
         val hentTrengerImLøsning = hentLøsning(packet)
+        sikkerlogg.info("Fikk løsning: $hentTrengerImLøsning")
         hentTrengerImLøsning.error?.let {
             sikkerlogg.error("Fant løsning med feil: ${it.melding}")
             packet[Key.LØSNING.str] = PreutfyltLøsning(error = Feilmelding("Klarte ikke hente informasjon fra link"))

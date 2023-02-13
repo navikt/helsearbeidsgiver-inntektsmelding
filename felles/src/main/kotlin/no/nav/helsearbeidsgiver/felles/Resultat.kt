@@ -11,5 +11,6 @@ data class Resultat(
     val JOURNALFOER: JournalpostLøsning? = null,
     val NOTIFIKASJON: NotifikasjonLøsning? = null,
     val HENT_TRENGER_IM: HentTrengerImLøsning? = null,
-    val PREUTFYLT: PreutfyltLøsning? = null
+    val PREUTFYLT: PreutfyltLøsning? = null,
+    val PERSISTER_IM: PersisterImLøsning? = null
 )

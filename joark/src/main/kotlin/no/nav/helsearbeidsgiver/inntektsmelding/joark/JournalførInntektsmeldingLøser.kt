@@ -15,13 +15,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.UgyldigFormatException
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mapInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.NotisType
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
-class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : River.PacketListener {
+class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : River.PacketListener {
 
     private val BEHOV = BehovType.JOURNALFOER
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
@@ -32,8 +33,8 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
             validate {
                 it.demandAll(Key.BEHOV.str, BEHOV)
                 it.requireKey(Key.ID.str)
+                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.rejectKey(Key.LØSNING.str)
-                it.interestedIn(Key.INNTEKTSMELDING.str)
                 it.interestedIn(Key.SESSION.str)
                 it.interestedIn(Key.UUID.str)
             }
@@ -46,30 +47,29 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
         return dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
     }
 
-    fun hentArbeidsgiver(session: JsonNode): String {
-        return session.get(BehovType.VIRKSOMHET.name)?.get("value")?.asText() ?: "Ukjent"
-    }
-
-    fun hentNavn(session: JsonNode): String {
-        return session.get(BehovType.FULLT_NAVN.name)?.get("value")?.asText() ?: "Ukjent"
-    }
-
     fun sendNotifikasjon(uuid: String, inntektsmelding: InntektsmeldingDokument) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to "inntektsmelding_journalført",
-                Key.BEHOV.str to listOf(
-                    BehovType.NOTIFIKASJON.name
+                Key.NOTIS.str to listOf(
+                    NotisType.NOTIFIKASJON.name
                 ),
                 Key.ID.str to uuid,
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.UUID.str to uuid,
-                Key.INNTEKTSMELDING.str to inntektsmelding,
                 Key.IDENTITETSNUMMER.str to inntektsmelding.identitetsnummer,
                 Key.ORGNRUNDERENHET.str to inntektsmelding.orgnrUnderenhet
             )
         )
         rapidsConnection.publish(inntektsmelding.identitetsnummer, packet.toJson())
+    }
+
+    fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
+        try {
+            return jsonNode.toJsonElement().fromJson()
+        } catch (ex: Exception) {
+            throw UgyldigFormatException(ex)
+        }
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
@@ -79,28 +79,24 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
         val session = packet[Key.SESSION.str]
         sikkerlogg.info("Fant session: $session")
         try {
-            val arbeidsgiver = hentArbeidsgiver(session)
-            sikkerlogg.info("Fant arbeidsgiver: $arbeidsgiver")
-            val fulltNavn = hentNavn(session)
-            sikkerlogg.info("Fant fulltNavn: $fulltNavn")
-            val inntektsmelding = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING.str], fulltNavn, arbeidsgiver)
-            sikkerlogg.info("Skal journalføre: $inntektsmelding")
-            val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmelding) }
-            sikkerlogg.info("Journalførte inntektsmelding for $fulltNavn ($arbeidsgiver) med journalpostid: $journalpostId")
-            logger.info("Journalførte inntektsmelding med journalpostid: $journalpostId")
+            val inntektsmeldingDokument = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING_DOKUMENT.str])
+            sikkerlogg.info("Skal journalføre: $inntektsmeldingDokument")
+            val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmeldingDokument) }
+            sikkerlogg.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
+            logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
             publiserLøsning(JournalpostLøsning(journalpostId), packet, context)
             try {
-                sendNotifikasjon(uuid, inntektsmelding)
-                sikkerlogg.error("Registrere melding om notifikasjon for $inntektsmelding")
+                sendNotifikasjon(uuid, inntektsmeldingDokument)
+                sikkerlogg.error("Registrere melding om notifikasjon for $inntektsmeldingDokument")
             } catch (ex: Exception) {
-                sikkerlogg.error("Klarte ikke registrere melding om notifikasjon for $inntektsmelding", ex)
+                sikkerlogg.error("Klarte ikke registrere melding om notifikasjon for $inntektsmeldingDokument", ex)
             }
         } catch (ex: DokArkivException) {
             sikkerlogg.info("Klarte ikke journalføre", ex)
             publiserLøsning(JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet")), packet, context)
         } catch (ex: UgyldigFormatException) {
             sikkerlogg.info("Klarte ikke journalføre: feil format!", ex)
-            publiserLøsning(JournalpostLøsning(error = Feilmelding("Feil format i inntektsmelding")), packet, context)
+            publiserLøsning(JournalpostLøsning(error = Feilmelding("Feil format i InntektsmeldingDokument")), packet, context)
         } catch (ex: Exception) {
             sikkerlogg.info("Klarte ikke journalføre!", ex)
             JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
@@ -120,4 +116,6 @@ class JournalførInntektsmeldingLøser(val rapidsConnection: RapidsConnection, v
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
     }
+
+    internal class UgyldigFormatException(ex: Exception) : Exception("Klarte ikke lese ut Inntektsmelding fra Json node!", ex)
 }

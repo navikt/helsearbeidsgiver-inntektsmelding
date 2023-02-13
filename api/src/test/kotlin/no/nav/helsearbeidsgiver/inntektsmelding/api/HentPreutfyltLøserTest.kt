@@ -21,7 +21,7 @@ internal class HentPreutfyltLøserTest {
 
     private val rapid = TestRapid()
     private var løser: HentPreutfyltLøser
-    private val BEHOV = BehovType.PREUTFYLL.toString()
+    private val BEHOV = BehovType.HENT_TRENGER_IM.toString()
 
     init {
         løser = HentPreutfyltLøser(rapid)

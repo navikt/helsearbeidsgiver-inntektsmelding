@@ -16,14 +16,26 @@ fun mockTrengerForespoersel(): TrengerForespoersel =
         boomerang = mockBoomerang()
     )
 
-fun mockForespoerselSvar(): ForespoerselSvar =
-    ForespoerselSvar(
+fun mockForespoerselSvarMedSuksess(): ForespoerselSvar = ForespoerselSvar(
+    forespoerselId = UUID.randomUUID(),
+    resultat = mockForespoerselSvarSuksess(),
+    feil = null,
+    boomerang = mockBoomerang()
+)
+
+fun mockForespoerselSvarMedFeil(): ForespoerselSvar = ForespoerselSvar(
+    forespoerselId = UUID.randomUUID(),
+    resultat = null,
+    feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
+    boomerang = mockBoomerang()
+)
+
+fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
+    ForespoerselSvar.Suksess(
         orgnr = "hungry-traitor-chaplain",
         fnr = "deputize-snowy-quirk",
-        forespoerselId = UUID.randomUUID(),
         sykmeldingsperioder = listOf(1.januar til 16.januar),
-        forespurtData = mockForespurtDataListe(),
-        boomerang = mockBoomerang()
+        forespurtData = mockForespurtDataListe()
     )
 
 private fun mockBoomerang(): Map<String, JsonElement> =

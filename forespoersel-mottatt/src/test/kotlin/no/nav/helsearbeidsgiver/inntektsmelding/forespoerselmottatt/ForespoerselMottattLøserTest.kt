@@ -5,13 +5,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.NotisType
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
@@ -25,7 +23,7 @@ class ForespoerselMottattLøserTest : FunSpec({
 
     ForespoerselMottattLøser(testRapid)
 
-    test("Ved notis om mottatt forespørsel publiseres behov om notifikasjon") {
+    test("Ved notis om mottatt forespørsel publiseres notis om notifikasjon") {
         val expected = Published.mock()
         val forespoerselId = expected.uuid
 
@@ -44,10 +42,8 @@ class ForespoerselMottattLøserTest : FunSpec({
 })
 
 @Serializable
-@OptIn(ExperimentalSerializationApi::class)
 private data class Published(
-    @JsonNames("@behov")
-    val behov: List<BehovType>,
+    val notis: List<NotisType>,
     val orgnrUnderenhet: String,
     val identitetsnummer: String,
     val uuid: UUID
@@ -55,7 +51,7 @@ private data class Published(
     companion object {
         fun mock(): Published =
             Published(
-                behov = listOf(BehovType.NOTIFIKASJON_TRENGER_IM),
+                notis = listOf(NotisType.NOTIFIKASJON_TRENGER_IM),
                 orgnrUnderenhet = "certainly-stereo-facsimile",
                 identitetsnummer = "resort-cringe-huddle",
                 uuid = UUID.randomUUID()

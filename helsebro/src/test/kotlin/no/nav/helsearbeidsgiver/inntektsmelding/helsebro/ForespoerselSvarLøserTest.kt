@@ -2,8 +2,8 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
-import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -18,7 +18,6 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -35,19 +34,21 @@ class ForespoerselSvarLøserTest : FunSpec({
 
     ForespoerselSvarLøser(testRapid)
 
-    test("Ved løsning på behov så publiseres løsning på simba-rapid") {
-        val expectedIncoming = mockForespoerselSvar()
+    beforeTest {
+        testRapid.reset()
+    }
 
+    withData(
+        mapOf(
+            "Ved suksessfull løsning på behov så publiseres løsning på simba-rapid" to mockForespoerselSvarMedSuksess(),
+            "Ved feil så publiseres feil på simba-rapid" to mockForespoerselSvarMedFeil()
+        )
+    ) { expectedIncoming ->
         val expected = Published.mock(expectedIncoming)
 
         testRapid.sendJson(
-            Pri.Key.LØSNING to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
-            Pri.Key.ORGNR to expectedIncoming.orgnr.toJson(),
-            Pri.Key.FNR to expectedIncoming.fnr.toJson(),
-            Pri.Key.FORESPOERSEL_ID to expectedIncoming.forespoerselId.toJson(),
-            Pri.Key.SYKMELDINGSPERIODER to expectedIncoming.sykmeldingsperioder.let(Json::encodeToJsonElement),
-            Pri.Key.FORESPURT_DATA to expectedIncoming.forespurtData.let(Json::encodeToJsonElement),
-            Pri.Key.BOOMERANG to expectedIncoming.boomerang.toJson()
+            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
+            Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement)
         )
 
         val actual = testRapid.lastMessageJson().let(Published::fromJson)
@@ -56,20 +57,16 @@ class ForespoerselSvarLøserTest : FunSpec({
         actual shouldBe expected
     }
 
-    test("Ved løsning med tom boomerang så kastes BoomerangContentException") {
-        val expectedIncoming = mockForespoerselSvar()
+    test("Ved løsning med tom boomerang så publiseres ingenting på simba-rapid") {
+        val expectedIncoming = mockForespoerselSvarMedSuksess()
+            .copy(boomerang = emptyMap<String, Nothing>())
 
-        shouldThrowExactly<BoomerangContentException> {
-            testRapid.sendJson(
-                Pri.Key.LØSNING to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
-                Pri.Key.ORGNR to expectedIncoming.orgnr.toJson(),
-                Pri.Key.FNR to expectedIncoming.fnr.toJson(),
-                Pri.Key.FORESPOERSEL_ID to expectedIncoming.forespoerselId.toJson(),
-                Pri.Key.SYKMELDINGSPERIODER to expectedIncoming.sykmeldingsperioder.let(Json::encodeToJsonElement),
-                Pri.Key.FORESPURT_DATA to expectedIncoming.forespurtData.let(Json::encodeToJsonElement),
-                Pri.Key.BOOMERANG to emptyMap<String, JsonElement>().toJson()
-            )
-        }
+        testRapid.sendJson(
+            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
+            Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement)
+        )
+
+        testRapid.inspektør.size shouldBeExactly 0
     }
 })
 
@@ -88,17 +85,7 @@ private data class Published(
         fun mock(forespoerselSvar: ForespoerselSvar): Published =
             Published(
                 behov = behovType.let(::listOf),
-                løsning = mapOf(
-                    behovType to
-                        HentTrengerImLøsning(
-                            value = TrengerInntekt(
-                                orgnr = forespoerselSvar.orgnr,
-                                fnr = forespoerselSvar.fnr,
-                                sykmeldingsperioder = forespoerselSvar.sykmeldingsperioder,
-                                forespurtData = forespoerselSvar.forespurtData
-                            )
-                        )
-                ),
+                løsning = mapOf(behovType to forespoerselSvar.toHentTrengerImLøsning()),
                 uuid = forespoerselSvar.boomerang[Key.INITIATE_ID.str]
                     ?.fromJson(UuidSerializer)
                     .shouldNotBeNull()

@@ -44,14 +44,19 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        logger.info("Mottar pakke")
+        sikkerlogg.info("Mottar pakke: $packet")
         val uuid = packet[Key.ID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
+        sikkerlogg.info("Løser behov $BEHOV med id $uuid")
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
         val til = finnStartMnd()
         val fra = til.minusMonths(9) // TODO: skal endres til 3 mnd
+        sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: $fra - $til")
         try {
             val inntektResponse = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
+            sikkerlogg.info("Fant inntektResponse: $inntektResponse")
             val inntekt = mapInntekt(inntektResponse, orgnr)
             packet.setLøsning(BEHOV, InntektLøsning(inntekt))
             context.publish(packet.toJson())

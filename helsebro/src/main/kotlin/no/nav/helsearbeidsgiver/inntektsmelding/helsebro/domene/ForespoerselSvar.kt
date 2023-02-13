@@ -7,16 +7,31 @@ import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import java.util.UUID
 
 @Serializable
 data class ForespoerselSvar(
-    val orgnr: String,
-    val fnr: String,
     val forespoerselId: UUID,
-    val sykmeldingsperioder: List<Periode>,
-    val forespurtData: List<ForespurtData>,
+    val resultat: Suksess? = null,
+    val feil: Feil? = null,
     val boomerang: Map<String, JsonElement>
-)
+) {
+    companion object {
+        val behovType = Pri.BehovType.TRENGER_FORESPØRSEL
+    }
+
+    @Serializable
+    data class Suksess(
+        val orgnr: String,
+        val fnr: String,
+        val sykmeldingsperioder: List<Periode>,
+        val forespurtData: List<ForespurtData>
+    )
+
+    enum class Feil {
+        FORESPOERSEL_IKKE_FUNNET
+    }
+}

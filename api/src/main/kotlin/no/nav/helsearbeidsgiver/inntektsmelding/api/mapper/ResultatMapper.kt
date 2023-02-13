@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.api.mapper
 
 import io.ktor.http.HttpStatusCode
@@ -20,7 +22,9 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
             resultat.INNTEKT,
             resultat.HENT_TRENGER_IM,
             resultat.PREUTFYLT,
-            resultat.JOURNALFOER
+            resultat.JOURNALFOER,
+            resultat.NOTIFIKASJON,
+            resultat.PERSISTER_IM
         ).filterNotNull()
     }
 

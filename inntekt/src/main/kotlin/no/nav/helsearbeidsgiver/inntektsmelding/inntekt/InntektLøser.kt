@@ -50,8 +50,10 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
         val til = finnStartMnd()
         val fra = til.minusMonths(9) // TODO: skal endres til 3 mnd
+        sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: $fra - $til")
         try {
             val inntektResponse = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
+            sikkerlogg.info("Fant inntektResponse: $inntektResponse")
             val inntekt = mapInntekt(inntektResponse, orgnr)
             packet.setLøsning(BEHOV, InntektLøsning(inntekt))
             context.publish(packet.toJson())

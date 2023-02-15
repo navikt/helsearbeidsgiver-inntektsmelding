@@ -21,6 +21,7 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
         River(rapidsConnection).apply {
             validate {
                 it.demandAll(Key.BEHOV.str, BehovType.PREUTFYLL)
+                it.rejectKey(Key.LØSNING.str)
                 it.requireKey(Key.SESSION.str)
                 it.interestedIn(Key.ORGNR.str, Key.FNR.str)
             }

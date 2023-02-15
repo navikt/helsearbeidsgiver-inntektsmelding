@@ -24,7 +24,7 @@ class TrengerProducer(
                     BehovType.HENT_TRENGER_IM.name
                 ),
                 Key.BOOMERANG.str to mapOf(
-                    Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL.name)
+                    Key.NESTE_BEHOV.str to listOf(BehovType.PAUSE, BehovType.PREUTFYLL.name)
                 ),
                 Key.UUID.str to uuid,
                 Key.FORESPOERSEL_ID.str to request.uuid

@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api
+package no.nav.helsearbeidsgiver.inntektsmelding.preutfylt
 
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.json.Json
@@ -13,9 +13,9 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
-import kotlin.test.assertEquals
 
 internal class HentPreutfyltLøserTest {
 

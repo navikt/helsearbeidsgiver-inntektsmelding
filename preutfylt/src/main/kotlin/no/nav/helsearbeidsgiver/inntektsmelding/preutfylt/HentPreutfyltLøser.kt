@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api
+package no.nav.helsearbeidsgiver.inntektsmelding.preutfylt
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -12,8 +12,10 @@ import no.nav.helsearbeidsgiver.felles.PersonLink
 import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.log.logger
 
 class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+    private val logger = logger()
 
     init {
         River(rapidsConnection).apply {

@@ -44,7 +44,9 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
         sikkerlogg.info("Fikk løsning: $hentTrengerImLøsning")
         hentTrengerImLøsning.error?.let {
             sikkerlogg.error("Fant løsning med feil: ${it.melding}")
-            packet[Key.LØSNING.str] = PreutfyltLøsning(error = Feilmelding("Klarte ikke hente informasjon fra link"))
+            packet[Key.LØSNING.str] = mapOf(
+                BehovType.PREUTFYLL to PreutfyltLøsning(error = Feilmelding("Klarte ikke hente informasjon fra link"))
+            )
         }
         hentTrengerImLøsning.value?.let {
             sikkerlogg.info("Fant løsning: $hentTrengerImLøsning")
@@ -56,7 +58,9 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
                 BehovType.INNTEKT.name,
                 BehovType.ARBEIDSFORHOLD.name
             )
-            packet[Key.LØSNING.str] = PreutfyltLøsning(value = PersonLink(it.fnr, it.orgnr))
+            packet[Key.LØSNING.str] = mapOf(
+                BehovType.PREUTFYLL to PreutfyltLøsning(value = PersonLink(it.fnr, it.orgnr))
+            )
         }
         context.publish(packet.toJson())
     }

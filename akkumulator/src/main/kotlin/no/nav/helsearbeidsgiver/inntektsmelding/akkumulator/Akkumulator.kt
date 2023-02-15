@@ -63,7 +63,7 @@ class Akkumulator(
 
         val eventName = packet.value(Key.EVENT_NAME).asText()
         val behovListe = packet.value(Key.BEHOV).map(JsonNode::asText)
-        val nesteBehov = boomerang[Key.NESTE_BEHOV]?.fromJson()
+        val nesteBehov = boomerang[Key.NESTE_BEHOV]?.fromJson<List<BehovType>>()?.takeUnless(List<BehovType>::isEmpty)
             ?: packet.value(Key.NESTE_BEHOV)
                 .map(JsonNode::asText)
                 .map(BehovType::valueOf)

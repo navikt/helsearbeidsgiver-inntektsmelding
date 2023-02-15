@@ -23,6 +23,7 @@ fun hentNesteBehov(løsninger: ObjectNode, packet: JsonMessage, objectMapper: Ob
             it.get(Key.BOOMERANG.str)
                 ?.takeUnless(JsonNode::isMissingOrNull)
                 ?.get(Key.NESTE_BEHOV.str)
+                ?.takeUnless(JsonNode::isEmpty)
                 ?: it.get(Key.NESTE_BEHOV.str)
         }
             .let { it as ArrayNode }

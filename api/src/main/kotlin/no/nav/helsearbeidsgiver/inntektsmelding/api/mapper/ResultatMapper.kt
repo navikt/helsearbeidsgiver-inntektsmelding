@@ -21,7 +21,7 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
             resultat.ARBEIDSFORHOLD,
             resultat.INNTEKT,
             resultat.HENT_TRENGER_IM,
-            resultat.PREUTFYLT,
+            resultat.PREUTFYLL,
             resultat.JOURNALFOER,
             resultat.NOTIFIKASJON,
             resultat.PERSISTER_IM

@@ -32,7 +32,7 @@ internal class HentPreutfyltLøserTest {
         val resultat = sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
             Key.ID to UUID.randomUUID().toJson(),
-            Key.LØSNING to mapOf(
+            Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     value = TrengerInntekt(
                         orgnr = "123",
@@ -56,7 +56,7 @@ internal class HentPreutfyltLøserTest {
         val resultat = sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
             Key.ID to UUID.randomUUID().toJson(),
-            Key.LØSNING to mapOf(
+            Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     error = Feilmelding("Feil")
                 )

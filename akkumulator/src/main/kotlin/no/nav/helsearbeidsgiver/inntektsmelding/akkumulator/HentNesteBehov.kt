@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 
@@ -18,7 +19,13 @@ fun hentNesteBehov(løsninger: ObjectNode, packet: JsonMessage, objectMapper: Ob
     val jsonNode: JsonNode = objectMapper.readTree(packet.toJson())
     (jsonNode as ObjectNode).apply {
         val nodeBehov = jsonNode.get(Key.BEHOV.str) as ArrayNode
-        val nodeNesteBehov = jsonNode.get(Key.NESTE_BEHOV.str) as ArrayNode
+        val nodeNesteBehov = jsonNode.let {
+            it.get(Key.BOOMERANG.str)
+                ?.takeUnless(JsonNode::isMissingOrNull)
+                ?.get(Key.NESTE_BEHOV.str)
+                ?: it.get(Key.NESTE_BEHOV.str)
+        }
+            .let { it as ArrayNode }
         nodeBehov.flyttBehov(nodeNesteBehov)
         jsonNode.remove(Key.LØSNING.str)
         if (!løsninger.isEmpty) {

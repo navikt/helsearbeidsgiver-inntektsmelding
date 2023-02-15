@@ -5,6 +5,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -12,7 +13,10 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.value
+import no.nav.helsearbeidsgiver.felles.valueNullable
 
 class Akkumulator(
     val rapidsConnection: RapidsConnection,
@@ -30,6 +34,7 @@ class Akkumulator(
                     Key.BEHOV.str
                 )
                 it.interestedIn(
+                    Key.BOOMERANG.str,
                     Key.INITIATE_ID.str,
                     Key.UUID.str,
                     Key.IDENTITETSNUMMER.str,
@@ -40,18 +45,29 @@ class Akkumulator(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val uuid = packet.value(Key.UUID).asText()
-            .let {
-                if (it.isNullOrEmpty()) {
-                    packet.value(Key.INITIATE_ID).asText()
-                } else {
-                    it
+        val boomerang = Key.BOOMERANG.let(packet::valueNullable)
+            ?.toJsonElement()
+            ?.fromJson<Map<Key, JsonElement>>()
+            .orEmpty()
+
+        val uuid = boomerang[Key.INITIATE_ID]?.fromJson()
+            ?: boomerang[Key.UUID]?.fromJson()
+            ?: packet.value(Key.UUID).asText()
+                .let {
+                    if (it.isNullOrEmpty()) {
+                        packet.value(Key.INITIATE_ID).asText()
+                    } else {
+                        it
+                    }
                 }
-            }
 
         val eventName = packet.value(Key.EVENT_NAME).asText()
         val behovListe = packet.value(Key.BEHOV).map(JsonNode::asText)
-        val nesteBehov = packet.value(Key.NESTE_BEHOV).map(JsonNode::asText).map(BehovType::valueOf)
+        val nesteBehov = boomerang[Key.NESTE_BEHOV]?.fromJson()
+            ?: packet.value(Key.NESTE_BEHOV)
+                .map(JsonNode::asText)
+                .map(BehovType::valueOf)
+
         val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
         "Event: $eventName Behov: $behovListe Neste: $nesteBehov Uuid: $uuid".let {
             logger.info(it)

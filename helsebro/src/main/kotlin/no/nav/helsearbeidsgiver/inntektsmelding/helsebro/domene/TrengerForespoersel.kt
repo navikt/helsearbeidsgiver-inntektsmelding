@@ -3,7 +3,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene
 
 import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.jsonOf
@@ -12,7 +15,7 @@ import java.util.UUID
 
 data class TrengerForespoersel(
     val forespoerselId: UUID,
-    val boomerang: Map<String, JsonElement>
+    val boomerang: Map<Key, JsonElement>
 ) {
     val behov = Pri.BehovType.TRENGER_FORESPØRSEL
 
@@ -20,6 +23,6 @@ data class TrengerForespoersel(
         jsonOf(
             Pri.Key.BEHOV to behov.toJson(),
             Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to boomerang.toJson()
+            Pri.Key.BOOMERANG to boomerang.let(Json::encodeToJsonElement)
         )
 }

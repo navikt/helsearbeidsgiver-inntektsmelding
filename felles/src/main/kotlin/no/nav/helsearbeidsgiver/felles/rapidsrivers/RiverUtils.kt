@@ -29,6 +29,11 @@ fun JsonMessage.requireTypes(vararg keys: Pair<Key, (JsonNode) -> Any>) {
     }
 }
 
+fun JsonMessage.interestedIn(vararg keys: Key) {
+    val keysAsStr = keys.map(Key::str).toTypedArray()
+    interestedIn(*keysAsStr)
+}
+
 fun JsonNode.asUuid(): UUID =
     asText().let(UUID::fromString)
 

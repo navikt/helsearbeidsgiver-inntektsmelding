@@ -2,7 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
-import no.nav.helsearbeidsgiver.felles.json.toJson
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.mockTrengerForespoersel
@@ -15,7 +16,7 @@ class TrengerForespoerselTest : FunSpec({
             {
                 "${Pri.Key.BEHOV}": "${trengerForespoersel.behov}",
                 "${Pri.Key.FORESPOERSEL_ID}": "${trengerForespoersel.forespoerselId}",
-                "${Pri.Key.BOOMERANG}": ${trengerForespoersel.boomerang.toJson()}
+                "${Pri.Key.BOOMERANG}": ${trengerForespoersel.boomerang.let(Json::encodeToJsonElement)}
             }
         """.removeJsonWhitespace()
 

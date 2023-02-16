@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.NotisType
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.MockInntektsmeldingDokument
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -87,6 +88,18 @@ internal class JournalførInntektsmeldingLøserTest {
             )
         )
         assertEquals("jp-123", løsning.value)
+        assertEquals(3, rapid.inspektør.size)
+
+        val msg = rapid.inspektør.message(1)
+        assertEquals("LAGRE_JOURNALPOST_ID", msg.path(Key.BEHOV.str)[0].asText())
+        assertEquals("jp-123", msg.path(Key.JOURNALPOST_ID.str).asText())
+        assertEquals("uuid", msg.path(Key.UUID.str).asText())
+
+        val msg2 = rapid.inspektør.message(2)
+        assertEquals(NotisType.NOTIFIKASJON.name, msg2.path(Key.NOTIS.str)[0].asText())
+        assertEquals("uuid", msg2.path(Key.UUID.str).asText())
+        assertEquals("12345678901", msg2.path(Key.IDENTITETSNUMMER.str).asText())
+        assertEquals("123456789", msg2.path(Key.ORGNRUNDERENHET.str).asText())
     }
 
     @Test

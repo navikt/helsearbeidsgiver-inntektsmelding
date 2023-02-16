@@ -12,7 +12,8 @@ enum class BehovType {
     PREUTFYLL,
     PERSISTER_IM,
     HENT_PERSISTERT_IM,
-    JOURNALFØRT_OK
+    JOURNALFØRT_OK,
+    LAGRE_JOURNALPOST_ID
 }
 
 enum class NotisType {

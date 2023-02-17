@@ -10,17 +10,30 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.slf4j.LoggerFactory
+import java.lang.IllegalArgumentException
 import java.time.LocalDate
+import java.time.YearMonth
 
-fun finnStartMnd(now: LocalDate = LocalDate.now()): LocalDate {
-    return LocalDate.of(now.year, now.month, 1)
+fun finnInntektPeriode(syk: Periode?): Periode { // returnerer en periode tre måneder tilbake
+    if (syk == null) {
+        throw IllegalArgumentException("Ugyldig data! Sykemeldingsperiode kan ikke være null")
+    }
+    val fom = YearMonth.from(syk.fom).toLocalDate()
+    return Periode(fom.minusMonths(3), fom.minusDays(1))
 }
+
+fun YearMonth.toLocalDate(): LocalDate =
+    LocalDate.of(year, month, 1)
 
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 
@@ -31,7 +44,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         River(rapidsConnection).apply {
             validate {
                 it.demandAll(Key.BEHOV.str, BEHOV)
-                it.requireKey(Key.ID.str, Key.IDENTITETSNUMMER.str, Key.ORGNRUNDERENHET.str)
+                it.requireKey(Key.ID.str, Key.IDENTITETSNUMMER.str, Key.ORGNRUNDERENHET.str, Key.SESSION.str)
                 it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
@@ -51,11 +64,12 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         sikkerlogg.info("Løser behov $BEHOV med id $uuid")
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
-        val til = finnStartMnd()
-        val fra = til.minusMonths(9) // TODO: skal endres til 3 mnd
-        sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: $fra - $til")
+        val imLøsning = packet.value(Key.SESSION)[BehovType.HENT_TRENGER_IM.name]?.toJsonElement()?.fromJson<HentTrengerImLøsning>()
+        val sykPeriode = imLøsning?.value?.sykmeldingsperioder?.maxByOrNull { it.fom } // TODO: denne er nok litt simpel..
         try {
-            val inntektResponse = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
+            val periode = finnInntektPeriode(sykPeriode)
+            sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${periode.fom} - ${periode.tom}")
+            val inntektResponse = hentInntekt(fnr, periode.fom, periode.tom, "helsearbeidsgiver-im-inntekt-$uuid")
             sikkerlogg.info("Fant inntektResponse: $inntektResponse")
             val inntekt = mapInntekt(inntektResponse, orgnr)
             packet.setLøsning(BEHOV, InntektLøsning(inntekt))

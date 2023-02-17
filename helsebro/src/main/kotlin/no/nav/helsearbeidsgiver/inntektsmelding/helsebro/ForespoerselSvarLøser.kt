@@ -48,7 +48,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             Key.LØSNING to mapOf(
                 BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
             ).let(Json::encodeToJsonElement),
-            Key.BOOMERANG to forespoerselSvar.boomerang.let(Json::encodeToJsonElement)
+            Key.BOOMERANG to forespoerselSvar.boomerang
         )
 
         logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")

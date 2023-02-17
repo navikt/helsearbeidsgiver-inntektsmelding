@@ -23,19 +23,18 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
                 it.demandAll(Key.BEHOV.str, BehovType.PREUTFYLL)
                 it.rejectKey(Key.LØSNING.str)
                 it.requireKey(Key.SESSION.str)
-                it.interestedIn(Key.ORGNR.str, Key.FNR.str)
             }
         }.register(this)
     }
 
-    fun hentLøsning(packet: JsonMessage): HentTrengerImLøsning {
+    fun hentLøsning(packet: JsonMessage): HentTrengerImLøsning =
         try {
-            val løsning = packet[Key.SESSION.str][BehovType.HENT_TRENGER_IM.name]
-            return løsning.toJsonElement().fromJson()
+            packet[Key.SESSION.str][BehovType.HENT_TRENGER_IM.name]
+                .toJsonElement()
+                .fromJson()
         } catch (ex: Exception) {
-            return HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
+            HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
         }
-    }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Fikk pakke")

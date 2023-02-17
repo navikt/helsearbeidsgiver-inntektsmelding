@@ -2,27 +2,23 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.encodeToJsonElement
-import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.jsonOf
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import java.util.UUID
 
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
 data class TrengerForespoersel(
     val forespoerselId: UUID,
-    val boomerang: Map<Key, JsonElement>
+    val boomerang: JsonElement
 ) {
+    @SerialName("@behov")
+    @EncodeDefault
     val behov = Pri.BehovType.TRENGER_FORESPØRSEL
-
-    fun toJson(): JsonElement =
-        jsonOf(
-            Pri.Key.BEHOV to behov.toJson(),
-            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to boomerang.let(Json::encodeToJsonElement)
-        )
 }

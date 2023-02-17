@@ -38,7 +38,8 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         forespurtData = mockForespurtDataListe()
     )
 
-private fun mockBoomerang(): Map<Key, JsonElement> =
+private fun mockBoomerang(): JsonElement =
     mapOf(
-        Key.INITIATE_ID to UUID.randomUUID().toJson()
+        Key.INITIATE_ID.str to UUID.randomUUID().toJson()
     )
+        .toJson()

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import org.apache.kafka.clients.CommonClientConfigs
@@ -57,7 +58,7 @@ private fun kafkaProperties(): Properties =
 
 private class TrengerForespoerselDataSerializer : Serializer<TrengerForespoersel> {
     override fun serialize(topic: String, data: TrengerForespoersel): ByteArray =
-        data.toJson()
+        data.toJson(TrengerForespoersel.serializer())
             .toString()
             .toByteArray()
 }

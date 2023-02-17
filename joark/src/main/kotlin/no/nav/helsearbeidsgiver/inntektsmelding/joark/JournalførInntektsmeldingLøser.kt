@@ -50,7 +50,6 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
     fun sendNotifikasjon(uuid: String, inntektsmelding: InntektsmeldingDokument) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to "inntektsmelding_journalført",
                 Key.NOTIS.str to listOf(
                     NotisType.NOTIFIKASJON.name
                 ),

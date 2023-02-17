@@ -46,7 +46,7 @@ class ForespoerselSvarLøserTest : FunSpec({
         testRapid.sendJson(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
             Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement),
-            Pri.Key.BOOMERANG to expectedIncoming.boomerang.let(Json::encodeToJsonElement)
+            Pri.Key.BOOMERANG to expectedIncoming.boomerang
         )
 
         val actual = testRapid.lastMessageJson().let(Published::fromJson)
@@ -63,7 +63,7 @@ private data class Published(
     override val behov: List<BehovType>,
     @JsonNames("@løsning")
     override val løsning: Map<BehovType, HentTrengerImLøsning>,
-    val boomerang: Map<Key, JsonElement>
+    val boomerang: JsonElement
 ) : PublishedLøsning {
     companion object {
         private val behovType = BehovType.HENT_TRENGER_IM

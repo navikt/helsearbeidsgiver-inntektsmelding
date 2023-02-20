@@ -16,7 +16,6 @@ import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
-import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
@@ -38,6 +37,7 @@ class ForespoerselSvarLøserTest : FunSpec({
     withData(
         mapOf(
             "Ved suksessfull løsning på behov så publiseres løsning på simba-rapid" to mockForespoerselSvarMedSuksess(),
+            "Ved suksessfull løsning med fastsatt inntekt på behov så publiseres løsning på simba-rapid" to mockForespoerselSvarMedSuksessMedFastsattInntekt(),
             "Ved feil så publiseres feil på simba-rapid" to mockForespoerselSvarMedFeil()
         )
     ) { expectedIncoming ->

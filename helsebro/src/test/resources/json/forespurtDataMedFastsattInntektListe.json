@@ -17,6 +17,18 @@
     "fastsattInntekt": 31415.92
   },
   {
-    "opplysningstype": "Refusjon"
+    "opplysningstype": "Refusjon",
+    "forslag": [
+      {
+        "fom": "2018-01-01",
+        "tom": "2018-01-14",
+        "beløp": 31415.92
+      },
+      {
+        "fom": "2018-01-15",
+        "tom": null,
+        "beløp": 0.0
+      }
+    ]
   }
 ]

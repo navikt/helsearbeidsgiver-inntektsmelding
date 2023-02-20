@@ -4,6 +4,7 @@ import io.ktor.client.statement.HttpResponse
 import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
+import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.test.date.desember
 import no.nav.helsearbeidsgiver.felles.test.date.januar
@@ -41,7 +42,7 @@ fun mockForespurtDataListe(): List<ForespurtData> =
                 )
             )
         ),
-        ForespurtData.Refusjon
+        ForespurtData.Refusjon(forslag = emptyList())
     )
 
 fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtData> =
@@ -55,7 +56,20 @@ fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtData> =
         ForespurtData.FastsattInntekt(
             fastsattInntekt = 31415.92
         ),
-        ForespurtData.Refusjon
+        ForespurtData.Refusjon(
+            forslag = listOf(
+                ForslagRefusjon(
+                    1.januar,
+                    14.januar,
+                    31415.92
+                ),
+                ForslagRefusjon(
+                    15.januar,
+                    null,
+                    0.0
+                )
+            )
+        )
     )
 
 fun mockTrengerInntekt(): TrengerInntekt = TrengerInntekt(

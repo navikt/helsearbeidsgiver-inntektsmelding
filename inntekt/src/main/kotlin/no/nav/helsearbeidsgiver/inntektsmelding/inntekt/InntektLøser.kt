@@ -35,13 +35,16 @@ fun finnInntektPeriode(sykmeldinger: List<Periode>?): Periode { // returnerer en
 }
 
 fun slåSammenPerioder(sykmeldinger: List<Periode>): List<Periode> {
+    if (sykmeldinger.size <= 1) {
+        return sykmeldinger
+    }
     var slåttsammen = emptyList<Periode>()
     var sorted = sykmeldinger.sortedBy { periode -> periode.fom }
     while (sorted.isNotEmpty()) {
         val p1 = sorted.get(0)
         val overlapper = sorted.filter { p -> overlapper(p, p1) }
-        val periode = Periode(p1.fom, overlapper.maxOf { p -> p.tom })
-        slåttsammen.plus(periode)
+        val periode = Periode(p1.fom, overlapper.maxOf { it.tom })
+        slåttsammen = slåttsammen.plus(periode)
         sorted = sorted.minus(overlapper)
     }
     return slåttsammen

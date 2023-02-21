@@ -22,18 +22,34 @@ import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.slf4j.LoggerFactory
 import java.lang.IllegalArgumentException
 import java.time.LocalDate
-import java.time.YearMonth
 
-fun finnInntektPeriode(syk: Periode?): Periode { // returnerer en periode tre måneder tilbake
-    if (syk == null) {
-        throw IllegalArgumentException("Ugyldig data! Sykemeldingsperiode kan ikke være null")
+fun finnInntektPeriode(sykmeldinger: List<Periode>?): Periode { // returnerer en periode tre måneder tilbake
+    if (sykmeldinger.isNullOrEmpty()) {
+        throw IllegalArgumentException("Ugyldig data! Sykemeldingsperiode kan ikke være tom!")
     }
-    val fom = YearMonth.from(syk.fom).toLocalDate()
+    val sortertOgSlåttSammen = slåSammenPerioder(sykmeldinger)
+    // TODO: Fjern perioder som er for korte
+    val p = sortertOgSlåttSammen.get(0) // naiv tilnærming
+    val fom = p.fom.withDayOfMonth(1)
     return Periode(fom.minusMonths(3), fom.minusDays(1))
 }
 
-fun YearMonth.toLocalDate(): LocalDate =
-    LocalDate.of(year, month, 1)
+fun slåSammenPerioder(sykmeldinger: List<Periode>): List<Periode> {
+    var slåttsammen = emptyList<Periode>()
+    var sorted = sykmeldinger.sortedBy { periode -> periode.fom }
+    while (sorted.isNotEmpty()) {
+        val p1 = sorted.get(0)
+        val overlapper = sorted.filter { p -> overlapper(p, p1) }
+        val periode = Periode(p1.fom, overlapper.maxOf { p -> p.tom })
+        slåttsammen.plus(periode)
+        sorted = sorted.minus(overlapper)
+    }
+    return slåttsammen
+}
+
+private fun overlapper(p: Periode, p1: Periode): Boolean {
+    return p.fom.isBefore(p1.tom)
+} // TODO: Helger / bevegelige helligdager / en dags ikke-gap
 
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 
@@ -65,7 +81,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
         val imLøsning = packet.value(Key.SESSION)[BehovType.HENT_TRENGER_IM.name]?.toJsonElement()?.fromJson<HentTrengerImLøsning>()
-        val sykPeriode = imLøsning?.value?.sykmeldingsperioder?.maxByOrNull { it.fom } // TODO: denne er nok litt simpel..
+        val sykPeriode = imLøsning?.value?.sykmeldingsperioder
         try {
             val periode = finnInntektPeriode(sykPeriode)
             sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${periode.fom} - ${periode.tom}")

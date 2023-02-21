@@ -19,6 +19,9 @@ import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.test.date.februar
+import no.nav.helsearbeidsgiver.felles.test.date.januar
+import no.nav.helsearbeidsgiver.felles.test.date.mars
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsInntektInformasjon
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsinntektMaaned
@@ -30,6 +33,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.lang.IllegalArgumentException
@@ -128,11 +132,13 @@ internal class InntektLøserTest {
     }
 
     @Test
-    fun `skal finne riktig inntektsPeriode basert på sykmeldingsperioden`() {
+    fun `skal finne riktig inntektsPeriode basert på sykmeldingsperioden - henter forrige måned`() {
         val inntektPeriode = finnInntektPeriode(
-            Periode(
-                fom = LocalDate.of(2022, 4, 1),
-                tom = LocalDate.of(2022, 4, 20)
+            listOf(
+                Periode(
+                    fom = LocalDate.of(2022, 4, 1),
+                    tom = LocalDate.of(2022, 4, 20)
+                )
             )
         )
         val expectedFom = LocalDate.of(2022, 1, 1)
@@ -142,8 +148,51 @@ internal class InntektLøserTest {
     }
 
     @Test
-    fun `skal håndtere ulovlig null-verdi i sykmeldingsperiode`() {
+    fun `skal sortere fra eldst til nyest ved flere sykmeldingsperioder`() {
+        val inntektPeriode = finnInntektPeriode(
+            listOf(
+                Periode(
+                    fom = LocalDate.of(2022, 4, 1),
+                    tom = LocalDate.of(2022, 4, 20)
+                ),
+                Periode(
+                    fom = LocalDate.of(2022, 3, 1),
+                    tom = LocalDate.of(2022, 3, 20)
+                )
+            )
+        )
+        // Skal velge mars, dermed blir tremånedersperioden desember - februar
+        val expectedFom = LocalDate.of(2021, 12, 1)
+        val expectedTom = LocalDate.of(2022, 2, 28)
+        assertEquals(expectedFom, inntektPeriode.fom)
+        assertEquals(expectedTom, inntektPeriode.tom)
+    }
+
+    @Test
+    fun `skal håndtere ulovlige verdier i sykmeldingsperiode`() {
         assertThrows(IllegalArgumentException::class.java, { finnInntektPeriode(null) }, "Skal aldri få null i sykmeldingperiode")
+        assertThrows(IllegalArgumentException::class.java, { finnInntektPeriode(emptyList()) }, "Skal aldri få tom sykmeldingperiode")
+    }
+
+    @Test
+    fun `skal slå sammen perioder som overlapper`() {
+        val p1 = Periode(1.februar(2023), 5.februar(2023))
+        val p2 = Periode(4.februar(2023), 19.februar(2023))
+        val perioder = listOf(p2, p1)
+        val sortertOgSlåttSammen = slåSammenPerioder(perioder)
+        assertTrue(sortertOgSlåttSammen.size == 1)
+        assertEquals(p1.fom, sortertOgSlåttSammen.get(0).fom)
+        assertEquals(p2.tom, sortertOgSlåttSammen.get(0).tom)
+    }
+
+    @Test
+    fun `passerer Marte og Mikael cornercase - bruk første dato i siste sammenhengende sykmeldingsperiode`() {
+        val aar = 2023
+        val p1 = Periode(31.januar(aar), 2.februar(aar)) // 3 dager, så opphold 10 dager, så 2 dager -> mindre enn 16 dager arb.giver-periode, teller ikke!
+        val p2 = Periode(12.februar(aar), 14.februar(aar))
+        val p3 = Periode(26.februar(aar), 28.februar(aar)) // p3 + p4 er en sammenhengende periode større enn arb.giver-periode - 26/2 skal brukes som start!
+        val p4 = Periode(1.mars(aar), 20.mars(aar))
+        val sykmeldinger = listOf(p1, p2, p3, p4)
     }
 
     @Test

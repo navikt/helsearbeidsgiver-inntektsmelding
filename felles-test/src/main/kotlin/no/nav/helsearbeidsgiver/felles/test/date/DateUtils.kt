@@ -18,6 +18,10 @@ fun Int.januar(aar: Int): LocalDate =
 fun Int.februar(aar: Int): LocalDate =
     LocalDate.of(aar, Month.FEBRUARY, this)
 
+val Int.februar
+    get(): LocalDate =
+        februar(defaultAar)
+
 fun januar(aar: Int): YearMonth =
     YearMonth.of(aar, Month.JANUARY)
 

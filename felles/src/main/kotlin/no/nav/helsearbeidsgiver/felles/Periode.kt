@@ -11,7 +11,11 @@ import java.time.LocalDate
 data class Periode(
     val fom: LocalDate,
     val tom: LocalDate
-)
+) {
+    fun overlapper(other: Periode): Boolean {
+        return fom.equals(other) || (fom.isBefore(other.tom) && tom.isAfter(other.fom))
+    } // TODO: Helger / en dags ikke-gap / fom på samme dag som other.tom
+}
 
 infix fun LocalDate.til(tom: LocalDate): Periode =
     Periode(

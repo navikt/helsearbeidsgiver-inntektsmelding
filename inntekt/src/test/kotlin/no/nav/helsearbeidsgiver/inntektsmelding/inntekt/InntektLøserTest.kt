@@ -20,8 +20,6 @@ import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.test.date.februar
-import no.nav.helsearbeidsgiver.felles.test.date.januar
-import no.nav.helsearbeidsgiver.felles.test.date.mars
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsInntektInformasjon
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsinntektMaaned
@@ -185,15 +183,15 @@ internal class InntektLøserTest {
         assertEquals(p2.tom, sortertOgSlåttSammen.get(0).tom)
     }
 
-    @Test
-    fun `passerer Marte og Mikael cornercase - bruk første dato i siste sammenhengende sykmeldingsperiode`() {
-        val aar = 2023
-        val p1 = Periode(31.januar(aar), 2.februar(aar)) // 3 dager, så opphold 10 dager, så 2 dager -> mindre enn 16 dager arb.giver-periode, teller ikke!
-        val p2 = Periode(12.februar(aar), 14.februar(aar))
-        val p3 = Periode(26.februar(aar), 28.februar(aar)) // p3 + p4 er en sammenhengende periode større enn arb.giver-periode - 26/2 skal brukes som start!
-        val p4 = Periode(1.mars(aar), 20.mars(aar))
-        val sykmeldinger = listOf(p1, p2, p3, p4)
-    }
+//    @Test
+//    fun `Bruk første dato i siste sammenhengende sykmeldingsperiode`() {
+//        val aar = 2023
+//        val p1 = Periode(31.januar(aar), 2.februar(aar)) // 3 dager, så opphold 10 dager, så 2 dager -> mindre enn 16 dager arb.giver-periode, teller ikke!
+//        val p2 = Periode(12.februar(aar), 14.februar(aar))
+//        val p3 = Periode(26.februar(aar), 28.februar(aar)) // p3 + p4 er en sammenhengende periode større enn arb.giver-periode - 26/2 skal brukes som start!
+//        val p4 = Periode(1.mars(aar), 20.mars(aar))
+//        val sykmeldinger = listOf(p1, p2, p3, p4)
+//    }
 
     @Test
     fun `skal finne riktig inntekt basert på sykmeldingsperioden som kommer i BEHOV`() {

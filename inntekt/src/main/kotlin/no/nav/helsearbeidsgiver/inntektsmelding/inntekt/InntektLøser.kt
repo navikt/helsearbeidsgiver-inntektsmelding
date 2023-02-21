@@ -42,17 +42,13 @@ fun slåSammenPerioder(sykmeldinger: List<Periode>): List<Periode> {
     var sorted = sykmeldinger.sortedBy { periode -> periode.fom }
     while (sorted.isNotEmpty()) {
         val p1 = sorted.get(0)
-        val overlapper = sorted.filter { p -> overlapper(p, p1) }
+        val overlapper = sorted.filter { it.overlapper(p1) }
         val periode = Periode(p1.fom, overlapper.maxOf { it.tom })
         slåttsammen = slåttsammen.plus(periode)
         sorted = sorted.minus(overlapper)
     }
     return slåttsammen
 }
-
-private fun overlapper(p: Periode, p1: Periode): Boolean {
-    return p.fom.isBefore(p1.tom)
-} // TODO: Helger / bevegelige helligdager / en dags ikke-gap
 
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 

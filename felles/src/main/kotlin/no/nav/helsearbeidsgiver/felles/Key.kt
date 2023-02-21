@@ -15,7 +15,6 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 enum class Key(val str: String) {
     // Predefinerte fra rapids-and-rivers-biblioteket
     ID("@id"),
-    EVENT_NAME("@event_name"),
     BEHOV("@behov"),
     LØSNING("@løsning"),
     OPPRETTET("@opprettet"),

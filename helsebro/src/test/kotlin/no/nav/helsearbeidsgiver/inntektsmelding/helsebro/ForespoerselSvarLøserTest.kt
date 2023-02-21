@@ -16,7 +16,6 @@ import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
-import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
@@ -38,6 +37,7 @@ class ForespoerselSvarLøserTest : FunSpec({
     withData(
         mapOf(
             "Ved suksessfull løsning på behov så publiseres løsning på simba-rapid" to mockForespoerselSvarMedSuksess(),
+            "Ved suksessfull løsning med fastsatt inntekt på behov så publiseres løsning på simba-rapid" to mockForespoerselSvarMedSuksessMedFastsattInntekt(),
             "Ved feil så publiseres feil på simba-rapid" to mockForespoerselSvarMedFeil()
         )
     ) { expectedIncoming ->
@@ -46,7 +46,7 @@ class ForespoerselSvarLøserTest : FunSpec({
         testRapid.sendJson(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
             Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement),
-            Pri.Key.BOOMERANG to expectedIncoming.boomerang.let(Json::encodeToJsonElement)
+            Pri.Key.BOOMERANG to expectedIncoming.boomerang
         )
 
         val actual = testRapid.lastMessageJson().let(Published::fromJson)
@@ -63,7 +63,7 @@ private data class Published(
     override val behov: List<BehovType>,
     @JsonNames("@løsning")
     override val løsning: Map<BehovType, HentTrengerImLøsning>,
-    val boomerang: Map<Key, JsonElement>
+    val boomerang: JsonElement
 ) : PublishedLøsning {
     companion object {
         private val behovType = BehovType.HENT_TRENGER_IM

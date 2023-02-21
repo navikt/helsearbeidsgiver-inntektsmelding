@@ -25,9 +25,9 @@ fun RouteExtra.TrengerRoute() {
             try {
                 request.validate()
                 val uuid = trengerProducer.publish(request)
-                val resultat = redis.getResultat(uuid, 10, 500)
+                val resultat = redis.getResultat(uuid.toString(), 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
-                val mapper = TrengerMapper(uuid, resultat)
+                val mapper = TrengerMapper(resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for $request.uuid")

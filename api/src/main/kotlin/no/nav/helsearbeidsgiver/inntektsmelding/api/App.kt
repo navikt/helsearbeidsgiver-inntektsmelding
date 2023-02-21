@@ -38,13 +38,8 @@ object Routes {
 fun main() {
     val env = System.getenv()
     RapidApplication.create(env)
-        .also { logger.info("Starter server...") }
         .also(::startServer)
-        .also { logger.info("Startet server!") }
         .start()
-        .also { logger.info("Startet rapid!") }
-
-    logger.info("Takk for meg!")
 }
 
 private fun startServer(connection: RapidsConnection) {

@@ -61,7 +61,6 @@ class Akkumulator(
                     }
                 }
 
-        val eventName = packet.value(Key.EVENT_NAME).asText()
         val behovListe = packet.value(Key.BEHOV).map(JsonNode::asText)
         val nesteBehov = boomerang[Key.NESTE_BEHOV]?.fromJson<List<BehovType>>()?.takeUnless(List<BehovType>::isEmpty)
             ?: packet.value(Key.NESTE_BEHOV)
@@ -69,7 +68,7 @@ class Akkumulator(
                 .map(BehovType::valueOf)
 
         val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
-        "Event: $eventName Behov: $behovListe Neste: $nesteBehov Uuid: $uuid".let {
+        "Behov: $behovListe Neste: $nesteBehov Uuid: $uuid".let {
             logger.info(it)
             sikkerlogg.info("$it Fnr: $identitetsnummer Pakke: ${packet.toJson()}")
         }

@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
@@ -18,7 +17,7 @@ data class ForespoerselSvar(
     val forespoerselId: UUID,
     val resultat: Suksess? = null,
     val feil: Feil? = null,
-    val boomerang: Map<Key, JsonElement>
+    val boomerang: JsonElement
 ) {
     companion object {
         val behovType = Pri.BehovType.TRENGER_FORESPØRSEL

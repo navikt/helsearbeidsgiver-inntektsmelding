@@ -24,14 +24,13 @@ import java.time.LocalDateTime
 
 class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : River.PacketListener {
 
-    private val BEHOV = BehovType.JOURNALFOER
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll(Key.BEHOV.str, BEHOV)
+                it.demandAll(Key.BEHOV.str, BehovType.JOURNALFOER)
                 it.requireKey(Key.ID.str)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.rejectKey(Key.LØSNING.str)
@@ -73,7 +72,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov $BEHOV med id $uuid")
+        logger.info("Løser behov"+ BehovType.JOURNALFOER + " med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         val session = packet[Key.SESSION.str]
         sikkerlogg.info("Fant session: $session")

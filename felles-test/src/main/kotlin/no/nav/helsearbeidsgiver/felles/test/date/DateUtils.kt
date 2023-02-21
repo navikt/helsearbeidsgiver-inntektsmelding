@@ -16,7 +16,7 @@ fun Int.januar(aar: Int): LocalDate =
     LocalDate.of(aar, Month.JANUARY, this)
 
 fun Int.februar(aar: Int): LocalDate =
-    LocalDate.of(aar, Month.JANUARY, this)
+    LocalDate.of(aar, Month.FEBRUARY, this)
 
 fun januar(aar: Int): YearMonth =
     YearMonth.of(aar, Month.JANUARY)

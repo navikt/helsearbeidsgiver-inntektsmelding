@@ -12,7 +12,6 @@ enum class BehovType {
     PREUTFYLL,
     PERSISTER_IM,
     HENT_PERSISTERT_IM,
-    JOURNALFØRT_OK,
     LAGRE_JOURNALPOST_ID,
     SEND_IM_TIL_SPLEIS
 }
@@ -20,4 +19,8 @@ enum class BehovType {
 enum class NotisType {
     NOTIFIKASJON,
     NOTIFIKASJON_TRENGER_IM
+}
+
+enum class EventName {
+    INNTEKTSMELDING_MOTTATT
 }

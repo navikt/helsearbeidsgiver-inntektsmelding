@@ -72,7 +72,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov"+ BehovType.JOURNALFOER + " med id $uuid")
+        logger.info("Løser behov" + BehovType.JOURNALFOER + " med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         val session = packet[Key.SESSION.str]
         sikkerlogg.info("Fant session: $session")
@@ -116,7 +116,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
     }
 
     fun publiserLøsning(løsning: JournalpostLøsning, packet: JsonMessage, context: MessageContext) {
-        packet.setLøsning(BEHOV, løsning)
+        packet.setLøsning(BehovType.JOURNALFOER, løsning)
         context.publish(packet.toJson())
     }
 

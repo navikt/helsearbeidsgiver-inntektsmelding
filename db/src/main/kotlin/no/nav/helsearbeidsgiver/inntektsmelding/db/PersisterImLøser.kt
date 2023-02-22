@@ -8,15 +8,17 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersisterImLøsning
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.slf4j.LoggerFactory
 
-class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
+class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
 
     private val BEHOV = BehovType.PERSISTER_IM
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
@@ -63,11 +65,22 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
                 BehovType.JOURNALFOER.name
             )
             publiserLøsning(PersisterImLøsning(dbUuid), packet, context)
+            publiserInntektsmeldingMottatt(inntektsmeldingDokument)
         } catch (ex: Exception) {
             logger.error("Klarte ikke persistere: $uuid")
             sikkerlogg.error("Klarte ikke persistere: $uuid", ex)
             publiserLøsning(PersisterImLøsning(error = Feilmelding(melding = "Klarte ikke persistere!")), packet, context)
         }
+    }
+
+    private fun publiserInntektsmeldingMottatt(inntektsmeldingDokument: InntektsmeldingDokument) {
+        val packet: JsonMessage = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
+                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument
+            )
+        )
+        rapidsConnection.publish(packet.toJson())
     }
 
     fun publiserLøsning(løsning: PersisterImLøsning, packet: JsonMessage, context: MessageContext) {

@@ -89,11 +89,11 @@ internal class JournalførInntektsmeldingLøserTest {
 
         val msg = rapid.inspektør.message(0)
         assertEquals(BehovType.JOURNALFOER.name, msg.path(Key.BEHOV.str)[0].asText())
-        assertEquals("jp-123", msg.path(Key.JOURNALPOST_ID.str).asText())
         assertEquals("uuid", msg.path(Key.UUID.str).asText())
 
         val msg2 = rapid.inspektør.message(1)
         assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, msg2.path(Key.BEHOV.str)[0].asText())
+        assertEquals("jp-123", msg2.path(Key.JOURNALPOST_ID.str).asText())
         assertEquals("uuid", msg2.path(Key.UUID.str).asText())
     }
 

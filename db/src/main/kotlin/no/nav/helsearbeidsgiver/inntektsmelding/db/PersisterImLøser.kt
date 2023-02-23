@@ -61,9 +61,9 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
             val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)
             sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid")
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
-            packet[Key.NESTE_BEHOV.str] = listOf(
-                BehovType.JOURNALFOER.name
-            )
+//            packet[Key.NESTE_BEHOV.str] = listOf(
+//                BehovType.JOURNALFOER.name
+//            )
             publiserLøsning(PersisterImLøsning(dbUuid), packet, context)
             publiserInntektsmeldingMottatt(inntektsmeldingDokument)
         } catch (ex: Exception) {

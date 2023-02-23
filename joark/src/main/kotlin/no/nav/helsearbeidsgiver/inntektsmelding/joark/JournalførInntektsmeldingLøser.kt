@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NotisType
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
@@ -46,21 +45,21 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
         return dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
     }
 
-    fun sendNotifikasjon(uuid: String, inntektsmelding: InntektsmeldingDokument) {
-        val packet: JsonMessage = JsonMessage.newMessage(
-            mapOf(
-                Key.NOTIS.str to listOf(
-                    NotisType.NOTIFIKASJON.name
-                ),
-                Key.ID.str to uuid,
-                Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.UUID.str to uuid,
-                Key.IDENTITETSNUMMER.str to inntektsmelding.identitetsnummer,
-                Key.ORGNRUNDERENHET.str to inntektsmelding.orgnrUnderenhet
-            )
-        )
-        rapidsConnection.publish(inntektsmelding.identitetsnummer, packet.toJson())
-    }
+//    fun sendNotifikasjon(uuid: String, inntektsmelding: InntektsmeldingDokument) {
+//        val packet: JsonMessage = JsonMessage.newMessage(
+//            mapOf(
+//                Key.NOTIS.str to listOf(
+//                    NotisType.NOTIFIKASJON.name
+//                ),
+//                Key.ID.str to uuid,
+//                Key.OPPRETTET.str to LocalDateTime.now(),
+//                Key.UUID.str to uuid,
+//                Key.IDENTITETSNUMMER.str to inntektsmelding.identitetsnummer,
+//                Key.ORGNRUNDERENHET.str to inntektsmelding.orgnrUnderenhet
+//            )
+//        )
+//        rapidsConnection.publish(inntektsmelding.identitetsnummer, packet.toJson())
+//    }
 
     fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
         try {
@@ -84,13 +83,14 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
             logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
             val løsning = JournalpostLøsning(journalpostId)
             publiserLøsning(løsning, packet, context)
-            publiserLagring(uuid, journalpostId, inntektsmeldingDokument.identitetsnummer)
-            try {
-                sendNotifikasjon(uuid, inntektsmeldingDokument)
-                sikkerlogg.info("Registrere melding om notifikasjon for $inntektsmeldingDokument")
-            } catch (ex: Exception) {
-                sikkerlogg.error("Klarte ikke registrere melding om notifikasjon for $inntektsmeldingDokument", ex)
-            }
+            val eventName = packet[Key.EVENT_NAME.str].asText()
+            publiserLagring(uuid, journalpostId, inntektsmeldingDokument.identitetsnummer, eventName)
+//            try {
+//                sendNotifikasjon(uuid, inntektsmeldingDokument)
+//                sikkerlogg.info("Registrere melding om notifikasjon for $inntektsmeldingDokument")
+//            } catch (ex: Exception) {
+//                sikkerlogg.error("Klarte ikke registrere melding om notifikasjon for $inntektsmeldingDokument", ex)
+//            }
         } catch (ex: DokArkivException) {
             sikkerlogg.info("Klarte ikke journalføre", ex)
             publiserLøsning(JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet")), packet, context)
@@ -103,9 +103,10 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
         }
     }
 
-    fun publiserLagring(uuid: String, journalpostId: String, identitetsnummer: String) {
+    fun publiserLagring(uuid: String, journalpostId: String, identitetsnummer: String, eventName: String) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
+                Key.EVENT_NAME.str to eventName,
                 Key.BEHOV.str to listOf(BehovType.LAGRE_JOURNALPOST_ID),
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.JOURNALPOST_ID.str to journalpostId,

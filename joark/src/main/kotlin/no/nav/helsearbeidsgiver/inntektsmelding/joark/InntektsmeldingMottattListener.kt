@@ -25,8 +25,8 @@ class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnect
         logger.info("Inntektsmelding Mottat med packet ${packet.toJson()}")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
-                Key.BEHOV.str to BehovType.JOURNALFOER.name,
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
+                Key.BEHOV.str to BehovType.JOURNALFOER,
                 Key.UUID.str to packet[Key.UUID.str],
                 Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
             )

@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import com.fasterxml.jackson.databind.JsonNode
+import jdk.jfr.EventType
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -11,10 +12,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
-import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
-import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.*
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
@@ -29,6 +27,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
     init {
         River(rapidsConnection).apply {
             validate {
+                it.demandValue(Key.EVENT_NAME.str,EventName.INNTEKTSMELDING_MOTTATT.name)
                 it.demandAll(Key.BEHOV.str, BehovType.JOURNALFOER)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.rejectKey(Key.LØSNING.str)

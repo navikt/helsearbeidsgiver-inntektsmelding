@@ -30,10 +30,8 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
         River(rapidsConnection).apply {
             validate {
                 it.demandAll(Key.BEHOV.str, BehovType.JOURNALFOER)
-                it.requireKey(Key.ID.str)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.rejectKey(Key.LØSNING.str)
-                it.interestedIn(Key.SESSION.str)
                 it.interestedIn(Key.UUID.str)
             }
         }.register(this)
@@ -73,8 +71,6 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
         val uuid = packet[Key.UUID.str].asText()
         logger.info("Løser behov" + BehovType.JOURNALFOER + " med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
-        val session = packet[Key.SESSION.str]
-        sikkerlogg.info("Fant session: $session")
         try {
             val inntektsmeldingDokument = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING_DOKUMENT.str])
             sikkerlogg.info("Skal journalføre: $inntektsmeldingDokument")

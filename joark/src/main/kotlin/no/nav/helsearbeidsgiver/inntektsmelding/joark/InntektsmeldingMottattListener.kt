@@ -14,6 +14,7 @@ class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnect
         River(rapidsConnection).apply {
             validate {
                 it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
+                it.rejectKey(Key.BEHOV.str)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.interestedIn(Key.UUID.str)
             }

@@ -59,7 +59,7 @@ class InntektsmeldingMottattListenerTest {
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.ID to UUID.randomUUID().toJson(),
             Key.UUID to "uuid".toJson(),
-            Key.INNTEKTSMELDING to request.let(Json::encodeToJsonElement)
+            Key.INNTEKTSMELDING_DOKUMENT to request.let(Json::encodeToJsonElement)
         )
         assertEquals(EventName.INNTEKTSMELDING_MOTTATT.name, rapid.inspektør.message(0).path(Key.EVENT_NAME.str).asText())
         assertEquals(BehovType.JOURNALFOER.name, rapid.inspektør.message(0).path(Key.BEHOV.str).asText())

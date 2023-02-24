@@ -14,7 +14,7 @@ class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnect
         River(rapidsConnection).apply {
             validate {
                 it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
-                it.requireKey(Key.INNTEKTSMELDING.str)
+                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.interestedIn(Key.UUID.str)
             }
         }.register(this)
@@ -27,7 +27,7 @@ class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnect
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
                     Key.BEHOV.str to BehovType.JOURNALFOER.name,
                     Key.UUID.str to packet[Key.UUID.str],
-                    Key.INNTEKTSMELDING.str to packet[Key.INNTEKTSMELDING.str]
+                    Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
                 )
             ).toJson()
         )

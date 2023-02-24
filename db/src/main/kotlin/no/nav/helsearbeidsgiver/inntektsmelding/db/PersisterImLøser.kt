@@ -76,10 +76,11 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
     private fun publiserInntektsmeldingMottatt(inntektsmeldingDokument: InntektsmeldingDokument) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument
             )
         )
+        logger.info("publiser Inntektsmelding Mottatt pakke er ${packet.toJson()}")
         rapidsConnection.publish(packet.toJson())
     }
 

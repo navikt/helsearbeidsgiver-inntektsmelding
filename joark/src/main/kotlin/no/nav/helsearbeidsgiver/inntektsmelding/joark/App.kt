@@ -19,5 +19,6 @@ internal fun createApp(environment: Environment): RapidsConnection {
         rapidsConnection,
         buildDokArkivClient(environment)
     )
+    InntektsmeldingMottattListener(rapidsConnection)
     return rapidsConnection
 }

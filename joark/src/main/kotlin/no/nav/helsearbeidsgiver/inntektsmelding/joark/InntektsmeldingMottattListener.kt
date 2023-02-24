@@ -14,6 +14,7 @@ class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnect
         River(rapidsConnection).apply {
             validate {
                 it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
+                it.rejectKey(Key.BEHOV.str)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.interestedIn(Key.UUID.str)
             }
@@ -22,15 +23,15 @@ class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnect
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Inntektsmelding Mottat med packet ${packet.toJson()}")
-        rapidsConnection.publish(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
-                    Key.BEHOV.str to BehovType.JOURNALFOER.name,
-                    Key.UUID.str to packet[Key.UUID.str],
-                    Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
-                )
-            ).toJson()
-        )
+        val jsonMessage = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
+                Key.BEHOV.str to BehovType.JOURNALFOER,
+                Key.UUID.str to packet[Key.UUID.str],
+                Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
+            )
+        ).toJson()
+        logger.info("Inntektsmelding Mottat new pakke er $jsonMessage")
+        rapidsConnection.publish(jsonMessage)
     }
 }

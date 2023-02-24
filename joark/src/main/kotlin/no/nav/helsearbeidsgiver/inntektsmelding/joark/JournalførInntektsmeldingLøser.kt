@@ -3,7 +3,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import com.fasterxml.jackson.databind.JsonNode
-import jdk.jfr.EventType
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -12,7 +11,11 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
-import no.nav.helsearbeidsgiver.felles.*
+import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
@@ -27,9 +30,8 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue(Key.EVENT_NAME.str,EventName.INNTEKTSMELDING_MOTTATT.name)
-                it.demandAll(Key.BEHOV.str, BehovType.JOURNALFOER)
-                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+                it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
+                it.demandValue(Key.BEHOV.str, BehovType.JOURNALFOER.name)
                 it.rejectKey(Key.LØSNING.str)
                 it.interestedIn(Key.UUID.str)
             }
@@ -41,22 +43,6 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
         return dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
     }
-
-//    fun sendNotifikasjon(uuid: String, inntektsmelding: InntektsmeldingDokument) {
-//        val packet: JsonMessage = JsonMessage.newMessage(
-//            mapOf(
-//                Key.NOTIS.str to listOf(
-//                    NotisType.NOTIFIKASJON.name
-//                ),
-//                Key.ID.str to uuid,
-//                Key.OPPRETTET.str to LocalDateTime.now(),
-//                Key.UUID.str to uuid,
-//                Key.IDENTITETSNUMMER.str to inntektsmelding.identitetsnummer,
-//                Key.ORGNRUNDERENHET.str to inntektsmelding.orgnrUnderenhet
-//            )
-//        )
-//        rapidsConnection.publish(inntektsmelding.identitetsnummer, packet.toJson())
-//    }
 
     fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
         try {

@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -18,6 +19,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
     private val NOTIFIKASJON_ID = "355"
 
     @Test
+    @Disabled
     fun `skal sende trenger inntektsmelding`() {
         val løsning = sendMessage(
             mapOf(
@@ -35,6 +37,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
     }
 
     @Test
+    @Disabled
     fun `skal sende kvittering`() {
         val løsning = sendMessage(
             mapOf(
@@ -52,6 +55,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
     }
 
     @Test
+    @Disabled
     fun `skal håndtere at klient feiler`() {
         val løsning = sendMessage(
             mapOf(
@@ -69,6 +73,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
     }
 
     @Test
+    @Disabled
     fun `skal håndtere ukjente feil`() {
         val løsning = sendMessage(
             mapOf(

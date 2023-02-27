@@ -76,9 +76,9 @@ data class HentPersistertLøsning(
     override val error: Feilmelding? = null
 ) : Løsning()
 
+/** Tvinger redeploy */
 @Serializable
 data class LagreJournalpostLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
-

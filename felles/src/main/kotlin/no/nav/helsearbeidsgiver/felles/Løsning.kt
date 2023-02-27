@@ -81,3 +81,4 @@ data class LagreJournalpostLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
+

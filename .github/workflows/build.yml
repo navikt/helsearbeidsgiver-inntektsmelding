@@ -6,7 +6,7 @@ on:
       - main
       - preprod/**
 env:
-  DOCKER_REGISTRY: ghcr.io
+  DOCKER_REGISTRY: docker.pkg.github.com
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
   ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 

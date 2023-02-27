@@ -10,9 +10,11 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 fun main() {
     logger.info("Starting im-db...")
     val database = Database()
-    val repository = Repository(database.db)
+   // val repository = Repository(database.db)
     RapidApplication.create(System.getenv()).also {
-        it.registerDbLifecycle(database)
+       // it.registerDbLifecycle(database)
+        PersisterImLøser(it)
+        /*
         logger.info("Registrerte db lifecycle")
         PersisterImLøser(it, repository)
         logger.info("Startet PersisterImLøser")
@@ -20,6 +22,8 @@ fun main() {
         logger.info("Startet HentPersistertLøser")
         LagreJournalpostIdLøser(it, repository)
         logger.info("Startet LagreJournalpostIdLøser")
+
+         */
         it.start()
     }
 }

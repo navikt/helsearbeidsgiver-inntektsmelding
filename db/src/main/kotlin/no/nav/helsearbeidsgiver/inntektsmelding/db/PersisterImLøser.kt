@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.slf4j.LoggerFactory
 
-class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
+class PersisterImLøser(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
     private val BEHOV = BehovType.PERSISTER_IM
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
@@ -49,6 +49,7 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
         val uuid = packet[Key.UUID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
+        /*
         val session = packet[Key.SESSION.str]
         sikkerlogg.info("Fant session: $session")
         try {
@@ -71,6 +72,8 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
             sikkerlogg.error("Klarte ikke persistere: $uuid", ex)
             publiserLøsning(PersisterImLøsning(error = Feilmelding(melding = "Klarte ikke persistere!")), packet, context)
         }
+
+         */
     }
 
     private fun publiserInntektsmeldingMottatt(inntektsmeldingDokument: InntektsmeldingDokument) {

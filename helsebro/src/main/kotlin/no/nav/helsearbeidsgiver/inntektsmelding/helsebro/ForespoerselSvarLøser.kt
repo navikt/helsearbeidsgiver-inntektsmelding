@@ -44,7 +44,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
         loggerSikker.info("Oversatte melding:\n$forespoerselSvar")
 
         context.publish(
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType::toJson),
+            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.LØSNING to mapOf(
                 BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
             ).let(Json::encodeToJsonElement),

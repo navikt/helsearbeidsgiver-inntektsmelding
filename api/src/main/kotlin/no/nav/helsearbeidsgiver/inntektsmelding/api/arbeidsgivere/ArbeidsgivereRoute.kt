@@ -23,7 +23,7 @@ fun RouteExtra.ArbeidsgivereRoute() {
     route.get(Routes.ARBEIDSGIVERE) {
         val messageId = connection.publish(
             // TODO Behov må være liste. Dette bør endres i Akkumulatoren.
-            Key.BEHOV to listOf(BehovType.ARBEIDSGIVERE).toJson(BehovType::toJson),
+            Key.BEHOV to listOf(BehovType.ARBEIDSGIVERE).toJson(BehovType.serializer()),
             Key.IDENTITETSNUMMER to identitetsnummer().toJson(),
             block = ::loggPublisert
         )

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -34,7 +35,7 @@ internal class HentPersistertLøserTest {
             repository.hentNyeste(any())
         } returns INNTEKTSMELDING_DOKUMENT
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.UUID to UUID.randomUUID().toJson()
         )
         assertNotNull(løsning.value)
@@ -46,7 +47,7 @@ internal class HentPersistertLøserTest {
             repository.hentNyeste(any())
         } throws Exception()
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.UUID to UUID.randomUUID().toJson()
         )
         assertNull(løsning.value)

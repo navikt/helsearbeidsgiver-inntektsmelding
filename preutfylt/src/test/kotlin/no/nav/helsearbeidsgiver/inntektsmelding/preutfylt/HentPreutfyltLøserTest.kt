@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.preutfylt
 
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -30,7 +31,7 @@ internal class HentPreutfyltLøserTest {
     @Test
     fun `skal hente ut fnr og orgnr og publisere det samt neste behov`() {
         val resultat = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
@@ -54,7 +55,7 @@ internal class HentPreutfyltLøserTest {
     @Test
     fun `skal håndtere at det oppstod feil tidligere`() {
         val resultat = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(

@@ -28,7 +28,7 @@ class ForespoerselMottattLøserTest : FunSpec({
         val forespoerselId = expected.uuid
 
         testRapid.sendJson(
-            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(),
+            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
             Pri.Key.ORGNR to expected.orgnrUnderenhet.toJson(),
             Pri.Key.FNR to expected.identitetsnummer.toJson(),
             Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson()

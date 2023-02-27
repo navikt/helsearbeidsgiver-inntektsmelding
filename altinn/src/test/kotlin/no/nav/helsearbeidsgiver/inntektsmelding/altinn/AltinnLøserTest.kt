@@ -35,7 +35,7 @@ class AltinnLøserTest : LøserTest() {
         )
 
         testRapid.sendJson(
-            Key.BEHOV to expectedAnswer.behovType.let(::listOf).toJson(BehovType::toJson),
+            Key.BEHOV to expectedAnswer.behovType.let(::listOf).toJson(BehovType.serializer()),
             Key.ID to expectedAnswer.initiateId.toJson(),
             Key.IDENTITETSNUMMER to mockId.toJson()
         )

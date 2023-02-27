@@ -44,7 +44,7 @@ class ForespoerselSvarLøserTest : FunSpec({
         val expected = Published.mock(expectedIncoming)
 
         testRapid.sendJson(
-            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
+            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
             Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement),
             Pri.Key.BOOMERANG to expectedIncoming.boomerang
         )

@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -21,8 +20,8 @@ class TrengerForespoerselLøserTest : FunSpec({
 
         testRapid.sendJson(
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType::toJson),
-            Key.UUID to expectedPublished.boomerang[Key.INITIATE_ID.str].shouldNotBeNull(),
-            Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
+            Key.BOOMERANG to expectedPublished.boomerang
         )
 
         verifySequence {

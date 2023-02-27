@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api
+package no.nav.helsearbeidsgiver.inntektsmelding.preutfylt
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -12,27 +12,29 @@ import no.nav.helsearbeidsgiver.felles.PersonLink
 import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.log.logger
 
 class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
+    private val logger = logger()
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll(Key.BEHOV.str, BehovType.HENT_TRENGER_IM)
-                it.requireKey(Key.LØSNING.str)
-                it.interestedIn(Key.ORGNR.str, Key.FNR.str)
+                it.demandAll(Key.BEHOV.str, BehovType.PREUTFYLL)
+                it.rejectKey(Key.LØSNING.str)
+                it.requireKey(Key.SESSION.str)
             }
         }.register(this)
     }
 
-    fun hentLøsning(packet: JsonMessage): HentTrengerImLøsning {
+    fun hentLøsning(packet: JsonMessage): HentTrengerImLøsning =
         try {
-            val løsning = packet[Key.LØSNING.str][BehovType.HENT_TRENGER_IM.name]
-            return løsning.toJsonElement().fromJson()
+            packet[Key.SESSION.str][BehovType.HENT_TRENGER_IM.name]
+                .toJsonElement()
+                .fromJson()
         } catch (ex: Exception) {
-            return HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
+            HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
         }
-    }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Fikk pakke")
@@ -41,7 +43,9 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
         sikkerlogg.info("Fikk løsning: $hentTrengerImLøsning")
         hentTrengerImLøsning.error?.let {
             sikkerlogg.error("Fant løsning med feil: ${it.melding}")
-            packet[Key.LØSNING.str] = PreutfyltLøsning(error = Feilmelding("Klarte ikke hente informasjon fra link"))
+            packet[Key.LØSNING.str] = mapOf(
+                BehovType.PREUTFYLL to PreutfyltLøsning(error = Feilmelding("Klarte ikke hente informasjon fra link"))
+            )
         }
         hentTrengerImLøsning.value?.let {
             sikkerlogg.info("Fant løsning: $hentTrengerImLøsning")
@@ -53,7 +57,9 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
                 BehovType.INNTEKT.name,
                 BehovType.ARBEIDSFORHOLD.name
             )
-            packet[Key.LØSNING.str] = PreutfyltLøsning(value = PersonLink(it.fnr, it.orgnr))
+            packet[Key.LØSNING.str] = mapOf(
+                BehovType.PREUTFYLL to PreutfyltLøsning(value = PersonLink(it.fnr, it.orgnr))
+            )
         }
         context.publish(packet.toJson())
     }

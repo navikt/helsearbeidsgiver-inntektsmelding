@@ -10,9 +10,11 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ifFalse
 import no.nav.helsearbeidsgiver.felles.ifTrue
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireTypes
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
@@ -27,9 +29,9 @@ class TrengerForespoerselLøser(
                 it.demandAll(Key.BEHOV, listOf(BehovType.HENT_TRENGER_IM))
                 it.rejectKeys(Key.LØSNING)
                 it.requireTypes(
-                    Key.UUID to JsonNode::asUuid,
                     Key.FORESPOERSEL_ID to JsonNode::asUuid
                 )
+                it.requireKeys(Key.BOOMERANG)
             }
         }.register(this)
     }
@@ -40,15 +42,13 @@ class TrengerForespoerselLøser(
 
         val trengerForespoersel = TrengerForespoersel(
             forespoerselId = Key.FORESPOERSEL_ID.let(packet::value).asUuid(),
-            boomerang = mapOf(
-                Key.INITIATE_ID.str to Key.UUID.let(packet::value).asUuid().toJson()
-            )
+            boomerang = Key.BOOMERANG.let(packet::value).toJsonElement()
         )
 
         priProducer.send(trengerForespoersel)
             .ifTrue {
                 logger.info("Publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
-                loggerSikker.info("Publiserte melding på pri-topic:\n${trengerForespoersel.toJson()}")
+                loggerSikker.info("Publiserte melding på pri-topic:\n${trengerForespoersel.toJson(TrengerForespoersel.serializer())}")
             }
             .ifFalse {
                 logger.warn("Klarte ikke publiserte melding på pri-topic om ${trengerForespoersel.behov}.")

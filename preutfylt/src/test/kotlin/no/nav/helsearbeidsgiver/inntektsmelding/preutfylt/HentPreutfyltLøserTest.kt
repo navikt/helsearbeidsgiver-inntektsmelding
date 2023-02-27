@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api
+package no.nav.helsearbeidsgiver.inntektsmelding.preutfylt
 
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.json.Json
@@ -13,15 +13,15 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
-import kotlin.test.assertEquals
 
 internal class HentPreutfyltLøserTest {
 
     private val rapid = TestRapid()
     private var løser: HentPreutfyltLøser
-    private val BEHOV = BehovType.HENT_TRENGER_IM.toString()
+    private val BEHOV = BehovType.PREUTFYLL.toString()
 
     init {
         løser = HentPreutfyltLøser(rapid)
@@ -32,7 +32,7 @@ internal class HentPreutfyltLøserTest {
         val resultat = sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
             Key.ID to UUID.randomUUID().toJson(),
-            Key.LØSNING to mapOf(
+            Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     value = TrengerInntekt(
                         orgnr = "123",
@@ -56,7 +56,7 @@ internal class HentPreutfyltLøserTest {
         val resultat = sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
             Key.ID to UUID.randomUUID().toJson(),
-            Key.LØSNING to mapOf(
+            Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     error = Feilmelding("Feil")
                 )

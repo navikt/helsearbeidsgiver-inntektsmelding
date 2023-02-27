@@ -13,8 +13,6 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NotifikasjonLøsning
 import no.nav.helsearbeidsgiver.felles.NotisType
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -23,9 +21,6 @@ class NotifikasjonLøser(
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val linkUrl: String
 ) : River.PacketListener {
-
-    private val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-    private val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-notifikasjon")
 
     init {
         River(rapidsConnection).apply {

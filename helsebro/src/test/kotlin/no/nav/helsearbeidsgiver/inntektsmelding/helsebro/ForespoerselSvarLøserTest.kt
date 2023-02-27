@@ -5,7 +5,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -17,8 +16,6 @@ import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
-import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
@@ -27,7 +24,6 @@ import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import java.util.UUID
 
 class ForespoerselSvarLøserTest : FunSpec({
     val testRapid = TestRapid()
@@ -41,6 +37,7 @@ class ForespoerselSvarLøserTest : FunSpec({
     withData(
         mapOf(
             "Ved suksessfull løsning på behov så publiseres løsning på simba-rapid" to mockForespoerselSvarMedSuksess(),
+            "Ved suksessfull løsning med fastsatt inntekt på behov så publiseres løsning på simba-rapid" to mockForespoerselSvarMedSuksessMedFastsattInntekt(),
             "Ved feil så publiseres feil på simba-rapid" to mockForespoerselSvarMedFeil()
         )
     ) { expectedIncoming ->
@@ -48,25 +45,14 @@ class ForespoerselSvarLøserTest : FunSpec({
 
         testRapid.sendJson(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
-            Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement)
+            Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement),
+            Pri.Key.BOOMERANG to expectedIncoming.boomerang
         )
 
         val actual = testRapid.lastMessageJson().let(Published::fromJson)
 
         testRapid.inspektør.size shouldBeExactly 1
         actual shouldBe expected
-    }
-
-    test("Ved løsning med tom boomerang så publiseres ingenting på simba-rapid") {
-        val expectedIncoming = mockForespoerselSvarMedSuksess()
-            .copy(boomerang = emptyMap<String, Nothing>())
-
-        testRapid.sendJson(
-            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
-            Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement)
-        )
-
-        testRapid.inspektør.size shouldBeExactly 0
     }
 })
 
@@ -77,7 +63,7 @@ private data class Published(
     override val behov: List<BehovType>,
     @JsonNames("@løsning")
     override val løsning: Map<BehovType, HentTrengerImLøsning>,
-    val uuid: UUID
+    val boomerang: JsonElement
 ) : PublishedLøsning {
     companion object {
         private val behovType = BehovType.HENT_TRENGER_IM
@@ -86,9 +72,7 @@ private data class Published(
             Published(
                 behov = behovType.let(::listOf),
                 løsning = mapOf(behovType to forespoerselSvar.toHentTrengerImLøsning()),
-                uuid = forespoerselSvar.boomerang[Key.INITIATE_ID.str]
-                    ?.fromJson(UuidSerializer)
-                    .shouldNotBeNull()
+                boomerang = forespoerselSvar.boomerang
             )
 
         fun fromJson(json: JsonElement): Published =

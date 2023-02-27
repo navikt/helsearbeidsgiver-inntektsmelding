@@ -8,16 +8,13 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.JournalførtLøsning
-import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.LagreJournalpostLøsning
 import org.slf4j.LoggerFactory
 
 class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
 
-    private val BEHOV = BehovType.JOURNALFOER
+    private val BEHOV = BehovType.LAGRE_JOURNALPOST_ID
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -26,7 +23,8 @@ class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repositor
             validate {
                 it.demandAll(Key.BEHOV.str, BEHOV)
                 it.requireKey(Key.UUID.str)
-                it.requireKey(Key.LØSNING.str)
+                it.requireKey(Key.JOURNALPOST_ID.str)
+                it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
     }
@@ -35,24 +33,27 @@ class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repositor
         val uuid = packet[Key.UUID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
-        val journalpostLøsning: JournalpostLøsning = packet[Key.LØSNING.str].toJsonElement().fromJson()
-        var løsning = JournalførtLøsning(error = Feilmelding("Klarte ikke lagre journalpostId for $uuid fordi den var tom"))
-        journalpostLøsning.value?.let {
+        val journalpostId = packet[Key.JOURNALPOST_ID.str].asText()
+        var løsning = LagreJournalpostLøsning(journalpostId)
+        if (journalpostId.isNullOrBlank()) {
+            løsning = LagreJournalpostLøsning(error = Feilmelding("Klarte ikke lagre journalpostId for $uuid. Tom journalpostID!!"))
+            logger.error("Ingen journalpostId for $uuid")
+            sikkerlogg.error("Ingen journalpostId for $uuid")
+        } else {
             try {
-                repository.oppdaterJournapostId(it, uuid)
-                løsning = JournalførtLøsning(it)
-                logger.info("Lagret journalpostId $it i database for $uuid")
+                repository.oppdaterJournapostId(journalpostId, uuid)
+                logger.info("Lagret journalpostId $journalpostId i database for $uuid")
             } catch (ex: Exception) {
-                løsning = JournalførtLøsning(error = Feilmelding("Klarte ikke lagre journalpostId $it for $uuid"))
-                logger.info("Klarte ikke lagre journalpostId $it for $uuid")
-                sikkerlogg.error("Klarte ikke lagre journalpostId $it for $uuid", ex)
+                løsning = LagreJournalpostLøsning(error = Feilmelding("Klarte ikke lagre journalpostId for $uuid"))
+                logger.info("Klarte ikke lagre journalpostId $journalpostId for $uuid")
+                sikkerlogg.error("Klarte ikke lagre journalpostId $journalpostId for $uuid", ex)
             }
         }
         publiserLøsning(løsning, packet, context)
     }
 
-    fun publiserLøsning(løsning: JournalførtLøsning, packet: JsonMessage, context: MessageContext) {
-        packet.setLøsning(BehovType.JOURNALFØRT_OK, løsning)
+    fun publiserLøsning(løsning: LagreJournalpostLøsning, packet: JsonMessage, context: MessageContext) {
+        packet.setLøsning(BehovType.LAGRE_JOURNALPOST_ID, løsning)
         context.publish(packet.toJson())
     }
 

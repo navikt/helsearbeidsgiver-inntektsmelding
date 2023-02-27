@@ -2,14 +2,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.JournalførtLøsning
-import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.LagreJournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
@@ -23,7 +20,7 @@ internal class LagreJournalpostIdLøserTest {
 
     private val rapid = TestRapid()
     private var løser: LagreJournalpostIdLøser
-    private val BEHOV = BehovType.JOURNALFOER.toString()
+    private val BEHOV = BehovType.LAGRE_JOURNALPOST_ID
     private val repository = mockk<Repository>()
 
     init {
@@ -36,25 +33,25 @@ internal class LagreJournalpostIdLøserTest {
             repository.oppdaterJournapostId(any(), any())
         } returns Unit
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(BehovType::toJson),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.LØSNING to Json.encodeToJsonElement(JournalpostLøsning("123"))
+            Key.JOURNALPOST_ID to "123".toJson()
         )
-        assertNotNull(løsning.value)
+        assertNotNull(løsning!!.value)
     }
 
     @Test
-    fun `skal håndtere at journalpostId er null`() {
+    fun `skal håndtere at journalpostId er null eller blank`() {
         coEvery {
             repository.oppdaterJournapostId(any(), any())
         } returns Unit
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(BehovType::toJson),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.LØSNING to Json.encodeToJsonElement(JournalpostLøsning(null))
+            Key.JOURNALPOST_ID to "".toJson()
         )
-        assertNull(løsning.value)
-        assertNotNull(løsning.error)
+        assertNull(løsning?.value)
+        assertNotNull(løsning?.error)
     }
 
     @Test
@@ -63,17 +60,20 @@ internal class LagreJournalpostIdLøserTest {
             repository.oppdaterJournapostId(any(), any())
         } throws Exception()
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(BehovType::toJson),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.LØSNING to Json.encodeToJsonElement(JournalpostLøsning("123"))
+            Key.JOURNALPOST_ID to "123".toJson()
         )
-        assertNull(løsning.value)
-        assertNotNull(løsning.error)
+        assertNull(løsning?.value)
+        assertNotNull(løsning?.error)
     }
 
-    private fun sendMelding(vararg melding: Pair<Key, JsonElement>): JournalførtLøsning {
+    private fun sendMelding(vararg melding: Pair<Key, JsonElement>): LagreJournalpostLøsning? {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())
-        return rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.JOURNALFØRT_OK.name).toJsonElement().fromJson()
+        if (rapid.inspektør.message(0).path(Key.LØSNING.str) == null) {
+            return null
+        }
+        return rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson()
     }
 }

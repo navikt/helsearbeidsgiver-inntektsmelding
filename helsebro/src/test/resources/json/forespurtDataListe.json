@@ -23,6 +23,7 @@
     }
   },
   {
-    "opplysningstype": "Refusjon"
+    "opplysningstype": "Refusjon",
+    "forslag": []
   }
 ]

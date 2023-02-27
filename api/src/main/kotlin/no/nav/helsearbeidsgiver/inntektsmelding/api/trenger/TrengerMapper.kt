@@ -17,7 +17,6 @@ import org.valiktor.ConstraintViolation
 import org.valiktor.DefaultConstraintViolation
 
 class TrengerMapper(
-    val uuid: String,
     resultat: Resultat
 ) : ResultatMapper<PreutfyltResponse>(resultat) {
 

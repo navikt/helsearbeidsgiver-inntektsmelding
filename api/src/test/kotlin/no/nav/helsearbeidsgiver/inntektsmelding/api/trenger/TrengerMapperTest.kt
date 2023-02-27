@@ -69,6 +69,6 @@ internal class TrengerMapperTest {
             ARBEIDSFORHOLD = løsningArbeidsforhold,
             INNTEKT = if (tre) løsningInntekt else InntektLøsning(error = feilmelding)
         )
-        return TrengerMapper("uuid", resultat)
+        return TrengerMapper(resultat)
     }
 }

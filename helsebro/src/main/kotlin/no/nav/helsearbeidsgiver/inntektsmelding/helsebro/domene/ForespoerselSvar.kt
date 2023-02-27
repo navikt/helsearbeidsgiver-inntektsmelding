@@ -17,7 +17,7 @@ data class ForespoerselSvar(
     val forespoerselId: UUID,
     val resultat: Suksess? = null,
     val feil: Feil? = null,
-    val boomerang: Map<String, JsonElement>
+    val boomerang: JsonElement
 ) {
     companion object {
         val behovType = Pri.BehovType.TRENGER_FORESPØRSEL

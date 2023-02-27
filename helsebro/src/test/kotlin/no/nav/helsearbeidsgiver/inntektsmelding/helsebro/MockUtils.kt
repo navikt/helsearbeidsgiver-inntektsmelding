@@ -5,6 +5,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntektListe
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
@@ -16,19 +17,29 @@ fun mockTrengerForespoersel(): TrengerForespoersel =
         boomerang = mockBoomerang()
     )
 
-fun mockForespoerselSvarMedSuksess(): ForespoerselSvar = ForespoerselSvar(
-    forespoerselId = UUID.randomUUID(),
-    resultat = mockForespoerselSvarSuksess(),
-    feil = null,
-    boomerang = mockBoomerang()
-)
+fun mockForespoerselSvarMedSuksess(): ForespoerselSvar =
+    ForespoerselSvar(
+        forespoerselId = UUID.randomUUID(),
+        resultat = mockForespoerselSvarSuksess(),
+        feil = null,
+        boomerang = mockBoomerang()
+    )
 
-fun mockForespoerselSvarMedFeil(): ForespoerselSvar = ForespoerselSvar(
-    forespoerselId = UUID.randomUUID(),
-    resultat = null,
-    feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
-    boomerang = mockBoomerang()
-)
+fun mockForespoerselSvarMedSuksessMedFastsattInntekt(): ForespoerselSvar =
+    ForespoerselSvar(
+        forespoerselId = UUID.randomUUID(),
+        resultat = mockForespoerselSvarSuksessMedFastsattInntekt(),
+        feil = null,
+        boomerang = mockBoomerang()
+    )
+
+fun mockForespoerselSvarMedFeil(): ForespoerselSvar =
+    ForespoerselSvar(
+        forespoerselId = UUID.randomUUID(),
+        resultat = null,
+        feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
+        boomerang = mockBoomerang()
+    )
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
@@ -38,7 +49,19 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         forespurtData = mockForespurtDataListe()
     )
 
-private fun mockBoomerang(): Map<String, JsonElement> =
+fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
+    ForespoerselSvar.Suksess(
+        orgnr = "full-traitor-chaplain",
+        fnr = "captain-snowy-quirk",
+        sykmeldingsperioder = listOf(
+            1.januar til 10.januar,
+            15.januar til 31.januar
+        ),
+        forespurtData = mockForespurtDataMedFastsattInntektListe()
+    )
+
+private fun mockBoomerang(): JsonElement =
     mapOf(
         Key.INITIATE_ID.str to UUID.randomUUID().toJson()
     )
+        .toJson()

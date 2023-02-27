@@ -50,7 +50,6 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
     fun sendNotifikasjon(uuid: String, inntektsmelding: InntektsmeldingDokument) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to "inntektsmelding_journalført",
                 Key.NOTIS.str to listOf(
                     NotisType.NOTIFIKASJON.name
                 ),
@@ -84,10 +83,12 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmeldingDokument) }
             sikkerlogg.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
             logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
-            publiserLøsning(JournalpostLøsning(journalpostId), packet, context)
+            val løsning = JournalpostLøsning(journalpostId)
+            publiserLøsning(løsning, packet, context)
+            publiserLagring(uuid, journalpostId, inntektsmeldingDokument.identitetsnummer)
             try {
                 sendNotifikasjon(uuid, inntektsmeldingDokument)
-                sikkerlogg.error("Registrere melding om notifikasjon for $inntektsmeldingDokument")
+                sikkerlogg.info("Registrere melding om notifikasjon for $inntektsmeldingDokument")
             } catch (ex: Exception) {
                 sikkerlogg.error("Klarte ikke registrere melding om notifikasjon for $inntektsmeldingDokument", ex)
             }
@@ -101,6 +102,18 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
             sikkerlogg.info("Klarte ikke journalføre!", ex)
             JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
         }
+    }
+
+    fun publiserLagring(uuid: String, journalpostId: String, identitetsnummer: String) {
+        val packet: JsonMessage = JsonMessage.newMessage(
+            mapOf(
+                Key.BEHOV.str to listOf(BehovType.LAGRE_JOURNALPOST_ID),
+                Key.OPPRETTET.str to LocalDateTime.now(),
+                Key.JOURNALPOST_ID.str to journalpostId,
+                Key.UUID.str to uuid
+            )
+        )
+        rapidsConnection.publish(identitetsnummer, packet.toJson())
     }
 
     fun publiserLøsning(løsning: JournalpostLøsning, packet: JsonMessage, context: MessageContext) {

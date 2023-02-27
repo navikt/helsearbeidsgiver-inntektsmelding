@@ -45,7 +45,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Mottar pakke")
-        sikkerlogg.info("Mottar pakke: $packet")
+        sikkerlogg.info("Mottar pakke: ${packet.toJson()}")
         val uuid = packet[Key.ID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Løser behov $BEHOV med id $uuid")

@@ -9,6 +9,7 @@ import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonClassDiscriminator
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import no.nav.helsearbeidsgiver.felles.serializers.YearMonthSerializer
+import java.time.LocalDate
 import java.time.YearMonth
 
 @Serializable
@@ -30,8 +31,15 @@ sealed class ForespurtData {
 
     @Serializable
     @SerialName("Refusjon")
-    object Refusjon : ForespurtData()
+    data class Refusjon(val forslag: List<ForslagRefusjon>) : ForespurtData()
 }
+
+@Serializable
+data class ForslagRefusjon(
+    val fom: LocalDate,
+    val tom: LocalDate?,
+    val beløp: Double
+)
 
 @Serializable
 data class ForslagInntekt(

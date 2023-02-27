@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.require
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.value
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 
 class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
@@ -35,7 +34,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok løsning på pri-topic om ${packet.value(Pri.Key.LØSNING).asText()}.")
+        logger.info("Mottok løsning på pri-topic om ${packet.value(Pri.Key.BEHOV).asText()}.")
         loggerSikker.info("Mottok løsning på pri-topic:\n${packet.toJson()}")
 
         val forespoerselSvar = Pri.Key.LØSNING.let(packet::value)
@@ -44,22 +43,15 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
 
         loggerSikker.info("Oversatte melding:\n$forespoerselSvar")
 
-        val initiateId = forespoerselSvar.boomerang[Key.INITIATE_ID.str]
-            ?.fromJson(UuidSerializer)
+        context.publish(
+            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType::toJson),
+            Key.LØSNING to mapOf(
+                BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
+            ).let(Json::encodeToJsonElement),
+            Key.BOOMERANG to forespoerselSvar.boomerang
+        )
 
-        if (initiateId == null) {
-            logger.error("Kan ikke svare på behov pga. manglende 'initiateId' i 'boomerang'-objekt.")
-        } else {
-            context.publish(
-                Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType::toJson),
-                Key.LØSNING to mapOf(
-                    BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
-                ).let(Json::encodeToJsonElement),
-                Key.UUID to initiateId.toJson()
-            )
-
-            logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")
-        }
+        logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")
     }
 }
 

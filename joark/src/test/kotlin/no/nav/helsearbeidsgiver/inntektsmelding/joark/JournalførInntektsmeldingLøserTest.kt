@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.MockInntektsmeldingDokument
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -53,7 +52,6 @@ internal class JournalførInntektsmeldingLøserTest {
     }
 
     @Test
-    @Disabled
     fun `skal håndtere at dokarkiv feiler`() {
         coEvery {
             dokArkivClient.opprettJournalpost(any(), any(), any())
@@ -61,7 +59,7 @@ internal class JournalførInntektsmeldingLøserTest {
         val løsning = sendMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                Key.BEHOV.str to listOf(BehovType.JOURNALFOER.name),
+                Key.BEHOV.str to BehovType.JOURNALFOER.name,
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",
                 Key.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument()
@@ -71,7 +69,6 @@ internal class JournalførInntektsmeldingLøserTest {
     }
 
     @Test
-    @Disabled
     fun `skal journalføre når gyldige data`() {
         coEvery {
             dokArkivClient.opprettJournalpost(any(), any(), any())
@@ -79,7 +76,7 @@ internal class JournalførInntektsmeldingLøserTest {
         val løsning = sendMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                "@behov" to listOf(BehovType.JOURNALFOER.name),
+                "@behov" to BehovType.JOURNALFOER.name,
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
                 Key.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument(),
@@ -94,22 +91,21 @@ internal class JournalførInntektsmeldingLøserTest {
         assertEquals(2, rapid.inspektør.size)
 
         val msg = rapid.inspektør.message(0)
-        assertEquals(BehovType.JOURNALFOER.name, msg.path(Key.BEHOV.str)[0].asText())
+        assertEquals(BehovType.JOURNALFOER.name, msg.path(Key.BEHOV.str).asText())
         assertEquals("uuid", msg.path(Key.UUID.str).asText())
 
         val msg2 = rapid.inspektør.message(1)
-        assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, msg2.path(Key.BEHOV.str)[0].asText())
+        assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, msg2.path(Key.BEHOV.str).asText())
         assertEquals("jp-123", msg2.path(Key.JOURNALPOST_ID.str).asText())
         assertEquals("uuid", msg2.path(Key.UUID.str).asText())
     }
 
     @Test
-    @Disabled
     fun `skal håndtere ukjente feil`() {
         val løsning = sendMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                Key.BEHOV.str to listOf(BEHOV),
+                Key.BEHOV.str to BEHOV,
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",
                 "identitetsnummer" to "000",

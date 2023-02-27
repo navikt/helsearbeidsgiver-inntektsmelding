@@ -26,7 +26,7 @@ class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnect
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val inntektsmeldingDokument: InntektsmeldingDokument = packet[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement().fromJson()
-       logger.info("Inntektmelding mottat listener for bruker notification ${packet.toJson()}")
+        sikkerlogg.info("Inntektmelding mottat listener for bruker notification ${packet.toJson()}")
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(

@@ -34,6 +34,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
                 it.demandValue(Key.BEHOV.str, BehovType.JOURNALFOER.name)
                 it.rejectKey(Key.LØSNING.str)
                 it.interestedIn(Key.UUID.str)
+                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
             }
         }.register(this)
     }
@@ -80,7 +81,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
             publiserLøsning(JournalpostLøsning(error = Feilmelding("Feil format i InntektsmeldingDokument")), packet, context)
         } catch (ex: Exception) {
             sikkerlogg.info("Klarte ikke journalføre!", ex)
-            JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
+            publiserLøsning(JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre")), packet, context)
         }
     }
 
@@ -88,7 +89,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to eventName,
-                Key.BEHOV.str to listOf(BehovType.LAGRE_JOURNALPOST_ID),
+                Key.BEHOV.str to BehovType.LAGRE_JOURNALPOST_ID.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.JOURNALPOST_ID.str to journalpostId,
                 Key.UUID.str to uuid

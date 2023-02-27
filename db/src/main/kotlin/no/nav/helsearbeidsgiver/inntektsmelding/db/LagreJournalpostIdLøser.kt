@@ -14,14 +14,13 @@ import org.slf4j.LoggerFactory
 
 class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
 
-    private val BEHOV = BehovType.LAGRE_JOURNALPOST_ID
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll(Key.BEHOV.str, BEHOV)
+                it.demandValue(Key.BEHOV.str, BehovType.LAGRE_JOURNALPOST_ID.name)
                 it.requireKey(Key.UUID.str)
                 it.requireKey(Key.JOURNALPOST_ID.str)
                 it.rejectKey(Key.LØSNING.str)
@@ -31,7 +30,7 @@ class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repositor
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov $BEHOV med id $uuid")
+        logger.info("Løser behov ${BehovType.LAGRE_JOURNALPOST_ID.name} med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         val journalpostId = packet[Key.JOURNALPOST_ID.str].asText()
         var løsning = LagreJournalpostLøsning(journalpostId)

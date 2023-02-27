@@ -140,8 +140,9 @@ jobs:
     steps:
       - name: Check if docker image exists
         run: |
-          echo "docker url: $DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}"
-          LAYERS=$(curl -X GET https://$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
+          echo "docker url: $DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }}"
+          echo $(curl -v -X GET https://$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }})
+          LAYERS=$(curl -X GET https://$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
           if [ "$LAYERS" == 'null' ]; then
             echo "IMAGE_EXISTS=false" >> $GITHUB_ENV
           else

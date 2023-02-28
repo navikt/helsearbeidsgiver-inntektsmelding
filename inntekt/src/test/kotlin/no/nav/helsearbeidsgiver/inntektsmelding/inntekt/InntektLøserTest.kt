@@ -2,25 +2,25 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.test.date.februar
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsInntektInformasjon
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsinntektMaaned
 import no.nav.helsearbeidsgiver.inntekt.Ident
@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -50,10 +49,6 @@ internal class InntektLøserTest {
     private var inntektKlient: InntektKlient
     private val BEHOV_PDL = BehovType.FULLT_NAVN.toString()
     private val BEHOV_INNTEKT = BehovType.INNTEKT.toString()
-    internal val objectMapper: ObjectMapper = jacksonObjectMapper()
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .registerModule(JavaTimeModule())
 
     init {
         inntektKlient = mockk<InntektKlient>()
@@ -72,13 +67,14 @@ internal class InntektLøserTest {
                 inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
             }
         } throws RuntimeException()
-        val melding = mapOf(
-            "@behov" to listOf(BEHOV_PDL, BEHOV_INNTEKT),
-            "@id" to UUID.randomUUID(),
-            "uuid" to "uuid",
-            "identitetsnummer" to "abc",
-            Key.ORGNRUNDERENHET.str to "123456789",
-            Key.SESSION.str to mapOf(
+
+        rapid.sendJson(
+            Key.BEHOV to listOf(BEHOV_PDL, BEHOV_INNTEKT).toJson(String.serializer()),
+            Key.ID to UUID.randomUUID().toJson(),
+            Key.UUID to "uuid".toJson(),
+            Key.IDENTITETSNUMMER to "abc".toJson(),
+            Key.ORGNRUNDERENHET to "123456789".toJson(),
+            Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     value = mockTrengerInntekt().copy(
                         fnr = "fnr",
@@ -88,30 +84,37 @@ internal class InntektLøserTest {
                     )
                 )
             )
+                .toJson(
+                    MapSerializer(
+                        BehovType.serializer(),
+                        HentTrengerImLøsning.serializer()
+                    )
+                )
         )
-        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = objectMapper.readValue<InntektLøsning>(løsning.get(BEHOV_INNTEKT).toString())
-        assertNull(inntektLøsning.value)
-        assertNotNull(inntektLøsning.error)
-        assertEquals("Klarte ikke hente inntekt", inntektLøsning.error?.melding)
+        val inntektLøsning = løsning.get(BEHOV_INNTEKT)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
+        assertNull(inntektLøsning?.value)
+        assertNotNull(inntektLøsning?.error)
+        assertEquals("Klarte ikke hente inntekt", inntektLøsning?.error?.melding)
     }
 
     @Test
     fun `skal publisere svar fra inntektskomponenten`() {
-        val response = objectMapper.readValue<InntektskomponentResponse>("response.json".loadFromResources())
+        val response = "response.json".loadFromResources().fromJson(InntektskomponentResponse.serializer())
         every {
             runBlocking {
                 inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
             }
         } returns response
-        val melding = mapOf(
-            "@behov" to listOf(BEHOV_PDL, BEHOV_INNTEKT),
-            "@id" to UUID.randomUUID(),
-            "uuid" to "uuid",
-            "identitetsnummer" to "abc",
-            Key.ORGNRUNDERENHET.str to "123456789",
-            Key.SESSION.str to mapOf(
+
+        rapid.sendJson(
+            Key.BEHOV to listOf(BEHOV_PDL, BEHOV_INNTEKT).toJson(String.serializer()),
+            Key.ID to UUID.randomUUID().toJson(),
+            Key.UUID to "uuid".toJson(),
+            Key.IDENTITETSNUMMER to "abc".toJson(),
+            Key.ORGNRUNDERENHET to "123456789".toJson(),
+            Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     value = mockTrengerInntekt().copy(
                         fnr = "fnr",
@@ -121,12 +124,18 @@ internal class InntektLøserTest {
                     )
                 )
             )
+                .toJson(
+                    MapSerializer(
+                        BehovType.serializer(),
+                        HentTrengerImLøsning.serializer()
+                    )
+                )
         )
-        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = objectMapper.readValue<InntektLøsning>(løsning.get(BEHOV_INNTEKT).toString())
-        assertNull(inntektLøsning.error)
-        assertNotNull(inntektLøsning.value)
+        val inntektLøsning = løsning.get(BEHOV_INNTEKT)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
+        assertNull(inntektLøsning?.error)
+        assertNotNull(inntektLøsning?.value)
     }
 
     @Test
@@ -221,13 +230,14 @@ internal class InntektLøserTest {
         }
 
         val sykmeldingsperiode = sykmeldingsperioder(LocalDate.of(2022, 12, 1), LocalDate.of(2022, 12, 30))
-        val melding = mapOf(
-            "@behov" to listOf(BEHOV_PDL, BEHOV_INNTEKT),
-            "@id" to UUID.randomUUID(),
-            "uuid" to "uuid",
-            "identitetsnummer" to "fnr",
-            Key.ORGNRUNDERENHET.str to "orgnr",
-            Key.SESSION.str to mapOf(
+
+        rapid.sendJson(
+            Key.BEHOV to listOf(BEHOV_PDL, BEHOV_INNTEKT).toJson(String.serializer()),
+            Key.ID to UUID.randomUUID().toJson(),
+            Key.UUID to "uuid".toJson(),
+            Key.IDENTITETSNUMMER to "fnr".toJson(),
+            Key.ORGNRUNDERENHET to "orgnr".toJson(),
+            Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     value = mockTrengerInntekt().copy(
                         fnr = "fnr",
@@ -237,12 +247,18 @@ internal class InntektLøserTest {
                     )
                 )
             )
+                .toJson(
+                    MapSerializer(
+                        BehovType.serializer(),
+                        HentTrengerImLøsning.serializer()
+                    )
+                )
         )
-        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = objectMapper.readValue<InntektLøsning>(løsning.get(BEHOV_INNTEKT).toString())
-        assertNull(inntektLøsning.error)
-        assertEquals(3, inntektLøsning.value!!.historisk.size)
+        val inntektLøsning = løsning.get(BEHOV_INNTEKT)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
+        assertNull(inntektLøsning?.error)
+        assertEquals(3, inntektLøsning?.value!!.historisk.size)
         assertEquals(YearMonth.of(2022, 11), inntektLøsning.value!!.historisk[0].maanedsnavn)
         assertEquals(YearMonth.of(2022, 10), inntektLøsning.value!!.historisk[1].maanedsnavn)
         assertEquals(YearMonth.of(2022, 9), inntektLøsning.value!!.historisk[2].maanedsnavn)

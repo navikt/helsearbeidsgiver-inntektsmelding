@@ -59,13 +59,13 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
             val innsendingRequest: InnsendingRequest = packet[Key.INNTEKTSMELDING.str].toJsonElement().fromJson()
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
             val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)
-            sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid")
+            sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid") // TODO: dbuuid fix
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
 //            packet[Key.NESTE_BEHOV.str] = listOf(
 //                BehovType.JOURNALFOER.name
 //            )
-            publiserLøsning(PersisterImLøsning(dbUuid), packet, context)
-            publiserInntektsmeldingMottatt(inntektsmeldingDokument)
+            publiserLøsning(PersisterImLøsning(uuid), packet, context)
+            publiserInntektsmeldingMottatt(inntektsmeldingDokument, uuid)
         } catch (ex: Exception) {
             logger.error("Klarte ikke persistere: $uuid")
             sikkerlogg.error("Klarte ikke persistere: $uuid", ex)
@@ -73,11 +73,12 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
         }
     }
 
-    private fun publiserInntektsmeldingMottatt(inntektsmeldingDokument: InntektsmeldingDokument) {
+    private fun publiserInntektsmeldingMottatt(inntektsmeldingDokument: InntektsmeldingDokument, uuid: String) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument
+                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                Key.UUID.str to uuid
             )
         )
         logger.info("publiser Inntektsmelding Mottatt pakke er ${packet.toJson()}")

@@ -15,8 +15,8 @@ import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.PublishedLøsning
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -45,7 +45,7 @@ class ArbeidsforholdLøserTest : FunSpec({
             Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
         )
 
-        val actual = testRapid.lastMessageJson().let(Published::fromJson)
+        val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, MockUuid.STRING) }
         testRapid.inspektør.size shouldBeExactly 1
@@ -63,7 +63,7 @@ class ArbeidsforholdLøserTest : FunSpec({
             Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
         )
 
-        val actual = testRapid.lastMessageJson().let(Published::fromJson)
+        val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, MockUuid.STRING) }
         testRapid.inspektør.size shouldBeExactly 1
@@ -75,15 +75,15 @@ class ArbeidsforholdLøserTest : FunSpec({
 @OptIn(ExperimentalSerializationApi::class)
 private data class Published(
     @JsonNames("@behov")
-    override val behov: List<BehovType>,
+    val behov: List<BehovType>,
     @JsonNames("@løsning")
-    override val løsning: Map<BehovType, ArbeidsforholdLøsning>,
+    val løsning: Map<BehovType, ArbeidsforholdLøsning>,
     val identitetsnummer: String
-) : PublishedLøsning {
-    companion object : PublishedLøsning.CompanionObj<Published>(Published::class) {
+) {
+    companion object {
         private val behovType = BehovType.ARBEIDSFORHOLD
 
-        override fun mockSuccess(): Published =
+        fun mockSuccess(): Published =
             Published(
                 behov = behovType.let(::listOf),
                 løsning = mapOf(
@@ -92,7 +92,7 @@ private data class Published(
                 identitetsnummer = "collide-levitator-modify"
             )
 
-        override fun mockFailure(): Published =
+        fun mockFailure(): Published =
             Published(
                 behov = behovType.let(::listOf),
                 løsning = mapOf(

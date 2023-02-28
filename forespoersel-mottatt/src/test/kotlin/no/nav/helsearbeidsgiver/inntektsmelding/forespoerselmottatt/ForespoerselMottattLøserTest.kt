@@ -7,13 +7,12 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.NotisType
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
-import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import java.util.UUID
@@ -34,7 +33,7 @@ class ForespoerselMottattLøserTest : FunSpec({
             Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
-        val actual = testRapid.lastMessageJson().let(Published::fromJson)
+        val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
 
         testRapid.inspektør.size shouldBeExactly 1
         actual shouldBe expected
@@ -56,8 +55,5 @@ private data class Published(
                 identitetsnummer = "resort-cringe-huddle",
                 uuid = UUID.randomUUID()
             )
-
-        fun fromJson(json: JsonElement): Published =
-            JsonIgnoreUnknown.fromJson(serializer(), json)
     }
 }

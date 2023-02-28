@@ -16,6 +16,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -24,10 +25,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
-
-fun String.loadFromResources(): String {
-    return ClassLoader.getSystemResource(this).readText()
-}
 
 internal class InntektLøserTest {
 
@@ -75,7 +72,7 @@ internal class InntektLøserTest {
 
     @Test
     fun `skal publisere svar fra inntektskomponenten`() {
-        val response = objectMapper.readValue<InntektskomponentResponse>("response.json".loadFromResources())
+        val response = objectMapper.readValue<InntektskomponentResponse>("response.json".readResource())
         every {
             runBlocking {
                 inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())

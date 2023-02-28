@@ -5,6 +5,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.NotisType
+import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -27,7 +29,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
                 Key.IDENTITETSNUMMER.str to FNR,
                 Key.ORGNRUNDERENHET.str to ORGNR
             ),
-            readResource("opprettNySak/gyldig.json"),
+            "opprettNySak/gyldig.json".readResource(),
             HttpStatusCode.OK
         )
         assertEquals(NOTIFIKASJON_ID, løsning.value)
@@ -44,7 +46,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
                 Key.IDENTITETSNUMMER.str to FNR,
                 Key.ORGNRUNDERENHET.str to ORGNR
             ),
-            readResource("opprettNySak/gyldig.json"),
+            "opprettNySak/gyldig.json".readResource(),
             HttpStatusCode.OK
         )
         assertEquals(NOTIFIKASJON_ID, løsning.value)

@@ -1,20 +1,21 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.NothingSerializer
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.løsning
+import no.nav.helsearbeidsgiver.felles.json.set
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-
-private val objectMapper = customObjectMapper()
 
 private const val PATH = Routes.PREFIX + Routes.ARBEIDSGIVERE
 
@@ -72,29 +73,30 @@ private object MockOk {
     )
 
     val response = responseBody.toLøsningSuccess()
-        .toJson()
-        .toJsonNode()
         .toBehovMap()
-        .toJsonNode()
+        .toJson(
+            MapSerializer(
+                BehovType.serializer(),
+                AltinnOrganisasjon.serializer().set().løsning()
+            )
+        )
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 private object MockInternalServerError {
     const val responseBody = "uff da!"
 
     val response = responseBody.toLøsningFailure()
-        .toJson()
-        .toJsonNode()
         .toBehovMap()
-        .toJsonNode()
+        .toJson(
+            MapSerializer(
+                BehovType.serializer(),
+                NothingSerializer().løsning()
+            )
+        )
 }
 
-private fun JsonNode.toBehovMap(): Map<BehovType, JsonNode> =
+private fun <T : Any> T.toBehovMap(): Map<BehovType, T> =
     mapOf(
         BehovType.ARBEIDSGIVERE to this
     )
-
-private fun JsonElement.toJsonNode(): JsonNode =
-    toString().let(objectMapper::readTree)
-
-private fun Map<*, *>.toJsonNode(): JsonNode =
-    objectMapper.valueToTree(this)

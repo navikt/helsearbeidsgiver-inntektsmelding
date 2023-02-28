@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.preutfylt
 
 import com.fasterxml.jackson.databind.JsonNode
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
@@ -30,7 +30,7 @@ internal class HentPreutfyltLøserTest {
     @Test
     fun `skal hente ut fnr og orgnr og publisere det samt neste behov`() {
         val resultat = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
@@ -41,7 +41,8 @@ internal class HentPreutfyltLøserTest {
                         forespurtData = mockForespurtDataListe()
                     )
                 )
-            ).let(Json::encodeToJsonElement)
+            )
+                .toJson()
         )
         val nesteBehov: JsonNode = resultat.path("neste_behov")
         assertEquals(4, nesteBehov.size())
@@ -54,13 +55,14 @@ internal class HentPreutfyltLøserTest {
     @Test
     fun `skal håndtere at det oppstod feil tidligere`() {
         val resultat = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.SESSION to mapOf(
                 BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
                     error = Feilmelding("Feil")
                 )
-            ).let(Json::encodeToJsonElement)
+            )
+                .toJson()
         )
         val nesteBehov: JsonNode = resultat.path("neste_behov")
         assertEquals(0, nesteBehov.size())
@@ -76,3 +78,11 @@ internal class HentPreutfyltLøserTest {
         return rapid.inspektør.message(0)
     }
 }
+
+private fun Map<BehovType, HentTrengerImLøsning>.toJson(): JsonElement =
+    toJson(
+        MapSerializer(
+            BehovType.serializer(),
+            HentTrengerImLøsning.serializer()
+        )
+    )

@@ -9,18 +9,15 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNames
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
-import no.nav.helsearbeidsgiver.felles.test.PublishedLøsning
-import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
@@ -44,12 +41,12 @@ class ForespoerselSvarLøserTest : FunSpec({
         val expected = Published.mock(expectedIncoming)
 
         testRapid.sendJson(
-            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
-            Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement),
+            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+            Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
             Pri.Key.BOOMERANG to expectedIncoming.boomerang
         )
 
-        val actual = testRapid.lastMessageJson().let(Published::fromJson)
+        val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
 
         testRapid.inspektør.size shouldBeExactly 1
         actual shouldBe expected
@@ -60,11 +57,11 @@ class ForespoerselSvarLøserTest : FunSpec({
 @OptIn(ExperimentalSerializationApi::class)
 private data class Published(
     @JsonNames("@behov")
-    override val behov: List<BehovType>,
+    val behov: List<BehovType>,
     @JsonNames("@løsning")
-    override val løsning: Map<BehovType, HentTrengerImLøsning>,
+    val løsning: Map<BehovType, HentTrengerImLøsning>,
     val boomerang: JsonElement
-) : PublishedLøsning {
+) {
     companion object {
         private val behovType = BehovType.HENT_TRENGER_IM
 
@@ -74,8 +71,5 @@ private data class Published(
                 løsning = mapOf(behovType to forespoerselSvar.toHentTrengerImLøsning()),
                 boomerang = forespoerselSvar.boomerang
             )
-
-        fun fromJson(json: String): Published =
-            JsonIgnoreUnknown.fromJson(serializer(), json)
     }
 }

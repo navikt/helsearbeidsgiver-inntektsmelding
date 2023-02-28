@@ -9,10 +9,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.NotisType
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
-import no.nav.helsearbeidsgiver.felles.test.json.JsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import java.util.UUID
@@ -27,13 +27,13 @@ class ForespoerselMottattLøserTest : FunSpec({
         val forespoerselId = expected.uuid
 
         testRapid.sendJson(
-            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(),
+            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
             Pri.Key.ORGNR to expected.orgnrUnderenhet.toJson(),
             Pri.Key.FNR to expected.identitetsnummer.toJson(),
             Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
-        val actual = testRapid.lastMessageJson().let(Published::fromJson)
+        val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
 
         testRapid.inspektør.size shouldBeExactly 1
         actual shouldBe expected
@@ -55,8 +55,5 @@ private data class Published(
                 identitetsnummer = "resort-cringe-huddle",
                 uuid = UUID.randomUUID()
             )
-
-        fun fromJson(json: String): Published =
-            JsonIgnoreUnknown.fromJson(serializer(), json)
     }
 }

@@ -1,13 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.set
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.Løser
 
 class AltinnLøser(
@@ -31,5 +31,5 @@ class AltinnLøser(
         }
 
     override fun Set<AltinnOrganisasjon>.toJson(): JsonElement =
-        Json.encodeToJsonElement(this)
+        toJson(AltinnOrganisasjon.serializer().set())
 }

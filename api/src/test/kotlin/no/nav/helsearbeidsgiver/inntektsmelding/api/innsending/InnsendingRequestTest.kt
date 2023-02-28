@@ -2,8 +2,6 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.FullLønnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.InntektEndringÅrsak
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Naturalytelse
@@ -14,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Inntekt
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.junit.jupiter.api.Test
@@ -47,7 +46,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal lese innsendingrequest`() {
-        val request: InnsendingRequest = Json.decodeFromString("innsendingrequest.json".loadFromResources())
+        val request: InnsendingRequest = "innsendingrequest.json".loadFromResources().fromJson(InnsendingRequest.serializer())
         request.validate()
     }
 

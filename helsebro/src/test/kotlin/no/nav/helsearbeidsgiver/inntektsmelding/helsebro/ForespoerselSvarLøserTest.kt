@@ -9,10 +9,8 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNames
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
@@ -45,7 +43,7 @@ class ForespoerselSvarLøserTest : FunSpec({
 
         testRapid.sendJson(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to expectedIncoming.let(Json::encodeToJsonElement),
+            Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
             Pri.Key.BOOMERANG to expectedIncoming.boomerang
         )
 

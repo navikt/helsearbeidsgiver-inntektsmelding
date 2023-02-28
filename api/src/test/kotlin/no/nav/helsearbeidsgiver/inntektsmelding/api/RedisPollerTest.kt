@@ -4,11 +4,15 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.felles.json.list
+import no.nav.helsearbeidsgiver.felles.json.løsning
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonStr
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import org.junit.jupiter.api.Test
@@ -16,7 +20,7 @@ import org.junit.jupiter.api.assertThrows
 
 class RedisPollerTest {
     private val id = "123"
-    private val løsningSuccess = "noe data".toLøsningSuccess().let(Json::encodeToJsonElement)
+    private val løsningSuccess = "noe data".toLøsningSuccess().toJson(String.serializer().løsning())
     private val gyldigRedisInnholdListe = List(4) { "" } + løsningSuccess.toString()
 
     @Test
@@ -62,8 +66,8 @@ class RedisPollerTest {
                     "value": {
                         "orgnr": "${expectedTrengerInntekt.orgnr}",
                         "fnr": "${expectedTrengerInntekt.fnr}",
-                        "sykmeldingsperioder": ${expectedTrengerInntekt.sykmeldingsperioder.let(Json::encodeToString)},
-                        "forespurtData": ${expectedTrengerInntekt.forespurtData.let(Json::encodeToString)}
+                        "sykmeldingsperioder": ${expectedTrengerInntekt.sykmeldingsperioder.toJsonStr(Periode.serializer().list())},
+                        "forespurtData": ${expectedTrengerInntekt.forespurtData.toJsonStr(ForespurtData.serializer().list())}
                     }
                 }
             }

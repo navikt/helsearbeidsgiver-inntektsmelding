@@ -14,8 +14,15 @@ import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import java.time.LocalDate
 import java.util.UUID
 
+val jsonIgnoreUnknown = Json {
+    ignoreUnknownKeys = true
+}
+
 fun <T : Any> T.toJson(serializer: KSerializer<T>): JsonElement =
     Json.encodeToJsonElement(serializer, this)
+
+fun <T : Any> T.toJsonStr(serializer: KSerializer<T>): String =
+    toJson(serializer).toString()
 
 fun <T : Any> List<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =
     toJson(
@@ -41,6 +48,9 @@ fun Map<String, JsonElement>.toJson(): JsonElement =
 
 fun <T : Any> JsonElement.fromJson(serializer: KSerializer<T>): T =
     Json.decodeFromJsonElement(serializer, this)
+
+fun <T : Any> String.fromJson(serializer: KSerializer<T>): T =
+    parseJson().fromJson(serializer)
 
 fun String.parseJson(): JsonElement =
     Json.parseToJsonElement(this)

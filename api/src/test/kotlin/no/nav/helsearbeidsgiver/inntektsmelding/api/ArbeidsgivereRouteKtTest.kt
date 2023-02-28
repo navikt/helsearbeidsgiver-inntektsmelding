@@ -3,10 +3,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.NothingSerializer
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.json.løsning
+import no.nav.helsearbeidsgiver.felles.json.set
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
@@ -70,15 +74,26 @@ private object MockOk {
 
     val response = responseBody.toLøsningSuccess()
         .toBehovMap()
-        .let(Json::encodeToJsonElement)
+        .toJson(
+            MapSerializer(
+                BehovType.serializer(),
+                AltinnOrganisasjon.serializer().set().løsning()
+            )
+        )
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 private object MockInternalServerError {
     const val responseBody = "uff da!"
 
     val response = responseBody.toLøsningFailure()
         .toBehovMap()
-        .let(Json::encodeToJsonElement)
+        .toJson(
+            MapSerializer(
+                BehovType.serializer(),
+                NothingSerializer().løsning()
+            )
+        )
 }
 
 private fun <T : Any> T.toBehovMap(): Map<BehovType, T> =

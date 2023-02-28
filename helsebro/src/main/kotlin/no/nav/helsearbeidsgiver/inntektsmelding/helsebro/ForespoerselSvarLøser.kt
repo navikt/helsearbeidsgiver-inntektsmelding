@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.builtins.MapSerializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -47,7 +46,13 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.LØSNING to mapOf(
                 BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
-            ).let(Json::encodeToJsonElement),
+            )
+                .toJson(
+                    MapSerializer(
+                        BehovType.serializer(),
+                        HentTrengerImLøsning.serializer()
+                    )
+                ),
             Key.BOOMERANG to forespoerselSvar.boomerang
         )
 

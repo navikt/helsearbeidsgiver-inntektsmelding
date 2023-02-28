@@ -1,19 +1,16 @@
 package no.nav.helsearbeidsgiver.felles.test.json
 
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.json.jsonIgnoreUnknown
 
 private val jsonWhitespaceRegex = Regex("""("(?:\\"|[^"])*")|\s""")
 
 fun String.removeJsonWhitespace(): String =
     replace(jsonWhitespaceRegex, "$1")
 
+// TODO fjern når mulig
 object JsonIgnoreUnknown {
-    private val jsonBuilder = Json {
-        ignoreUnknownKeys = true
-    }
-
     fun <T : Any> fromJson(ds: DeserializationStrategy<T>, json: JsonElement): T =
-        jsonBuilder.decodeFromJsonElement(ds, json)
+        jsonIgnoreUnknown.decodeFromJsonElement(ds, json)
 }

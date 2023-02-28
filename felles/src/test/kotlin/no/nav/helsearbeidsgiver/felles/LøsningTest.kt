@@ -6,11 +6,11 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.NothingSerializer
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.løsning
 import no.nav.helsearbeidsgiver.felles.json.parseJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningSerializer
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
@@ -22,7 +22,7 @@ import kotlin.reflect.KClass
 @OptIn(ExperimentalSerializationApi::class)
 class LøsningTest : FunSpec({
     test("Løsning.Success kan serialiseres og deserialiseres") {
-        val successSerialized = Mock.Success.expectedResultat.toLøsningSuccess().let(Json::encodeToJsonElement)
+        val successSerialized = Mock.Success.expectedResultat.toLøsningSuccess().toJson(Samwise.serializer().løsning())
 
         successSerialized shouldBe Mock.Success.expectedJson
 
@@ -37,7 +37,7 @@ class LøsningTest : FunSpec({
     }
 
     test("Løsning.Failure kan serialiseres og deserialiseres") {
-        val failureSerialized = Mock.Failure.expectedFeilmelding.toLøsningFailure().let(Json::encodeToJsonElement)
+        val failureSerialized = Mock.Failure.expectedFeilmelding.toLøsningFailure().toJson(String.serializer().løsning())
 
         failureSerialized shouldBe Mock.Failure.expectedJson
 

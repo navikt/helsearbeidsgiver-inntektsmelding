@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonStr
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
@@ -13,36 +13,36 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
     val id = integer("id").autoIncrement(
         idSeqName = "inntektsmelding_id_seq"
     )
-    val dokument = json<InntektsmeldingDokument>("dokument")
+    val dokument = json("dokument", InntektsmeldingDokument.serializer())
     val opprettet = datetime("opprettet")
     val uuid = text("uuid")
     val journalpostId = varchar("journalpostid", 30).nullable()
     override val primaryKey = PrimaryKey(id, name = "id")
 }
 
-inline fun <reified T : Any> Table.json(
+private fun <T : Any> Table.json(
     name: String,
-    kSerializer: KSerializer<T> = serializer(),
-    json: Json = Json { ignoreUnknownKeys = false }
+    serializer: KSerializer<T>
 ): Column<T> =
-    this.json(
+    registerColumn(
         name = name,
-        stringify = { json.encodeToString(kSerializer, it) },
-        parse = { json.decodeFromString(kSerializer, it) }
+        type = JsonColumnType(serializer)
     )
 
-fun <T : Any> Table.json(name: String, stringify: (T) -> String, parse: (String) -> T): Column<T> =
-    registerColumn(name, JsonColumnType(stringify, parse))
+class JsonColumnType<T : Any>(private val serializer: KSerializer<T>) : ColumnType() {
+    override fun sqlType(): String =
+        "jsonb"
 
-class JsonColumnType<T : Any>(private val stringify: (T) -> String, private val parse: (String) -> T) : ColumnType() {
-    override fun sqlType(): String = "jsonb"
-    override fun valueFromDB(value: Any) = parse(value as String)
+    override fun valueFromDB(value: Any): T =
+        (value as String).fromJson(serializer)
 
     @Suppress("UNCHECKED_CAST")
-    override fun notNullValueToDB(value: Any) = stringify(value as T)
+    override fun notNullValueToDB(value: Any): String =
+        (value as T).toJsonStr(serializer)
 
-    override fun valueToString(value: Any?): String = when (value) {
-        is Iterable<*> -> notNullValueToDB(value)
-        else -> super.valueToString(value)
-    }
+    override fun valueToString(value: Any?): String =
+        when (value) {
+            is Iterable<*> -> notNullValueToDB(value)
+            else -> super.valueToString(value)
+        }
 }

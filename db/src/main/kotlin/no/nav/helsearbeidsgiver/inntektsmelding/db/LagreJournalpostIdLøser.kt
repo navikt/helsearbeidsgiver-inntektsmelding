@@ -58,7 +58,7 @@ class LagreJournalpostIdLøser(val rapidsConnection: RapidsConnection, val repos
     fun publiser(journalpostId: String, inntektsmeldingDokument: InntektsmeldingDokument) {
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFØRT,
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
                 Key.JOURNALPOST_ID.str to journalpostId,
                 Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument
             )

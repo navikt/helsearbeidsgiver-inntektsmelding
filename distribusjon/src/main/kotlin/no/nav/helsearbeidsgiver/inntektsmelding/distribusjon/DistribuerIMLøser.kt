@@ -18,12 +18,12 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kaf
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_JOURNALFØRT.name)
-                it.demandValue(Key.BEHOV.str,BehovType.DISTRIBUER_IM.name)
+                it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_JOURNALFOERT.name)
+                it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.requireKey(Key.JOURNALPOST_ID.str)
             }
-        }
+        }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
@@ -40,10 +40,10 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kaf
             )
             kafkaProducer.send(
                 ProducerRecord(
-                    "inntektsmelding",
+                    "helsearbeidsgiver.inntektsmelding",
                     packet.toString()
                 )
-            ).get()
+            )
             sikkerlogg.info("Publisert eksternt for journalpostId: $journalpostId.")
             val packet2: JsonMessage = JsonMessage.newMessage(
                 mapOf(

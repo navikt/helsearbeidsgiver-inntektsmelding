@@ -13,7 +13,7 @@ class InntektsmeldingJournalførtListener(private val rapidsConnection: RapidsCo
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_JOURNALFØRT.name)
+                it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_JOURNALFOERT.name)
                 it.rejectKey(Key.BEHOV.str)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.requireKey(Key.JOURNALPOST_ID.str)
@@ -25,7 +25,7 @@ class InntektsmeldingJournalførtListener(private val rapidsConnection: RapidsCo
         logger.info("Inntektsmelding Mottat med packet ${packet.toJson()}")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFØRT.name,
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT.name,
                 Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
                 Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
                 Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]

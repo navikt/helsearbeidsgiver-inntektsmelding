@@ -10,14 +10,16 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 
-class DistribuerIMLøser(private val rapidsConnection: RapidsConnection) : River.PacketListener {
+class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kafkaProducer: KafkaProducer<String, String>) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
             validate {
                 it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_JOURNALFØRT.name)
-                it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)
+                it.demandValue(Key.BEHOV.str,BehovType.DISTRIBUER_IM.name)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.requireKey(Key.JOURNALPOST_ID.str)
             }
@@ -36,14 +38,12 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection) : River
                     Key.JOURNALPOST_ID.str to journalpostId
                 )
             )
-            /*
             kafkaProducer.send(
                 ProducerRecord(
                     "inntektsmelding",
                     packet.toString()
                 )
-            )
-             */
+            ).get()
             sikkerlogg.info("Publisert eksternt for journalpostId: $journalpostId.")
             val packet2: JsonMessage = JsonMessage.newMessage(
                 mapOf(

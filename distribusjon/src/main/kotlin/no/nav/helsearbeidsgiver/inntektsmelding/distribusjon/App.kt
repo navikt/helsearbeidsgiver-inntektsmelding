@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.fromEnv
 import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
@@ -23,7 +24,8 @@ internal fun createApp(environment: Environment): RapidsConnection {
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starting Distribuer IM Løser...")
     DistribuerIMLøser(
-        rapidsConnection
+        rapidsConnection,
+        KafkaProducer<String, String>(kafkaProperties())
     )
     InntektsmeldingJournalførtListener(
         rapidsConnection

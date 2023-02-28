@@ -1,18 +1,18 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import io.ktor.server.routing.get
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.løsning
+import no.nav.helsearbeidsgiver.felles.json.set
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.loeser.Løsning.Companion.toLøsning
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
@@ -26,7 +26,7 @@ fun RouteExtra.ArbeidsgivereRoute() {
     route.get(Routes.ARBEIDSGIVERE) {
         val messageId = connection.publish(
             // TODO Behov må være liste. Dette bør endres i Akkumulatoren.
-            Key.BEHOV to listOf(BehovType.ARBEIDSGIVERE).toJson(BehovType::toJson),
+            Key.BEHOV to listOf(BehovType.ARBEIDSGIVERE).toJson(BehovType.serializer()),
             Key.IDENTITETSNUMMER to identitetsnummer().toJson(),
             block = ::loggPublisert
         )
@@ -42,11 +42,14 @@ fun RouteExtra.ArbeidsgivereRoute() {
     }
 }
 
-private fun JsonNode.toLøsning(): Løsning<Set<AltinnOrganisasjon>> =
-    toJsonElement()
-        .fromJson<Map<BehovType, JsonElement>>()
+private fun JsonElement.toLøsning(): Løsning<Set<AltinnOrganisasjon>> =
+    fromJson(
+        MapSerializer(
+            BehovType.serializer(),
+            AltinnOrganisasjon.serializer().set().løsning()
+        )
+    )
         .get(BehovType.ARBEIDSGIVERE)
-        ?.toLøsning<Set<AltinnOrganisasjon>, _>()
         ?: throw ArbeidsgivereJsonMismatchedInputException("Fant ikke behov.")
 
 private fun loggPublisert(message: JsonMessage) {

@@ -5,6 +5,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -14,6 +16,7 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.list
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.felles.valueNullable
@@ -47,11 +50,16 @@ class Akkumulator(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val boomerang = Key.BOOMERANG.let(packet::valueNullable)
             ?.toJsonElement()
-            ?.fromJson<Map<Key, JsonElement>>()
+            ?.fromJson(
+                MapSerializer(
+                    Key.serializer(),
+                    JsonElement.serializer()
+                )
+            )
             .orEmpty()
 
-        val uuid = boomerang[Key.INITIATE_ID]?.fromJson()
-            ?: boomerang[Key.UUID]?.fromJson()
+        val uuid = boomerang[Key.INITIATE_ID]?.fromJson(String.serializer())
+            ?: boomerang[Key.UUID]?.fromJson(String.serializer())
             ?: packet.value(Key.UUID).asText()
                 .let {
                     if (it.isNullOrEmpty()) {
@@ -62,7 +70,7 @@ class Akkumulator(
                 }
 
         val behovListe = packet.value(Key.BEHOV).map(JsonNode::asText)
-        val nesteBehov = boomerang[Key.NESTE_BEHOV]?.fromJson<List<BehovType>>()?.takeUnless(List<BehovType>::isEmpty)
+        val nesteBehov = boomerang[Key.NESTE_BEHOV]?.fromJson(BehovType.serializer().list())?.takeUnless(List<BehovType>::isEmpty)
             ?: packet.value(Key.NESTE_BEHOV)
                 .map(JsonNode::asText)
                 .map(BehovType::valueOf)

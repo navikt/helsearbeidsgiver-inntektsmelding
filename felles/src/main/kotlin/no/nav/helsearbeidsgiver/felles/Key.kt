@@ -39,8 +39,8 @@ enum class Key(val str: String) {
     override fun toString(): String =
         str
 
-    internal companion object {
-        fun fromJson(json: String): Key? =
+    companion object {
+        internal fun fromJson(json: String): Key? =
             Key.values().firstOrNull {
                 json == it.str
             }

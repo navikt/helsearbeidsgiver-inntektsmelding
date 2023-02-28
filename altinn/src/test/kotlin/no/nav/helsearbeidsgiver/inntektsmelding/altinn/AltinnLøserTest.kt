@@ -8,9 +8,11 @@ import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.set
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest
+import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest.LøserAnswer.Companion.toLøserAnswer
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -34,14 +36,13 @@ class AltinnLøserTest : LøserTest() {
         )
 
         testRapid.sendJson(
-            Key.BEHOV to expectedAnswer.behovType.let(::listOf).toJson(BehovType::toJson),
+            Key.BEHOV to expectedAnswer.behovType.let(::listOf).toJson(BehovType.serializer()),
             Key.ID to expectedAnswer.initiateId.toJson(),
             Key.IDENTITETSNUMMER to mockId.toJson()
         )
 
-        val actualAnswer = testRapid.lastMessageJson().let {
-            LøserAnswer.fromJson<Set<AltinnOrganisasjon>>(it)
-        }
+        val actualAnswer = testRapid.lastMessageJson()
+            .toLøserAnswer(AltinnOrganisasjon.serializer().set())
 
         coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(mockId) }
         actualAnswer shouldBe expectedAnswer

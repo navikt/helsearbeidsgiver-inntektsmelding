@@ -47,7 +47,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
 
     fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
         try {
-            return jsonNode.toJsonElement().fromJson()
+            return jsonNode.toJsonElement().fromJson(InntektsmeldingDokument.serializer())
         } catch (ex: Exception) {
             throw UgyldigFormatException(ex)
         }

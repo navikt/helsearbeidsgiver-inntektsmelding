@@ -19,7 +19,7 @@ class TrengerForespoerselLøserTest : FunSpec({
         val expectedPublished = mockTrengerForespoersel()
 
         testRapid.sendJson(
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType::toJson),
+            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
             Key.BOOMERANG to expectedPublished.boomerang
         )

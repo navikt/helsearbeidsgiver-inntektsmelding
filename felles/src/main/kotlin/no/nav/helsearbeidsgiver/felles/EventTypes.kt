@@ -1,5 +1,8 @@
 package no.nav.helsearbeidsgiver.felles
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class BehovType {
     PAUSE,
     FULLT_NAVN,
@@ -18,6 +21,7 @@ enum class BehovType {
     NOTIFIKASJON_IM_MOTTATT
 }
 
+@Serializable
 enum class NotisType {
     NOTIFIKASJON,
     NOTIFIKASJON_TRENGER_IM

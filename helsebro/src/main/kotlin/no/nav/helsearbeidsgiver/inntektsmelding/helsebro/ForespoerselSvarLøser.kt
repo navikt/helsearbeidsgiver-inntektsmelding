@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.builtins.MapSerializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -27,7 +26,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             validate { jsonMessage ->
                 jsonMessage.demandValue(Pri.Key.BEHOV, ForespoerselSvar.behovType)
                 jsonMessage.require(
-                    Pri.Key.LØSNING to { it.fromJson<ForespoerselSvar>() }
+                    Pri.Key.LØSNING to { it.fromJson(ForespoerselSvar.serializer()) }
                 )
             }
         }.register(this)
@@ -39,15 +38,21 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
 
         val forespoerselSvar = Pri.Key.LØSNING.let(packet::value)
             .toJsonElement()
-            .fromJson<ForespoerselSvar>()
+            .fromJson(ForespoerselSvar.serializer())
 
         loggerSikker.info("Oversatte melding:\n$forespoerselSvar")
 
         context.publish(
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType::toJson),
+            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.LØSNING to mapOf(
                 BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
-            ).let(Json::encodeToJsonElement),
+            )
+                .toJson(
+                    MapSerializer(
+                        BehovType.serializer(),
+                        HentTrengerImLøsning.serializer()
+                    )
+                ),
             Key.BOOMERANG to forespoerselSvar.boomerang
         )
 

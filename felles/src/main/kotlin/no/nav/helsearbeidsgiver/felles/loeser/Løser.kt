@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.loeser
 
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
@@ -13,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.value
  *
  * Eksempel på bruk:
  * ```
- * class SecondBreakfastLøser : Løser() {
+ * class SecondBreakfastLøser : Løser<String>() {
  *     override val behovType = BehovType.SECOND_BREAKFAST
  *
  *     lateinit var hobbit(): Behov.() -> String
@@ -29,6 +30,9 @@ import no.nav.helsearbeidsgiver.felles.value
  *     override fun Behov.løs(): String =
  *         if (hobbit() == "Pippin") "🍎"
  *         else ""
+ *
+ *     override fun String.toJson(): JsonElement =
+ *         Json.encodeToJsonElement(this)
  * ```
  *
  * Implementasjonsdetaljer (ikke viktig for å bruke klassen):
@@ -40,7 +44,7 @@ import no.nav.helsearbeidsgiver.felles.value
  * - [Behov] er kun tilgjengelig (utenfor modulen) i [løs].
  * - [PacketSolver] markerer nøkler registrert i [BehovReader] som påkrevd for innkommende behov.
  */
-abstract class Løser {
+abstract class Løser<T : Any> {
     /** Hvilken [BehovType] som løseren skal lytte etter og løse. */
     abstract val behovType: BehovType
 
@@ -48,7 +52,10 @@ abstract class Løser {
     abstract fun BehovReader.createReaders()
 
     /** Finner løsningen på behovet uttrykket i [Behov]. */
-    abstract fun Behov.løs(): Any
+    abstract fun Behov.løs(): T
+
+    /** Denne vil i de fleste tilfeller være `Json.encodeToJsonElement(this)`. Forhindrer "type erasure"-problematikk. */
+    abstract fun T.toJson(): JsonElement
 
     /** Nøkler som blir brukt for å lese verdier fra [Behov] (packet). */
     internal val behovReadingKeys: MutableSet<Key> = mutableSetOf()
@@ -59,9 +66,11 @@ abstract class Løser {
         PacketSolver(this)
     }
 
-    /** Tilgjengeliggjør løsefunksjon [løs] for [PacketSolver] (kan ikke kalles direkte siden den extender intern klasse). */
-    internal fun løsBehov(packet: JsonMessage): Any =
-        Behov(packet).løs()
+    /** Tilgjengeliggjør løsefunksjon (med serialisering) for [PacketSolver] ([løs] kan ikke kalles direkte siden den extender intern klasse). */
+    internal fun løsBehov(packet: JsonMessage): JsonElement =
+        Behov(packet)
+            .løs()
+            .toJson()
 
     /** Tilgjengeliggjør opprettelse av funksjoner for å lese verdier fra [Behov]. */
     inner class BehovReader internal constructor() {
@@ -76,5 +85,7 @@ abstract class Løser {
     /** Tilgjengeliggjør funksjoner opprettet i [createReaders]. */
     inner class Behov internal constructor(
         internal val packet: JsonMessage
-    )
+    ) {
+        val id get() = packet.id
+    }
 }

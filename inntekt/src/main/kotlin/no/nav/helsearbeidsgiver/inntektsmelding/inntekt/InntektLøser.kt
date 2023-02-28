@@ -79,7 +79,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         sikkerlogg.info("Løser behov $BEHOV med id $uuid")
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
-        val imLøsning = packet.value(Key.SESSION)[BehovType.HENT_TRENGER_IM.name]?.toJsonElement()?.fromJson<HentTrengerImLøsning>()
+        val imLøsning = packet.value(Key.SESSION)[BehovType.HENT_TRENGER_IM.name]?.toJsonElement()?.fromJson(HentTrengerImLøsning.serializer())
         val sykPeriode = imLøsning?.value?.sykmeldingsperioder
         try {
             val periode = finnInntektPeriode(sykPeriode)

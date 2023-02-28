@@ -33,7 +33,7 @@ class RedisPoller {
     suspend fun getResultat(key: String, maxRetries: Int = 10, waitMillis: Long = 500): Resultat {
         val json = hent(key, maxRetries, waitMillis)
         return try {
-            json.fromJson()
+            json.fromJson(Resultat.serializer())
         } catch (_: Exception) {
             throw RedisPollerJsonException(key, json.toString())
         }

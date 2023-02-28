@@ -3,10 +3,13 @@ package no.nav.helsearbeidsgiver.felles
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.NothingSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.løsning
 import no.nav.helsearbeidsgiver.felles.json.parseJson
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningSerializer
@@ -16,13 +19,14 @@ import no.nav.helsearbeidsgiver.felles.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.fail
 import kotlin.reflect.KClass
 
+@OptIn(ExperimentalSerializationApi::class)
 class LøsningTest : FunSpec({
     test("Løsning.Success kan serialiseres og deserialiseres") {
         val successSerialized = Mock.Success.expectedResultat.toLøsningSuccess().let(Json::encodeToJsonElement)
 
         successSerialized shouldBe Mock.Success.expectedJson
 
-        val successDeserialized = successSerialized.fromJson<Løsning<Samwise>>()
+        val successDeserialized = successSerialized.fromJson(Samwise.serializer().løsning())
 
         when (successDeserialized) {
             is Løsning.Success ->
@@ -37,7 +41,7 @@ class LøsningTest : FunSpec({
 
         failureSerialized shouldBe Mock.Failure.expectedJson
 
-        val failureDeserialized = failureSerialized.fromJson<Løsning<Nothing>>()
+        val failureDeserialized = failureSerialized.fromJson(NothingSerializer().løsning())
 
         when (failureDeserialized) {
             is Løsning.Success ->
@@ -56,7 +60,7 @@ class LøsningTest : FunSpec({
             """
                 .removeJsonWhitespace()
                 .parseJson()
-                .fromJson<Løsning<Samwise>>()
+                .fromJson(Samwise.serializer().løsning())
         }
     }
 
@@ -69,7 +73,7 @@ class LøsningTest : FunSpec({
             """
                 .removeJsonWhitespace()
                 .parseJson()
-                .fromJson<Løsning<Samwise>>()
+                .fromJson(Samwise.serializer().løsning())
         }
     }
 })

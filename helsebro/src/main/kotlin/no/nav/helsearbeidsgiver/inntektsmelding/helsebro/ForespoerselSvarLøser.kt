@@ -27,7 +27,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             validate { jsonMessage ->
                 jsonMessage.demandValue(Pri.Key.BEHOV, ForespoerselSvar.behovType)
                 jsonMessage.require(
-                    Pri.Key.LØSNING to { it.fromJson<ForespoerselSvar>() }
+                    Pri.Key.LØSNING to { it.fromJson(ForespoerselSvar.serializer()) }
                 )
             }
         }.register(this)
@@ -39,7 +39,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
 
         val forespoerselSvar = Pri.Key.LØSNING.let(packet::value)
             .toJsonElement()
-            .fromJson<ForespoerselSvar>()
+            .fromJson(ForespoerselSvar.serializer())
 
         loggerSikker.info("Oversatte melding:\n$forespoerselSvar")
 

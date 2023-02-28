@@ -54,7 +54,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             sikkerlogg.info("Fant arbeidsgiver: $arbeidsgiver")
             val fulltNavn = hentNavn(session)
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
-            val innsendingRequest: InnsendingRequest = packet[Key.INNTEKTSMELDING.str].toJsonElement().fromJson()
+            val innsendingRequest: InnsendingRequest = packet[Key.INNTEKTSMELDING.str].toJsonElement().fromJson(InnsendingRequest.serializer())
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
             val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)
             sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid")

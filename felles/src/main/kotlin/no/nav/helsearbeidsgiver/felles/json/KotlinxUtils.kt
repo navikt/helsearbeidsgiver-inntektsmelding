@@ -1,14 +1,14 @@
 package no.nav.helsearbeidsgiver.felles.json
 
 import com.fasterxml.jackson.databind.JsonNode
-import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
+import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import java.time.LocalDate
@@ -19,7 +19,7 @@ fun <T : Any> T.toJson(serializer: KSerializer<T>): JsonElement =
 
 fun <T : Any> List<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =
     toJson(
-        ListSerializer(elementSerializer)
+        elementSerializer.list()
     )
 
 fun String.toJson(): JsonElement =
@@ -39,14 +39,20 @@ fun Map<String, JsonElement>.toJson(): JsonElement =
         )
     )
 
-inline fun <reified T : Any> JsonElement.fromJson(): T =
-    Json.decodeFromJsonElement(this)
-
-fun <T : Any> JsonElement.fromJson(ds: DeserializationStrategy<T>): T =
-    Json.decodeFromJsonElement(ds, this)
+fun <T : Any> JsonElement.fromJson(serializer: KSerializer<T>): T =
+    Json.decodeFromJsonElement(serializer, this)
 
 fun String.parseJson(): JsonElement =
     Json.parseToJsonElement(this)
 
 fun JsonNode.toJsonElement(): JsonElement =
     toString().parseJson()
+
+fun <T : Any> KSerializer<T>.list(): KSerializer<List<T>> =
+    ListSerializer(this)
+
+fun <T : Any> KSerializer<T>.set(): KSerializer<Set<T>> =
+    SetSerializer(this)
+
+fun <T : Any> KSerializer<T>.løsning(): KSerializer<Løsning<T>> =
+    Løsning.serializer(this)

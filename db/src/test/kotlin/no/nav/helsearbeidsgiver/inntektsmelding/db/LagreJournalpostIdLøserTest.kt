@@ -74,6 +74,11 @@ internal class LagreJournalpostIdLøserTest {
         if (rapid.inspektør.message(0).path(Key.LØSNING.str) == null) {
             return null
         }
-        return rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson()
+        return rapid.inspektør
+            .message(0)
+            .path(Key.LØSNING.str)
+            .get(BehovType.LAGRE_JOURNALPOST_ID.name)
+            .toJsonElement()
+            .fromJson(LagreJournalpostLøsning.serializer())
     }
 }

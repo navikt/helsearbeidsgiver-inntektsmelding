@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.set
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest
@@ -41,7 +42,7 @@ class AltinnLøserTest : LøserTest() {
         )
 
         val actualAnswer = testRapid.lastMessageJson()
-            .toLøserAnswer<Set<AltinnOrganisasjon>>()
+            .toLøserAnswer(AltinnOrganisasjon.serializer().set())
 
         coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(mockId) }
         actualAnswer shouldBe expectedAnswer

@@ -58,6 +58,11 @@ internal class HentPersistertLøserTest {
     private fun sendMelding(vararg melding: Pair<Key, JsonElement>): HentPersistertLøsning {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())
-        return rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.HENT_PERSISTERT_IM.name).toJsonElement().fromJson()
+        return rapid.inspektør
+            .message(0)
+            .path(Key.LØSNING.str)
+            .get(BehovType.HENT_PERSISTERT_IM.name)
+            .toJsonElement()
+            .fromJson(HentPersistertLøsning.serializer())
     }
 }

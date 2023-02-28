@@ -47,7 +47,7 @@ fun Map<String, JsonElement>.toJson(): JsonElement =
     )
 
 fun <T : Any> JsonElement.fromJson(serializer: KSerializer<T>): T =
-    Json.decodeFromJsonElement(serializer, this)
+    jsonIgnoreUnknown.decodeFromJsonElement(serializer, this)
 
 fun <T : Any> String.fromJson(serializer: KSerializer<T>): T =
     parseJson().fromJson(serializer)

@@ -24,8 +24,7 @@ internal fun createApp(environment: Environment): RapidsConnection {
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starting Distribuer IM Løser...")
     DistribuerIMLøser(
-        rapidsConnection,
-        KafkaProducer<String, String>(kafkaProperties())
+        rapidsConnection
     )
     InntektsmeldingJournalførtListener(
         rapidsConnection

@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
@@ -18,6 +19,7 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection) : River
         River(rapidsConnection).apply {
             validate {
                 it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_JOURNALFØRT.name)
+                it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
                 it.requireKey(Key.JOURNALPOST_ID.str)
             }

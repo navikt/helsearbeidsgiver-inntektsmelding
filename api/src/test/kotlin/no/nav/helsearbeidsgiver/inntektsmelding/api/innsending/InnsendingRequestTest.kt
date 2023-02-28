@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Inntekt
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.junit.jupiter.api.Test
@@ -29,10 +30,6 @@ internal class InnsendingRequestTest {
     private val NEGATIVT_BELØP: Double = -0.1
     private val MAX_NATURAL_BELØP: Double = 1_000_000.0
 
-    fun String.loadFromResources(): String {
-        return ClassLoader.getSystemResource(this).readText()
-    }
-
     @Test
     fun `skal serialisere InntektEndringÅrsak`() {
         val inntekt = Inntekt(
@@ -46,7 +43,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal lese innsendingrequest`() {
-        val request: InnsendingRequest = "innsendingrequest.json".loadFromResources().fromJson(InnsendingRequest.serializer())
+        val request: InnsendingRequest = "innsendingrequest.json".readResource().fromJson(InnsendingRequest.serializer())
         request.validate()
     }
 

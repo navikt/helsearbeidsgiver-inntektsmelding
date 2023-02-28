@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -70,5 +71,5 @@ internal class MapInntektKtTest {
         assertEquals(1.0, inntekt.total())
     }
 
-    private fun lagRespons(filnavn: String): InntektskomponentResponse = objectMapper.readValue(filnavn.loadFromResources())
+    private fun lagRespons(filnavn: String): InntektskomponentResponse = objectMapper.readValue(filnavn.readResource())
 }

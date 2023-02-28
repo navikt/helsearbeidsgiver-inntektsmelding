@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonStr
 import no.nav.helsearbeidsgiver.felles.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntektListe
+import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 
 class ForespurtDataTest : FunSpec({
     listOf(
@@ -42,8 +43,3 @@ class ForespurtDataTest : FunSpec({
             }
         }
 })
-
-private fun String.readResource(): String =
-    ClassLoader.getSystemClassLoader()
-        .getResource(this)
-        ?.readText()!!

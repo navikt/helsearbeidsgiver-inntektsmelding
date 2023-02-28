@@ -33,7 +33,7 @@ internal class LagreJournalpostIdLøserTest {
             repository.oppdaterJournapostId(any(), any())
         } returns Unit
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(BehovType::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
@@ -46,7 +46,7 @@ internal class LagreJournalpostIdLøserTest {
             repository.oppdaterJournapostId(any(), any())
         } returns Unit
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(BehovType::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "".toJson()
         )
@@ -60,7 +60,7 @@ internal class LagreJournalpostIdLøserTest {
             repository.oppdaterJournapostId(any(), any())
         } throws Exception()
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(BehovType::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
@@ -74,6 +74,11 @@ internal class LagreJournalpostIdLøserTest {
         if (rapid.inspektør.message(0).path(Key.LØSNING.str) == null) {
             return null
         }
-        return rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson()
+        return rapid.inspektør
+            .message(0)
+            .path(Key.LØSNING.str)
+            .get(BehovType.LAGRE_JOURNALPOST_ID.name)
+            .toJsonElement()
+            .fromJson(LagreJournalpostLøsning.serializer())
     }
 }

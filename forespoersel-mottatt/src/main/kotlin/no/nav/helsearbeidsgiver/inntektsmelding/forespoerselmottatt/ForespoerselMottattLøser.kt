@@ -40,7 +40,7 @@ class ForespoerselMottattLøser(
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.let(packet::value).asUuid()
 
         context.publish(
-            Key.NOTIS to listOf(NotisType.NOTIFIKASJON_TRENGER_IM).toJson(NotisType::toJson),
+            Key.NOTIS to listOf(NotisType.NOTIFIKASJON_TRENGER_IM).toJson(NotisType.serializer()),
             Key.ORGNRUNDERENHET to orgnr.toJson(),
             Key.IDENTITETSNUMMER to fnr.toJson(),
             Key.UUID to forespoerselId.toJson()

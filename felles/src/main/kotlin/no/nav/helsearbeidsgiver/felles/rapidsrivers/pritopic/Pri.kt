@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
 
+import kotlinx.serialization.Serializable
+
 object Pri {
     const val TOPIC = "helsearbeidsgiver.pri"
 
@@ -21,10 +23,12 @@ object Pri {
             str
     }
 
+    @Serializable
     enum class BehovType : ValueEnum {
         TRENGER_FORESPØRSEL
     }
 
+    @Serializable
     enum class NotisType : ValueEnum {
         FORESPØRSEL_MOTTATT
     }

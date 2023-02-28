@@ -31,7 +31,7 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
         try {
             packet[Key.SESSION.str][BehovType.HENT_TRENGER_IM.name]
                 .toJsonElement()
-                .fromJson()
+                .fromJson(HentTrengerImLøsning.serializer())
         } catch (ex: Exception) {
             HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
         }

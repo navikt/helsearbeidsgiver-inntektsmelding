@@ -20,10 +20,10 @@ class TrengerProducer(
         val initiateId = UUID.randomUUID()
 
         rapid.publish(
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType::toJson),
+            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.FORESPOERSEL_ID to request.uuid.toJson(),
             Key.BOOMERANG to mapOf(
-                Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL).toJson(BehovType::toJson),
+                Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL).toJson(BehovType.serializer()),
                 Key.INITIATE_ID.str to initiateId.toJson()
             ).toJson()
         ) {

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -34,7 +35,7 @@ internal class HentPersistertLøserTest {
             repository.hentNyeste(any())
         } returns INNTEKTSMELDING_DOKUMENT
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.UUID to UUID.randomUUID().toJson()
         )
         assertNotNull(løsning.value)
@@ -46,7 +47,7 @@ internal class HentPersistertLøserTest {
             repository.hentNyeste(any())
         } throws Exception()
         val løsning = sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String::toJson),
+            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.UUID to UUID.randomUUID().toJson()
         )
         assertNull(løsning.value)
@@ -57,6 +58,11 @@ internal class HentPersistertLøserTest {
     private fun sendMelding(vararg melding: Pair<Key, JsonElement>): HentPersistertLøsning {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())
-        return rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.HENT_PERSISTERT_IM.name).toJsonElement().fromJson()
+        return rapid.inspektør
+            .message(0)
+            .path(Key.LØSNING.str)
+            .get(BehovType.HENT_PERSISTERT_IM.name)
+            .toJsonElement()
+            .fromJson(HentPersistertLøsning.serializer())
     }
 }

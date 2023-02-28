@@ -57,7 +57,13 @@ private fun kafkaProperties(): Properties =
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to Env.Kafka.keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to Env.Kafka.credstorePassword,
 
-                ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1"
+                ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1",
+                ProducerConfig.ACKS_CONFIG to "all",
+                ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to "true",
+                ProducerConfig.MAX_BLOCK_MS_CONFIG to "15000",
+                ProducerConfig.RETRIES_CONFIG to "2",
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to "org.apache.kafka.common.serialization.StringSerializer",
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to "org.apache.kafka.common.serialization.StringSerializer"
             )
         )
     }

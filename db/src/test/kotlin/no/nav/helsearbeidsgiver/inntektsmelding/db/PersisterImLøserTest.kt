@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -69,7 +70,7 @@ internal class PersisterImLøserTest {
         )
 
         sendMelding(
-            Key.BEHOV to listOf(BehovType.PERSISTER_IM.name).toJson(String::toJson),
+            Key.BEHOV to listOf(BehovType.PERSISTER_IM.name).toJson(String.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.UUID to "uuid".toJson(),
             Key.INNTEKTSMELDING to request.let(Json::encodeToJsonElement)

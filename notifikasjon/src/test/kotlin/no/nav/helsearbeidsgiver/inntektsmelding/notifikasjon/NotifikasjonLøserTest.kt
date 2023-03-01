@@ -5,7 +5,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NotisType
 import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull

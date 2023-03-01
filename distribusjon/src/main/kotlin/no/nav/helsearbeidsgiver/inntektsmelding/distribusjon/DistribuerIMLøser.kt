@@ -30,7 +30,9 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kaf
         logger.info("Skal distribuere pakke")
         sikkerlogg.info("Skal distribuere pakken: ${packet.toJson()}")
         try {
-            val inntektsmeldingDokument: InntektsmeldingDokument = packet[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement().fromJson()
+            val inntektsmeldingDokument: InntektsmeldingDokument = packet[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement().fromJson(
+                InntektsmeldingDokument.serializer()
+            )
             val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
             val packet: JsonMessage = JsonMessage.newMessage(
                 mapOf(

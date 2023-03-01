@@ -56,7 +56,7 @@ class InntektsmeldingMottattListenerTest {
         )
 
         sendMelding(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.UUID to "uuid".toJson(),
             Key.INNTEKTSMELDING_DOKUMENT to request.let(Json::encodeToJsonElement)

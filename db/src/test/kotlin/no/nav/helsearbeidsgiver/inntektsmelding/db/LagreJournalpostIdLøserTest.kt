@@ -36,11 +36,13 @@ internal class LagreJournalpostIdLøserTest {
             repository.oppdaterJournapostId(any(), any())
         } returns Unit
         sendMelding(
-            Key.BEHOV to BEHOV.toJson(),
+            Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
-        val løsning: JournalpostLøsning = rapid.inspektør.message(1).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson()
+        val løsning: JournalpostLøsning = rapid.inspektør.message(1).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson(
+            JournalpostLøsning.serializer()
+        )
         assertNotNull(løsning.value)
     }
 
@@ -50,11 +52,13 @@ internal class LagreJournalpostIdLøserTest {
             repository.oppdaterJournapostId(any(), any())
         } returns Unit
         sendMelding(
-            Key.BEHOV to BEHOV.toJson(),
+            Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "".toJson()
         )
-        val løsning: JournalpostLøsning = rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson()
+        val løsning: JournalpostLøsning = rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson(
+            JournalpostLøsning.serializer()
+        )
         assertNull(løsning.value)
         assertNotNull(løsning.error)
     }
@@ -66,11 +70,13 @@ internal class LagreJournalpostIdLøserTest {
         } throws Exception()
 
         sendMelding(
-            Key.BEHOV to BEHOV.toJson(),
+            Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
-        val løsning: JournalpostLøsning = rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson()
+        val løsning: JournalpostLøsning = rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson(
+            JournalpostLøsning.serializer()
+        )
         assertNull(løsning.value)
         assertNotNull(løsning.error)
     }

@@ -27,6 +27,7 @@ enum class NotisType {
     NOTIFIKASJON_TRENGER_IM
 }
 
+@Serializable
 enum class EventName {
     INNTEKTSMELDING_MOTTATT,
     INNTEKTSMELDING_JOURNALFOERT,

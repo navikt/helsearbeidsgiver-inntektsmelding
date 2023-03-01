@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 
-class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnection) : River.PacketListener {
+class JournalfoerInntektsmeldingMottattListener(private val rapidsConnection: RapidsConnection) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
@@ -22,16 +22,16 @@ class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnect
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Inntektsmelding Mottat med packet ${packet.toJson()}")
+        val uuid = packet[Key.UUID.str]
+        logger.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT} med uuid=$uuid")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to BehovType.JOURNALFOER,
-                Key.UUID.str to packet[Key.UUID.str],
+                Key.UUID.str to uuid,
                 Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
             )
         ).toJson()
-        logger.info("Inntektsmelding Mottat new pakke er $jsonMessage")
         rapidsConnection.publish(jsonMessage)
     }
 }

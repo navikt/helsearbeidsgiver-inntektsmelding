@@ -20,12 +20,12 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.*
 
-class InntektsmeldingMottattListenerTest {
+class JournalfoerInntektsmeldingMottattListenerTest {
     val rapid = TestRapid()
-    var inntektMottat: InntektsmeldingMottattListener
+    var inntektMottat: JournalfoerInntektsmeldingMottattListener
 
     init {
-        inntektMottat = InntektsmeldingMottattListener(rapid)
+        inntektMottat = JournalfoerInntektsmeldingMottattListener(rapid)
     }
 
     @Test

@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokumen
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 
-class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnection) : River.PacketListener {
+class NotifikasjonInntektsmeldingMottattListener(private val rapidsConnection: RapidsConnection) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {

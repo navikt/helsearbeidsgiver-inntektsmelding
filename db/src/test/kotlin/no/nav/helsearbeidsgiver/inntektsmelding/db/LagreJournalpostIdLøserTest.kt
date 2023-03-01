@@ -40,11 +40,11 @@ internal class LagreJournalpostIdLøserTest {
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
-        val løsning: JournalpostLøsning = rapid.inspektør.message(1).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson(
-            JournalpostLøsning.serializer()
-        )
+        val løsning: JournalpostLøsning = journalpostLøsningFraRapid(1) // Event sendes ut først, deretter løsning
         assertNotNull(løsning.value)
     }
+
+
 
     @Test
     fun `skal håndtere at journalpostId er null eller blank`() {
@@ -56,9 +56,7 @@ internal class LagreJournalpostIdLøserTest {
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "".toJson()
         )
-        val løsning: JournalpostLøsning = rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson(
-            JournalpostLøsning.serializer()
-        )
+        val løsning: JournalpostLøsning = journalpostLøsningFraRapid(0)
         assertNull(løsning.value)
         assertNotNull(løsning.error)
     }
@@ -74,9 +72,7 @@ internal class LagreJournalpostIdLøserTest {
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
-        val løsning: JournalpostLøsning = rapid.inspektør.message(0).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson(
-            JournalpostLøsning.serializer()
-        )
+        val løsning: JournalpostLøsning = journalpostLøsningFraRapid(0)
         assertNull(løsning.value)
         assertNotNull(løsning.error)
     }
@@ -85,4 +81,9 @@ internal class LagreJournalpostIdLøserTest {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())
     }
+
+    private fun journalpostLøsningFraRapid(index: Int) =
+        rapid.inspektør.message(index).path(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson(
+            JournalpostLøsning.serializer()
+        )
 }

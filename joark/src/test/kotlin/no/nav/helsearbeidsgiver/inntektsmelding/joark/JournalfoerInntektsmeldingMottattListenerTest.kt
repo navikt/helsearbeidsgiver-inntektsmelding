@@ -29,7 +29,7 @@ class JournalfoerInntektsmeldingMottattListenerTest {
     }
 
     @Test
-    fun onPacket() {
+    fun publisererEventOgBehovVedMottattInntektsmelding() {
         val request = InnsendingRequest(
             "",
             "",

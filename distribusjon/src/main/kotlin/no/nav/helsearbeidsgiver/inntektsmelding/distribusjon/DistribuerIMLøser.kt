@@ -13,6 +13,8 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 
+private const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
+
 class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kafkaProducer: KafkaProducer<String, String>) : River.PacketListener {
 
     init {
@@ -27,7 +29,7 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kaf
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Skal distribuere pakke")
+        logger.info("Mottar event: ${EventName.INNTEKTSMELDING_JOURNALFOERT}")
         sikkerlogg.info("Skal distribuere pakken: ${packet.toJson()}")
         try {
             val inntektsmeldingDokument: InntektsmeldingDokument = packet[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement().fromJson(
@@ -42,11 +44,11 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kaf
             )
             kafkaProducer.send(
                 ProducerRecord(
-                    "helsearbeidsgiver.inntektsmelding",
+                    TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
                     packet.toString()
                 )
             )
-            sikkerlogg.info("Publisert eksternt for journalpostId: $journalpostId.")
+            sikkerlogg.info("Publisert eksternt for journalpostId: $journalpostId")
             val packet2: JsonMessage = JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_DISTRIBUERT,

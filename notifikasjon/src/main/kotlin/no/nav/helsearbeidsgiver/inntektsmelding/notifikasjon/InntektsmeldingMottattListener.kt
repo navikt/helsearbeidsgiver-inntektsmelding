@@ -28,7 +28,7 @@ class InntektsmeldingMottattListener(private val rapidsConnection: RapidsConnect
         val inntektsmeldingDokument: InntektsmeldingDokument = packet[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement().fromJson(
             InntektsmeldingDokument.serializer()
         )
-        sikkerlogg.info("Inntektmelding mottat listener for bruker notification ${packet.toJson()}")
+        sikkerlogg.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT}, pakke: ${packet.toJson()}")
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(

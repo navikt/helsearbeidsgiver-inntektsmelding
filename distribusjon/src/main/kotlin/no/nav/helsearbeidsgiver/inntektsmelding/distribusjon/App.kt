@@ -12,7 +12,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.Properties
 
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-distribuer-im")
+internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-distribusjon")
 internal val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
 
 fun main() {
@@ -20,7 +20,7 @@ fun main() {
 }
 
 internal fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starting distribuer-im...")
+    logger.info("Starting im-distribusjon...")
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starting Distribuer IM Løser...")
     DistribuerIMLøser(

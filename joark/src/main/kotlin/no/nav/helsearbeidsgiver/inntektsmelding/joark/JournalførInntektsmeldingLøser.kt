@@ -55,7 +55,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov" + BehovType.JOURNALFOER + " med id $uuid")
+        logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         try {
             val inntektsmeldingDokument = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING_DOKUMENT.str])
@@ -67,12 +67,6 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
             publiserLøsning(løsning, packet, context)
             val eventName = packet[Key.EVENT_NAME.str].asText()
             publiserLagring(uuid, journalpostId, inntektsmeldingDokument.identitetsnummer, eventName)
-//            try {
-//                sendNotifikasjon(uuid, inntektsmeldingDokument)
-//                sikkerlogg.info("Registrere melding om notifikasjon for $inntektsmeldingDokument")
-//            } catch (ex: Exception) {
-//                sikkerlogg.error("Klarte ikke registrere melding om notifikasjon for $inntektsmeldingDokument", ex)
-//            }
         } catch (ex: DokArkivException) {
             sikkerlogg.info("Klarte ikke journalføre", ex)
             publiserLøsning(JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet")), packet, context)

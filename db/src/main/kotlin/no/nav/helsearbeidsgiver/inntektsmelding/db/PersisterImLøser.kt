@@ -81,7 +81,7 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
                 Key.UUID.str to uuid
             )
         )
-        logger.info("publiser Inntektsmelding Mottatt pakke er ${packet.toJson()}")
+        logger.info("Publiserer event ${EventName.INNTEKTSMELDING_MOTTATT} for uuid: ${uuid}")
         rapidsConnection.publish(packet.toJson())
     }
 

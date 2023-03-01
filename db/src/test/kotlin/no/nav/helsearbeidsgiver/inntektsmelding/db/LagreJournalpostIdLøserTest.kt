@@ -44,8 +44,6 @@ internal class LagreJournalpostIdLøserTest {
         assertNotNull(løsning.value)
     }
 
-
-
     @Test
     fun `skal håndtere at journalpostId er null eller blank`() {
         coEvery {

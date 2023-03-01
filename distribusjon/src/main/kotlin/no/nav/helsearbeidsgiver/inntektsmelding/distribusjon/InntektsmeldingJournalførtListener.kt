@@ -22,7 +22,8 @@ class InntektsmeldingJournalførtListener(private val rapidsConnection: RapidsCo
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Inntektsmelding Mottat med packet ${packet.toJson()}")
+        logger.info("Mottatt event ${EventName.INNTEKTSMELDING_JOURNALFOERT}")
+        sikkerlogg.info("Mottatt event ${EventName.INNTEKTSMELDING_JOURNALFOERT} med pakke ${packet.toJson()}")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT.name,
@@ -31,7 +32,6 @@ class InntektsmeldingJournalførtListener(private val rapidsConnection: RapidsCo
                 Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
             )
         ).toJson()
-        logger.info("Inntektsmelding Journalført new pakke er $jsonMessage")
         rapidsConnection.publish(jsonMessage)
     }
 }

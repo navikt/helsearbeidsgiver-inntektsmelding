@@ -12,7 +12,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
 
     testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")

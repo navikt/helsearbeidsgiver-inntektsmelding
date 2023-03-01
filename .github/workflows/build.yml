@@ -6,7 +6,7 @@ on:
       - main
       - preprod/**
 env:
-  DOCKER_REGISTRY: docker.pkg.github.com
+  DOCKER_REGISTRY: ghcr.io
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
   ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 
@@ -140,7 +140,7 @@ jobs:
     steps:
       - name: Check if docker image exists
         run: |
-          LAYERS=$(curl -X GET https://$DOCKER_REGISTRY/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
+          LAYERS=$(curl -X GET https://$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
           if [ "$LAYERS" == 'null' ]; then
             echo "IMAGE_EXISTS=false" >> $GITHUB_ENV
           else

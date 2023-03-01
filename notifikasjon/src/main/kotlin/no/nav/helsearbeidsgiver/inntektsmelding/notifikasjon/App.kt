@@ -19,6 +19,7 @@ internal fun createApp(environment: Environment): RapidsConnection {
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starting...")
     NotifikasjonLøser(rapidsConnection, buildClient(environment), environment.linkUrl)
+    NotifikasjonInntektsmeldingMottattListener(rapidsConnection)
     return rapidsConnection
 }
 

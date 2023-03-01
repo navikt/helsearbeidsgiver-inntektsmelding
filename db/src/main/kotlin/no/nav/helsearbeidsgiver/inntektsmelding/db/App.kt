@@ -13,9 +13,13 @@ fun main() {
     val repository = Repository(database.db)
     RapidApplication.create(System.getenv()).also {
         it.registerDbLifecycle(database)
+        logger.info("Registrerte db lifecycle")
         PersisterImLøser(it, repository)
+        logger.info("Startet PersisterImLøser")
         HentPersistertLøser(it, repository)
+        logger.info("Startet HentPersistertLøser")
         LagreJournalpostIdLøser(it, repository)
+        logger.info("Startet LagreJournalpostIdLøser")
         it.start()
     }
 }

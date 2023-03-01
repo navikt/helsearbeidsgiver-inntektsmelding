@@ -1,0 +1,4 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+ingress: https://helsearbeidsgiver-im-distribusjon.dev.nav.no

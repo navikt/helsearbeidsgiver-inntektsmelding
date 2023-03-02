@@ -18,7 +18,8 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
+
 
 class JournalfoerInntektsmeldingMottattListenerTest {
     val rapid = TestRapid()

@@ -9,6 +9,7 @@ import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
@@ -72,12 +73,6 @@ internal class InntektLøserTest {
             Key.IDENTITETSNUMMER to "abc".toJson(),
             Key.ORGNRUNDERENHET to "123456789".toJson(),
             Key.SESSION to sessionData()
-                .toJson(
-                    MapSerializer(
-                        BehovType.serializer(),
-                        HentTrengerImLøsning.serializer()
-                    )
-                )
         )
 
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
@@ -103,12 +98,6 @@ internal class InntektLøserTest {
             Key.IDENTITETSNUMMER to "abc".toJson(),
             Key.ORGNRUNDERENHET to "123456789".toJson(),
             Key.SESSION to sessionData()
-                .toJson(
-                    MapSerializer(
-                        BehovType.serializer(),
-                        HentTrengerImLøsning.serializer()
-                    )
-                )
         )
 
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
@@ -147,25 +136,29 @@ internal class InntektLøserTest {
         val inntektSvar = List(12) {
             lagInntektMaaned(YearMonth.of(2022, 12).minusMonths(it.toLong()), 1.0, "orgnr")
         }
-        val til = slot<LocalDate>()
-        val fra = slot<LocalDate>()
+        val fom = slot<LocalDate>()
+        val tom = slot<LocalDate>()
         every {
             runBlocking {
                 inntektKlient.hentInntektListe(
                     ident = any(),
                     callId = any(),
                     navConsumerId = any(),
-                    fraOgMed = capture(fra),
-                    tilOgMed = capture(til),
+                    fraOgMed = capture(fom),
+                    tilOgMed = capture(tom),
                     filter = any(),
                     formaal = any()
                 )
             }
         } answers {
-            val tilMåned = YearMonth.from(til.captured)
-            val fraMåned = YearMonth.from(fra.captured)
-            val mellomTilOgFra = inntektSvar.filterNot { it.aarMaaned == null || it.aarMaaned!!.isBefore(fraMåned) || it.aarMaaned!!.isAfter(tilMåned) }
-            InntektskomponentResponse(mellomTilOgFra)
+            val fomMåned = YearMonth.from(fom.captured)
+            val tomMåned = YearMonth.from(tom.captured)
+            val mellomFomOgTom = inntektSvar.filterNot {
+                it.aarMaaned == null ||
+                    it.aarMaaned!!.isBefore(fomMåned) ||
+                    it.aarMaaned!!.isAfter(tomMåned)
+            }
+            InntektskomponentResponse(mellomFomOgTom)
         }
 
         rapid.sendJson(
@@ -175,12 +168,6 @@ internal class InntektLøserTest {
             Key.IDENTITETSNUMMER to "fnr".toJson(),
             Key.ORGNRUNDERENHET to "orgnr".toJson(),
             Key.SESSION to sessionData()
-                .toJson(
-                    MapSerializer(
-                        BehovType.serializer(),
-                        HentTrengerImLøsning.serializer()
-                    )
-                )
         )
 
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
@@ -192,7 +179,7 @@ internal class InntektLøserTest {
         assertEquals(YearMonth.of(2022, 2), inntektLøsning.value!!.historisk[2].maanedsnavn)
     }
 
-    private fun sessionData() = mapOf(
+    private fun sessionData(): JsonElement = mapOf(
         BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
             value = mockTrengerInntekt().copy(
                 fnr = "fnr",
@@ -200,6 +187,11 @@ internal class InntektLøserTest {
                 sykmeldingsperioder = sykmeldingsperioder(LocalDate.of(2022, 5, 1), LocalDate.of(2022, 5, 16)),
                 forespurtData = emptyList()
             )
+        )
+    ).toJson(
+        MapSerializer(
+            BehovType.serializer(),
+            HentTrengerImLøsning.serializer()
         )
     )
 

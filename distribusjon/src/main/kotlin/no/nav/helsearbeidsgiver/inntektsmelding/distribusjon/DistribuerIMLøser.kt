@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -10,25 +9,23 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 
 private const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
 
-class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kafkaProducer: KafkaProducer<String, String>) : River.PacketListener {
+class DistribuerIMLøser(rapidsConnection: RapidsConnection, val kafkaProducer: KafkaProducer<String, String>) : Løser(rapidsConnection) {
 
-    init {
-        River(rapidsConnection).apply {
-            validate {
-                it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_JOURNALFOERT.name)
-                it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)
-                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
-                it.requireKey(Key.JOURNALPOST_ID.str)
-            }
-        }.register(this)
+    override fun accept(): River.PacketValidation {
+        return River.PacketValidation {
+            it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)
+            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+            it.requireKey(Key.JOURNALPOST_ID.str)
+        }
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onBehov(packet: JsonMessage) {
         logger.info("Mottar event: ${EventName.INNTEKTSMELDING_JOURNALFOERT}")
         sikkerlogg.info("Skal distribuere pakken: ${packet.toJson()}")
         try {
@@ -49,14 +46,17 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kaf
                 )
             )
             sikkerlogg.info("Publisert eksternt for journalpostId: $journalpostId")
-            val packet2: JsonMessage = JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_DISTRIBUERT,
-                    Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
-                    Key.JOURNALPOST_ID.str to journalpostId
+
+            publishEvent(
+                JsonMessage.newMessage(
+                    mapOf(
+                        Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_DISTRIBUERT,
+                        Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                        Key.JOURNALPOST_ID.str to journalpostId
+                    )
                 )
             )
-            rapidsConnection.publish(packet2.toJson())
+
             sikkerlogg.info("Publisert internt for journalpostId: $journalpostId")
         } catch (e: Exception) {
             logger.error("Klarte ikke lese ut inntektsmeldingdokument")

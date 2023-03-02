@@ -5,6 +5,7 @@ import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
@@ -36,6 +37,7 @@ internal class LagreJournalpostIdLøserTest {
             repository.oppdaterJournapostId(any(), any())
         } returns Unit
         sendMelding(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
             Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
@@ -50,6 +52,7 @@ internal class LagreJournalpostIdLøserTest {
             repository.oppdaterJournapostId(any(), any())
         } returns Unit
         sendMelding(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
             Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "".toJson()
@@ -66,6 +69,7 @@ internal class LagreJournalpostIdLøserTest {
         } throws Exception()
 
         sendMelding(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
             Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()

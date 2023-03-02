@@ -70,6 +70,7 @@ internal class PersisterImLøserTest {
         )
 
         sendMelding(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
             Key.BEHOV to listOf(BehovType.PERSISTER_IM.name).toJson(String.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.UUID to "uuid".toJson(),

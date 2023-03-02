@@ -12,10 +12,10 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NotisType
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
@@ -24,19 +24,17 @@ import java.time.LocalDateTime
 
 class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : River.PacketListener {
 
-    private val BEHOV = BehovType.JOURNALFOER
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll(Key.BEHOV.str, BEHOV)
-                it.requireKey(Key.ID.str)
-                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+                it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
+                it.demandValue(Key.BEHOV.str, BehovType.JOURNALFOER.name)
                 it.rejectKey(Key.LØSNING.str)
-                it.interestedIn(Key.SESSION.str)
                 it.interestedIn(Key.UUID.str)
+                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
             }
         }.register(this)
     }
@@ -45,22 +43,6 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
         sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
         return dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
-    }
-
-    fun sendNotifikasjon(uuid: String, inntektsmelding: InntektsmeldingDokument) {
-        val packet: JsonMessage = JsonMessage.newMessage(
-            mapOf(
-                Key.NOTIS.str to listOf(
-                    NotisType.NOTIFIKASJON.name
-                ),
-                Key.ID.str to uuid,
-                Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.UUID.str to uuid,
-                Key.IDENTITETSNUMMER.str to inntektsmelding.identitetsnummer,
-                Key.ORGNRUNDERENHET.str to inntektsmelding.orgnrUnderenhet
-            )
-        )
-        rapidsConnection.publish(inntektsmelding.identitetsnummer, packet.toJson())
     }
 
     fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
@@ -73,10 +55,8 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov $BEHOV med id $uuid")
+        logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
-        val session = packet[Key.SESSION.str]
-        sikkerlogg.info("Fant session: $session")
         try {
             val inntektsmeldingDokument = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING_DOKUMENT.str])
             sikkerlogg.info("Skal journalføre: $inntektsmeldingDokument")
@@ -85,13 +65,8 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
             logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
             val løsning = JournalpostLøsning(journalpostId)
             publiserLøsning(løsning, packet, context)
-            publiserLagring(uuid, journalpostId, inntektsmeldingDokument.identitetsnummer)
-            try {
-                sendNotifikasjon(uuid, inntektsmeldingDokument)
-                sikkerlogg.info("Registrere melding om notifikasjon for $inntektsmeldingDokument")
-            } catch (ex: Exception) {
-                sikkerlogg.error("Klarte ikke registrere melding om notifikasjon for $inntektsmeldingDokument", ex)
-            }
+            val eventName = packet[Key.EVENT_NAME.str].asText()
+            publiserLagring(uuid, journalpostId, inntektsmeldingDokument.identitetsnummer, eventName)
         } catch (ex: DokArkivException) {
             sikkerlogg.info("Klarte ikke journalføre", ex)
             publiserLøsning(JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet")), packet, context)
@@ -100,14 +75,15 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
             publiserLøsning(JournalpostLøsning(error = Feilmelding("Feil format i InntektsmeldingDokument")), packet, context)
         } catch (ex: Exception) {
             sikkerlogg.info("Klarte ikke journalføre!", ex)
-            JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre"))
+            publiserLøsning(JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre")), packet, context)
         }
     }
 
-    fun publiserLagring(uuid: String, journalpostId: String, identitetsnummer: String) {
+    fun publiserLagring(uuid: String, journalpostId: String, identitetsnummer: String, eventName: String) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.BEHOV.str to listOf(BehovType.LAGRE_JOURNALPOST_ID),
+                Key.EVENT_NAME.str to eventName,
+                Key.BEHOV.str to BehovType.LAGRE_JOURNALPOST_ID.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.JOURNALPOST_ID.str to journalpostId,
                 Key.UUID.str to uuid
@@ -117,7 +93,7 @@ class JournalførInntektsmeldingLøser(private val rapidsConnection: RapidsConne
     }
 
     fun publiserLøsning(løsning: JournalpostLøsning, packet: JsonMessage, context: MessageContext) {
-        packet.setLøsning(BEHOV, løsning)
+        packet.setLøsning(BehovType.JOURNALFOER, løsning)
         context.publish(packet.toJson())
     }
 

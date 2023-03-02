@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.inntekt.ArbeidsInntektInformasjon
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsinntektMaaned
 import no.nav.helsearbeidsgiver.inntekt.Ident
 import no.nav.helsearbeidsgiver.inntekt.Inntekt
+import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -37,10 +38,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
-
-fun String.loadFromResources(): String {
-    return ClassLoader.getSystemResource(this).readText()
-}
 
 internal class InntektLøserTest {
 

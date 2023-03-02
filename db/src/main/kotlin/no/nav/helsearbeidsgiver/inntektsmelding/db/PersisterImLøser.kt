@@ -8,15 +8,17 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersisterImLøsning
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.slf4j.LoggerFactory
 
-class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
+class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
 
     private val BEHOV = BehovType.PERSISTER_IM
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
@@ -57,17 +59,27 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             val innsendingRequest: InnsendingRequest = packet[Key.INNTEKTSMELDING.str].toJsonElement().fromJson(InnsendingRequest.serializer())
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
             val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)
-            sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid")
+            sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid") // TODO: lagre / benytte separat id i database?
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
-            packet[Key.NESTE_BEHOV.str] = listOf(
-                BehovType.JOURNALFOER.name
-            )
-            publiserLøsning(PersisterImLøsning(dbUuid), packet, context)
+            publiserLøsning(PersisterImLøsning(uuid), packet, context)
+            publiserInntektsmeldingMottatt(inntektsmeldingDokument, uuid)
         } catch (ex: Exception) {
             logger.error("Klarte ikke persistere: $uuid")
             sikkerlogg.error("Klarte ikke persistere: $uuid", ex)
             publiserLøsning(PersisterImLøsning(error = Feilmelding(melding = "Klarte ikke persistere!")), packet, context)
         }
+    }
+
+    private fun publiserInntektsmeldingMottatt(inntektsmeldingDokument: InntektsmeldingDokument, uuid: String) {
+        val packet: JsonMessage = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
+                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                Key.UUID.str to uuid
+            )
+        )
+        logger.info("Publiserer event ${EventName.INNTEKTSMELDING_MOTTATT} for uuid: $uuid")
+        rapidsConnection.publish(packet.toJson())
     }
 
     fun publiserLøsning(løsning: PersisterImLøsning, packet: JsonMessage, context: MessageContext) {

@@ -21,11 +21,11 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.test.date.februar
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsInntektInformasjon
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsinntektMaaned
 import no.nav.helsearbeidsgiver.inntekt.Ident
 import no.nav.helsearbeidsgiver.inntekt.Inntekt
-import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -48,7 +48,7 @@ internal class InntektLøserTest {
     private val BEHOV_INNTEKT = BehovType.INNTEKT.toString()
 
     init {
-        inntektKlient = mockk<InntektKlient>()
+        inntektKlient = mockk()
         inntektLøser = InntektLøser(rapid, inntektKlient)
     }
 
@@ -98,7 +98,7 @@ internal class InntektLøserTest {
 
     @Test
     fun `skal publisere svar fra inntektskomponenten`() {
-        val response = "response.json".loadFromResources().fromJson(InntektskomponentResponse.serializer())
+        val response = "response.json".readResource().fromJson(InntektskomponentResponse.serializer())
         every {
             runBlocking {
                 inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())

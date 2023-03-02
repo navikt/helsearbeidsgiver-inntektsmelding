@@ -15,7 +15,13 @@ data class Periode(
     fun overlapper(other: Periode): Boolean {
         return this == other || (fom.isBefore(other.tom) && tom.isAfter(other.fom)) ||
             other.fom == tom || fom == other.tom
-    } // TODO: Helger / en dags ikke-gap
+    }
+
+    fun erSammenhengende(other: Periode): Boolean {
+        return this.tom.plusDays(1) == other.fom ||
+            this.fom.minusDays(1) == other.tom
+        // TODO: Helger
+    }
 }
 
 infix fun LocalDate.til(tom: LocalDate): Periode =

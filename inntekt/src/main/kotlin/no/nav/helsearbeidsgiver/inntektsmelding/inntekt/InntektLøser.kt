@@ -24,7 +24,6 @@ import java.time.LocalDate
 
 fun finnInntektPeriode(sykmeldinger: List<Periode>): Periode { // returnerer en periode tre måneder tilbake
     val sortertOgSlåttSammen = slåSammenPerioder(sykmeldinger)
-    // TODO: Fjern perioder som er for korte
     val p = sortertOgSlåttSammen.get(0) // naiv tilnærming
     val fom = p.fom.withDayOfMonth(1)
     return Periode(fom.minusMonths(3), fom.minusDays(1))

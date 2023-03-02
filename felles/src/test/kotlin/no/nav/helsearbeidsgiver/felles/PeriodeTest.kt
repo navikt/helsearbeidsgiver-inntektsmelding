@@ -35,4 +35,11 @@ class PeriodeTest : FunSpec({
         p2.overlapper(p1).shouldBeTrue()
         p1.overlapper(p2).shouldBeTrue()
     }
+
+    test("ny periode starter på samme dag som forrige periode slutter skal overlappe") {
+        val p1 = Periode(1.januar, 2.januar)
+        val p2 = Periode(2.januar, 3.januar)
+        p1.overlapper(p2).shouldBeTrue()
+        p2.overlapper(p1).shouldBeTrue()
+    }
 })

@@ -13,7 +13,8 @@ data class Periode(
     val tom: LocalDate
 ) {
     fun overlapper(other: Periode): Boolean {
-        return this == other || (fom.isBefore(other.tom) && tom.isAfter(other.fom))
+        return this == other || (fom.isBefore(other.tom) && tom.isAfter(other.fom)) ||
+            other.fom == tom || fom == other.tom
     } // TODO: Helger / en dags ikke-gap
 }
 

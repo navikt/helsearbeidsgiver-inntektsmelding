@@ -118,23 +118,7 @@ internal class InntektLøserTest {
     }
 
     @Test
-    fun `skal finne riktig inntektsPeriode basert på sykmeldingsperioden - henter forrige måned`() {
-        val inntektPeriode = finnInntektPeriode(
-            listOf(
-                Periode(
-                    fom = LocalDate.of(2022, 4, 1),
-                    tom = LocalDate.of(2022, 4, 20)
-                )
-            )
-        )
-        val expectedFom = LocalDate.of(2022, 1, 1)
-        val expectedTom = LocalDate.of(2022, 3, 31)
-        assertEquals(expectedFom, inntektPeriode.fom)
-        assertEquals(expectedTom, inntektPeriode.tom)
-    }
-
-    @Test
-    fun `skal sortere fra eldst til nyest ved flere sykmeldingsperioder`() {
+    fun `skal benytte nyeste hvis flere sykmeldingsperioder`() {
         val inntektPeriode = finnInntektPeriode(
             listOf(
                 (1.januar til 20.januar), // år 2018 er default

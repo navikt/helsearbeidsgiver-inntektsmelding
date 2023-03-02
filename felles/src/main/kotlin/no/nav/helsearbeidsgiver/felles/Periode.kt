@@ -12,6 +12,10 @@ data class Periode(
     val fom: LocalDate,
     val tom: LocalDate
 ) {
+    /*
+        Sjekker om perioder overlapper. Er foreløpig ikke i bruk for sykmeldinger,
+        da disse visstnok ikke kan overlappe
+     */
     fun overlapper(other: Periode): Boolean {
         return this == other || (fom.isBefore(other.tom) && tom.isAfter(other.fom)) ||
             other.fom == tom || fom == other.tom
@@ -22,6 +26,16 @@ data class Periode(
             this.fom.minusDays(1) == other.tom
         // TODO: Helger
     }
+
+    fun slåSammenOrNull(other: Periode): Periode? =
+        if (!erSammenhengende(other)) {
+            null
+        } else {
+            Periode(
+                minOf(fom, other.fom),
+                maxOf(tom, other.tom)
+            )
+        }
 }
 
 infix fun LocalDate.til(tom: LocalDate): Periode =

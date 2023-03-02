@@ -22,28 +22,32 @@ import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
-fun finnInntektPeriode(sykmeldinger: List<Periode>): Periode { // returnerer en periode tre måneder tilbake
-    val sortertOgSlåttSammen = slåSammenPerioder(sykmeldinger)
-    val p = sortertOgSlåttSammen.get(0) // naiv tilnærming
-    val fom = p.fom.withDayOfMonth(1)
-    return Periode(fom.minusMonths(3), fom.minusDays(1))
+/**
+ * @return en periode tre måneder tilbake fra nyeste sammenhengende
+ * sykmeldingsperiode
+ */
+fun finnInntektPeriode(sykmeldinger: List<Periode>): Periode {
+    val bestemmende = finnBestemmendeFraværsdag(sykmeldinger)
+    val bestemmendeMaaned = bestemmende.withDayOfMonth(1)
+    return Periode(bestemmendeMaaned.minusMonths(3), bestemmendeMaaned.minusDays(1))
 }
 
-fun slåSammenPerioder(sykmeldinger: List<Periode>): List<Periode> {
+/**
+ * Sorter fom fra minst til størst,
+ * returnerer den siste sammenhengende perioden i lista,
+ * eller det siste elementet om ingen hører sammen
+ */
+fun finnBestemmendeFraværsdag(sykmeldinger: List<Periode>): LocalDate =
     if (sykmeldinger.size <= 1) {
-        return sykmeldinger
+        sykmeldinger.first()
+    } else {
+        sykmeldinger.sortedBy { it.fom }
+            .reduce { p1, p2 ->
+                p1.slåSammenOrNull(p2)
+                    ?: p2
+            }
     }
-    var slåttSammen = emptyList<Periode>()
-    var sorted = sykmeldinger.sortedBy { periode -> periode.fom }
-    while (sorted.isNotEmpty()) {
-        val p1 = sorted.get(0)
-        val overlapper = sorted.filter { it.overlapper(p1) }
-        val periode = Periode(p1.fom, overlapper.maxOf { it.tom })
-        slåttSammen = slåttSammen.plus(periode)
-        sorted = sorted.minus(overlapper)
-    }
-    return slåttSammen
-}
+        .fom
 
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 

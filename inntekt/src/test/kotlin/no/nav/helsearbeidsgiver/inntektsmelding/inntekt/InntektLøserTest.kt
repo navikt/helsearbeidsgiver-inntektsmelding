@@ -19,9 +19,11 @@ import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.test.date.februar
+import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.test.resource.readResource
+import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsInntektInformasjon
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsinntektMaaned
 import no.nav.helsearbeidsgiver.inntekt.Ident
@@ -31,7 +33,6 @@ import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -154,32 +155,24 @@ internal class InntektLøserTest {
     fun `skal sortere fra eldst til nyest ved flere sykmeldingsperioder`() {
         val inntektPeriode = finnInntektPeriode(
             listOf(
-                Periode(
-                    fom = LocalDate.of(2022, 4, 1),
-                    tom = LocalDate.of(2022, 4, 20)
-                ),
-                Periode(
-                    fom = LocalDate.of(2022, 3, 1),
-                    tom = LocalDate.of(2022, 3, 20)
-                )
+                (1.januar til 20.januar), // år 2018 er default
+                (1.februar til 20.februar)
             )
         )
-        // Skal velge mars, dermed blir tremånedersperioden desember - februar
-        val expectedFom = LocalDate.of(2021, 12, 1)
-        val expectedTom = LocalDate.of(2022, 2, 28)
+        // Skal velge februar, dermed blir tremånedersperioden november - januar
+        val expectedFom = LocalDate.of(2017, 11, 1)
+        val expectedTom = LocalDate.of(2018, 1, 31)
         assertEquals(expectedFom, inntektPeriode.fom)
         assertEquals(expectedTom, inntektPeriode.tom)
     }
 
     @Test
-    fun `skal slå sammen perioder som overlapper`() {
-        val p1 = Periode(1.februar(2023), 5.februar(2023))
-        val p2 = Periode(4.februar(2023), 19.februar(2023))
+    fun `skal slå sammen perioder som er sammenhengende`() {
+        val p1 = 1.februar(2023) til 6.februar(2023)
+        val p2 = 7.februar(2023) til 19.februar(2023)
         val perioder = listOf(p2, p1)
-        val sortertOgSlåttSammen = slåSammenPerioder(perioder)
-        assertTrue(sortertOgSlåttSammen.size == 1)
-        assertEquals(p1.fom, sortertOgSlåttSammen.get(0).fom)
-        assertEquals(p2.tom, sortertOgSlåttSammen.get(0).tom)
+        val bestemmende = finnBestemmendeFraværsdag(perioder)
+        assertEquals(p1.fom, bestemmende)
     }
 
 //    @Test

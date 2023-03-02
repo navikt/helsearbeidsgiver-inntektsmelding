@@ -144,7 +144,7 @@ internal class InntektLøserTest {
     @Test
     fun `skal finne riktig inntekt basert på sykmeldingsperioden som kommer i BEHOV`() {
         // TODO: Denne testen er litt grisete og tester mest egen mocke-logikk, men beholder foreløpig
-        val svar = List(12) {
+        val inntektSvar = List(12) {
             lagInntektMaaned(YearMonth.of(2022, 12).minusMonths(it.toLong()), 1.0, "orgnr")
         }
         val til = slot<LocalDate>()
@@ -162,10 +162,10 @@ internal class InntektLøserTest {
                 )
             }
         } answers {
-            val t = YearMonth.from(til.captured)
-            val f = YearMonth.from(fra.captured)
-            val filtered = svar.filterNot { it.aarMaaned == null || it.aarMaaned!!.isBefore(f) || it.aarMaaned!!.isAfter(t) }
-            InntektskomponentResponse(filtered)
+            val tilMåned = YearMonth.from(til.captured)
+            val fraMåned = YearMonth.from(fra.captured)
+            val mellomTilOgFra = inntektSvar.filterNot { it.aarMaaned == null || it.aarMaaned!!.isBefore(fraMåned) || it.aarMaaned!!.isAfter(tilMåned) }
+            InntektskomponentResponse(mellomTilOgFra)
         }
 
         rapid.sendJson(

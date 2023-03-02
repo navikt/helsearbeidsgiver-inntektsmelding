@@ -20,13 +20,9 @@ import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.slf4j.LoggerFactory
-import java.lang.IllegalArgumentException
 import java.time.LocalDate
 
-fun finnInntektPeriode(sykmeldinger: List<Periode>?): Periode { // returnerer en periode tre måneder tilbake
-    if (sykmeldinger.isNullOrEmpty()) {
-        throw IllegalArgumentException("Ugyldig data! Sykemeldingsperiode kan ikke være tom!")
-    }
+fun finnInntektPeriode(sykmeldinger: List<Periode>): Periode { // returnerer en periode tre måneder tilbake
     val sortertOgSlåttSammen = slåSammenPerioder(sykmeldinger)
     // TODO: Fjern perioder som er for korte
     val p = sortertOgSlåttSammen.get(0) // naiv tilnærming
@@ -81,6 +77,12 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
         val imLøsning = packet.value(Key.SESSION)[BehovType.HENT_TRENGER_IM.name]?.toJsonElement()?.fromJson(HentTrengerImLøsning.serializer())
         val sykPeriode = imLøsning?.value?.sykmeldingsperioder
+        if (sykPeriode.isNullOrEmpty()) {
+            logger.warn("Sykmeldingsperiode mangler for uuid $uuid")
+            packet.setLøsning(BEHOV, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
+            context.publish(packet.toJson())
+            return
+        }
         try {
             val periode = finnInntektPeriode(sykPeriode)
             sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${periode.fom} - ${periode.tom}")

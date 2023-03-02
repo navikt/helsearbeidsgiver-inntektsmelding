@@ -31,7 +31,6 @@ import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -170,12 +169,6 @@ internal class InntektLøserTest {
         val expectedTom = LocalDate.of(2022, 2, 28)
         assertEquals(expectedFom, inntektPeriode.fom)
         assertEquals(expectedTom, inntektPeriode.tom)
-    }
-
-    @Test
-    fun `skal håndtere ulovlige verdier i sykmeldingsperiode`() {
-        assertThrows(IllegalArgumentException::class.java, { finnInntektPeriode(null) }, "Skal aldri få null i sykmeldingperiode")
-        assertThrows(IllegalArgumentException::class.java, { finnInntektPeriode(emptyList()) }, "Skal aldri få tom sykmeldingperiode")
     }
 
     @Test

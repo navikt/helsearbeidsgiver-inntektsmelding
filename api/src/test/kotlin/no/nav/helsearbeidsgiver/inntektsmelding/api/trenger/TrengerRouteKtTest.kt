@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
@@ -13,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.buildResultat
@@ -27,7 +26,6 @@ private const val PATH = Routes.PREFIX + Routes.TRENGER
 
 internal class TrengerRouteKtTest : ApiTest() {
 
-    val objectMapper = customObjectMapper()
     val UUID = "abc-123"
     val GYLDIG_REQUEST = TrengerRequest(UUID)
     val UGYLDIG_REQUEST = TrengerRequest(" ")
@@ -52,8 +50,9 @@ internal class TrengerRouteKtTest : ApiTest() {
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
-        val data: String = response.bodyAsText()
-        val violations = objectMapper.readValue<ValidationResponse>(data).errors
+
+        val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
+
         assertEquals(1, violations.size)
         assertEquals("uuid", violations[0].property)
     }

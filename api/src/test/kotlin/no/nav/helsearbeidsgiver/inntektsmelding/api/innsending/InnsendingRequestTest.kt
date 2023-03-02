@@ -11,8 +11,8 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Inntekt
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonStr
 import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
@@ -38,7 +38,7 @@ internal class InnsendingRequestTest {
             endringÅrsak = InntektEndringÅrsak.NyStilling(LocalDate.now()),
             manueltKorrigert = false
         )
-        println(customObjectMapper().writeValueAsString(inntekt))
+        println(inntekt.toJsonStr(Inntekt.serializer()))
     }
 
     @Test
@@ -54,7 +54,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal kunne konvertere til json`() {
-        println(customObjectMapper().writeValueAsString(GYLDIG))
+        println(GYLDIG.toJsonStr(InnsendingRequest.serializer()))
     }
 
     @Test

@@ -2,7 +2,6 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
@@ -10,7 +9,8 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonStr
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -26,8 +26,6 @@ import kotlin.test.assertNotNull
 private const val PATH = Routes.PREFIX + Routes.INNSENDING
 
 class InnsendingRouteKtTest : ApiTest() {
-    val objectMapper = customObjectMapper()
-
     val GYLDIG_REQUEST = GYLDIG
     val UGYLDIG_REQUEST = GYLDIG.copy(
         identitetsnummer = TestData.notValidIdentitetsnummer,
@@ -46,7 +44,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals(objectMapper.writeValueAsString(InnsendingResponse(MockUuid.STRING)), response.bodyAsText())
+        assertEquals(InnsendingResponse(MockUuid.STRING).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
     }
 
     @Test
@@ -59,8 +57,9 @@ class InnsendingRouteKtTest : ApiTest() {
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
-        val data: String = response.bodyAsText()
-        val violations = objectMapper.readValue<ValidationResponse>(data).errors
+
+        val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
+
         assertEquals(2, violations.size)
         assertEquals(Key.ORGNRUNDERENHET.str, violations[0].property)
         assertEquals("identitetsnummer", violations[1].property)
@@ -75,7 +74,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals(objectMapper.writeValueAsString(RedisTimeoutResponse(MockUuid.STRING, "Brukte for lang tid")), response.bodyAsText())
+        assertEquals(RedisTimeoutResponse(MockUuid.STRING, "Brukte for lang tid").toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
     }
 
     @Test
@@ -88,8 +87,9 @@ class InnsendingRouteKtTest : ApiTest() {
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
-        val data: String = response.bodyAsText()
-        val violations = objectMapper.readValue<ValidationResponse>(data).errors
+
+        val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
+
         assertEquals(2, violations.size)
     }
 }

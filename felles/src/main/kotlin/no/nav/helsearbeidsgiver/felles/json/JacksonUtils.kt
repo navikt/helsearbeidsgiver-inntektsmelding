@@ -9,14 +9,12 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.serialization.json.JsonElement
 
 fun customObjectMapper(): ObjectMapper =
-    jacksonObjectMapper().configure()
-
-private val objectMapper = customObjectMapper()
-
-fun ObjectMapper.configure(): ObjectMapper =
-    registerModule(JavaTimeModule())
+    jacksonObjectMapper()
+        .registerModule(JavaTimeModule())
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+
+private val objectMapper = customObjectMapper()
 
 fun JsonElement.toJsonNode(): JsonNode =
     toString().let(objectMapper::readTree)

@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.application.install
@@ -16,7 +16,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.json.configure
+import no.nav.helsearbeidsgiver.felles.json.jsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
@@ -52,9 +52,7 @@ fun Application.apiModule(connection: RapidsConnection) {
     customAuthentication()
 
     install(ContentNegotiation) {
-        jackson {
-            configure()
-        }
+        json(jsonIgnoreUnknown)
     }
 
     install(StatusPages) {

@@ -9,11 +9,11 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
-import no.nav.helsearbeidsgiver.felles.json.configure
+import no.nav.helsearbeidsgiver.felles.json.jsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.mock.mockConstructor
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -39,9 +39,7 @@ class TestClient(
 ) {
     private val httpClient = appTestBuilder.createClient {
         install(ContentNegotiation) {
-            jackson {
-                configure()
-            }
+            json(jsonIgnoreUnknown)
         }
     }
 

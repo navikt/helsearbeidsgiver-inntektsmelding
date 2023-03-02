@@ -6,8 +6,11 @@ import io.mockk.coEvery
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.NothingSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.løsning
 import no.nav.helsearbeidsgiver.felles.json.set
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -31,8 +34,8 @@ class ArbeidsgivereRouteKtTest : ApiTest() {
 
         Assertions.assertEquals(HttpStatusCode.OK, response.status)
 
-        val responseBody = response.body<Set<AltinnOrganisasjon>>()
-        Assertions.assertEquals(responseBody, MockOk.responseBody)
+        val responseBody = response.body<JsonElement>().fromJson(AltinnOrganisasjon.serializer().set())
+        Assertions.assertEquals(MockOk.responseBody, responseBody)
     }
 
     @Test
@@ -45,8 +48,8 @@ class ArbeidsgivereRouteKtTest : ApiTest() {
 
         Assertions.assertEquals(HttpStatusCode.InternalServerError, response.status)
 
-        val responseBody = response.body<String>()
-        Assertions.assertEquals(responseBody, MockInternalServerError.responseBody)
+        val responseBody = response.body<JsonElement>().fromJson(String.serializer())
+        Assertions.assertEquals(MockInternalServerError.responseBody, responseBody)
     }
 }
 

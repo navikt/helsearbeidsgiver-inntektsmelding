@@ -137,8 +137,8 @@ internal class InntektLøserTest {
         val p1 = 1.februar(2023) til 6.februar(2023)
         val p2 = 7.februar(2023) til 19.februar(2023)
         val perioder = listOf(p2, p1)
-        val bestemmende = finnBestemmendeFraværsdag(perioder)
-        assertEquals(p1.fom, bestemmende)
+        val skjæringstidspunkt = finnSkjæringstidspunkt(perioder)
+        assertEquals(p1.fom, skjæringstidspunkt)
     }
 
     @Test

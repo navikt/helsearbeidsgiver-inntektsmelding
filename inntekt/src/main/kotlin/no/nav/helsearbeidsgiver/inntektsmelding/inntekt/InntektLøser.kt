@@ -27,9 +27,12 @@ import java.time.LocalDate
  * sykmeldingsperiode
  */
 fun finnInntektPeriode(sykmeldinger: List<Periode>): Periode {
-    val bestemmende = finnBestemmendeFraværsdag(sykmeldinger)
-    val bestemmendeMaaned = bestemmende.withDayOfMonth(1)
-    return Periode(bestemmendeMaaned.minusMonths(3), bestemmendeMaaned.minusDays(1))
+    val skjæringstidspunkt = finnSkjæringstidspunkt(sykmeldinger)
+    val skjæringstidspunktMåned = skjæringstidspunkt.withDayOfMonth(1)
+    return Periode(
+        skjæringstidspunktMåned.minusMonths(3),
+        skjæringstidspunktMåned.minusDays(1)
+    )
 }
 
 /**
@@ -37,7 +40,7 @@ fun finnInntektPeriode(sykmeldinger: List<Periode>): Periode {
  * returnerer den siste sammenhengende perioden i lista,
  * eller det siste elementet om ingen hører sammen
  */
-fun finnBestemmendeFraværsdag(sykmeldinger: List<Periode>): LocalDate =
+fun finnSkjæringstidspunkt(sykmeldinger: List<Periode>): LocalDate =
     if (sykmeldinger.size <= 1) {
         sykmeldinger.first()
     } else {

@@ -34,16 +34,16 @@ fun slåSammenPerioder(sykmeldinger: List<Periode>): List<Periode> {
     if (sykmeldinger.size <= 1) {
         return sykmeldinger
     }
-    var slåttsammen = emptyList<Periode>()
+    var slåttSammen = emptyList<Periode>()
     var sorted = sykmeldinger.sortedBy { periode -> periode.fom }
     while (sorted.isNotEmpty()) {
         val p1 = sorted.get(0)
         val overlapper = sorted.filter { it.overlapper(p1) }
         val periode = Periode(p1.fom, overlapper.maxOf { it.tom })
-        slåttsammen = slåttsammen.plus(periode)
+        slåttSammen = slåttSammen.plus(periode)
         sorted = sorted.minus(overlapper)
     }
-    return slåttsammen
+    return slåttSammen
 }
 
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {

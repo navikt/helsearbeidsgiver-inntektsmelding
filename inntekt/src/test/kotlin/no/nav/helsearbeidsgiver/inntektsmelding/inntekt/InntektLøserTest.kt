@@ -44,13 +44,8 @@ private const val ORGNR = "123456789"
 internal class InntektLøserTest {
 
     private val rapid = TestRapid()
-    private val inntektLøser: InntektLøser
-    private val inntektKlient: InntektKlient
-
-    init {
-        inntektKlient = mockk()
-        inntektLøser = InntektLøser(rapid, inntektKlient)
-    }
+    private val inntektKlient: InntektKlient = mockk()
+    private val inntektLøser = InntektLøser(rapid, inntektKlient)
 
     @BeforeEach
     fun beforeEach() {

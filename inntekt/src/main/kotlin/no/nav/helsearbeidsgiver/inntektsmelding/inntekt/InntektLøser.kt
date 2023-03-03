@@ -67,10 +67,10 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         }.register(this)
     }
 
-    private fun hentInntekt(fnr: String, fra: LocalDate, til: LocalDate, callId: String): InntektskomponentResponse =
+    private fun hentInntekt(fnr: String, periode: Periode, callId: String): InntektskomponentResponse =
         runBlocking {
-            sikkerlogg.info("Henter inntekt for $fnr i perioden $fra til $til (callId: $callId)")
-            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fra, til, "8-28", "Sykepenger")
+            sikkerlogg.info("Henter inntekt for $fnr i perioden ${periode.fom} til ${periode.tom} (callId: $callId)")
+            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", periode.fom, periode.tom, "8-28", "Sykepenger")
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
@@ -84,15 +84,15 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val imLøsning = packet.value(Key.SESSION)[BehovType.HENT_TRENGER_IM.name]?.toJsonElement()?.fromJson(HentTrengerImLøsning.serializer())
         val sykPeriode = imLøsning?.value?.sykmeldingsperioder
         if (sykPeriode.isNullOrEmpty()) {
-            logger.warn("Sykmeldingsperiode mangler for uuid $uuid")
+            logger.error("Sykmeldingsperiode mangler for uuid $uuid")
             packet.setLøsning(BEHOV, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
             context.publish(packet.toJson())
             return
         }
         try {
-            val periode = finnInntektPeriode(sykPeriode)
-            sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${periode.fom} - ${periode.tom}")
-            val inntektResponse = hentInntekt(fnr, periode.fom, periode.tom, "helsearbeidsgiver-im-inntekt-$uuid")
+            val inntektPeriode = finnInntektPeriode(sykPeriode)
+            sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${inntektPeriode.fom} - ${inntektPeriode.tom}")
+            val inntektResponse = hentInntekt(fnr, inntektPeriode, "helsearbeidsgiver-im-inntekt-$uuid")
             sikkerlogg.info("Fant inntektResponse: $inntektResponse")
             val inntekt = mapInntekt(inntektResponse, orgnr)
             packet.setLøsning(BEHOV, InntektLøsning(inntekt))

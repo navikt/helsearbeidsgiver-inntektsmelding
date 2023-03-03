@@ -15,13 +15,13 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.test.date.februar
 import no.nav.helsearbeidsgiver.felles.test.date.januar
-import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.test.date.mai
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.felles.til
@@ -72,7 +72,7 @@ internal class InntektLøserTest {
             Key.UUID to "uuid".toJson(),
             Key.IDENTITETSNUMMER to "abc".toJson(),
             Key.ORGNRUNDERENHET to "123456789".toJson(),
-            Key.SESSION to sessionData()
+            Key.SESSION to sessionDataJson()
         )
 
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
@@ -97,7 +97,7 @@ internal class InntektLøserTest {
             Key.UUID to "uuid".toJson(),
             Key.IDENTITETSNUMMER to "abc".toJson(),
             Key.ORGNRUNDERENHET to "123456789".toJson(),
-            Key.SESSION to sessionData()
+            Key.SESSION to sessionDataJson()
         )
 
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
@@ -132,7 +132,7 @@ internal class InntektLøserTest {
 
     @Test
     fun `skal finne riktig inntekt basert på sykmeldingsperioden som kommer i BEHOV`() {
-        // TODO: Denne testen er litt grisete og tester mest egen mocke-logikk, men beholder foreløpig
+        // Denne testen er litt grisete og tester mest egen mocke-logikk, men beholder foreløpig
         val inntektSvar = List(12) {
             lagInntektMaaned(YearMonth.of(2022, 12).minusMonths(it.toLong()), 1.0, "orgnr")
         }
@@ -167,7 +167,7 @@ internal class InntektLøserTest {
             Key.UUID to "uuid".toJson(),
             Key.IDENTITETSNUMMER to "fnr".toJson(),
             Key.ORGNRUNDERENHET to "orgnr".toJson(),
-            Key.SESSION to sessionData()
+            Key.SESSION to sessionDataJson()
         )
 
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
@@ -179,12 +179,12 @@ internal class InntektLøserTest {
         assertEquals(YearMonth.of(2022, 2), inntektLøsning.value!!.historisk[2].maanedsnavn)
     }
 
-    private fun sessionData(): JsonElement = mapOf(
+    private fun sessionDataJson(): JsonElement = mapOf(
         BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
-            value = mockTrengerInntekt().copy(
+            TrengerInntekt(
                 fnr = "fnr",
                 orgnr = "orgnr",
-                sykmeldingsperioder = sykmeldingsperioder(LocalDate.of(2022, 5, 1), LocalDate.of(2022, 5, 16)),
+                sykmeldingsperioder = listOf(1.mai(2022) til 16.mai(2022)),
                 forespurtData = emptyList()
             )
         )
@@ -194,8 +194,6 @@ internal class InntektLøserTest {
             HentTrengerImLøsning.serializer()
         )
     )
-
-    private fun sykmeldingsperioder(fom: LocalDate, tom: LocalDate) = listOf(Periode(fom, tom))
 
     private fun lagInntektMaaned(mnd: YearMonth, beloep: Double, orgnr: String): ArbeidsinntektMaaned {
         return ArbeidsinntektMaaned(

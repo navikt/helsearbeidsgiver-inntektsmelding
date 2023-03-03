@@ -8,7 +8,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -40,13 +39,13 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
+private const val ORGNR = "123456789"
+
 internal class InntektLøserTest {
 
     private val rapid = TestRapid()
-    private var inntektLøser: InntektLøser
-    private var inntektKlient: InntektKlient
-    private val BEHOV_PDL = BehovType.FULLT_NAVN.toString()
-    private val BEHOV_INNTEKT = BehovType.INNTEKT.toString()
+    private val inntektLøser: InntektLøser
+    private val inntektKlient: InntektKlient
 
     init {
         inntektKlient = mockk()
@@ -66,17 +65,9 @@ internal class InntektLøserTest {
             }
         } throws RuntimeException()
 
-        rapid.sendJson(
-            Key.BEHOV to listOf(BEHOV_PDL, BEHOV_INNTEKT).toJson(String.serializer()),
-            Key.ID to UUID.randomUUID().toJson(),
-            Key.UUID to "uuid".toJson(),
-            Key.IDENTITETSNUMMER to "abc".toJson(),
-            Key.ORGNRUNDERENHET to "123456789".toJson(),
-            Key.SESSION to sessionDataJson()
-        )
-
+        sendBehovTilLøser()
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = løsning.get(BEHOV_INNTEKT)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
+        val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
         assertNull(inntektLøsning?.value)
         assertNotNull(inntektLøsning?.error)
         assertEquals("Klarte ikke hente inntekt", inntektLøsning?.error?.melding)
@@ -90,18 +81,9 @@ internal class InntektLøserTest {
                 inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
             }
         } returns response
-
-        rapid.sendJson(
-            Key.BEHOV to listOf(BEHOV_PDL, BEHOV_INNTEKT).toJson(String.serializer()),
-            Key.ID to UUID.randomUUID().toJson(),
-            Key.UUID to "uuid".toJson(),
-            Key.IDENTITETSNUMMER to "abc".toJson(),
-            Key.ORGNRUNDERENHET to "123456789".toJson(),
-            Key.SESSION to sessionDataJson()
-        )
-
+        sendBehovTilLøser()
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = løsning.get(BEHOV_INNTEKT)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
+        val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
         assertNull(inntektLøsning?.error)
         assertNotNull(inntektLøsning?.value)
     }
@@ -123,8 +105,8 @@ internal class InntektLøserTest {
 
     @Test
     fun `skal slå sammen perioder som er sammenhengende`() {
-        val p1 = 1.februar(2023) til 6.februar(2023)
-        val p2 = 7.februar(2023) til 19.februar(2023)
+        val p1 = 1.februar til 6.februar
+        val p2 = 7.februar til 19.februar
         val perioder = listOf(p2, p1)
         val skjæringstidspunkt = finnSkjæringstidspunkt(perioder)
         assertEquals(p1.fom, skjæringstidspunkt)
@@ -134,7 +116,7 @@ internal class InntektLøserTest {
     fun `skal finne riktig inntekt basert på sykmeldingsperioden som kommer i BEHOV`() {
         // Denne testen er litt grisete og tester mest egen mocke-logikk, men beholder foreløpig
         val inntektSvar = List(12) {
-            lagInntektMaaned(YearMonth.of(2022, 12).minusMonths(it.toLong()), 1.0, "orgnr")
+            lagInntektMaaned(YearMonth.of(2022, 12).minusMonths(it.toLong()))
         }
         val fom = slot<LocalDate>()
         val tom = slot<LocalDate>()
@@ -160,18 +142,10 @@ internal class InntektLøserTest {
             }
             InntektskomponentResponse(mellomFomOgTom)
         }
-
-        rapid.sendJson(
-            Key.BEHOV to listOf(BEHOV_PDL, BEHOV_INNTEKT).toJson(String.serializer()),
-            Key.ID to UUID.randomUUID().toJson(),
-            Key.UUID to "uuid".toJson(),
-            Key.IDENTITETSNUMMER to "fnr".toJson(),
-            Key.ORGNRUNDERENHET to "orgnr".toJson(),
-            Key.SESSION to sessionDataJson()
-        )
+        sendBehovTilLøser()
 
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = løsning.get(BEHOV_INNTEKT)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
+        val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
         assertNull(inntektLøsning?.error)
         assertEquals(3, inntektLøsning?.value!!.historisk.size)
         assertEquals(YearMonth.of(2022, 4), inntektLøsning.value!!.historisk[0].maanedsnavn)
@@ -179,11 +153,22 @@ internal class InntektLøserTest {
         assertEquals(YearMonth.of(2022, 2), inntektLøsning.value!!.historisk[2].maanedsnavn)
     }
 
+    private fun sendBehovTilLøser() {
+        rapid.sendJson(
+            Key.BEHOV to listOf(BehovType.FULLT_NAVN, BehovType.INNTEKT).toJson(BehovType.serializer()),
+            Key.ID to UUID.randomUUID().toJson(),
+            Key.UUID to "uuid".toJson(),
+            Key.IDENTITETSNUMMER to "abc".toJson(),
+            Key.ORGNRUNDERENHET to ORGNR.toJson(),
+            Key.SESSION to sessionDataJson()
+        )
+    }
+
     private fun sessionDataJson(): JsonElement = mapOf(
         BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
             TrengerInntekt(
                 fnr = "fnr",
-                orgnr = "orgnr",
+                orgnr = ORGNR,
                 sykmeldingsperioder = listOf(1.mai(2022) til 16.mai(2022)),
                 forespurtData = emptyList()
             )
@@ -195,14 +180,14 @@ internal class InntektLøserTest {
         )
     )
 
-    private fun lagInntektMaaned(mnd: YearMonth, beloep: Double, orgnr: String): ArbeidsinntektMaaned {
+    private fun lagInntektMaaned(mnd: YearMonth): ArbeidsinntektMaaned {
         return ArbeidsinntektMaaned(
             aarMaaned = mnd,
             arbeidsInntektInformasjon = ArbeidsInntektInformasjon(
                 inntektListe = listOf(
                     Inntekt(
-                        beloep = beloep,
-                        virksomhet = Ident(orgnr)
+                        beloep = 1.0,
+                        virksomhet = Ident(ORGNR)
                     )
                 )
             )

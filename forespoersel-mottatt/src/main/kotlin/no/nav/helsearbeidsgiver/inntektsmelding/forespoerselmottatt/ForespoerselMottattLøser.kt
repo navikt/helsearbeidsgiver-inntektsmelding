@@ -4,8 +4,8 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NotisType
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -40,12 +40,12 @@ class ForespoerselMottattLøser(
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.let(packet::value).asUuid()
 
         context.publish(
-            Key.NOTIS to listOf(NotisType.NOTIFIKASJON_TRENGER_IM).toJson(NotisType.serializer()),
+            Key.BEHOV to listOf(BehovType.NOTIFIKASJON_TRENGER_IM).toJson(BehovType.serializer()),
             Key.ORGNRUNDERENHET to orgnr.toJson(),
             Key.IDENTITETSNUMMER to fnr.toJson(),
             Key.UUID to forespoerselId.toJson()
         )
 
-        logger.info("Publiserte notis om '${NotisType.NOTIFIKASJON_TRENGER_IM}' med uuid (forespørsel-ID-en) '$forespoerselId'.")
+        logger.info("Publiserte behov om '${BehovType.NOTIFIKASJON_TRENGER_IM}' med uuid (forespørsel-ID-en) '$forespoerselId'.")
     }
 }

@@ -44,7 +44,7 @@ class ForespoerselMottattLøserTest : FunSpec({
 @Serializable
 private data class Published(
     @SerialName("@behov")
-    val behov: List<BehovType>,
+    val behov: BehovType,
     val orgnrUnderenhet: String,
     val identitetsnummer: String,
     val uuid: UUID
@@ -52,7 +52,7 @@ private data class Published(
     companion object {
         fun mock(): Published =
             Published(
-                behov = listOf(BehovType.NOTIFIKASJON_TRENGER_IM),
+                behov = BehovType.NOTIFIKASJON_TRENGER_IM,
                 orgnrUnderenhet = "certainly-stereo-facsimile",
                 identitetsnummer = "resort-cringe-huddle",
                 uuid = UUID.randomUUID()

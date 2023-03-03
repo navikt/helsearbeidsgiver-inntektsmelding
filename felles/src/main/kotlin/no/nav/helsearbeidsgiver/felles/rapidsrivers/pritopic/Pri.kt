@@ -23,17 +23,17 @@ object Pri {
             str
     }
 
+    sealed interface MessageType {
+        val name: String
+    }
+
     @Serializable
-    enum class BehovType : ValueEnum {
+    enum class BehovType : MessageType {
         TRENGER_FORESPØRSEL
     }
 
     @Serializable
-    enum class NotisType : ValueEnum {
+    enum class NotisType : MessageType {
         FORESPØRSEL_MOTTATT
-    }
-
-    sealed interface ValueEnum {
-        val name: String
     }
 }

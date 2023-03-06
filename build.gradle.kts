@@ -109,6 +109,7 @@ subprojects {
     dependencies {
         if (!erFellesModul()) {
             implementation(project(":felles"))
+            implementation(project(":dokument"))
         }
         if (!erFellesTestModul()) {
             testImplementation(project(":felles-test"))
@@ -239,7 +240,7 @@ fun Project.mainClass() =
     "$group.${name.replace("-", "")}.AppKt"
 
 fun Project.erFellesModul() =
-    name == "felles"
+    name == "felles" || name == "dokument"
 
 fun Project.erFellesTestModul() =
     name == "felles-test"

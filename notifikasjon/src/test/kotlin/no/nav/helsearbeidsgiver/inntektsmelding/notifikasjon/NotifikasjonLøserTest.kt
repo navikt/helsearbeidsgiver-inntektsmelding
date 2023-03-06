@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -22,6 +23,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
     fun `skal sende trenger inntektsmelding`() {
         val løsning = sendMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to BehovType.NOTIFIKASJON_TRENGER_IM,
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",
@@ -39,6 +41,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
     fun `skal sende kvittering`() {
         val løsning = sendMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to BehovType.NOTIFIKASJON_IM_MOTTATT,
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",

@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-
 class JournalfoerInntektsmeldingMottattListenerTest {
     val rapid = TestRapid()
     var inntektMottat: JournalfoerInntektsmeldingMottattListener

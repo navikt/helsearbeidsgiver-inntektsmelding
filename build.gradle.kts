@@ -79,7 +79,9 @@ subprojects {
                 val mainClass = project.mainClass()
 
                 doLast {
-                    validateMainClassFound(mainClass)
+                    if (project.name != "dokument") {
+                        validateMainClassFound(mainClass)
+                    }
                 }
 
                 manifest {

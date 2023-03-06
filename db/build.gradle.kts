@@ -6,6 +6,7 @@ val postgresqlVersion: String by project
 val testcontainersPostgresqlVersion: String by project
 
 dependencies {
+    implementation(project(":dokument"))
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")

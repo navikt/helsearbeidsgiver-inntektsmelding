@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.jackson.*
 import io.mockk.coEvery
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.builtins.MapSerializer

@@ -36,7 +36,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: R
         try {
             val dokument = repository.hentNyeste(uuid)
             sikkerlogg.info("Fant dokument: $dokument")
-            løsning = HentPersistertLøsning(dokument)
+            løsning = HentPersistertLøsning(dokument.toString())
         } catch (ex: Exception) {
             logger.info("Klarte ikke hente persistert inntektsmelding")
             sikkerlogg.error("Klarte ikke hente persistert inntektsmelding", ex)

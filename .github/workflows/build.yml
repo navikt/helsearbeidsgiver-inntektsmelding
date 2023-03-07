@@ -108,7 +108,8 @@ jobs:
 
       - name: Test and build
         run: ./gradlew ${{ matrix.project }}::test ${{ matrix.project }}::build
-
+      - name: Publish dokument
+        run: ./gradlew dokument::publish
       - name: Check app.jar existence
         id: app_jar
         uses: andstor/file-existence-action@v2

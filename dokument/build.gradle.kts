@@ -26,7 +26,7 @@ publishing {
         create<MavenPublication>("mavenJava") {
             groupId="no.nav.helsearbeidsgiver.inntektsmelding"
             artifactId="dokument"
-            version= "0.0.1-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+            version= LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + System.getenv("GITHUB_SHA")
             from(components["java"])
         }
     }

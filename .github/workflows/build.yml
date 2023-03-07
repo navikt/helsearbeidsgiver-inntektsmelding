@@ -110,6 +110,10 @@ jobs:
         run: ./gradlew ${{ matrix.project }}::test ${{ matrix.project }}::build
       - name: Publish dokument
         run: ./gradlew dokument::publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: x-access-token
+          GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       - name: Check app.jar existence
         id: app_jar
         uses: andstor/file-existence-action@v2

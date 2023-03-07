@@ -1,4 +1,5 @@
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 val ktorVersion: String by project
 val githubPassword: String by project
@@ -25,7 +26,7 @@ publishing {
         create<MavenPublication>("mavenJava") {
             groupId="no.nav.helsearbeidsgiver.inntektsmelding"
             artifactId="dokument"
-            version= "0.0.1-" + LocalDateTime.now()
+            version= "0.0.1-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
             from(components["java"])
         }
     }

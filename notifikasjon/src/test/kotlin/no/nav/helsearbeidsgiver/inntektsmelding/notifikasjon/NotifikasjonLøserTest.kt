@@ -59,6 +59,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
     fun `skal håndtere at klient feiler`() {
         val løsning = sendMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to BehovType.NOTIFIKASJON_TRENGER_IM,
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",
@@ -76,6 +77,7 @@ internal class NotifikasjonLøserTest : RapidMock() {
     fun `skal håndtere ukjente feil`() {
         val løsning = sendMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to BehovType.NOTIFIKASJON_TRENGER_IM,
                 Key.ID.str to UUID.randomUUID(),
                 Key.ORGNRUNDERENHET.str to ORGNR

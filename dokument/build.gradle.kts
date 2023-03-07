@@ -1,9 +1,12 @@
+import java.time.LocalDateTime
+
 val ktorVersion: String by project
 val githubPassword: String by project
 
 plugins {
     id("maven-publish")
 }
+
 
 
 repositories {
@@ -22,7 +25,7 @@ publishing {
         create<MavenPublication>("mavenJava") {
             groupId="no.nav.helsearbeidsgiver.inntektsmelding"
             artifactId="dokument"
-            version=project.version.toString()
+            version= "0.0.1-" + LocalDateTime.now()
             from(components["java"])
         }
     }

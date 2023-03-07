@@ -4,12 +4,6 @@ import java.time.format.DateTimeFormatter
 val ktorVersion: String by project
 val githubPassword: String by project
 
-plugins {
-    id("maven-publish")
-}
-
-
-
 repositories {
     mavenCentral()
     maven {
@@ -24,9 +18,9 @@ repositories {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            groupId="no.nav.helsearbeidsgiver.inntektsmelding"
-            artifactId="dokument"
-            version= LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + System.getenv("GITHUB_SHA")
+            groupId = "no.nav.helsearbeidsgiver.inntektsmelding"
+            artifactId = "dokument"
+            version = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + System.getenv("GITHUB_SHA")
             from(components["java"])
         }
     }

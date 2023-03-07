@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -10,35 +9,32 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
-class NotifikasjonInntektsmeldingMottattListener(private val rapidsConnection: RapidsConnection) : River.PacketListener {
+class NotifikasjonInntektsmeldingMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
 
-    init {
-        River(rapidsConnection).apply {
-            validate {
-                it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
-                it.rejectKey(Key.BEHOV.str)
-                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
-                it.interestedIn(Key.UUID.str)
-            }
-        }.register(this)
+    override val event: EventName = EventName.INNTEKTSMELDING_MOTTATT
+
+    override fun accept(): River.PacketValidation {
+        return River.PacketValidation {
+            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+        }
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onEvent(packet: JsonMessage) {
         val inntektsmeldingDokument: InntektsmeldingDokument = packet[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement().fromJson(
             InntektsmeldingDokument.serializer()
         )
         sikkerlogg.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT}, pakke: ${packet.toJson()}")
-        rapidsConnection.publish(
+        publishBehov(
             JsonMessage.newMessage(
                 mapOf(
-                    Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                     Key.BEHOV.str to BehovType.NOTIFIKASJON_IM_MOTTATT.name,
                     Key.UUID.str to packet[Key.UUID.str],
                     Key.IDENTITETSNUMMER.str to inntektsmeldingDokument.identitetsnummer,
                     Key.ORGNRUNDERENHET.str to inntektsmeldingDokument.orgnrUnderenhet
                 )
-            ).toJson()
+            )
         )
     }
 }

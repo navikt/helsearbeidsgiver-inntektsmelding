@@ -1,14 +1,14 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
-class JournalfoerInntektsmeldingMottattListener(private val rapidsConnection: RapidsConnection) : River.PacketListener {
+class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
 
     init {
         River(rapidsConnection).apply {
@@ -21,7 +21,16 @@ class JournalfoerInntektsmeldingMottattListener(private val rapidsConnection: Ra
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override val event: EventName = EventName.INNTEKTSMELDING_MOTTATT
+
+    override fun accept(): River.PacketValidation {
+        return River.PacketValidation {
+            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+            it.interestedIn(Key.UUID.str)
+        }
+    }
+
+    override fun onEvent(packet: JsonMessage) {
         val uuid = packet[Key.UUID.str]
         logger.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT} med uuid=$uuid")
         val jsonMessage = JsonMessage.newMessage(
@@ -31,7 +40,7 @@ class JournalfoerInntektsmeldingMottattListener(private val rapidsConnection: Ra
                 Key.UUID.str to uuid,
                 Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
             )
-        ).toJson()
-        rapidsConnection.publish(jsonMessage)
+        )
+        publishBehov(jsonMessage)
     }
 }

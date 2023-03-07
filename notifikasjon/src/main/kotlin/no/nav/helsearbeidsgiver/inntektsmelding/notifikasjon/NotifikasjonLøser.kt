@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -13,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NotifikasjonLøsning
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -20,19 +20,15 @@ class NotifikasjonLøser(
     rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val linkUrl: String
-) : River.PacketListener {
+) : Løser(rapidsConnection) {
 
-    init {
-        River(rapidsConnection).apply {
-            validate {
-                it.demandAny(Key.BEHOV.str, listOf(BehovType.NOTIFIKASJON_IM_MOTTATT.name, BehovType.NOTIFIKASJON_TRENGER_IM.name))
-                it.interestedIn(Key.ID.str)
-                it.interestedIn(Key.IDENTITETSNUMMER.str)
-                it.interestedIn(Key.ORGNRUNDERENHET.str)
-                it.interestedIn(Key.UUID.str)
-                it.rejectKey(Key.LØSNING.str)
-            }
-        }.register(this)
+    override fun accept(): River.PacketValidation {
+        return River.PacketValidation {
+            it.demandAny(Key.BEHOV.str, listOf(BehovType.NOTIFIKASJON_IM_MOTTATT.name, BehovType.NOTIFIKASJON_TRENGER_IM.name))
+            it.interestedIn(Key.ID.str)
+            it.interestedIn(Key.IDENTITETSNUMMER.str)
+            it.interestedIn(Key.ORGNRUNDERENHET.str)
+        }
     }
 
     fun trengerIM(
@@ -77,7 +73,7 @@ class NotifikasjonLøser(
         throw IllegalArgumentException("Ugyldig behovType $behovType")
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onBehov(packet: JsonMessage) {
         val uuid = packet[Key.UUID.str].asText()
         val behovType = BehovType.valueOf(packet[Key.BEHOV.str].asText())
         logger.info("BehovType: $behovType")
@@ -87,19 +83,19 @@ class NotifikasjonLøser(
         sikkerlogg.info("Fant notis for: $identitetsnummer")
         try {
             val notifikasjonId = opprettNotifikasjon(behovType, uuid, orgnrUnderenhet)
-            publiserLøsning(behovType, NotifikasjonLøsning(notifikasjonId), packet, context)
+            publiserLøsning(behovType, NotifikasjonLøsning(notifikasjonId), packet)
             sikkerlogg.info("Sendte notifikasjon id=$notifikasjonId for $identitetsnummer")
             logger.info("Sendte notifikasjon for $uuid")
         } catch (ex: Exception) {
             sikkerlogg.error("Det oppstod en feil ved sending til $identitetsnummer for orgnr: $orgnrUnderenhet", ex)
-            publiserLøsning(behovType, NotifikasjonLøsning(error = Feilmelding("Klarte ikke sende notifikasjon")), packet, context)
+            publiserLøsning(behovType, NotifikasjonLøsning(error = Feilmelding("Klarte ikke sende notifikasjon")), packet)
             logger.info("Klarte ikke sende notifikasjon for $uuid")
         }
     }
 
-    fun publiserLøsning(behovType: BehovType, løsning: NotifikasjonLøsning, packet: JsonMessage, context: MessageContext) {
+    fun publiserLøsning(behovType: BehovType, løsning: NotifikasjonLøsning, packet: JsonMessage) {
         packet.setLøsning(behovType, løsning)
-        context.publish(packet.toJson())
+        publishBehov(packet)
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

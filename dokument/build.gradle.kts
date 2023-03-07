@@ -38,6 +38,5 @@ publishing {
 }
 
 dependencies {
-    implementation(project(":felles"))
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 }

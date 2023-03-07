@@ -11,4 +11,5 @@ dependencies {
     }
     api("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("no.nav.security:token-client-core:$tokenClientVersion")
+    implementation(project(":dokument"))
 }

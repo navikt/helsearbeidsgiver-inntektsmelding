@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.JournalførtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -43,7 +44,7 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kaf
             kafkaProducer.send(
                 ProducerRecord(
                     TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                    journalførtInntektsmelding.toString()
+                    journalførtInntektsmelding.toJson(JournalførtInntektsmelding.serializer()).toString()
                 )
             )
             sikkerlogg.info("Publisert eksternt for journalpostId: $journalpostId")

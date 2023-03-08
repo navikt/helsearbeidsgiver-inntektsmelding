@@ -23,6 +23,8 @@ enum class BehovType {
 
 @Serializable
 enum class EventName {
+    //@TODO trenger bedre navn.
+    INSENDING_STARTED,
     INNTEKTSMELDING_MOTTATT,
     INNTEKTSMELDING_JOURNALFOERT,
     INNTEKTSMELDING_DISTRIBUERT,

@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory
 
 class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repository) : Løser(rapidsConnection) {
 
-    private val BEHOV = BehovType.PERSISTER_IM
+    private val PERSISTER_IM = BehovType.PERSISTER_IM
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -34,7 +34,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
-            it.demandAll(Key.BEHOV.str, BEHOV)
+            it.demandAll(Key.BEHOV.str, PERSISTER_IM)
             it.requireKey(Key.ID.str)
             it.interestedIn(Key.INNTEKTSMELDING.str)
             it.interestedIn(Key.SESSION.str)
@@ -43,7 +43,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
 
     override fun onBehov(packet: JsonMessage) {
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov $BEHOV med id $uuid")
+        logger.info("Løser behov $PERSISTER_IM med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         val session = packet[Key.SESSION.str]
         sikkerlogg.info("Fant session: $session")
@@ -79,7 +79,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
     }
 
     fun publiserLøsning(løsning: PersisterImLøsning, packet: JsonMessage) {
-        packet.setLøsning(BEHOV, løsning)
+        packet.setLøsning(PERSISTER_IM, løsning)
         publishBehov(packet)
     }
 

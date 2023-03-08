@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.JournalførtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -36,16 +37,13 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kaf
                 InntektsmeldingDokument.serializer()
             )
             val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
-            val packet: JsonMessage = JsonMessage.newMessage(
-                mapOf(
-                    Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
-                    Key.JOURNALPOST_ID.str to journalpostId
-                )
-            )
+
+            val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
+
             kafkaProducer.send(
                 ProducerRecord(
                     TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                    packet.toString()
+                    journalførtInntektsmelding.toString()
                 )
             )
             sikkerlogg.info("Publisert eksternt for journalpostId: $journalpostId")

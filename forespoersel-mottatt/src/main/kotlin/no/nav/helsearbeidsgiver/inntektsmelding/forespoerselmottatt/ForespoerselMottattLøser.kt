@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
@@ -40,6 +41,7 @@ class ForespoerselMottattLøser(
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.let(packet::value).asUuid()
 
         context.publish(
+            Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),
             Key.BEHOV to BehovType.NOTIFIKASJON_TRENGER_IM.toJson(BehovType.serializer()),
             Key.ORGNRUNDERENHET to orgnr.toJson(),
             Key.IDENTITETSNUMMER to fnr.toJson(),

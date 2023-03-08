@@ -4,6 +4,11 @@ import java.time.format.DateTimeFormatter
 val ktorVersion: String by project
 val githubPassword: String by project
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 repositories {
     mavenCentral()
     maven {

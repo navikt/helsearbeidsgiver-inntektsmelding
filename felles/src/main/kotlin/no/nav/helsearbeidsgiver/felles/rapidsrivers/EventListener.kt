@@ -27,6 +27,7 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             it.demandValue(Key.EVENT_NAME.str, event.name)
             it.rejectKey(Key.BEHOV.str)
             it.rejectKey(Key.LØSNING.str)
+            it.interestedIn(Key.UUID.str)
         }
     }
 

@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters")
+
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -38,16 +40,15 @@ class DistribuerIMLøser(private val rapidsConnection: RapidsConnection, val kaf
                 InntektsmeldingDokument.serializer()
             )
             val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
-
             val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
-
+            val journalførtJson = journalførtInntektsmelding.toJson(JournalførtInntektsmelding.serializer()).toString()
             kafkaProducer.send(
                 ProducerRecord(
                     TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                    journalførtInntektsmelding.toJson(JournalførtInntektsmelding.serializer()).toString()
+                    journalførtJson
                 )
             )
-            sikkerlogg.info("Publisert eksternt for journalpostId: $journalpostId")
+            sikkerlogg.info("Publisert eksternt for journalpostId: $journalpostId json: $journalførtJson")
             val packet2: JsonMessage = JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_DISTRIBUERT,

@@ -114,7 +114,7 @@ subprojects {
             implementation(project(":felles"))
             implementation(project(":dokument"))
         }
-        if (!erFellesTestModul() && project.name!="dokument") {
+        if (!erFellesTestModul() && project.name != "dokument") {
             testImplementation(project(":felles-test"))
         }
 

@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
@@ -21,6 +22,7 @@ class InnsendingProducer(
         val uuid = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.BEHOV.str to listOf(
                     BehovType.VIRKSOMHET.name,
                     BehovType.ARBEIDSFORHOLD.name

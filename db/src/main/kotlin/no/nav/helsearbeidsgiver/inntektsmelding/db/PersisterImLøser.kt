@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -16,26 +15,14 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokumen
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
 
-class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
+class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repository) : Løser(rapidsConnection) {
 
-    private val BEHOV = BehovType.PERSISTER_IM
+    private val PERSISTER_IM = BehovType.PERSISTER_IM
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
-
-    init {
-        River(rapidsConnection).apply {
-            validate {
-                it.demandAll(Key.BEHOV.str, BEHOV)
-                it.requireKey(Key.ID.str)
-                it.rejectKey(Key.LØSNING.str)
-                it.interestedIn(Key.INNTEKTSMELDING.str)
-                it.interestedIn(Key.SESSION.str)
-                it.interestedIn(Key.UUID.str)
-            }
-        }.register(this)
-    }
 
     fun hentArbeidsgiver(session: JsonNode): String {
         return session.get(BehovType.VIRKSOMHET.name)?.get("value")?.asText() ?: "Ukjent"
@@ -45,9 +32,18 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
         return session.get(BehovType.FULLT_NAVN.name)?.get("value")?.asText() ?: "Ukjent"
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun accept(): River.PacketValidation {
+        return River.PacketValidation {
+            it.demandAll(Key.BEHOV.str, PERSISTER_IM)
+            it.requireKey(Key.ID.str)
+            it.interestedIn(Key.INNTEKTSMELDING.str)
+            it.interestedIn(Key.SESSION.str)
+        }
+    }
+
+    override fun onBehov(packet: JsonMessage) {
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov $BEHOV med id $uuid")
+        logger.info("Løser behov $PERSISTER_IM med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         val session = packet[Key.SESSION.str]
         sikkerlogg.info("Fant session: $session")
@@ -61,12 +57,12 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
             val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)
             sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid") // TODO: lagre / benytte separat id i database?
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
-            publiserLøsning(PersisterImLøsning(uuid), packet, context)
+            publiserLøsning(PersisterImLøsning(uuid), packet)
             publiserInntektsmeldingMottatt(inntektsmeldingDokument, uuid)
         } catch (ex: Exception) {
             logger.error("Klarte ikke persistere: $uuid")
             sikkerlogg.error("Klarte ikke persistere: $uuid", ex)
-            publiserLøsning(PersisterImLøsning(error = Feilmelding(melding = "Klarte ikke persistere!")), packet, context)
+            publiserLøsning(PersisterImLøsning(error = Feilmelding(melding = "Klarte ikke persistere!")), packet)
         }
     }
 
@@ -79,12 +75,12 @@ class PersisterImLøser(val rapidsConnection: RapidsConnection, val repository: 
             )
         )
         logger.info("Publiserer event ${EventName.INNTEKTSMELDING_MOTTATT} for uuid: $uuid")
-        rapidsConnection.publish(packet.toJson())
+        publishEvent(packet)
     }
 
-    fun publiserLøsning(løsning: PersisterImLøsning, packet: JsonMessage, context: MessageContext) {
-        packet.setLøsning(BEHOV, løsning)
-        context.publish(packet.toJson())
+    fun publiserLøsning(løsning: PersisterImLøsning, packet: JsonMessage) {
+        packet.setLøsning(PERSISTER_IM, løsning)
+        publishBehov(packet)
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

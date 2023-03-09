@@ -55,12 +55,12 @@ fun finnSkjæringstidspunkt(sykmeldinger: List<Periode>): LocalDate =
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private val BEHOV = BehovType.INNTEKT
+    private val INNTEKT = BehovType.INNTEKT
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll(Key.BEHOV.str, BEHOV)
+                it.demandAll(Key.BEHOV.str, INNTEKT)
                 it.requireKey(Key.ID.str, Key.IDENTITETSNUMMER.str, Key.ORGNRUNDERENHET.str, Key.SESSION.str)
                 it.rejectKey(Key.LØSNING.str)
             }
@@ -77,15 +77,15 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         logger.info("Mottar pakke")
         sikkerlogg.info("Mottar pakke: ${packet.toJson()}")
         val uuid = packet[Key.ID.str].asText()
-        logger.info("Løser behov $BEHOV med id $uuid")
-        sikkerlogg.info("Løser behov $BEHOV med id $uuid")
+        logger.info("Løser behov $INNTEKT med id $uuid")
+        sikkerlogg.info("Løser behov $INNTEKT med id $uuid")
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
         val imLøsning = packet.value(Key.SESSION)[BehovType.HENT_TRENGER_IM.name]?.toJsonElement()?.fromJson(HentTrengerImLøsning.serializer())
         val sykPeriode = imLøsning?.value?.sykmeldingsperioder
         if (sykPeriode.isNullOrEmpty()) {
             logger.error("Sykmeldingsperiode mangler for uuid $uuid")
-            packet.setLøsning(BEHOV, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
+            packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
             context.publish(packet.toJson())
             return
         }
@@ -95,12 +95,12 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
             val inntektResponse = hentInntekt(fnr, inntektPeriode, "helsearbeidsgiver-im-inntekt-$uuid")
             sikkerlogg.info("Fant inntektResponse: $inntektResponse")
             val inntekt = mapInntekt(inntektResponse, orgnr)
-            packet.setLøsning(BEHOV, InntektLøsning(inntekt))
+            packet.setLøsning(INNTEKT, InntektLøsning(inntekt))
             context.publish(packet.toJson())
             sikkerlogg.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
         } catch (ex: Exception) {
             logger.error("Feil!", ex)
-            packet.setLøsning(BEHOV, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
+            packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
             sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr", ex)
             context.publish(packet.toJson())
         }

@@ -34,7 +34,8 @@ enum class Key(val str: String) {
     FORESPOERSEL_ID("forespoerselId"),
     INNTEKTSMELDING("inntektsmelding"),
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
-    JOURNALPOST_ID("journalpostId");
+    JOURNALPOST_ID("journalpostId"),
+    INNTEKT_DATO("inntektDato");
 
     override fun toString(): String =
         str

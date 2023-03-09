@@ -3,8 +3,9 @@
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 
-abstract class Løsning {
+sealed class Løsning {
     abstract val value: Any?
     abstract val error: Feilmelding?
 }
@@ -65,7 +66,7 @@ data class PreutfyltLøsning(
 
 @Serializable
 data class PersisterImLøsning(
-    override val value: String? = null,
+    override val value: InntektsmeldingDokument? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 

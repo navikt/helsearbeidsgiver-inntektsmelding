@@ -2,12 +2,14 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
@@ -21,6 +23,7 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 /**
  * @return en periode tre måneder tilbake fra nyeste sammenhengende
@@ -61,7 +64,8 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         River(rapidsConnection).apply {
             validate {
                 it.demandAll(Key.BEHOV.str, INNTEKT)
-                it.requireKey(Key.ID.str, Key.IDENTITETSNUMMER.str, Key.ORGNRUNDERENHET.str, Key.SESSION.str)
+                it.requireKey(Key.ID.str, Key.IDENTITETSNUMMER.str, Key.ORGNRUNDERENHET.str)
+                it.interestedIn(Key.INNTEKT_DATO.str, Key.SESSION.str)
                 it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
@@ -82,7 +86,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
         val imLøsning = packet.value(Key.SESSION)[BehovType.HENT_TRENGER_IM.name]?.toJsonElement()?.fromJson(HentTrengerImLøsning.serializer())
-        val sykPeriode = imLøsning?.value?.sykmeldingsperioder
+        val sykPeriode = imLøsning?.value?.sykmeldingsperioder ?: hentOppdatertInntekt(packet.value(Key.INNTEKT_DATO))
         if (sykPeriode.isNullOrEmpty()) {
             logger.error("Sykmeldingsperiode mangler for uuid $uuid")
             packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
@@ -104,6 +108,16 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
             sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr", ex)
             context.publish(packet.toJson())
         }
+    }
+
+    private fun hentOppdatertInntekt(dato: JsonNode): List<Periode> {
+        try {
+            val date = dato.asLocalDate()
+            return listOf(Periode(date, date))
+        } catch (ex: DateTimeParseException) {
+            logger.error("Ugyldig dato-verdi i dato ${dato.asText()}")
+        }
+        return emptyList()
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntekt.Ident
 import no.nav.helsearbeidsgiver.inntekt.Inntekt
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
+import no.nav.helsearbeidsgiver.inntekt.LocalDateSerializer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -77,6 +78,21 @@ internal class InntektLøserTest {
             }
         } returns response
         sendBehovTilLøser()
+        val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
+        val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
+        assertNull(inntektLøsning?.error)
+        assertNotNull(inntektLøsning?.value)
+    }
+
+    @Test
+    fun `bruker dato fra request dersom denne kommer (oppdater skjema med ny inntekt om fravær endres)`() {
+        val response = "response.json".readResource().fromJson(InntektskomponentResponse.serializer())
+        every {
+            runBlocking {
+                inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
+            }
+        } returns response
+        sendBehovForOppdatertInntektTilLøser()
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
         val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
         assertNull(inntektLøsning?.error)
@@ -156,6 +172,17 @@ internal class InntektLøserTest {
             Key.IDENTITETSNUMMER to "abc".toJson(),
             Key.ORGNRUNDERENHET to ORGNR.toJson(),
             Key.SESSION to sessionDataJson()
+        )
+    }
+
+    private fun sendBehovForOppdatertInntektTilLøser() { //TODO: dropp send, bare bygg opp pakke. Lag feil-tester for uten orgnr og id, samt mangler både inntekt_dato og sykmeldingperiode
+        rapid.sendJson(
+            Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
+            Key.ID to UUID.randomUUID().toJson(),
+            Key.UUID to "uuid".toJson(),
+            Key.IDENTITETSNUMMER to "abc".toJson(),
+            Key.ORGNRUNDERENHET to ORGNR.toJson(),
+            Key.INNTEKT_DATO to LocalDate.of(2022, 10, 30).toJson(LocalDateSerializer)
         )
     }
 

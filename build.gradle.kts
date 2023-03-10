@@ -5,6 +5,8 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
+    id("maven-publish")
+
     java
     jacoco
     `jacoco-report-aggregation`
@@ -60,6 +62,7 @@ subprojects {
         "org.jetbrains.kotlin.jvm",
         "org.jetbrains.kotlin.plugin.serialization",
         "org.jmailen.kotlinter",
+        "maven-publish",
         "java",
         "jacoco"
     )
@@ -79,7 +82,9 @@ subprojects {
                 val mainClass = project.mainClass()
 
                 doLast {
-                    validateMainClassFound(mainClass)
+                    if (project.name != "dokument") {
+                        validateMainClassFound(mainClass)
+                    }
                 }
 
                 manifest {
@@ -107,8 +112,9 @@ subprojects {
     dependencies {
         if (!erFellesModul()) {
             implementation(project(":felles"))
+            implementation(project(":dokument"))
         }
-        if (!erFellesTestModul()) {
+        if (!erFellesTestModul() && project.name != "dokument") {
             testImplementation(project(":felles-test"))
         }
 
@@ -237,7 +243,7 @@ fun Project.mainClass() =
     "$group.${name.replace("-", "")}.AppKt"
 
 fun Project.erFellesModul() =
-    name == "felles"
+    name == "felles" || name == "dokument"
 
 fun Project.erFellesTestModul() =
     name == "felles-test"

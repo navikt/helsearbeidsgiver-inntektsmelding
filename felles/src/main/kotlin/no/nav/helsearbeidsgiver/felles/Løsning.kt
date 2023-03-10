@@ -66,13 +66,13 @@ data class PreutfyltLøsning(
 
 @Serializable
 data class PersisterImLøsning(
-    override val value: String? = null,
+    override val value: InntektsmeldingDokument? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 
 @Serializable
 data class HentPersistertLøsning(
-    override val value: InntektsmeldingDokument? = null,
+    override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 

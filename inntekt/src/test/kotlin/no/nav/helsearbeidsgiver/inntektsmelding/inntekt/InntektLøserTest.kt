@@ -3,10 +3,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
 import com.fasterxml.jackson.databind.JsonNode
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.slot
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -42,11 +41,14 @@ import java.util.UUID
 
 private const val ORGNR = "123456789"
 
-internal class InntektLøserTest {
+class InntektLøserTest {
 
     private val rapid = TestRapid()
     private val inntektKlient: InntektKlient = mockk()
-    private val inntektLøser = InntektLøser(rapid, inntektKlient)
+
+    init {
+        InntektLøser(rapid, inntektKlient)
+    }
 
     @BeforeEach
     fun beforeEach() {
@@ -55,10 +57,8 @@ internal class InntektLøserTest {
 
     @Test
     fun `skal håndtere feil mot inntektskomponenten`() {
-        every {
-            runBlocking {
-                inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
-            }
+        coEvery {
+            inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
         } throws RuntimeException()
 
         sendBehovTilLøser()
@@ -72,10 +72,8 @@ internal class InntektLøserTest {
     @Test
     fun `skal publisere svar fra inntektskomponenten`() {
         val response = "response.json".readResource().fromJson(InntektskomponentResponse.serializer())
-        every {
-            runBlocking {
-                inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
-            }
+        coEvery {
+            inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
         } returns response
         sendBehovTilLøser()
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
@@ -87,10 +85,8 @@ internal class InntektLøserTest {
     @Test
     fun `bruker dato fra request dersom denne kommer (oppdater skjema med ny inntekt om fravær endres)`() {
         val response = "response.json".readResource().fromJson(InntektskomponentResponse.serializer())
-        every {
-            runBlocking {
-                inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
-            }
+        coEvery {
+            inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
         } returns response
         sendBehovForOppdatertInntektTilLøser()
         val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
@@ -131,18 +127,16 @@ internal class InntektLøserTest {
         }
         val fom = slot<LocalDate>()
         val tom = slot<LocalDate>()
-        every {
-            runBlocking {
-                inntektKlient.hentInntektListe(
-                    ident = any(),
-                    callId = any(),
-                    navConsumerId = any(),
-                    fraOgMed = capture(fom),
-                    tilOgMed = capture(tom),
-                    filter = any(),
-                    formaal = any()
-                )
-            }
+        coEvery {
+            inntektKlient.hentInntektListe(
+                ident = any(),
+                callId = any(),
+                navConsumerId = any(),
+                fraOgMed = capture(fom),
+                tilOgMed = capture(tom),
+                filter = any(),
+                formaal = any()
+            )
         } answers {
             val fomMåned = YearMonth.from(fom.captured)
             val tomMåned = YearMonth.from(tom.captured)
@@ -184,7 +178,9 @@ internal class InntektLøserTest {
             Key.UUID to "uuid".toJson(),
             Key.IDENTITETSNUMMER to "abc".toJson(),
             Key.ORGNRUNDERENHET to ORGNR.toJson(),
-            Key.INNTEKT_DATO to LocalDate.of(2022, 10, 30).toJson(LocalDateSerializer)
+            Key.BOOMERANG to mapOf(
+                Key.INNTEKT_DATO.str to LocalDate.of(2022, 10, 30).toJson(LocalDateSerializer)
+            ).toJson()
         )
     }
 

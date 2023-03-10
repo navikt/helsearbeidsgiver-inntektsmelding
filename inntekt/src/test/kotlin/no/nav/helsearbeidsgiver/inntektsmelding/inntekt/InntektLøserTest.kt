@@ -175,7 +175,9 @@ internal class InntektLøserTest {
         )
     }
 
-    private fun sendBehovForOppdatertInntektTilLøser() { //TODO: dropp send, bare bygg opp pakke. Lag feil-tester for uten orgnr og id, samt mangler både inntekt_dato og sykmeldingperiode
+    // TODO: dropp send, bare bygg opp pakke. Lag feil-tester for uten orgnr og id,
+    //  samt mangler både inntekt_dato og sykmeldingperiode
+    private fun sendBehovForOppdatertInntektTilLøser() {
         rapid.sendJson(
             Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
             Key.ID to UUID.randomUUID().toJson(),

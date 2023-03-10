@@ -29,6 +29,5 @@ dependencies {
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOauth2ServerVersion")
-    testImplementation("org.valiktor:valiktor-test:$valiktorVersion")
     testImplementation(kotlin("test"))
 }

@@ -21,11 +21,10 @@ fun RouteExtra.InntektRoute() {
     route.route(Routes.INNTEKT) {
         post {
             val request = call.receive<InntektRequest>()
-            val uuid = request.uuid
-            val fom = request.fom
+            val uuid = request.forespoerselId
+            val fom = request.skjaeringstidspunkt
             logger.info("Henter oppdatert inntekt for uuid: $uuid og dato: $fom")
             try {
-                request.validate()
                 inntektProducer.publish(request)
                 val resultat = redis.getResultat(request.requestKey(), 10, 500)
 
@@ -37,7 +36,7 @@ fun RouteExtra.InntektRoute() {
                 call.respond(HttpStatusCode.BadRequest, validationResponseMapper(e.constraintViolations))
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for $request.uuid")
-                call.respond(HttpStatusCode.InternalServerError, RedisTimeoutResponse(request.uuid))
+                call.respond(HttpStatusCode.InternalServerError, RedisTimeoutResponse(request.forespoerselId.toString()))
             }
         }
     }

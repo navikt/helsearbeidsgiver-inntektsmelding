@@ -16,13 +16,13 @@ class InntektProducer(
     }
 
     fun publish(request: InntektRequest): String {
-        val uuid = request.uuid.toJson()
+        val uuid = request.forespoerselId.toJson()
         rapid.publish(
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.FORESPOERSEL_ID to uuid,
             Key.BOOMERANG to mapOf(
                 Key.NESTE_BEHOV.str to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
-                Key.INNTEKT_DATO.str to request.fom.toJson(LocalDateSerializer)
+                Key.INNTEKT_DATO.str to request.skjaeringstidspunkt.toJson(LocalDateSerializer)
             ).toJson()
         ) {
             logger.info("Publiserte Behov: " + BehovType.HENT_TRENGER_IM.name + " for uuid $uuid (oppdater inntekt)")

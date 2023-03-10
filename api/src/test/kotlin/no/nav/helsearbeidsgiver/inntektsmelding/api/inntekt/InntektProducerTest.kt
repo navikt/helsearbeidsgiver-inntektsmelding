@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import java.time.LocalDate
+import java.util.UUID
 
 class InntektProducerTest : FunSpec({
 
@@ -17,7 +18,7 @@ class InntektProducerTest : FunSpec({
         val testRapid = TestRapid()
         val inntektProducer = InntektProducer(testRapid)
         val dato = LocalDate.of(2020, 1, 1)
-        inntektProducer.publish(InntektRequest("abc", dato))
+        inntektProducer.publish(InntektRequest(UUID.randomUUID(), dato))
         val request = testRapid.lastMessageJson().toJsonNode()
         println(request)
         val forwardedDate = request.get(Key.BOOMERANG.str).get(Key.INNTEKT_DATO.str).toJsonElement().fromJson(LocalDateSerializer)

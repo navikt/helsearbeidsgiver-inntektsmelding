@@ -236,8 +236,10 @@ internal class AkkumulatorTest {
                 MapSerializer(Key.serializer(), JsonElement.serializer())
             )
         // akkumulator skal fjerne neste behov!
-        assertEquals(emptyList<BehovType>(), boomerang[Key.NESTE_BEHOV]
-            ?.fromJson(BehovType.serializer().list())) // :/
+        assertEquals(
+            emptyList<BehovType>(),
+            boomerang[Key.NESTE_BEHOV]?.fromJson(BehovType.serializer().list())
+        )
         assertEquals(
             originalBoomerang.keys.toList(),
             boomerang.keys.map(Key::str), // må mappe om til string! :/

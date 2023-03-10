@@ -2,11 +2,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.json.jsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
 import java.time.LocalDate
@@ -19,9 +18,9 @@ class InntektProducerTest : FunSpec({
         val inntektProducer = InntektProducer(testRapid)
         val dato = LocalDate.of(2020, 1, 1)
         inntektProducer.publish(InntektRequest(UUID.randomUUID(), dato))
-        val request = testRapid.lastMessageJson().toJsonNode()
-        println(request)
-        val forwardedDate = request.get(Key.BOOMERANG.str).get(Key.INNTEKT_DATO.str).toJsonElement().fromJson(LocalDateSerializer)
+        val forwardedDate = testRapid.lastMessageJson().jsonObject[Key.BOOMERANG.str]
+            ?.jsonObject?.get(Key.INNTEKT_DATO.str)
+            ?.fromJson(LocalDateSerializer)
         forwardedDate shouldBe dato
     }
 })

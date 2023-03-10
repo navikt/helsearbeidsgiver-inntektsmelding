@@ -6,5 +6,5 @@ import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 @Serializable
 data class InntektResponse(
     val bruttoinntekt: Double,
-    val tidligereinntekter: List<MottattHistoriskInntekt>
+    val tidligereInntekter: List<MottattHistoriskInntekt>
 )

@@ -6,7 +6,9 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import java.util.UUID
 
 class InntektProducer(
     private val rapid: RapidsConnection
@@ -15,18 +17,20 @@ class InntektProducer(
         logger.info("Starter InntektProducer...")
     }
 
-    fun publish(request: InntektRequest): String {
-        val uuid = request.forespoerselId.toJson()
+    fun publish(request: InntektRequest): UUID {
+        val loesningId = UUID.randomUUID()
+        val spleisForesporselId = request.forespoerselId
         rapid.publish(
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
-            Key.FORESPOERSEL_ID to uuid,
+            Key.FORESPOERSEL_ID to spleisForesporselId.toJson(),
             Key.BOOMERANG to mapOf(
+                Key.INITIATE_ID.str to loesningId.toJson(UuidSerializer),
                 Key.NESTE_BEHOV.str to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
                 Key.INNTEKT_DATO.str to request.skjaeringstidspunkt.toJson(LocalDateSerializer)
             ).toJson()
         ) {
-            logger.info("Publiserte Behov: " + BehovType.HENT_TRENGER_IM.name + " for uuid $uuid (oppdater inntekt)")
+            logger.info("Publiserte Behov: ${BehovType.HENT_TRENGER_IM} for spleisId $spleisForesporselId (oppdater inntekt)")
         }
-        return uuid.toString()
+        return loesningId
     }
 }

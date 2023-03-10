@@ -13,10 +13,4 @@ import java.util.UUID
 data class InntektRequest(
     val forespoerselId: UUID,
     val skjaeringstidspunkt: LocalDate
-) {
-
-    // For å sikre at ikke orginal uuid-inntektrequest fortsatt ligger i Redis og gjenbrukes
-    fun requestKey(): String {
-        return forespoerselId.toString() + "-" + skjaeringstidspunkt.toString()
-    }
-}
+)

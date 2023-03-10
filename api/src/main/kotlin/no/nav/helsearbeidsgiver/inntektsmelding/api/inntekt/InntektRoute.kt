@@ -25,9 +25,8 @@ fun RouteExtra.InntektRoute() {
             val fom = request.skjaeringstidspunkt
             logger.info("Henter oppdatert inntekt for uuid: $uuid og dato: $fom")
             try {
-                inntektProducer.publish(request)
-                val resultat = redis.getResultat(request.requestKey(), 10, 500)
-
+                val loesningId = inntektProducer.publish(request).toString()
+                val resultat = redis.getResultat(loesningId, 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
                 val mapper = InntektMapper(resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())

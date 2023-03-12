@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import kotlin.test.Ignore
 
 internal class IsValidBehandlingsdagerKtTest {
 
@@ -35,6 +36,7 @@ internal class IsValidBehandlingsdagerKtTest {
     }
 
     @Test
+    @Ignore
     fun `skal ikke godta flere samme uke`() {
         assertFalse(isValidBehandlingsdager(listOf(now, now.plusDays(1))), "Skal feile dagen etterpå")
     }

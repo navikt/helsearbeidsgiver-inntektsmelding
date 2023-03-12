@@ -1,8 +1,5 @@
-package no.nav.helsearbeidsgiver.felles.inntektsmelding.db
+package no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 class JournalførtInntektsmelding(
     val inntektsmeldingDokument: InntektsmeldingDokument,
     val journalpostId: String

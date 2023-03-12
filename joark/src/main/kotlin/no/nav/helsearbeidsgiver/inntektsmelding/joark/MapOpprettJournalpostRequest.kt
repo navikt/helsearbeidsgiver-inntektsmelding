@@ -7,8 +7,8 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.IdType
 import no.nav.helsearbeidsgiver.dokarkiv.Journalposttype
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.toJsonStr
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import java.time.LocalDate
 import java.util.Base64
@@ -17,7 +17,11 @@ import java.util.Base64
  * Journalføring til dagens løsning:
  * https://github.com/navikt/dokmotaltinn/blob/master/app/src/test/resources/__files/journalpostapi/opprettjournalpostrequest.json
  */
-fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingDokument, arbeidsgiver: String): OpprettJournalpostRequest {
+fun mapOpprettJournalpostRequest(
+    uuid: String,
+    inntektsmelding: InntektsmeldingDokument,
+    arbeidsgiver: String
+): OpprettJournalpostRequest {
     return OpprettJournalpostRequest(
         tema = "SYK",
         behandlingsTema = "ab0326",
@@ -39,7 +43,7 @@ fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingD
                 dokumentVarianter = listOf(
                     DokumentVariant(
                         filtype = "JSON",
-                        fysiskDokument = inntektsmelding.toJsonStr(InntektsmeldingDokument.serializer())
+                        fysiskDokument = customObjectMapper().writeValueAsString(inntektsmelding)
                             .toByteArray()
                             .let {
                                 Base64.getEncoder().encodeToString(it)

@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
 
@@ -43,9 +43,9 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         }.shouldBeEmpty()
 
         val UUID = "abc-456"
-        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = LocalDateTime.now())
-        val DOK_2 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = LocalDateTime.now())
-        val DOK_3 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = LocalDateTime.now())
+        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
+        val DOK_2 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
+        val DOK_3 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
 
         repository.lagre(UUID, DOK_1)
         repository.lagre(UUID, DOK_2)
@@ -61,8 +61,8 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         }.shouldBeEmpty()
 
         val UUID = "abc-456"
-        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = LocalDateTime.now())
-        val DOK_2 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = LocalDateTime.now())
+        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
+        val DOK_2 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
         val JOURNALPOST_1 = "jp-1"
         val JOURNALPOST_2 = "jp-2"
 

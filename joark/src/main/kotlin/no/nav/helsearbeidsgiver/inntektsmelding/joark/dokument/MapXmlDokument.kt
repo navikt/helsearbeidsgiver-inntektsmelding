@@ -1,11 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.RefusjonEndring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
 
-fun mapXmlDokument(inntektsmeldingDokument: InntektsmeldingDokument): String {
+fun mapXmlDokument(inntektsmeldingDokument: no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument): String {
     val kontaktNavn = "Ukjent kontaktperson" // TODO
     val kontaktTelefon = "" // TODO
     return """
@@ -72,9 +70,9 @@ fun mapRefusjonsEndringer(refusjonEndringer: List<RefusjonEndring>? = null): Str
         "</endringIRefusjon>"
 }?.joinToString("\n") ?: ""
 
-fun mapNaturalytelser(naturalytelser: List<Naturalytelse>? = null): String = naturalytelser?.map {
+fun mapNaturalytelser(naturalytelser: List<no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse>? = null): String = naturalytelser?.map {
     "<opphoerAvNaturalytelse>" +
-        "<naturalytelseType>${it.naturalytelse}</naturalytelseType>" +
+        "<naturalytelseType>${it.naturalytelse.value}</naturalytelseType>" +
         "<fom>${it.dato}</fom><beloepPrMnd>${it.beløp}</beloepPrMnd>" +
         "</opphoerAvNaturalytelse>"
 }?.joinToString("\n") ?: ""

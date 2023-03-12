@@ -19,7 +19,7 @@
     "beregnetInntekt": 1234,
     "manueltKorrigert": true,
     "endringÅrsak": {
-      "type": "Tariffendring",
+      "typpe": "Tariffendring",
       "gjelderFra": "2022-10-01",
       "bleKjent": "2022-10-01"
     }

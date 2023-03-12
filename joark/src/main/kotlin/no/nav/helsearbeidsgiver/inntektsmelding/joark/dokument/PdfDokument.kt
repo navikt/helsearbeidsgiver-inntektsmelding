@@ -2,11 +2,12 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
+import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 fun LocalDate.toNorsk(): String {
@@ -17,7 +18,11 @@ fun LocalDateTime.toNorsk(): String {
     return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
 }
 
-fun Double.toNorsk(): String {
+fun OffsetDateTime.toNorsk(): String {
+    return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
+}
+
+fun BigDecimal.toNorsk(): String {
     val format = DecimalFormat("#,###.##")
     return format.format(this)
 }
@@ -26,7 +31,7 @@ fun Boolean.toNorsk(): String {
     return if (this) { "Ja" } else { "Nei" }
 }
 
-class PdfDokument(val inntektsmeldingDokument: InntektsmeldingDokument) {
+class PdfDokument(val inntektsmeldingDokument: no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument) {
 
     private val b = PdfBuilder()
     private var y = 0

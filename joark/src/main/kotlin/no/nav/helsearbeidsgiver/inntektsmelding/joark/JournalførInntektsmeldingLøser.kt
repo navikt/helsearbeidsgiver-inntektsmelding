@@ -14,9 +14,8 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -32,9 +31,9 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         return dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
     }
 
-    fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
+    fun mapInntektsmeldingDokument(jsonNode: JsonNode): no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument {
         try {
-            return jsonNode.toJsonElement().fromJson(InntektsmeldingDokument.serializer())
+            return customObjectMapper().treeToValue<InntektsmeldingDokument>(jsonNode, InntektsmeldingDokument::class.java)
         } catch (ex: Exception) {
             throw UgyldigFormatException(ex)
         }

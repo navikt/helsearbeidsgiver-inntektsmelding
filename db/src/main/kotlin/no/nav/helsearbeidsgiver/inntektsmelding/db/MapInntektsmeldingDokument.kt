@@ -2,9 +2,9 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
-import java.time.LocalDateTime
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import java.time.ZonedDateTime
 
 fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument {
     try {
@@ -22,7 +22,7 @@ fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, ar
             request.fullLønnIArbeidsgiverPerioden,
             request.refusjon,
             request.naturalytelser,
-            LocalDateTime.now(),
+            ZonedDateTime.now().toOffsetDateTime(),
             request.årsakInnsending,
             "" // TODO Mangler innsenders fødselsnr
         )

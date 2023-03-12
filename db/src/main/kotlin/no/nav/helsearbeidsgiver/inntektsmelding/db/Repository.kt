@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
@@ -11,7 +10,7 @@ import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
 
 class Repository(private val db: Database) {
-    fun lagre(uuidLink: String, json: InntektsmeldingDokument): String =
+    fun lagre(uuidLink: String, json: no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument): String =
         transaction(db) {
             InntektsmeldingEntitet.run {
                 insert {
@@ -22,7 +21,7 @@ class Repository(private val db: Database) {
             }
         }
 
-    fun hentNyeste(uuidLink: String): InntektsmeldingDokument? =
+    fun hentNyeste(uuidLink: String): no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument? =
         transaction(db) {
             InntektsmeldingEntitet.run {
                 select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)

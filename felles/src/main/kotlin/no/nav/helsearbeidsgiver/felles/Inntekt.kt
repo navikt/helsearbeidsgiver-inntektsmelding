@@ -28,7 +28,6 @@ data class Inntekt(
 
     // Beholder navnet bruttoInntekt for nå, er mer et "forslag til bruttoInntekt" som akkurat nå beregnes ved snitt...
     fun gjennomsnitt(): Double {
-        val i = 1
         if (historisk.size <= 1) return total()
         return BigDecimal.valueOf(total()).divide(BigDecimal(historisk.size), RoundingMode.HALF_UP)
             .toDouble()

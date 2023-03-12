@@ -1,53 +1,57 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.FullLønnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.NaturalytelseKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakInnsending
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 internal class PdfDokumentTest {
 
     val dag = LocalDate.of(2022, 12, 24)
 
-    val im = InntektsmeldingDokument(
+    val im = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument(
         orgnrUnderenhet = "123456789",
         identitetsnummer = "12345678901",
         fulltNavn = "Ola Normann",
         virksomhetNavn = "Norge AS",
         behandlingsdager = listOf(dag),
         egenmeldingsperioder = listOf(
-            Periode(dag, dag.plusDays(2)),
-            Periode(dag.plusDays(3), dag.plusDays(4))
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(dag, dag.plusDays(2)),
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(dag.plusDays(3), dag.plusDays(4))
         ),
-        beregnetInntekt = 25000.0,
-        fullLønnIArbeidsgiverPerioden = FullLønnIArbeidsgiverPerioden(true, begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent),
-        refusjon = Refusjon(true, 25000.0, dag.plusDays(3)),
+        beregnetInntekt = 25000.0.toBigDecimal(),
+        fullLønnIArbeidsgiverPerioden = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden(
+            true,
+            begrunnelse = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT
+        ),
+        refusjon = Refusjon(true, 25000.0.toBigDecimal(), dag.plusDays(3)),
         naturalytelser = listOf(
-            Naturalytelse(NaturalytelseKode.Bil, dag.plusDays(5), 350.0),
-            Naturalytelse(NaturalytelseKode.Bil, dag.plusDays(5), 350.0)
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
+                no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.BIL,
+                dag.plusDays(5),
+                350.0.toBigDecimal()
+            ),
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
+                no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.BIL,
+                dag.plusDays(5),
+                350.0.toBigDecimal()
+            )
         ),
         fraværsperioder = listOf(
-            Periode(dag, dag.plusDays(55)),
-            Periode(dag, dag.plusDays(22)),
-            Periode(dag, dag.plusDays(32))
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(dag, dag.plusDays(55)),
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(dag, dag.plusDays(22)),
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(dag, dag.plusDays(32))
         ),
         arbeidsgiverperioder = listOf(
-            Periode(dag, dag.plusDays(30)),
-            Periode(dag, dag.plusDays(40)),
-            Periode(dag, dag.plusDays(40))
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(dag, dag.plusDays(30)),
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(dag, dag.plusDays(40)),
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(dag, dag.plusDays(40))
         ),
         bestemmendeFraværsdag = dag.plusDays(90),
-        tidspunkt = LocalDateTime.now(),
-        årsakInnsending = ÅrsakInnsending.Ny,
+        tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
+        årsakInnsending = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.NY,
         identitetsnummerInnsender = "123123123123123"
     )
 

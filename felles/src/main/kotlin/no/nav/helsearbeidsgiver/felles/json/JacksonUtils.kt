@@ -17,6 +17,8 @@ fun ObjectMapper.configure(): ObjectMapper =
     registerModule(JavaTimeModule())
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
+        .configure(SerializationFeature.WRITE_DATES_WITH_ZONE_ID, true)
 
 fun JsonElement.toJsonNode(): JsonNode =
     toString().let(objectMapper::readTree)

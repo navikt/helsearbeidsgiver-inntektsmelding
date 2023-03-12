@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.LagreJournalpostLøsning
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
 
@@ -52,7 +51,7 @@ class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repositor
         publiserLøsning(løsning, packet)
     }
 
-    fun publiser(journalpostId: String, inntektsmeldingDokument: InntektsmeldingDokument) {
+    fun publiser(journalpostId: String, inntektsmeldingDokument: no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument) {
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,

@@ -6,9 +6,8 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
 class NotifikasjonInntektsmeldingMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -22,8 +21,9 @@ class NotifikasjonInntektsmeldingMottattListener(rapidsConnection: RapidsConnect
     }
 
     override fun onEvent(packet: JsonMessage) {
-        val inntektsmeldingDokument: InntektsmeldingDokument = packet[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement().fromJson(
-            InntektsmeldingDokument.serializer()
+        val inntektsmeldingDokument: InntektsmeldingDokument = customObjectMapper().treeToValue(
+            packet[Key.INNTEKTSMELDING_DOKUMENT.str],
+            InntektsmeldingDokument::class.java
         )
         sikkerlogg.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT}, pakke: ${packet.toJson()}")
         publishBehov(

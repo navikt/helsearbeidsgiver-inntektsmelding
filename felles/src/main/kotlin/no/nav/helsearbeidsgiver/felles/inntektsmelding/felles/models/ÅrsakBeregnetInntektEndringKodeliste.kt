@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.inntektsmelding.felles
+package no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models
 
 import kotlinx.serialization.Serializable
 

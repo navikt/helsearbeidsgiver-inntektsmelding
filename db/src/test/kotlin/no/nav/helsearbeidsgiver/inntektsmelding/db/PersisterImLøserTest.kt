@@ -2,21 +2,17 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.FullLønnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.InntektEndringÅrsak
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakInnsending
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Inntekt
-import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -31,6 +27,11 @@ internal class PersisterImLøserTest {
 
     init {
         løser = PersisterImLøser(rapid, repository)
+    }
+
+    private fun sendMelding(melding: JsonMessage) {
+        rapid.reset()
+        rapid.sendTestMessage(melding.toJson())
     }
 
     private fun sendMelding(vararg melding: Pair<Key, JsonElement>) {
@@ -54,27 +55,31 @@ internal class PersisterImLøserTest {
             emptyList(),
             Inntekt(
                 bekreftet = true,
-                500.0,
-                InntektEndringÅrsak.Bonus,
+                500.0.toBigDecimal(),
+                Bonus(),
                 true
             ),
-            FullLønnIArbeidsgiverPerioden(
+            FullLonnIArbeidsgiverPerioden(
                 true
             ),
             Refusjon(
                 true
             ),
             emptyList(),
-            ÅrsakInnsending.Ny,
+            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.NY,
             true
         )
 
         sendMelding(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
-            Key.BEHOV to listOf(BehovType.PERSISTER_IM.name).toJson(String.serializer()),
-            Key.ID to UUID.randomUUID().toJson(),
-            Key.UUID to "uuid".toJson(),
-            Key.INNTEKTSMELDING to request.let(Json::encodeToJsonElement)
+            JsonMessage.newMessage(
+                mapOf(
+                    Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
+                    Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
+                    Key.ID.str to UUID.randomUUID(),
+                    Key.UUID.str to "uuid",
+                    Key.INNTEKTSMELDING.str to request
+                )
+            )
         )
         val message = rapid.inspektør.message(1)
         Assertions.assertEquals(EventName.INNTEKTSMELDING_MOTTATT.name, message.path(Key.EVENT_NAME.str).asText())

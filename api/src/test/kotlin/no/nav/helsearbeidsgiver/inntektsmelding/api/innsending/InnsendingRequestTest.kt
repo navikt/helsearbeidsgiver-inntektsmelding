@@ -2,40 +2,43 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.FullLønnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.InntektEndringÅrsak
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.NaturalytelseKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.ÅrsakInnsending
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
 internal class InnsendingRequestTest {
 
     private val NOW = LocalDate.now()
-    private val MAX_INNTEKT: Double = 1_000_001.0
-    private val MAX_REFUSJON: Double = 1_000_001.0
-    private val NEGATIVT_BELØP: Double = -0.1
-    private val MAX_NATURAL_BELØP: Double = 1_000_000.0
+    private val MAX_INNTEKT: BigDecimal = 1_000_001.0.toBigDecimal()
+    private val MAX_REFUSJON: BigDecimal = 1_000_001.0.toBigDecimal()
+    private val NEGATIVT_BELØP: BigDecimal = -0.1.toBigDecimal()
+    private val MAX_NATURAL_BELØP: BigDecimal = 1_000_000.0.toBigDecimal()
 
     @Test
     fun `skal serialisere InntektEndringÅrsak`() {
         val inntekt = Inntekt(
             bekreftet = false,
-            beregnetInntekt = 300.0,
-            endringÅrsak = InntektEndringÅrsak.NyStilling(LocalDate.now()),
+            beregnetInntekt = 300.0.toBigDecimal(),
+            endringÅrsak = NyStilling(LocalDate.now()),
             manueltKorrigert = false
         )
         println(customObjectMapper().writeValueAsString(inntekt))
@@ -43,7 +46,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal lese innsendingrequest`() {
-        val request: InnsendingRequest = "innsendingrequest.json".readResource().fromJson(InnsendingRequest.serializer())
+        val request: InnsendingRequest = customObjectMapper().readValue("innsendingrequest.json".readResource(), InnsendingRequest::class.java)
         request.validate()
     }
 
@@ -90,15 +93,21 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal ikke godta egenmeldinger hvor tom er før fom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(egenmeldingsperioder = listOf(Periode(NOW.plusDays(1), NOW))).validate()
+            GYLDIG.copy(
+                egenmeldingsperioder = listOf(
+                    Periode(
+                        NOW.plusDays(1),
+                        NOW
+                    )
+                )
+            ).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt er for høy`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG.inntekt.copy()
-            inntekt.beregnetInntekt = MAX_INNTEKT
+            val inntekt = GYLDIG.inntekt.copy(beregnetInntekt = MAX_INNTEKT)
             GYLDIG.copy(inntekt = inntekt).validate()
         }
     }
@@ -106,8 +115,7 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom bruttoInntekt er negativ`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG.inntekt.copy()
-            inntekt.beregnetInntekt = NEGATIVT_BELØP
+            val inntekt = GYLDIG.inntekt.copy(beregnetInntekt = NEGATIVT_BELØP)
             GYLDIG.copy(inntekt = inntekt).validate()
         }
     }
@@ -115,8 +123,7 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom bruttoInntekt ikke er bekreftet`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG.inntekt.copy()
-            inntekt.bekreftet = false
+            val inntekt = GYLDIG.inntekt.copy(bekreftet = false)
             GYLDIG.copy(inntekt = inntekt).validate()
         }
     }
@@ -124,7 +131,11 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom arbeidsgiver ikke betaler lønn og refusjonsbeløp er tom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(fullLønnIArbeidsgiverPerioden = FullLønnIArbeidsgiverPerioden(false)).validate()
+            GYLDIG.copy(
+                fullLønnIArbeidsgiverPerioden = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden(
+                    false
+                )
+            ).validate()
         }
     }
 
@@ -157,14 +168,30 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal ikke godta naturalytelser med negativt beløp`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.KostDoegn, NOW, NEGATIVT_BELØP))).validate()
+            GYLDIG.copy(
+                naturalytelser = listOf(
+                    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
+                        no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
+                        NOW,
+                        NEGATIVT_BELØP
+                    )
+                )
+            ).validate()
         }
     }
 
     @Test
     fun `skal ikke godta naturalytelser med for høyt beløp`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.KostDoegn, NOW, MAX_NATURAL_BELØP))).validate()
+            GYLDIG.copy(
+                naturalytelser = listOf(
+                    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
+                        no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
+                        NOW,
+                        MAX_NATURAL_BELØP
+                    )
+                )
+            ).validate()
         }
     }
 
@@ -178,18 +205,26 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal bruke språkfil for feil`() {
         try {
-            GYLDIG.copy(naturalytelser = listOf(Naturalytelse(NaturalytelseKode.KostDoegn, NOW, MAX_NATURAL_BELØP + 1))).validate()
+            GYLDIG.copy(
+                naturalytelser = listOf(
+                    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
+                        no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
+                        NOW,
+                        MAX_NATURAL_BELØP.plus(1.toBigDecimal())
+                    )
+                )
+            ).validate()
         } catch (ex: ConstraintViolationException) {
             val response = validationResponseMapper(ex.constraintViolations)
             assertEquals("naturalytelser[0].beløp", response.errors[0].property)
-            assertEquals("Må være mindre enn 1 000 000", response.errors[0].error)
+            assertEquals("Må være mindre enn 1 000 000,0", response.errors[0].error)
         }
     }
 
     @Test
     fun `skal godta ulike årsak innsendinger`() {
-        GYLDIG.copy(årsakInnsending = ÅrsakInnsending.Ny).validate()
-        GYLDIG.copy(årsakInnsending = ÅrsakInnsending.Endring).validate()
+        GYLDIG.copy(årsakInnsending = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.NY).validate()
+        GYLDIG.copy(årsakInnsending = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.ENDRING).validate()
     }
 
     @Test
@@ -197,7 +232,7 @@ internal class InnsendingRequestTest {
         GYLDIG.copy(
             inntekt = Inntekt(
                 endringÅrsak = null,
-                beregnetInntekt = 1.0,
+                beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false
             )
@@ -208,8 +243,8 @@ internal class InnsendingRequestTest {
     fun `skal godta endringsårsak - Tariffendring`() {
         GYLDIG.copy(
             inntekt = Inntekt(
-                endringÅrsak = InntektEndringÅrsak.Tariffendring(LocalDate.now(), LocalDate.now()),
-                beregnetInntekt = 1.0,
+                endringÅrsak = Tariffendring(LocalDate.now(), LocalDate.now()),
+                beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false
             )
@@ -220,8 +255,15 @@ internal class InnsendingRequestTest {
     fun `skal godta endringsårsak - Ferie`() {
         GYLDIG.copy(
             inntekt = Inntekt(
-                endringÅrsak = InntektEndringÅrsak.Ferie(listOf(Periode(LocalDate.now(), LocalDate.now()))),
-                beregnetInntekt = 1.0,
+                endringÅrsak = Ferie(
+                    listOf(
+                        Periode(
+                            LocalDate.now(),
+                            LocalDate.now()
+                        )
+                    )
+                ),
+                beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false
             )
@@ -232,8 +274,8 @@ internal class InnsendingRequestTest {
     fun `skal godta endringsårsak - VarigLønnsendring`() {
         GYLDIG.copy(
             inntekt = Inntekt(
-                endringÅrsak = InntektEndringÅrsak.VarigLønnsendring(LocalDate.now()),
-                beregnetInntekt = 1.0,
+                endringÅrsak = VarigLonnsendring(LocalDate.now()),
+                beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false
             )
@@ -244,8 +286,15 @@ internal class InnsendingRequestTest {
     fun `skal godta endringsårsak - Permisjon`() {
         GYLDIG.copy(
             inntekt = Inntekt(
-                endringÅrsak = InntektEndringÅrsak.Permisjon(listOf(Periode(LocalDate.now(), LocalDate.now()))),
-                beregnetInntekt = 1.0,
+                endringÅrsak = Permisjon(
+                    listOf(
+                        Periode(
+                            LocalDate.now(),
+                            LocalDate.now()
+                        )
+                    )
+                ),
+                beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false
             )
@@ -256,8 +305,15 @@ internal class InnsendingRequestTest {
     fun `skal godta endringsårsak - Permittering`() {
         GYLDIG.copy(
             inntekt = Inntekt(
-                endringÅrsak = InntektEndringÅrsak.Permittering(listOf(Periode(LocalDate.now(), LocalDate.now()))),
-                beregnetInntekt = 1.0,
+                endringÅrsak = Permittering(
+                    listOf(
+                        Periode(
+                            LocalDate.now(),
+                            LocalDate.now()
+                        )
+                    )
+                ),
+                beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false
             )
@@ -268,8 +324,8 @@ internal class InnsendingRequestTest {
     fun `skal godta endringsårsak - NyStilling`() {
         GYLDIG.copy(
             inntekt = Inntekt(
-                endringÅrsak = InntektEndringÅrsak.NyStilling(LocalDate.now()),
-                beregnetInntekt = 1.0,
+                endringÅrsak = NyStilling(LocalDate.now()),
+                beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false
             )
@@ -280,8 +336,8 @@ internal class InnsendingRequestTest {
     fun `skal godta endringsårsak - NyStillingsprosent`() {
         GYLDIG.copy(
             inntekt = Inntekt(
-                endringÅrsak = InntektEndringÅrsak.NyStillingsprosent(LocalDate.now()),
-                beregnetInntekt = 1.0,
+                endringÅrsak = NyStillingsprosent(LocalDate.now()),
+                beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false
             )
@@ -292,8 +348,8 @@ internal class InnsendingRequestTest {
     fun `skal godta endringsårsak - Bonus`() {
         GYLDIG.copy(
             inntekt = Inntekt(
-                endringÅrsak = InntektEndringÅrsak.Bonus,
-                beregnetInntekt = 1.0,
+                endringÅrsak = Bonus(),
+                beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false
             )

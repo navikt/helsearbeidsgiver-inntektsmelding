@@ -8,11 +8,9 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.JournalførtInntektsmelding
-import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -33,12 +31,14 @@ class DistribuerIMLøser(rapidsConnection: RapidsConnection, val kafkaProducer: 
         logger.info("Mottar event: ${EventName.INNTEKTSMELDING_JOURNALFOERT}")
         sikkerlogg.info("Skal distribuere pakken: ${packet.toJson()}")
         try {
-            val inntektsmeldingDokument: InntektsmeldingDokument = packet[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement().fromJson(
-                InntektsmeldingDokument.serializer()
+            val inntektsmeldingDokument: InntektsmeldingDokument = customObjectMapper().treeToValue(
+                packet[Key.INNTEKTSMELDING_DOKUMENT.str],
+                InntektsmeldingDokument::class.java
             )
             val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
-            val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
-            val journalførtJson = journalførtInntektsmelding.toJson(JournalførtInntektsmelding.serializer()).toString()
+            val journalførtInntektsmelding =
+                no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
+            val journalførtJson = customObjectMapper().writeValueAsString(journalførtInntektsmelding)
             kafkaProducer.send(
                 ProducerRecord(
                     TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,

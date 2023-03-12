@@ -7,8 +7,8 @@ import kotlin.io.print
 val githubPassword: String by project
 val fabrikt: Configuration by configurations.creating
 
-val generationDir = "./test/generated"
-val apiFile = "$projectDir/spec/test.yaml"
+val generationDir = "$projectDir/build/generated/"
+val apiFile = "$projectDir/src/main/resources/test.yaml"
 
 plugins {
     id("org.jmailen.kotlinter")
@@ -37,7 +37,6 @@ repositories {
 
 tasks {
     val generateCode by creating(JavaExec::class) {
-        print(apiFile)
         inputs.files(apiFile)
         outputs.dir(generationDir)
         outputs.cacheIf { true }

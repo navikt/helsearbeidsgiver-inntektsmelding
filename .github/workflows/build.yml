@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      #- preprod/**
+      - preprod/**
 env:
   DOCKER_REGISTRY: ghcr.io
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
@@ -53,9 +53,14 @@ jobs:
       - name: Determine projects to deploy
         id: set_matrix
         run: |
+          
           MATRIX=$(./gradlew -q buildMatrix --console=plain)
+          echo $MATRIX
+          echo $(./gradlew -q deployMatrix --console=plain)
           DEPLOY_MATRIX=$(./gradlew -q deployMatrix --console=plain)
+          echo $DEPLOY_MATRIX
           MATRIX_SIZE=$(echo $MATRIX | jq '.project|length')
+          echo $MATRIX_SIZE
           DEPLOY_MATRIX_SIZE=$(echo $DEPLOY_MATRIX | jq '.project|length')
 
           if [ "$MATRIX_SIZE" == '0' ]; then

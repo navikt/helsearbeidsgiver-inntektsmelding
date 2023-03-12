@@ -55,7 +55,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)
             sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid") // TODO: lagre / benytte separat id i database?
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
-            publiserLøsning(PersisterImLøsning(inntektsmeldingDokument), packet)
+            publiserLøsning(PersisterImLøsning(value = customObjectMapper().writeValueAsString(inntektsmeldingDokument)), packet)
             publiserInntektsmeldingMottatt(inntektsmeldingDokument, uuid)
         } catch (ex: Exception) {
             ex.printStackTrace()

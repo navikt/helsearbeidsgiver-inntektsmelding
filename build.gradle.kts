@@ -177,7 +177,8 @@ fun getBuildableProjects(): List<String> {
             "config/nais.yml",
             "build.gradle.kts",
             "Dockerfile",
-            "gradle.properties"
+            "gradle.properties",
+            "test.yaml"
         )
 
     return subprojects.map { it.name }

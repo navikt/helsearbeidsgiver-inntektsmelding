@@ -2,13 +2,12 @@
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import kotlin.io.print
 
 val githubPassword: String by project
 val fabrikt: Configuration by configurations.creating
 
 val generationDir = "$projectDir/build/generated/"
-val apiFile = "$projectDir/src/main/resources/test.yaml"
+val apiFile = "$projectDir/src/main/resources/spesifikasjon.yaml"
 
 plugins {
     id("org.jmailen.kotlinter")

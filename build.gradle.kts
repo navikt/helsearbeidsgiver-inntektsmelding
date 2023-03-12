@@ -178,7 +178,7 @@ fun getBuildableProjects(): List<String> {
             "build.gradle.kts",
             "Dockerfile",
             "gradle.properties",
-            "test.yaml"
+            "spesifikasjon.yaml"
         )
 
     return subprojects.map { it.name }

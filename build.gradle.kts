@@ -170,7 +170,7 @@ fun getBuildableProjects(): List<String> {
         ?.takeIf(String::isNotBlank)
         ?.split(",")
         ?: throw IllegalStateException("Ingen endrede filer funnet.")
-
+    println("changed files $changedFiles")
     val hasCommonChanges = changedFiles.any { it.startsWith("felles/") } ||
         changedFiles.containsAny(
             ".github/workflows/build.yml",

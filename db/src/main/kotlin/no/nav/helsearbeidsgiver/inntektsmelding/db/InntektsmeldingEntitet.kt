@@ -15,6 +15,8 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
     val opprettet = datetime("opprettet")
     val uuid = text("uuid")
     val journalpostId = varchar("journalpostid", 30).nullable()
+    val sakId = varchar("sakid", 36).nullable()
+    val oppgaveId = varchar("oppgaveid", 36).nullable()
     override val primaryKey = PrimaryKey(id, name = "id")
 }
 

@@ -178,6 +178,7 @@ components:
         - bestemmendeFraværsdag
         - tidspunkt
         - beregnetInntekt
+        - årsakInnsending
       properties:
         orgnrUnderenhet:
           type: string

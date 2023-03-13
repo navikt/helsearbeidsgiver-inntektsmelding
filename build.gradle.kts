@@ -6,7 +6,6 @@ plugins {
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
     id("maven-publish")
-
     java
     jacoco
     `jacoco-report-aggregation`
@@ -170,7 +169,7 @@ fun getBuildableProjects(): List<String> {
         ?.takeIf(String::isNotBlank)
         ?.split(",")
         ?: throw IllegalStateException("Ingen endrede filer funnet.")
-    
+
     val hasCommonChanges = changedFiles.any { it.startsWith("felles/") } ||
         changedFiles.containsAny(
             ".github/workflows/build.yml",

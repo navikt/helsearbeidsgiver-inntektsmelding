@@ -40,12 +40,6 @@ tasks {
         outputs.dir(generationDir)
         outputs.cacheIf { true }
         classpath(fabrikt)
-       // jvmArgs?.add("file.encoding=UTF-8")
-       // jvmArgs?.add("sun.jnu.encoding=UTF-8")
-       // jvmArgs?.add("-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=1044")
-       // jvmArgs=listOf("-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8","-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=1044")
-      //  environment.put("LC_ALL", "nb_NO.utf-8")
-      //  jvmArgs=listOf("-Dfile.encoding=UTF-8","-Dsun.jnu.encoding=UTF-8")
         main = "com.cjbooms.fabrikt.cli.CodeGen"
         args = listOf(
             "--output-directory", generationDir,

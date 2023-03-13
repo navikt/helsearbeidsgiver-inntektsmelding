@@ -1,0 +1,26 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
+
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import kotlinx.serialization.json.jsonObject
+import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
+import java.time.LocalDate
+import java.util.UUID
+
+class InntektProducerTest : FunSpec({
+
+    test("skal sende dato for inntekt i neste behov") {
+        val testRapid = TestRapid()
+        val inntektProducer = InntektProducer(testRapid)
+        val dato = LocalDate.of(2020, 1, 1)
+        inntektProducer.publish(InntektRequest(UUID.randomUUID(), dato))
+        val forwardedDate = testRapid.lastMessageJson().jsonObject[Key.BOOMERANG.str]
+            ?.jsonObject?.get(Key.INNTEKT_DATO.str)
+            ?.fromJson(LocalDateSerializer)
+        forwardedDate shouldBe dato
+    }
+})

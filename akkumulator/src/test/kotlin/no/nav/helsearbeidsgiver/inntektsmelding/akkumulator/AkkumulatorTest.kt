@@ -11,10 +11,17 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.list
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -194,5 +201,49 @@ internal class AkkumulatorTest {
         verify(exactly = 0) {
             redisStore.set("uuid", any(), any())
         }
+    }
+
+    @Test
+    fun `skal videresende boomerang i neste behov`() {
+        every { redisStore.set(any(), any(), timeout) } returns Unit
+        val initId = "whateva"
+        val dato = "whenever"
+        val foedselsnummer = "fnr"
+        val originalBoomerang = mapOf(
+            Key.NESTE_BEHOV.str to listOf(BehovType.ARBEIDSGIVERE.toString()),
+            Key.INITIATE_ID.str to initId,
+            Key.INNTEKT_DATO.str to dato,
+            Key.FNR.str to foedselsnummer
+        )
+        val melding = mapOf(
+            Key.LØSNING.str to mapOf(
+                BEHOV_FULLT_NAVN to LØSNING_OK
+            ),
+            Key.BEHOV.str to listOf(BEHOV_FULLT_NAVN),
+            Key.BOOMERANG.str to originalBoomerang
+        )
+        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+        verify(exactly = 1) {
+            redisStore.set(any(), objectMapper.writeValueAsString(LØSNING_OK), timeout)
+        }
+        verify(exactly = 0) {
+            redisStore.set(initId, any(), any())
+        }
+        val boomerang = rapid.inspektør.message(rapid.inspektør.size - 1)
+            .toJsonElement()
+            .jsonObject[Key.BOOMERANG.str]!!
+            .fromJson(
+                MapSerializer(Key.serializer(), JsonElement.serializer())
+            )
+        // akkumulator skal fjerne neste behov!
+        assertEquals(
+            emptyList<BehovType>(),
+            boomerang[Key.NESTE_BEHOV]?.fromJson(BehovType.serializer().list())
+        )
+        assertEquals(
+            originalBoomerang.keys.toList(),
+            boomerang.keys.map(Key::str), // må mappe om til string! :/
+            "Alle keys skal beholdes i boomerang"
+        )
     }
 }

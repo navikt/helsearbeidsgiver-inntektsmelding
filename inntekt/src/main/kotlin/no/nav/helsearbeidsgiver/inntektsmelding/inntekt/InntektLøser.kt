@@ -122,7 +122,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
                 .toJsonElement()
                 .fromJson(HentTrengerImLøsning.serializer())
         } catch (ex: Exception) {
-            HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
+            HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut spleisdata fra ${Key.SESSION},  ${BehovType.HENT_TRENGER_IM}"))
         }
 
     private fun bestemPeriode(dato: LocalDate?, sykmeldingPeriode: List<Periode>?): List<Periode> {

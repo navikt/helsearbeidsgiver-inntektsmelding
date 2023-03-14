@@ -1,0 +1,15 @@
+### Innsending
+POST https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/inntekt
+Content-Type: application/json
+
+{
+  "forespoerselId": "77c9e7ed-efcc-45e5-9177-4db2d4e466c1",
+  "skjaeringstidspunkt": "2023-01-05"
+}
+
+> {%
+client.test("Response OK", () => {
+    client.log(response.body)
+    client.assert(response.status === 200, "Response not OK: " + response.status)
+})
+%}

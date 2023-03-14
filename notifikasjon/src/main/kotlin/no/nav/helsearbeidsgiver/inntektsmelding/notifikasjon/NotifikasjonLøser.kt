@@ -93,7 +93,7 @@ class NotifikasjonLøser(
         } catch (ex: Exception) {
             sikkerLogger.error("Det oppstod en feil ved sending til $identitetsnummer for orgnr: $orgnrUnderenhet", ex)
             publiserLøsning(behovType, NotifikasjonLøsning(error = Feilmelding("Klarte ikke sende notifikasjon")), packet)
-            logger.info("Klarte ikke sende notifikasjon for $uuid")
+            logger.error("Klarte ikke sende notifikasjon for $uuid")
         }
     }
 

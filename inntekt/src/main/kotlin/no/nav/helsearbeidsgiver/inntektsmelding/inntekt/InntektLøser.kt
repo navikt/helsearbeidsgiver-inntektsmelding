@@ -87,13 +87,12 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val imLøsning = hentSpleisDataFraSession(packet)
         val fnr = imLøsning.value!!.fnr
         val orgnr = imLøsning.value!!.orgnr
-        val sykPeriode = imLøsning?.value?.sykmeldingsperioder ?: lagPeriode(
-            packet.valueNullable(Key.BOOMERANG)
-                ?.toJsonElement()
-                ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
-                ?.get(Key.INNTEKT_DATO)
-                ?.fromJson(LocalDateSerializer)
-        )
+        val nyInntektDato = packet.valueNullable(Key.BOOMERANG)
+            ?.toJsonElement()
+            ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
+            ?.get(Key.INNTEKT_DATO)
+            ?.fromJson(LocalDateSerializer)
+        val sykPeriode = bestemPeriode(nyInntektDato, imLøsning.value?.sykmeldingsperioder)
         if (sykPeriode.isEmpty()) {
             logger.error("Sykmeldingsperiode mangler for uuid $uuid")
             packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
@@ -126,11 +125,12 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
             HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
         }
 
-    private fun lagPeriode(dato: LocalDate?): List<Periode> {
+    private fun bestemPeriode(dato: LocalDate?, sykmeldingPeriode: List<Periode>?): List<Periode> {
         if (dato == null) {
-            logger.error("Ugyldig dato-verdi i dato")
-            return emptyList()
+            logger.debug("Bruker sykmeldingsperiode fra spleis-forespørsel")
+            return sykmeldingPeriode ?: emptyList()
         }
+        logger.debug("Bruker innsendt dato $dato fra bruker")
         return listOf(Periode(dato, dato))
     }
 

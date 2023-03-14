@@ -18,19 +18,19 @@ class InntektProducer(
     }
 
     fun publish(request: InntektRequest): UUID {
-        val loesningId = UUID.randomUUID()
+        val initiateId = UUID.randomUUID()
         val spleisForesporselId = request.forespoerselId
         rapid.publish(
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.FORESPOERSEL_ID to spleisForesporselId.toJson(),
             Key.BOOMERANG to mapOf(
-                Key.INITIATE_ID.str to spleisForesporselId.toJson(UuidSerializer), // Akkumulator velger denne som ny UUID v / neste behov!
                 Key.NESTE_BEHOV.str to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
+                Key.INITIATE_ID.str to initiateId.toJson(UuidSerializer), // Akkumulator velger denne som ny UUID v / neste behov!
                 Key.INNTEKT_DATO.str to request.skjaeringstidspunkt.toJson(LocalDateSerializer)
             ).toJson()
         ) {
             logger.info("Publiserte Behov: ${BehovType.HENT_TRENGER_IM} for spleisId $spleisForesporselId (oppdater inntekt)")
         }
-        return loesningId
+        return initiateId
     }
 }

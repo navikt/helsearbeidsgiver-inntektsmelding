@@ -14,7 +14,7 @@ import java.util.UUID
 
 class InntektProducerTest : FunSpec({
 
-    test("skal sende dato og uuid for inntekt i neste behov") {
+    test("skal sende dato for inntekt i neste behov") {
         val testRapid = TestRapid()
         val inntektProducer = InntektProducer(testRapid)
         val forespoerselId = UUID.randomUUID()
@@ -25,6 +25,5 @@ class InntektProducerTest : FunSpec({
             ?.jsonObject?.get(Key.INNTEKT_DATO.str)
             ?.fromJson(LocalDateSerializer)
         forwardedDate shouldBe dato
-        jsonElement?.jsonObject?.get(Key.INITIATE_ID.str)?.fromJson(UuidSerializer) shouldBe forespoerselId
     }
 })

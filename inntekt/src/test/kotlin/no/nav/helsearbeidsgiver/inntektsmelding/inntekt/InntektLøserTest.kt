@@ -163,8 +163,6 @@ class InntektLøserTest {
             Key.BEHOV to listOf(BehovType.FULLT_NAVN, BehovType.INNTEKT).toJson(BehovType.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.UUID to "uuid".toJson(),
-            Key.IDENTITETSNUMMER to "abc".toJson(),
-            Key.ORGNRUNDERENHET to ORGNR.toJson(),
             Key.SESSION to sessionDataJson()
         )
     }
@@ -176,8 +174,7 @@ class InntektLøserTest {
             Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.UUID to "uuid".toJson(),
-            Key.IDENTITETSNUMMER to "abc".toJson(),
-            Key.ORGNRUNDERENHET to ORGNR.toJson(),
+            Key.SESSION to sessionDataJson(),
             Key.BOOMERANG to mapOf(
                 Key.INNTEKT_DATO.str to LocalDate.of(2022, 10, 30).toJson(LocalDateSerializer)
             ).toJson()

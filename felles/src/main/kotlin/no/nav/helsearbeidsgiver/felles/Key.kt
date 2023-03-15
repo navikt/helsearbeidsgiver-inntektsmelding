@@ -8,8 +8,10 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 
 @Serializable(KeySerializer::class)
 enum class Key(val str: String) {
@@ -49,6 +51,9 @@ enum class Key(val str: String) {
                 json == it.str
             }
     }
+
+    fun fra(message: JsonMessage): JsonElement =
+        message[str].toJsonElement()
 }
 
 fun JsonMessage.value(key: Key): JsonNode =

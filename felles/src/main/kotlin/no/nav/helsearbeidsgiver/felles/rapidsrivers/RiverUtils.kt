@@ -6,11 +6,22 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
-import java.util.UUID
+import no.nav.helsearbeidsgiver.felles.mapFirst
 
 fun JsonMessage.demandAll(key: Key, values: List<BehovType>) {
     demandAll(key.str, values.map(BehovType::name))
+}
+
+fun JsonMessage.demandKeys(vararg keys: Key) {
+    keys.map(Key::str)
+        .onEach(this::demandKey)
+}
+
+fun JsonMessage.demand(vararg keyAndParserPairs: Pair<Key, (JsonElement) -> Any>) {
+    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(Key::str) }
+    validate(JsonMessage::demand, keyStringAndParserPairs)
 }
 
 fun JsonMessage.rejectKeys(vararg keys: Key) {
@@ -23,19 +34,15 @@ fun JsonMessage.requireKeys(vararg keys: Key) {
     requireKey(*keysAsStr)
 }
 
-fun JsonMessage.requireTypes(vararg keys: Pair<Key, (JsonNode) -> Any>) {
-    keys.forEach { (key, block) ->
-        this.require(key.str, block)
-    }
+fun JsonMessage.require(vararg keyAndParserPairs: Pair<Key, (JsonElement) -> Any>) {
+    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(Key::str) }
+    validate(JsonMessage::require, keyStringAndParserPairs)
 }
 
 fun JsonMessage.interestedIn(vararg keys: Key) {
     val keysAsStr = keys.map(Key::str).toTypedArray()
     interestedIn(*keysAsStr)
 }
-
-fun JsonNode.asUuid(): UUID =
-    asText().let(UUID::fromString)
 
 fun MessageContext.publish(
     vararg messageFields: Pair<Key, JsonElement>,
@@ -49,3 +56,14 @@ fun MessageContext.publish(
             if (block != null) block(it)
         }
         .id
+
+private fun JsonMessage.validate(
+    validateFn: (JsonMessage, String, (JsonNode) -> Any) -> Unit,
+    keyAndParserPairs: List<Pair<String, (JsonElement) -> Any>>
+) {
+    keyAndParserPairs.forEach { (key, block) ->
+        validateFn(this, key) {
+            it.toJsonElement().let(block)
+        }
+    }
+}

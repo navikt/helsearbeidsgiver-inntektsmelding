@@ -54,6 +54,12 @@ enum class Key(val str: String) {
 
     fun fra(message: JsonMessage): JsonElement =
         message[str].toJsonElement()
+
+    data class Nested(private val nested: List<Key>) {
+        constructor(vararg keys: Key) : this(keys.toList())
+
+        val verdi get() = nested.joinToString(separator = ".", transform = Key::str)
+    }
 }
 
 fun JsonMessage.value(key: Key): JsonNode =

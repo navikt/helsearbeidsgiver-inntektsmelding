@@ -80,7 +80,6 @@ fun Application.apiModule(connection: RapidsConnection) {
         authenticate {
             route(Routes.PREFIX) {
                 routeExtra(connection, redisPoller) {
-                    ArbeidsgivereRoute()
                     TrengerRoute()
                     // InntektRoute()
                     // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
@@ -91,6 +90,7 @@ fun Application.apiModule(connection: RapidsConnection) {
 
         route(Routes.PREFIX) {
             routeExtra(connection, redisPoller) {
+                ArbeidsgivereRoute()
                 InnsendingRoute()
                 InntektRoute()
             }

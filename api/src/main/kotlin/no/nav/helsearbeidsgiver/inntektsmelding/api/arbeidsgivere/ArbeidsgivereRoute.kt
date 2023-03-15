@@ -6,13 +6,16 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
+import no.nav.helsearbeidsgiver.felles.ApiBehov
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Identitetsnummer
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.løsning
 import no.nav.helsearbeidsgiver.felles.json.set
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
+import no.nav.helsearbeidsgiver.felles.message.Plan
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
@@ -24,10 +27,19 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 
 fun RouteExtra.ArbeidsgivereRoute() {
     route.get(Routes.ARBEIDSGIVERE) {
+        val plan = Plan(
+            setOf(BehovType.ARBEIDSGIVERE)
+        )
+
+        val input = ApiBehov.Input.Arbeidsgivere(
+            identitetsnummer = identitetsnummer().let(::Identitetsnummer)
+        )
+            // nødvendig for serialisering
+            .let { it as ApiBehov.Input }
+
+        // TODO sende plan direkte? men hvordan knytte bestemt plan til bestemt input?
         val messageId = connection.publish(
-            // TODO Behov må være liste. Dette bør endres i Akkumulatoren.
-            Key.BEHOV to listOf(BehovType.ARBEIDSGIVERE).toJson(BehovType.serializer()),
-            Key.IDENTITETSNUMMER to identitetsnummer().toJson(),
+            Key.BEHOV to ApiBehov(plan, input).toJson(ApiBehov.serializer(ApiBehov.Input.serializer())),
             block = ::loggPublisert
         )
 

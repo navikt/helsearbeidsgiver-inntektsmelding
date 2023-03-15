@@ -24,6 +24,17 @@ fun JsonMessage.demand(vararg keyAndParserPairs: Pair<Key, (JsonElement) -> Any>
     validate(JsonMessage::demand, keyStringAndParserPairs)
 }
 
+fun JsonMessage.demandNested(vararg keyAndParserPairs: Pair<Key.Nested, (JsonElement) -> Any>) {
+    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(Key.Nested::verdi) }
+    validate(JsonMessage::demand, keyStringAndParserPairs)
+}
+
+fun JsonMessage.demandValue(vararg keyAndValuePair: Pair<Key.Nested, String>) {
+    keyAndValuePair.forEach { (key, value) ->
+        demandValue(key.verdi, value)
+    }
+}
+
 fun JsonMessage.rejectKeys(vararg keys: Key) {
     val keysAsStr = keys.map(Key::str).toTypedArray()
     rejectKey(*keysAsStr)
@@ -36,6 +47,11 @@ fun JsonMessage.requireKeys(vararg keys: Key) {
 
 fun JsonMessage.require(vararg keyAndParserPairs: Pair<Key, (JsonElement) -> Any>) {
     val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(Key::str) }
+    validate(JsonMessage::require, keyStringAndParserPairs)
+}
+
+fun JsonMessage.requireNested(vararg keyAndParserPairs: Pair<Key.Nested, (JsonElement) -> Any>) {
+    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(Key.Nested::verdi) }
     validate(JsonMessage::require, keyStringAndParserPairs)
 }
 

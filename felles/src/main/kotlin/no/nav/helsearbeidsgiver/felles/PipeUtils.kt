@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.felles
 
-fun <T : Any> T?.orDefault(default: T) =
+fun <T : Any> T?.orDefault(default: T): T =
     this ?: default
 
 fun Boolean.ifTrue(block: () -> Unit): Boolean =

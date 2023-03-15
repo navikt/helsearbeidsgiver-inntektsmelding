@@ -12,7 +12,7 @@ sealed class Løsning {
 
 data class Data<T>(
     val t: T? = null,
-    val error: Feilmelding = null?
+    val error: Feilmelding? = null
 )
 
 @Serializable

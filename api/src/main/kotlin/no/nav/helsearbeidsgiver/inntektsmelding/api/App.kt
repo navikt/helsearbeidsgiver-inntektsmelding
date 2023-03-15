@@ -39,8 +39,7 @@ object Routes {
 
 fun main() {
     val env = System.getenv()
-    RapidApplication.create(env)
-        .also(::startServer)
+    RapidApplication.create(env).also(::startServer)
         .start()
 }
 

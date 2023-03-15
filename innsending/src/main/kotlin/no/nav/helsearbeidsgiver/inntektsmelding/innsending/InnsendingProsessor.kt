@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.prossesor
+package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.RedisStore
 
 class InnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
 
@@ -19,14 +18,15 @@ class InnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore
     init {
         InnsendingStartedListener(this, rapidsConnection)
         DataPackageListener(this, rapidsConnection, redisStore)
-        FailListener(this, rapidsConnection)
+        GenericFailListener(this, rapidsConnection)
+        GenericDataPackageListener(DataFelter.values(), this, rapidsConnection, redisStore)
     }
 
     enum class DataFelter(val str: String) {
         VIRKSOMHET("virksomhet"),
         ARBEIDSFORHOLD("arbeidsforhold"),
         INNTEKTSMELDING_REQUEST("inntektsmelding-request"),
-        INNTEKTSMELDING_DOKUMENT("inntektsmelding-dokument")
+        INNTEKTSMELDING_DOKUMENT("inntektsmelding-dokument");
     }
 
     class InnsendingStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -44,14 +44,14 @@ class InnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore
         }
     }
 
-    override fun onPacket(message: JsonMessage, context: MessageContext) {
-        val transaction: Transaction = startStransactionIfAbsent(message)
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val transaction: Transaction = startStransactionIfAbsent(packet)
 
         when (transaction) {
-            Transaction.NEW -> dispatchBehov(message, transaction)
-            Transaction.IN_PROGRESS -> dispatchBehov(message, transaction)
-            Transaction.FINALIZE -> finalize(message)
-            Transaction.TERMINATE -> terminate(message)
+            Transaction.NEW -> dispatchBehov(packet, transaction)
+            Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
+            Transaction.FINALIZE -> finalize(packet)
+            Transaction.TERMINATE -> terminate(packet)
         }
     }
 
@@ -153,7 +153,7 @@ class InnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore
                 else -> null
             }
 
-            redisStore.set(message[Key.UUID.str].asText() + data!!.first, data!!.second.asText())
+            redisStore.set(message[Key.UUID.str].asText() + data!!.first, data.second.asText())
         }
     }
 

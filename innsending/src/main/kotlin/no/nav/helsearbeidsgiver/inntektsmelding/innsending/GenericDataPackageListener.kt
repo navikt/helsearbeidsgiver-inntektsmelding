@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.prossesor
+package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -6,10 +6,9 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.RedisStore
 
-class GenericDataPackageListener(
-    val dataFelter: Array<String>,
+class GenericDataPackageListener<T : Enum<*>>(
+    val dataFelter: Array<T>,
     val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,
     val redisStore: RedisStore
@@ -21,8 +20,8 @@ class GenericDataPackageListener(
         return River.PacketValidation {
             it.demandValue(Key.EVENT_NAME.str, EventName.INSENDING_STARTED.name)
             it.demandKey(Key.DATA.str)
-            dataFelter.forEach { datafelt ->
-                it.interestedIn(datafelt)
+            dataFelter.forEach { datafelt: Enum<*> ->
+                it.interestedIn(datafelt.name)
             }
         }
     }
@@ -33,12 +32,12 @@ class GenericDataPackageListener(
     }
 
     fun collectData(message: JsonMessage) {
-        val data = dataFelter.filter { dataFelt ->
-            message[dataFelt].asText().isNotEmpty()
-        }.map { dataFelt ->
-            Pair(dataFelt, message[dataFelt])
+        val data = dataFelter.filter { dataFelt: Enum<*> ->
+            message[dataFelt.name].asText().isNotEmpty()
+        }.map { dataFelt: Enum<*> ->
+            Pair(dataFelt.name, message[dataFelt.name])
         }.first()
 
-        redisStore.set(message[Key.UUID.str].asText() + data!!.first, data!!.second.asText())
+        redisStore.set(message[Key.UUID.str].asText() + data.first, data.second.asText())
     }
 }

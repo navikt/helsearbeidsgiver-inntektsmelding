@@ -16,7 +16,6 @@ class RedisStore(redisUrl: String) {
 
     fun exist(vararg keys: String): Long = syncCommands.exists(*keys)
 
-
     fun shutdown() {
         connection.close()
         redisClient.shutdown()

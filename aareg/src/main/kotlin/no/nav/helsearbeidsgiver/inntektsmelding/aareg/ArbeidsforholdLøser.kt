@@ -3,8 +3,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -59,10 +57,10 @@ class ArbeidsforholdLøser(
         packet.setLøsning(behovType, løsning)
         context.publish(packet.toJson())
         val data = if (arbeidsforhold == null) Data(error = Feilmelding("Klarte ikke hente arbeidsforhold")) else Data<Any>(arbeidsforhold)
-        publishDatagram(data ,packet ,context)
+        publishDatagram(data, packet, context)
     }
 
-    fun puiblishFail(data: Data<Any>,jsonMessage: JsonMessage,context: MessageContext) {
+    fun puiblishFail(data: Data<Any>, jsonMessage: JsonMessage, context: MessageContext) {
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),

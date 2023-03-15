@@ -56,7 +56,8 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid") // TODO: lagre / benytte separat id i database?
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
             publiserLøsning(PersisterImLøsning(value = customObjectMapper().writeValueAsString(inntektsmeldingDokument)), packet)
-            publiserInntektsmeldingMottatt(inntektsmeldingDokument, uuid)
+            publiserOK(uuid)
+            // publiserInntektsmeldingMottatt(inntektsmeldingDokument, uuid)
         } catch (ex: Exception) {
             ex.printStackTrace()
             logger.info(ex.toString())
@@ -64,6 +65,18 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             sikkerlogg.error("Klarte ikke persistere: $uuid", ex)
             publiserLøsning(PersisterImLøsning(error = Feilmelding(melding = "Klarte ikke persistere!")), packet)
         }
+    }
+
+    private fun publiserOK(uuid: String) {
+        val packet: JsonMessage = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
+                Key.INNTEKTSMELDING_DOKUMENT.str to "OK",
+                Key.UUID.str to uuid
+            )
+        )
+        logger.info("Publiserer OK DATA ${EventName.INNTEKTSMELDING_MOTTATT} for uuid: $uuid")
+        rapidsConnection.publish(packet.toJson())
     }
 
     private fun publiserInntektsmeldingMottatt(

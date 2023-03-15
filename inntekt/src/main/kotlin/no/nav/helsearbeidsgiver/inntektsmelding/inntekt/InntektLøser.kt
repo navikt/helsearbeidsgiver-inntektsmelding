@@ -65,8 +65,8 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         River(rapidsConnection).apply {
             validate {
                 it.demandAll(Key.BEHOV.str, INNTEKT)
-                it.requireKey(Key.ID.str, Key.IDENTITETSNUMMER.str, Key.ORGNRUNDERENHET.str)
-                it.interestedIn(Key.SESSION.str, Key.BOOMERANG.str) // TODO: forsøk å heller splitte opp i to løsere
+                it.requireKey(Key.ID.str, Key.SESSION.str)
+                it.interestedIn(Key.BOOMERANG.str) // TODO: forsøk å heller splitte opp i to løsere
                 it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
@@ -84,18 +84,15 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         val uuid = packet[Key.ID.str].asText()
         logger.info("Løser behov $INNTEKT med id $uuid")
         sikkerlogg.info("Løser behov $INNTEKT med id $uuid")
-        val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
-        val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
-        val imLøsning = packet.value(Key.SESSION)[BehovType.HENT_TRENGER_IM.name]
+        val imLøsning = hentSpleisDataFraSession(packet)
+        val fnr = imLøsning.value!!.fnr
+        val orgnr = imLøsning.value!!.orgnr
+        val nyInntektDato = packet.valueNullable(Key.BOOMERANG)
             ?.toJsonElement()
-            ?.fromJson(HentTrengerImLøsning.serializer())
-        val sykPeriode = imLøsning?.value?.sykmeldingsperioder ?: lagPeriode(
-            packet.valueNullable(Key.BOOMERANG)
-                ?.toJsonElement()
-                ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
-                ?.get(Key.INNTEKT_DATO)
-                ?.fromJson(LocalDateSerializer)
-        )
+            ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
+            ?.get(Key.INNTEKT_DATO)
+            ?.fromJson(LocalDateSerializer)
+        val sykPeriode = bestemPeriode(nyInntektDato, imLøsning.value?.sykmeldingsperioder)
         if (sykPeriode.isEmpty()) {
             logger.error("Sykmeldingsperiode mangler for uuid $uuid")
             packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
@@ -119,11 +116,21 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         }
     }
 
-    private fun lagPeriode(dato: LocalDate?): List<Periode> {
-        if (dato == null) {
-            logger.error("Ugyldig dato-verdi i dato")
-            return emptyList()
+    private fun hentSpleisDataFraSession(packet: JsonMessage): HentTrengerImLøsning =
+        try {
+            packet[Key.SESSION.str][BehovType.HENT_TRENGER_IM.name]
+                .toJsonElement()
+                .fromJson(HentTrengerImLøsning.serializer())
+        } catch (ex: Exception) {
+            HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut spleisdata fra ${Key.SESSION},  ${BehovType.HENT_TRENGER_IM}"))
         }
+
+    private fun bestemPeriode(dato: LocalDate?, sykmeldingPeriode: List<Periode>?): List<Periode> {
+        if (dato == null) {
+            logger.debug("Bruker sykmeldingsperiode fra spleis-forespørsel")
+            return sykmeldingPeriode ?: emptyList()
+        }
+        logger.debug("Bruker innsendt dato $dato fra bruker")
         return listOf(Periode(dato, dato))
     }
 

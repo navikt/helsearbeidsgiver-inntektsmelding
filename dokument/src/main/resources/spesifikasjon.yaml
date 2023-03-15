@@ -306,6 +306,7 @@ components:
         dato:
           type: string
           format: date
+          description: "just a date"
         beløp:
           type: number
     Refusjon:

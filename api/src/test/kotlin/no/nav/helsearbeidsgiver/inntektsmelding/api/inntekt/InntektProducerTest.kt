@@ -16,9 +16,11 @@ class InntektProducerTest : FunSpec({
     test("skal sende dato for inntekt i neste behov") {
         val testRapid = TestRapid()
         val inntektProducer = InntektProducer(testRapid)
+        val forespoerselId = UUID.randomUUID()
         val dato = LocalDate.of(2020, 1, 1)
-        inntektProducer.publish(InntektRequest(UUID.randomUUID(), dato))
-        val forwardedDate = testRapid.lastMessageJson().jsonObject[Key.BOOMERANG.str]
+        inntektProducer.publish(InntektRequest(forespoerselId, dato))
+        val jsonElement = testRapid.lastMessageJson().jsonObject[Key.BOOMERANG.str]
+        val forwardedDate = jsonElement
             ?.jsonObject?.get(Key.INNTEKT_DATO.str)
             ?.fromJson(LocalDateSerializer)
         forwardedDate shouldBe dato

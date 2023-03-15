@@ -9,8 +9,11 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import org.slf4j.LoggerFactory
 
 class NotifikasjonInntektsmeldingMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+
+    private val sikkerLogger = LoggerFactory.getLogger("tjenestekall")
 
     override val event: EventName = EventName.INNTEKTSMELDING_MOTTATT
 
@@ -25,7 +28,7 @@ class NotifikasjonInntektsmeldingMottattListener(rapidsConnection: RapidsConnect
             packet[Key.INNTEKTSMELDING_DOKUMENT.str],
             InntektsmeldingDokument::class.java
         )
-        sikkerlogg.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT}, pakke: ${packet.toJson()}")
+        sikkerLogger.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT}, pakke: ${packet.toJson()}")
         publishBehov(
             JsonMessage.newMessage(
                 mapOf(

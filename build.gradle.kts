@@ -6,7 +6,6 @@ plugins {
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
     id("maven-publish")
-
     java
     jacoco
     `jacoco-report-aggregation`

@@ -7,20 +7,21 @@ import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-notifikasjon")
+val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 
 fun main() {
-    createApp(setUpEnvironment()).start()
+    val environment = setUpEnvironment()
+    val client = buildClient(environment)
+    RapidApplication.create(System.getenv()).createNotifikasjon(client, environment.linkUrl).start()
 }
 
-internal fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starting RapidApplication...")
-    val rapidsConnection = RapidApplication.create(environment.raw)
-    logger.info("Starting...")
-    NotifikasjonLøser(rapidsConnection, buildClient(environment), environment.linkUrl)
-    NotifikasjonInntektsmeldingMottattListener(rapidsConnection)
-    return rapidsConnection
+fun RapidsConnection.createNotifikasjon(arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient, linkUrl: String): RapidsConnection {
+    sikkerLogger.info("Starting NotifikasjonLøser...")
+    NotifikasjonLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+    sikkerLogger.info("Starting NotifikasjonInntektsmeldingMottattListener...")
+    NotifikasjonInntektsmeldingMottattListener(this)
+    sikkerLogger.info("Starting Notifikasjon app...")
+    return this
 }
 
 fun buildClient(environment: Environment): ArbeidsgiverNotifikasjonKlient {

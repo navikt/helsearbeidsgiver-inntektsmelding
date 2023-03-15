@@ -19,8 +19,8 @@ sourceSets {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 repositories {
@@ -40,12 +40,6 @@ tasks {
         outputs.dir(generationDir)
         outputs.cacheIf { true }
         classpath(fabrikt)
-       // jvmArgs?.add("file.encoding=UTF-8")
-       // jvmArgs?.add("sun.jnu.encoding=UTF-8")
-       // jvmArgs?.add("-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=1044")
-       // jvmArgs=listOf("-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8","-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=1044")
-      //  environment.put("LC_ALL", "nb_NO.utf-8")
-      //  jvmArgs=listOf("-Dfile.encoding=UTF-8","-Dsun.jnu.encoding=UTF-8")
         main = "com.cjbooms.fabrikt.cli.CodeGen"
         args = listOf(
             "--output-directory", generationDir,
@@ -63,7 +57,7 @@ tasks {
     }
 
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+        kotlinOptions.jvmTarget = "11"
         dependsOn(generateCode)
         dependsOn("ktFormat")
     }

@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NotifikasjonLøsning
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -21,6 +22,9 @@ class NotifikasjonLøser(
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val linkUrl: String
 ) : Løser(rapidsConnection) {
+
+    private val sikkerLogger = LoggerFactory.getLogger("tjenestekall")
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
@@ -80,16 +84,16 @@ class NotifikasjonLøser(
         logger.info("Fikk notifikasjon $uuid for notis $behovType")
         val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgnrUnderenhet = packet[Key.ORGNRUNDERENHET.str].asText()
-        sikkerlogg.info("Fant notis for: $identitetsnummer")
+        sikkerLogger.info("Fant notis for: $identitetsnummer")
         try {
             val notifikasjonId = opprettNotifikasjon(behovType, uuid, orgnrUnderenhet)
             publiserLøsning(behovType, NotifikasjonLøsning(notifikasjonId), packet)
-            sikkerlogg.info("Sendte notifikasjon id=$notifikasjonId for $identitetsnummer")
+            sikkerLogger.info("Sendte notifikasjon id=$notifikasjonId for $identitetsnummer")
             logger.info("Sendte notifikasjon for $uuid")
         } catch (ex: Exception) {
-            sikkerlogg.error("Det oppstod en feil ved sending til $identitetsnummer for orgnr: $orgnrUnderenhet", ex)
+            sikkerLogger.error("Det oppstod en feil ved sending til $identitetsnummer for orgnr: $orgnrUnderenhet", ex)
             publiserLøsning(behovType, NotifikasjonLøsning(error = Feilmelding("Klarte ikke sende notifikasjon")), packet)
-            logger.info("Klarte ikke sende notifikasjon for $uuid")
+            logger.error("Klarte ikke sende notifikasjon for $uuid")
         }
     }
 

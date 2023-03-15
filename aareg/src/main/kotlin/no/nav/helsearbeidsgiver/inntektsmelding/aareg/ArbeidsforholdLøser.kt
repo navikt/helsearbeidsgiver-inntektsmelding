@@ -3,6 +3,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -11,8 +13,10 @@ import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Data
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.log.logger
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
@@ -54,6 +58,29 @@ class ArbeidsforholdLøser(
 
         packet.setLøsning(behovType, løsning)
         context.publish(packet.toJson())
+        val data = if (arbeidsforhold == null) Data(error = Feilmelding("Klarte ikke hente arbeidsforhold")) else Data<Any>(arbeidsforhold)
+        publishDatagram(data ,packet ,context)
+    }
+
+    fun puiblishFail(data: Data<Any>,jsonMessage: JsonMessage,context: MessageContext) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
+                Key.DATA.str to customObjectMapper().writeValueAsString(data),
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+            )
+        )
+    }
+
+    fun publishDatagram(data: Data<Any>, jsonMessage: JsonMessage, context: MessageContext) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
+                Key.DATA.str to customObjectMapper().writeValueAsString(data),
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+            )
+        )
+        context.publish(message.toJson())
     }
 
     private fun hentArbeidsforhold(fnr: String, callId: String): List<Arbeidsforhold>? =

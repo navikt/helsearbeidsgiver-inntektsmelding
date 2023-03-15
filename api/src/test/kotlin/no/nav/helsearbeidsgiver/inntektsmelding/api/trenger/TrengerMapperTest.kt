@@ -3,7 +3,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import io.ktor.http.HttpStatusCode
+import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
@@ -32,6 +34,19 @@ internal class TrengerMapperTest {
         mockArbeidsforhold()
             .let(::listOf)
             .let(::ArbeidsforholdLøsning)
+
+    @Test
+    fun `skal kaste `() {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.BEHOV.str to BehovType.PERSISTER_IM.name
+            )
+        )
+        message.interestedIn(Key.BEHOV.str)
+        message.interestedIn("TEST")
+        val test = message.get(Key.BEHOV.str)
+        println("Test")
+    }
 
     @Test
     fun `skal kaste constraints exception når feil oppstår`() {

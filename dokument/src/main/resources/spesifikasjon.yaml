@@ -178,6 +178,7 @@ components:
         - bestemmendeFraværsdag
         - tidspunkt
         - beregnetInntekt
+        - årsakInnsending
       properties:
         orgnrUnderenhet:
           type: string
@@ -307,7 +308,6 @@ components:
           format: date
         beløp:
           type: number
-
     Refusjon:
       required:
         - utbetalerHeleEllerDeler

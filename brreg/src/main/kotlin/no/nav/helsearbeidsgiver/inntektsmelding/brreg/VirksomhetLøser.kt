@@ -41,6 +41,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             }
             return "Ukjent arbeidsgiver"
         }
+        JsonMessage.newMessage()
         return runBlocking { brregClient.hentVirksomhetNavn(orgnr) } ?: throw FantIkkeVirksomhetException(orgnr)
     }
 
@@ -51,6 +52,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             val navn = hentVirksomhet(orgnr)
             sikkerlogg.info("Fant $navn for $orgnr")
             publiserLøsning(VirksomhetLøsning(navn), packet, context)
+            publishDatagram(navn,packet,context)
         } catch (ex: FantIkkeVirksomhetException) {
             sikkerlogg.info("Fant ikke virksomhet for $orgnr")
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")), packet, context)
@@ -61,10 +63,23 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         }
     }
 
+    fun publishDatagram(navn: String ,jsonMessage: JsonMessage,context: MessageContext) {
+       val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
+                Key.DATA.str to navn,
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+            )
+        )
+        context.publish(message.toJson())
+
+    }
+
     fun publiserLøsning(virksomhetLøsning: VirksomhetLøsning, packet: JsonMessage, context: MessageContext) {
         packet.setLøsning(BEHOV, virksomhetLøsning)
         context.publish(packet.toJson())
     }
+
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
         this[Key.LØSNING.str] = mapOf(

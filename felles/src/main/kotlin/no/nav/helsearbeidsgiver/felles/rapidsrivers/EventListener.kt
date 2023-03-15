@@ -25,7 +25,6 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
     private fun configureAsListener(river: River): River {
         return river.validate {
             it.demandValue(Key.EVENT_NAME.str, event.name)
-            it.rejectKey(Key.BEHOV.str)
             it.rejectKey(Key.LØSNING.str)
             it.interestedIn(Key.UUID.str)
         }

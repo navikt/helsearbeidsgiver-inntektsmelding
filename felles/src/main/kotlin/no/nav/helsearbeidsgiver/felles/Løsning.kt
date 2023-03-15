@@ -10,6 +10,11 @@ sealed class Løsning {
     abstract val error: Feilmelding?
 }
 
+data class Data<T>(
+    val t: T? = null,
+    val error: Feilmelding = null?
+)
+
 @Serializable
 data class Feilmelding(
     val melding: String,

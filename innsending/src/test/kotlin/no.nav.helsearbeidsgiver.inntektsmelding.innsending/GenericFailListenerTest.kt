@@ -1,0 +1,3 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.innsending
+
+class GenericFailListenerTest

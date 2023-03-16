@@ -35,7 +35,9 @@ class ArbeidsforholdLøser(
                 it.requireKey(
                     Key.ID.str,
                     Key.IDENTITETSNUMMER.str
+                    //    Key.UUID.str
                 )
+                it.interestedIn(Key.UUID.str)
             }
         }.register(this)
     }
@@ -56,18 +58,12 @@ class ArbeidsforholdLøser(
 
         packet.setLøsning(behovType, løsning)
         context.publish(packet.toJson())
-        val data = if (arbeidsforhold == null) Data(error = Feilmelding("Klarte ikke hente arbeidsforhold")) else Data<Any>(arbeidsforhold)
-        publishDatagram(data, packet, context)
-    }
 
-    fun puiblishFail(data: Data<Any>, jsonMessage: JsonMessage, context: MessageContext) {
-        val message = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
-                Key.DATA.str to customObjectMapper().writeValueAsString(data),
-                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
-            )
-        )
+        if (arbeidsforhold != null) {
+            publishDatagram(Data(arbeidsforhold), packet, context)
+        } else {
+            publishFail(Feilmelding("Klarte ikke hente arbeidsforhold"), packet, context)
+        }
     }
 
     fun publishDatagram(data: Data<Any>, jsonMessage: JsonMessage, context: MessageContext) {
@@ -75,6 +71,17 @@ class ArbeidsforholdLøser(
             mapOf(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
                 Key.DATA.str to customObjectMapper().writeValueAsString(data),
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+            )
+        )
+        context.publish(message.toJson())
+    }
+
+    fun publishFail(fail: Feilmelding, jsonMessage: JsonMessage, context: MessageContext) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
+                Key.FAIL.str to customObjectMapper().writeValueAsString(fail),
                 Key.UUID.str to jsonMessage[Key.UUID.str].asText()
             )
         )

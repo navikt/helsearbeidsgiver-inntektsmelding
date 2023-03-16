@@ -42,13 +42,14 @@ class ArbeidsforholdLøserTest : FunSpec({
         testRapid.sendJson(
             Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
             Key.ID to MockUuid.STRING.toJson(),
+            Key.UUID to "uuid".toJson(),
             Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
         )
 
         val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, MockUuid.STRING) }
-        testRapid.inspektør.size shouldBeExactly 1
+        testRapid.inspektør.size shouldBeExactly 2
         actual shouldBe expected
     }
 
@@ -60,13 +61,14 @@ class ArbeidsforholdLøserTest : FunSpec({
         testRapid.sendJson(
             Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
             Key.ID to MockUuid.STRING.toJson(),
+            Key.UUID to "uuiid".toJson(),
             Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
         )
 
         val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, MockUuid.STRING) }
-        testRapid.inspektør.size shouldBeExactly 1
+        testRapid.inspektør.size shouldBeExactly 2
         actual shouldBe expected
     }
 })

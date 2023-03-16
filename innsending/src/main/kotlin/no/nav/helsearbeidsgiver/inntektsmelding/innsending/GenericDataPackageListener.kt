@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 
 class GenericDataPackageListener<T : Enum<*>>(
-    val dataFelter: Array<T>,
+    val dataFelter: Array<T>,event: EventName,
     val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,
     val redisStore: RedisStore
@@ -18,7 +18,7 @@ class GenericDataPackageListener<T : Enum<*>>(
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
-            it.demandValue(Key.EVENT_NAME.str, EventName.INSENDING_STARTED.name)
+            it.demandValue(Key.EVENT_NAME.str, event.name)
             it.demandKey(Key.DATA.str)
             dataFelter.forEach { datafelt: Enum<*> ->
                 it.interestedIn(datafelt.name)

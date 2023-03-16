@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":brreg"))
     implementation(project(":notifikasjon"))
     implementation(project(":pdl"))
+    implementation(project(":forespoersel-mottatt"))
 
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.2")
     testImplementation("org.testcontainers:postgresql:1.17.6")

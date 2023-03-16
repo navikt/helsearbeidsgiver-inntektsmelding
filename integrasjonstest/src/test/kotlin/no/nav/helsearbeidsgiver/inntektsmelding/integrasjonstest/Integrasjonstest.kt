@@ -1,14 +1,19 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.redis.testcontainers.RedisContainer
 import io.mockk.mockk
+import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.Akkumulator
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.RedisStore
-import no.nav.helsearbeidsgiver.inntektsmelding.pdl.FulltNavnLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.ForespoerselMottattLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonLøser
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -40,6 +45,8 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
 
     // Clients
     var pdlClient = mockk<PdlClient>()
+    var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
+    var notifikasjonLink = "notifikasjonLink"
 
     @BeforeAll
     fun beforeAll() {
@@ -56,7 +63,6 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
         logger.info("Redis port: ${redisContainer.firstMappedPort}")
         logger.info("Starter Postgres...")
         postgreSQLContainer.start()
-
         val env = HashMap<String, String>().also {
             it.put("KAFKA_RAPID_TOPIC", TOPIC)
             it.put("KAFKA_CREATE_TOPICS", TOPIC)
@@ -68,11 +74,12 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
         val redisStore = RedisStore(redisContainer.redisURI)
         // Rapids
         rapid = RapidApplication.create(env).also {
-            FulltNavnLøser(it, pdlClient)
-            // ForespoerselMottattLøser(it)
+            Akkumulator(it, redisStore)
+            ForespoerselMottattLøser(it)
+            NotifikasjonLøser(it, arbeidsgiverNotifikasjonKlient, notifikasjonLink)
+            // FulltNavnLøser(it, pdlClient)
             // OpprettSakLøser(it, arbeidsgiverNotifikasjonKlient, "")
             // OpprettOppgaveLøser(it, arbeidsgiverNotifikasjonKlient, "")
-            Akkumulator(it, redisStore)
         }
         rapid.register(this)
         thread = thread {
@@ -82,7 +89,7 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
     }
 
     override fun onMessage(message: String, context: MessageContext) {
-        logger.info("Fikk melding: $message")
+        logger.info("onMessage: $message")
         results.add(message)
     }
 
@@ -103,5 +110,9 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
 
     fun getResults(): MutableList<String> {
         return results
+    }
+
+    fun getMessage(index: Int): JsonNode {
+        return Json.parseToJsonElement(results[index]).toJsonNode()
     }
 }

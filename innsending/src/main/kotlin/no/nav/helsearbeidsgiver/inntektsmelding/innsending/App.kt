@@ -20,6 +20,6 @@ internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starting Akkumulator...")
-    MoreGenericInnsendingProcessor(rapidsConnection, redisClient)
+    RelativlyGenericInnsendingProcessor(rapidsConnection, redisClient)
     return rapidsConnection
 }

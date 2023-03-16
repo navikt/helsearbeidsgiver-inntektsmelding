@@ -11,22 +11,21 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 
+enum class DataFelter(val str: String) {
+    VIRKSOMHET("virksomhet"),
+    ARBEIDSFORHOLD("arbeidsforhold"),
+    INNTEKTSMELDING_REQUEST("inntektsmelding-request"),
+    INNTEKTSMELDING_DOKUMENT("inntektsmelding-dokument");
+}
+
 class ImperativeInnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
 
     val event: EventName = EventName.INNTEKTSMELDING_REQUESTED
 
     init {
         InnsendingStartedListener(this, rapidsConnection)
+        FailListener(this, rapidsConnection)
         DataPackageListener(this, rapidsConnection, redisStore)
-        GenericFailListener(this, rapidsConnection)
-        GenericDataPackageListener(DataFelter.values(), this, rapidsConnection, redisStore)
-    }
-
-    enum class DataFelter(val str: String) {
-        VIRKSOMHET("virksomhet"),
-        ARBEIDSFORHOLD("arbeidsforhold"),
-        INNTEKTSMELDING_REQUEST("inntektsmelding-request"),
-        INNTEKTSMELDING_DOKUMENT("inntektsmelding-dokument");
     }
 
     class InnsendingStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {

@@ -39,7 +39,7 @@ enum class Key(val str: String) {
     NAVN("navn"),
     SAK_ID("sak_id"),
     DATA("data"),
-    FAIL("fail");
+    FAIL("fail"),
     OPPGAVE_ID("oppgave_id");
 
     override fun toString(): String =

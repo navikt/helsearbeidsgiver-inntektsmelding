@@ -8,7 +8,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 
 class GenericDataPackageListener<T : Enum<*>>(
-    val dataFelter: Array<T>,event: EventName,
+    val dataFelter: Array<T>,
+    val event: EventName,
     val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,
     val redisStore: RedisStore

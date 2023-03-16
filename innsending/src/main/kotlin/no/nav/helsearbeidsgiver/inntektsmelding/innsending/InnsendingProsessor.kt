@@ -114,7 +114,6 @@ class InnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore
     }
 
     fun finalize(message: JsonMessage) {
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(
@@ -124,6 +123,7 @@ class InnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore
                 )
             ).toJson()
         )
+        redisStore.set(message[Key.UUID.str].asText(), message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
     }
 
     class DataPackageListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection, val redisStore: RedisStore) : Løser(rapidsConnection) { // ktlint-disable max-line-length

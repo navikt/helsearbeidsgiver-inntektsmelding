@@ -93,7 +93,7 @@ jobs:
       matrix: ${{ fromJSON(needs.generate_vars.outputs.matrix) }}
       fail-fast: false
     outputs:
-      docker_image: ${{ steps.docker_push.outputs.image }}
+      docker_image_${{ matrix.project }}: ${{ steps.docker_push.outputs.image }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
@@ -197,7 +197,7 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ matrix.cluster }}
-          IMAGE: ${{ needs.build.outputs.docker_image }}
+          IMAGE: ${{ needs.build.outputs[format('docker_image_{0}', matrix.project)] }}
 #          IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_PREFIX }}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}
           RESOURCE: config/nais.yml
           VAR: team=${{ env.TEAM }},app=${{ matrix.project }}

@@ -6,6 +6,7 @@ on:
       - main
       - preprod/**
 env:
+  TEAM: helsearbeidsgiver
   DOCKER_REGISTRY: ghcr.io
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-
   ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
@@ -14,7 +15,7 @@ jobs:
   generate_vars:
     runs-on: ubuntu-latest
     outputs:
-      short_sha: ${{ steps.set_short_sha.outputs.short_sha }}
+#      short_sha: ${{ steps.set_short_sha.outputs.short_sha }}
       matrix: ${{ steps.set_matrix.outputs.matrix }}
       is_matrix_empty: ${{ steps.set_matrix.outputs.is_matrix_empty }}
       deploy_matrix: ${{ steps.set_matrix.outputs.deploy_matrix }}
@@ -38,11 +39,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-caches-
 
-      - name: Determine short SHA
-        id: set_short_sha
-        run: |
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c 1-7)
-          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+#      - name: Determine short SHA
+#        id: set_short_sha
+#        run: |
+#          SHORT_SHA=$(echo ${{ github.sha }} | cut -c 1-7)
+#          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
 
       - name: Determine changes files
         run: |
@@ -82,11 +83,16 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
     needs: generate_vars
     if: needs.generate_vars.outputs.is_matrix_empty == 'false'
     strategy:
-      fail-fast: false
       matrix: ${{ fromJSON(needs.generate_vars.outputs.matrix) }}
+      fail-fast: false
+    outputs:
+      docker_image: ${{ steps.docker_push.outputs.image }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
@@ -125,61 +131,72 @@ jobs:
         with:
           files: "${{ matrix.project }}/build/libs/app.jar"
 
-      - name: Create docker tag
-        if: steps.app_jar.outputs.files_exists == 'true'
-        run: |
-          echo "IMAGE=$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}" >> $GITHUB_ENV
+#      - name: Create docker tag
+#        if: steps.app_jar.outputs.files_exists == 'true'
+#        run: |
+#          echo "IMAGE=$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}" >> $GITHUB_ENV
 
-      - name: Build docker image
+      - name: Build and push docker image
+        uses: nais/docker-build-push@v0
+        id: docker_push
         if: steps.app_jar.outputs.files_exists == 'true'
-        run: docker build ${{ matrix.project }} --pull -t $IMAGE -f Dockerfile
+        with:
+          team: ${{ env.TEAM }} # required
+#          tag: ${{ env.IMAGE }} # optional
+#          docker_context: . # optional, default .
+          image_suffix: im-${{ matrix.project }}
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }} # required, but is defined as an organization variable
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }} # required, but is defined as an organization secret
 
-      - name: Push docker image
-        if: steps.app_jar.outputs.files_exists == 'true'
-        run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login --username $GITHUB_REPOSITORY --password-stdin https://$DOCKER_REGISTRY
-          docker push $IMAGE
+#      - name: Build docker image
+#        if: steps.app_jar.outputs.files_exists == 'true'
+#        run: docker build ${{ matrix.project }} --pull -t $IMAGE -f Dockerfile
+#
+#      - name: Push docker image
+#        if: steps.app_jar.outputs.files_exists == 'true'
+#        run: |
+#          echo ${{ secrets.GITHUB_TOKEN }} | docker login --username $GITHUB_REPOSITORY --password-stdin https://$DOCKER_REGISTRY
+#          docker push $IMAGE
 
   deploy:
     runs-on: ubuntu-latest
     needs: [generate_vars, build]
     if: needs.generate_vars.outputs.is_deploy_matrix_empty == 'false'
     strategy:
-      fail-fast: false
       matrix: ${{ fromJSON(needs.generate_vars.outputs.deploy_matrix) }}
+      fail-fast: false
     steps:
-      - name: Check if docker image exists
-        run: |
-          LAYERS=$(curl -X GET https://$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
-          if [ "$LAYERS" == 'null' ]; then
-            echo "IMAGE_EXISTS=false" >> $GITHUB_ENV
-          else
-            echo "IMAGE_EXISTS=true" >> $GITHUB_ENV
-          fi
+#      - name: Check if docker image exists
+#        run: |
+#          LAYERS=$(curl -X GET https://$DOCKER_REGISTRY/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.short_sha }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
+#          if [ "$LAYERS" == 'null' ]; then
+#            echo "IMAGE_EXISTS=false" >> $GITHUB_ENV
+#          else
+#            echo "IMAGE_EXISTS=true" >> $GITHUB_ENV
+#          fi
 
-      - name: Fetch sources
-        if: env.IMAGE_EXISTS == 'true'
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Determine app configuration file
-        if: env.IMAGE_EXISTS == 'true'
+#        if: env.IMAGE_EXISTS == 'true'
         run: |
           CONFIG_FILE="config/${{ matrix.project }}/${{ matrix.cluster }}.yml"
           echo "VARS=$CONFIG_FILE" >> $GITHUB_ENV # VARS-variable is used by nais/deploy/actions/deploy@v1
 
       - name: Confirm app configuration file existence
         id: confirm_config_file
-        if: env.IMAGE_EXISTS == 'true'
+#        if: env.IMAGE_EXISTS == 'true'
         uses: andstor/file-existence-action@v2
         with:
           files: "${{ env.VARS }}"
 
       - name: Deploy
-        if: env.IMAGE_EXISTS == 'true' && steps.confirm_config_file.outputs.files_exists == 'true'
+        if: steps.confirm_config_file.outputs.files_exists == 'true'
         uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ matrix.cluster }}
-          IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_PREFIX }}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}
+          IMAGE: ${{ needs.build.outputs.docker_image }}
+#          IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_PREFIX }}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}
           RESOURCE: config/nais.yml
-          VAR: team=helsearbeidsgiver,app=${{ matrix.project }}
+          VAR: team=${{ env.TEAM }},app=${{ matrix.project }}

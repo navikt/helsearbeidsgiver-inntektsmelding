@@ -19,7 +19,7 @@ abstract class FailKanal(val rapidsConnection: RapidsConnection) : River.PacketL
     }
 
     protected fun accept(): River.PacketValidation {
-        return River.PacketValidation {  }
+        return River.PacketValidation { }
     }
 
     protected fun configure(river: River): River {

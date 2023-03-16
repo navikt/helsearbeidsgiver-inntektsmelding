@@ -8,8 +8,9 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.DataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 
 enum class DataFelter(val str: String) {
     VIRKSOMHET("virksomhet"),
@@ -125,10 +126,15 @@ class ImperativeInnsendingProsessor(val rapidsConnection: RapidsConnection, val 
         redisStore.set(message[Key.UUID.str].asText(), message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
     }
 
-    class DataPackageListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection, val redisStore: RedisStore) : Løser(rapidsConnection) { // ktlint-disable max-line-length
+    class DataPackageListener(
+        val mainListener: River.PacketListener,
+        rapidsConnection: RapidsConnection,
+        val redisStore: RedisStore
+    ) : DataKanal(rapidsConnection) { // ktlint-disable max-line-length
+        override val eventName: EventName = EventName.INSENDING_STARTED
         override fun accept(): River.PacketValidation {
             return River.PacketValidation {
-                it.demandValue(Key.EVENT_NAME.str, EventName.INSENDING_STARTED.name)
+                it.demandValue(Key.EVENT_NAME.str, eventName.name)
                 it.demandKey(Key.DATA.str)
                 it.interestedIn(DataFelter.VIRKSOMHET.str)
                 it.interestedIn(DataFelter.ARBEIDSFORHOLD.str)
@@ -136,7 +142,7 @@ class ImperativeInnsendingProsessor(val rapidsConnection: RapidsConnection, val 
             }
         }
 
-        override fun onBehov(packet: JsonMessage) {
+        override fun onData(packet: JsonMessage) {
             collectData(packet)
             mainListener.onPacket(packet, rapidsConnection)
         }
@@ -156,17 +162,10 @@ class ImperativeInnsendingProsessor(val rapidsConnection: RapidsConnection, val 
         }
     }
 
-    class FailListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : Løser(rapidsConnection) {
+    class FailListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : FailKanal(rapidsConnection) {
+        override val eventName: EventName = EventName.INSENDING_STARTED
 
-        override fun accept(): River.PacketValidation {
-            return River.PacketValidation {
-                it.demandValue(Key.EVENT_NAME.str, EventName.INSENDING_STARTED.name)
-                it.demandKey(Key.FAIL.str)
-                it.interestedIn(Key.UUID.str)
-            }
-        }
-
-        override fun onBehov(packet: JsonMessage) {
+        override fun onFail(packet: JsonMessage) {
             mainListener.onPacket(packet, rapidsConnection)
         }
     }

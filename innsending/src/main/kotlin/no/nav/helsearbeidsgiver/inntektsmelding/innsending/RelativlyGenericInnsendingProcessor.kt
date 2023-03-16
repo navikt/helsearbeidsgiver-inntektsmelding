@@ -15,7 +15,7 @@ class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection
 
     init {
         InnsendingStartedListener(this, rapidsConnection)
-        GenericFailListener(this, rapidsConnection)
+        GenericFailListener(EventName.INSENDING_STARTED, this, rapidsConnection)
         GenericDataPackageListener(DataFelter.values(), EventName.INSENDING_STARTED, this, rapidsConnection, redisStore)
     }
 

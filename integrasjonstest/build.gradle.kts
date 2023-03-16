@@ -5,6 +5,12 @@ val ktorVersion: String by project
 val postgresqlVersion: String by project
 val testcontainersPostgresqlVersion: String by project
 val aaregClientVersion: String by project
+val brregClientVersion: String by project
+val arbeidsgiverNotifikasjonKlientVersion: String by project
+val pdlClientVersion: String by project
+val testcontainerKafkaVersion: String by project
+val testcontainerRedisVersion: String by project
+val junitJupiterVersion: String by project
 
 dependencies {
     implementation(project(":dokument"))
@@ -18,12 +24,11 @@ dependencies {
     implementation(project(":pdl"))
     implementation(project(":forespoersel-mottatt"))
 
-    testImplementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.2")
-    testImplementation("org.testcontainers:postgresql:1.17.6")
-    testImplementation("org.testcontainers:kafka:1.17.6")
+    testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainerRedisVersion")
+    testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
+    testImplementation("org.testcontainers:kafka:$testcontainerKafkaVersion")
 
-    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
-    implementation("ch.qos.logback:logback-classic:1.4.1")
+    implementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
@@ -37,7 +42,7 @@ dependencies {
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
 
     implementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
-    implementation("no.nav.helsearbeidsgiver:brreg-client:0.3.0")
-    implementation("no.nav.helsearbeidsgiver:pdl-client:0.2.1")
-    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:0.3.2")
+    implementation("no.nav.helsearbeidsgiver:brreg-client:$brregClientVersion")
+    implementation("no.nav.helsearbeidsgiver:pdl-client:$pdlClientVersion")
+    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonKlientVersion")
 }

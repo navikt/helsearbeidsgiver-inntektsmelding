@@ -84,8 +84,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: "read"
-      id-token: "write"
+      contents: read
+      id-token: write
+      packages: write
     needs: generate_vars
     if: needs.generate_vars.outputs.is_matrix_empty == 'false'
     strategy:

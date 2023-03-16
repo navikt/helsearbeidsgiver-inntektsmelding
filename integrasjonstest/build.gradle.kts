@@ -23,7 +23,6 @@ dependencies {
     testImplementation("org.testcontainers:kafka:1.17.6")
 
     implementation("org.junit.jupiter:junit-jupiter:5.8.1")
-    implementation("ch.qos.logback:logback-classic:1.4.1")
 
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")

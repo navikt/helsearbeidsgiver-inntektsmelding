@@ -53,14 +53,12 @@ jobs:
       - name: Determine projects to deploy
         id: set_matrix
         run: |
-          
           MATRIX=$(./gradlew -q buildMatrix --console=plain)
           echo $MATRIX
           echo $(./gradlew -q deployMatrix --console=plain)
           DEPLOY_MATRIX=$(./gradlew -q deployMatrix --console=plain)
           echo $DEPLOY_MATRIX
           MATRIX_SIZE=$(echo $MATRIX | jq '.project|length')
-          echo $MATRIX_SIZE
           DEPLOY_MATRIX_SIZE=$(echo $DEPLOY_MATRIX | jq '.project|length')
 
           if [ "$MATRIX_SIZE" == '0' ]; then
@@ -113,12 +111,14 @@ jobs:
 
       - name: Test and build
         run: ./gradlew ${{ matrix.project }}::test ${{ matrix.project }}::build
+
       - name: Publish artefacts
         run: ./gradlew ${{ matrix.project }}::publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: x-access-token
           GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Check app.jar existence
         id: app_jar
         uses: andstor/file-existence-action@v2
@@ -143,7 +143,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: [generate_vars, build]
-    if: always() && needs.generate_vars.outputs.is_deploy_matrix_empty == 'false'
+    if: needs.generate_vars.outputs.is_deploy_matrix_empty == 'false'
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.generate_vars.outputs.deploy_matrix) }}

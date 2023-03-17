@@ -7,6 +7,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
 class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
@@ -15,7 +16,7 @@ class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection
 
     init {
         InnsendingStartedListener(this, rapidsConnection)
-        GenericFailListener(EventName.INSENDING_STARTED, this, rapidsConnection)
+        DelegatingFailKanal(EventName.INSENDING_STARTED, this, rapidsConnection)
         GenericDataPackageListener(DataFelter.values(), EventName.INSENDING_STARTED, this, rapidsConnection, redisStore)
     }
 

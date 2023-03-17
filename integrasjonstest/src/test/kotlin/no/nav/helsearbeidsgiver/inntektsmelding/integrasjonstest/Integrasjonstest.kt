@@ -14,18 +14,9 @@ import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.RedisStore
-import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
-import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
-import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
-import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
-import no.nav.helsearbeidsgiver.inntektsmelding.preutfylt.createPreutfylt
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -91,20 +82,18 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
         // Klienter
         val redisStore = RedisStore(redisContainer.redisURI)
         // Rapids
-        rapid = RapidApplication.create(env).also {
-            it.createAareg(aaregClient)
-            it.createAkkumulator(redisStore)
-            it.createBrreg(brregClient, true)
-            // it.createDb(database, repository)
-            // it.createDistribusjon()
-            it.createForespoerselMottatt()
-            // it.createHelsebro()
-            it.createInntekt(inntektKlient)
-            it.createJoark(dokarkivClient)
-            it.createPdl(pdlClient)
-            it.createPreutfylt()
-            it.createNotifikasjon(arbeidsgiverNotifikasjonKlient, notifikasjonLink)
-        }
+        rapid = RapidApplication.create(env).buildApp(
+            redisStore,
+            database,
+            repository,
+            aaregClient,
+            brregClient,
+            inntektKlient,
+            dokarkivClient,
+            pdlClient,
+            arbeidsgiverNotifikasjonKlient,
+            notifikasjonLink
+        )
         rapid.register(this)
         thread = thread {
             rapid.start()

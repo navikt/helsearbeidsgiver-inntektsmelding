@@ -11,16 +11,25 @@ val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 
 fun main() {
     val environment = setUpEnvironment()
-    val client = buildClient(environment)
-    RapidApplication.create(System.getenv()).createNotifikasjon(client, environment.linkUrl).start()
+    RapidApplication
+        .create(System.getenv())
+        .createNotifikasjon(buildClient(environment), environment.linkUrl)
+        .start()
 }
 
 fun RapidsConnection.createNotifikasjon(arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient, linkUrl: String): RapidsConnection {
+    // Gammel
     sikkerLogger.info("Starting NotifikasjonLøser...")
     NotifikasjonLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-    sikkerLogger.info("Starting NotifikasjonInntektsmeldingMottattListener...")
-    NotifikasjonInntektsmeldingMottattListener(this)
-    sikkerLogger.info("Starting Notifikasjon app...")
+    // Nye
+//    sikkerLogger.info("Starting ForespørselMottattListener...")
+//    ForespørselMottattListener(this)
+//    sikkerLogger.info("Starting OpprettSakLøser...")
+//    OpprettSakLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+//    sikkerLogger.info("Starting OpprettOppgaveLøser...")
+//    OpprettOppgaveLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+//    sikkerLogger.info("Starting NotifikasjonInntektsmeldingMottattListener...")
+//    NotifikasjonInntektsmeldingMottattListener(this)
     return this
 }
 

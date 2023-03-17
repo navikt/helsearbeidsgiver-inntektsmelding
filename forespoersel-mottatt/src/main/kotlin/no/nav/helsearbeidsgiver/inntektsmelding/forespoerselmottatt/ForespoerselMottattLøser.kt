@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -7,13 +8,13 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.asUuid
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.value
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLøser(
@@ -33,12 +34,12 @@ class ForespoerselMottattLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding på pri-topic om ${packet.value(Pri.Key.NOTIS).asText()}.")
+        logger.info("Mottok melding på pri-topic om ${Pri.Key.NOTIS.fra(packet).fromJson(Pri.NotisType.serializer())}.")
         loggerSikker.info("Mottok melding på pri-topic:\n${packet.toJson()}")
 
-        val orgnr = Pri.Key.ORGNR.let(packet::value).asText()
-        val fnr = Pri.Key.FNR.let(packet::value).asText()
-        val forespoerselId = Pri.Key.FORESPOERSEL_ID.let(packet::value).asUuid()
+        val orgnr = Pri.Key.ORGNR.fra(packet).fromJson(String.serializer())
+        val fnr = Pri.Key.FNR.fra(packet).fromJson(String.serializer())
+        val forespoerselId = Pri.Key.FORESPOERSEL_ID.fra(packet).fromJson(UuidSerializer)
 
         context.publish(
             Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),

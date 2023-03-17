@@ -16,21 +16,23 @@ internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-dist
 internal val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
 
 fun main() {
-    createApp(setUpEnvironment()).start()
+    RapidApplication
+        .create(System.getenv())
+        .createDistribusjon()
+        .start()
 }
 
-internal fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starting im-distribusjon...")
-    val rapidsConnection = RapidApplication.create(environment.raw)
-    logger.info("Starting Distribuer IM Løser...")
+fun RapidsConnection.createDistribusjon(): RapidsConnection {
+    sikkerlogg.info("Starting DistribuerIMLøser...")
     DistribuerIMLøser(
-        rapidsConnection,
+        this,
         KafkaProducer<String, String>(kafkaProperties())
     )
+    sikkerlogg.info("Starting InntektsmeldingJournalførtListener...")
     InntektsmeldingJournalførtListener(
-        rapidsConnection
+        this
     )
-    return rapidsConnection
+    return this
 }
 
 object Env {

@@ -10,14 +10,16 @@ val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-brreg")
 
 fun main() {
-    createApp(setUpEnvironment()).start()
+    val environment = setUpEnvironment()
+    val isDevelopmentMode = environment.brregUrl.contains("localhost")
+    RapidApplication
+        .create(System.getenv())
+        .createBrreg(BrregClient(environment.brregUrl), isDevelopmentMode)
+        .start()
 }
 
-internal fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starting RapidApplication...")
-    val rapidsConnection = RapidApplication.create(environment.raw)
-    val isDevelopmentMode = environment.brregUrl.contains("localhost")
-    logger.info("Starting BrregLøser... developmentMode: $isDevelopmentMode")
-    VirksomhetLøser(rapidsConnection, BrregClient(environment.brregUrl), isDevelopmentMode)
-    return rapidsConnection
+fun RapidsConnection.createBrreg(brregClient: BrregClient, isDevelopmentMode: Boolean): RapidsConnection {
+    sikkerlogg.info("Starting VirksomhetLøser... developmentMode: $isDevelopmentMode")
+    VirksomhetLøser(this, brregClient, isDevelopmentMode)
+    return this
 }

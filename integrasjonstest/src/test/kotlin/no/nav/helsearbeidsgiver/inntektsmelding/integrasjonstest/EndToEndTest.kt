@@ -44,7 +44,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var notifikasjonLink = "notifikasjonLink"
 
     @BeforeAll
-    fun beforeAll() {
+    fun beforeAllEndToEnd() {
         val env = HashMap<String, String>().also {
             it.put("KAFKA_RAPID_TOPIC", TOPIC)
             it.put("KAFKA_CREATE_TOPICS", TOPIC)
@@ -84,7 +84,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     }
 
     @AfterAll
-    fun afterAll() {
+    fun afterAllEndToEnd() {
         thread.stop()
         logger.info("Stopped")
     }

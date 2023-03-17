@@ -9,12 +9,13 @@ val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("innsending")
 
 fun main() {
-    val environment = setUpEnvironment()
-    val app = createApp(environment)
-    app.start()
+    RapidApplication
+        .create(System.getenv())
+        .createInnsending(buildRedisStore(setUpEnvironment()))
+        .start()
 }
 
-internal fun createApp(environment: Environment): RapidsConnection {
+fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting Redis client...")
     val redisClient = RedisStore(environment.redisUrl)
     logger.info("Starting RapidApplication...")
@@ -22,4 +23,13 @@ internal fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting Akkumulator...")
     RelativlyGenericInnsendingProcessor(rapidsConnection, redisClient)
     return rapidsConnection
+}
+
+fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection {
+    RelativlyGenericInnsendingProcessor(this, redisStore)
+    return this
+}
+
+fun buildRedisStore(environment: Environment): RedisStore {
+    return RedisStore(environment.redisUrl)
 }

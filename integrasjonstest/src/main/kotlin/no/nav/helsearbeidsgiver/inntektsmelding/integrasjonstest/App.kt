@@ -8,12 +8,13 @@ import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
-import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
@@ -50,6 +51,7 @@ fun RapidsConnection.buildApp(
     this.createAareg(aaregClient)
     this.createAkkumulator(redisStore)
     this.createBrreg(brregClient, true)
+    this.createInnsending(redisStore)
     // this.createDb(database, repository)
     // this.createDistribusjon()
     this.createForespoerselMottatt()

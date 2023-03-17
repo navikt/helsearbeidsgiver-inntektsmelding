@@ -33,6 +33,8 @@ fun RapidsConnection.createNotifikasjon(arbeidsgiverNotifikasjonKlient: Arbeidsg
     return this
 }
 
+
+
 fun buildClient(environment: Environment): ArbeidsgiverNotifikasjonKlient {
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
     return ArbeidsgiverNotifikasjonKlient(environment.notifikasjonUrl) { tokenProvider.getToken() }

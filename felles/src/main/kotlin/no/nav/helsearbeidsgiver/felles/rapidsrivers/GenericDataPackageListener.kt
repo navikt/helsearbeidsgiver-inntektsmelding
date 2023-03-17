@@ -31,7 +31,7 @@ class GenericDataPackageListener<T : Enum<*>>(
         if (collectData(packet)) {
             mainListener.onPacket(packet, rapidsConnection)
         } else {
-            logger.warn("Unrecognized package with uuid:" + packet[Key.UUID.str])
+            // @TODO fiks logging logger.warn("Unrecognized package with uuid:" + packet[Key.UUID.str])
         }
     }
 

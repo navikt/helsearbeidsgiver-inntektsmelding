@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException
 
-internal class InnsendingMapperTest {
+class InnsendingMapperTest {
 
     val løsningOk = NavnLøsning("abc")
     val løsningVirksomhet = VirksomhetLøsning("abc")

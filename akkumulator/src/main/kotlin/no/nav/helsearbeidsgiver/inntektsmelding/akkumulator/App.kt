@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

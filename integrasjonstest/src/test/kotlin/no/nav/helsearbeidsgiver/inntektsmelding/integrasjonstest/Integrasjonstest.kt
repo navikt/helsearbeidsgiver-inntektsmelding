@@ -8,12 +8,24 @@ import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.brreg.BrregClient
+import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
-import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.Akkumulator
+import no.nav.helsearbeidsgiver.inntekt.InntektKlient
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.RedisStore
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.ForespoerselMottattLøser
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
+import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
+import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
+import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
+import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
+import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
+import no.nav.helsearbeidsgiver.inntektsmelding.preutfylt.createPreutfylt
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -45,6 +57,12 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
 
     // Clients
     var pdlClient = mockk<PdlClient>()
+    var aaregClient = mockk<AaregClient>()
+    var brregClient = mockk<BrregClient>()
+    var inntektKlient = mockk<InntektKlient>()
+    var dokarkivClient = mockk<DokArkivClient>()
+    var database = mockk<Database>()
+    var repository = mockk<Repository>()
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
 
@@ -74,12 +92,18 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
         val redisStore = RedisStore(redisContainer.redisURI)
         // Rapids
         rapid = RapidApplication.create(env).also {
-            Akkumulator(it, redisStore)
-            ForespoerselMottattLøser(it)
-            NotifikasjonLøser(it, arbeidsgiverNotifikasjonKlient, notifikasjonLink)
-            // FulltNavnLøser(it, pdlClient)
-            // OpprettSakLøser(it, arbeidsgiverNotifikasjonKlient, "")
-            // OpprettOppgaveLøser(it, arbeidsgiverNotifikasjonKlient, "")
+            it.createAareg(aaregClient)
+            it.createAkkumulator(redisStore)
+            it.createBrreg(brregClient, true)
+            // it.createDb(database, repository)
+            // it.createDistribusjon()
+            it.createForespoerselMottatt()
+            // it.createHelsebro()
+            it.createInntekt(inntektKlient)
+            it.createJoark(dokarkivClient)
+            it.createPdl(pdlClient)
+            it.createPreutfylt()
+            it.createNotifikasjon(arbeidsgiverNotifikasjonKlient, notifikasjonLink)
         }
         rapid.register(this)
         thread = thread {
@@ -90,6 +114,9 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
 
     override fun onMessage(message: String, context: MessageContext) {
         logger.info("onMessage: $message")
+        if (results.size == 1) {
+            results.clear() // Filtrerer vekk den første meldingen da den er det vi faktisk sender inn
+        }
         results.add(message)
     }
 
@@ -108,11 +135,11 @@ open class Integrasjonstest : RapidsConnection.MessageListener {
         rapid.publish(om.writeValueAsString(value))
     }
 
-    fun getResults(): MutableList<String> {
-        return results
-    }
-
     fun getMessage(index: Int): JsonNode {
         return Json.parseToJsonElement(results[index]).toJsonNode()
+    }
+
+    fun getMessageCount(): Int {
+        return results.size
     }
 }

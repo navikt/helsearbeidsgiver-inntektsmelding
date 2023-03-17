@@ -5,23 +5,28 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 
 fun main() {
-    logger.info("Starting im-db...")
     val database = Database()
     val repository = Repository(database.db)
-    RapidApplication.create(System.getenv()).also {
-        it.registerDbLifecycle(database)
-        logger.info("Registrerte db lifecycle")
-        PersisterImLøser(it, repository)
-        logger.info("Startet PersisterImLøser")
-        HentPersistertLøser(it, repository)
-        logger.info("Startet HentPersistertLøser")
-        LagreJournalpostIdLøser(it, repository)
-        logger.info("Startet LagreJournalpostIdLøser")
-        it.start()
-    }
+    RapidApplication
+        .create(System.getenv())
+        .createDb(database, repository)
+        .start()
+}
+
+fun RapidsConnection.createDb(database: Database, repository: Repository): RapidsConnection {
+    sikkerLogger.info("Starter Flyway migrering...")
+    this.registerDbLifecycle(database)
+    sikkerLogger.info("Starter PersisterImLøser...")
+    PersisterImLøser(this, repository)
+    sikkerLogger.info("Starter HentPersistertLøser...")
+    HentPersistertLøser(this, repository)
+    sikkerLogger.info("Starter LagreJournalpostIdLøser...")
+    LagreJournalpostIdLøser(this, repository)
+    return this
 }
 
 private fun RapidsConnection.registerDbLifecycle(db: Database) {

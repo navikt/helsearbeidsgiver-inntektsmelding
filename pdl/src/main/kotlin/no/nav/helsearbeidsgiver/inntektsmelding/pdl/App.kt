@@ -11,19 +11,19 @@ val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-pdl")
 
 fun main() {
-    val environment = setUpEnvironment()
-    val app = createApp(environment)
-    app.start()
+    RapidApplication
+        .create(System.getenv())
+        .createPdl(buildClient(setUpEnvironment()))
+        .start()
 }
 
-internal fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starting RapidApplication...")
+fun RapidsConnection.createPdl(pdlClient: PdlClient): RapidsConnection {
+    sikkerlogg.info("Starting FulltNavnLøser...")
+    FulltNavnLøser(this, pdlClient)
+    return this
+}
 
-    val rapidsConnection = RapidApplication.create(environment.raw)
+fun buildClient(environment: Environment): PdlClient {
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    val pdl = PdlClient(environment.pdlUrl) { tokenProvider.getToken() }
-
-    FulltNavnLøser(rapidsConnection, pdl)
-
-    return rapidsConnection
+    return PdlClient(environment.pdlUrl) { tokenProvider.getToken() }
 }

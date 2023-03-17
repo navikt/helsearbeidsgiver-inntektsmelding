@@ -15,22 +15,21 @@ val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-inntekt")
 
 fun main() {
-    val environment = setUpEnvironment()
-    val app = createApp(environment)
-    app.start()
+    RapidApplication
+        .create(System.getenv())
+        .createInntekt(buildInntektKlient(setUpEnvironment()))
+        .start()
 }
 
-internal fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starter Inntekt rapid...")
-    sikkerlogg.info("Starter Inntekt rapid...")
-    val rapidsConnection = RapidApplication.create(environment.raw)
-    sikkerlogg.info("Starter tokenprovider...")
-    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    sikkerlogg.info("Starter InntektKlient...")
-    val inntektKlient = InntektKlient(environment.inntektUrl, tokenProvider, buildClient())
+fun RapidsConnection.createInntekt(inntektKlient: InntektKlient): RapidsConnection {
     sikkerlogg.info("Starter InntektLøser...")
-    InntektLøser(rapidsConnection, inntektKlient)
-    return rapidsConnection
+    InntektLøser(this, inntektKlient)
+    return this
+}
+
+fun buildInntektKlient(environment: Environment): InntektKlient {
+    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
+    return InntektKlient(environment.inntektUrl, tokenProvider, buildClient())
 }
 
 fun buildClient(): HttpClient {

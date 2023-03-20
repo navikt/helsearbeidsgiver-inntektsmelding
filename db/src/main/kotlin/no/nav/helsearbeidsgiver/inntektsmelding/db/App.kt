@@ -20,6 +20,8 @@ fun main() {
 fun RapidsConnection.createDb(database: Database, repository: Repository): RapidsConnection {
     sikkerLogger.info("Starter Flyway migrering...")
     this.registerDbLifecycle(database)
+    sikkerLogger.info("Starter ForespørselMottattListener...")
+    ForespørselMottattListener(this, repository)
     sikkerLogger.info("Starter PersisterImLøser...")
     PersisterImLøser(this, repository)
     sikkerLogger.info("Starter HentPersistertLøser...")

@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersisterSakIdLøsning
 import org.slf4j.LoggerFactory
 
 class PersisterSakLøser(
@@ -32,15 +31,8 @@ class PersisterSakLøser(
         logger.info("PersisterSakLøser: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
         val sakId = packet[Key.SAK_ID.str].asText()
-        //repository.oppdaterSakId(sakId, uuid)
-        //publiserLøsning(PersisterSakIdLøsning(sakId), packet, context)
+        repository.oppdaterSakId(sakId, uuid)
         logger.info("PersisterSakLøser: Lagret sakId: $sakId for uuid: $uuid")
     }
 
-    fun publiserLøsning(løsning: PersisterSakIdLøsning, packet: JsonMessage, context: MessageContext) {
-        packet[Key.LØSNING.str] = mapOf(
-            BEHOV.name to løsning
-        )
-        context.publish(packet.toJson())
-    }
 }

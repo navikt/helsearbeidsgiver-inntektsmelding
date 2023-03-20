@@ -51,4 +51,15 @@ class Repository(private val db: Database) {
             }
         }
     }
+
+    fun lagreForespørsel(uuidLink: String, fnr: String, orgnr: String) {
+        transaction(db) {
+            InntektsmeldingEntitet.run {
+                insert {
+                    it[uuid] = uuidLink
+                    it[opprettet] = LocalDateTime.now()
+                }
+            }
+        }
+    }
 }

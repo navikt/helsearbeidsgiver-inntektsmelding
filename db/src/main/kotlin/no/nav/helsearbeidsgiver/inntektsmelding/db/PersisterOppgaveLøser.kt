@@ -13,7 +13,6 @@ class PersisterOppgaveLøser(
     val repository: Repository
 ) : River.PacketListener {
 
-    private val BEHOV = BehovType.PERSISTER_OPPGAVE_ID
     private val sikkerLogger = LoggerFactory.getLogger("tjenestekall")
 
     init {
@@ -30,7 +29,7 @@ class PersisterOppgaveLøser(
         logger.info("PersisterOppgaveLøser: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
         val oppgaveId = packet[Key.OPPGAVE_ID.str].asText()
-        //repository.oppdaterOppgaveId(oppgaveId, uuid)
+        repository.oppdaterOppgaveId(oppgaveId, uuid)
         logger.info("PersisterOppgaveLøser: Lagret oppgaveId: $oppgaveId for uuid: $uuid")
     }
 }

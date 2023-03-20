@@ -11,7 +11,7 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
     val id = integer("id").autoIncrement(
         idSeqName = "inntektsmelding_id_seq"
     )
-    val dokument = json("dokument", InntektsmeldingDokument::class.java)
+    val dokument = json("dokument", InntektsmeldingDokument::class.java).nullable()
     val opprettet = datetime("opprettet")
     val uuid = text("uuid")
     val journalpostId = varchar("journalpostid", 30).nullable()

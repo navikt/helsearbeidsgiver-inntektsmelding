@@ -35,7 +35,7 @@ class OpprettSakLøser(
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
-            it.requireValue(Key.EVENT_NAME.str, EVENT.name)
+            it.requireValue(Key.EVENT_NAME.str, EventName.FORESPØRSEL_MOTTATT.name)
             it.requireValue(Key.BEHOV.str, BehovType.FULLT_NAVN.name)
             it.requireKey(Key.LØSNING.str)
             it.requireKey(Key.UUID.str)
@@ -63,9 +63,8 @@ class OpprettSakLøser(
     }
 
     override fun onBehov(packet: JsonMessage) {
+        sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Mottok event: $EVENT for uuid: $uuid")
-        sikkerLogger.info("Mottok event $EVENT for uuid: $uuid, pakke: ${packet.toJson()}")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val navn = packet[Key.LØSNING.str].toJsonElement().fromJson(NavnLøsning.serializer()).value ?: "Ukjent"
@@ -73,7 +72,7 @@ class OpprettSakLøser(
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EVENT.name,
-                Key.BEHOV.str to listOf(BehovType.PERSISTER_SAK_ID.name, BEHOV.name),
+                Key.BEHOV.str to listOf(BehovType.PERSISTER_SAK_ID.name, BehovType.OPPRETT_OPPGAVE.name),
                 Key.UUID.str to uuid,
                 Key.IDENTITETSNUMMER.str to fnr,
                 Key.ORGNRUNDERENHET.str to orgnr,
@@ -82,6 +81,6 @@ class OpprettSakLøser(
             )
         )
         publishBehov(message)
-        sikkerLogger.info("Publiserte event: $EVENT med behov: $BEHOV for uuid: $uuid")
+        sikkerLogger.info("OpprettSakLøser: Publiserte event: $EVENT med behov: $BEHOV for uuid: $uuid")
     }
 }

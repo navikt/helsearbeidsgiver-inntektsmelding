@@ -8,18 +8,20 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLøser(
-    rapid: RapidsConnection
+    val rapid: RapidsConnection
 ) : River.PacketListener {
+
+    private val om = customObjectMapper()
+
     init {
         River(rapid).apply {
             validate {
@@ -34,21 +36,26 @@ class ForespoerselMottattLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding på pri-topic om ${Pri.Key.NOTIS.fra(packet).fromJson(Pri.NotisType.serializer())}.")
-        loggerSikker.info("Mottok melding på pri-topic:\n${packet.toJson()}")
+        logger.info("ForespoerselMottattLøser: Mottok melding på pri-topic om ${Pri.Key.NOTIS.fra(packet).fromJson(Pri.NotisType.serializer())}.")
+        loggerSikker.info("ForespoerselMottattLøser: Mottok melding på pri-topic:\n${packet.toJson()}")
 
         val orgnr = Pri.Key.ORGNR.fra(packet).fromJson(String.serializer())
         val fnr = Pri.Key.FNR.fra(packet).fromJson(String.serializer())
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.fra(packet).fromJson(UuidSerializer)
 
-        context.publish(
-            Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),
-            Key.BEHOV to BehovType.NOTIFIKASJON_TRENGER_IM.toJson(BehovType.serializer()),
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
-            Key.IDENTITETSNUMMER to fnr.toJson(),
-            Key.UUID to forespoerselId.toJson()
+        val msg = mapOf(
+            Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT.name,
+            Key.BEHOV.str to BehovType.NOTIFIKASJON_TRENGER_IM.name,
+            Key.ORGNRUNDERENHET.str to orgnr,
+            Key.IDENTITETSNUMMER.str to fnr,
+            Key.UUID.str to forespoerselId
         )
 
-        logger.info("Publiserte behov om '${BehovType.NOTIFIKASJON_TRENGER_IM}' med uuid (forespørsel-ID-en) '$forespoerselId'.")
+
+        val json = om.writeValueAsString(msg)
+        rapid.publish(json)
+        logger.info("ForespoerselMottattLøser: publiserte $json")
+        loggerSikker.info("ForespoerselMottattLøser: ferdig")
+        //logger.info("ForespoerselMottattLøser: Publiserte behov om '${BehovType.NOTIFIKASJON_TRENGER_IM}' med uuid (forespørsel-ID-en) '$forespoerselId'.")
     }
 }

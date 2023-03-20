@@ -21,7 +21,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.slf4j.LoggerFactory
-import java.util.HashMap
 import kotlin.concurrent.thread
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -76,7 +75,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     }
 
     override fun onMessage(message: String, context: MessageContext) {
-        logger.info("onMessage: $message")
+        println("onMessage: $message")
         if (results.size == 1) {
             results.clear() // Filtrerer vekk den første meldingen da den er det vi faktisk sender inn
         }
@@ -86,7 +85,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     @AfterAll
     fun afterAll() {
         thread.stop()
-        logger.info("Stopped")
+        println("Stopped")
     }
 
     fun publish(value: Any) {

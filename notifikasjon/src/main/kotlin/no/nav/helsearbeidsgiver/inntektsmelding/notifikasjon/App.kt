@@ -8,6 +8,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
+val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-notifikasjon")
 
 fun main() {
     val environment = setUpEnvironment()
@@ -18,18 +19,18 @@ fun main() {
 }
 
 fun RapidsConnection.createNotifikasjon(arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient, linkUrl: String): RapidsConnection {
-    // Gammel
-    sikkerLogger.info("Starting NotifikasjonLøser...")
-    NotifikasjonLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+    //// Gammel
+    //sikkerLogger.info("Starting NotifikasjonLøser...")
+    //NotifikasjonLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
     // Nye
-//    sikkerLogger.info("Starting ForespørselMottattListener...")
-//    ForespørselMottattListener(this)
-//    sikkerLogger.info("Starting OpprettSakLøser...")
-//    OpprettSakLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-//    sikkerLogger.info("Starting OpprettOppgaveLøser...")
-//    OpprettOppgaveLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-//    sikkerLogger.info("Starting NotifikasjonInntektsmeldingMottattListener...")
-//    NotifikasjonInntektsmeldingMottattListener(this)
+    sikkerLogger.info("Starting ForespørselMottattListener...")
+    ForespørselMottattListener(this)
+    sikkerLogger.info("Starting OpprettSakLøser...")
+    OpprettSakLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+    sikkerLogger.info("Starting OpprettOppgaveLøser...")
+    OpprettOppgaveLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+    sikkerLogger.info("Starting NotifikasjonInntektsmeldingMottattListener...")
+    NotifikasjonInntektsmeldingMottattListener(this)
     return this
 }
 

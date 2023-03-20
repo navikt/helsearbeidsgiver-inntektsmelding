@@ -1,13 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 
 /**
  * Input: FORESPØRSEL_MOTTATT
@@ -19,37 +19,39 @@ import org.slf4j.LoggerFactory
  * - Persister oppgave
  *
  */
-class ForespørselMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+class ForespørselMottattListener(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
-    override val event: EventName = EventName.FORESPØRSEL_MOTTATT
+    private val om = customObjectMapper()
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.requireKey(Key.ORGNRUNDERENHET.str)
-            it.requireKey(Key.IDENTITETSNUMMER.str)
-            it.requireKey(Key.UUID.str)
-            it.rejectKey(Key.BEHOV.str)
-            it.rejectKey(Key.LØSNING.str)
-        }
+    init {
+        River(rapidsConnection).apply {
+            validate {
+                it.requireValue(Key.EVENT_NAME.str, EventName.FORESPØRSEL_MOTTATT.name)
+                it.requireValue(Key.BEHOV.str, BehovType.NOTIFIKASJON_TRENGER_IM.name)
+                it.requireKey(Key.ORGNRUNDERENHET.str)
+                it.requireKey(Key.IDENTITETSNUMMER.str)
+                it.requireKey(Key.UUID.str)
+            }
+        }.register(this)
     }
 
-    override fun onEvent(packet: JsonMessage) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Mottok event: $event for uuid: $uuid")
-        sikkerLogger.info("Mottok event $event for uuid: $uuid, pakke: ${packet.toJson()}")
+        logger.info("ForespørselMottattListener: Mottok: ${packet.toJson()}")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
-        val message = JsonMessage.newMessage(
+        val msg =
             mapOf(
-                Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT,
-                Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
+                Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT.name,
+                Key.BEHOV.str to BehovType.FULLT_NAVN.name,
                 Key.UUID.str to uuid,
                 Key.IDENTITETSNUMMER.str to fnr,
                 Key.ORGNRUNDERENHET.str to orgnr
             )
-        )
-        publishBehov(message)
-        sikkerLogger.info("Publiserte event: $event med behov: ${BehovType.FULLT_NAVN} for uuid: $uuid")
+
+        val json = om.writeValueAsString(msg)
+        rapidsConnection.publish(json)
+        logger.info("ForespørselMottattListener: publiserte $json")
+        //logger.info("ForespørselMottattListener: Ber om FulltNavn for uuid: $uuid")
     }
 }

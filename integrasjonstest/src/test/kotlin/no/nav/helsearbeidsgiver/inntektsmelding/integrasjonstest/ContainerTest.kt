@@ -8,9 +8,8 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
-import java.util.*
+import java.util.Properties
 
 open class ContainerTest {
     // Containers
@@ -29,12 +28,11 @@ open class ContainerTest {
         val adminClient: AdminClient = AdminClient.create(props)
         adminClient.createTopics(listOf(NewTopic(TOPIC, 1, 1.toShort())))
         logger.info("Starter Redis...")
-        redisContainer
-            .waitingFor(Wait.defaultWaitStrategy())
-            .start()
-        logger.info("Redis port: ${redisContainer.firstMappedPort}")
+        redisContainer.start()
+        logger.info("Startet Redis port: ${redisContainer.firstMappedPort}")
         logger.info("Starter Postgres...")
         postgreSQLContainer.start()
+        logger.info("Startet Postgres...")
     }
 
     @AfterAll

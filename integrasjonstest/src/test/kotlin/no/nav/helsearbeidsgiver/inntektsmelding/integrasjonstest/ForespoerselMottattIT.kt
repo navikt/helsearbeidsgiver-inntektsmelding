@@ -37,7 +37,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
          * Opprett NotifikasjonOppgave
          * PersisterOppgave
          */
-        // assertEquals(3, getMessageCount())
+        assertEquals(2, getMessageCount())
         val msg1 = getMessage(0)
         assertEquals(EventName.FORESPØRSEL_MOTTATT.name, msg1.get(Key.EVENT_NAME.str).asText())
         assertEquals(BehovType.NOTIFIKASJON_TRENGER_IM.name, msg1.get(Key.BEHOV.str).asText())
@@ -45,7 +45,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
         assertEquals(FNR, msg1.get(Key.IDENTITETSNUMMER.str).asText())
         assertEquals(FORESPOERSEL, msg1.get(Key.UUID.str).asText())
 
-        // val msg3 = getMessage(2)
+        val msg2 = getMessage(1)
         // val løsning3 = msg3.get(Key.LØSNING.str).get(BehovType.NOTIFIKASJON_TRENGER_IM.name)
         // assertNull(løsning3.get("error"))
     }

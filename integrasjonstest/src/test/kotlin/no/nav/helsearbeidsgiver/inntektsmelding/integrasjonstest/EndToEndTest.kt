@@ -40,23 +40,24 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var brregClient = mockk<BrregClient>()
     var inntektKlient = mockk<InntektKlient>()
     var dokarkivClient = mockk<DokArkivClient>()
-    var database = mockk<Database>()
-    var repository = mockk<Repository>()
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
 
-    fun getDatabase(postgreSQLContainer: PostgreSQLContainer<Nothing>): Database {
-        val config = DatabaseConfig(
+    // Database
+    var databaseConfig = mockk<DatabaseConfig>()
+    var dataSource = mockk<HikariDataSource>()
+    var database = mockk<Database>()
+    var repository = mockk<Repository>()
+
+
+    fun mapDatabaseConfig(postgreSQLContainer: PostgreSQLContainer<Nothing>): DatabaseConfig {
+        return DatabaseConfig(
             postgreSQLContainer.host,
             postgreSQLContainer.firstMappedPort.toString(),
             postgreSQLContainer.databaseName,
             postgreSQLContainer.username,
-            this.postgreSQLContainer.password
+            postgreSQLContainer.password
         )
-        println("Using db config: ${config}")
-        val ds = HikariDataSource(config.dbConfig())
-        val db = org.jetbrains.exposed.sql.Database.connect(ds)
-        return Database(config)
     }
 
     @BeforeAll
@@ -71,20 +72,11 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         // Klienter
         val redisStore = RedisStore(redisContainer.redisURI)
 
-        val config = DatabaseConfig(
-            postgreSQLContainer.host,
-            postgreSQLContainer.firstMappedPort.toString(),
-            postgreSQLContainer.databaseName,
-            postgreSQLContainer.username,
-            postgreSQLContainer.password
-        )
-        println("Using db config: ${config}")
-        val ds = HikariDataSource(config.dbConfig())
-        database = Database(config)
-
-
-        val db = org.jetbrains.exposed.sql.Database.connect(ds)
-        repository = Repository(db)
+        // Databasen - konfig må gjøres her ETTER at postgreSQLContainer er startet
+        databaseConfig = mapDatabaseConfig(postgreSQLContainer)
+        dataSource = HikariDataSource(databaseConfig.dbConfig())
+        database = Database(databaseConfig)
+        repository = Repository(org.jetbrains.exposed.sql.Database.connect(dataSource))
 
         // Rapids
         rapid = RapidApplication.create(env).buildApp(

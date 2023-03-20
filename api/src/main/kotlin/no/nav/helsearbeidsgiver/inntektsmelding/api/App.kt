@@ -44,7 +44,7 @@ fun main() {
         .start()
 }
 
-private fun startServer(connection: RapidsConnection) {
+fun startServer(connection: RapidsConnection) {
     embeddedServer(Netty, port = 8080) {
         apiModule(connection)
     }.start(wait = true)
@@ -81,7 +81,7 @@ fun Application.apiModule(connection: RapidsConnection) {
             route(Routes.PREFIX) {
                 routeExtra(connection, redisPoller) {
                     ArbeidsgivereRoute()
-                    TrengerRoute()
+                    // TrengerRoute()
                     // InntektRoute()
                     // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
                     // InnsendingRoute()  //TODO mortenb - må fikses
@@ -93,6 +93,7 @@ fun Application.apiModule(connection: RapidsConnection) {
             routeExtra(connection, redisPoller) {
                 InnsendingRoute()
                 InntektRoute()
+                TrengerRoute()
             }
         }
     }

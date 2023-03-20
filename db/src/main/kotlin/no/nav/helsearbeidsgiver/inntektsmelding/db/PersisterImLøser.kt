@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersisterImLøsning
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
@@ -50,13 +51,18 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             sikkerlogg.info("Fant arbeidsgiver: $arbeidsgiver")
             val fulltNavn = hentNavn(session)
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
+            /*
+            val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(
+                customObjectMapper().readTree(packet[Key.INNTEKTSMELDING.str].asText()),
+                InnsendingRequest::class.java
+            )*/
             val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(packet[Key.INNTEKTSMELDING.str], InnsendingRequest::class.java)
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
             val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)
             sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid") // TODO: lagre / benytte separat id i database?
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
             publiserLøsning(PersisterImLøsning(value = customObjectMapper().writeValueAsString(inntektsmeldingDokument)), packet)
-            publiserOK(uuid)
+            publiserOK(uuid, inntektsmeldingDokument)
             // publiserInntektsmeldingMottatt(inntektsmeldingDokument, uuid)
         } catch (ex: Exception) {
             ex.printStackTrace()
@@ -67,11 +73,12 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
         }
     }
 
-    private fun publiserOK(uuid: String) {
+    private fun publiserOK(uuid: String, inntektsmeldingDokument: InntektsmeldingDokument) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                Key.INNTEKTSMELDING_DOKUMENT.str to "OK",
+                Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
+                Key.DATA.str to "",
+                Key.INNTEKTSMELDING_DOKUMENT.str to customObjectMapper().writeValueAsString(inntektsmeldingDokument),
                 Key.UUID.str to uuid
             )
         )

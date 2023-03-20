@@ -33,7 +33,7 @@ class GenericDataPackageListenerTest {
 
     var mockListener: River.PacketListener = mockk()
 
-    lateinit var dataListener: GenericDataPackageListener<TestFelter>
+    lateinit var dataListener: GenericDataPackageListener
 
     private val redisStore = mockk<RedisStore>()
 
@@ -42,7 +42,7 @@ class GenericDataPackageListenerTest {
     @BeforeEach
     fun beforeAll() {
         dataListener = GenericDataPackageListener(
-            TestFelter.values(),
+            TestFelter.values().map { it.toString() }.toTypedArray(),
             EventName.INSENDING_STARTED,
             mockListener,
             testRapid,

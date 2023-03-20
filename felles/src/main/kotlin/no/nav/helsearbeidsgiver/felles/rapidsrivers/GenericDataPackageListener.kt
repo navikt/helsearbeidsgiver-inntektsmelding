@@ -7,8 +7,8 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DataKanal
 
-class GenericDataPackageListener<T : Enum<*>>(
-    val dataFelter: Array<T>,
+class GenericDataPackageListener(
+    val dataFelter: Array<String>,
     override val eventName: EventName,
     val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,
@@ -21,8 +21,8 @@ class GenericDataPackageListener<T : Enum<*>>(
         return River.PacketValidation {
             it.demandValue(Key.EVENT_NAME.str, eventName.name)
             it.demandKey(Key.DATA.str)
-            dataFelter.forEach { datafelt: Enum<*> ->
-                it.interestedIn(datafelt.name)
+            dataFelter.forEach { datafelt ->
+                it.interestedIn(datafelt)
             }
         }
     }
@@ -37,10 +37,10 @@ class GenericDataPackageListener<T : Enum<*>>(
 
     fun collectData(message: JsonMessage): Boolean {
         // Akkuratt nå bare svarer med 1 data element men kan svare med mange
-        val data = dataFelter.filter { dataFelt: Enum<*> ->
-            message[dataFelt.name].asText().isNotEmpty()
-        }.map { dataFelt: Enum<*> ->
-            Pair(dataFelt.name, message[dataFelt.name])
+        val data = dataFelter.filter { dataFelt ->
+            message[dataFelt].asText().isNotEmpty()
+        }.map { dataFelt ->
+            Pair(dataFelt, message[dataFelt])
         }.ifEmpty {
             return false
         }.first()

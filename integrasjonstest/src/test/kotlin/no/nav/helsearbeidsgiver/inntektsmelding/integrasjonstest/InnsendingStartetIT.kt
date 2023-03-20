@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.contains
 import io.kotest.common.runBlocking
 import io.mockk.every
 import no.nav.helsearbeidsgiver.aareg.Arbeidsavtale
@@ -10,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
@@ -22,6 +25,11 @@ class InnsendingStartetIT : EndToEndTest() {
     @Test
     fun `Test at innsnending er mottatt`() {
         val uuid = UUID.randomUUID().toString()
+        this.filterMessages = {
+            val eventName = it.get(Key.EVENT_NAME.str).asText()
+            val msgUuid = it.get(Key.UUID.str).asText()
+            msgUuid == uuid && (eventName == EventName.INSENDING_STARTED.name || eventName == EventName.INNTEKTSMELDING_MOTTATT.name) && !it.has(Key.LØSNING.str)
+        }
         val brregClient = this.brregClient
         every {
             runBlocking {
@@ -57,11 +65,7 @@ class InnsendingStartetIT : EndToEndTest() {
                 Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer
             )
         )
-        Thread.sleep(10000)
-        getMessage(0)
-        //  1) vi sender en InntektsMeldingStartet event
-        //  2) vi kjører Prossessoren ,med avhengigheter breg og arbeidsforhold, postgres, redis
-        //  3) InntektMeldingMottatt
-        //
+        Thread.sleep(20000)
+        assert(getMessageCount() == 9)
     }
 }

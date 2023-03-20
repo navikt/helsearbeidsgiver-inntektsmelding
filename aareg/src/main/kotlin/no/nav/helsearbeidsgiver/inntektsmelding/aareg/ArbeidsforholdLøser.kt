@@ -70,8 +70,9 @@ class ArbeidsforholdLøser(
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
-                Key.DATA.str to customObjectMapper().writeValueAsString(data),
-                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+                Key.DATA.str to "",
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
+                "arbeidsforhold" to customObjectMapper().writeValueAsString(data)
             )
         )
         context.publish(message.toJson())

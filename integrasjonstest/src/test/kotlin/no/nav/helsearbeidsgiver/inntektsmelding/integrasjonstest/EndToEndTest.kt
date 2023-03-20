@@ -42,6 +42,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var repository = mockk<Repository>(relaxed = true)
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
+    var filterMessages: (JsonNode) -> Boolean = { true }
 
     @BeforeAll
     fun beforeAllEndToEnd() {
@@ -77,7 +78,9 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     override fun onMessage(message: String, context: MessageContext) {
         logger.info("onMessage: $message")
-        results.add(message)
+        if (filterMessages.invoke(customObjectMapper().readTree(message))) {
+            results.add(message)
+        }
     }
 
     @AfterAll
@@ -88,6 +91,10 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     fun publish(value: Any) {
         rapid.publish(om.writeValueAsString(value))
+    }
+
+    fun getMessages(t: (JsonNode) -> Boolean): List<JsonNode> {
+        return results.map { Json.parseToJsonElement(it).toJsonNode() }.filter(t).toList()
     }
 
     fun getMessage(index: Int): JsonNode {

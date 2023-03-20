@@ -81,9 +81,9 @@ class OpprettOppgaveLøser(
             Key.OPPGAVE_ID.str to oppgaveId
         )
 
-        //publiserLøsning(message)
-        rapidsConnection.publish(om.writeValueAsString(message))
-        logger.info("OpprettOppgaveLøser: Publiserte event: $EVENT med behov: $BEHOV for uuid: $uuid")
+        val json = om.writeValueAsString(message)
+        rapidsConnection.publish(json)
+        logger.info("OpprettOppgaveLøser: Publiserte: $json for uuid: $uuid")
     }
 
     fun publiserLøsning(løsning: PersisterSakIdLøsning, packet: JsonMessage, context: MessageContext) {

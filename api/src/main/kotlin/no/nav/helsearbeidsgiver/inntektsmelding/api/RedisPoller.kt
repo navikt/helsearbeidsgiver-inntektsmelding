@@ -10,7 +10,9 @@ import no.nav.helsearbeidsgiver.felles.log.loggerSikker
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
-    private val redisClient = RedisClient.create(Env.Redis.url)
+    private val redisClient = RedisClient.create(
+        "redis://${Env.Redis.url}:6379/0"
+    )
     private val loggerSikker = loggerSikker()
 
     suspend fun hent(key: String, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {

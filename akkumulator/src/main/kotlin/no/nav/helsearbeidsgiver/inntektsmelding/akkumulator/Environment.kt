@@ -7,7 +7,7 @@ fun setUpEnvironment(): Environment {
         raw = System.getenv(),
         redisUrl = getEnvVar(
             "REDIS_URL",
-            "helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local"
+            "redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0"
         )
     )
 }

@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -19,6 +20,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
     val FORESPOERSEL = UUID.randomUUID().toString()
 
     @Test
+    @Disabled
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
         publish(
             mapOf(

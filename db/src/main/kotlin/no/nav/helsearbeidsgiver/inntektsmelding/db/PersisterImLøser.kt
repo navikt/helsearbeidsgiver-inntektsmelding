@@ -37,6 +37,8 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             it.requireKey(Key.ID.str)
             it.interestedIn(Key.INNTEKTSMELDING.str)
             it.interestedIn(Key.SESSION.str)
+            it.interestedIn("virksomhet")
+            it.interestedIn("")
         }
     }
 
@@ -51,11 +53,6 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             sikkerlogg.info("Fant arbeidsgiver: $arbeidsgiver")
             val fulltNavn = hentNavn(session)
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
-            /*
-            val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(
-                customObjectMapper().readTree(packet[Key.INNTEKTSMELDING.str].asText()),
-                InnsendingRequest::class.java
-            )*/
             val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(packet[Key.INNTEKTSMELDING.str], InnsendingRequest::class.java)
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
             val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)

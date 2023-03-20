@@ -15,8 +15,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 enum class DataFelter(val str: String) {
     VIRKSOMHET("virksomhet"),
     ARBEIDSFORHOLD("arbeidsforhold"),
-    INNTEKTSMELDING_REQUEST("inntektsmelding-request"),
-    INNTEKTSMELDING_DOKUMENT("inntektsmelding-dokument");
+    INNTEKTSMELDING_REQUEST(Key.INNTEKTSMELDING.str),
+    INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str);
 }
 
 class ImperativeInnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {

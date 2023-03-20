@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -52,6 +53,7 @@ fun RapidsConnection.buildApp(
     this.createAkkumulator(redisStore)
     this.createBrreg(brregClient, true)
     this.createInnsending(redisStore)
+    this.createDb(database, repository)
     // this.createDb(database, repository)
     // this.createDistribusjon()
     this.createForespoerselMottatt()

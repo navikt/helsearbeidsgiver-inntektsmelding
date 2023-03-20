@@ -27,6 +27,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
                 it.requireKey(Key.ID.str)
                 it.requireKey(Key.ORGNRUNDERENHET.str)
                 it.rejectKey(Key.LØSNING.str)
+                it.interestedIn(Key.UUID.str)
             }
         }.register(this)
     }
@@ -68,7 +69,8 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             mapOf(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
                 Key.DATA.str to navn,
-                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
+                "virksomhet" to navn
             )
         )
         context.publish(message.toJson())

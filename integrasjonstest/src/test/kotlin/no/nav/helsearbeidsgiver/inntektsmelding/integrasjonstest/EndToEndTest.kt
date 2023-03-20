@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.MessageContext
@@ -11,11 +10,12 @@ import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -29,7 +29,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     val logger = LoggerFactory.getLogger(this::class.java)
     private lateinit var thread: Thread
     lateinit var rapid: RapidsConnection
-    private val om = ObjectMapper()
+    private val om = customObjectMapper()
     private var results: MutableList<String> = mutableListOf()
 
     // Clients
@@ -38,8 +38,8 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var brregClient = mockk<BrregClient>()
     var inntektKlient = mockk<InntektKlient>()
     var dokarkivClient = mockk<DokArkivClient>()
-    var database = mockk<Database>()
-    var repository = mockk<Repository>()
+    var database = mockk<Database>(relaxed = true)
+    var repository = mockk<Repository>(relaxed = true)
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
 
@@ -77,9 +77,6 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     override fun onMessage(message: String, context: MessageContext) {
         logger.info("onMessage: $message")
-        if (results.size == 1) {
-            results.clear() // Filtrerer vekk den første meldingen da den er det vi faktisk sender inn
-        }
         results.add(message)
     }
 

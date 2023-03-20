@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
 class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
 
-    val event: EventName = EventName.INNTEKTSMELDING_REQUESTED
+    val event: EventName = EventName.INSENDING_STARTED
 
     init {
         InnsendingStartedListener(this, rapidsConnection)
@@ -26,7 +26,9 @@ class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection
 
         override fun accept(): River.PacketValidation {
             return River.PacketValidation {
-                it.interestedIn(DataFelter.INNTEKTSMELDING_REQUEST.str)
+                it.interestedIn(Key.INNTEKTSMELDING.str)
+                it.requireKey(Key.ORGNRUNDERENHET.str)
+                it.requireKey(Key.IDENTITETSNUMMER.str)
             }
         }
 
@@ -58,9 +60,8 @@ class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection
                     JsonMessage.newMessage(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to BehovType.VIRKSOMHET.name,
-                            Key.ID.str to message[Key.ID.name].asText(),
-                            Key.ORGNRUNDERENHET.str to message[Key.ORGNRUNDERENHET.name].asText()
+                            Key.BEHOV.str to listOf(BehovType.VIRKSOMHET.name),
+                            Key.ORGNRUNDERENHET.str to message[Key.ORGNRUNDERENHET.str].asText()
                         )
                     ).toJson()
                 )
@@ -68,9 +69,8 @@ class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection
                     JsonMessage.newMessage(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to BehovType.ARBEIDSFORHOLD.name,
-                            Key.ID.str to message[Key.ID.name].asText(),
-                            Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.name].asText()
+                            Key.BEHOV.str to listOf(BehovType.ARBEIDSFORHOLD.name),
+                            Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText()
                         )
                     ).toJson()
                 )
@@ -81,7 +81,7 @@ class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection
                         JsonMessage.newMessage(
                             mapOf(
                                 Key.EVENT_NAME.str to event.name,
-                                Key.BEHOV.str to BehovType.PERSISTER_IM.name,
+                                Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
                                 Key.INNTEKTSMELDING.str to redisStore.get(uuid + DataFelter.INNTEKTSMELDING_REQUEST)!!
                             )
                         ).toJson()
@@ -117,7 +117,7 @@ class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection
     }
 
     fun startStransactionIfAbsent(message: JsonMessage): Transaction {
-        if (!message[Key.FAIL.str].asText().isNullOrEmpty()) {
+        if (isFailMelding(message)) {
             return Transaction.TERMINATE
         }
         val uuid = message.get(Key.UUID.str).asText()
@@ -132,6 +132,16 @@ class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection
             if (isDataCollected(*allData(uuid))) return Transaction.FINALIZE
         }
         return Transaction.IN_PROGRESS
+    }
+
+    fun isFailMelding(jsonMessage: JsonMessage): Boolean {
+        try {
+            return !jsonMessage[Key.FAIL.str].asText().isNullOrEmpty()
+        } catch (e: NoSuchFieldError) {
+            return false
+        } catch (e: IllegalArgumentException) {
+            return false
+        }
     }
 
     fun step1data(uuid: String): Array<String> = arrayOf(uuid + DataFelter.VIRKSOMHET, uuid + DataFelter.ARBEIDSFORHOLD)

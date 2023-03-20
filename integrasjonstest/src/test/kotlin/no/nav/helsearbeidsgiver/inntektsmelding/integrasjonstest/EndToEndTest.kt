@@ -76,9 +76,6 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     override fun onMessage(message: String, context: MessageContext) {
         println("onMessage: $message")
-        if (results.size == 1) {
-            results.clear() // Filtrerer vekk den første meldingen da den er det vi faktisk sender inn
-        }
         results.add(message)
     }
 
@@ -93,10 +90,10 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     }
 
     fun getMessage(index: Int): JsonNode {
-        return Json.parseToJsonElement(results[index]).toJsonNode()
+        return Json.parseToJsonElement(results[index + 1]).toJsonNode()
     }
 
     fun getMessageCount(): Int {
-        return results.size
+        return results.size - 1
     }
 }

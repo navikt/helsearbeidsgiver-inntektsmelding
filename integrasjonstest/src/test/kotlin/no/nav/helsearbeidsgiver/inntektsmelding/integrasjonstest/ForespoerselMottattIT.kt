@@ -37,7 +37,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
          * Opprett NotifikasjonOppgave
          * PersisterOppgave
          */
-        assertEquals(2, getMessageCount())
+        assertEquals(3, getMessageCount())
         val msg1 = getMessage(0)
         assertEquals(EventName.FORESPØRSEL_MOTTATT.name, msg1.get(Key.EVENT_NAME.str).asText())
         assertEquals(BehovType.NOTIFIKASJON_TRENGER_IM.name, msg1.get(Key.BEHOV.str).asText())

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -10,9 +11,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -24,24 +25,27 @@ import java.time.LocalDate
  * Publish: OppgaveSakEvent
  */
 class OpprettSakLøser(
-    rapidsConnection: RapidsConnection,
+    val rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val linkUrl: String
-) : Løser(rapidsConnection) {
+) : River.PacketListener {
 
+    private val om = customObjectMapper()
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val EVENT = EventName.FORESPØRSEL_MOTTATT
     private val BEHOV = BehovType.OPPRETT_OPPGAVE
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.requireValue(Key.EVENT_NAME.str, EventName.FORESPØRSEL_MOTTATT.name)
-            it.requireValue(Key.BEHOV.str, BehovType.FULLT_NAVN.name)
-            it.requireKey(Key.LØSNING.str)
-            it.requireKey(Key.UUID.str)
-            it.requireKey(Key.ORGNRUNDERENHET.str)
-            it.requireKey(Key.IDENTITETSNUMMER.str)
-        }
+    init {
+        River(rapidsConnection).apply {
+            validate {
+                it.requireValue(Key.EVENT_NAME.str, EventName.FORESPØRSEL_MOTTATT.name)
+                it.requireValue(Key.BEHOV.str, BehovType.FULLT_NAVN.name)
+                it.requireKey(Key.LØSNING.str)
+                it.requireKey(Key.UUID.str)
+                it.requireKey(Key.ORGNRUNDERENHET.str)
+                it.requireKey(Key.IDENTITETSNUMMER.str)
+            }
+        }.register(this)
     }
 
     fun opprettSak(
@@ -62,14 +66,16 @@ class OpprettSakLøser(
         }
     }
 
-    override fun onBehov(packet: JsonMessage) {
-        sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        logger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val navn = packet[Key.LØSNING.str].toJsonElement().fromJson(NavnLøsning.serializer()).value ?: "Ukjent"
         val sakId = opprettSak(uuid, orgnr, navn, LocalDate.now())
-        val message = JsonMessage.newMessage(
+
+
+        val msg =
             mapOf(
                 Key.EVENT_NAME.str to EVENT.name,
                 Key.BEHOV.str to listOf(BehovType.PERSISTER_SAK_ID.name, BehovType.OPPRETT_OPPGAVE.name),
@@ -79,8 +85,10 @@ class OpprettSakLøser(
                 Key.NAVN.str to navn,
                 Key.SAK_ID.str to sakId
             )
-        )
-        publishBehov(message)
-        sikkerLogger.info("OpprettSakLøser: Publiserte event: $EVENT med behov: $BEHOV for uuid: $uuid")
+
+        val json = om.writeValueAsString(msg)
+        rapidsConnection.publish(json)
+        rapidsConnection.publish(json)
+        logger.info("OpprettSakLøser: Publiserte event: $EVENT med behov: $BEHOV for uuid: $uuid")
     }
 }

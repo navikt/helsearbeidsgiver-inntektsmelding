@@ -43,7 +43,7 @@ class ForespørselMottattListener(val rapidsConnection: RapidsConnection) : Rive
         val msg =
             mapOf(
                 Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT.name,
-                Key.BEHOV.str to BehovType.FULLT_NAVN.name,
+                Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
                 Key.UUID.str to uuid,
                 Key.IDENTITETSNUMMER.str to fnr,
                 Key.ORGNRUNDERENHET.str to orgnr

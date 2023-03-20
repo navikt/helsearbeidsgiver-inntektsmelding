@@ -8,6 +8,6 @@ Content-Type: application/json
 
 > {%
 client.test("Response OK", () => {
-    client.assert(response.status === 200, "Response not OK: " + response.status)
+    client.assert(response.status === 201, "Response not OK: " + response.status)
 })
 %}

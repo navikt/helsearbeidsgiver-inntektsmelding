@@ -10,14 +10,12 @@ import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
 
 class Repository(private val db: Database) {
-    fun lagre(uuidLink: String, json: no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument): String =
+
+    fun lagre(uuidLink: String, json: no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument): Unit =
         transaction(db) {
-            InntektsmeldingEntitet.run {
-                insert {
-                    it[uuid] = uuidLink
-                    it[dokument] = json
-                    it[opprettet] = LocalDateTime.now()
-                } get (uuid)
+            InntektsmeldingEntitet.update({ (InntektsmeldingEntitet.uuid eq uuidLink) and (InntektsmeldingEntitet.dokument eq null) }) {
+                it[dokument] = json
+                it[innsendt] = LocalDateTime.now()
             }
         }
 

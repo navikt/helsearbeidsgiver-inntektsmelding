@@ -13,6 +13,7 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
     )
     val dokument = json("dokument", InntektsmeldingDokument::class.java).nullable()
     val opprettet = datetime("opprettet")
+    val innsendt = datetime("innsendt").nullable()
     val uuid = text("uuid")
     val journalpostId = varchar("journalpostid", 30).nullable()
     val sakId = varchar("sakid", 36).nullable()

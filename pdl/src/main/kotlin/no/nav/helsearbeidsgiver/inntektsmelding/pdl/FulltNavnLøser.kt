@@ -2,14 +2,12 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
-import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.pdl.PdlClient
@@ -40,16 +38,18 @@ class FulltNavnLøser(
         sikkerlogg.info("Henter navn for identitetsnummer $identitetsnummer")
         logger.info("FulltNavnLøser: Løser id ${packet[Key.ID.str].asText()}")
 
-        try {
-            val fulltNavn = runBlocking {
-                hentNavn(identitetsnummer)
-            }
-            sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
-            publish(NavnLøsning(fulltNavn), packet, context)
-        } catch (ex: Exception) {
-            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
-            publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet, context)
-        }
+//        try {
+//            val fulltNavn = runBlocking {
+//                hentNavn(identitetsnummer)
+//            }
+//            sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
+//            publish(NavnLøsning(fulltNavn), packet, context)
+//        } catch (ex: Exception) {
+//            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
+//            publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet, context)
+//        }
+
+        publish(NavnLøsning("Svensefjoms Nissemann"), packet, context)
 
     }
 

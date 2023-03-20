@@ -9,7 +9,7 @@ val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 
 fun main() {
-    val database = Database()
+    val database = Database(DatabaseConfig())
     val repository = Repository(database.db)
     RapidApplication
         .create(System.getenv())
@@ -26,6 +26,11 @@ fun RapidsConnection.createDb(database: Database, repository: Repository): Rapid
     HentPersistertLøser(this, repository)
     sikkerLogger.info("Starter LagreJournalpostIdLøser...")
     LagreJournalpostIdLøser(this, repository)
+
+    sikkerLogger.info("Starter PersisterSakLøser...")
+    PersisterSakLøser(this, repository)
+    sikkerLogger.info("Starter PersisterOppgaveLøser...")
+    PersisterOppgaveLøser(this, repository)
     return this
 }
 

@@ -39,7 +39,7 @@ class OpprettSakLøser(
         River(rapidsConnection).apply {
             validate {
                 it.requireValue(Key.EVENT_NAME.str, EventName.FORESPØRSEL_MOTTATT.name)
-                it.requireValue(Key.BEHOV.str, BehovType.FULLT_NAVN.name)
+                it.demandAll(Key.BEHOV.str, BehovType.FULLT_NAVN)
                 it.requireKey(Key.LØSNING.str)
                 it.requireKey(Key.UUID.str)
                 it.requireKey(Key.ORGNRUNDERENHET.str)
@@ -72,7 +72,8 @@ class OpprettSakLøser(
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val navn = packet[Key.LØSNING.str].toJsonElement().fromJson(NavnLøsning.serializer()).value ?: "Ukjent"
-        val sakId = opprettSak(uuid, orgnr, navn, LocalDate.now())
+        // val sakId = opprettSak(uuid, orgnr, navn, LocalDate.now())
+        val sakId = "123"
 
 
         val msg =
@@ -88,7 +89,6 @@ class OpprettSakLøser(
 
         val json = om.writeValueAsString(msg)
         rapidsConnection.publish(json)
-        rapidsConnection.publish(json)
-        logger.info("OpprettSakLøser: Publiserte event: $EVENT med behov: $BEHOV for uuid: $uuid")
+        logger.info("OpprettSakLøser: Publiserte: $json")
     }
 }

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.zaxxer.hikari.HikariDataSource
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.MessageContext
@@ -15,12 +16,14 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
+import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.slf4j.LoggerFactory
+import org.testcontainers.containers.PostgreSQLContainer
 import kotlin.concurrent.thread
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -42,6 +45,20 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
 
+    fun getDatabase(postgreSQLContainer: PostgreSQLContainer<Nothing>): Database {
+        val config = DatabaseConfig(
+            postgreSQLContainer.host,
+            postgreSQLContainer.firstMappedPort.toString(),
+            postgreSQLContainer.databaseName,
+            postgreSQLContainer.username,
+            this.postgreSQLContainer.password
+        )
+        println("Using db config: ${config}")
+        val ds = HikariDataSource(config.dbConfig())
+        val db = org.jetbrains.exposed.sql.Database.connect(ds)
+        return Database(config)
+    }
+
     @BeforeAll
     fun beforeAll() {
         val env = HashMap<String, String>().also {
@@ -53,6 +70,21 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         }
         // Klienter
         val redisStore = RedisStore(redisContainer.redisURI)
+
+        val config = DatabaseConfig(
+            postgreSQLContainer.host,
+            postgreSQLContainer.firstMappedPort.toString(),
+            postgreSQLContainer.databaseName,
+            postgreSQLContainer.username,
+            postgreSQLContainer.password
+        )
+        println("Using db config: ${config}")
+        val ds = HikariDataSource(config.dbConfig())
+        database = Database(config)
+
+
+        val db = org.jetbrains.exposed.sql.Database.connect(ds)
+        repository = Repository(db)
 
         // Rapids
         rapid = RapidApplication.create(env).buildApp(

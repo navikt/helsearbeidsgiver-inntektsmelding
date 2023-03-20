@@ -15,32 +15,38 @@ open class ContainerTest {
     // Containers
     val kafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"))
     val redisContainer = RedisContainer(RedisContainer.DEFAULT_IMAGE_NAME.withTag(RedisContainer.DEFAULT_TAG))
-    val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:latest")
+    val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:14")
 
     val TOPIC = "helsearbeidsgiver.inntektsmelding"
 
     @BeforeAll
     fun startContainers() {
-        logger.info("Starter Kafka...")
+        println("Starter Kafka...")
         kafkaContainer.start()
         val props = Properties()
         props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.bootstrapServers)
         val adminClient: AdminClient = AdminClient.create(props)
         adminClient.createTopics(listOf(NewTopic(TOPIC, 1, 1.toShort())))
-        logger.info("Starter Redis...")
+        println("Starter Redis...")
         redisContainer.start()
-        logger.info("Startet Redis port: ${redisContainer.firstMappedPort}")
-        logger.info("Starter Postgres...")
-        postgreSQLContainer.start()
-        logger.info("Startet Postgres...")
+        println("Startet Redis port: ${redisContainer.firstMappedPort}")
+        println("Starter Postgres...")
+        postgreSQLContainer.apply {
+            withReuse(true)
+            withLabel("app-navn", "im-db")
+            withUsername("test")
+            start()
+            println("Startet datbasen")
+        }
+        println("Startet Postgres...")
     }
 
     @AfterAll
     fun stopContainers() {
-        logger.info("Stopping...")
+        println("Stopping...")
         kafkaContainer.stop()
         postgreSQLContainer.stop()
         redisContainer.stop()
-        logger.info("Stopped")
+        println("Stopped")
     }
 }

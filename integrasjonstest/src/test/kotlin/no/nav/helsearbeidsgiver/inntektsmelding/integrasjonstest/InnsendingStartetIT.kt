@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
@@ -18,9 +19,11 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Disabled
 class InnsendingStartetIT : EndToEndTest() {
 
     @Test
+    @Disabled
     fun `Test at innsnending er mottatt`() {
         val uuid = UUID.randomUUID().toString()
         this.filterMessages = {

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.contains
 import io.kotest.common.runBlocking
 import io.mockk.every
@@ -12,7 +11,6 @@ import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
@@ -28,7 +26,9 @@ class InnsendingStartetIT : EndToEndTest() {
         this.filterMessages = {
             val eventName = it.get(Key.EVENT_NAME.str).asText()
             val msgUuid = it.get(Key.UUID.str).asText()
-            msgUuid == uuid && (eventName == EventName.INSENDING_STARTED.name || eventName == EventName.INNTEKTSMELDING_MOTTATT.name) && !it.has(Key.LØSNING.str)
+            msgUuid == uuid && (eventName == EventName.INSENDING_STARTED.name || eventName == EventName.INNTEKTSMELDING_MOTTATT.name) && !it.has(
+                Key.LØSNING.str
+            )
         }
         val brregClient = this.brregClient
         every {

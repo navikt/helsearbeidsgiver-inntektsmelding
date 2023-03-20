@@ -6,13 +6,13 @@ import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
 
 class Database(
-    val environment: DatabaseConfig
+    val databaseConfig: DatabaseConfig
 ) {
-    val dataSource by lazy { HikariDataSource(environment.dbConfig()) }
+    val dataSource by lazy { HikariDataSource(databaseConfig.dbConfig()) }
     val db by lazy { ExposedDatabase.connect(dataSource) }
 
     fun migrate() {
-        environment.migrationConfig()
+        databaseConfig.migrationConfig()
             .let(::HikariDataSource)
             .also {
                 Flyway.configure()

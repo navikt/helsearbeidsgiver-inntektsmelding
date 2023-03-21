@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersisterSakIdLøsning
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import org.slf4j.LoggerFactory
 
@@ -27,7 +26,6 @@ class OpprettOppgaveLøser(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val EVENT = EventName.FORESPØRSEL_MOTTATT
-    private val BEHOV = BehovType.FULLT_NAVN
 
     init {
         River(rapidsConnection).apply {
@@ -68,8 +66,7 @@ class OpprettOppgaveLøser(
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val navn = packet[Key.NAVN.str].asText()
         val sakId = packet[Key.SAK_ID.str].asText()
-        //val oppgaveId = opprettOppgave(uuid, orgnr)
-        val oppgaveId = 12
+        val oppgaveId = opprettOppgave(uuid, orgnr)
         val message = mapOf(
             Key.EVENT_NAME.str to listOf(EVENT),
             Key.BEHOV.str to listOf(BehovType.PERSISTER_OPPGAVE_ID.name),
@@ -80,16 +77,8 @@ class OpprettOppgaveLøser(
             Key.SAK_ID.str to sakId,
             Key.OPPGAVE_ID.str to oppgaveId
         )
-
         val json = om.writeValueAsString(message)
         rapidsConnection.publish(json)
         logger.info("OpprettOppgaveLøser: Publiserte: $json for uuid: $uuid")
-    }
-
-    fun publiserLøsning(løsning: PersisterSakIdLøsning, packet: JsonMessage, context: MessageContext) {
-        packet[Key.LØSNING.str] = mapOf(
-            BEHOV.name to løsning
-        )
-        context.publish(packet.toJson())
     }
 }

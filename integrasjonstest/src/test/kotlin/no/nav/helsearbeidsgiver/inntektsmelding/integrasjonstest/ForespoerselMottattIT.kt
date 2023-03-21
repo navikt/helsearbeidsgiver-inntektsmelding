@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.mockk.coEvery
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -28,7 +29,12 @@ internal class ForespoerselMottattIT : EndToEndTest() {
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any())
         } answers {
-            "Test Virksomhet Navn"
+            "sak_id_123"
+        }
+        coEvery {
+            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any())
+        } answers {
+            "oppgave_id_456"
         }
 
 

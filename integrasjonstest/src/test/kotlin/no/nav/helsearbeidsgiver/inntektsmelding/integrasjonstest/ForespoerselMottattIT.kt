@@ -2,6 +2,8 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.mockk.coEvery
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -20,6 +22,16 @@ internal class ForespoerselMottattIT : EndToEndTest() {
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
+        val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
+
+
+        coEvery {
+            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any())
+        } answers {
+            "Test Virksomhet Navn"
+        }
+
+
         publish(
             mapOf(
                 Pri.Key.NOTIS.str to Pri.NotisType.FORESPØRSEL_MOTTATT.name,

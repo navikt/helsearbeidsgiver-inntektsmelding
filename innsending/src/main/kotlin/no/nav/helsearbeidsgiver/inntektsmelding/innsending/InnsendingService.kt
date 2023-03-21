@@ -119,7 +119,6 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         val uuid = message.get(Key.UUID.str).asText()
         val eventKey = "${uuid}${event.name}"
         val value = redisStore.get(eventKey)
-        println("uuuiiidd  " + value + "EventKey " + eventKey)
         if (value.isNullOrEmpty()) {
             redisStore.set(eventKey, uuid)
             val uuid = redisStore.get(eventKey)

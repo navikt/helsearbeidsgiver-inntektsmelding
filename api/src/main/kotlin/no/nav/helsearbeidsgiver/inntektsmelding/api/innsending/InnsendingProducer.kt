@@ -19,25 +19,6 @@ class InnsendingProducer(
 
     fun publish(request: InnsendingRequest): String {
         val uuid = UUID.randomUUID()
-        /*
-        val packet: JsonMessage = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                Key.BEHOV.str to listOf(
-                    BehovType.VIRKSOMHET.name,
-                    BehovType.ARBEIDSFORHOLD.name
-                ),
-                Key.NESTE_BEHOV.str to listOf(
-                    BehovType.PERSISTER_IM.name
-                ),
-                Key.ID.str to uuid,
-                Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.UUID.str to uuid,
-                Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
-                Key.IDENTITETSNUMMER.str to request.identitetsnummer,
-                Key.INNTEKTSMELDING.str to request
-            )
-        )*/
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,

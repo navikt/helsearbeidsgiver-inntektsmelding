@@ -22,7 +22,6 @@ class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnecti
 
     override fun onEvent(packet: JsonMessage) {
         val uuid = packet[Key.UUID.str]
-        println(packet[Key.ID.str].asText())
         logger.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT} med uuid=$uuid")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(

@@ -22,12 +22,12 @@ fun createApp(environment: Environment): RapidsConnection {
     logger.info("Starting RapidApplication...")
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starting Innsending...")
-    RelativlyGenericInnsendingProcessor(rapidsConnection, redisClient)
+    InnsendingService(rapidsConnection, redisClient)
     return rapidsConnection
 }
 
 fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection {
-    RelativlyGenericInnsendingProcessor(this, redisStore)
+    InnsendingService(this, redisStore)
     return this
 }
 

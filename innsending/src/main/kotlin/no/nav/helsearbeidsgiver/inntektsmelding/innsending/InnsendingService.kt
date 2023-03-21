@@ -11,14 +11,14 @@ import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
-class RelativlyGenericInnsendingProcessor(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
+class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
 
     val event: EventName = EventName.INSENDING_STARTED
 
     init {
         InnsendingStartedListener(this, rapidsConnection)
         DelegatingFailKanal(EventName.INSENDING_STARTED, this, rapidsConnection)
-        GenericDataPackageListener(DataFelter.values().map { it.str }.toTypedArray(), EventName.INSENDING_STARTED, this, rapidsConnection, redisStore)
+        StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), EventName.INSENDING_STARTED, this, rapidsConnection, redisStore)
     }
 
     class InnsendingStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {

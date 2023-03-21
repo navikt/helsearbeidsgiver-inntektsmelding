@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DataKanal
 
-class GenericDataPackageListener(
+class StatefullDataKanal(
     val dataFelter: Array<String>,
     override val eventName: EventName,
     val mainListener: River.PacketListener,

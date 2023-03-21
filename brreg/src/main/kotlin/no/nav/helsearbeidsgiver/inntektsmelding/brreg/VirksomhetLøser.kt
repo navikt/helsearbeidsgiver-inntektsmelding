@@ -42,7 +42,6 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             }
             return "Ukjent arbeidsgiver"
         }
-        JsonMessage.newMessage()
         return runBlocking { brregClient.hentVirksomhetNavn(orgnr) } ?: throw FantIkkeVirksomhetException(orgnr)
     }
 

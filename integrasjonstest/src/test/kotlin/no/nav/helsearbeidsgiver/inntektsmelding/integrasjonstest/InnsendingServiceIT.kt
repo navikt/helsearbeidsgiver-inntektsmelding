@@ -1,17 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import com.fasterxml.jackson.module.kotlin.contains
 import io.kotest.common.runBlocking
 import io.mockk.every
 import no.nav.helsearbeidsgiver.aareg.Arbeidsavtale
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
-import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
@@ -19,11 +15,9 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Disabled
-class InnsendingStartetIT : EndToEndTest() {
+class InnsendingServiceIT : EndToEndTest() {
 
     @Test
-    @Disabled
     fun `Test at innsnending er mottatt`() {
         val uuid = UUID.randomUUID().toString()
         this.filterMessages = {

@@ -38,7 +38,6 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             it.interestedIn(Key.INNTEKTSMELDING.str)
             it.interestedIn(Key.SESSION.str)
             it.interestedIn("virksomhet")
-            it.interestedIn("")
         }
     }
 
@@ -60,7 +59,6 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
             publiserLøsning(PersisterImLøsning(value = customObjectMapper().writeValueAsString(inntektsmeldingDokument)), packet)
             publiserOK(uuid, inntektsmeldingDokument)
-            // publiserInntektsmeldingMottatt(inntektsmeldingDokument, uuid)
         } catch (ex: Exception) {
             ex.printStackTrace()
             logger.info(ex.toString())

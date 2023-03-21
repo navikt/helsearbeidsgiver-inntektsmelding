@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
-import io.kotest.assertions.any
-import io.kotest.matchers.ints.exactly
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -33,7 +31,7 @@ class GenericDataPackageListenerTest {
 
     var mockListener: River.PacketListener = mockk()
 
-    lateinit var dataListener: GenericDataPackageListener
+    lateinit var dataListener: StatefullDataKanal
 
     private val redisStore = mockk<RedisStore>()
 
@@ -41,7 +39,7 @@ class GenericDataPackageListenerTest {
 
     @BeforeEach
     fun beforeAll() {
-        dataListener = GenericDataPackageListener(
+        dataListener = StatefullDataKanal(
             TestFelter.values().map { it.toString() }.toTypedArray(),
             EventName.INSENDING_STARTED,
             mockListener,

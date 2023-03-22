@@ -34,20 +34,20 @@ import java.time.LocalDateTime
 val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-integrasjon")
 
 fun main() {
-    val env = LocalApp().getLocalEnvironment("im-helsebro", 8083)
+    val env = LocalApp().setupEnvironment("im-helsebro", 8083)
 
     val rapid = RapidApplication.create(env)
     // Dummyløser lar deg teste flyten, så du slipper å mocke hvert enkelt endepunkt
     DummyLøser(rapid, BehovType.HENT_TRENGER_IM)
     // enten::
-    // DummyLøser(rapid, BehovType.PREUTFYLL, listOf(BehovType.FULLT_NAVN))
-
+    DummyLøser(rapid, BehovType.PREUTFYLL, listOf(BehovType.FULLT_NAVN))
     // eller: start opp faktisk løser med LocalPreutfyltApp og lag dummy av resten:
-    DummyLøser(rapid, BehovType.INNTEKT)
-    DummyLøser(rapid, BehovType.ARBEIDSFORHOLD)
-    DummyLøser(rapid, BehovType.VIRKSOMHET)
+    // HentPreutfyltLøser(rapid)
+//    DummyLøser(rapid, BehovType.INNTEKT)
+//    DummyLøser(rapid, BehovType.ARBEIDSFORHOLD)
+//    DummyLøser(rapid, BehovType.VIRKSOMHET)
     DummyLøser(rapid, BehovType.FULLT_NAVN)
-    // Hvis ønskelig kan man kjøre opp "ekte" løsere med eller uten mock parallellt også:
+    // Hvis ønskelig kan man kjøre opp "ekte" løsere med eller uten mocking parallellt, sammen med DummyLøser:
     val priProducer = mockkClass(PriProducer::class)
     coEvery { priProducer.send(any()) }.returns(true)
     TrengerForespoerselLøser(rapid, priProducer)
@@ -55,10 +55,9 @@ fun main() {
     rapid.start()
 }
 
-class DummyLøser(rapidsConnection: RapidsConnection, behov: BehovType, nesteBehov: List<BehovType> = emptyList()) : River.PacketListener {
-    val rapid = rapidsConnection
-    val behov = behov
-    val nesteBehov = nesteBehov
+class DummyLøser(rapidsConnection: RapidsConnection, val behov: BehovType, val nesteBehov: List<BehovType> = emptyList()) : River.PacketListener {
+    private val rapid = rapidsConnection
+
     init {
         logger.info("Starter dummyløser for Behov $behov")
         River(rapidsConnection).apply {
@@ -74,6 +73,9 @@ class DummyLøser(rapidsConnection: RapidsConnection, behov: BehovType, nesteBeh
         logger.info("Fikk pakke: ${packet.toJson()}")
         packet.setLøsning(behov, getLøsning())
         packet.nesteBehov(nesteBehov)
+        val test = packet[Key.INITIATE_ID.str].asText()
+        JsonMessage.newMessage()
+        println("test = $test")
         logger.info("Publiserer løsning: ${packet.toJson()}")
         this.rapid.publish(packet.toJson())
     }

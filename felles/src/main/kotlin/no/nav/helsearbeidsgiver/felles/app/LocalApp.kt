@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.felles.app
 
 open class LocalApp {
 
-    open fun getLocalEnvironment(memberId: String, httpPort: Int): Map<String, String> {
+    open fun setupEnvironment(memberId: String, httpPort: Int): Map<String, String> {
         val env = mapOf(
             "KAFKA_BOOTSTRAP_SERVERS" to "localhost:9092",
             "KAFKA_CONSUMER_GROUP_ID" to memberId,

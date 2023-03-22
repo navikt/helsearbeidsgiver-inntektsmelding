@@ -9,7 +9,8 @@ val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 
 fun main() {
-    val database = Database(DatabaseConfig())
+    val config = mapHikariConfig(DatabaseConfig())
+    val database = Database(config)
     val repository = Repository(database.db)
     RapidApplication
         .create(System.getenv())

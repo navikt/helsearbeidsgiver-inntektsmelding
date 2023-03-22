@@ -15,21 +15,20 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
 
     val repository = Repository(db.db)
 
-    test("skal persistere inntektsmelding") {
+    test("skal lagre forespørsel") {
         transaction {
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
         val UUID = "abc-123"
 
-        repository.lagre(UUID, INNTEKTSMELDING_DOKUMENT)
+        repository.lagreForespørsel(UUID)
 
         shouldNotThrowAny {
             transaction {
                 InntektsmeldingEntitet.select {
                     all(
                         InntektsmeldingEntitet.id eq 1,
-                        InntektsmeldingEntitet.dokument eq INNTEKTSMELDING_DOKUMENT,
                         InntektsmeldingEntitet.uuid eq UUID
                     )
                 }.single()
@@ -37,22 +36,25 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         }
     }
 
-    test("skal hente inntektsmeldinger nyeste først") {
+    test("skal oppdatere med dokument") {
         transaction {
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val UUID = "abc-456"
+        val UUID = "abc-123"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
-        val DOK_2 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
-        val DOK_3 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
 
-        repository.lagre(UUID, DOK_1)
-        repository.lagre(UUID, DOK_2)
-        repository.lagre(UUID, DOK_3)
+        repository.lagreForespørsel(UUID)
+        repository.oppdaterDokument(UUID, DOK_1)
 
-        val dok = repository.hentNyeste(UUID)
-        dok.shouldBe(DOK_3)
+        transaction {
+            InntektsmeldingEntitet.select {
+                all(
+                    InntektsmeldingEntitet.uuid eq UUID,
+                    InntektsmeldingEntitet.dokument eq DOK_1
+                )
+            }.single()
+        }
     }
 
     test("skal oppdatere journalpostId") {
@@ -62,19 +64,14 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
 
         val UUID = "abc-456"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
-        val DOK_2 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
         val JOURNALPOST_1 = "jp-1"
-        val JOURNALPOST_2 = "jp-2"
 
-        repository.lagre(UUID, DOK_1)
+        repository.lagreForespørsel(UUID)
+        repository.oppdaterDokument(UUID, DOK_1)
         repository.oppdaterJournapostId(JOURNALPOST_1, UUID)
         val dok1 = repository.hentNyeste(UUID)
         dok1.shouldBe(DOK_1)
 
-        repository.lagre(UUID, DOK_2)
-        repository.oppdaterJournapostId(JOURNALPOST_2, UUID)
-        val dok2 = repository.hentNyeste(UUID)
-        dok2.shouldBe(DOK_2)
     }
 
     test("skal oppdatere sakId") {
@@ -84,19 +81,15 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
 
         val UUID = "abc-456"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
-        val DOK_2 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
         val SAK_ID_1 = "sak1-1"
-        val SAK_ID_2 = "sak1-2"
 
-        repository.lagre(UUID, DOK_1)
-        repository.oppdaterJournapostId(SAK_ID_1, UUID)
+        repository.lagreForespørsel(UUID)
+        repository.oppdaterDokument(UUID, DOK_1)
+        repository.oppdaterSakId(SAK_ID_1, UUID)
         val dok1 = repository.hentNyeste(UUID)
         dok1.shouldBe(DOK_1)
 
-        repository.lagre(UUID, DOK_2)
-        repository.oppdaterJournapostId(SAK_ID_2, UUID)
-        val dok2 = repository.hentNyeste(UUID)
-        dok2.shouldBe(DOK_2)
+
     }
 
     test("skal oppdatere oppgaveId") {
@@ -106,19 +99,14 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
 
         val UUID = "abc-456"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
-        val DOK_2 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
-        val OPPGAVE_ID_1 = "jp-1"
-        val OPPGAVE_ID_2 = "jp-2"
+        val OPPGAVE_ID_1 = "oppg-1"
 
-        repository.lagre(UUID, DOK_1)
-        repository.oppdaterJournapostId(OPPGAVE_ID_1, UUID)
+        repository.lagreForespørsel(UUID)
+        repository.oppdaterDokument(UUID, DOK_1)
+        repository.oppdaterOppgaveId(OPPGAVE_ID_1, UUID)
         val dok1 = repository.hentNyeste(UUID)
         dok1.shouldBe(DOK_1)
 
-        repository.lagre(UUID, DOK_2)
-        repository.oppdaterJournapostId(OPPGAVE_ID_2, UUID)
-        val dok2 = repository.hentNyeste(UUID)
-        dok2.shouldBe(DOK_2)
     }
 })
 

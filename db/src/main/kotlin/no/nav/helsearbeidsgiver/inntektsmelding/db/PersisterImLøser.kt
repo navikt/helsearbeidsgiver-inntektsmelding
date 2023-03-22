@@ -52,7 +52,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
             val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(packet[Key.INNTEKTSMELDING.str], InnsendingRequest::class.java)
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
-            repository.lagre(uuid, inntektsmeldingDokument)
+            repository.oppdaterDokument(uuid, inntektsmeldingDokument)
             sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $uuid") // TODO: lagre / benytte separat id i database?
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
             publiserLøsning(PersisterImLøsning(value = customObjectMapper().writeValueAsString(inntektsmeldingDokument)), packet)

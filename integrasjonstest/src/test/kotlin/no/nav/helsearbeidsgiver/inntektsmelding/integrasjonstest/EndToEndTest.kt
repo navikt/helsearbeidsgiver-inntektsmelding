@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.mapHikariConfig
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -65,8 +66,9 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
         // Databasen - konfig må gjøres her ETTER at postgreSQLContainer er startet
         databaseConfig = mapDatabaseConfig(postgreSQLContainer)
-        dataSource = HikariDataSource(databaseConfig.dbConfig())
-        database = Database(databaseConfig)
+        val hikariConfig = mapHikariConfig(databaseConfig)
+        dataSource = HikariDataSource(hikariConfig)
+        database = Database(hikariConfig)
         repository = Repository(org.jetbrains.exposed.sql.Database.connect(dataSource))
 
         // Rapids

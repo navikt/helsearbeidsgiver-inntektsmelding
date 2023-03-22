@@ -81,19 +81,19 @@ fun Application.apiModule(connection: RapidsConnection) {
             route(Routes.PREFIX) {
                 routeExtra(connection, redisPoller) {
                     ArbeidsgivereRoute()
-                    // TrengerRoute()
-                    // InntektRoute()
+                     TrengerRoute()
+                     InntektRoute()
                     // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
-                    // InnsendingRoute()  //TODO mortenb - må fikses
+                     InnsendingRoute()
                 }
             }
         }
 
         route(Routes.PREFIX) {
             routeExtra(connection, redisPoller) {
-                InnsendingRoute()
-                InntektRoute()
-                TrengerRoute()
+//                InnsendingRoute()
+//                InntektRoute()
+//                TrengerRoute()
             }
         }
     }

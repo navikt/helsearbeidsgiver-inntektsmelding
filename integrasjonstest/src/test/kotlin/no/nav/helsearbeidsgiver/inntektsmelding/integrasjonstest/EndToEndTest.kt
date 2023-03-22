@@ -30,6 +30,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     private val om = ObjectMapper()
     private var results: MutableList<String> = mutableListOf()
     private lateinit var thread: Thread
+
     // Clients
     var pdlClient = mockk<PdlClient>()
     var aaregClient = mockk<AaregClient>()
@@ -58,7 +59,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         val redisStore = RedisStore(redisContainer.redisURI)
 
         // Databasen - konfig må gjøres her ETTER at postgreSQLContainer er startet
-        val config = mapHikariConfig(postgreSQLContainer)
+        val config = mapHikariConfigByContainer(postgreSQLContainer)
 
         println("Database: jdbcUrl: ${config.jdbcUrl}")
         database = Database(config)

@@ -7,7 +7,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-fun mapHikariConfig(postgreSQLContainer: PostgreSQLContainer<Nothing>): HikariConfig {
+fun mapHikariConfigByContainer(postgreSQLContainer: PostgreSQLContainer<Nothing>): HikariConfig {
     return HikariConfig().apply {
         jdbcUrl = postgreSQLContainer.jdbcUrl
         username = postgreSQLContainer.username

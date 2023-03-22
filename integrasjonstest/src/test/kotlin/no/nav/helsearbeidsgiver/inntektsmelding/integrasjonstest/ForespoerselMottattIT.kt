@@ -44,7 +44,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
                 Pri.Key.FORESPOERSEL_ID.str to FORESPOERSEL
             )
         )
-        // Thread.sleep(5000)
+        Thread.sleep(5000)
         /**
          * Motta forespørsel
          * Hent navn

@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.zaxxer.hikari.HikariDataSource
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import kotlinx.serialization.json.Json
@@ -17,20 +16,15 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
-import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
-import no.nav.helsearbeidsgiver.inntektsmelding.db.mapHikariConfig
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
-import org.slf4j.LoggerFactory
-import kotlin.concurrent.thread
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
-    val logger = LoggerFactory.getLogger(this::class.java)
-    private lateinit var thread: Thread
+
     lateinit var rapid: RapidsConnection
     private val om = ObjectMapper()
     private var results: MutableList<String> = mutableListOf()
@@ -47,8 +41,6 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var notifikasjonLink = "notifikasjonLink"
 
     // Database
-    var databaseConfig = mockk<DatabaseConfig>()
-    var dataSource = mockk<HikariDataSource>()
     var database = mockk<Database>()
     var repository = mockk<Repository>()
 
@@ -65,11 +57,12 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         val redisStore = RedisStore(redisContainer.redisURI)
 
         // Databasen - konfig må gjøres her ETTER at postgreSQLContainer er startet
-        databaseConfig = mapDatabaseConfig(postgreSQLContainer)
-        val hikariConfig = mapHikariConfig(databaseConfig)
-        dataSource = HikariDataSource(hikariConfig)
-        database = Database(hikariConfig)
-        repository = Repository(org.jetbrains.exposed.sql.Database.connect(dataSource))
+        val config = mapHikariConfig(postgreSQLContainer)
+
+        println("Database: jdbcUrl: ${config.jdbcUrl}")
+        database = Database(config)
+        repository = Repository(database.db)
+
 
         // Rapids
         rapid = RapidApplication.create(env).buildApp(
@@ -85,24 +78,25 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
             notifikasjonLink
         )
         rapid.register(this)
-        thread = thread {
-            rapid.start()
-        }
-        Thread.sleep(2000)
+        rapid.start()
     }
 
     override fun onMessage(message: String, context: MessageContext) {
+        println("onMessage: $message")
         results.add(message)
     }
 
     @AfterAll
     fun afterAll() {
-        thread.stop()
+        println("Stopper...")
+        rapid.stop()
         println("Stopped")
     }
 
     fun publish(value: Any) {
-        rapid.publish(om.writeValueAsString(value))
+        val json = om.writeValueAsString(value)
+        println("Publiserer melding: $json")
+        rapid.publish(json)
     }
 
     fun getMessage(index: Int): JsonNode {

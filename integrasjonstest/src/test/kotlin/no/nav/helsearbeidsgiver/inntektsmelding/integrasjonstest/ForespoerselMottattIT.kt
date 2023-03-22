@@ -44,7 +44,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
                 Pri.Key.FORESPOERSEL_ID.str to FORESPOERSEL
             )
         )
-        Thread.sleep(5000)
+        // Thread.sleep(5000)
         /**
          * Motta forespørsel
          * Hent navn
@@ -61,8 +61,5 @@ internal class ForespoerselMottattIT : EndToEndTest() {
         assertEquals(FNR, msg1.get(Key.IDENTITETSNUMMER.str).asText())
         assertEquals(FORESPOERSEL, msg1.get(Key.UUID.str).asText())
 
-        val msg2 = getMessage(1)
-        // val løsning3 = msg3.get(Key.LØSNING.str).get(BehovType.NOTIFIKASJON_TRENGER_IM.name)
-        // assertNull(løsning3.get("error"))
     }
 }

@@ -21,6 +21,7 @@ open class ContainerTest {
 
     @BeforeAll
     fun startContainers() {
+        println("Starter containerne...")
         println("Starter Kafka...")
         kafkaContainer.start()
         val props = Properties()
@@ -29,24 +30,17 @@ open class ContainerTest {
         adminClient.createTopics(listOf(NewTopic(TOPIC, 1, 1.toShort())))
         println("Starter Redis...")
         redisContainer.start()
-        println("Startet Redis port: ${redisContainer.firstMappedPort}")
         println("Starter Postgres...")
-        postgreSQLContainer.apply {
-            withReuse(true)
-            withLabel("app-navn", "im-db")
-            withUsername("test")
-            start()
-            println("Startet datbasen")
-        }
-        println("Startet Postgres...")
+        postgreSQLContainer.start()
+        println("Containerne er klare!")
     }
 
     @AfterAll
     fun stopContainers() {
-        println("Stopping...")
+        println("Stopper containere...")
         kafkaContainer.stop()
         postgreSQLContainer.stop()
         redisContainer.stop()
-        println("Stopped")
+        println("Containere er stoppet!")
     }
 }

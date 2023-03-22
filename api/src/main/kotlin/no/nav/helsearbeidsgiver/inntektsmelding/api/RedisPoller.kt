@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.log.loggerSikker
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
     private val redisClient = RedisClient.create(
-        "${Env.Redis.url}"
+        "redis://${Env.Redis.url}:6379/0"
     )
     private val loggerSikker = loggerSikker()
 

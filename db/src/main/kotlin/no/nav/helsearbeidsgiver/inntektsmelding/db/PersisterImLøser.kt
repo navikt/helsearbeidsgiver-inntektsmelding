@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersisterImLøsning
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
@@ -36,6 +37,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             it.requireKey(Key.ID.str)
             it.interestedIn(Key.INNTEKTSMELDING.str)
             it.interestedIn(Key.SESSION.str)
+            it.interestedIn("virksomhet")
         }
     }
 
@@ -56,12 +58,25 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $uuid") // TODO: lagre / benytte separat id i database?
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
             publiserLøsning(PersisterImLøsning(value = customObjectMapper().writeValueAsString(inntektsmeldingDokument)), packet)
-            publiserInntektsmeldingMottatt(inntektsmeldingDokument, uuid)
+            publiserOK(uuid, inntektsmeldingDokument)
         } catch (ex: Exception) {
             logger.error("Klarte ikke persistere: $uuid")
             sikkerlogg.error("Klarte ikke persistere: $uuid", ex)
             publiserLøsning(PersisterImLøsning(error = Feilmelding(melding = "Klarte ikke persistere!")), packet)
         }
+    }
+
+    private fun publiserOK(uuid: String, inntektsmeldingDokument: InntektsmeldingDokument) {
+        val packet: JsonMessage = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
+                Key.DATA.str to "",
+                Key.INNTEKTSMELDING_DOKUMENT.str to customObjectMapper().writeValueAsString(inntektsmeldingDokument),
+                Key.UUID.str to uuid
+            )
+        )
+        logger.info("Publiserer OK DATA ${EventName.INNTEKTSMELDING_MOTTATT} for uuid: $uuid")
+        rapidsConnection.publish(packet.toJson())
     }
 
     private fun publiserInntektsmeldingMottatt(

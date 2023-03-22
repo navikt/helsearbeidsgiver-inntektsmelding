@@ -27,6 +27,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
                 it.requireKey(Key.ID.str)
                 it.requireKey(Key.ORGNRUNDERENHET.str)
                 it.rejectKey(Key.LØSNING.str)
+                it.interestedIn(Key.UUID.str)
             }
         }.register(this)
     }
@@ -51,6 +52,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             val navn = hentVirksomhet(orgnr)
             sikkerlogg.info("Fant $navn for $orgnr")
             publiserLøsning(VirksomhetLøsning(navn), packet, context)
+            publishDatagram(navn, packet, context)
         } catch (ex: FantIkkeVirksomhetException) {
             sikkerlogg.info("Fant ikke virksomhet for $orgnr")
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")), packet, context)
@@ -59,6 +61,18 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             sikkerlogg.error(ex.stackTraceToString())
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")), packet, context)
         }
+    }
+
+    fun publishDatagram(navn: String, jsonMessage: JsonMessage, context: MessageContext) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
+                Key.DATA.str to navn,
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
+                "virksomhet" to navn
+            )
+        )
+        context.publish(message.toJson())
     }
 
     fun publiserLøsning(virksomhetLøsning: VirksomhetLøsning, packet: JsonMessage, context: MessageContext) {

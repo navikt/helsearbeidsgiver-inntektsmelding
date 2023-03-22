@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
@@ -23,14 +22,6 @@ class InnsendingProducer(
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                Key.BEHOV.str to listOf(
-                    BehovType.VIRKSOMHET.name,
-                    BehovType.ARBEIDSFORHOLD.name
-                ),
-                Key.NESTE_BEHOV.str to listOf(
-                    BehovType.PERSISTER_IM.name
-                ),
-                Key.ID.str to uuid,
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.UUID.str to uuid,
                 Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,

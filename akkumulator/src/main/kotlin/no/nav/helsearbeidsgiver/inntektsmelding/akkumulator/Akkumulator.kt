@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.json.list
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.felles.valueNullable
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 
 class Akkumulator(
     val rapidsConnection: RapidsConnection,

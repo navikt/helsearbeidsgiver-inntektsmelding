@@ -21,8 +21,9 @@ dependencies {
     implementation(project(":notifikasjon"))
     implementation(project(":pdl"))
     implementation(project(":preutfylt"))
-    //implementation(project(":api"))
-
+    implementation(project(":innsending"))
+    implementation(project(":api"))
+    testApi(project(":api"))
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.2")
     testImplementation("org.testcontainers:postgresql:1.17.6")
     testImplementation("org.testcontainers:kafka:1.17.6")

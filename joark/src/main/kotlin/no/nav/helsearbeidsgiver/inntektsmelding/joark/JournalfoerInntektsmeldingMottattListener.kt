@@ -10,23 +10,13 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
 class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
 
-    init {
-        River(rapidsConnection).apply {
-            validate {
-                it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
-                it.rejectKey(Key.BEHOV.str)
-                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
-                it.interestedIn(Key.UUID.str)
-            }
-        }.register(this)
-    }
-
     override val event: EventName = EventName.INNTEKTSMELDING_MOTTATT
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
             it.interestedIn(Key.UUID.str)
+            it.interestedIn(Key.ID.str)
         }
     }
 

@@ -82,7 +82,7 @@ internal class PersisterImLøserTest {
             )
         )
         val message = rapid.inspektør.message(1)
-        Assertions.assertEquals(EventName.INNTEKTSMELDING_MOTTATT.name, message.path(Key.EVENT_NAME.str).asText())
+        Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
         Assertions.assertNotNull(message.path(Key.INNTEKTSMELDING.str).asText())
     }
 }

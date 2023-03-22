@@ -309,7 +309,6 @@ components:
           description: "just a date"
         beløp:
           type: number
-
     Refusjon:
       required:
         - utbetalerHeleEllerDeler

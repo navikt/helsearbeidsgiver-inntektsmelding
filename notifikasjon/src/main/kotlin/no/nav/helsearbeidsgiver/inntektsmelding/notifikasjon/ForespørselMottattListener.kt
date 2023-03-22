@@ -52,6 +52,6 @@ class ForespørselMottattListener(val rapidsConnection: RapidsConnection) : Rive
         val json = om.writeValueAsString(msg)
         rapidsConnection.publish(json)
         logger.info("ForespørselMottattListener: publiserte $json")
-        //logger.info("ForespørselMottattListener: Ber om FulltNavn for uuid: $uuid")
+        // logger.info("ForespørselMottattListener: Ber om FulltNavn for uuid: $uuid")
     }
 }

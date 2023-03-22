@@ -60,6 +60,5 @@ internal class ForespoerselMottattIT : EndToEndTest() {
         assertEquals(ORGNR, msg1.get(Key.ORGNRUNDERENHET.str).asText())
         assertEquals(FNR, msg1.get(Key.IDENTITETSNUMMER.str).asText())
         assertEquals(FORESPOERSEL, msg1.get(Key.UUID.str).asText())
-
     }
 }

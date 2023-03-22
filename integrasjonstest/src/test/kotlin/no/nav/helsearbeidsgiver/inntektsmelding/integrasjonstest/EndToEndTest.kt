@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
+import kotlin.concurrent.thread
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
@@ -28,7 +29,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     lateinit var rapid: RapidsConnection
     private val om = ObjectMapper()
     private var results: MutableList<String> = mutableListOf()
-
+    private lateinit var thread: Thread
     // Clients
     var pdlClient = mockk<PdlClient>()
     var aaregClient = mockk<AaregClient>()
@@ -63,7 +64,6 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         database = Database(config)
         repository = Repository(database.db)
 
-
         // Rapids
         rapid = RapidApplication.create(env).buildApp(
             redisStore,
@@ -78,7 +78,10 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
             notifikasjonLink
         )
         rapid.register(this)
-        rapid.start()
+        thread = thread {
+            rapid.start()
+        }
+        Thread.sleep(2000)
     }
 
     override fun onMessage(message: String, context: MessageContext) {

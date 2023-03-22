@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 
-
 class ForespørselMottattListener(val rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
 
     private val om = customObjectMapper()

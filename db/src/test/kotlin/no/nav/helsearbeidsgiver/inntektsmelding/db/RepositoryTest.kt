@@ -71,7 +71,6 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         repository.oppdaterJournapostId(JOURNALPOST_1, UUID)
         val dok1 = repository.hentNyeste(UUID)
         dok1.shouldBe(DOK_1)
-
     }
 
     test("skal oppdatere sakId") {
@@ -88,8 +87,6 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         repository.oppdaterSakId(SAK_ID_1, UUID)
         val dok1 = repository.hentNyeste(UUID)
         dok1.shouldBe(DOK_1)
-
-
     }
 
     test("skal oppdatere oppgaveId") {
@@ -106,7 +103,6 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         repository.oppdaterOppgaveId(OPPGAVE_ID_1, UUID)
         val dok1 = repository.hentNyeste(UUID)
         dok1.shouldBe(DOK_1)
-
     }
 })
 

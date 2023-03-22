@@ -51,11 +51,10 @@ class ForespoerselMottattLøser(
             Key.UUID.str to forespoerselId
         )
 
-
         val json = om.writeValueAsString(msg)
         rapid.publish(json)
         logger.info("ForespoerselMottattLøser: publiserte $json")
         loggerSikker.info("ForespoerselMottattLøser: ferdig")
-        //logger.info("ForespoerselMottattLøser: Publiserte behov om '${BehovType.NOTIFIKASJON_TRENGER_IM}' med uuid (forespørsel-ID-en) '$forespoerselId'.")
+        // logger.info("ForespoerselMottattLøser: Publiserte behov om '${BehovType.NOTIFIKASJON_TRENGER_IM}' med uuid (forespørsel-ID-en) '$forespoerselId'.")
     }
 }

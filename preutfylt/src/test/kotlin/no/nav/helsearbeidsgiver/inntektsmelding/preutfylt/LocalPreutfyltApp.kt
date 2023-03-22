@@ -9,4 +9,3 @@ fun main() {
     HentPreutfyltLøser(rapid)
     rapid.start()
 }
-

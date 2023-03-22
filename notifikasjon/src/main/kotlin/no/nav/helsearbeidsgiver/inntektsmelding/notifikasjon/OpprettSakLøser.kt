@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 /**
@@ -31,9 +30,7 @@ class OpprettSakLøser(
 ) : River.PacketListener {
 
     private val om = customObjectMapper()
-    private val logger = LoggerFactory.getLogger(this::class.java)
     private val EVENT = EventName.FORESPØRSEL_MOTTATT
-    private val BEHOV = BehovType.OPPRETT_OPPGAVE
 
     init {
         River(rapidsConnection).apply {
@@ -67,7 +64,7 @@ class OpprettSakLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
+        sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
@@ -86,6 +83,6 @@ class OpprettSakLøser(
 
         val json = om.writeValueAsString(msg)
         rapidsConnection.publish(json)
-        logger.info("OpprettSakLøser: Publiserte: $json")
+        sikkerLogger.info("OpprettSakLøser: Publiserte: $json")
     }
 }

@@ -28,7 +28,6 @@ fun RapidsConnection.createDb(database: Database, repository: Repository): Rapid
     HentPersistertLøser(this, repository)
     sikkerLogger.info("Starter LagreJournalpostIdLøser...")
     LagreJournalpostIdLøser(this, repository)
-
     sikkerLogger.info("Starter PersisterSakLøser...")
     PersisterSakLøser(this, repository)
     sikkerLogger.info("Starter PersisterOppgaveLøser...")

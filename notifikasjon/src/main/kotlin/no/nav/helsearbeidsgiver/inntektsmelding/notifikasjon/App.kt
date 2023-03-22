@@ -19,12 +19,6 @@ fun main() {
 }
 
 fun RapidsConnection.createNotifikasjon(arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient, linkUrl: String): RapidsConnection {
-    //// Gammel
-    //sikkerLogger.info("Starting NotifikasjonLøser...")
-    //NotifikasjonLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-    // Nye
-    //sikkerLogger.info("Starting ForespørselMottattListener...")
-    //ForespørselMottattListener(this)
     sikkerLogger.info("Starting OpprettSakLøser...")
     OpprettSakLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
     sikkerLogger.info("Starting OpprettOppgaveLøser...")

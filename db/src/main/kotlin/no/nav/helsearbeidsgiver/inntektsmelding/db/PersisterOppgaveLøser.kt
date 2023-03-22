@@ -6,14 +6,11 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import org.slf4j.LoggerFactory
 
 class PersisterOppgaveLøser(
     rapidsConnection: RapidsConnection,
     val repository: Repository
 ) : River.PacketListener {
-
-    private val sikkerLogger = LoggerFactory.getLogger("tjenestekall")
 
     init {
         River(rapidsConnection).apply {
@@ -26,10 +23,10 @@ class PersisterOppgaveLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("PersisterOppgaveLøser: ${packet.toJson()}")
+        sikkerLogger.info("PersisterOppgaveLøser mottok pakke: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
         val oppgaveId = packet[Key.OPPGAVE_ID.str].asText()
         repository.oppdaterOppgaveId(oppgaveId, uuid)
-        logger.info("PersisterOppgaveLøser: Lagret oppgaveId: $oppgaveId for uuid: $uuid")
+        sikkerLogger.info("PersisterOppgaveLøser lagret oppgaveId $oppgaveId for uuid $uuid")
     }
 }

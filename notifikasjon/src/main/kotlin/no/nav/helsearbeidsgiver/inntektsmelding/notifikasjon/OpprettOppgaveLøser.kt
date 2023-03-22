@@ -11,11 +11,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import org.slf4j.LoggerFactory
 
-/**
- * Opprett oppgave i en sak
- */
 class OpprettOppgaveLøser(
     val rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
@@ -23,8 +19,6 @@ class OpprettOppgaveLøser(
 ) : River.PacketListener {
 
     private val om = customObjectMapper()
-
-    private val logger = LoggerFactory.getLogger(this::class.java)
     private val EVENT = EventName.FORESPØRSEL_MOTTATT
 
     init {
@@ -59,8 +53,7 @@ class OpprettOppgaveLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("OpprettOppgaveLøser: Mottok ${packet.toJson()}")
-        sikkerLogger.info("Mottok event $EVENT, pakke: ${packet.toJson()}")
+        sikkerLogger.info("OpprettOppgaveLøser mottok pakke: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
@@ -79,6 +72,6 @@ class OpprettOppgaveLøser(
         )
         val json = om.writeValueAsString(message)
         rapidsConnection.publish(json)
-        logger.info("OpprettOppgaveLøser: Publiserte: $json for uuid: $uuid")
+        sikkerLogger.info("OpprettOppgaveLøser publiserte uuid $uuid med json: $json")
     }
 }

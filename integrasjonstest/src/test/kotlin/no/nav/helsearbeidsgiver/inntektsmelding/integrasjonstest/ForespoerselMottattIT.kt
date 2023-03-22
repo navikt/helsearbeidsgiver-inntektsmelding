@@ -25,7 +25,6 @@ internal class ForespoerselMottattIT : EndToEndTest() {
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
         val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
 
-
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any())
         } answers {
@@ -36,7 +35,6 @@ internal class ForespoerselMottattIT : EndToEndTest() {
         } answers {
             "oppgave_id_456"
         }
-
 
         publish(
             mapOf(

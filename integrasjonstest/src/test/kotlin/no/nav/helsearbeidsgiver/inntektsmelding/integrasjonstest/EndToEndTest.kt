@@ -24,7 +24,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.slf4j.LoggerFactory
-import org.testcontainers.containers.PostgreSQLContainer
 import kotlin.concurrent.thread
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -41,8 +40,8 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var brregClient = mockk<BrregClient>()
     var inntektKlient = mockk<InntektKlient>()
     var dokarkivClient = mockk<DokArkivClient>()
-    val a = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakKt")
-    val b = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettOppgaveKt")
+    val placeholderSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakKt")
+    val placeholderOppgave = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettOppgaveKt")
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
 
@@ -51,17 +50,6 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var dataSource = mockk<HikariDataSource>()
     var database = mockk<Database>()
     var repository = mockk<Repository>()
-
-
-    fun mapDatabaseConfig(postgreSQLContainer: PostgreSQLContainer<Nothing>): DatabaseConfig {
-        return DatabaseConfig(
-            postgreSQLContainer.host,
-            postgreSQLContainer.firstMappedPort.toString(),
-            postgreSQLContainer.databaseName,
-            postgreSQLContainer.username,
-            postgreSQLContainer.password
-        )
-    }
 
     @BeforeAll
     fun beforeAll() {
@@ -102,7 +90,6 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     }
 
     override fun onMessage(message: String, context: MessageContext) {
-        println("onMessage: $message")
         results.add(message)
     }
 

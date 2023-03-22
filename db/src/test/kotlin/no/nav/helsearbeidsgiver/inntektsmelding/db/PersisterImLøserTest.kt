@@ -43,7 +43,7 @@ internal class PersisterImLøserTest {
     fun `skal publisere event for Inntektsmelding Mottatt`() {
         coEvery {
             repository.lagre(any(), any())
-        } returns "abc"
+        }
 
         val request = InnsendingRequest(
             "",

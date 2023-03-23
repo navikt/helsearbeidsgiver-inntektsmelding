@@ -19,19 +19,19 @@ fun main() {
 }
 
 fun RapidsConnection.createDb(database: Database, repository: Repository): RapidsConnection {
-    sikkerLogger.info("Starter Flyway migrering...")
+    logger.info("Starter Flyway migrering...")
     this.registerDbLifecycle(database)
-    sikkerLogger.info("Starter ForespørselMottattListener...")
+    logger.info("Starter ForespørselMottattListener...")
     ForespørselMottattListener(this, repository)
-    sikkerLogger.info("Starter PersisterImLøser...")
+    logger.info("Starter PersisterImLøser...")
     PersisterImLøser(this, repository)
-    sikkerLogger.info("Starter HentPersistertLøser...")
+    logger.info("Starter HentPersistertLøser...")
     HentPersistertLøser(this, repository)
-    sikkerLogger.info("Starter LagreJournalpostIdLøser...")
+    logger.info("Starter LagreJournalpostIdLøser...")
     LagreJournalpostIdLøser(this, repository)
-    sikkerLogger.info("Starter PersisterSakLøser...")
+    logger.info("Starter PersisterSakLøser...")
     PersisterSakLøser(this, repository)
-    sikkerLogger.info("Starter PersisterOppgaveLøser...")
+    logger.info("Starter PersisterOppgaveLøser...")
     PersisterOppgaveLøser(this, repository)
     return this
 }
@@ -39,9 +39,9 @@ fun RapidsConnection.createDb(database: Database, repository: Repository): Rapid
 private fun RapidsConnection.registerDbLifecycle(db: Database) {
     register(object : RapidsConnection.StatusListener {
         override fun onStartup(rapidsConnection: RapidsConnection) {
-            sikkerLogger.info("Migrerer database...")
+            logger.info("Migrerer database...")
             db.migrate()
-            sikkerLogger.info("Migrering ferdig.")
+            logger.info("Migrering ferdig.")
         }
 
         override fun onShutdown(rapidsConnection: RapidsConnection) {

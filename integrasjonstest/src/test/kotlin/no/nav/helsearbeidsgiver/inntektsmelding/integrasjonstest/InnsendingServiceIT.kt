@@ -67,6 +67,8 @@ class InnsendingServiceIT : EndToEndTest() {
             )
         )
         Thread.sleep(10000)
-        assertEquals(getMessageCount(), 7)
+        assertEquals(getMessageCount(), 7) {
+            "Message count was " + getMessageCount()
+        }
     }
 }

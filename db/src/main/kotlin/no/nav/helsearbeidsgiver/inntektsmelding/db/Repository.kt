@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
@@ -10,18 +11,16 @@ import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
 
 class Repository(private val db: Database) {
-    fun lagre(uuidLink: String, json: no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument): String =
+
+    fun oppdaterDokument(uuidLink: String, json: InntektsmeldingDokument): Unit =
         transaction(db) {
-            InntektsmeldingEntitet.run {
-                insert {
-                    it[uuid] = uuidLink
-                    it[dokument] = json
-                    it[opprettet] = LocalDateTime.now()
-                } get (uuid)
+            InntektsmeldingEntitet.update({ (InntektsmeldingEntitet.uuid eq uuidLink) and (InntektsmeldingEntitet.dokument eq null) }) {
+                it[dokument] = json
+                it[innsendt] = LocalDateTime.now()
             }
         }
 
-    fun hentNyeste(uuidLink: String): no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument? =
+    fun hentNyeste(uuidLink: String): InntektsmeldingDokument? =
         transaction(db) {
             InntektsmeldingEntitet.run {
                 select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)
@@ -36,7 +35,7 @@ class Repository(private val db: Database) {
         }
     }
 
-    fun oppdaterOppgaveId(oppgaveId: String, uuid: String) {
+    fun oppdaterOppgaveId(uuid: String, oppgaveId: String) {
         transaction(db) {
             InntektsmeldingEntitet.update({ (InntektsmeldingEntitet.uuid eq uuid) and (InntektsmeldingEntitet.oppgaveId eq null) }) {
                 it[InntektsmeldingEntitet.oppgaveId] = oppgaveId
@@ -48,6 +47,17 @@ class Repository(private val db: Database) {
         transaction(db) {
             InntektsmeldingEntitet.update({ (InntektsmeldingEntitet.uuid eq uuid) and (InntektsmeldingEntitet.sakId eq null) }) {
                 it[InntektsmeldingEntitet.sakId] = sakId
+            }
+        }
+    }
+
+    fun lagreForespørsel(uuidLink: String) {
+        transaction(db) {
+            InntektsmeldingEntitet.run {
+                insert {
+                    it[uuid] = uuidLink
+                    it[opprettet] = LocalDateTime.now()
+                }
             }
         }
     }

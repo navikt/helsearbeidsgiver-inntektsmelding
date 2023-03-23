@@ -42,8 +42,8 @@ internal class PersisterImLøserTest {
     @Test
     fun `skal publisere event for Inntektsmelding Mottatt`() {
         coEvery {
-            repository.lagre(any(), any())
-        } returns "abc"
+            repository.oppdaterDokument(any(), any())
+        } returns Unit
 
         val request = InnsendingRequest(
             "",

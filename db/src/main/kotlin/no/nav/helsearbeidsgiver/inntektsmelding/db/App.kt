@@ -9,7 +9,8 @@ val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 
 fun main() {
-    val database = Database()
+    val config = mapHikariConfig(DatabaseConfig())
+    val database = Database(config)
     val repository = Repository(database.db)
     RapidApplication
         .create(System.getenv())
@@ -18,21 +19,29 @@ fun main() {
 }
 
 fun RapidsConnection.createDb(database: Database, repository: Repository): RapidsConnection {
-    sikkerLogger.info("Starter Flyway migrering...")
+    logger.info("Starter Flyway migrering...")
     this.registerDbLifecycle(database)
-    sikkerLogger.info("Starter PersisterImLøser...")
+    logger.info("Starter ForespørselMottattListener...")
+    ForespørselMottattListener(this, repository)
+    logger.info("Starter PersisterImLøser...")
     PersisterImLøser(this, repository)
-    sikkerLogger.info("Starter HentPersistertLøser...")
+    logger.info("Starter HentPersistertLøser...")
     HentPersistertLøser(this, repository)
-    sikkerLogger.info("Starter LagreJournalpostIdLøser...")
+    logger.info("Starter LagreJournalpostIdLøser...")
     LagreJournalpostIdLøser(this, repository)
+    logger.info("Starter PersisterSakLøser...")
+    PersisterSakLøser(this, repository)
+    logger.info("Starter PersisterOppgaveLøser...")
+    PersisterOppgaveLøser(this, repository)
     return this
 }
 
 private fun RapidsConnection.registerDbLifecycle(db: Database) {
     register(object : RapidsConnection.StatusListener {
         override fun onStartup(rapidsConnection: RapidsConnection) {
+            logger.info("Migrerer database...")
             db.migrate()
+            logger.info("Migrering ferdig.")
         }
 
         override fun onShutdown(rapidsConnection: RapidsConnection) {

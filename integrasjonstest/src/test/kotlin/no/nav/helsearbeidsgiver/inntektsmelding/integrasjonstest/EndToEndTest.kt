@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import kotlin.concurrent.thread
+import kotlin.random.Random
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
@@ -49,6 +51,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     @BeforeAll
     fun beforeAllEndToEnd() {
+        val rand = Random.Default
         val env = HashMap<String, String>().also {
             it.put("KAFKA_RAPID_TOPIC", TOPIC)
             it.put("KAFKA_CREATE_TOPICS", TOPIC)
@@ -95,7 +98,9 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     @AfterAll
     fun afterAllEndToEnd() {
-        thread.stop()
+        CollectorRegistry.defaultRegistry.clear()
+        rapid.stop()
+        thread.interrupt()
         logger.info("Stopped")
     }
 

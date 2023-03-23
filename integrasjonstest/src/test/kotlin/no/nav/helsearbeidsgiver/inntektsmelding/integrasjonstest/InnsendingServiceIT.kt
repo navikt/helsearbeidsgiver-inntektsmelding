@@ -66,7 +66,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer
             )
         )
-        Thread.sleep(20000)
+        Thread.sleep(10000)
         assertEquals(getMessageCount(), 7)
     }
 }

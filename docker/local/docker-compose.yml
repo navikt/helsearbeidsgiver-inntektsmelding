@@ -7,7 +7,7 @@ networks:
 services:
 # todo: postgres
   im_zookeeper:
-    image: 'bitnami/zookeeper:3.6'
+    image: 'bitnami/zookeeper:latest'
     networks:
       - kafka-net
     ports:
@@ -15,7 +15,7 @@ services:
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
   im_kafka:
-    image: 'bitnami/kafka:3.3.1'
+    image: 'bitnami/kafka:latest'
     networks:
       - kafka-net
     ports:
@@ -23,7 +23,13 @@ services:
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=im_zookeeper:2181
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_DELETE_TOPIC_ENABLE=true
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - BITNAMI_DEBUG=yes
     depends_on:
       - im_zookeeper
 

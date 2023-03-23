@@ -71,11 +71,10 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
                 Key.DATA.str to "",
-                Key.INNTEKTSMELDING_DOKUMENT.str to customObjectMapper().writeValueAsString(inntektsmeldingDokument),
+                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
                 Key.UUID.str to uuid
             )
         )
-        logger.info("Publiserer OK DATA ${EventName.INNTEKTSMELDING_MOTTATT} for uuid: $uuid")
         rapidsConnection.publish(packet.toJson())
     }
 

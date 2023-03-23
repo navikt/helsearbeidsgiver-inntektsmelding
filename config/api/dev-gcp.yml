@@ -9,4 +9,4 @@ env:
   - name: DOKARKIV_URL
     value: https://dokarkiv.dev-fss-pub.nais.io
   - name: REDIS_URL
-    value: helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local
+    value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0

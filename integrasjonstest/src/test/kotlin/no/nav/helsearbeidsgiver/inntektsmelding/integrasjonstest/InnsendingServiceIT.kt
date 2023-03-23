@@ -24,7 +24,10 @@ class InnsendingServiceIT : EndToEndTest() {
         this.filterMessages = {
             val eventName = it.get(Key.EVENT_NAME.str).asText()
             val msgUuid = it.get(Key.UUID.str).asText()
-            msgUuid == uuid && (eventName == EventName.INSENDING_STARTED.name || (eventName == EventName.INNTEKTSMELDING_MOTTATT.name && !it.has(Key.BEHOV.str))) && !it.has(
+            msgUuid == uuid && (
+                eventName == EventName.INSENDING_STARTED.name ||
+                    (eventName == EventName.INNTEKTSMELDING_MOTTATT.name && !it.has(Key.BEHOV.str))
+                ) && !it.has(
                 Key.LØSNING.str
             )
         }

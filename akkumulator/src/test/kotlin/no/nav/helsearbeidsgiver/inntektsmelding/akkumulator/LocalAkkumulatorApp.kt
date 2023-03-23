@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 
 fun main() {
     val environment = LocalAkkumulatorApp().setupEnvironment("im-akkumulator", 8082)

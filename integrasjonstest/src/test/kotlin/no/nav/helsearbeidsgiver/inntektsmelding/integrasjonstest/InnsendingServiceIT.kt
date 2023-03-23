@@ -20,6 +20,13 @@ class InnsendingServiceIT : EndToEndTest() {
     @Test
     fun `Test at innsnending er mottatt`() {
         val uuid = UUID.randomUUID().toString()
+        this.filterMessages = {
+            val eventName = it.get(Key.EVENT_NAME.str).asText()
+            val msgUuid = it.get(Key.UUID.str).asText()
+            msgUuid == uuid && (eventName == EventName.INSENDING_STARTED.name || eventName == EventName.INNTEKTSMELDING_MOTTATT.name) && !it.has(
+                Key.LØSNING.str
+            )
+        }
         val brregClient = this.brregClient
         every {
             runBlocking {

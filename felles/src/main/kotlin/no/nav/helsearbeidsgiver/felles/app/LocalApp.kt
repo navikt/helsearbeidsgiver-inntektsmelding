@@ -11,6 +11,7 @@ open class LocalApp {
             "LOGINSERVICE_IDPORTEN_DISCOVERY_URL" to "https://fakedings.dev-gcp.nais.io/default/.well-known/openid-configuration",
             "NAIS_APP_NAME" to "nimrod",
             "REDIS_URL" to "redis://localhost:6379/0",
+            "REDIS_HOST" to "localhost",
             "HTTP_PORT" to "" + httpPort
         )
         env.forEach { (k, v) -> System.setProperty(k, v) }

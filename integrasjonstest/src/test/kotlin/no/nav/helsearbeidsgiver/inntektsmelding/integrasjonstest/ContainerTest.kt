@@ -10,7 +10,7 @@ import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
-import java.util.*
+import java.util.Properties
 
 open class ContainerTest {
     // Containers

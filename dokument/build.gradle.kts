@@ -48,7 +48,6 @@ tasks {
             "--targets", "http_models",
             "--http-client-opts", "resilience4j"
         )
-
     }
 
     register<FormatTask>("ktFormat") {

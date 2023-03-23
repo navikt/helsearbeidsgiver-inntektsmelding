@@ -100,7 +100,7 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
 
         repository.lagreForespørsel(UUID)
         repository.oppdaterDokument(UUID, DOK_1)
-        repository.oppdaterOppgaveId(OPPGAVE_ID_1, UUID)
+        repository.oppdaterOppgaveId(UUID, OPPGAVE_ID_1)
         val dok1 = repository.hentNyeste(UUID)
         dok1.shouldBe(DOK_1)
     }

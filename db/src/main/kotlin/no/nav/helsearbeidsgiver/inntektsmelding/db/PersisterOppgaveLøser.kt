@@ -26,7 +26,7 @@ class PersisterOppgaveLøser(
         sikkerLogger.info("PersisterOppgaveLøser mottok pakke: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
         val oppgaveId = packet[Key.OPPGAVE_ID.str].asText()
-        repository.oppdaterOppgaveId(oppgaveId, uuid)
+        repository.oppdaterOppgaveId(uuid, oppgaveId)
         sikkerLogger.info("PersisterOppgaveLøser lagret oppgaveId $oppgaveId for uuid $uuid")
     }
 }

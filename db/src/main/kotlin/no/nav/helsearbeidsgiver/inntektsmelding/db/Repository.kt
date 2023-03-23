@@ -35,7 +35,7 @@ class Repository(private val db: Database) {
         }
     }
 
-    fun oppdaterOppgaveId(oppgaveId: String, uuid: String) {
+    fun oppdaterOppgaveId(uuid: String, oppgaveId: String) {
         transaction(db) {
             InntektsmeldingEntitet.update({ (InntektsmeldingEntitet.uuid eq uuid) and (InntektsmeldingEntitet.oppgaveId eq null) }) {
                 it[InntektsmeldingEntitet.oppgaveId] = oppgaveId

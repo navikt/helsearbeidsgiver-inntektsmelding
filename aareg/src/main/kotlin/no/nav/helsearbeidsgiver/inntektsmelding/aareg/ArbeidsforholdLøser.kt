@@ -11,8 +11,10 @@ import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Data
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.log.logger
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
@@ -33,7 +35,9 @@ class ArbeidsforholdLøser(
                 it.requireKey(
                     Key.ID.str,
                     Key.IDENTITETSNUMMER.str
+                    //    Key.UUID.str
                 )
+                it.interestedIn(Key.UUID.str)
             }
         }.register(this)
     }
@@ -54,6 +58,35 @@ class ArbeidsforholdLøser(
 
         packet.setLøsning(behovType, løsning)
         context.publish(packet.toJson())
+
+        if (arbeidsforhold != null) {
+            publishDatagram(Data(arbeidsforhold), packet, context)
+        } else {
+            publishFail(Feilmelding("Klarte ikke hente arbeidsforhold"), packet, context)
+        }
+    }
+
+    fun publishDatagram(data: Data<Any>, jsonMessage: JsonMessage, context: MessageContext) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
+                Key.DATA.str to "",
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
+                "arbeidsforhold" to customObjectMapper().writeValueAsString(data)
+            )
+        )
+        context.publish(message.toJson())
+    }
+
+    fun publishFail(fail: Feilmelding, jsonMessage: JsonMessage, context: MessageContext) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
+                Key.FAIL.str to customObjectMapper().writeValueAsString(fail),
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+            )
+        )
+        context.publish(message.toJson())
     }
 
     private fun hentArbeidsforhold(fnr: String, callId: String): List<Arbeidsforhold>? =

@@ -7,13 +7,11 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 
-abstract class EventListener(val rapidsConnection: RapidsConnection) : River.PacketListener {
-
-    abstract val event: EventName
-    lateinit var ex: (packet: JsonMessage, context: MessageContext) -> Unit
+abstract class DataKanal(val rapidsConnection: RapidsConnection) : River.PacketListener {
+    abstract val eventName: EventName
 
     init {
-        configureAsListener(
+        configure(
             River(rapidsConnection).apply {
                 validate(accept())
             }
@@ -22,24 +20,19 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
 
     abstract fun accept(): River.PacketValidation
 
-    private fun configureAsListener(river: River): River {
+    protected fun configure(river: River): River {
         return river.validate {
-            it.demandValue(Key.EVENT_NAME.str, event.name)
+            it.demandValue(Key.EVENT_NAME.str, eventName.name)
+            it.demandKey(Key.DATA.str)
             it.rejectKey(Key.BEHOV.str)
             it.rejectKey(Key.LØSNING.str)
-            it.rejectKey(Key.DATA.str)
-            it.interestedIn(Key.UUID.str)
+            it.requireKey(Key.UUID.str)
         }
     }
 
-    fun publishBehov(message: JsonMessage) {
-        message.set(Key.EVENT_NAME.str, event.name)
-        rapidsConnection.publish(message.toJson())
-    }
-
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        onEvent(packet)
+        onData(packet)
     }
 
-    abstract fun onEvent(packet: JsonMessage)
+    abstract fun onData(packet: JsonMessage)
 }

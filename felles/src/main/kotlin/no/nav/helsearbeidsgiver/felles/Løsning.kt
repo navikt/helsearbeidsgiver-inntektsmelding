@@ -10,6 +10,10 @@ sealed class Løsning {
     abstract val error: Feilmelding?
 }
 
+data class Data<T>(
+    val t: T? = null
+)
+
 @Serializable
 data class Feilmelding(
     val melding: String,
@@ -79,6 +83,18 @@ data class HentPersistertLøsning(
 
 @Serializable
 data class LagreJournalpostLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
+
+@Serializable
+data class PersisterSakIdLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
+
+@Serializable
+data class PersisterOppgaveIdLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()

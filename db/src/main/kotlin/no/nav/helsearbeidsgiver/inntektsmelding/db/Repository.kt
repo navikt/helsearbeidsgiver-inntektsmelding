@@ -35,4 +35,20 @@ class Repository(private val db: Database) {
             }
         }
     }
+
+    fun oppdaterOppgaveId(oppgaveId: String, uuid: String) {
+        transaction(db) {
+            InntektsmeldingEntitet.update({ (InntektsmeldingEntitet.uuid eq uuid) and (InntektsmeldingEntitet.oppgaveId eq null) }) {
+                it[InntektsmeldingEntitet.oppgaveId] = oppgaveId
+            }
+        }
+    }
+
+    fun oppdaterSakId(sakId: String, uuid: String) {
+        transaction(db) {
+            InntektsmeldingEntitet.update({ (InntektsmeldingEntitet.uuid eq uuid) and (InntektsmeldingEntitet.sakId eq null) }) {
+                it[InntektsmeldingEntitet.sakId] = sakId
+            }
+        }
+    }
 }

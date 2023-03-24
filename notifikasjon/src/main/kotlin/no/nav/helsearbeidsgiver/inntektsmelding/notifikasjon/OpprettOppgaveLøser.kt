@@ -42,7 +42,7 @@ class OpprettOppgaveLøser(
     ): String {
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
-                "eksternid",
+                uuid,
                 "$linkUrl/im-dialog/$uuid",
                 "Send inn inntektsmelding",
                 orgnr,

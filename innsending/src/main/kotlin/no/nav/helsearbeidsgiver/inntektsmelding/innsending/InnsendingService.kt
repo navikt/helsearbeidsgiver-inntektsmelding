@@ -105,7 +105,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                    Key.INNTEKTSMELDING_DOKUMENT.str to message[Key.INNTEKTSMELDING_DOKUMENT.str].asText(),
+                    Key.INNTEKTSMELDING_DOKUMENT.str to message[Key.INNTEKTSMELDING_DOKUMENT.str],
                     Key.UUID.str to message[Key.UUID.str]
                 )
             ).toJson()

@@ -38,14 +38,14 @@ class StatefullDataKanal(
     fun collectData(message: JsonMessage): Boolean {
         // Akkuratt nå bare svarer med 1 data element men kan svare med mange
         val data = dataFelter.filter { dataFelt ->
-            message[dataFelt].asText().isNotEmpty()
+            !message[dataFelt].isMissingNode
         }.map { dataFelt ->
             Pair(dataFelt, message[dataFelt])
         }.ifEmpty {
             return false
         }.first()
-
-        redisStore.set(message[Key.UUID.str].asText() + data!!.first, data!!.second.asText())
+        val str = if (data!!.second.isTextual) { data!!.second.asText() } else data!!.second.toString()
+        redisStore.set(message[Key.UUID.str].asText() + data!!.first, str)
         return true
     }
 }

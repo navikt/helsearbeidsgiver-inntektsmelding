@@ -8,7 +8,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 import java.util.Properties
 
@@ -16,33 +15,32 @@ open class ContainerTest {
     // Containers
     val kafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"))
     val redisContainer = RedisContainer(RedisContainer.DEFAULT_IMAGE_NAME.withTag(RedisContainer.DEFAULT_TAG))
-    val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:latest")
+    val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:14")
 
     val TOPIC = "helsearbeidsgiver.inntektsmelding"
 
     @BeforeAll
     fun startContainers() {
-        logger.info("Starter Kafka...")
+        println("Starter containerne...")
+        println("Starter Kafka...")
         kafkaContainer.start()
         val props = Properties()
         props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.bootstrapServers)
         val adminClient: AdminClient = AdminClient.create(props)
         adminClient.createTopics(listOf(NewTopic(TOPIC, 1, 1.toShort())))
-        logger.info("Starter Redis...")
-        redisContainer
-            .waitingFor(Wait.defaultWaitStrategy())
-            .start()
-        logger.info("Redis port: ${redisContainer.firstMappedPort}")
-        logger.info("Starter Postgres...")
+        println("Starter Redis...")
+        redisContainer.start()
+        println("Starter Postgres...")
         postgreSQLContainer.start()
+        println("Containerne er klare!")
     }
 
     @AfterAll
     fun stopContainers() {
-        logger.info("Stopping...")
+        println("Stopper containere...")
         kafkaContainer.stop()
         postgreSQLContainer.stop()
         redisContainer.stop()
-        logger.info("Stopped")
+        println("Containere er stoppet!")
     }
 }

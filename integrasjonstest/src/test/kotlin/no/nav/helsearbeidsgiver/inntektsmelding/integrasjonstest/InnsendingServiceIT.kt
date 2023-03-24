@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
@@ -23,7 +24,10 @@ class InnsendingServiceIT : EndToEndTest() {
         this.filterMessages = {
             val eventName = it.get(Key.EVENT_NAME.str).asText()
             val msgUuid = it.get(Key.UUID.str).asText()
-            msgUuid == uuid && (eventName == EventName.INSENDING_STARTED.name || eventName == EventName.INNTEKTSMELDING_MOTTATT.name) && !it.has(
+            msgUuid == uuid && (
+                eventName == EventName.INSENDING_STARTED.name ||
+                    (eventName == EventName.INNTEKTSMELDING_MOTTATT.name && !it.has(Key.BEHOV.str))
+                ) && !it.has(
                 Key.LØSNING.str
             )
         }
@@ -62,7 +66,9 @@ class InnsendingServiceIT : EndToEndTest() {
                 Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer
             )
         )
-        Thread.sleep(20000)
-        assert(getMessageCount() == 9)
+        Thread.sleep(10000)
+        assertEquals(getMessageCount(), 7) {
+            "Message count was " + getMessageCount()
+        }
     }
 }

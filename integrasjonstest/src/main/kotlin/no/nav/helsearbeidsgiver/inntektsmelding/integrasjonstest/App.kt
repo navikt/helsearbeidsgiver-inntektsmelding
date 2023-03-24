@@ -54,10 +54,9 @@ fun RapidsConnection.buildApp(
     this.createBrreg(brregClient, true)
     this.createInnsending(redisStore)
     this.createDb(database, repository)
-    // this.createDb(database, repository)
-    // this.createDistribusjon()
+    // this.createDistribusjon() // TODO Integrasjonstester må bruke distribusjon appen
     this.createForespoerselMottatt()
-    // this.createHelsebro()
+    // this.createHelsebro() // TODO  Integrasjonstester må bruke helsebro appen
     this.createInntekt(inntektKlient)
     this.createJoark(dokarkivClient)
     this.createPdl(pdlClient)

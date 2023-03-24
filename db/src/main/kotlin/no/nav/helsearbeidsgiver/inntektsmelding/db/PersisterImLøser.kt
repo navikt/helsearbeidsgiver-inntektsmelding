@@ -54,14 +54,12 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
             val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(packet[Key.INNTEKTSMELDING.str], InnsendingRequest::class.java)
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
-            val dbUuid = repository.lagre(uuid, inntektsmeldingDokument)
-            sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $dbUuid") // TODO: lagre / benytte separat id i database?
+            repository.oppdaterDokument(uuid, inntektsmeldingDokument)
+            sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $uuid") // TODO: lagre / benytte separat id i database?
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
             publiserLøsning(PersisterImLøsning(value = customObjectMapper().writeValueAsString(inntektsmeldingDokument)), packet)
             publiserOK(uuid, inntektsmeldingDokument)
         } catch (ex: Exception) {
-            ex.printStackTrace()
-            logger.info(ex.toString())
             logger.error("Klarte ikke persistere: $uuid")
             sikkerlogg.error("Klarte ikke persistere: $uuid", ex)
             publiserLøsning(PersisterImLøsning(error = Feilmelding(melding = "Klarte ikke persistere!")), packet)
@@ -73,11 +71,10 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Repo
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
                 Key.DATA.str to "",
-                Key.INNTEKTSMELDING_DOKUMENT.str to customObjectMapper().writeValueAsString(inntektsmeldingDokument),
+                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
                 Key.UUID.str to uuid
             )
         )
-        logger.info("Publiserer OK DATA ${EventName.INNTEKTSMELDING_MOTTATT} for uuid: $uuid")
         rapidsConnection.publish(packet.toJson())
     }
 

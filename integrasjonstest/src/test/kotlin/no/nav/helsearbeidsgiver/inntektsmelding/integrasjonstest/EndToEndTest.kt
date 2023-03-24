@@ -2,6 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -20,17 +22,16 @@ import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
-import org.slf4j.LoggerFactory
-import java.util.HashMap
 import kotlin.concurrent.thread
+import kotlin.random.Random
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
-    val logger = LoggerFactory.getLogger(this::class.java)
-    private lateinit var thread: Thread
+
     lateinit var rapid: RapidsConnection
     private val om = customObjectMapper()
     private var results: MutableList<String> = mutableListOf()
+    private lateinit var thread: Thread
 
     // Clients
     var pdlClient = mockk<PdlClient>()
@@ -38,14 +39,19 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var brregClient = mockk<BrregClient>()
     var inntektKlient = mockk<InntektKlient>()
     var dokarkivClient = mockk<DokArkivClient>()
-    var database = mockk<Database>(relaxed = true)
-    var repository = mockk<Repository>(relaxed = true)
+    val placeholderSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakKt")
+    val placeholderOppgave = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettOppgaveKt")
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
     var filterMessages: (JsonNode) -> Boolean = { true }
 
+    // Database
+    var database = mockk<Database>()
+    var repository = mockk<Repository>()
+
     @BeforeAll
     fun beforeAllEndToEnd() {
+        val rand = Random.Default
         val env = HashMap<String, String>().also {
             it.put("KAFKA_RAPID_TOPIC", TOPIC)
             it.put("KAFKA_CREATE_TOPICS", TOPIC)
@@ -55,6 +61,13 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         }
         // Klienter
         val redisStore = RedisStore(redisContainer.redisURI)
+
+        // Databasen - konfig må gjøres her ETTER at postgreSQLContainer er startet
+        val config = mapHikariConfigByContainer(postgreSQLContainer)
+
+        println("Database: jdbcUrl: ${config.jdbcUrl}")
+        database = Database(config)
+        repository = Repository(database.db)
 
         // Rapids
         rapid = RapidApplication.create(env).buildApp(
@@ -85,12 +98,16 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     @AfterAll
     fun afterAllEndToEnd() {
-        thread.stop()
+        CollectorRegistry.defaultRegistry.clear()
+        rapid.stop()
+        thread.interrupt()
         logger.info("Stopped")
     }
 
     fun publish(value: Any) {
-        rapid.publish(om.writeValueAsString(value))
+        val json = om.writeValueAsString(value)
+        println("Publiserer melding: $json")
+        rapid.publish(json)
     }
 
     fun getMessages(t: (JsonNode) -> Boolean): List<JsonNode> {
@@ -98,10 +115,10 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     }
 
     fun getMessage(index: Int): JsonNode {
-        return Json.parseToJsonElement(results[index]).toJsonNode()
+        return Json.parseToJsonElement(results[index + 1]).toJsonNode()
     }
 
     fun getMessageCount(): Int {
-        return results.size
+        return results.size - 1
     }
 }

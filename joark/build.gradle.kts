@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":dokument"))
     implementation("org.apache.pdfbox:pdfbox:$pdfboxVersion")
     implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkiv_version")
-    implementation("no.nav.helsearbeidsgiver:helsearbeidsgiver-kontrakt-inntektsmelding:$hagImXmlKontraktVersion")
+    implementation("no.nav.helsearbeidsgiver:helsearbeidsgiver-kontrakt-inntektsmelding2:1.0.9")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-json:$ktorVersion")

@@ -39,7 +39,7 @@ fun RapidsConnection.createDb(database: Database, repository: Repository): Rapid
 private fun RapidsConnection.registerDbLifecycle(db: Database) {
     register(object : RapidsConnection.StatusListener {
         override fun onStartup(rapidsConnection: RapidsConnection) {
-            logger.info("Migrerer database...")
+            logger.info("Migrering starter...")
             db.migrate()
             logger.info("Migrering ferdig.")
         }

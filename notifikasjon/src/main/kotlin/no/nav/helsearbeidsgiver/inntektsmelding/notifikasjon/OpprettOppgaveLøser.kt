@@ -61,7 +61,7 @@ class OpprettOppgaveLøser(
         val sakId = packet[Key.SAK_ID.str].asText()
         val oppgaveId = opprettOppgave(uuid, orgnr)
         val message = mapOf(
-            Key.EVENT_NAME.str to listOf(EVENT),
+            Key.EVENT_NAME.str to EVENT,
             Key.BEHOV.str to listOf(BehovType.PERSISTER_OPPGAVE_ID.name),
             Key.UUID.str to uuid,
             Key.IDENTITETSNUMMER.str to fnr,

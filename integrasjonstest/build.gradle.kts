@@ -5,6 +5,7 @@ val ktorVersion: String by project
 val postgresqlVersion: String by project
 val testcontainersPostgresqlVersion: String by project
 val aaregClientVersion: String by project
+val arbeidsgiverNotifikasjonVersion: String by project
 
 dependencies {
     implementation(project(":dokument"))
@@ -44,8 +45,7 @@ dependencies {
     implementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
     implementation("no.nav.helsearbeidsgiver:brreg-client:0.3.0")
     implementation("no.nav.helsearbeidsgiver:pdl-client:0.2.1")
-    implementation("no.nav.helsearbeidsgiver:pdl-client:0.2.1")
-    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:0.3.2")
+    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonVersion")
     implementation("no.nav.helsearbeidsgiver:dokarkiv-client:0.1.9")
     implementation("no.nav.helsearbeidsgiver:inntekt-klient:0.1.9")
 }

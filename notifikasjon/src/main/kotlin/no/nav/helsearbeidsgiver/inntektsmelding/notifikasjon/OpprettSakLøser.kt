@@ -67,6 +67,7 @@ class OpprettSakLøser(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
+        logger.info("OpprettSakLøser fikk pakke for uuid: $uuid")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val navn = packet[Key.LØSNING.str].toJsonElement().fromJson(NavnLøsning.serializer()).value ?: "Ukjent"
@@ -85,5 +86,6 @@ class OpprettSakLøser(
         val json = om.writeValueAsString(msg)
         rapidsConnection.publish(json)
         sikkerLogger.info("OpprettSakLøser: Publiserte: $json")
+        logger.info("OpprettSakLøser publiserte behov ${BehovType.PERSISTER_SAK_ID.name} og ${BehovType.OPPRETT_OPPGAVE.name} uuid: $uuid")
     }
 }

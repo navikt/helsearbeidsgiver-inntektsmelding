@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -20,20 +21,22 @@ internal class ForespoerselMottattIT : EndToEndTest() {
     val FNR = "fnr-123"
     val ORGNR = "orgnr-456"
     val FORESPOERSEL = UUID.randomUUID().toString()
+    val SAK_ID = "sak_id_123"
+    val OPPGAVE_ID = "oppgave_id_456"
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
         val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
 
         coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any())
+            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
         } answers {
-            "sak_id_123"
+            SAK_ID
         }
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any())
         } answers {
-            "oppgave_id_456"
+            OPPGAVE_ID
         }
 
         publish(
@@ -44,21 +47,56 @@ internal class ForespoerselMottattIT : EndToEndTest() {
                 Pri.Key.FORESPOERSEL_ID.str to FORESPOERSEL
             )
         )
-        Thread.sleep(5000)
-        /**
-         * Motta forespørsel
-         * Hent navn
-         * Opprett NotifikasjonSak
-         * PersisterSak
-         * Opprett NotifikasjonOppgave
-         * PersisterOppgave
-         */
-        assertEquals(5, getMessageCount())
-        val msg1 = getMessage(0)
-        assertEquals(EventName.FORESPØRSEL_MOTTATT.name, msg1.get(Key.EVENT_NAME.str).asText())
-        assertEquals(BehovType.NOTIFIKASJON_TRENGER_IM.name, msg1.get(Key.BEHOV.str).asText())
-        assertEquals(ORGNR, msg1.get(Key.ORGNRUNDERENHET.str).asText())
-        assertEquals(FNR, msg1.get(Key.IDENTITETSNUMMER.str).asText())
-        assertEquals(FORESPOERSEL, msg1.get(Key.UUID.str).asText())
+        Thread.sleep(8000)
+
+        with(getMessage(0)) {
+            assertEquals(BehovType.NOTIFIKASJON_TRENGER_IM.name, get(Key.BEHOV.str).asText())
+
+            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
+            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
+            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
+            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
+        }
+
+        with(getMessage(1)) {
+            assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
+
+            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
+            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
+            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
+            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
+        }
+
+        with(getMessage(2)) {
+            assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
+            assertNotNull(get(Key.LØSNING.str).get(BehovType.FULLT_NAVN.name).asText()) // Løsning
+
+            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
+            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
+            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
+            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
+        }
+
+        with(getMessage(3)) {
+            assertEquals(BehovType.PERSISTER_SAK_ID.name, get(Key.BEHOV.str)[0].asText())
+            assertEquals(BehovType.OPPRETT_OPPGAVE.name, get(Key.BEHOV.str)[1].asText())
+
+            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
+            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
+            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
+            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
+            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
+        }
+
+        with(getMessage(4)) {
+            assertEquals(BehovType.PERSISTER_OPPGAVE_ID.name, get(Key.BEHOV.str)[0].asText())
+
+            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
+            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
+            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
+            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
+            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
+            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
+        }
     }
 }

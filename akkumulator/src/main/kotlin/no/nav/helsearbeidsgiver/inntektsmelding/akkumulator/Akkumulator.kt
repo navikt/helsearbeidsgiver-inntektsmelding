@@ -49,6 +49,7 @@ class Akkumulator(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        sikkerlogg.debug("Fikk pakke ${packet.toJson()}")
         val boomerang = Key.BOOMERANG.let(packet::valueNullable)
             ?.toJsonElement()
             ?.fromJson(

@@ -8,7 +8,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:0.3.3")
+    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:1.0.0")
     implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
 }

@@ -44,7 +44,7 @@ class OpprettOppgaveLøser(
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
                 "eksternid",
                 "$linkUrl/im-dialog/$uuid",
-                "Oppgave venter",
+                "Send inn inntektsmelding",
                 orgnr,
                 "Inntektsmelding",
                 null

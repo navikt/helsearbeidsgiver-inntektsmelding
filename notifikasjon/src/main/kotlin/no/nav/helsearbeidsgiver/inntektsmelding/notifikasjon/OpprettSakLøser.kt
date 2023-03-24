@@ -58,6 +58,7 @@ class OpprettSakLøser(
                 virksomhetsnummer = orgnr,
                 tittel = "Inntektsmelding for $navn: f. $fødselsdato",
                 lenke = "$linkUrl/im-dialog/$uuid",
+                statusTekst = "NAV trenger inntektsmelding",
                 harddeleteOm = "P5M"
             )
         }

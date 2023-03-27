@@ -6,6 +6,7 @@ networks:
 
 services:
   im_db:
+    hostname: postgres
     image: 'postgres:14'
     ports:
       - '5432:5432'

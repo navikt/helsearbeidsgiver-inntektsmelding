@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import com.zaxxer.hikari.HikariConfig
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import org.slf4j.Logger
@@ -9,7 +10,10 @@ val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 
 fun main() {
-    val config = mapHikariConfig(DatabaseConfig())
+    buildApp(mapHikariConfig(DatabaseConfig()))
+}
+
+fun buildApp(config: HikariConfig) {
     val database = Database(config)
     val repository = Repository(database.db)
     RapidApplication

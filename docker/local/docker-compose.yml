@@ -5,7 +5,14 @@ networks:
     driver: bridge
 
 services:
-# todo: postgres
+  im_db:
+    image: 'postgres:14'
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=im_db
   im_zookeeper:
     image: 'bitnami/zookeeper:latest'
     networks:

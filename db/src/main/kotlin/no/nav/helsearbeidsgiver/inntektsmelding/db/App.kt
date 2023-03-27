@@ -10,14 +10,14 @@ val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 
 fun main() {
-    buildApp(mapHikariConfig(DatabaseConfig()))
+    buildApp(mapHikariConfig(DatabaseConfig()), System.getenv())
 }
 
-fun buildApp(config: HikariConfig) {
+fun buildApp(config: HikariConfig, env: Map<String, String>) {
     val database = Database(config)
     val repository = Repository(database.db)
     RapidApplication
-        .create(System.getenv())
+        .create(env)
         .createDb(database, repository)
         .start()
 }

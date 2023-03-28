@@ -15,6 +15,7 @@ fun main() {
 
 fun buildApp(config: HikariConfig, env: Map<String, String>) {
     val database = Database(config)
+    logger.info("Bruker database url: ${config.jdbcUrl}")
     val repository = Repository(database.db)
     RapidApplication
         .create(env)

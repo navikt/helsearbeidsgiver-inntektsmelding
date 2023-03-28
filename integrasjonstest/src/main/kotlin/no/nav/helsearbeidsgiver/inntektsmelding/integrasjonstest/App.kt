@@ -42,8 +42,7 @@ fun main() {
         .start()
 }
 
-fun RapidsConnection.buildLocalApp(
-): RapidsConnection {
+fun RapidsConnection.buildLocalApp(): RapidsConnection {
     val redisStore = RedisStore("redis://localhost:6379/0")
     val database = Database(mapHikariConfig(DatabaseConfig("127.0.0.1", "5432", "im_db", "postgres", "test")))
     val repository = Repository(database.db)

@@ -1,13 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import io.kotest.equals.Equality
-import io.kotest.equals.byReflectionUsingFields
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers.InntektDokumentTilSkjemainnholdMapper
 import no.seres.xsd.nav.inntektsmelding_m._20181211.InntektsmeldingM
-import org.apache.commons.lang3.builder.EqualsBuilder
+import no.seres.xsd.nav.inntektsmelding_m._20181211.ObjectFactory
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mapstruct.factory.Mappers
-import kotlin.reflect.full.memberProperties
 
 class XMLMapperTest {
 
@@ -16,14 +14,16 @@ class XMLMapperTest {
         val mockInntektsmeldingDokument = MockInntektsmeldingDokument()
         val mapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
         val inntektM = mapper.InntektDokumentTilInntekstmeldingM(mockInntektsmeldingDokument)
-
         val strIm = xmlMapper().writeValueAsString(inntektM)
-        println(strIm)
+        val of = ObjectFactory()
+        val jaxbElement = of.createMelding(inntektM)
+        // println(strIm)
+        println(xmlMapper().writeValueAsString(jaxbElement))
         val reverseImM = xmlMapper().readValue(strIm, InntektsmeldingM::class.java)
-       // Assertions.assertEquals(inntektM, reverseImM)
-        EqualsBuilder().setTestRecursive(true).reflectionAppend(inntektM, reverseImM)
-            val result = Equality.byReflectionUsingFields<InntektsmeldingM>(*InntektsmeldingM::class.memberProperties.toTypedArray()).verify(inntektM,reverseImM)
-        println(result)
-
+        assertEquals(mockInntektsmeldingDokument.beregnetInntekt, reverseImM.skjemainnhold.arbeidsforhold.beregnetInntekt.beloep)
+        assertEquals(
+            mockInntektsmeldingDokument.arbeidsgiverperioder.size,
+            reverseImM.skjemainnhold.sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe.size
+        )
     }
 }

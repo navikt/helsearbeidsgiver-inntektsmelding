@@ -5,6 +5,16 @@ val jacksonVersion: String by project
 val jaxbAPIVersion: String by project
 val jaxbRuntimeVersion: String by project
 
+plugins {
+    kotlin("kapt")
+}
+
+tasks {
+    withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
+}
+
 dependencies {
     val pdfboxVersion: String by project
     implementation(project(":dokument"))
@@ -21,4 +31,6 @@ dependencies {
     implementation("io.ktor:ktor-client-serialization:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("org.mapstruct:mapstruct:1.5.3.Final")
+    kapt("org.mapstruct:mapstruct-processor:1.5.3.Final")
 }

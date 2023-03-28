@@ -46,10 +46,11 @@ fun mapXmlDokument(inntektsmeldingDokument: no.nav.helsearbeidsgiver.felles.innt
         <opphoerAvNaturalytelseListe>
             ${mapNaturalytelser(inntektsmeldingDokument.naturalytelser)}
         </opphoerAvNaturalytelseListe>
-        <innsendingstidspunkt>${inntektsmeldingDokument.tidspunkt}</innsendingstidspunkt>
+
         <avsendersystem>
             <systemnavn>NAV_NO</systemnavn>
             <systemversjon>1.0</systemversjon>
+            <innsendingstidspunkt>${inntektsmeldingDokument.tidspunkt}</innsendingstidspunkt>
         </avsendersystem>
     </Skjemainnhold>
 </melding>

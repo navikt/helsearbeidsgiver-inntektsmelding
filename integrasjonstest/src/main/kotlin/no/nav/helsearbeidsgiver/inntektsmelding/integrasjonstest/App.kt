@@ -11,8 +11,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
+import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
+import no.nav.helsearbeidsgiver.inntektsmelding.db.mapHikariConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -25,15 +27,30 @@ import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-integrasjon")
 
 fun main() {
-    sikkerLogger.info("Starter Integrasjon app...") // dummy placeholder fordi man må ha en App i modulen
+    val env = mutableMapOf<String, String>()
+    with(env) {
+        put("KAFKA_RAPID_TOPIC", "helsearbeidsgiver.inntektsmelding")
+        put("KAFKA_BOOTSTRAP_SERVERS", "PLAINTEXT://localhost:9092")
+        put("KAFKA_CONSUMER_GROUP_ID", "HAG")
+    }
     RapidApplication
-        .create(System.getenv())
-        // .buildApp()
+        .create(env)
+        .buildLocalApp()
         .start()
+}
+
+fun RapidsConnection.buildLocalApp(
+): RapidsConnection {
+    val redisStore = RedisStore("redis://localhost:6379/0")
+    val database = Database(mapHikariConfig(DatabaseConfig("127.0.0.1", "5432", "im_db", "postgres", "test")))
+    val repository = Repository(database.db)
+    this.createAkkumulator(redisStore)
+    this.createDb(database, repository)
+    this.createForespoerselMottatt()
+    return this
 }
 
 fun RapidsConnection.buildApp(
@@ -48,7 +65,7 @@ fun RapidsConnection.buildApp(
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     notifikasjonLink: String
 ): RapidsConnection {
-    sikkerLogger.info("Starting App")
+    logger.info("Starting App")
     this.createAareg(aaregClient)
     this.createAkkumulator(redisStore)
     this.createBrreg(brregClient, true)

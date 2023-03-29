@@ -10,7 +10,7 @@
     <logger name="org.jetbrains" level="DEBUG"/>
     <logger name="com.zaxxer" level="DEBUG"/>
     <logger name="ktor.application" level="DEBUG"/>
-    <logger name="io.ktor" level="TRACE"/>
+    <logger name="io.ktor" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>

@@ -93,4 +93,8 @@ spec:
         - application: notifikasjon-produsent-api
           namespace: fager
           cluster: dev-gcp
+      external:
+        - host: helsearbeidsgiver-proxy.dev-fss-pub.nais.io
+        - host: api-gw-q1.oera.no
+        - host: ag-notifikasjon-produsent-api.dev.nav.no
 

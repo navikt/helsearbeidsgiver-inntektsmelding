@@ -24,11 +24,12 @@ class NotifikasjonInntektsmeldingMottattListener(rapidsConnection: RapidsConnect
     }
 
     override fun onEvent(packet: JsonMessage) {
+        logger.info("NotifikasjonInntektsmeldingMottattListener skal behandle inntektsmeldingdokument...")
         val inntektsmeldingDokument: InntektsmeldingDokument = customObjectMapper().treeToValue(
             packet[Key.INNTEKTSMELDING_DOKUMENT.str],
             InntektsmeldingDokument::class.java
         )
-        sikkerLogger.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT}, pakke: ${packet.toJson()}")
+        sikkerLogger.info("NotifikasjonInntektsmeldingMottattListener fikk event ${EventName.INNTEKTSMELDING_MOTTATT}, pakke: ${packet.toJson()}")
         publishBehov(
             JsonMessage.newMessage(
                 mapOf(
@@ -39,5 +40,6 @@ class NotifikasjonInntektsmeldingMottattListener(rapidsConnection: RapidsConnect
                 )
             )
         )
+        logger.info("NotifikasjonInntektsmeldingMottattListener ferdigbehandlet inntektsmeldingdokument.")
     }
 }

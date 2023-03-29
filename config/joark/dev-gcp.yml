@@ -1,7 +1,7 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-joark.dev.nav.no
+ingress: https://helsearbeidsgiver-im-joark.intern.dev.nav.no
 env:
 - name: PROXY_SCOPE
   value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"

@@ -1,7 +1,7 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-db.dev.nav.no
+ingress: https://helsearbeidsgiver-im-db.intern.dev.nav.no
 database: inntektsmelding
 envFrom:
   - type: secret

@@ -13,8 +13,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseFactory
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
-import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapHikariConfig
+import no.nav.helsearbeidsgiver.inntektsmelding.db.setupDatabase
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -47,7 +47,7 @@ fun RapidsConnection.buildLocalApp(): RapidsConnection {
     val database = DatabaseFactory(mapHikariConfig(DatabaseConfig("127.0.0.1", "5432", "im_db", "postgres", "test")))
     val repository = Repository(database.db)
     this.createAkkumulator(redisStore)
-    this.createDb(database, repository)
+    this.setupDatabase(database, repository)
     this.createForespoerselMottatt()
     return this
 }
@@ -69,7 +69,7 @@ fun RapidsConnection.buildApp(
     this.createAkkumulator(redisStore)
     this.createBrreg(brregClient, true)
     this.createInnsending(redisStore)
-    this.createDb(database, repository)
+    this.setupDatabase(database, repository)
     // this.createDistribusjon() // TODO Integrasjonstester må bruke distribusjon appen
     this.createForespoerselMottatt()
     // this.createHelsebro() // TODO  Integrasjonstester må bruke helsebro appen

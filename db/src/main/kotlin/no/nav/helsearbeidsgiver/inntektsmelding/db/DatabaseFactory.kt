@@ -17,6 +17,5 @@ class DatabaseFactory(
             .lockRetryCount(10)
             .load()
             .migrate()
-        dataSource.close()
     }
 }

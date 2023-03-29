@@ -19,12 +19,13 @@ fun buildApp(config: HikariConfig, env: Map<String, String>) {
     val repository = Repository(databaseFactory.db)
     RapidApplication
         .create(env)
-        .createDb(databaseFactory, repository)
+        .setupDatabase(databaseFactory, repository)
         .start()
 }
 
-fun RapidsConnection.createDb(databaseFactory: DatabaseFactory, repository: Repository): RapidsConnection {
+fun RapidsConnection.setupDatabase(databaseFactory: DatabaseFactory, repository: Repository): RapidsConnection {
     logger.info("Starter Flyway migrering...")
+    databaseFactory.migrate()
     this.registerDbLifecycle(databaseFactory)
     logger.info("Starter ForespørselMottattListener...")
     ForespørselMottattListener(this, repository)
@@ -43,11 +44,6 @@ fun RapidsConnection.createDb(databaseFactory: DatabaseFactory, repository: Repo
 
 private fun RapidsConnection.registerDbLifecycle(databaseFactory: DatabaseFactory) {
     register(object : RapidsConnection.StatusListener {
-        override fun onStartup(rapidsConnection: RapidsConnection) {
-            logger.info("Migrering starter...")
-            databaseFactory.migrate()
-            logger.info("Migrering ferdig.")
-        }
 
         override fun onShutdown(rapidsConnection: RapidsConnection) {
             databaseFactory.dataSource.close()

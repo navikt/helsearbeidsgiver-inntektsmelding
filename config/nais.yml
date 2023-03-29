@@ -92,4 +92,5 @@ spec:
         - application: helsearbeidsgiver-redis
         - application: notifikasjon-produsent-api
           namespace: fager
+          cluster: dev-gcp
 

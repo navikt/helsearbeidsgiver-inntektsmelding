@@ -19,6 +19,9 @@ interface InntektDokumentTilSkjemainnholdMapper {
     fun InntektDokumentTilInntekstmeldingM(inntektsmeldingDokument: InntektsmeldingDokument): InntektsmeldingM
 
     @Mappings(
+        Mapping(constant = "sykepenger", target = "ytelse"),
+        Mapping(constant = ".", target = "arbeidsgiver.kontaktinformasjon.kontaktinformasjonNavn"),
+        Mapping(constant = ".", target = "arbeidsgiver.kontaktinformasjon.telefonnummer"),
         Mapping(source = "årsakInnsending.value", target = "aarsakTilInnsending"),
         Mapping(source = "orgnrUnderenhet", target = "arbeidsgiver.virksomhetsnummer"),
         Mapping(source = "identitetsnummer", target = "arbeidstakerFnr"),

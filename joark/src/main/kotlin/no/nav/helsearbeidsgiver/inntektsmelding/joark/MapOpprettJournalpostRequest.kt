@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.xmlMapper
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
 import java.time.LocalDate
 import java.util.Base64
 
@@ -44,7 +44,7 @@ fun mapOpprettJournalpostRequest(
                 dokumentVarianter = listOf(
                     DokumentVariant(
                         filtype = "XML",
-                        fysiskDokument = xmlMapper().writeValueAsString(inntektsmelding)
+                        fysiskDokument = transformToXML(inntektsmelding)
                             .toByteArray()
                             .let {
                                 Base64.getEncoder().encodeToString(it)

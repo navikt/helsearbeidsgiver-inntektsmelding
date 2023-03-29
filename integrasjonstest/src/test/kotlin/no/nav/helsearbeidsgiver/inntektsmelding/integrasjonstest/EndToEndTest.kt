@@ -51,7 +51,6 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        val rand = Random.Default
         val env = HashMap<String, String>().also {
             it.put("KAFKA_RAPID_TOPIC", TOPIC)
             it.put("KAFKA_CREATE_TOPICS", TOPIC)
@@ -68,6 +67,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         println("Database: jdbcUrl: ${config.jdbcUrl}")
         database = Database(config)
         repository = Repository(database.db)
+        database.migrate()
 
         // Rapids
         rapid = RapidApplication.create(env).buildApp(

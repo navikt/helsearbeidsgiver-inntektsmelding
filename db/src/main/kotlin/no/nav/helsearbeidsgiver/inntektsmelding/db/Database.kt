@@ -23,7 +23,7 @@ class Database(
                     .lockRetryCount(50)
                     .load()
                     .migrate()
-            }
+            }.close()
     }
 }
 

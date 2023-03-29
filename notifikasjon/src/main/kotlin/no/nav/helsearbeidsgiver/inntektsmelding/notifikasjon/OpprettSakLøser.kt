@@ -72,6 +72,7 @@ class OpprettSakLøser(
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val navn = packet[Key.LØSNING.str].toJsonElement().fromJson(NavnLøsning.serializer()).value ?: "Ukjent"
         val sakId = opprettSak(uuid, orgnr, navn, LocalDate.now())
+        logger.info("OpprettSakLøser fikk opprettet sak for uuid: $uuid")
         val msg =
             mapOf(
                 Key.EVENT_NAME.str to EVENT.name,

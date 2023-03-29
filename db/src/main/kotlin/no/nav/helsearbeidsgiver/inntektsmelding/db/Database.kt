@@ -20,7 +20,7 @@ class Database(
             .also {
                 Flyway.configure()
                     .dataSource(it)
-                    .lockRetryCount(-1)
+                    .lockRetryCount(50)
                     .load()
                     .migrate()
             }

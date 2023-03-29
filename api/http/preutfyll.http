@@ -1,5 +1,5 @@
 ### Preutfyll
-POST https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/preutfyll
+POST https://helsearbeidsgiver-im-api.intern.dev.nav.no/api/v1/preutfyll
 Content-Type: application/json
 
 {

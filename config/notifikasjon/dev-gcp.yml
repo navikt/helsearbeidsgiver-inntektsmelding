@@ -6,7 +6,7 @@ secureLogs:
   enabled: true
 env:
   - name: ARBEIDSGIVER_NOTIFIKASJON_API_URL
-    value: "https://ag-notifikasjon-produsent-api.intern.dev.nav.no/api/graphql"
+    value: "https://ag-notifikasjon-produsent-api.dev.nav.no/api/graphql"
   - name: ARBEIDSGIVER_NOTIFIKASJON_SCOPE
     value: "api://dev-gcp.fager.notifikasjon-produsent-api/.default"
   - name: LINK_URL

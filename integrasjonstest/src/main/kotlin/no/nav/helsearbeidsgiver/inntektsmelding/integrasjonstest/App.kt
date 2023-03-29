@@ -10,8 +10,8 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
-import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseFactory
 import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseConfig
+import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseFactory
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapHikariConfig

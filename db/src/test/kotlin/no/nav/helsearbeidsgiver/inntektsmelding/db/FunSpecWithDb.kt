@@ -10,9 +10,9 @@ import org.testcontainers.containers.PostgreSQLContainer
 
 abstract class FunSpecWithDb(
     table: Table,
-    body: FunSpec.(Database) -> Unit
+    body: FunSpec.(DatabaseFactory) -> Unit
 ) : FunSpec({
-    val db = Database(dbConfig())
+    val db = DatabaseFactory(dbConfig())
         .configureFlyway()
 
     beforeEach {
@@ -49,7 +49,7 @@ private fun postgres(): PostgreSQLContainer<Nothing> =
         )
     }
 
-private fun Database.configureFlyway(): Database =
+private fun DatabaseFactory.configureFlyway(): DatabaseFactory =
     also {
         Flyway.configure()
             .dataSource(it.dataSource)

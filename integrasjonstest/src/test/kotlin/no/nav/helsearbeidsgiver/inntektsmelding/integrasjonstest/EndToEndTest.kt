@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
+import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseFactory
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.pdl.PdlClient
@@ -46,7 +46,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var filterMessages: (JsonNode) -> Boolean = { true }
 
     // Database
-    var database = mockk<Database>()
+    var databaseFactory = mockk<DatabaseFactory>()
     var repository = mockk<Repository>()
 
     @BeforeAll
@@ -66,13 +66,13 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         val config = mapHikariConfigByContainer(postgreSQLContainer)
 
         println("Database: jdbcUrl: ${config.jdbcUrl}")
-        database = Database(config)
-        repository = Repository(database.db)
+        databaseFactory = DatabaseFactory(config)
+        repository = Repository(databaseFactory.db)
 
         // Rapids
         rapid = RapidApplication.create(env).buildApp(
             redisStore,
-            database,
+            databaseFactory,
             repository,
             aaregClient,
             brregClient,

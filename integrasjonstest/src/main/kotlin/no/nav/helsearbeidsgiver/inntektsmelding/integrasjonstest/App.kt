@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
-import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
+import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseFactory
 import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
@@ -44,7 +44,7 @@ fun main() {
 
 fun RapidsConnection.buildLocalApp(): RapidsConnection {
     val redisStore = RedisStore("redis://localhost:6379/0")
-    val database = Database(mapHikariConfig(DatabaseConfig("127.0.0.1", "5432", "im_db", "postgres", "test")))
+    val database = DatabaseFactory(mapHikariConfig(DatabaseConfig("127.0.0.1", "5432", "im_db", "postgres", "test")))
     val repository = Repository(database.db)
     this.createAkkumulator(redisStore)
     this.createDb(database, repository)
@@ -54,7 +54,7 @@ fun RapidsConnection.buildLocalApp(): RapidsConnection {
 
 fun RapidsConnection.buildApp(
     redisStore: RedisStore,
-    database: Database,
+    database: DatabaseFactory,
     repository: Repository,
     aaregClient: AaregClient,
     brregClient: BrregClient,

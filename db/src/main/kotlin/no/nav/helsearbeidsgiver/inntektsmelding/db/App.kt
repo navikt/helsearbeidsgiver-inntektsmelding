@@ -14,18 +14,18 @@ fun main() {
 }
 
 fun buildApp(config: HikariConfig, env: Map<String, String>) {
-    val database = Database(config)
+    val databaseFactory = DatabaseFactory(config)
     logger.info("Bruker database url: ${config.jdbcUrl}")
-    val repository = Repository(database.db)
+    val repository = Repository(databaseFactory.db)
     RapidApplication
         .create(env)
-        .createDb(database, repository)
+        .createDb(databaseFactory, repository)
         .start()
 }
 
-fun RapidsConnection.createDb(database: Database, repository: Repository): RapidsConnection {
+fun RapidsConnection.createDb(databaseFactory: DatabaseFactory, repository: Repository): RapidsConnection {
     logger.info("Starter Flyway migrering...")
-    this.registerDbLifecycle(database)
+    this.registerDbLifecycle(databaseFactory)
     logger.info("Starter ForespørselMottattListener...")
     ForespørselMottattListener(this, repository)
     logger.info("Starter PersisterImLøser...")
@@ -41,16 +41,16 @@ fun RapidsConnection.createDb(database: Database, repository: Repository): Rapid
     return this
 }
 
-private fun RapidsConnection.registerDbLifecycle(db: Database) {
+private fun RapidsConnection.registerDbLifecycle(databaseFactory: DatabaseFactory) {
     register(object : RapidsConnection.StatusListener {
         override fun onStartup(rapidsConnection: RapidsConnection) {
             logger.info("Migrering starter...")
-            db.migrate()
+            databaseFactory.migrate()
             logger.info("Migrering ferdig.")
         }
 
         override fun onShutdown(rapidsConnection: RapidsConnection) {
-            db.dataSource.close()
+            databaseFactory.dataSource.close()
         }
     })
 }

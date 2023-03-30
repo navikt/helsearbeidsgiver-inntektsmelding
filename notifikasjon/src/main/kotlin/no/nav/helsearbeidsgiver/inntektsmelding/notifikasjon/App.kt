@@ -8,7 +8,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
-val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-notifikasjon")
 
 fun main() {
     val environment = setUpEnvironment()
@@ -19,12 +18,11 @@ fun main() {
 }
 
 fun RapidsConnection.createNotifikasjon(arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient, linkUrl: String): RapidsConnection {
-    logger.info("Starting OpprettSakLøser...")
     OpprettSakLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-    logger.info("Starting OpprettOppgaveLøser...")
     OpprettOppgaveLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-    logger.info("Starting NotifikasjonInntektsmeldingMottattListener...")
-    NotifikasjonInntektsmeldingMottattListener(this)
+    SakFerdigLøser(this, arbeidsgiverNotifikasjonKlient)
+    OppgaveFerdigLøser(this, arbeidsgiverNotifikasjonKlient)
+    JournalførtListener(this)
     return this
 }
 

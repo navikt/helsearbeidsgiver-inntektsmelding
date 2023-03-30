@@ -42,7 +42,7 @@ internal class LagreJournalpostIdLøserTest {
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
-        val løsning: JournalpostLøsning = journalpostLøsningFraRapid(1) // Event sendes ut først, deretter løsning
+        val løsning: JournalpostLøsning = journalpostLøsningFraRapid(0) // Event sendes ut først, deretter løsning
         assertNotNull(løsning.value)
     }
 

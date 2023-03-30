@@ -20,6 +20,13 @@ class Repository(private val db: Database) {
             }
         }
 
+    fun hentOppgaveId(uuidLink: String): String? =
+        transaction(db) {
+            InntektsmeldingEntitet.run {
+                select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)
+            }.take(100).first().getOrNull(InntektsmeldingEntitet.oppgaveId)
+        }
+
     fun hentNyeste(uuidLink: String): InntektsmeldingDokument? =
         transaction(db) {
             InntektsmeldingEntitet.run {

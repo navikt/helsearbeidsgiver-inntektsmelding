@@ -19,6 +19,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: R
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
+        logger.info("Starter HentPersistertLøser...")
         River(rapidsConnection).apply {
             validate {
                 it.demandAll(Key.BEHOV.str, BEHOV)

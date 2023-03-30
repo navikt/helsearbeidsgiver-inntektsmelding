@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import org.slf4j.LoggerFactory
 
 class OpprettOppgaveLøser(
     val rapidsConnection: RapidsConnection,
@@ -20,11 +21,13 @@ class OpprettOppgaveLøser(
 
     private val om = customObjectMapper()
     private val EVENT = EventName.FORESPØRSEL_MOTTATT
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
+        logger.info("Starting OpprettOppgaveLøser...")
         River(rapidsConnection).apply {
             validate {
-                it.requireValue(Key.EVENT_NAME.str, EventName.FORESPØRSEL_MOTTATT.name)
+                it.requireValue(Key.EVENT_NAME.str, EVENT.name)
                 it.demandAll(Key.BEHOV.str, listOf(BehovType.OPPRETT_OPPGAVE.name))
                 it.requireKey(Key.UUID.str)
                 it.interestedIn(Key.IDENTITETSNUMMER.str)

@@ -24,7 +24,8 @@ fun MockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): In
         beregnetInntekt = 25000.0.toBigDecimal(),
         fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
             true,
-            begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT
+            begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT,
+            utbetalt = 10000.toBigDecimal()
         ),
         refusjon = Refusjon(
             true,

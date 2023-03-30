@@ -4,6 +4,17 @@ val hagImXmlKontraktVersion: String by project
 val jacksonVersion: String by project
 val jaxbAPIVersion: String by project
 val jaxbRuntimeVersion: String by project
+val mapstructVersion: String by project
+
+plugins {
+    kotlin("kapt")
+}
+
+tasks {
+    withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
+}
 
 dependencies {
     val pdfboxVersion: String by project
@@ -21,4 +32,6 @@ dependencies {
     implementation("io.ktor:ktor-client-serialization:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("org.mapstruct:mapstruct:$mapstructVersion")
+    kapt("org.mapstruct:mapstruct-processor:$mapstructVersion")
 }

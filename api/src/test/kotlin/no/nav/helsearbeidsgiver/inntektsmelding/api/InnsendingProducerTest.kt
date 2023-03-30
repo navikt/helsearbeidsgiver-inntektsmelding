@@ -17,6 +17,6 @@ internal class InnsendingProducerTest {
         every {
             rapidsConnection.publish(TestData.validIdentitetsnummer, any())
         } returns Unit
-        assertNotNull(producer.publish(GYLDIG))
+        assertNotNull(producer.publish("", GYLDIG))
     }
 }

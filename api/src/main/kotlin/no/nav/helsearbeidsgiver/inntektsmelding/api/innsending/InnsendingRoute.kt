@@ -19,26 +19,26 @@ import org.valiktor.ConstraintViolationException
 fun RouteExtra.InnsendingRoute() {
     val producer = InnsendingProducer(connection)
 
-    route.route(Routes.INNSENDING) {
+    route.route(Routes.INNSENDING + "/{forespørselId}") {
         post {
             val request = call.receive<InnsendingRequest>()
-            var uuid = "ukjent uuid"
-            sikkerlogg.info("Mottok innsending $request")
+            val forespørselId = call.parameters["forespørselId"] ?: ""
+            sikkerlogg.info("Mottok innsending $request for forespørselId: $forespørselId")
             try {
-                logger.info("Fikk innsending")
+                logger.info("Fikk innsending med forespørselId: $forespørselId")
                 request.validate()
-                uuid = producer.publish(request)
-                logger.info("Publiserte til Rapid med uuid: $uuid")
-                val resultat = redis.getResultat(uuid, 10, 500)
+                producer.publish(forespørselId, request)
+                logger.info("Publiserte til Rapid med forespørselId: $forespørselId")
+                val resultat = redis.getResultat(forespørselId, 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
-                val mapper = InnsendingMapper(uuid, resultat)
+                val mapper = InnsendingMapper(forespørselId, resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())
             } catch (e: ConstraintViolationException) {
-                logger.info("Fikk valideringsfeil for $uuid")
+                logger.info("Fikk valideringsfeil for forespørselId: $forespørselId")
                 call.respond(HttpStatusCode.BadRequest, validationResponseMapper(e.constraintViolations))
             } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout for $uuid")
-                call.respond(HttpStatusCode.InternalServerError, RedisTimeoutResponse(uuid))
+                logger.info("Fikk timeout for forespørselId: $forespørselId")
+                call.respond(HttpStatusCode.InternalServerError, RedisTimeoutResponse(forespørselId))
             }
         }
     }

@@ -23,10 +23,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 
-private const val PATH = Routes.PREFIX + Routes.INNSENDING
-
 class InnsendingRouteKtTest : ApiTest() {
     val objectMapper = customObjectMapper()
+
+    private val FORESPØRSEL_ID = "id_123"
+    private val PATH = Routes.PREFIX + Routes.INNSENDING + "/$FORESPØRSEL_ID"
 
     val GYLDIG_REQUEST = GYLDIG
     val UGYLDIG_REQUEST = GYLDIG.copy(
@@ -46,7 +47,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals(objectMapper.writeValueAsString(InnsendingResponse(MockUuid.STRING)), response.bodyAsText())
+        assertEquals(objectMapper.writeValueAsString(InnsendingResponse(FORESPØRSEL_ID)), response.bodyAsText())
     }
 
     @Test
@@ -75,7 +76,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals(objectMapper.writeValueAsString(RedisTimeoutResponse(MockUuid.STRING, "Brukte for lang tid")), response.bodyAsText())
+        assertEquals(objectMapper.writeValueAsString(RedisTimeoutResponse(FORESPØRSEL_ID, "Brukte for lang tid")), response.bodyAsText())
     }
 
     @Test

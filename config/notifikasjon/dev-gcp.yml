@@ -10,4 +10,4 @@ env:
   - name: ARBEIDSGIVER_NOTIFIKASJON_SCOPE
     value: "api://dev-gcp.fager.notifikasjon-produsent-api/.default"
   - name: LINK_URL
-    value: "https://arbeidsgiver.dev.nav.no"
+    value: "https://arbeidsgiver.intern.dev.nav.no"

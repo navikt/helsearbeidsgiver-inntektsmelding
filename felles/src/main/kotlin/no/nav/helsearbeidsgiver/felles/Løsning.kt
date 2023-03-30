@@ -98,3 +98,15 @@ data class PersisterOppgaveIdLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
+
+@Serializable
+data class SakFerdigLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
+
+@Serializable
+data class OppgaveFerdigLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()

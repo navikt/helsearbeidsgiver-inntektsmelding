@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 /**
@@ -31,8 +32,10 @@ class OpprettSakLøser(
 
     private val om = customObjectMapper()
     private val EVENT = EventName.FORESPØRSEL_MOTTATT
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
+        logger.info("Starting OpprettSakLøser...")
         River(rapidsConnection).apply {
             validate {
                 it.requireValue(Key.EVENT_NAME.str, EventName.FORESPØRSEL_MOTTATT.name)
@@ -65,8 +68,8 @@ class OpprettSakLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
         val uuid = packet[Key.UUID.str].asText()
+        sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
         logger.info("OpprettSakLøser fikk pakke for uuid: $uuid")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()

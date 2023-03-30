@@ -29,7 +29,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     lateinit var rapid: RapidsConnection
     private val om = customObjectMapper()
-    private var results: MutableList<String> = mutableListOf()
+    var results: MutableList<String> = mutableListOf()
     private lateinit var thread: Thread
 
     // Clients
@@ -40,6 +40,8 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var dokarkivClient = mockk<DokArkivClient>()
     val placeholderSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakKt")
     val placeholderOppgave = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettOppgaveKt")
+    val placeholderNyStatusSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.NyStatusSakByGrupperingsidKt")
+    val placeholderOppgave2 = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OppgaveUtfoertKt")
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
     var filterMessages: (JsonNode) -> Boolean = { true }

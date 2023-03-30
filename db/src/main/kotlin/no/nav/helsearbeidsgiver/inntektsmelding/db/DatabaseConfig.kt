@@ -19,5 +19,6 @@ fun mapHikariConfig(databaseConfig: DatabaseConfig): HikariConfig {
         jdbcUrl = databaseConfig.url
         username = databaseConfig.username
         password = databaseConfig.password
+        maximumPoolSize = 5
     }
 }

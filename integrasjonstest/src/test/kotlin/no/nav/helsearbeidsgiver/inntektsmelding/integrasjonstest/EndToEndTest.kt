@@ -23,7 +23,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import kotlin.concurrent.thread
-import kotlin.random.Random
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
@@ -51,7 +50,6 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        val rand = Random.Default
         val env = HashMap<String, String>().also {
             it.put("KAFKA_RAPID_TOPIC", TOPIC)
             it.put("KAFKA_CREATE_TOPICS", TOPIC)
@@ -68,6 +66,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         println("Database: jdbcUrl: ${config.jdbcUrl}")
         database = Database(config)
         repository = Repository(database.db)
+        database.migrate()
 
         // Rapids
         rapid = RapidApplication.create(env).buildApp(

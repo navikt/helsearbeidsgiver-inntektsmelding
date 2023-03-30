@@ -47,6 +47,7 @@ private fun RapidsConnection.registerDbLifecycle(db: Database) {
     register(object : RapidsConnection.StatusListener {
 
         override fun onShutdown(rapidsConnection: RapidsConnection) {
+            logger.info("Mottatt stoppsignal, lukker databasetilkobling")
             db.dataSource.close()
         }
     })

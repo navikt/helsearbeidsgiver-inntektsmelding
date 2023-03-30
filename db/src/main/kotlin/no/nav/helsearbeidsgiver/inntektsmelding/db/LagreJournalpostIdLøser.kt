@@ -44,7 +44,7 @@ class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repositor
                 publiser(journalpostId, inntektsmeldingDokument!!)
             } catch (ex: Exception) {
                 løsning = LagreJournalpostLøsning(error = Feilmelding("Klarte ikke lagre journalpostId for $uuid"))
-                logger.info("Klarte ikke lagre journalpostId $journalpostId for $uuid")
+                logger.error("Klarte ikke lagre journalpostId $journalpostId for $uuid", ex)
                 sikkerlogg.error("Klarte ikke lagre journalpostId $journalpostId for $uuid", ex)
             }
         }

@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnumme
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBehandlingsdager
 import org.valiktor.functions.isGreaterThan
+import org.valiktor.functions.isGreaterThanOrEqualTo
 import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isNotNull
 import org.valiktor.functions.isTrue
@@ -28,7 +29,7 @@ fun InnsendingRequest.validate() {
             it.fom
             validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode::fom).isNotNull()
             validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode::tom).isNotNull()
-            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode::tom).isGreaterThan(it.fom)
+            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode::tom).isGreaterThanOrEqualTo(it.fom)
         }
         // Brutto inntekt
         validate(InnsendingRequest::inntekt).validate {

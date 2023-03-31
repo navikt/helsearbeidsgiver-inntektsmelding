@@ -28,7 +28,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
     suspend fun opprettJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument): String {
         sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
-        return dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
+        return dokarkivClient.opprettJournalpost(request, true, "callId_$uuid").journalpostId
     }
 
     fun mapInntektsmeldingDokument(jsonNode: JsonNode): no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument {

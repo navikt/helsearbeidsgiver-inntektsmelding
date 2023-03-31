@@ -29,7 +29,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
         logger.info("Skal ferdigstille journalpost for $uuid...")
-        val journalpostId =  dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
+        val journalpostId = dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
         logger.info("Fikk opprettet journalpost $journalpostId for $uuid")
         dokarkivClient.ferdigstillJournalpost(journalpostId, "callId_$uuid")
         logger.info("Fikk ferdigstilt journalpost $journalpostId for $uuid")

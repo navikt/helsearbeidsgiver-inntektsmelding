@@ -28,10 +28,15 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
     suspend fun opprettJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument): String {
         sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
-        return dokarkivClient.opprettJournalpost(request, true, "callId_$uuid").journalpostId
+        logger.info("Skal ferdigstille journalpost for $uuid...")
+        val journalpostId =  dokarkivClient.opprettJournalpost(request, false, "callId_$uuid").journalpostId
+        logger.info("Fikk opprettet journalpost $journalpostId for $uuid")
+        dokarkivClient.ferdigstillJournalpost(journalpostId, "callId_$uuid")
+        logger.info("Fikk ferdigstilt journalpost $journalpostId for $uuid")
+        return journalpostId
     }
 
-    fun mapInntektsmeldingDokument(jsonNode: JsonNode): no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument {
+    fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
         try {
             return customObjectMapper().treeToValue<InntektsmeldingDokument>(jsonNode, InntektsmeldingDokument::class.java)
         } catch (ex: Exception) {

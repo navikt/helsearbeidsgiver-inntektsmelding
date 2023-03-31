@@ -71,8 +71,11 @@ internal class JournalførInntektsmeldingLøserTest {
     @Test
     fun `skal journalføre når gyldige data`() {
         coEvery {
+            dokArkivClient.ferdigstillJournalpost(any(), any())
+        } returns "jp-123"
+        coEvery {
             dokArkivClient.opprettJournalpost(any(), any(), any())
-        } returns OpprettJournalpostResponse("jp-123", journalpostFerdigstilt = true, "FERDIGSTILT", "", emptyList())
+        } returns OpprettJournalpostResponse("jp-123", journalpostFerdigstilt = false, "FERDIGSTILT", "", emptyList())
         val løsning = sendMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,

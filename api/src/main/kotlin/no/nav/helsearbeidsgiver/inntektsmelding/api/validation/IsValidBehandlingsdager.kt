@@ -8,7 +8,6 @@ import java.time.temporal.WeekFields
  * Det kan kun være en behandlingsdag per uke.
  * I tillegg kan det ikke være mer enn 15 dager mellom to behandlinger.
  **/
-// @TODO dene testen feiler på søndag. Er dette riktig ?
 fun isValidBehandlingsdager(behandlingsdager: List<LocalDate>): Boolean {
     if (behandlingsdager.isEmpty() || behandlingsdager.size == 1) {
         return true

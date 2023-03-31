@@ -18,7 +18,8 @@ import java.time.format.DateTimeFormatter
 
 class SakFerdigLøser(
     rapidsConnection: RapidsConnection,
-    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
+    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    private val linkUrl: String
 ) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -43,7 +44,7 @@ class SakFerdigLøser(
         logger.info("SakFerdigLøser skal ferdigstille sakId $sakId for forespoerselId: $forespoerselId som utført...")
         val innsendingstidspunkt = LocalDate.now()
         val dato = innsendingstidspunkt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-        val lenke = ""
+        val lenke = "$linkUrl/im-dialog/$forespoerselId"
         try {
             runBlocking {
                 arbeidsgiverNotifikasjonKlient.nyStatusSak(sakId, lenke, SaksStatus.FERDIG, "Mottatt $dato")

@@ -20,7 +20,7 @@ fun main() {
 fun RapidsConnection.createNotifikasjon(arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient, linkUrl: String): RapidsConnection {
     OpprettSakLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
     OpprettOppgaveLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-    SakFerdigLøser(this, arbeidsgiverNotifikasjonKlient)
+    SakFerdigLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
     OppgaveFerdigLøser(this, arbeidsgiverNotifikasjonKlient)
     JournalførtListener(this)
     return this

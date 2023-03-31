@@ -20,18 +20,25 @@ class Repository(private val db: Database) {
             }
         }
 
+    fun hentSakId(uuidLink: String): String? =
+        transaction(db) {
+            InntektsmeldingEntitet.run {
+                select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)
+            }.take(1).first().getOrNull(InntektsmeldingEntitet.sakId)
+        }
+
     fun hentOppgaveId(uuidLink: String): String? =
         transaction(db) {
             InntektsmeldingEntitet.run {
                 select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)
-            }.take(100).first().getOrNull(InntektsmeldingEntitet.oppgaveId)
+            }.take(1).first().getOrNull(InntektsmeldingEntitet.oppgaveId)
         }
 
     fun hentNyeste(uuidLink: String): InntektsmeldingDokument? =
         transaction(db) {
             InntektsmeldingEntitet.run {
                 select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)
-            }.take(100).first().getOrNull(InntektsmeldingEntitet.dokument)
+            }.take(1).first().getOrNull(InntektsmeldingEntitet.dokument)
         }
 
     fun oppdaterJournapostId(journalpostId: String, uuid: String) {

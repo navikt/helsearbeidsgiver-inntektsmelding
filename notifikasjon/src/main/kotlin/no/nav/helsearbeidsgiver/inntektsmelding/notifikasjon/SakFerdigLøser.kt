@@ -6,7 +6,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.nyStatusSakByGrupperingsid
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.nyStatusSak
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
@@ -30,6 +30,7 @@ class SakFerdigLøser(
             validate {
                 it.requireAll(Key.BEHOV.str, BEHOV)
                 it.requireKey(Key.UUID.str)
+                it.requireKey(Key.SAK_ID.str)
                 it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
@@ -38,24 +39,21 @@ class SakFerdigLøser(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerLogger.info("SakFerdigLøser fikk pakke: ${packet.toJson()}")
         val forespoerselId = packet[Key.UUID.str].asText()
-        logger.info("SakFerdigLøser skal ferdigstille forespoerselId: $forespoerselId som utført...")
+        val sakId = packet[Key.SAK_ID.str].asText()
+        logger.info("SakFerdigLøser skal ferdigstille sakId $sakId for forespoerselId: $forespoerselId som utført...")
         val innsendingstidspunkt = LocalDate.now()
         val dato = innsendingstidspunkt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        val lenke = ""
         try {
             runBlocking {
-                arbeidsgiverNotifikasjonKlient.nyStatusSakByGrupperingsid(
-                    forespoerselId,
-                    "Mottatt $dato",
-                    SaksStatus.FERDIG
-                )
+                arbeidsgiverNotifikasjonKlient.nyStatusSak(sakId, lenke, SaksStatus.FERDIG, "Mottatt $dato")
             }
-            val løsning = SakFerdigLøsning(forespoerselId)
-            publiserLøsning(løsning, packet, context)
-            logger.info("SakFerdigLøser ferdigstilte for forespoerselId: $forespoerselId som utført!")
+            publiserLøsning(SakFerdigLøsning(sakId), packet, context)
+            logger.info("SakFerdigLøser ferdigstilte sakId $sakId for forespoerselId: $forespoerselId som utført!")
         } catch (ex: Exception) {
-            logger.error("SakFerdigLøser klarte ikke ferdigstille forespoerselId: $forespoerselId!")
-            sikkerLogger.error("SakFerdigLøser klarte ikke ferdigstille forespoerselId: $forespoerselId!", ex)
-            publiserLøsning(SakFerdigLøsning(error = Feilmelding("Klarte ikke ferdigstille forespoerselId: $forespoerselId!")), packet, context)
+            logger.error("SakFerdigLøser klarte ikke ferdigstille sakId $sakId, forespoerselId: $forespoerselId!")
+            sikkerLogger.error("SakFerdigLøser klarte ikke ferdigstille sakId $sakId, forespoerselId: $forespoerselId!", ex)
+            publiserLøsning(SakFerdigLøsning(error = Feilmelding("Klarte ikke ferdigstille sakId $sakId, forespoerselId: $forespoerselId!")), packet, context)
         }
     }
 

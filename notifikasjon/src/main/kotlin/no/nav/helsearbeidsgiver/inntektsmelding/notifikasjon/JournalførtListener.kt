@@ -24,6 +24,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
                 it.requireKey(Key.UUID.str)
                 it.requireKey(Key.JOURNALPOST_ID.str)
                 it.requireKey(Key.OPPGAVE_ID.str)
+                it.requireKey(Key.SAK_ID.str)
                 it.rejectKey(Key.BEHOV.str)
                 it.rejectKey(Key.LØSNING.str)
             }
@@ -33,6 +34,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
         val oppgaveId = packet[Key.OPPGAVE_ID.str].asText()
+        val sakId = packet[Key.SAK_ID.str].asText()
         logger.info("JournalførtListener fikk pakke for $uuid")
         sikkerLogger.info("JournalførtListener fikk pakke ${EventName.INNTEKTSMELDING_JOURNALFOERT} med pakke ${packet.toJson()}")
         val json = om.writeValueAsString(
@@ -42,6 +44,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
                 Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
                 Key.UUID.str to uuid,
                 Key.OPPGAVE_ID.str to oppgaveId,
+                Key.SAK_ID.str to sakId,
                 Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
             )
         )

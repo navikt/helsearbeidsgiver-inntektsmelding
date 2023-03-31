@@ -41,7 +41,8 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     val placeholderSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakKt")
     val placeholderOppgave = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettOppgaveKt")
     val placeholderNyStatusSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.NyStatusSakByGrupperingsidKt")
-    val placeholderOppgave2 = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OppgaveUtfoertKt")
+    val placeholderOppgaveUtfoertKt = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OppgaveUtfoertKt")
+    val placeholdernyStatusSakKt = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.NyStatusSakKt")
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
     var filterMessages: (JsonNode) -> Boolean = { true }

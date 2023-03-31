@@ -16,8 +16,10 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.authorization.DefaultAltinnAuthorizer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.InntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
@@ -76,6 +78,15 @@ fun Application.apiModule(connection: RapidsConnection) {
 
         val redisPoller = RedisPoller()
 
+        val altinnAuthorizer = DefaultAltinnAuthorizer(
+            AltinnClient(
+                url = Env.Altinn.url,
+                serviceCode = Env.Altinn.serviceCode,
+                apiGwApiKey = Env.Altinn.apiGwApiKey,
+                altinnApiKey = Env.Altinn.altinnApiKey
+            )
+        )
+
         authenticate {
             route(Routes.PREFIX) {
                 routeExtra(connection, redisPoller) {
@@ -83,7 +94,7 @@ fun Application.apiModule(connection: RapidsConnection) {
                     TrengerRoute()
                     InntektRoute()
                     // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
-                    InnsendingRoute()
+                    InnsendingRoute(altinnAuthorizer)
                 }
             }
         }

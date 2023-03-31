@@ -9,6 +9,9 @@ import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.authorization.AltinnAuthorizer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.authorization.ManglerAltinnRettigheterException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.authorization.authorize
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
@@ -16,11 +19,21 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 
-fun RouteExtra.InnsendingRoute() {
+fun RouteExtra.InnsendingRoute(
+    altinnAuthorizer: AltinnAuthorizer
+) {
     val producer = InnsendingProducer(connection)
 
     route.route(Routes.INNSENDING + "/{forespørselId}") {
         post {
+            try {
+                authorize(altinnAuthorizer, "")
+            } catch (e: ManglerAltinnRettigheterException) {
+                call.respond(
+                    HttpStatusCode.Forbidden,
+                    "Mangler Rettigheter i Altinn for organisasjon"
+                )
+            }
             val request = call.receive<InnsendingRequest>()
             val forespørselId = call.parameters["forespørselId"] ?: ""
             sikkerlogg.info("Mottok innsending $request for forespørselId: $forespørselId")

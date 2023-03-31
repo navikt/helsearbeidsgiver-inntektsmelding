@@ -5,8 +5,14 @@ ingress: https://helsearbeidsgiver-im-api.intern.dev.nav.no
 envFrom:
   - type: configmap
     name: loginservice-idporten
+  - type: secret
+    name: altinn-api-gw-keys
 env:
   - name: DOKARKIV_URL
     value: https://dokarkiv.dev-fss-pub.nais.io
   - name: REDIS_URL
     value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
+  - name: ALTINN_URL
+    value: https://api-gw-q1.oera.no/ekstern/altinn/api/serviceowner
+  - name: ALTINN_SERVICE_CODE
+    value: 4936

@@ -62,13 +62,13 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
             val eventName = packet[Key.EVENT_NAME.str].asText()
             publiserLagring(uuid, journalpostId, inntektsmeldingDokument.identitetsnummer, eventName)
         } catch (ex: DokArkivException) {
-            sikkerlogg.info("Klarte ikke journalføre", ex)
+            sikkerlogg.error("Klarte ikke journalføre", ex)
             publiserLøsning(JournalpostLøsning(error = Feilmelding("Kall mot dokarkiv feilet")), packet)
         } catch (ex: UgyldigFormatException) {
-            sikkerlogg.info("Klarte ikke journalføre: feil format!", ex)
+            sikkerlogg.error("Klarte ikke journalføre: feil format!", ex)
             publiserLøsning(JournalpostLøsning(error = Feilmelding("Feil format i InntektsmeldingDokument")), packet)
         } catch (ex: Exception) {
-            sikkerlogg.info("Klarte ikke journalføre!", ex)
+            sikkerlogg.error("Klarte ikke journalføre!", ex)
             publiserLøsning(JournalpostLøsning(error = Feilmelding("Klarte ikke journalføre")), packet)
         }
     }

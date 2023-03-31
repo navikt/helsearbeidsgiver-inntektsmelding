@@ -59,7 +59,7 @@ fun mapOpprettJournalpostRequest(
                             .let {
                                 Base64.getEncoder().encodeToString(it)
                             },
-                        variantFormat = "ORIGINAL",
+                        variantFormat = "ARKIV",
                         filnavn = "ari-$uuid.json"
                     ),
                     DokumentVariant(

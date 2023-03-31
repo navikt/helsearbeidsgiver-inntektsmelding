@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.mockk.coEvery
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.nyStatusSak
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.nyStatusSakByGrupperingsid
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.oppgaveUtfoert
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
@@ -51,15 +52,21 @@ internal class InnsendingIT : EndToEndTest() {
         val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
 
         coEvery {
+            arbeidsgiverNotifikasjonKlient.nyStatusSak(any(), any(), any(), any())
+        } answers {
+            "?"
+        }
+
+        coEvery {
             arbeidsgiverNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any())
         } answers {
-            "no-?"
+            "?"
         }
 
         coEvery {
             arbeidsgiverNotifikasjonKlient.oppgaveUtfoert(any())
         } answers {
-            "no-?"
+            "?"
         }
 
         coEvery {
@@ -137,6 +144,7 @@ internal class InnsendingIT : EndToEndTest() {
             assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, get(Key.EVENT_NAME.str).asText())
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
             assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
+            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
             assertEquals(BehovType.DISTRIBUER_IM.name, get(Key.BEHOV.str)[0].asText())
             assertEquals(BehovType.ENDRE_SAK_STATUS.name, get(Key.BEHOV.str)[1].asText())
             assertEquals(BehovType.ENDRE_OPPGAVE_STATUS.name, get(Key.BEHOV.str)[2].asText())
@@ -154,7 +162,7 @@ internal class InnsendingIT : EndToEndTest() {
             assertNotNull(get(Key.LØSNING.str).asText())
             val løsning: SakFerdigLøsning =
                 get(Key.LØSNING.str).get(BehovType.ENDRE_SAK_STATUS.name).toJsonElement().fromJson(SakFerdigLøsning.serializer())
-            assertEquals(FORESPØRSEL_ID, løsning.value)
+            assertEquals(SAK_ID, løsning.value)
             assertNull(løsning.error)
         }
 

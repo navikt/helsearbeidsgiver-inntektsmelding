@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
+import org.slf4j.LoggerFactory
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLøser(
@@ -21,6 +22,7 @@ class ForespoerselMottattLøser(
 ) : River.PacketListener {
 
     private val om = customObjectMapper()
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapid).apply {

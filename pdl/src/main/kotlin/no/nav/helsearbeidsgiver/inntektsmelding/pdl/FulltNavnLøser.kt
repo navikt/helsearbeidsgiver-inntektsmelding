@@ -12,8 +12,10 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
 class FulltNavnLøser(
     rapidsConnection: RapidsConnection,
@@ -35,19 +37,19 @@ class FulltNavnLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val id = packet[Key.ID.str].asText()
+        logger.info("Henter navn for id: $id")
         val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
-
-        sikkerlogg.info("Henter navn for identitetsnummer $identitetsnummer")
-        logger.info("FulltNavnLøser: Løser id ${packet[Key.ID.str].asText()}")
-
         try {
-            val fulltNavn = runBlocking {
-                hentNavn(identitetsnummer)
+            val info = runBlocking {
+                hentPersonInfo(identitetsnummer)
             }
-            sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
-            publish(NavnLøsning(fulltNavn), packet, context)
+            sikkerlogg.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for id: $id")
+            logger.info("Fant navn for id: $id")
+            publish(NavnLøsning(info), packet, context)
         } catch (ex: Exception) {
-            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
+            logger.error("Klarte ikke hente navn for id $id")
+            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for id: $id", ex)
             publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet, context)
         }
     }
@@ -59,13 +61,11 @@ class FulltNavnLøser(
         logger.info("FulltNavnLøser: publiserte: $json")
     }
 
-    suspend fun hentNavn(identitetsnummer: String): String {
-        val navn = pdlClient.personNavn(identitetsnummer)?.navn?.firstOrNull()
-        return if (navn?.mellomnavn.isNullOrEmpty()) {
-            "${navn?.fornavn} ${navn?.etternavn}"
-        } else {
-            "${navn?.fornavn} ${navn?.mellomnavn} ${navn?.etternavn}"
-        }
+    suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
+        val liste = pdlClient.fullPerson(identitetsnummer)?.hentPerson
+        val fødselsdato: LocalDate? = liste?.foedsel?.firstOrNull()?.foedselsdato
+        val fulltNavn = liste?.trekkUtFulltNavn() ?: "Ukjent"
+        return PersonDato(fulltNavn, fødselsdato)
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

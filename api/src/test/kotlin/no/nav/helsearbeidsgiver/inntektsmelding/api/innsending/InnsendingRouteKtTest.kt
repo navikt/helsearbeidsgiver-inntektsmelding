@@ -9,6 +9,7 @@ import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
@@ -21,6 +22,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import kotlin.test.assertNotNull
 
 class InnsendingRouteKtTest : ApiTest() {
@@ -35,7 +37,7 @@ class InnsendingRouteKtTest : ApiTest() {
         orgnrUnderenhet = TestData.notValidOrgNr
     )
 
-    val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning("verdi"))
+    val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning(PersonDato("verdi", LocalDate.now())))
     val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
 
     @Test

@@ -10,7 +10,10 @@ import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -21,6 +24,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.TRENGER
@@ -37,17 +41,15 @@ internal class TrengerRouteKtTest : ApiTest() {
         INNTEKT = InntektLøsning(Inntekt(historisk = emptyList())),
         VIRKSOMHET = VirksomhetLøsning("Norge AS"),
         ARBEIDSFORHOLD = ArbeidsforholdLøsning(),
-        FULLT_NAVN = NavnLøsning("Ola Normann")
+        FULLT_NAVN = NavnLøsning(PersonDato("Ola Normann", LocalDate.now()))
     )
-    val RESULTAT_FEIL = Resultat(HENT_TRENGER_IM = HentTrengerImLøsning(error = Feilmelding("feil", 500)))
+    val RESULTAT_IKKE_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.IKKE_TILGANG))
+    val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
+    val RESULTAT_Feil = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(error = Feilmelding("feil", 500)))
     val RESULTAT_OK = buildResultat()
 
     @Test
     fun `skal returnere valideringsfeil ved ugyldig request`() = testApi {
-        coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_FEIL
-
         val response = post(PATH, UGYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -62,7 +64,7 @@ internal class TrengerRouteKtTest : ApiTest() {
     fun `skal returnere OK når trenger virker`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returnsMany listOf(RESULTAT_TRENGER_INNTEKT, RESULTAT_OK)
+        } returns RESULTAT_HAR_TILGANG andThenMany listOf(RESULTAT_TRENGER_INNTEKT, RESULTAT_OK)
 
         val response = post(PATH, GYLDIG_REQUEST)
 

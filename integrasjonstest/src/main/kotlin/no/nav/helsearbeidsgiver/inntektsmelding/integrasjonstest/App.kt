@@ -3,12 +3,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.aareg.AaregClient
+import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
+import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.DatabaseConfig
@@ -16,6 +18,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapHikariConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
@@ -62,7 +66,9 @@ fun RapidsConnection.buildApp(
     dokarkivClient: DokArkivClient,
     pdlClient: PdlClient,
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-    notifikasjonLink: String
+    notifikasjonLink: String,
+    priProducer: PriProducer,
+    altinnClient: AltinnClient
 ): RapidsConnection {
     logger.info("Starting App")
     this.createAareg(aaregClient)
@@ -72,7 +78,8 @@ fun RapidsConnection.buildApp(
     this.createDb(database, repository)
     // this.createDistribusjon() // TODO Integrasjonstester må bruke distribusjon appen
     this.createForespoerselMottatt()
-    // this.createHelsebro() // TODO  Integrasjonstester må bruke helsebro appen
+    this.createAltinn(altinnClient)
+    this.createHelsebro(priProducer)
     this.createInntekt(inntektKlient)
     this.createJoark(dokarkivClient)
     this.createPdl(pdlClient)

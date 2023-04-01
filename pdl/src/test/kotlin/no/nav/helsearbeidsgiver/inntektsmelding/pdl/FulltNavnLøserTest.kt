@@ -14,12 +14,13 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.pdl.PdlClient
-import no.nav.helsearbeidsgiver.pdl.PdlHentPersonNavn
+import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
 import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class FulltNavnLøserTest {
@@ -40,10 +41,8 @@ internal class FulltNavnLøserTest {
     @Test
     fun `skal finne navn`() {
         coEvery {
-            pdlClient.personNavn(any())
-        } returns PdlHentPersonNavn.PdlPersonNavneliste(
-            listOf(PdlHentPersonNavn.PdlPersonNavneliste.PdlPersonNavn("Ola", "", "Normann", PdlPersonNavnMetadata("")))
-        )
+            pdlClient.fullPerson(any(), any())
+        } returns mockPerson("Ola", "", "Normann", LocalDate.now())
         val løsning = sendMessage(
             mapOf(
                 Key.BEHOV.str to listOf(BEHOV.name),
@@ -52,7 +51,7 @@ internal class FulltNavnLøserTest {
             )
         )
         assertNotNull(løsning.value)
-        assertEquals("Ola Normann", løsning.value)
+        assertEquals("Ola Normann", løsning.value!!.navn)
         assertNull(løsning.error)
     }
 
@@ -78,5 +77,28 @@ internal class FulltNavnLøserTest {
         )
         val losning: JsonNode = rapid.inspektør.message(0).path(Key.LØSNING.str)
         return objectMapper.readValue<NavnLøsning>(losning.get(BEHOV.name).toString())
+    }
+
+    fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson {
+        return PdlHentFullPerson(
+            hentPerson = PdlHentFullPerson.PdlFullPersonliste(
+                navn = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlNavn(fornavn, mellomNavn, etternavn, PdlPersonNavnMetadata(""))),
+                foedsel = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlFoedsel(fødselsdato)),
+                doedsfall = emptyList(),
+                adressebeskyttelse = emptyList(),
+                statsborgerskap = emptyList(),
+                bostedsadresse = emptyList(),
+                kjoenn = emptyList()
+            ),
+            hentIdenter = PdlHentFullPerson.PdlIdentResponse(
+                emptyList()
+            ),
+            hentGeografiskTilknytning = PdlHentFullPerson.PdlGeografiskTilknytning(
+                PdlHentFullPerson.PdlGeografiskTilknytning.PdlGtType.KOMMUNE,
+                null,
+                null,
+                null
+            )
+        )
     }
 }

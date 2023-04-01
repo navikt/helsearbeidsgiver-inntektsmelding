@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
@@ -50,7 +50,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
     val priProducer = mockk<PriProducer>()
-    lateinit var producer: TrengerProducer
+    lateinit var producer: TilgangProducer
     var filterMessages: (JsonNode) -> Boolean = { true }
 
     // Database
@@ -92,7 +92,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
             priProducer,
             altinnClient
         )
-        producer = TrengerProducer(rapid)
+        producer = TilgangProducer(rapid)
         rapid.register(this)
         thread = thread {
             rapid.start()

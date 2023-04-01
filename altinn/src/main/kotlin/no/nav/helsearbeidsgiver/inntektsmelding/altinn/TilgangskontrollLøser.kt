@@ -45,7 +45,9 @@ class TilgangskontrollLøser(rapidsConnection: RapidsConnection, val altinnClien
             publiserLøsning(TilgangskontrollLøsning(error = Feilmelding("Du har ikke rettigheter til å se på denne.")), packet, context)
         } else {
             logger.info("Tilgang godkjent for $forespørselId.")
-            packet[Key.NESTE_BEHOV.str] = listOf(BehovType.PREUTFYLL.name)
+            packet[Key.BOOMERANG.str] = mapOf(
+                Key.NESTE_BEHOV.str to listOf(BehovType.HENT_TRENGER_IM.name)
+            )
             publiserLøsning(TilgangskontrollLøsning(orgNr), packet, context)
         }
     }

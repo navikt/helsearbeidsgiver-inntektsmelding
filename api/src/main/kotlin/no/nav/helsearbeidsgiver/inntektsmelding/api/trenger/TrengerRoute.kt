@@ -22,9 +22,10 @@ fun RouteExtra.TrengerRoute() {
         post {
             val request = call.receive<TrengerRequest>()
             logger.info("Henter data for uuid: ${request.uuid}")
+            val innloggerFnr = "123" // TODO bytt ut med ekte fnr
             try {
                 request.validate()
-                val uuid = trengerProducer.publish(request)
+                val uuid = trengerProducer.publish(innloggerFnr, request)
                 val resultat = redis.getResultat(uuid.toString(), 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
                 val mapper = TrengerMapper(resultat)

@@ -20,25 +20,32 @@ class Repository(private val db: Database) {
             }
         }
 
+    fun hentOrgNr(forespørselId: String): String? =
+        transaction(db) {
+            InntektsmeldingEntitet.run {
+                select { (uuid eq forespørselId) }.orderBy(opprettet, SortOrder.DESC)
+            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.orgnr)
+        }
+
     fun hentSakId(uuidLink: String): String? =
         transaction(db) {
             InntektsmeldingEntitet.run {
                 select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)
-            }.take(1).first().getOrNull(InntektsmeldingEntitet.sakId)
+            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.sakId)
         }
 
     fun hentOppgaveId(uuidLink: String): String? =
         transaction(db) {
             InntektsmeldingEntitet.run {
                 select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)
-            }.take(1).first().getOrNull(InntektsmeldingEntitet.oppgaveId)
+            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.oppgaveId)
         }
 
     fun hentNyeste(uuidLink: String): InntektsmeldingDokument? =
         transaction(db) {
             InntektsmeldingEntitet.run {
                 select { (uuid eq uuidLink) }.orderBy(opprettet, SortOrder.DESC)
-            }.take(1).first().getOrNull(InntektsmeldingEntitet.dokument)
+            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.dokument)
         }
 
     fun oppdaterJournapostId(journalpostId: String, uuid: String) {
@@ -65,11 +72,12 @@ class Repository(private val db: Database) {
         }
     }
 
-    fun lagreForespørsel(uuidLink: String) {
+    fun lagreForespørsel(forespørselId: String, organisasjonsnummer: String) {
         transaction(db) {
             InntektsmeldingEntitet.run {
                 insert {
-                    it[uuid] = uuidLink
+                    it[uuid] = forespørselId
+                    it[orgnr] = organisasjonsnummer
                     it[opprettet] = LocalDateTime.now()
                 }
             }

@@ -39,6 +39,7 @@ fun RapidsConnection.createDb(database: Database, repository: Repository): Rapid
     PersisterSakLøser(this, repository)
     logger.info("Starter PersisterOppgaveLøser...")
     PersisterOppgaveLøser(this, repository)
+    HentOrgnrLøser(this, repository)
     this.registerDbLifecycle(database)
     return this
 }

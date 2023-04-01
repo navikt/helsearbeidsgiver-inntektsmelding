@@ -82,6 +82,18 @@ data class HentPersistertLøsning(
 ) : Løsning()
 
 @Serializable
+data class HentImOrgnrLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
+
+@Serializable
+data class TilgangskontrollLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
+
+@Serializable
 data class LagreJournalpostLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null

@@ -33,14 +33,15 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
                 .toJsonElement()
                 .fromJson(HentTrengerImLøsning.serializer())
         } catch (ex: Exception) {
+            ex.printStackTrace()
             HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Fikk pakke")
-        sikkerlogg.info("Fikk pakke")
+        sikkerlogg.info("Fikk preutfylt pakke ${packet.toJson()}")
         val hentTrengerImLøsning = hentLøsning(packet)
-        sikkerlogg.info("Fikk løsning: $hentTrengerImLøsning")
+        logger.info("Fikk preutfylt pakke")
+        sikkerlogg.info("Fikk trenger løsning: ${hentTrengerImLøsning.error}")
         hentTrengerImLøsning.error?.let {
             sikkerlogg.error("Fant løsning med feil: ${it.melding}")
             packet[Key.LØSNING.str] = mapOf(

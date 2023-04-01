@@ -9,14 +9,17 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.aareg.AaregClient
+import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
+import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.junit.jupiter.api.AfterAll
@@ -38,6 +41,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var brregClient = mockk<BrregClient>()
     var inntektKlient = mockk<InntektKlient>()
     var dokarkivClient = mockk<DokArkivClient>()
+    var altinnClient = mockk<AltinnClient>()
     val placeholderSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakKt")
     val placeholderOppgave = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettOppgaveKt")
     val placeholderNyStatusSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.NyStatusSakByGrupperingsidKt")
@@ -45,6 +49,8 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     val placeholdernyStatusSakKt = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.NyStatusSakKt")
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
+    val priProducer = mockk<PriProducer>()
+    lateinit var producer: TrengerProducer
     var filterMessages: (JsonNode) -> Boolean = { true }
 
     // Database
@@ -82,8 +88,11 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
             dokarkivClient,
             pdlClient,
             arbeidsgiverNotifikasjonKlient,
-            notifikasjonLink
+            notifikasjonLink,
+            priProducer,
+            altinnClient
         )
+        producer = TrengerProducer(rapid)
         rapid.register(this)
         thread = thread {
             rapid.start()

@@ -30,7 +30,7 @@ class ForespørselMottattListener(val rapidsConnection: RapidsConnection, val re
         sikkerLogger.info("ForespørselMottattListener mottok: ${packet.toJson()}")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
-        repository.lagreForespørsel(uuid)
+        repository.lagreForespørsel(uuid, orgnr)
         val msg = mapOf(
             Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT.name,
             Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),

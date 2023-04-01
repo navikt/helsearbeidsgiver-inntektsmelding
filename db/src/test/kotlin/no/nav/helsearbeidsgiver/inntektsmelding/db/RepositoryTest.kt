@@ -14,6 +14,7 @@ import java.time.ZonedDateTime
 class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
 
     val repository = Repository(db.db)
+    val ORGNR = "orgnr-456"
 
     test("skal lagre forespørsel") {
         transaction {
@@ -22,14 +23,15 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
 
         val UUID = "abc-123"
 
-        repository.lagreForespørsel(UUID)
+        repository.lagreForespørsel(UUID, ORGNR)
 
         shouldNotThrowAny {
             transaction {
                 InntektsmeldingEntitet.select {
                     all(
                         InntektsmeldingEntitet.id eq 1,
-                        InntektsmeldingEntitet.uuid eq UUID
+                        InntektsmeldingEntitet.uuid eq UUID,
+                        InntektsmeldingEntitet.orgnr eq ORGNR
                     )
                 }.single()
             }
@@ -44,7 +46,7 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         val UUID = "abc-123"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
 
-        repository.lagreForespørsel(UUID)
+        repository.lagreForespørsel(UUID, ORGNR)
         repository.oppdaterDokument(UUID, DOK_1)
 
         transaction {
@@ -66,7 +68,7 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
         val JOURNALPOST_1 = "jp-1"
 
-        repository.lagreForespørsel(UUID)
+        repository.lagreForespørsel(UUID, ORGNR)
         repository.oppdaterDokument(UUID, DOK_1)
         repository.oppdaterJournapostId(JOURNALPOST_1, UUID)
         val dok1 = repository.hentNyeste(UUID)
@@ -82,7 +84,7 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
         val SAK_ID_1 = "sak1-1"
 
-        repository.lagreForespørsel(UUID)
+        repository.lagreForespørsel(UUID, ORGNR)
         repository.oppdaterDokument(UUID, DOK_1)
         repository.oppdaterSakId(SAK_ID_1, UUID)
         val dok1 = repository.hentNyeste(UUID)
@@ -98,7 +100,7 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
         val OPPGAVE_ID_1 = "oppg-1"
 
-        repository.lagreForespørsel(UUID)
+        repository.lagreForespørsel(UUID, ORGNR)
         repository.oppdaterDokument(UUID, DOK_1)
         repository.oppdaterOppgaveId(UUID, OPPGAVE_ID_1)
         val dok1 = repository.hentNyeste(UUID)

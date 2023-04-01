@@ -14,7 +14,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 
 class PriProducer(
-    private val producer: KafkaProducer<String, TrengerForespoersel> = createProducer()
+    val producer: KafkaProducer<String, TrengerForespoersel> = createProducer()
 ) {
     private val topic = Pri.TOPIC
 

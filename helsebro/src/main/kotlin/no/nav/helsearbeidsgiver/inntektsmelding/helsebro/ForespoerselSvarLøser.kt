@@ -19,9 +19,13 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.require
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.value
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
+import org.slf4j.LoggerFactory
 
 class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
     init {
+        loggerSikker.info("Starting ForespoerselSvarLøser...")
         River(rapid).apply {
             validate { jsonMessage ->
                 jsonMessage.demandValue(Pri.Key.BEHOV, ForespoerselSvar.behovType)

@@ -17,12 +17,17 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
+import org.slf4j.LoggerFactory
 
 class TrengerForespoerselLøser(
     rapid: RapidsConnection,
     private val priProducer: PriProducer
 ) : River.PacketListener {
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     init {
+        loggerSikker.info("Starting TrengerForespoerselLøser...")
         River(rapid).apply {
             validate { msg ->
                 msg.demandAll(Key.BEHOV, listOf(BehovType.HENT_TRENGER_IM))

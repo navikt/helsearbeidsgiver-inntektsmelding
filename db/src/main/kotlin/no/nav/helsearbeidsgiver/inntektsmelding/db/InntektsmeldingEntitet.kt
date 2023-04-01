@@ -15,6 +15,7 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
     val opprettet = datetime("opprettet")
     val innsendt = datetime("innsendt").nullable()
     val uuid = text("uuid")
+    val orgnr = text("orgnr")
     val journalpostId = varchar("journalpostid", 30).nullable()
     val sakId = varchar("sakid", 36).nullable()
     val oppgaveId = varchar("oppgaveid", 36).nullable()

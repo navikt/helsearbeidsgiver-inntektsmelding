@@ -60,15 +60,26 @@ class OpprettSakLøser(
         }
     }
 
+    fun hentNavn(packet: JsonMessage): NavnLøsning {
+        return packet[Key.LØSNING.str].get(BehovType.FULLT_NAVN.name).toJsonElement().fromJson(NavnLøsning.serializer())
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
         sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
-        logger.info("OpprettSakLøser fikk pakke for uuid: $uuid")
+        logger.info("Skal opprette sak for forespørselId: $uuid")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
-        val navn = packet[Key.LØSNING.str].toJsonElement().fromJson(NavnLøsning.serializer()).value ?: "Ukjent"
-        val sakId = opprettSak(uuid, orgnr, navn, LocalDate.now())
-        logger.info("OpprettSakLøser fikk opprettet sak for uuid: $uuid")
+        val navnLøsning = hentNavn(packet)
+        var navn = "Ukjent"
+        if (navnLøsning.error == null) {
+            hentNavn(packet).value
+        } else {
+            logger.warn("Klarte ikke hente navn for forespørselId: $uuid ved oppretting av sak!")
+        }
+        val fødselsdato = LocalDate.now()
+        val sakId = opprettSak(uuid, orgnr, navn, fødselsdato)
+        logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: $uuid")
         val msg =
             mapOf(
                 Key.EVENT_NAME.str to EVENT.name,
@@ -83,6 +94,6 @@ class OpprettSakLøser(
         val json = om.writeValueAsString(msg)
         rapidsConnection.publish(json)
         sikkerLogger.info("OpprettSakLøser: Publiserte: $json")
-        logger.info("OpprettSakLøser publiserte behov ${BehovType.PERSISTER_SAK_ID.name} og ${BehovType.OPPRETT_OPPGAVE.name} uuid: $uuid")
+        logger.info("OpprettSakLøser publiserte behov ${BehovType.PERSISTER_SAK_ID.name} og ${BehovType.OPPRETT_OPPGAVE.name} forespørselId: $uuid")
     }
 }

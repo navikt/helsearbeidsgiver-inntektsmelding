@@ -35,19 +35,19 @@ class FulltNavnLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val id = packet[Key.ID.str].asText()
+        logger.info("Henter navn for id: $id")
         val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
-
-        sikkerlogg.info("Henter navn for identitetsnummer $identitetsnummer")
-        logger.info("FulltNavnLøser: Løser id ${packet[Key.ID.str].asText()}")
-
         try {
             val fulltNavn = runBlocking {
                 hentNavn(identitetsnummer)
             }
-            sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer")
+            sikkerlogg.info("Fant navn: $fulltNavn for identitetsnummer: $identitetsnummer for id: $id")
+            logger.info("Fant navn for id: $id")
             publish(NavnLøsning(fulltNavn), packet, context)
         } catch (ex: Exception) {
-            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message}", ex)
+            logger.error("Klarte ikke hente navn for id $id")
+            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for id: $id", ex)
             publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet, context)
         }
     }

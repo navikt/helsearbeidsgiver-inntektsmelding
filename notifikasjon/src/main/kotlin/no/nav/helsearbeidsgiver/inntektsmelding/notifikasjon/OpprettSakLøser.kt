@@ -71,11 +71,12 @@ class OpprettSakLøser(
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val navnLøsning = hentNavn(packet)
-        var navn = "Ukjent"
-        if (navnLøsning.error == null) {
-            hentNavn(packet).value
-        } else {
+        val navn = hentNavn(packet).value ?: "Ukjent"
+        if (navnLøsning.error != null) {
             logger.warn("Klarte ikke hente navn for forespørselId: $uuid ved oppretting av sak!")
+            sikkerLogger.warn(
+                "Fikk feilmelding ved henting av navn (org: $orgnr, fnr: $fnr) for forespørselId: $uuid. Feilmelding: ${navnLøsning.error?.melding}"
+            )
         }
         val fødselsdato = LocalDate.now()
         val sakId = opprettSak(uuid, orgnr, navn, fødselsdato)

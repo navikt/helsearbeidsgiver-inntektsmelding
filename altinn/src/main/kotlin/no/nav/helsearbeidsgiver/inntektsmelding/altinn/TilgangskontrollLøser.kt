@@ -51,7 +51,7 @@ class TilgangskontrollLøser(rapidsConnection: RapidsConnection, val altinnClien
                 sikkerLogger.info("Tilgang godkjent for $forespørselId mot orgnr: $orgNr for fnr: $fnr")
                 publiserLøsning(TilgangskontrollLøsning(orgNr), packet, context)
             }
-        } catch (ex: Exception){
+        } catch (ex: Exception) {
             sikkerLogger.error("Det oppsted en feil ved kall mot Altinn", ex)
             logger.error("Det oppsted en feil ved kall mot Altinn")
             publiserLøsning(TilgangskontrollLøsning(error = Feilmelding("Du har ikke rettigheter til å se på denne.")), packet, context)

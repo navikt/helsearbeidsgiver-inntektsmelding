@@ -17,13 +17,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
-/**
- * Lytt på event: EventName.OPPRETTE_SAK
- *
- * Opprett sak
- *
- * Publish: OppgaveSakEvent
- */
 class OpprettSakLøser(
     val rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,

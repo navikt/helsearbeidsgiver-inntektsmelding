@@ -10,13 +10,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
-import no.nav.helsearbeidsgiver.felles.log.loggerSikker
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class TilgangskontrollLøser(rapidsConnection: RapidsConnection, val altinnClient: AltinnClient) : River.PacketListener {
 
     private val BEHOV = BehovType.TILGANGSKONTROLL
     private val logger = LoggerFactory.getLogger(this::class.java)
+    private val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 
     init {
         logger.info("Starter TilgangskontrollLøser...")
@@ -32,23 +33,28 @@ class TilgangskontrollLøser(rapidsConnection: RapidsConnection, val altinnClien
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        loggerSikker().info("Fikk pakke ${packet.toJson()}")
+        sikkerLogger.info("Fikk pakke ${packet.toJson()}")
         val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Ber om tilgangskontroll for $forespørselId")
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val orgNr = packet[Key.SESSION.str].get(BehovType.HENT_IM_ORGNR.name).get("value").asText()
-        val harTilgang = runBlocking {
-            altinnClient.harRettighetForOrganisasjon(fnr, orgNr)
-        }
-        if (!harTilgang) {
-            logger.info("Tilgang nektet for $forespørselId")
+        try {
+            val harTilgang = runBlocking {
+                altinnClient.harRettighetForOrganisasjon(fnr, orgNr)
+            }
+            if (!harTilgang) {
+                logger.info("Tilgang nektet for $forespørselId")
+                sikkerLogger.info("Tilgang nektet for $forespørselId mot orgnr: $orgNr for fnr: $fnr")
+                publiserLøsning(TilgangskontrollLøsning(error = Feilmelding("Du har ikke rettigheter til å se på denne.")), packet, context)
+            } else {
+                logger.info("Tilgang godkjent for $forespørselId.")
+                sikkerLogger.info("Tilgang godkjent for $forespørselId mot orgnr: $orgNr for fnr: $fnr")
+                publiserLøsning(TilgangskontrollLøsning(orgNr), packet, context)
+            }
+        } catch (ex: Exception){
+            sikkerLogger.error("Det oppsted en feil ved kall mot Altinn", ex)
+            logger.error("Det oppsted en feil ved kall mot Altinn")
             publiserLøsning(TilgangskontrollLøsning(error = Feilmelding("Du har ikke rettigheter til å se på denne.")), packet, context)
-        } else {
-            logger.info("Tilgang godkjent for $forespørselId.")
-            packet[Key.BOOMERANG.str] = mapOf(
-                Key.NESTE_BEHOV.str to listOf(BehovType.HENT_TRENGER_IM.name)
-            )
-            publiserLøsning(TilgangskontrollLøsning(orgNr), packet, context)
         }
     }
 

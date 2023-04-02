@@ -12,10 +12,11 @@ import no.nav.helsearbeidsgiver.felles.PersonLink
 import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.log.logger
+import org.slf4j.LoggerFactory
 
 class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
-    private val logger = logger()
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
@@ -33,7 +34,8 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
                 .toJsonElement()
                 .fromJson(HentTrengerImLøsning.serializer())
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            sikkerlogg.error("Det oppstod en feil ved henting av session data for ${BehovType.HENT_TRENGER_IM}", ex)
+            logger.error("Klarte ikke hente ut session data for ${BehovType.HENT_TRENGER_IM}")
             HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
         }
 

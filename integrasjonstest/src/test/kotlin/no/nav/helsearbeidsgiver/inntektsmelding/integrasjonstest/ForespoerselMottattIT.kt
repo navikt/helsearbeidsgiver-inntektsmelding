@@ -9,6 +9,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.pdl.PdlHentPersonNavn
+import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -23,6 +25,10 @@ internal class ForespoerselMottattIT : EndToEndTest() {
     val FORESPOERSEL = UUID.randomUUID().toString()
     val SAK_ID = "sak_id_123"
     val OPPGAVE_ID = "oppgave_id_456"
+    val FORNAVN = "Ola"
+    val ETTERNAVN = "Normann"
+    val MELLOMNAVN = ""
+    val NAVN = "Ola Normann"
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
@@ -37,6 +43,15 @@ internal class ForespoerselMottattIT : EndToEndTest() {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any())
         } answers {
             OPPGAVE_ID
+        }
+
+        val pdlClient = this.pdlClient
+        coEvery {
+            pdlClient.personNavn(any())
+        } answers {
+            PdlHentPersonNavn.PdlPersonNavneliste(
+                listOf(PdlHentPersonNavn.PdlPersonNavneliste.PdlPersonNavn(FORNAVN, MELLOMNAVN, ETTERNAVN, PdlPersonNavnMetadata("")))
+            )
         }
 
         publish(
@@ -69,7 +84,8 @@ internal class ForespoerselMottattIT : EndToEndTest() {
 
         with(getMessage(2)) {
             assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
-            assertNotNull(get(Key.LØSNING.str).get(BehovType.FULLT_NAVN.name).asText()) // Løsning
+            assertNotNull(get(Key.LØSNING.str).get(BehovType.FULLT_NAVN.name).asText())
+            assertEquals(NAVN, (get(Key.LØSNING.str).get(BehovType.FULLT_NAVN.name).get("value").asText()))
 
             assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
             assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())

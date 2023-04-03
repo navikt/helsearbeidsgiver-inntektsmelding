@@ -13,6 +13,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
 import java.time.LocalDate
 import java.util.Base64
 
+// NAV-enheten som personen som utfører journalføring jobber for. Ved automatisk journalføring uten
+// mennesker involvert, skal enhet settes til "9999".
+internal const val AUTOMATISK_JOURNALFOERING_ENHET = "9999"
+
 /**
  * Journalføring til dagens løsning:
  * https://github.com/navikt/dokmotaltinn/blob/master/app/src/test/resources/__files/journalpostapi/opprettjournalpostrequest.json
@@ -27,7 +31,7 @@ fun mapOpprettJournalpostRequest(
         behandlingsTema = "ab0326",
         tittel = "Inntektsmelding",
         journalposttype = Journalposttype.INNGAAENDE,
-        journalfoerendeEnhet = null,
+        journalfoerendeEnhet = AUTOMATISK_JOURNALFOERING_ENHET,
         kanal = "NAV_NO",
         bruker = Bruker(inntektsmelding.identitetsnummer, IdType.FNR), //  Bruker.id er fnr til personen kravet gjelder for
         eksternReferanseId = "ARI-$uuid",

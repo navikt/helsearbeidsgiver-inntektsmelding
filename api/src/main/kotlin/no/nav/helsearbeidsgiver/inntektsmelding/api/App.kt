@@ -44,16 +44,7 @@ object Routes {
 
 fun main() {
     val env = System.getenv()
-    val altinnClient = AltinnClient(
-        url = Env.Altinn.url,
-        serviceCode = Env.Altinn.serviceCode,
-        apiGwApiKey = Env.Altinn.apiGwApiKey,
-        altinnApiKey = Env.Altinn.altinnApiKey,
-        cacheConfig = CacheConfig(60.minutes, 100)
-    )
-    val rapidsConnection = RapidApplication.create(env)
-    startServer(rapidsConnection)
-    rapidsConnection.start()
+    RapidApplication.create(env).also(::startServer).start()
 }
 
 fun startServer(connection: RapidsConnection) {

@@ -20,7 +20,7 @@ fun buildAltinnClient(): AltinnClient {
         serviceCode = Env.serviceCode,
         apiGwApiKey = Env.apiGwApiKey,
         altinnApiKey = Env.altinnApiKey,
-        cacheConfig = CacheConfig(Duration.ofMinutes(60).toKotlinDuration(), 3)
+        cacheConfig = CacheConfig(Duration.ofMinutes(60).toKotlinDuration(), 100)
     )
 }
 

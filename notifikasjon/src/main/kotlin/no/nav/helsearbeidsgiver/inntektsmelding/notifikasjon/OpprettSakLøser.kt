@@ -68,8 +68,8 @@ class OpprettSakLøser(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
-        logger.info("OpprettSakLøser Skal opprette sak for forespørselId: $uuid")
+        sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
+        logger.info("Skal opprette sak for forespørselId: $uuid")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val navnLøsning = hentNavn(packet)
@@ -96,7 +96,7 @@ class OpprettSakLøser(
 
         val json = om.writeValueAsString(msg)
         rapidsConnection.publish(json)
-        sikkerLogger.info("OpprettSakLøser: Publiserte: $json")
+        sikkerLogger.info("OpprettSakLøser publiserte: $json")
         logger.info("OpprettSakLøser publiserte behov ${BehovType.PERSISTER_SAK_ID.name} og ${BehovType.OPPRETT_OPPGAVE.name} forespørselId: $uuid")
     }
 }

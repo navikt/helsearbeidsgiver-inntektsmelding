@@ -3,6 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.CacheConfig
+import java.time.Duration
+import kotlin.time.toKotlinDuration
 
 fun main() {
     RapidApplication
@@ -16,7 +19,8 @@ fun buildAltinnClient(): AltinnClient {
         url = Env.url,
         serviceCode = Env.serviceCode,
         apiGwApiKey = Env.apiGwApiKey,
-        altinnApiKey = Env.altinnApiKey
+        altinnApiKey = Env.altinnApiKey,
+        cacheConfig = CacheConfig(Duration.ofMinutes(60).toKotlinDuration(), 3)
     )
 }
 

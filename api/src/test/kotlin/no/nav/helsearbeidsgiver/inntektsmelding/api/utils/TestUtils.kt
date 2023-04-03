@@ -13,14 +13,11 @@ import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
-import io.mockk.mockkConstructor
 import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.mock.mockConstructor
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
-import no.nav.helsearbeidsgiver.inntektsmelding.api.authorization.AltinnAuthorizer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
 
 abstract class ApiTest : MockAuthToken() {
     fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {
@@ -37,7 +34,6 @@ abstract class ApiTest : MockAuthToken() {
         mockConstructor(RedisPoller::class) {
             testClient.block()
         }
-
     }
 }
 

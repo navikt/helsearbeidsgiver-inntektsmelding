@@ -93,10 +93,6 @@ data class TilgangskontrollLøsning(
     override val error: Feilmelding? = null
 ) : Løsning()
 
-enum class Tilgang {
-    HAR_TILGANG, IKKE_TILGANG
-}
-
 @Serializable
 data class LagreJournalpostLøsning(
     override val value: String? = null,

@@ -3,6 +3,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
@@ -53,19 +57,20 @@ class TilgangskontrollIT : EndToEndTest() {
         Thread.sleep(4000)
         with(getMessage(3)) {
             assertNotNull(get(Key.LØSNING.str))
-            assertEquals(
-                "Du har ikke rettigheter til å se på denne.",
-                get(Key.LØSNING.str).get(BehovType.TILGANGSKONTROLL.name).get("error").get("melding").asText()
+            val løsning: TilgangskontrollLøsning = get(Key.LØSNING.str).get(BehovType.TILGANGSKONTROLL.name).toJsonElement().fromJson(
+                TilgangskontrollLøsning.serializer()
             )
+            assertEquals(Tilgang.IKKE_TILGANG, løsning.value)
             assertEquals(BehovType.HENT_IM_ORGNR.name, get(Key.BEHOV.str)[0].asText())
         }
     }
 
     @Test
-    fun `hent ut preutfylte data for forespørsel`() {
+    fun `skal få tilgang`() {
         results.clear()
         producer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_HAR_TILGANG)
-        Thread.sleep(4000)
+        Thread.sleep(6000)
+        assertNotNull(results)
         with(getMessage(1)) {
             assertEquals(BehovType.HENT_IM_ORGNR.name, get(Key.BEHOV.str)[0].asText())
         }

@@ -34,7 +34,7 @@ class TilgangskontrollLøser(rapidsConnection: RapidsConnection, val altinnClien
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerLogger.info("Fikk pakke ${packet.toJson()}")
+        sikkerLogger.info("Fikk pakke")
         val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Ber om tilgangskontroll for $forespørselId")
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
@@ -43,14 +43,14 @@ class TilgangskontrollLøser(rapidsConnection: RapidsConnection, val altinnClien
             val harTilgang = runBlocking {
                 altinnClient.harRettighetForOrganisasjon(fnr, orgNr)
             }
-            if (!harTilgang) {
-                logger.info("Tilgang nektet for $forespørselId")
-                sikkerLogger.info("Tilgang nektet for $forespørselId mot orgnr: $orgNr for fnr: $fnr")
-                publiserLøsning(TilgangskontrollLøsning(Tilgang.IKKE_TILGANG), packet, context)
-            } else {
+            if (harTilgang) {
                 logger.info("Tilgang godkjent for $forespørselId.")
                 sikkerLogger.info("Tilgang godkjent for $forespørselId mot orgnr: $orgNr for fnr: $fnr")
                 publiserLøsning(TilgangskontrollLøsning(Tilgang.HAR_TILGANG), packet, context)
+            } else {
+                logger.info("Tilgang nektet for $forespørselId")
+                sikkerLogger.info("Tilgang nektet for $forespørselId mot orgnr: $orgNr for fnr: $fnr")
+                publiserLøsning(TilgangskontrollLøsning(Tilgang.IKKE_TILGANG), packet, context)
             }
         } catch (ex: Exception) {
             sikkerLogger.error("Det oppsted en feil ved kall mot Altinn", ex)

@@ -41,8 +41,8 @@ internal class IsValidBehandlingsdagerKtTest {
     }
 
     @Test
-    fun `skal ikke godta flere samme uke - på søndager`() {
-        assertTrue(isValidBehandlingsdager(listOf(SUNDAY, SUNDAY.plusDays(1))), "Skal ikke feile dersom ")
+    fun `skal godta datoer på søndag og førstkommende mandag`() {
+        assertTrue(isValidBehandlingsdager(listOf(SUNDAY, SUNDAY.plusDays(1))), "Skal godta søndag og mandag etterpå")
     }
 
     @Test

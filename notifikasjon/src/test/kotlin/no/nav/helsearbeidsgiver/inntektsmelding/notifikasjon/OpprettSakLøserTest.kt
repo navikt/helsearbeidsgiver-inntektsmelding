@@ -40,7 +40,7 @@ internal class OpprettSakLøserTest {
                 "uuid-abc",
                 "Inntektsmelding",
                 "org-456",
-                "Inntektsmelding for $NAVN: f. 05.01.2020",
+                "Inntektsmelding for $NAVN: f. 050120",
                 "root/im-dialog/uuid-abc",
                 "NAV trenger inntektsmelding",
                 "P5M"

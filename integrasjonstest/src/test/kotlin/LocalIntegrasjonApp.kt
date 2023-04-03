@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.PersonLink
 import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
@@ -29,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLøser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-integrasjon")
@@ -104,7 +106,7 @@ class DummyLøser(rapidsConnection: RapidsConnection, val behov: BehovType, val 
                 VirksomhetLøsning("Din Bedrift A/S")
             }
             BehovType.FULLT_NAVN -> {
-                NavnLøsning("Navn navnesen")
+                NavnLøsning(PersonDato("Navn navnesen", LocalDate.now()))
             }
             BehovType.INNTEKT -> {
                 InntektLøsning(Inntekt(emptyList()))

@@ -16,14 +16,8 @@ import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-/**
- * Lytt på event: EventName.OPPRETTE_SAK
- *
- * Opprett sak
- *
- * Publish: OppgaveSakEvent
- */
 class OpprettSakLøser(
     val rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
@@ -52,14 +46,15 @@ class OpprettSakLøser(
         uuid: String,
         orgnr: String,
         navn: String,
-        fødselsdato: LocalDate
+        fødselsdato: LocalDate?
     ): String {
+        val datoString = fødselsdato?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: "Ukjent"
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNySak(
                 grupperingsid = uuid,
                 merkelapp = "Inntektsmelding",
                 virksomhetsnummer = orgnr,
-                tittel = "Inntektsmelding for $navn: f. $fødselsdato",
+                tittel = "Inntektsmelding for $navn: f. $datoString",
                 lenke = "$linkUrl/im-dialog/$uuid",
                 statusTekst = "NAV trenger inntektsmelding",
                 harddeleteOm = "P5M"
@@ -67,15 +62,27 @@ class OpprettSakLøser(
         }
     }
 
+    fun hentNavn(packet: JsonMessage): NavnLøsning {
+        return packet[Key.LØSNING.str].get(BehovType.FULLT_NAVN.name).toJsonElement().fromJson(NavnLøsning.serializer())
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
         sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
-        logger.info("OpprettSakLøser fikk pakke for uuid: $uuid")
+        logger.info("Skal opprette sak for forespørselId: $uuid")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
-        val navn = packet[Key.LØSNING.str].toJsonElement().fromJson(NavnLøsning.serializer()).value ?: "Ukjent"
-        val sakId = opprettSak(uuid, orgnr, navn, LocalDate.now())
-        logger.info("OpprettSakLøser fikk opprettet sak for uuid: $uuid")
+        val navnLøsning = hentNavn(packet)
+        val navn = navnLøsning.value?.navn ?: "Ukjent"
+        val fødselsdato = navnLøsning.value?.fødselsdato
+        if (navnLøsning.error != null) {
+            logger.warn("Klarte ikke hente navn for forespørselId: $uuid ved oppretting av sak!")
+            sikkerLogger.warn(
+                "Fikk feilmelding ved henting av navn (org: $orgnr, fnr: $fnr) for forespørselId: $uuid. Feilmelding: ${navnLøsning.error?.melding}"
+            )
+        }
+        val sakId = opprettSak(uuid, orgnr, navn, fødselsdato)
+        logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: $uuid")
         val msg =
             mapOf(
                 Key.EVENT_NAME.str to EVENT.name,
@@ -89,7 +96,7 @@ class OpprettSakLøser(
 
         val json = om.writeValueAsString(msg)
         rapidsConnection.publish(json)
-        sikkerLogger.info("OpprettSakLøser: Publiserte: $json")
-        logger.info("OpprettSakLøser publiserte behov ${BehovType.PERSISTER_SAK_ID.name} og ${BehovType.OPPRETT_OPPGAVE.name} uuid: $uuid")
+        sikkerLogger.info("OpprettSakLøser publiserte: $json")
+        logger.info("OpprettSakLøser publiserte behov ${BehovType.PERSISTER_SAK_ID.name} og ${BehovType.OPPRETT_OPPGAVE.name} forespørselId: $uuid")
     }
 }

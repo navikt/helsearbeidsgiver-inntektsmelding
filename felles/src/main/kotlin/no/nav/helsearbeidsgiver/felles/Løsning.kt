@@ -22,7 +22,7 @@ data class Feilmelding(
 
 @Serializable
 data class NavnLøsning(
-    override val value: String? = null,
+    override val value: PersonDato? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 
@@ -78,6 +78,18 @@ data class PersisterImLøsning(
 @Serializable
 data class HentPersistertLøsning(
     override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
+
+@Serializable
+data class HentImOrgnrLøsning(
+    override val value: String? = null,
+    override val error: Feilmelding? = null
+) : Løsning()
+
+@Serializable
+data class TilgangskontrollLøsning(
+    override val value: Tilgang? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 

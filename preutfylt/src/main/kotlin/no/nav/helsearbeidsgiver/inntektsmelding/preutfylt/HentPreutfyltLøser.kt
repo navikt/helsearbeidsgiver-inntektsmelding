@@ -12,10 +12,11 @@ import no.nav.helsearbeidsgiver.felles.PersonLink
 import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.log.logger
+import org.slf4j.LoggerFactory
 
 class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
-    private val logger = logger()
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapidsConnection).apply {
@@ -33,14 +34,16 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
                 .toJsonElement()
                 .fromJson(HentTrengerImLøsning.serializer())
         } catch (ex: Exception) {
+            sikkerlogg.error("Det oppstod en feil ved henting av session data for ${BehovType.HENT_TRENGER_IM}", ex)
+            logger.error("Klarte ikke hente ut session data for ${BehovType.HENT_TRENGER_IM}")
             HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Fikk pakke")
-        sikkerlogg.info("Fikk pakke")
+        sikkerlogg.info("Fikk preutfylt pakke ${packet.toJson()}")
         val hentTrengerImLøsning = hentLøsning(packet)
-        sikkerlogg.info("Fikk løsning: $hentTrengerImLøsning")
+        logger.info("Fikk preutfylt pakke")
+        sikkerlogg.info("Fikk trenger løsning: ${hentTrengerImLøsning.error}")
         hentTrengerImLøsning.error?.let {
             sikkerlogg.error("Fant løsning med feil: ${it.melding}")
             packet[Key.LØSNING.str] = mapOf(

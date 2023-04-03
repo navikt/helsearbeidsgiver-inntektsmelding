@@ -24,7 +24,8 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
             resultat.PREUTFYLL,
             resultat.JOURNALFOER,
             resultat.NOTIFIKASJON,
-            resultat.PERSISTER_IM
+            resultat.PERSISTER_IM,
+            resultat.TILGANGSKONTROLL
         ).filterNotNull()
     }
 

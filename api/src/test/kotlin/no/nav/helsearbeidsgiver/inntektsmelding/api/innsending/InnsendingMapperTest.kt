@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -15,10 +16,11 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException
+import java.time.LocalDate
 
 internal class InnsendingMapperTest {
 
-    val løsningOk = NavnLøsning("abc")
+    val løsningOk = NavnLøsning(PersonDato("abc", LocalDate.now()))
     val løsningVirksomhet = VirksomhetLøsning("abc")
     val løsningVirksomhetFeil = VirksomhetLøsning(error = Feilmelding("Oops"))
     val løsningFeil = NavnLøsning(error = Feilmelding("Oops"))

@@ -16,9 +16,7 @@ class TrengerProducer(
         logger.info("Starter TrengerProducer...")
     }
 
-    fun publish(request: TrengerRequest): UUID {
-        val initiateId = UUID.randomUUID()
-
+    fun publish(request: TrengerRequest, initiateId: UUID = UUID.randomUUID()): UUID {
         rapid.publish(
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.FORESPOERSEL_ID to request.uuid.toJson(),

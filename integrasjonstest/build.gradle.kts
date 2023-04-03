@@ -6,6 +6,7 @@ val postgresqlVersion: String by project
 val testcontainersPostgresqlVersion: String by project
 val aaregClientVersion: String by project
 val arbeidsgiverNotifikasjonVersion: String by project
+val altinnClientVersion: String by project
 
 dependencies {
     implementation(project(":dokument"))
@@ -24,6 +25,7 @@ dependencies {
     implementation(project(":preutfylt"))
     implementation(project(":innsending"))
     implementation(project(":api"))
+    implementation(project(":altinn"))
     testApi(project(":api"))
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.2")
     testImplementation("org.testcontainers:postgresql:1.17.6")
@@ -48,4 +50,5 @@ dependencies {
     implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonVersion")
     implementation("no.nav.helsearbeidsgiver:dokarkiv-client:0.1.9")
     implementation("no.nav.helsearbeidsgiver:inntekt-klient:0.1.9")
+    implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")
 }

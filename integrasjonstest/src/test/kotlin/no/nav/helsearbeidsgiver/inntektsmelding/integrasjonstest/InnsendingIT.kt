@@ -44,7 +44,7 @@ internal class InnsendingIT : EndToEndTest() {
     val JOURNALPOST_ID = "jp-789"
 
     fun setup() {
-        repository.lagreForespørsel(FORESPØRSEL_ID)
+        repository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
         repository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
         repository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
 

@@ -12,5 +12,6 @@ data class Resultat(
     val NOTIFIKASJON: NotifikasjonLøsning? = null,
     val HENT_TRENGER_IM: HentTrengerImLøsning? = null,
     val PREUTFYLL: PreutfyltLøsning? = null,
-    val PERSISTER_IM: PersisterImLøsning? = null
+    val PERSISTER_IM: PersisterImLøsning? = null,
+    val TILGANGSKONTROLL: TilgangskontrollLøsning? = null
 )

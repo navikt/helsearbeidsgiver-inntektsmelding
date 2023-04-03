@@ -10,11 +10,13 @@ import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mockArbeidsforhold
 import org.junit.jupiter.api.Test
 import org.valiktor.ConstraintViolationException
+import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -22,7 +24,7 @@ import kotlin.test.assertTrue
 
 internal class TrengerMapperTest {
 
-    val løsningNavn = NavnLøsning("abc")
+    val løsningNavn = NavnLøsning(PersonDato("abc", LocalDate.now()))
     val løsningVirksomhet = VirksomhetLøsning("xyz")
     val løsningInntekt = InntektLøsning(Inntekt(listOf(MottattHistoriskInntekt(YearMonth.now(), 32_000.0))))
     val løsningArbeidsforhold = buildArbeidsforhold()

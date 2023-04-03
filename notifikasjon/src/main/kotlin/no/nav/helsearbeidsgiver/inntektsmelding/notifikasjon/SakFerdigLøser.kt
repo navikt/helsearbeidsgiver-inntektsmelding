@@ -13,8 +13,6 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.SakFerdigLøsning
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class SakFerdigLøser(
     rapidsConnection: RapidsConnection,
@@ -42,12 +40,10 @@ class SakFerdigLøser(
         val forespoerselId = packet[Key.UUID.str].asText()
         val sakId = packet[Key.SAK_ID.str].asText()
         logger.info("SakFerdigLøser skal ferdigstille sakId $sakId for forespoerselId: $forespoerselId som utført...")
-        val innsendingstidspunkt = LocalDate.now()
-        val dato = innsendingstidspunkt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
         val lenke = "$linkUrl/im-dialog/$forespoerselId"
         try {
             runBlocking {
-                arbeidsgiverNotifikasjonKlient.nyStatusSak(sakId, lenke, SaksStatus.FERDIG, "Mottatt $dato")
+                arbeidsgiverNotifikasjonKlient.nyStatusSak(sakId, lenke, SaksStatus.FERDIG, "Mottatt")
             }
             publiserLøsning(SakFerdigLøsning(sakId), packet, context)
             logger.info("SakFerdigLøser ferdigstilte sakId $sakId for forespoerselId: $forespoerselId som utført!")

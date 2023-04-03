@@ -13,14 +13,21 @@ import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
+import io.mockk.mockkConstructor
 import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.mock.mockConstructor
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
+import no.nav.helsearbeidsgiver.inntektsmelding.api.authorization.AltinnAuthorizer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
 
 abstract class ApiTest : MockAuthToken() {
     fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {
+        System.setProperty("ALTINN_URL", "test.no")
+        System.setProperty("ALTINN_SERVICE_CODE", "1234")
+        System.setProperty("ALTINN_API_GW_API_KEY", "test1234")
+        System.setProperty("ALTINN_API_KEY", "test123")
         application {
             apiModule(mockk(relaxed = true))
         }
@@ -30,12 +37,13 @@ abstract class ApiTest : MockAuthToken() {
         mockConstructor(RedisPoller::class) {
             testClient.block()
         }
+
     }
 }
 
 class TestClient(
     appTestBuilder: ApplicationTestBuilder,
-    val authToken: () -> String
+    val authToken: () -> String,
 ) {
     private val httpClient = appTestBuilder.createClient {
         install(ContentNegotiation) {
@@ -47,7 +55,7 @@ class TestClient(
 
     fun get(
         path: String,
-        block: HttpRequestBuilder.() -> Unit = { withAuth() }
+        block: HttpRequestBuilder.() -> Unit = { withAuth() },
     ): HttpResponse =
         MockUuid.with {
             httpClient.get(path) {
@@ -58,7 +66,7 @@ class TestClient(
     fun post(
         path: String,
         body: Any,
-        block: HttpRequestBuilder.() -> Unit = { withAuth() }
+        block: HttpRequestBuilder.() -> Unit = { withAuth() },
     ): HttpResponse =
         MockUuid.with {
             httpClient.post(path) {

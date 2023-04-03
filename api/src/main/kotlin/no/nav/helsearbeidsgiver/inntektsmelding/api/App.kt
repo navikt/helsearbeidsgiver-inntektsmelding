@@ -17,15 +17,18 @@ import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.CacheConfig
 import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.authorization.DefaultAltinnAuthorizer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.InntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.minutes
 
 val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api")
@@ -41,8 +44,16 @@ object Routes {
 
 fun main() {
     val env = System.getenv()
-    RapidApplication.create(env).also(::startServer)
-        .start()
+    val altinnClient = AltinnClient(
+        url = Env.Altinn.url,
+        serviceCode = Env.Altinn.serviceCode,
+        apiGwApiKey = Env.Altinn.apiGwApiKey,
+        altinnApiKey = Env.Altinn.altinnApiKey,
+        cacheConfig = CacheConfig(60.minutes, 100)
+    )
+    val rapidsConnection = RapidApplication.create(env)
+    startServer(rapidsConnection)
+    rapidsConnection.start()
 }
 
 fun startServer(connection: RapidsConnection) {
@@ -50,7 +61,6 @@ fun startServer(connection: RapidsConnection) {
         apiModule(connection)
     }.start(wait = true)
 }
-
 fun Application.apiModule(connection: RapidsConnection) {
     customAuthentication()
 
@@ -78,21 +88,16 @@ fun Application.apiModule(connection: RapidsConnection) {
 
         val redisPoller = RedisPoller()
 
-        val altinnAuthorizer = DefaultAltinnAuthorizer(
-            AltinnClient(
-                url = Env.Altinn.url,
-                serviceCode = Env.Altinn.serviceCode,
-                apiGwApiKey = Env.Altinn.apiGwApiKey,
-                altinnApiKey = Env.Altinn.altinnApiKey
-            )
-        )
+        val orgnrCache = LocalCache<String>(60.minutes, 100)
+
+        val altinnAuthorizer = DefaultAltinnAuthorizer()
 
         authenticate {
             route(Routes.PREFIX) {
                 routeExtra(connection, redisPoller) {
                     ArbeidsgivereRoute()
-                    TrengerRoute()
-                    InntektRoute()
+                    TrengerRoute(orgnrCache, altinnAuthorizer)
+                    InntektRoute(orgnrCache, altinnAuthorizer)
                     // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
                     InnsendingRoute(altinnAuthorizer)
                 }

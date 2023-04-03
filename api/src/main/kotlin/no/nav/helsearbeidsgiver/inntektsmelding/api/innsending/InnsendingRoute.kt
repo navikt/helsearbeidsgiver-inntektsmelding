@@ -6,6 +6,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -20,24 +21,17 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationRespons
 import org.valiktor.ConstraintViolationException
 
 fun RouteExtra.InnsendingRoute(
-    altinnAuthorizer: AltinnAuthorizer
+    altinnAuthorizer: AltinnAuthorizer,
 ) {
     val producer = InnsendingProducer(connection)
 
     route.route(Routes.INNSENDING + "/{forespørselId}") {
         post {
-            try {
-                authorize(altinnAuthorizer, "")
-            } catch (e: ManglerAltinnRettigheterException) {
-                call.respond(
-                    HttpStatusCode.Forbidden,
-                    "Mangler Rettigheter i Altinn for organisasjon"
-                )
-            }
             val request = call.receive<InnsendingRequest>()
             val forespørselId = call.parameters["forespørselId"] ?: ""
             sikkerlogg.info("Mottok innsending $request for forespørselId: $forespørselId")
             try {
+                authorize(altinnAuthorizer, request.orgnrUnderenhet)
                 logger.info("Fikk innsending med forespørselId: $forespørselId")
                 request.validate()
                 producer.publish(forespørselId, request)
@@ -46,6 +40,11 @@ fun RouteExtra.InnsendingRoute(
                 sikkerlogg.info("Fikk resultat: $resultat")
                 val mapper = InnsendingMapper(forespørselId, resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())
+            } catch (e: ManglerAltinnRettigheterException) {
+                call.respond(
+                    HttpStatusCode.Forbidden,
+                    "Mangler Rettigheter i Altinn for organisasjon"
+                )
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for forespørselId: $forespørselId")
                 call.respond(HttpStatusCode.BadRequest, validationResponseMapper(e.constraintViolations))

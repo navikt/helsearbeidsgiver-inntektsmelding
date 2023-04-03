@@ -12,7 +12,11 @@ open class LocalApp {
             "NAIS_APP_NAME" to "nimrod",
             "REDIS_URL" to "redis://localhost:6379/0",
             "REDIS_HOST" to "localhost",
-            "HTTP_PORT" to "" + httpPort
+            "HTTP_PORT" to "" + httpPort,
+            "ALTINN_URL" to "https://fakedings.altinn.dev.nav.no",
+            "ALTINN_SERVICE_CODE" to "1234",
+            "ALTINN_API_GW_API_KEY" to "key123",
+            "ALTINN_API_KEY" to "key123"
         )
         env.forEach { (k, v) -> System.setProperty(k, v) }
         return env

@@ -2,6 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.authorization
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
+import no.nav.helsearbeidsgiver.altinn.CacheConfig
+import no.nav.helsearbeidsgiver.inntektsmelding.api.Env
+import kotlin.time.Duration.Companion.minutes
 
 interface AltinnAuthorizer {
     /**
@@ -17,7 +20,18 @@ interface AltinnAuthorizer {
  *  * Den angitte brukeren har rettigheter til den angitte arbeidsgiverIDen
  *  * Den angitte arbeidsgiver IDen er en underenhet (virksomhet)
  */
-class DefaultAltinnAuthorizer(private val altinnClient: AltinnClient) : AltinnAuthorizer {
+class DefaultAltinnAuthorizer() : AltinnAuthorizer {
+
+    val altinnClient: AltinnClient
+    init {
+        altinnClient = AltinnClient(
+            url = Env.Altinn.url,
+            serviceCode = Env.Altinn.serviceCode,
+            apiGwApiKey = Env.Altinn.apiGwApiKey,
+            altinnApiKey = Env.Altinn.altinnApiKey,
+            cacheConfig = CacheConfig(60.minutes, 100)
+        )
+    }
     override fun hasAccess(identitetsnummer: String, arbeidsgiverId: String): Boolean {
         return runBlocking {
             altinnClient.harRettighetForOrganisasjon(identitetsnummer, arbeidsgiverId)

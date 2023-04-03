@@ -6,6 +6,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
@@ -16,6 +19,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
+import no.nav.helsearbeidsgiver.inntektsmelding.api.authorization.DefaultAltinnAuthorizer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
@@ -44,6 +48,14 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_OK
 
+        mockkConstructor(DefaultAltinnAuthorizer::class)
+        val ac = mockk<AltinnClient>()
+
+        coEvery { anyConstructed<DefaultAltinnAuthorizer>().altinnClient } returns ac
+        coEvery {
+            anyConstructed<DefaultAltinnAuthorizer>().hasAccess(any(), any())
+        } returns true
+
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.Created, response.status)
@@ -55,6 +67,14 @@ class InnsendingRouteKtTest : ApiTest() {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_FEIL
+
+        mockkConstructor(DefaultAltinnAuthorizer::class)
+        val ac = mockk<AltinnClient>()
+
+        coEvery { anyConstructed<DefaultAltinnAuthorizer>().altinnClient } returns ac
+        coEvery {
+            anyConstructed<DefaultAltinnAuthorizer>().hasAccess(any(), any())
+        } returns true
 
         val response = post(PATH, UGYLDIG_REQUEST)
 
@@ -73,6 +93,14 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } throws RedisPollerTimeoutException(MockUuid.STRING)
 
+        mockkConstructor(DefaultAltinnAuthorizer::class)
+        val ac = mockk<AltinnClient>()
+
+        coEvery { anyConstructed<DefaultAltinnAuthorizer>().altinnClient } returns ac
+        coEvery {
+            anyConstructed<DefaultAltinnAuthorizer>().hasAccess(any(), any())
+        } returns true
+
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
@@ -84,6 +112,14 @@ class InnsendingRouteKtTest : ApiTest() {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_FEIL
+
+        mockkConstructor(DefaultAltinnAuthorizer::class)
+        val ac = mockk<AltinnClient>()
+
+        coEvery { anyConstructed<DefaultAltinnAuthorizer>().altinnClient } returns ac
+        coEvery {
+            anyConstructed<DefaultAltinnAuthorizer>().hasAccess(any(), any())
+        } returns true
 
         val response = post(PATH, UGYLDIG_REQUEST)
 

@@ -42,7 +42,7 @@ class TrengerMapper(
         resultat.HENT_TRENGER_IM?.value?.forespurtData ?: emptyList()
 
     fun mapFulltNavn(): String {
-        return resultat.FULLT_NAVN?.value ?: "Mangler navn"
+        return resultat.FULLT_NAVN?.value?.navn ?: "Mangler navn"
     }
 
     fun mapArbeidsgiver(): String {

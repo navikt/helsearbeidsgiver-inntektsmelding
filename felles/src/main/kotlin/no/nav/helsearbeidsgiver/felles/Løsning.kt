@@ -22,7 +22,7 @@ data class Feilmelding(
 
 @Serializable
 data class NavnLøsning(
-    override val value: String? = null,
+    override val value: PersonDato? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 

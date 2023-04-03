@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class OpprettSakLøser(
     val rapidsConnection: RapidsConnection,
@@ -45,14 +46,15 @@ class OpprettSakLøser(
         uuid: String,
         orgnr: String,
         navn: String,
-        fødselsdato: LocalDate
+        fødselsdato: LocalDate?
     ): String {
+        val datoString = fødselsdato?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: "Ukjent"
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNySak(
                 grupperingsid = uuid,
                 merkelapp = "Inntektsmelding",
                 virksomhetsnummer = orgnr,
-                tittel = "Inntektsmelding for $navn: f. $fødselsdato",
+                tittel = "Inntektsmelding for $navn: f. $datoString",
                 lenke = "$linkUrl/im-dialog/$uuid",
                 statusTekst = "NAV trenger inntektsmelding",
                 harddeleteOm = "P5M"
@@ -66,19 +68,19 @@ class OpprettSakLøser(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
-        sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
-        logger.info("Skal opprette sak for forespørselId: $uuid")
+        logger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
+        logger.info("OpprettSakLøser Skal opprette sak for forespørselId: $uuid")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         val navnLøsning = hentNavn(packet)
-        val navn = hentNavn(packet).value ?: "Ukjent"
+        val navn = navnLøsning.value?.navn ?: "Ukjent"
+        val fødselsdato = navnLøsning.value?.fødselsdato
         if (navnLøsning.error != null) {
             logger.warn("Klarte ikke hente navn for forespørselId: $uuid ved oppretting av sak!")
             sikkerLogger.warn(
                 "Fikk feilmelding ved henting av navn (org: $orgnr, fnr: $fnr) for forespørselId: $uuid. Feilmelding: ${navnLøsning.error?.melding}"
             )
         }
-        val fødselsdato = LocalDate.now()
         val sakId = opprettSak(uuid, orgnr, navn, fødselsdato)
         logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: $uuid")
         val msg =

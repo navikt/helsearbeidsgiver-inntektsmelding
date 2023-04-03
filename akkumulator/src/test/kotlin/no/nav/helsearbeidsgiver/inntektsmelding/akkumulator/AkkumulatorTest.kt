@@ -19,12 +19,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.list
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class AkkumulatorTest {
@@ -42,8 +44,8 @@ internal class AkkumulatorTest {
     private val UUID_PDL = "uuid_" + BEHOV_FULLT_NAVN
 
     val LØSNING_FEIL = NavnLøsning(error = Feilmelding("Fikk 500"))
-    val LØSNING_OK = NavnLøsning(value = "abc")
-    val PDL_OK = NavnLøsning(value = "xyz")
+    val LØSNING_OK = NavnLøsning(value = PersonDato("abc", LocalDate.now()))
+    val PDL_OK = NavnLøsning(value = PersonDato("xyz", LocalDate.now()))
 
     internal val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

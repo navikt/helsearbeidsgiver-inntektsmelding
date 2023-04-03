@@ -8,12 +8,14 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 internal class HentNesteBehovKtTest {
 
-    private val FULLT_NAVN_OK = NavnLøsning(value = "xyz")
+    private val FULLT_NAVN_OK = NavnLøsning(value = PersonDato("xyz", LocalDate.now()))
     private val objectMapper = ObjectMapper()
 
     @Test

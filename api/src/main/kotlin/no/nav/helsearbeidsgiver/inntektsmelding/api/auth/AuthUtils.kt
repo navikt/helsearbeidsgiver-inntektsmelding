@@ -25,13 +25,7 @@ fun PipelineContext<Unit, ApplicationCall>.authorize(
             logger.info("Fant ikke forespøresel i cache ber om tilgangskontroll for $forespørselId")
             val tilgangId = tilgangProducer.publish(innloggerFnr, forespørselId)
             val resultatTilgang = redisPoller.getResultat(tilgangId.toString(), 10, 500)
-            if (resultatTilgang.TILGANGSKONTROLL == null) {
-                throw ManglerAltinnRettigheterException()
-            } else if (resultatTilgang.TILGANGSKONTROLL!!.value == null) {
-                throw ManglerAltinnRettigheterException()
-            } else {
-                resultatTilgang.TILGANGSKONTROLL!!.value!!
-            }
+            resultatTilgang.TILGANGSKONTROLL?.value ?: throw ManglerAltinnRettigheterException()
         }
         if (tilgang != Tilgang.HAR_TILGANG) throw ManglerAltinnRettigheterException()
     }

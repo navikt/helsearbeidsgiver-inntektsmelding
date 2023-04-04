@@ -45,6 +45,7 @@ internal class TrengerRouteKtTest : ApiTest() {
     )
     val RESULTAT_IKKE_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.IKKE_TILGANG))
     val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
+    val RESULTAT_TILGANG_FEIL = Resultat(TILGANGSKONTROLL = null)
     val RESULTAT_Feil = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(error = Feilmelding("feil", 500)))
     val RESULTAT_OK = buildResultat()
 
@@ -68,5 +69,23 @@ internal class TrengerRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.Created, response.status)
+    }
+
+    @Test
+    fun `skal returnere Forbidden hvis feil ikke tilgang`() = testApi {
+        coEvery {
+            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
+        } returns RESULTAT_IKKE_TILGANG
+        val response = post(PATH, GYLDIG_REQUEST)
+        assertEquals(HttpStatusCode.Forbidden, response.status)
+    }
+
+    @Test
+    fun `skal returnere Forbidden hvis feil i Tilgangsresultet`() = testApi {
+        coEvery {
+            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
+        } returns RESULTAT_TILGANG_FEIL
+        val response = post(PATH, GYLDIG_REQUEST)
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 }

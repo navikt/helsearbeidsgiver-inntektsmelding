@@ -11,6 +11,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -37,6 +39,9 @@ class InnsendingRouteKtTest : ApiTest() {
         orgnrUnderenhet = TestData.notValidOrgNr
     )
 
+    val RESULTAT_IKKE_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.IKKE_TILGANG))
+    val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
+
     val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning(PersonDato("verdi", LocalDate.now())))
     val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
 
@@ -44,7 +49,7 @@ class InnsendingRouteKtTest : ApiTest() {
     fun `skal godta og returnere kvittering`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_OK
+        } returns RESULTAT_HAR_TILGANG andThen RESULTAT_OK
 
         val response = post(PATH, GYLDIG_REQUEST)
 
@@ -56,7 +61,7 @@ class InnsendingRouteKtTest : ApiTest() {
     fun `skal returnere valideringsfeil ved ugyldig request`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_FEIL
+        } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
 
         val response = post(PATH, UGYLDIG_REQUEST)
 
@@ -85,7 +90,7 @@ class InnsendingRouteKtTest : ApiTest() {
     fun `skal vise feil når et behov feiler`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_FEIL
+        } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
 
         val response = post(PATH, UGYLDIG_REQUEST)
 

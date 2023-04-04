@@ -88,7 +88,7 @@ fun Application.apiModule(connection: RapidsConnection) {
                     TrengerRoute(tilgangCache)
                     InntektRoute(tilgangCache)
                     // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
-                    InnsendingRoute()
+                    InnsendingRoute(tilgangCache)
                 }
             }
         }

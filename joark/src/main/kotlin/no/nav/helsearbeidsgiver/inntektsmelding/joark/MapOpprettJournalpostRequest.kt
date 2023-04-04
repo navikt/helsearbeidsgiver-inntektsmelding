@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.IdType
 import no.nav.helsearbeidsgiver.dokarkiv.Journalposttype
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostRequest
+import no.nav.helsearbeidsgiver.dokarkiv.Sak
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
@@ -70,6 +71,7 @@ fun mapOpprettJournalpostRequest(
                 )
             )
         ),
+        sak = Sak.GENERELL,
         datoMottatt = LocalDate.now()
     )
 }

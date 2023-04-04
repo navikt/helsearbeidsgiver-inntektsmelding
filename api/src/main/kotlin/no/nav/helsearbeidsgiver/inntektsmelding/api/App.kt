@@ -16,14 +16,17 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.InntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.minutes
 
 val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api")
@@ -76,12 +79,14 @@ fun Application.apiModule(connection: RapidsConnection) {
 
         val redisPoller = RedisPoller()
 
+        val tilgangCache = LocalCache<Tilgang>(60.minutes, 100)
+
         authenticate {
             route(Routes.PREFIX) {
                 routeExtra(connection, redisPoller) {
                     ArbeidsgivereRoute()
-                    TrengerRoute()
-                    InntektRoute()
+                    TrengerRoute(tilgangCache)
+                    InntektRoute(tilgangCache)
                     // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
                     InnsendingRoute()
                 }

@@ -51,7 +51,6 @@ internal class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere valideringsfeil ved ugyldig request`() = testApi {
         val response = post(PATH, UGYLDIG_REQUEST)
-
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
         val data: String = response.bodyAsText()

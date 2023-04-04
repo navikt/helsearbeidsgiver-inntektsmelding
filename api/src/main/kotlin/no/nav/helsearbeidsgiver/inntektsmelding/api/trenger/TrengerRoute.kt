@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.application
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -9,6 +10,7 @@ import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.hentIdentitetsnummerFraLoginToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
@@ -25,7 +27,7 @@ fun RouteExtra.TrengerRoute() {
         post {
             val request = call.receive<TrengerRequest>()
             logger.info("Henter data for uuid: ${request.uuid}")
-            val innloggerFnr = "10107400090" // TODO bytt ut med ekte fnr
+            val innloggerFnr = hentIdentitetsnummerFraLoginToken(application.environment.config, call.request)
             try {
                 request.validate()
                 val tilgangId = tilgangProducer.publish(innloggerFnr, request.uuid)

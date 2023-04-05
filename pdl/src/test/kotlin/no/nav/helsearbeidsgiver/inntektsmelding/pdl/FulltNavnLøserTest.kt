@@ -13,6 +13,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
 import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.time.Duration.Companion.minutes
 
 internal class FulltNavnLøserTest {
 
@@ -33,9 +35,10 @@ internal class FulltNavnLøserTest {
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .registerModule(JavaTimeModule())
     private val pdlClient = mockk<PdlClient>()
+    private val personDatoCache = LocalCache<PersonDato>(0.minutes, 1)
 
     init {
-        løser = FulltNavnLøser(rapid, pdlClient)
+        løser = FulltNavnLøser(rapid, pdlClient, personDatoCache)
     }
 
     @Test

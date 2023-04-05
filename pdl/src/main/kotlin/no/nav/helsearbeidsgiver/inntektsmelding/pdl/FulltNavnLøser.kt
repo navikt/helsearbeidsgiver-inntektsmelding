@@ -19,7 +19,8 @@ import java.time.LocalDate
 
 class FulltNavnLøser(
     rapidsConnection: RapidsConnection,
-    private val pdlClient: PdlClient
+    private val pdlClient: PdlClient,
+    private val cache: LocalCache<PersonDato>
 ) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -62,10 +63,12 @@ class FulltNavnLøser(
     }
 
     suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
-        val liste = pdlClient.fullPerson(identitetsnummer)?.hentPerson
-        val fødselsdato: LocalDate? = liste?.foedsel?.firstOrNull()?.foedselsdato
-        val fulltNavn = liste?.trekkUtFulltNavn() ?: "Ukjent"
-        return PersonDato(fulltNavn, fødselsdato)
+        return cache.get(identitetsnummer) {
+            val liste = pdlClient.fullPerson(identitetsnummer)?.hentPerson
+            val fødselsdato: LocalDate? = liste?.foedsel?.firstOrNull()?.foedselsdato
+            val fulltNavn = liste?.trekkUtFulltNavn() ?: "Ukjent"
+            PersonDato(fulltNavn, fødselsdato)
+        }
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

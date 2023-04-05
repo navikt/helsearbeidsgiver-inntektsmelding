@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.application
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -10,7 +9,9 @@ import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.hentIdentitetsnummerFraLoginToken
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
+import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
@@ -19,7 +20,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 
-fun RouteExtra.TrengerRoute() {
+fun RouteExtra.TrengerRoute(cache: LocalCache<Tilgang>) {
     val trengerProducer = TrengerProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
 
@@ -27,21 +28,21 @@ fun RouteExtra.TrengerRoute() {
         post {
             val request = call.receive<TrengerRequest>()
             logger.info("Henter data for uuid: ${request.uuid}")
-            val innloggerFnr = hentIdentitetsnummerFraLoginToken(application.environment.config, call.request)
             try {
                 request.validate()
-                val tilgangId = tilgangProducer.publish(innloggerFnr, request.uuid)
-                val resultatTilgang = redis.getResultat(tilgangId.toString(), 10, 500)
-                val tilgangskontroll = resultatTilgang.TILGANGSKONTROLL
-                if (tilgangskontroll?.value == Tilgang.HAR_TILGANG) {
-                    val trengerId = trengerProducer.publish(request)
-                    val resultat = redis.getResultat(trengerId.toString(), 10, 500)
-                    sikkerlogg.info("Fikk resultat: $resultat")
-                    val mapper = TrengerMapper(resultat)
-                    call.respond(mapper.getStatus(), mapper.getResponse())
-                } else {
-                    call.respond(HttpStatusCode.Forbidden, "Du har ikke rettigheter for organisasjon.")
-                }
+                authorize(
+                    forespørselId = request.uuid.toString(),
+                    tilgangProducer = tilgangProducer,
+                    redisPoller = redis,
+                    cache = cache
+                )
+                val trengerId = trengerProducer.publish(request)
+                val resultat = redis.getResultat(trengerId.toString(), 10, 500)
+                sikkerlogg.info("Fikk resultat: $resultat")
+                val mapper = TrengerMapper(resultat)
+                call.respond(mapper.getStatus(), mapper.getResponse())
+            } catch (e: ManglerAltinnRettigheterException) {
+                call.respond(HttpStatusCode.Forbidden, "Du har ikke rettigheter for organisasjon.")
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for ${request.uuid}")
                 call.respond(HttpStatusCode.BadRequest, validationResponseMapper(e.constraintViolations))

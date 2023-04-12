@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.HentPersistertLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import org.slf4j.LoggerFactory
 
-class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
+class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: InntektsmeldingRepository) : River.PacketListener {
 
     private val BEHOV = BehovType.HENT_PERSISTERT_IM
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")

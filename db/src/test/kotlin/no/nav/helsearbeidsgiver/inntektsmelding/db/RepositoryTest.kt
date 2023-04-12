@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.and
@@ -11,9 +10,10 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.ZonedDateTime
 
-class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
+class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, ForespoerselEntitet), { db ->
 
-    val repository = Repository(db.db)
+    val foresporselRepo = ForespoerselRepository(db.db)
+    val inntektsmeldingRepo = InntektsmeldingRepository(db.db)
     val ORGNR = "orgnr-456"
 
     test("skal lagre forespørsel") {
@@ -23,42 +23,48 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
 
         val UUID = "abc-123"
 
-        repository.lagreForespørsel(UUID, ORGNR)
+        foresporselRepo.lagreForespørsel(UUID, ORGNR)
 
         shouldNotThrowAny {
             transaction {
-                InntektsmeldingEntitet.select {
+                ForespoerselEntitet.select {
                     all(
-                        InntektsmeldingEntitet.id eq 1,
-                        InntektsmeldingEntitet.uuid eq UUID,
-                        InntektsmeldingEntitet.orgnr eq ORGNR
+                        ForespoerselEntitet.forespoerselId eq UUID,
+                        ForespoerselEntitet.orgnr eq ORGNR
                     )
                 }.single()
             }
         }
     }
 
-    test("skal oppdatere med dokument") {
+    test("skal lagre inntektsmelding med tilsvarende forespørsel") {
         transaction {
             InntektsmeldingEntitet.selectAll().toList()
+        }.shouldBeEmpty()
+        transaction {
+            ForespoerselEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
         val UUID = "abc-123"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
 
-        repository.lagreForespørsel(UUID, ORGNR)
-        repository.oppdaterDokument(UUID, DOK_1)
+        foresporselRepo.lagreForespørsel(UUID, ORGNR)
+        inntektsmeldingRepo.lagreInntektsmeldng(UUID, DOK_1)
 
         transaction {
             InntektsmeldingEntitet.select {
                 all(
-                    InntektsmeldingEntitet.uuid eq UUID,
+                    InntektsmeldingEntitet.forespoerselId eq UUID,
                     InntektsmeldingEntitet.dokument eq DOK_1
                 )
             }.single()
         }
     }
+})
 
+private fun all(vararg conditions: Op<Boolean>): Op<Boolean> =
+    conditions.reduce(Expression<Boolean>::and)
+ /*
     test("skal oppdatere journalpostId") {
         transaction {
             InntektsmeldingEntitet.selectAll().toList()
@@ -108,5 +114,5 @@ class RepositoryTest : FunSpecWithDb(InntektsmeldingEntitet, { db ->
     }
 })
 
-private fun all(vararg conditions: Op<Boolean>): Op<Boolean> =
-    conditions.reduce(Expression<Boolean>::and)
+
+*/

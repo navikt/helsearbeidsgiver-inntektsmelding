@@ -6,19 +6,14 @@ import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
-
 object InntektsmeldingEntitet : Table("inntektsmelding") {
     val id = integer("id").autoIncrement(
         idSeqName = "inntektsmelding_id_seq"
     )
+    val forespoerselId = varchar(name = "forespoersel_id", length = 40) references ForespoerselEntitet.forespoerselId
     val dokument = json("dokument", InntektsmeldingDokument::class.java).nullable()
-    val opprettet = datetime("opprettet")
-    val innsendt = datetime("innsendt").nullable()
-    val uuid = text("uuid")
-    val orgnr = text("orgnr")
+    val innsendt = datetime("innsendt")
     val journalpostId = varchar("journalpostid", 30).nullable()
-    val sakId = varchar("sakid", 36).nullable()
-    val oppgaveId = varchar("oppgaveid", 36).nullable()
     override val primaryKey = PrimaryKey(id, name = "id")
 }
 

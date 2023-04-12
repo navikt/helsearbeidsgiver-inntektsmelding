@@ -10,6 +10,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
@@ -67,9 +68,9 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
-                Key.DATA.str to navn,
+                Key.DATA.str to "",
                 Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
-                "virksomhet" to navn
+                DataFelt.VIRKSOMHET.str to navn
             )
         )
         context.publish(message.toJson())

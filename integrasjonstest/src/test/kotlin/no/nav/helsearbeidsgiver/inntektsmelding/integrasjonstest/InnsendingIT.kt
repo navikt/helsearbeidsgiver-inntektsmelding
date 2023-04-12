@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.LagreJournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.OppgaveFerdigLøsning
 import no.nav.helsearbeidsgiver.felles.PersisterImLøsning
 import no.nav.helsearbeidsgiver.felles.SakFerdigLøsning
@@ -117,26 +116,14 @@ internal class InnsendingIT : EndToEndTest() {
             assertNull(løsning.error)
         }
 
-        with(getMessage(14)) {
-            // Journalføring var velykket
-            assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
-        }
-
         with(getMessage(13)) {
-            // Lagret journalpostId i databasen
-            assertEquals(EventName.INNTEKTSMELDING_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
+            // Lagret journalpostId i databasen og inntektsmelding journalført
+            assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, get(Key.EVENT_NAME.str).asText())
             assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-            assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, get(Key.BEHOV.str).asText())
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-            assertNotNull(get(Key.LØSNING.str).asText())
-            val løsning: LagreJournalpostLøsning =
-                get(Key.LØSNING.str).get(BehovType.LAGRE_JOURNALPOST_ID.name).toJsonElement().fromJson(LagreJournalpostLøsning.serializer())
-            assertNull(løsning.error)
-            assertEquals(JOURNALPOST_ID, løsning.value)
-            // assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
+            assertNull(get(Key.LØSNING.str))
+            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
+            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
         }
 
         with(getMessage(15)) {
@@ -150,13 +137,13 @@ internal class InnsendingIT : EndToEndTest() {
             assertEquals(BehovType.ENDRE_OPPGAVE_STATUS.name, get(Key.BEHOV.str)[2].asText())
         }
 
-        with(getMessage(15)) {
+        with(getMessage(14)) {
             // Distribuer
             assertEquals(BehovType.DISTRIBUER_IM.name, get(Key.BEHOV.str)[0].asText())
             // assertNotNull(get(Key.LØSNING.str).asText())
         }
 
-        with(getMessage(16)) {
+        with(getMessage(15)) {
             // SakFerdigLøser - endre status
             assertEquals(BehovType.ENDRE_SAK_STATUS.name, get(Key.BEHOV.str)[1].asText())
             assertNotNull(get(Key.LØSNING.str).asText())
@@ -166,7 +153,7 @@ internal class InnsendingIT : EndToEndTest() {
             assertNull(løsning.error)
         }
 
-        with(getMessage(17)) {
+        with(getMessage(16)) {
             // OppgaveFerdigLøser - endre status
             assertEquals(BehovType.ENDRE_OPPGAVE_STATUS.name, get(Key.BEHOV.str)[2].asText())
             assertNotNull(get(Key.LØSNING.str).asText())

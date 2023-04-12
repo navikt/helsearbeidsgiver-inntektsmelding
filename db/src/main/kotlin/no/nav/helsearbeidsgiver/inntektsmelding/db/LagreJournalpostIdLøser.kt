@@ -9,8 +9,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.LagreJournalpostLøsning
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
 
@@ -35,17 +35,16 @@ class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repositor
         if (journalpostId.isNullOrBlank()) {
             logger.error("LagreJournalpostIdLøser fant ingen journalpostId for $uuid")
             sikkerlogg.error("LagreJournalpostIdLøser fant ingen journalpostId for $uuid")
-            publiserLøsning(LagreJournalpostLøsning(error = Feilmelding("Klarte ikke lagre journalpostId for $uuid. Tom journalpostID!!")), packet)
+            publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for $uuid. Tom journalpostID!!"), packet)
         } else {
             try {
                 repository.oppdaterJournapostId(journalpostId, uuid)
-                publiserLøsning(LagreJournalpostLøsning(journalpostId), packet)
                 logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for $uuid")
                 val inntektsmeldingDokument = repository.hentNyeste(uuid)
                 publiser(uuid, journalpostId, inntektsmeldingDokument!!)
             } catch (ex: Exception) {
-                publiserLøsning(LagreJournalpostLøsning(error = Feilmelding("Klarte ikke lagre journalpostId for $uuid")), packet)
-                logger.info("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for $uuid")
+                publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for $uuid"), packet)
+                logger.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for $uuid")
                 sikkerlogg.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for $uuid", ex)
             }
         }
@@ -73,9 +72,24 @@ class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repositor
         publishEvent(jsonMessage)
     }
 
-    fun publiserLøsning(løsning: LagreJournalpostLøsning, packet: JsonMessage) {
-        packet.setLøsning(BehovType.LAGRE_JOURNALPOST_ID, løsning)
-        publishBehov(packet)
+    fun publishLagret(uuid: String) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.DATA.str to "Lagret",
+                Key.UUID.str to uuid
+            )
+        )
+        this.publishData(message)
+    }
+
+    fun publiserFeil(feilmelding: Feilmelding, packet: JsonMessage) {
+        val fail = JsonMessage.newMessage(
+            mapOf(
+                Key.FAIL.str to feilmelding,
+                Key.UUID.str to packet[Key.UUID.str]
+            )
+        )
+        publishBehov(fail)
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

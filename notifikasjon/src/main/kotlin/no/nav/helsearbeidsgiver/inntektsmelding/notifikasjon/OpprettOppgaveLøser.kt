@@ -50,7 +50,8 @@ class OpprettOppgaveLøser(
                 "Send inn inntektsmelding",
                 orgnr,
                 "Inntektsmelding",
-                null
+                null,
+                uuid
             )
         }
     }

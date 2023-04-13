@@ -55,6 +55,7 @@ jobs:
         run: |
           MATRIX=$(./gradlew -q buildMatrix --console=plain)
           echo $MATRIX
+          echo $MATRIX
           echo $(./gradlew -q deployMatrix --console=plain)
           DEPLOY_MATRIX=$(./gradlew -q deployMatrix --console=plain)
           echo $DEPLOY_MATRIX

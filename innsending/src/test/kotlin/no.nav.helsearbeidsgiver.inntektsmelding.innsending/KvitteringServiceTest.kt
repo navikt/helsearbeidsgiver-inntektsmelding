@@ -7,9 +7,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-// @Disabled     // Må starte lokal redis for å kjøre denne
+@Disabled     // Må starte lokal redis for å kjøre denne
 class KvitteringServiceTest {
     private val redisStore = RedisStore("redis://localhost:6379/0")
 

@@ -58,6 +58,10 @@ enum class Key(val str: String) {
         message[str].toJsonElement()
 }
 
+enum class DataFelt(val str: String) {
+    VIRKSOMHET("virksomhet")
+}
+
 fun JsonMessage.value(key: Key): JsonNode =
     this[key.str]
 

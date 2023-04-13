@@ -38,6 +38,16 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
         rapidsConnection.publish(message.toJson())
     }
 
+    fun publishData(message: JsonMessage) {
+        message.set(Key.EVENT_NAME.str, eventName.name)
+        rapidsConnection.publish(message.toJson())
+    }
+
+    fun publishFail(message: JsonMessage) {
+        message.set(Key.EVENT_NAME.str, eventName.name)
+        rapidsConnection.publish(message.toJson())
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         eventName = EventName.valueOf(packet.get(Key.EVENT_NAME.str).asText())
         onBehov(packet)

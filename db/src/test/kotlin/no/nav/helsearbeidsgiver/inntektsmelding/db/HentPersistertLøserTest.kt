@@ -55,6 +55,19 @@ internal class HentPersistertLøserTest {
         assertEquals("Klarte ikke hente persistert inntektsmelding", løsning.error?.melding)
     }
 
+    @Test
+    fun `Ingen feilmelding dersom im ikke eksisterer`() {
+        coEvery {
+            repository.hentNyeste(any())
+        } returns null
+        val løsning = sendMelding(
+            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
+            Key.UUID to UUID.randomUUID().toJson()
+        )
+        assertEquals("", løsning.value)
+        assertNull(løsning.error)
+    }
+
     private fun sendMelding(vararg melding: Pair<Key, JsonElement>): HentPersistertLøsning {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())

@@ -37,7 +37,7 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
 
     abstract fun mapConstraint(løsning: Løsning): ConstraintViolation
 
-    fun getStatus(): HttpStatusCode {
+    open fun getStatus(): HttpStatusCode {
         if (hasErrors()) {
             return HttpStatusCode.InternalServerError
         }

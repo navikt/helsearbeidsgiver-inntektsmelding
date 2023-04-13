@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
 import java.math.BigDecimal
 import java.text.DecimalFormat
@@ -49,7 +50,10 @@ class PdfDokument(val inntektsmeldingDokument: no.nav.helsearbeidsgiver.felles.i
     }
 
     fun addHeader() {
-        b.addTitle("Inntektsmelding", 0, y)
+
+        b.addTitle(
+            if (inntektsmeldingDokument.årsakInnsending == ÅrsakInnsending.ENDRING) {"Inntektsmelding for sykepenger - endring"}
+            else { "Inntektsmelding for sykepenger" }, 0, y)
         moveCursorBy(60)
     }
 
@@ -111,7 +115,7 @@ class PdfDokument(val inntektsmeldingDokument: no.nav.helsearbeidsgiver.felles.i
     }
 
     fun addInntekt() {
-        b.addSection("Bruttoinntekt siste 3 måneder", 0, y)
+        b.addSection("Beregnet månedslønn", 0, y)
         b.addBold("Registrert inntekt (per ${inntektsmeldingDokument.tidspunkt.toLocalDate().toNorsk()})", 0, y + 30)
         b.addBody(inntektsmeldingDokument.beregnetInntekt.toNorsk() + " kr/måned", 0, y + 60)
         moveCursorBy(90)
@@ -133,7 +137,7 @@ class PdfDokument(val inntektsmeldingDokument: no.nav.helsearbeidsgiver.felles.i
 
     fun addNaturalytelser() {
         val antallNaturalytelser = inntektsmeldingDokument.naturalytelser?.size ?: 0
-        b.addSection("Eventuelle naturalytelser", 0, y)
+        b.addSection("Bortfall av naturalytelser", 0, y)
         if (antallNaturalytelser == 0) {
             b.addBody("Nei", 0, y + 30)
             moveCursorBy(60)

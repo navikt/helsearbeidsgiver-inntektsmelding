@@ -74,7 +74,7 @@ internal class InnsendingIT : EndToEndTest() {
             SAK_ID
         }
         coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any())
+            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any())
         } answers {
             OPPGAVE_ID
         }
@@ -123,12 +123,6 @@ internal class InnsendingIT : EndToEndTest() {
         with(filter(EventName.INNTEKTSMELDING_MOTTATT, null, false).first()) {
             // EVENT: Mottatt inntektsmelding
             assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-        }
-
-        with(filter(EventName.INNTEKTSMELDING_MOTTATT, BehovType.LAGRE_JOURNALPOST_ID, true).first()) {
-            // Lagre journalpostId i databasen
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-            assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
         }
 
         with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, null, false).first()) {

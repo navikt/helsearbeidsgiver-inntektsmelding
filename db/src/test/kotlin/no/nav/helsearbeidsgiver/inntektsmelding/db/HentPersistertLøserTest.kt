@@ -38,7 +38,8 @@ internal class HentPersistertLøserTest {
         } returns INNTEKTSMELDING_DOKUMENT
         val løsning = sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
         assertNotNull(løsning.value)
     }
@@ -50,7 +51,8 @@ internal class HentPersistertLøserTest {
         } throws Exception()
         val feilmelding = sendMeldingMedFeil(
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
         assertNotNull(feilmelding.melding)
         assertEquals("Klarte ikke hente persistert inntektsmelding", feilmelding.melding)
@@ -63,7 +65,8 @@ internal class HentPersistertLøserTest {
         } returns null
         val løsning = sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
         assertEquals("", løsning.value)
         assertNull(løsning.error)

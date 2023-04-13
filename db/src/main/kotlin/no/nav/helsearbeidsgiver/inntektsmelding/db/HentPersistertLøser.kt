@@ -25,6 +25,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
             validate {
                 it.demandAll(Key.BEHOV.str, BEHOV)
                 it.requireKey(Key.UUID.str)
+                it.requireKey(Key.INITIATE_ID.str)
                 it.interestedIn(Key.EVENT_NAME.str)
                 it.rejectKey(Key.LØSNING.str)
             }
@@ -34,6 +35,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
         val event = packet[Key.EVENT_NAME.str].asText()
+        val transactionId = packet[Key.INITIATE_ID.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         var løsning = HentPersistertLøsning(error = Feilmelding("Klarte ikke hente persistert inntektsmelding"))
@@ -48,17 +50,18 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
         } catch (ex: Exception) {
             logger.info("Klarte ikke hente persistert inntektsmelding")
             sikkerlogg.error("Klarte ikke hente persistert inntektsmelding", ex)
-            publiserFeil(uuid, event, løsning.error, context)
+            publiserFeil(uuid, transactionId, event, løsning.error, context)
         }
         publiserLøsning(løsning, packet, context)
     }
 
-    private fun publiserFeil(uuid: String, event: String, error: Feilmelding?, context: MessageContext) {
+    private fun publiserFeil(uuid: String, transactionId: String, event: String, error: Feilmelding?, context: MessageContext) {
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to event,
                 Key.FAIL.str to customObjectMapper().writeValueAsString(error),
-                Key.UUID.str to uuid
+                Key.UUID.str to uuid,
+                Key.INITIATE_ID.str to transactionId
             )
         )
         context.publish(message.toJson())

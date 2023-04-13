@@ -44,8 +44,8 @@ fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
                     redisPoller = redis,
                     cache = cache
                 )
-                kvitteringProducer.publish(foresporselId)
-                val resultat = redis.getResultat(foresporselId, 10, 500)
+                val transaksjonsId = kvitteringProducer.publish(foresporselId)
+                val resultat = redis.getResultat(transaksjonsId, 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
                 val mapper = KvitteringMapper(resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())

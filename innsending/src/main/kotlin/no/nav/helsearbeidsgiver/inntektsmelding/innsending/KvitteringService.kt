@@ -37,13 +37,15 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
         when (transaction) {
             Transaction.NEW -> {
                 val uuid: String = message[Key.UUID.str].asText()
+                val transactionId: String = message[Key.INITIATE_ID.str].asText()
                 logger.info("Sender event: ${event.name}")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
                             Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
-                            Key.UUID.str to uuid
+                            Key.UUID.str to uuid,
+                            Key.INITIATE_ID.str to transactionId
                         )
                     ).toJson()
                 )
@@ -62,8 +64,9 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
 
     fun finalize(message: JsonMessage) {
         val uuid = message[Key.UUID.str].asText()
+        val transactionId = message[Key.INITIATE_ID.str].asText()
         logger.info("Finalize kvittering med id=$uuid")
-        redisStore.set("$uuid${event.name}", message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
+        redisStore.set(transactionId, message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
     }
 
     fun terminate(message: JsonMessage) {
@@ -75,12 +78,13 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
     fun startStransactionIfAbsent(message: JsonMessage): Transaction {
         logger.info(message.toJson())
         val uuid = message.get(Key.UUID.str).asText()
-        logger.info("Sjekker transaksjon $uuid")
+        val transactionId = message.get(Key.INITIATE_ID.str).asText()
+        logger.info("Sjekker transaksjon $transactionId for forespørsel: $uuid")
         if (isFailMelding(message)) {
             logger.info("Mottok feilmelding på forespørsel $uuid, avslutter transaksjon")
             return Transaction.TERMINATE
         }
-        val eventKey = "${uuid}${event.name}"
+        val eventKey = transactionId
         val value = redisStore.get(eventKey)
         return if (value.isNullOrEmpty()) {
             redisStore.set(eventKey, uuid)
@@ -110,7 +114,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
 
         override fun accept(): River.PacketValidation {
             return River.PacketValidation {
-//                it.requireKey(Key.UUID.str)
+                it.requireKey(Key.INITIATE_ID.str)
                 it.interestedIn(Key.INNTEKTSMELDING_DOKUMENT.str)
             }
         }

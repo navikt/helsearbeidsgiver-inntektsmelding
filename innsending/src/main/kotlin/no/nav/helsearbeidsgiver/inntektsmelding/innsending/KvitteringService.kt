@@ -7,18 +7,19 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning
 class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
 
     val event: EventName = EventName.KVITTERING_REQUESTED
-
+    val listener: KvitteringStartedListener
     init {
         logger.info("Starter kvitteringservice")
-        KvitteringStartedListener(this, rapidsConnection)
-//        DelegatingFailKanal(EventName.KVITTERING_REQUESTED, this, rapidsConnection)
-//        StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), EventName.INSENDING_STARTED, this, rapidsConnection, redisStore)
+        listener = KvitteringStartedListener(this, rapidsConnection)
+        DelegatingFailKanal(EventName.KVITTERING_REQUESTED, this, rapidsConnection)
+        StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), EventName.KVITTERING_REQUESTED, this, rapidsConnection, redisStore)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
@@ -62,7 +63,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
     fun finalize(message: JsonMessage) {
         val uuid = message[Key.UUID.str].asText()
         logger.info("Finalize kvittering med id=$uuid")
-        redisStore.set(uuid, message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
+        redisStore.set("$uuid${event.name}", message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
     }
 
     fun terminate(message: JsonMessage) {
@@ -72,6 +73,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
     }
 
     fun startStransactionIfAbsent(message: JsonMessage): Transaction {
+        logger.info(message.toJson())
         val uuid = message.get(Key.UUID.str).asText()
         logger.info("Sjekker transaksjon $uuid")
         if (isFailMelding(message)) {
@@ -80,18 +82,17 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
         }
         val eventKey = "${uuid}${event.name}"
         val value = redisStore.get(eventKey)
-        if (value.isNullOrEmpty()) {
+        return if (value.isNullOrEmpty()) {
             redisStore.set(eventKey, uuid)
-            return Transaction.NEW
+            Transaction.NEW
         } else {
-            if (isDataCollected(*allData(uuid))) return Transaction.FINALIZE
+            Transaction.FINALIZE // Vi venter kun på en melding, ellers må man sjekke at man har fått alt i redis
         }
-        return Transaction.IN_PROGRESS
     }
 
-    fun allData(uuid: String) = arrayOf(uuid + DataFelter.INNTEKTSMELDING_DOKUMENT.str)
-
-    fun isDataCollected(vararg keys: String): Boolean = redisStore.exist(*keys) == keys.size.toLong()
+//    fun allData(uuid: String) = arrayOf(uuid + DataFelter.INNTEKTSMELDING_DOKUMENT.str)
+//
+//    fun isDataCollected(vararg keys: String): Boolean = redisStore.exist(*keys) == keys.size.toLong()
 
     fun isFailMelding(jsonMessage: JsonMessage): Boolean {
         try {
@@ -109,6 +110,8 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
 
         override fun accept(): River.PacketValidation {
             return River.PacketValidation {
+//                it.requireKey(Key.UUID.str)
+                it.interestedIn(Key.INNTEKTSMELDING_DOKUMENT.str)
             }
         }
 

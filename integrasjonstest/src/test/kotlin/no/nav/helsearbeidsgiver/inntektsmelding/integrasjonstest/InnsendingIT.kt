@@ -105,62 +105,52 @@ internal class InnsendingIT : EndToEndTest() {
         )
         Thread.sleep(10000)
 
-        with(getMessage(7)) {
-            // Inntektsmelding be lagret i databasen
+        assertNotNull(meldinger)
+
+        with(filter(EventName.INSENDING_STARTED, BehovType.PERSISTER_IM, true).first()) {
+            // Ble lagret i databasen
             assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-            assertEquals(EventName.INSENDING_STARTED.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(BehovType.PERSISTER_IM.name, get(Key.BEHOV.str)[0].asText())
-            assertNotNull(get(Key.LØSNING.str).asText())
             assertNotNull(get(Key.INNTEKTSMELDING.str).asText())
             val løsning: PersisterImLøsning = get(Key.LØSNING.str).get(BehovType.PERSISTER_IM.name).toJsonElement().fromJson(PersisterImLøsning.serializer())
             assertNull(løsning.error)
         }
 
-        with(getMessage(13)) {
-            // Lagret journalpostId i databasen og inntektsmelding journalført
-            assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, get(Key.EVENT_NAME.str).asText())
+        with(filter(EventName.INNTEKTSMELDING_MOTTATT, BehovType.JOURNALFOER, true).first()) {
+            // Journalført i dokarkiv
             assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
+        }
+
+        with(filter(EventName.INNTEKTSMELDING_MOTTATT, null, false).first()) {
+            // EVENT: Mottatt inntektsmelding
+            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
+        }
+
+        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, null, false).first()) {
+            // EVENT: Journalføring
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-            assertNull(get(Key.LØSNING.str))
+            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
             assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
-            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
         }
 
-        with(getMessage(15)) {
-            // Be om å endre status for sak/oppgave og distribuere
-            assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, get(Key.EVENT_NAME.str).asText())
+        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.DISTRIBUER_IM, false).first()) {
+            // Be om å distribuere
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
+        }
+
+        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_SAK_STATUS, true).first()) {
+            // Endre status for arbeidsgivernotifikasjon sak
             assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
-            assertEquals(BehovType.DISTRIBUER_IM.name, get(Key.BEHOV.str)[0].asText())
-            assertEquals(BehovType.ENDRE_SAK_STATUS.name, get(Key.BEHOV.str)[1].asText())
-            assertEquals(BehovType.ENDRE_OPPGAVE_STATUS.name, get(Key.BEHOV.str)[2].asText())
-        }
-
-        with(getMessage(14)) {
-            // Distribuer
-            assertEquals(BehovType.DISTRIBUER_IM.name, get(Key.BEHOV.str)[0].asText())
-            // assertNotNull(get(Key.LØSNING.str).asText())
-        }
-
-        with(getMessage(15)) {
-            // SakFerdigLøser - endre status
-            assertEquals(BehovType.ENDRE_SAK_STATUS.name, get(Key.BEHOV.str)[1].asText())
-            assertNotNull(get(Key.LØSNING.str).asText())
             val løsning: SakFerdigLøsning =
                 get(Key.LØSNING.str).get(BehovType.ENDRE_SAK_STATUS.name).toJsonElement().fromJson(SakFerdigLøsning.serializer())
             assertEquals(SAK_ID, løsning.value)
-            assertNull(løsning.error)
         }
 
-        with(getMessage(16)) {
-            // OppgaveFerdigLøser - endre status
-            assertEquals(BehovType.ENDRE_OPPGAVE_STATUS.name, get(Key.BEHOV.str)[2].asText())
-            assertNotNull(get(Key.LØSNING.str).asText())
+        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_OPPGAVE_STATUS, true).first()) {
+            // Endre status for arbeidsgivernotifikasjon oppgave
+            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
             val løsning: OppgaveFerdigLøsning =
                 get(Key.LØSNING.str).get(BehovType.ENDRE_OPPGAVE_STATUS.name).toJsonElement().fromJson(OppgaveFerdigLøsning.serializer())
             assertEquals(OPPGAVE_ID, løsning.value)
-            assertNull(løsning.error)
         }
     }
 

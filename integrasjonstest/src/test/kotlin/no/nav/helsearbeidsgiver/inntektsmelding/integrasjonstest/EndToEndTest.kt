@@ -13,6 +13,8 @@ import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
@@ -21,6 +23,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.filter.findMessage
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -52,6 +55,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     val priProducer = mockk<PriProducer>()
     lateinit var producer: TilgangProducer
     var filterMessages: (JsonNode) -> Boolean = { true }
+    var meldinger: MutableList<JsonNode> = mutableListOf()
 
     // Database
     var database = mockk<Database>()
@@ -105,6 +109,11 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         if (filterMessages.invoke(customObjectMapper().readTree(message))) {
             results.add(message)
         }
+        meldinger.add(Json.parseToJsonElement(message).toJsonNode())
+    }
+
+    fun filter(event: EventName, behovType: BehovType? = null, løsning: Boolean? = false): List<JsonNode> {
+        return findMessage(meldinger, event, behovType, løsning)
     }
 
     @AfterAll

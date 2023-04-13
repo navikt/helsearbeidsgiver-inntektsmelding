@@ -37,10 +37,17 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
         val sakId = packet[Key.SAK_ID.str].asText()
         logger.info("JournalførtListener fikk pakke for $uuid")
         sikkerLogger.info("JournalførtListener fikk pakke ${EventName.INNTEKTSMELDING_JOURNALFOERT} med pakke ${packet.toJson()}")
+        listOf(BehovType.DISTRIBUER_IM, BehovType.ENDRE_SAK_STATUS, BehovType.ENDRE_OPPGAVE_STATUS).forEach {
+            publish(it, uuid, oppgaveId, sakId, packet)
+        }
+        logger.info("JournalførtListener fikk ferdigbehandlet $uuid.")
+    }
+
+    fun publish(behovType: BehovType, uuid: String, oppgaveId: String, sakId: String, packet: JsonMessage) {
         val json = om.writeValueAsString(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT.name,
-                Key.BEHOV.str to listOf(BehovType.DISTRIBUER_IM.name, BehovType.ENDRE_SAK_STATUS.name, BehovType.ENDRE_OPPGAVE_STATUS),
+                Key.BEHOV.str to listOf(behovType),
                 Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
                 Key.UUID.str to uuid,
                 Key.OPPGAVE_ID.str to oppgaveId,
@@ -49,6 +56,5 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
             )
         )
         rapidsConnection.publish(json)
-        logger.info("JournalførtListener fikk ferdigbehandlet $uuid.")
     }
 }

@@ -13,23 +13,29 @@ abstract class AbstractFilterBase {
 
     val om = customObjectMapper()
     val BEHOV_NULL = mapOf(
-        Key.EVENT_NAME.str to EventName.SAK_OPPRETTET,
-        Key.LØSNING.str to PersisterImLøsning("abc")
+        Key.EVENT_NAME.str to EventName.SAK_OPPRETTET
     )
     val BEHOV_UTEN = mapOf(
         Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
         Key.BEHOV.str to "",
-        Key.LØSNING.str to PersisterImLøsning("def")
+        Key.LØSNING.str to mapOf(
+            BehovType.PERSISTER_IM to PersisterImLøsning("def")
+        )
     )
     val BEHOV_ENKEL = mapOf(
         Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETTET,
         Key.BEHOV.str to BehovType.FULLT_NAVN,
-        Key.LØSNING.str to PersisterImLøsning("ghi")
+        Key.LØSNING.str to mapOf(
+            BehovType.FULLT_NAVN to PersisterImLøsning("ghi")
+        )
     )
     val BEHOV_LISTE = mapOf(
         Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
         Key.BEHOV.str to listOf(BehovType.TILGANGSKONTROLL, BehovType.ARBEIDSGIVERE),
-        Key.LØSNING.str to PersisterImLøsning("xyz")
+        Key.LØSNING.str to mapOf(
+            BehovType.ARBEIDSGIVERE to PersisterImLøsning("ghi"),
+            BehovType.TILGANGSKONTROLL to PersisterImLøsning("ghi")
+        )
     )
     val BEHOV_UTEN_LØSNING = mapOf(
         Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,

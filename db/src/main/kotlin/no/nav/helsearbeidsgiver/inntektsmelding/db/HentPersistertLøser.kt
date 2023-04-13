@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentPersistertLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import org.slf4j.LoggerFactory
 
 class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: Repository) : River.PacketListener {
@@ -24,6 +25,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: R
             validate {
                 it.demandAll(Key.BEHOV.str, BEHOV)
                 it.requireKey(Key.UUID.str)
+                it.interestedIn(Key.EVENT_NAME.str)
                 it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
@@ -31,6 +33,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: R
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str].asText()
+        val event = packet[Key.EVENT_NAME.str].asText()
         logger.info("Løser behov $BEHOV med id $uuid")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         var løsning = HentPersistertLøsning(error = Feilmelding("Klarte ikke hente persistert inntektsmelding"))
@@ -45,8 +48,20 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: R
         } catch (ex: Exception) {
             logger.info("Klarte ikke hente persistert inntektsmelding")
             sikkerlogg.error("Klarte ikke hente persistert inntektsmelding", ex)
+            publiserFeil(uuid, event, løsning.error, context)
         }
         publiserLøsning(løsning, packet, context)
+    }
+
+    private fun publiserFeil(uuid: String, event: String, error: Feilmelding?, context: MessageContext) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to event,
+                Key.FAIL.str to customObjectMapper().writeValueAsString(error),
+                Key.UUID.str to uuid
+            )
+        )
+        context.publish(message.toJson())
     }
 
     fun publiserLøsning(løsning: HentPersistertLøsning, packet: JsonMessage, context: MessageContext) {

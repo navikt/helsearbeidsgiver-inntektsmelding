@@ -16,7 +16,7 @@ class KvitteringProducer(
     fun publish(foresporselId: String): String {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.HENT_KVITTERING.name,
+                Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
                 Key.UUID.str to foresporselId
             )
         )

@@ -34,7 +34,7 @@ enum class BehovType {
 enum class EventName {
     // @TODO trenger bedre navn.
     HENT_PREUTFYLT,
-    HENT_KVITTERING,
+    KVITTERING_REQUESTED,
     INSENDING_STARTED,
     INNTEKTSMELDING_MOTTATT,
     INNTEKTSMELDING_JOURNALFOERT,

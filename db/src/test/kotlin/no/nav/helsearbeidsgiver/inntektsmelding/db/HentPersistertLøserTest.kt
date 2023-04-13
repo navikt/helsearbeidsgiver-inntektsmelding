@@ -6,8 +6,10 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentPersistertLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
@@ -46,13 +48,12 @@ internal class HentPersistertLøserTest {
         coEvery {
             repository.hentNyeste(any())
         } throws Exception()
-        val løsning = sendMelding(
+        val feilmelding = sendMeldingMedFeil(
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.UUID to UUID.randomUUID().toJson()
         )
-        assertNull(løsning.value)
-        assertNotNull(løsning.error)
-        assertEquals("Klarte ikke hente persistert inntektsmelding", løsning.error?.melding)
+        assertNotNull(feilmelding.melding)
+        assertEquals("Klarte ikke hente persistert inntektsmelding", feilmelding.melding)
     }
 
     @Test
@@ -77,5 +78,17 @@ internal class HentPersistertLøserTest {
             .get(BehovType.HENT_PERSISTERT_IM.name)
             .toJsonElement()
             .fromJson(HentPersistertLøsning.serializer())
+    }
+
+    private fun sendMeldingMedFeil(vararg melding: Pair<Key, JsonElement>): Feilmelding {
+        rapid.reset()
+        rapid.sendJson(*melding.toList().toTypedArray())
+        val json = rapid.inspektør
+            .message(0)
+            .path(Key.FAIL.str).asText()
+        return customObjectMapper().readValue(json, Feilmelding::class.java)
+        // TODO - serialisering med Feilmelding.serializer() funker ikke:
+//            .toJsonElement()
+//            .fromJson(Feilmelding.serializer())
     }
 }

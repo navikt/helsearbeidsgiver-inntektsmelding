@@ -19,27 +19,28 @@ fun buildApp(config: HikariConfig, env: Map<String, String>) {
     logger.info("Migrering starter...")
     database.migrate()
     logger.info("Migrering ferdig.")
-    val repository = Repository(database.db)
+    val imRepo = InntektsmeldingRepository(database.db)
+    val forespoerselRepo = ForespoerselRepository(database.db)
     RapidApplication
         .create(env)
-        .createDb(database, repository)
+        .createDb(database, imRepo, forespoerselRepo)
         .start()
 }
 
-fun RapidsConnection.createDb(database: Database, repository: Repository): RapidsConnection {
+fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingRepository, forespoerselRepo: ForespoerselRepository): RapidsConnection {
     logger.info("Starter ForespørselMottattListener...")
-    ForespørselMottattListener(this, repository)
+    ForespørselMottattListener(this, forespoerselRepo)
     logger.info("Starter PersisterImLøser...")
-    PersisterImLøser(this, repository)
+    PersisterImLøser(this, imRepo)
     logger.info("Starter HentPersistertLøser...")
-    HentPersistertLøser(this, repository)
+    HentPersistertLøser(this, imRepo)
     logger.info("Starter LagreJournalpostIdLøser...")
-    LagreJournalpostIdLøser(this, repository)
+    LagreJournalpostIdLøser(this, imRepo, forespoerselRepo)
     logger.info("Starter PersisterSakLøser...")
-    PersisterSakLøser(this, repository)
+    PersisterSakLøser(this, forespoerselRepo)
     logger.info("Starter PersisterOppgaveLøser...")
-    PersisterOppgaveLøser(this, repository)
-    HentOrgnrLøser(this, repository)
+    PersisterOppgaveLøser(this, forespoerselRepo)
+    HentOrgnrLøser(this, forespoerselRepo)
     this.registerDbLifecycle(database)
     return this
 }

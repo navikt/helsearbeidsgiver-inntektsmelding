@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 
 class PersisterSakLøser(
     rapidsConnection: RapidsConnection,
-    val repository: Repository
+    val repository: ForespoerselRepository
 ) : River.PacketListener {
 
     init {

@@ -21,6 +21,7 @@ class InnsendingServiceIT : EndToEndTest() {
     @Test
     fun `Test at innsnending er mottatt`() {
         val uuid = UUID.randomUUID().toString()
+        forespoerselRepository.lagreForespørsel(uuid, TestData.validOrgNr)
         this.filterMessages = {
             val eventName = it.get(Key.EVENT_NAME.str).asText()
             val msgUuid = it.get(Key.UUID.str).asText()

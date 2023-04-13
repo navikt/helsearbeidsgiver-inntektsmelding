@@ -23,7 +23,7 @@ internal class PersisterImLøserTest {
 
     private val rapid = TestRapid()
     private var løser: PersisterImLøser
-    private val repository = mockk<Repository>()
+    private val repository = mockk<InntektsmeldingRepository>()
 
     init {
         løser = PersisterImLøser(rapid, repository)
@@ -42,7 +42,7 @@ internal class PersisterImLøserTest {
     @Test
     fun `skal publisere event for Inntektsmelding Mottatt`() {
         coEvery {
-            repository.oppdaterDokument(any(), any())
+            repository.lagreInntektsmeldng(any(), any())
         } returns Unit
 
         val request = InnsendingRequest(

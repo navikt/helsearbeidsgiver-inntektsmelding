@@ -50,10 +50,14 @@ class PdfDokument(val inntektsmeldingDokument: no.nav.helsearbeidsgiver.felles.i
     }
 
     fun addHeader() {
-
         b.addTitle(
-            if (inntektsmeldingDokument.årsakInnsending == ÅrsakInnsending.ENDRING) {"Inntektsmelding for sykepenger - endring"}
-            else { "Inntektsmelding for sykepenger" }, 0, y)
+            title = when (inntektsmeldingDokument.årsakInnsending) {
+                ÅrsakInnsending.ENDRING -> "Inntektsmelding for sykepenger - endring"
+                else -> "Inntektsmelding for sykepenger"
+            },
+            x = 0,
+            y = y
+        )
         moveCursorBy(60)
     }
 

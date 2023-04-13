@@ -1,12 +1,3 @@
-#
-# Templated nais.yml for all apps in all clusters.
-#
-# Run the deploy tool with 'dry run' to see the results:
-# docker run --rm -it -v $(PWD)/config:/config \
-#   -e CLUSTER=dev-fss \
-#   -e VAR="team=tbd,app=aareg" \
-#   docker.pkg.github.com/nais/deploy/deploy:latest /app/deploy \
-#     --dry-run --print-payload --resource /config/nais.yml --vars /config/myapp/dev-fss.yml
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
@@ -88,13 +79,14 @@ spec:
     {{/each}}{{/if}}
   accessPolicy:
     outbound:
-      rules:
-        - application: helsearbeidsgiver-redis
-        - application: notifikasjon-produsent-api
-          namespace: fager
-          cluster: dev-gcp
       external:
-        - host: helsearbeidsgiver-proxy.dev-fss-pub.nais.io
-        - host: api-gw-q1.oera.no
-        - host: ag-notifikasjon-produsent-api.dev.nav.no
-
+      {{#if externalHosts}}{{# each externalHosts as |item| }}
+        - host: {{ item }}
+      {{/each}}{{/if}}
+      rules:
+        {{#if apps}}{{# each apps as |app| }}
+        - application: {{ app.name }}
+          {{#if app.namespace}}
+          namespace: {{ app.namespace }}
+          {{/if}}
+        {{/each}}{{/if}}

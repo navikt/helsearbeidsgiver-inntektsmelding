@@ -16,7 +16,7 @@ class RedisPoller {
     private val loggerSikker = loggerSikker()
 
     suspend fun hent(key: String, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
-        val json = getJson(key, maxRetries, waitMillis)
+        val json = getString(key, maxRetries, waitMillis)
 
         loggerSikker.info("Hentet verdi for: $key = $json")
 
@@ -39,12 +39,12 @@ class RedisPoller {
         }
     }
 
-    private suspend fun getJson(key: String, maxRetries: Int, waitMillis: Long): String {
+    suspend fun getString(key: String, maxRetries: Int, waitMillis: Long): String {
         redisClient.connect().use { connection ->
             repeat(maxRetries) {
-                val json = connection.sync().get(key)
+                val str = connection.sync().get(key)
 
-                if (!json.isNullOrEmpty()) return json
+                if (!str.isNullOrEmpty()) return str
 
                 delay(waitMillis)
             }

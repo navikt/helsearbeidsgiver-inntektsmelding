@@ -48,8 +48,7 @@ fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
                     cache = cache
                 )
                 val transaksjonsId = kvitteringProducer.publish(foresporselId)
-                val resultat = redis.hent(transaksjonsId, 10, 500)
-                val dok = resultat.toString()
+                val dok = redis.getString(transaksjonsId, 10, 500)
                 sikkerlogg.info("Fikk resultat: $dok")
                 if (dok == "{}") { // TODO .. litt smartere sjekk?
                     call.respond(HttpStatusCode.NotFound, "")

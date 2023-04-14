@@ -132,7 +132,6 @@ subprojects {
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 }
-
 tasks {
     val mapper = ObjectMapper()
 
@@ -143,30 +142,25 @@ tasks {
             )
         }
     }
-
-    create("deployMatrix") {
+    create("buildAllMatrix") {
         doLast {
-            val (
-                deployableProjects,
-                clusters,
-                exclusions
-            ) = getDeployMatrixVariables()
-
             mapper.taskOutput(
-                "project" to deployableProjects,
-                "cluster" to clusters,
-                "exclude" to exclusions.map { (project, cluster) ->
-                    mapOf(
-                        "project" to project,
-                        "cluster" to cluster
-                    )
-                }
+                "project" to getBuildableProjects(buildAll = true)
             )
         }
     }
+    create("deployMatrixProd") {
+        deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
+    }
+    create("deployMatrixDev") {
+        deployMatrix(mapper, includeCluster = "dev-gcp")
+    }
+    create("deployMatrix") {
+        deployMatrix(mapper)
+    }
 }
 
-fun getBuildableProjects(): List<String> {
+fun getBuildableProjects(buildAll: Boolean = false): List<String> {
     val changedFiles = System.getenv("CHANGED_FILES")
         ?.takeIf(String::isNotBlank)
         ?.split(",")
@@ -184,21 +178,24 @@ fun getBuildableProjects(): List<String> {
 
     return subprojects.map { it.name }
         .let { projects ->
-            if (hasCommonChanges) projects
-            else projects.filter { project ->
-                changedFiles.any {
-                    it.startsWith("$project/") ||
-                        it.startsWith("config/$project/")
+            if (hasCommonChanges || buildAll) {
+                projects
+            } else {
+                projects.filter { project ->
+                    changedFiles.any {
+                        it.startsWith("$project/") ||
+                            it.startsWith("config/$project/")
+                    }
                 }
             }
         }
 }
 
-fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Pair<String, String>>> {
+fun getDeployMatrixVariables(includeCluster: String? = null, deployAll: Boolean = false): Triple<List<String>, Set<String>, List<Pair<String, String>>> {
     // map of cluster to list of apps
-    val deployableProjects = getBuildableProjects().filter { File("config", it).isDirectory }
+    val projects = getBuildableProjects(deployAll).filter { File("config", it).isDirectory }
 
-    val clustersByProject = deployableProjects.associateWith { project ->
+    val clustersByProject = projects.associateWith { project ->
         File("config", project)
             .listFiles()
             ?.filter { it.isFile && it.name.endsWith(".yml") }
@@ -206,10 +203,12 @@ fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Pair<Stri
             ?.toSet()
             .orEmpty()
     }
-
-    val allClusters = clustersByProject.values.flatten().toSet()
-
+    val deployableProjects = if (includeCluster != null) clustersByProject.filter { it.value.contains(includeCluster) }.map { it.key } else projects
+    println(includeCluster)
+    val allClusters = if (includeCluster != null) setOf(includeCluster) else clustersByProject.values.flatten().toSet()
+    println(allClusters)
     val exclusions = clustersByProject.flatMap { (project, clusters) ->
+        println(clusters)
         allClusters.subtract(clusters)
             .map { Pair(project, it) }
     }
@@ -258,3 +257,24 @@ fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
 
 fun List<String>.containsAny(vararg others: String) =
     this.intersect(others.toSet()).isNotEmpty()
+
+fun Task.deployMatrix(mapper: ObjectMapper, includeCluster: String? = null, deployAll: Boolean = false) {
+    doLast {
+        val (
+            deployableProjects,
+            clusters,
+            exclusions,
+        ) = getDeployMatrixVariables(includeCluster, deployAll)
+
+        mapper.taskOutput(
+            "project" to deployableProjects,
+            "cluster" to clusters,
+            "exclude" to exclusions.map { (project, cluster) ->
+                mapOf(
+                    "project" to project,
+                    "cluster" to cluster
+                )
+            }
+        )
+    }
+}

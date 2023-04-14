@@ -63,12 +63,13 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
                 sikkerlogg.info("Fant dokument: $dokument")
                 løsning = HentPersistertLøsning(dokument.toString())
             }
+            publiserLøsning(løsning, packet)
         } catch (ex: Exception) {
             logger.info("Klarte ikke hente persistert inntektsmelding")
             sikkerlogg.error("Klarte ikke hente persistert inntektsmelding", ex)
             publiserFeil(uuid, transactionId, event, løsning.error)
         }
-        publiserLøsning(løsning, packet)
+
     }
 
     private fun publiserFeil(uuid: String, transactionId: String, event: String, error: Feilmelding?) {

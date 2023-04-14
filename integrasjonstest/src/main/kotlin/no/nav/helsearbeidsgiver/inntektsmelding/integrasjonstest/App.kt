@@ -79,7 +79,6 @@ fun RapidsConnection.buildApp(
     this.createBrreg(brregClient, true)
     this.createInnsending(redisStore)
     this.createDb(database, imoRepository, forespoerselRepository)
-    // this.createDistribusjon() // TODO Integrasjonstester må bruke distribusjon appen
     this.createForespoerselMottatt()
     this.createAltinn(altinnClient)
     this.createHelsebro(priProducer)

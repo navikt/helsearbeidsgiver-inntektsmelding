@@ -1,4 +1,4 @@
-### Hent fra database dersom im er innsendt og lagret
+###  Hent fra database dersom im er innsendt og lagret
 GET http://0.0.0.0:8080/api/v1/kvittering?uuid=77c9e7ed-efcc-45e5-9177-4db2d4e466c1
 Content-Type: application/json
 

@@ -1,0 +1,13 @@
+kafkaPool: nav-prod
+azure:
+  enabled: true
+envFrom:
+  - type: secret
+    name: altinn-api-gw-keys-prod
+env:
+  - name: ALTINN_URL
+    value: https://api-gw.oera.no/ekstern/altinn/api/serviceowner
+  - name: ALTINN_SERVICE_CODE
+    value: 4936
+externalHosts:
+  - api-gw.oera.no

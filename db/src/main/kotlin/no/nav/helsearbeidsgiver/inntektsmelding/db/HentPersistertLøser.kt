@@ -39,8 +39,8 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
             it.demandAll(Key.BEHOV.str, BEHOV)
             it.requireKey(Key.UUID.str, Key.INITIATE_ID.str)
             it.interestedIn(Key.EVENT_NAME.str)
-            //it.rejectKey(Key.LØSNING.str)
-            //it.rejectKey(Key.DATA.str)
+            // it.rejectKey(Key.LØSNING.str)
+            // it.rejectKey(Key.DATA.str)
         }
     }
 
@@ -100,7 +100,13 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
             mapOf(
                 Key.EVENT_NAME.str to event,
                 Key.DATA.str to "",
-                Key.INNTEKTSMELDING_DOKUMENT.str to if (inntektsmeldingDokument == null) "{}" else customObjectMapper().writeValueAsString(inntektsmeldingDokument),
+                Key.INNTEKTSMELDING_DOKUMENT.str to if (inntektsmeldingDokument == null) {
+                    "{}"
+                } else {
+                    customObjectMapper().writeValueAsString(
+                        inntektsmeldingDokument
+                    )
+                },
                 Key.UUID.str to uuid,
                 Key.INITIATE_ID.str to transactionId
             )

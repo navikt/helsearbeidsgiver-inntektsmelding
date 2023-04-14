@@ -6,9 +6,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.HentPersistertLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
@@ -67,10 +65,10 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
     fun finalize(message: JsonMessage) {
         val uuid = message[Key.UUID.str].asText()
         val transactionId = message[Key.INITIATE_ID.str].asText()
-        val dok = message[Key.INNTEKTSMELDING_DOKUMENT.str].asText().orEmpty()
+        val dok = message[Key.INNTEKTSMELDING_DOKUMENT.str].asText()
 
         logger.info("Finalize kvittering med id=$uuid")
-        redisStore.set(transactionId, HentPersistertLøsning(dok).toJson(HentPersistertLøsning.serializer()).toString())
+        redisStore.set(transactionId, dok)
     }
 
     fun terminate(message: JsonMessage) {

@@ -74,7 +74,7 @@ internal class InnsendingIT : EndToEndTest() {
             SAK_ID
         }
         coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any())
+            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
         } answers {
             OPPGAVE_ID
         }

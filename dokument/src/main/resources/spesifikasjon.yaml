@@ -171,6 +171,7 @@ components:
         - fullLønnIArbeidsgiverPerioden
         - virksomhetNavn
         - identitetsnummer
+        - behandlingsdager
         - orgnrUnderenhet
         - fulltNavn
         - egenmeldingsperioder

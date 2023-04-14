@@ -199,39 +199,39 @@ fun getDeployMatrixVariables(
     includeCluster: String? = null,
     deployAll: Boolean = false
 ): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
-        val clustersByProject = getBuildableProjects(deployAll).associateWith { project ->
-            File("config", project)
-                .listFiles()
-                ?.filter { it.isFile && it.name.endsWith(".yml") }
-                ?.map { it.name.removeSuffix(".yml") }
-                ?.let { clusters ->
-                    if (includeCluster != null && clusters.contains(includeCluster)) {
-                        listOf(includeCluster)
-                    } else {
-                        clusters
-                    }
+    val clustersByProject = getBuildableProjects(deployAll).associateWith { project ->
+        File("config", project)
+            .listFiles()
+            ?.filter { it.isFile && it.name.endsWith(".yml") }
+            ?.map { it.name.removeSuffix(".yml") }
+            ?.let { clusters ->
+                if (includeCluster != null && clusters.contains(includeCluster)) {
+                    listOf(includeCluster)
+                } else {
+                    clusters
                 }
-                ?.toSet()
-                ?.ifEmpty { null }
-        }
-            .mapNotNull { (key, value) ->
-                if (value == null) null
-                else key to value
             }
-            .toMap()
-
-        val allClusters = clustersByProject.values.flatten().toSet()
-
-        val exclusions = clustersByProject.flatMap { (project, clusters) ->
-            allClusters.subtract(clusters)
-                .map { Pair(project, it) }
+            ?.toSet()
+            ?.ifEmpty { null }
+    }
+        .mapNotNull { (key, value) ->
+            if (value == null) null
+            else key to value
         }
+        .toMap()
 
-        return Triple(
-            clustersByProject.keys,
-            allClusters,
-            exclusions
-        )
+    val allClusters = clustersByProject.values.flatten().toSet()
+
+    val exclusions = clustersByProject.flatMap { (project, clusters) ->
+        allClusters.subtract(clusters)
+            .map { Pair(project, it) }
+    }
+
+    return Triple(
+        clustersByProject.keys,
+        allClusters,
+        exclusions
+    )
 }
 
 fun PluginAware.applyPlugins(vararg ids: String) {

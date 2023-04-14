@@ -45,10 +45,14 @@ fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
                     cache = cache
                 )
                 val transaksjonsId = kvitteringProducer.publish(foresporselId)
-                val resultat = redis.getResultat(transaksjonsId, 10, 500)
-                sikkerlogg.info("Fikk resultat: $resultat")
-                val mapper = KvitteringMapper(resultat)
-                call.respond(mapper.getStatus(), mapper.getResponse())
+                val resultat = redis.hent(transaksjonsId, 10, 500)
+                val dok = resultat.toString()
+                sikkerlogg.info("Fikk resultat: $dok")
+                if (dok == "{}") { // TODO .. litt smartere sjekk?
+                    call.respond(HttpStatusCode.NotFound, "")
+                } else {
+                    call.respond(HttpStatusCode.OK, dok)
+                }
             } catch (e: ManglerAltinnRettigheterException) {
                 call.respond(HttpStatusCode.Forbidden, "Du har ikke rettigheter for organisasjon.")
             } catch (e: ConstraintViolationException) {

@@ -54,7 +54,7 @@ class OpprettOppgaveLøser(
                 uuid,
                 "Nav trenger inntektsmelding",
                 "En av dine ansatte har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
-                    "søknaden. Logg inn på Min Side Arbeidsgiver på nav.no"
+                    "søknaden. Logg inn på Min side – arbeidsgiver på nav.no"
             )
         }
     }

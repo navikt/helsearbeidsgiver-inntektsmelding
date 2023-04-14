@@ -48,7 +48,7 @@ class OpprettSakLøser(
         navn: String,
         fødselsdato: LocalDate?
     ): String {
-        val datoString = fødselsdato?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: "Ukjent"
+        val datoString = fødselsdato?.format(DateTimeFormatter.ofPattern("ddMMyy")) ?: "Ukjent"
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNySak(
                 grupperingsid = uuid,

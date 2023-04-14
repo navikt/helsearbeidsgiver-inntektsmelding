@@ -126,7 +126,6 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         }.shouldBeEmpty()
 
         val UUID = "abc-456"
-        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
         val OPPGAVE_ID_1 = "oppg-1"
 
         foresporselRepo.lagreForespørsel(UUID, ORGNR)
@@ -141,27 +140,3 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
 
 private fun all(vararg conditions: Op<Boolean>): Op<Boolean> =
     conditions.reduce(Expression<Boolean>::and)
- /*
-
-
-
-
-    test("skal oppdatere oppgaveId") {
-        transaction {
-            InntektsmeldingEntitet.selectAll().toList()
-        }.shouldBeEmpty()
-
-        val UUID = "abc-456"
-        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
-        val OPPGAVE_ID_1 = "oppg-1"
-
-        repository.lagreForespørsel(UUID, ORGNR)
-        repository.oppdaterDokument(UUID, DOK_1)
-        repository.oppdaterOppgaveId(UUID, OPPGAVE_ID_1)
-        val dok1 = repository.hentNyeste(UUID)
-        dok1.shouldBe(DOK_1)
-    }
-})
-
-
-*/

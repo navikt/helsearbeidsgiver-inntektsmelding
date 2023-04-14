@@ -65,14 +65,7 @@ subprojects {
         "java",
         "jacoco"
     )
-    tasks.jacocoTestReport {
-        dependsOn(tasks.test)
-        reports {
-            xml.required.set(true)
-            csv.required.set(false)
-            html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
-        }
-    }
+
     tasks {
         if (!project.erFellesModul() && !project.erFellesTestModul()) {
             named<Jar>("jar") {
@@ -98,6 +91,15 @@ subprojects {
                             ?.let(file::copyTo)
                     }
                 }
+            }
+        }
+
+        jacocoTestReport {
+            dependsOn(test)
+            reports {
+                xml.required.set(true)
+                csv.required.set(false)
+                html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
             }
         }
     }

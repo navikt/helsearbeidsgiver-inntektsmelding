@@ -14,4 +14,4 @@ apps:
   - name: notifikasjon-produsent-api
     namespace: fager
 externalHosts:
-  - ag-notifikasjon-produsent-api.dev.nav.no
+  - ag-notifikasjon-produsent-api.intern.nav.no

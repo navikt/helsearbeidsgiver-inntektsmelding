@@ -205,8 +205,8 @@ fun getDeployMatrixVariables(
             ?.filter { it.isFile && it.name.endsWith(".yml") }
             ?.map { it.name.removeSuffix(".yml") }
             ?.let { clusters ->
-                if (includeCluster != null && clusters.contains(includeCluster)) {
-                    listOf(includeCluster)
+                if (includeCluster != null) {
+                    listOf(includeCluster).intersect(clusters)
                 } else {
                     clusters
                 }

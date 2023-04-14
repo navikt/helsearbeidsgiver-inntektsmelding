@@ -13,9 +13,12 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntektsmel
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
 
-class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repository: InntektsmeldingRepository, val forespoerselRepository: ForespoerselRepository) : Løser( // ktlint-disable max-line-length
-    rapidsConnection
-) {
+class LagreJournalpostIdLøser(
+    rapidsConnection: RapidsConnection,
+    val repository: InntektsmeldingRepository,
+    val forespoerselRepository: ForespoerselRepository
+) :
+    Løser(rapidsConnection) {
 
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)

@@ -23,25 +23,26 @@ internal class LagreJournalpostIdLøserTest {
     private val rapid = TestRapid()
     private var løser: LagreJournalpostIdLøser
     private val BEHOV = BehovType.LAGRE_JOURNALPOST_ID
-    private val repository = mockk<Repository>()
+    private val inntektsmeldingRepo = mockk<InntektsmeldingRepository>()
+    private val forespoerselRepo = mockk<ForespoerselRepository>()
 
     init {
-        løser = LagreJournalpostIdLøser(rapid, repository)
+        løser = LagreJournalpostIdLøser(rapid, inntektsmeldingRepo, forespoerselRepo)
     }
 
     @Test
     fun `skal lagre journalpostId i databasen`() {
         coEvery {
-            repository.hentNyeste(any())
+            inntektsmeldingRepo.hentNyeste(any())
         } returns INNTEKTSMELDING_DOKUMENT
         coEvery {
-            repository.oppdaterJournapostId(any(), any())
+            inntektsmeldingRepo.oppdaterJournapostId(any(), any())
         } returns Unit
         coEvery {
-            repository.hentOppgaveId(any())
+            forespoerselRepo.hentOppgaveId(any())
         } returns "123"
         coEvery {
-            repository.hentSakId(any())
+            forespoerselRepo.hentSakId(any())
         } returns "123"
         sendMelding(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
@@ -56,7 +57,7 @@ internal class LagreJournalpostIdLøserTest {
     @Test
     fun `skal håndtere at journalpostId er null eller blank`() {
         coEvery {
-            repository.oppdaterJournapostId(any(), any())
+            inntektsmeldingRepo.oppdaterJournapostId(any(), any())
         } returns Unit
         sendMelding(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
@@ -71,7 +72,7 @@ internal class LagreJournalpostIdLøserTest {
     @Test
     fun `skal håndtere feil ved lagring`() {
         coEvery {
-            repository.oppdaterJournapostId(any(), any())
+            inntektsmeldingRepo.oppdaterJournapostId(any(), any())
         } throws Exception()
 
         sendMelding(

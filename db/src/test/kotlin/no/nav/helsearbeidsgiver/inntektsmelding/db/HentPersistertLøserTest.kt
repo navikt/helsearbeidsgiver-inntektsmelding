@@ -23,7 +23,7 @@ internal class HentPersistertLøserTest {
     private val rapid = TestRapid()
     private var løser: HentPersistertLøser
     private val BEHOV = BehovType.HENT_PERSISTERT_IM.toString()
-    private val repository = mockk<Repository>()
+    private val repository = mockk<InntektsmeldingRepository>()
 
     init {
         løser = HentPersistertLøser(rapid, repository)

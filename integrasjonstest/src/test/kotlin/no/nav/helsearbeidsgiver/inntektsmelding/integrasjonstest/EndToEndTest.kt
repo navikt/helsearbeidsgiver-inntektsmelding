@@ -20,7 +20,8 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
-import no.nav.helsearbeidsgiver.inntektsmelding.db.Repository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.filter.findMessage
@@ -59,7 +60,8 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
     // Database
     var database = mockk<Database>()
-    var repository = mockk<Repository>()
+    var imoRepository = mockk<InntektsmeldingRepository>()
+    var forespoerselRepository = mockk<ForespoerselRepository>()
 
     @BeforeAll
     fun beforeAllEndToEnd() {
@@ -78,14 +80,16 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
         println("Database: jdbcUrl: ${config.jdbcUrl}")
         database = Database(config)
-        repository = Repository(database.db)
+        imoRepository = InntektsmeldingRepository(database.db)
+        forespoerselRepository = ForespoerselRepository(database.db)
         database.migrate()
 
         // Rapids
         rapid = RapidApplication.create(env).buildApp(
             redisStore,
             database,
-            repository,
+            imoRepository,
+            forespoerselRepository,
             aaregClient,
             brregClient,
             inntektKlient,

@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.testcontainers.containers.PostgreSQLContainer
 
 abstract class FunSpecWithDb(
-    table: Table,
+    table: List<Table>,
     body: FunSpec.(Database) -> Unit
 ) : FunSpec({
     val db = Database(dbConfig())
@@ -17,7 +17,7 @@ abstract class FunSpecWithDb(
 
     beforeEach {
         transaction {
-            table.deleteAll()
+            table.forEach { it.deleteAll() }
         }
     }
 

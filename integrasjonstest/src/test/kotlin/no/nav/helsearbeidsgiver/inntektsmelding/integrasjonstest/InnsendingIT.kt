@@ -43,9 +43,9 @@ internal class InnsendingIT : EndToEndTest() {
     val JOURNALPOST_ID = "jp-789"
 
     fun setup() {
-        repository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
-        repository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
-        repository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
+        forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
+        forespoerselRepository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
+        forespoerselRepository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
 
         // Mocking
         val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient

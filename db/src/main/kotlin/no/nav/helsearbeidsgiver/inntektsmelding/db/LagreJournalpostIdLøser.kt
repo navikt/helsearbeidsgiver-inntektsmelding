@@ -10,11 +10,15 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
 
-class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repository: Repository) : Løser(rapidsConnection) {
+class LagreJournalpostIdLøser(
+    rapidsConnection: RapidsConnection,
+    val repository: InntektsmeldingRepository,
+    val forespoerselRepository: ForespoerselRepository
+) :
+    Løser(rapidsConnection) {
 
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -55,9 +59,9 @@ class LagreJournalpostIdLøser(rapidsConnection: RapidsConnection, val repositor
         journalpostId: String,
         inntektsmeldingDokument: InntektsmeldingDokument
     ) {
-        val oppgaveId = repository.hentOppgaveId(uuid)
+        val oppgaveId = forespoerselRepository.hentOppgaveId(uuid)
         logger.info("Fant oppgaveId $oppgaveId for forespørselId $uuid")
-        val sakId = repository.hentSakId(uuid)
+        val sakId = forespoerselRepository.hentSakId(uuid)
         logger.info("Fant sakId $sakId for forespørselId $uuid")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(

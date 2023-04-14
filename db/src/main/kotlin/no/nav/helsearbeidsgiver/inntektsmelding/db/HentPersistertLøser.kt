@@ -69,7 +69,6 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
             sikkerlogg.error("Klarte ikke hente persistert inntektsmelding", ex)
             publiserFeil(uuid, transactionId, event, løsning.error)
         }
-
     }
 
     private fun publiserFeil(uuid: String, transactionId: String, event: String, error: Feilmelding?) {

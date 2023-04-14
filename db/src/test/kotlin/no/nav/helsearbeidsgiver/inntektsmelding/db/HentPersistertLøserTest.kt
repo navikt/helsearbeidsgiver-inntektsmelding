@@ -6,6 +6,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentPersistertLøsning
 import no.nav.helsearbeidsgiver.felles.Key
@@ -38,6 +39,7 @@ internal class HentPersistertLøserTest {
         } returns INNTEKTSMELDING_DOKUMENT
         val løsning = sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
@@ -51,6 +53,7 @@ internal class HentPersistertLøserTest {
         } throws Exception()
         val feilmelding = sendMeldingMedFeil(
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
@@ -65,6 +68,7 @@ internal class HentPersistertLøserTest {
         } returns null
         val løsning = sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.INITIATE_ID to UUID.randomUUID().toJson()
         )

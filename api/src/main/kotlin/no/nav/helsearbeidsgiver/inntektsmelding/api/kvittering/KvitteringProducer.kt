@@ -25,6 +25,6 @@ class KvitteringProducer(
         )
         rapid.publish(packet.toJson())
         logger.info("Publiserte kvittering requested, forespørselid=$foresporselId")
-        return foresporselId
+        return transaksjonsId
     }
 }

@@ -6,7 +6,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.HentPersistertLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
@@ -39,16 +41,16 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
                 val uuid: String = message[Key.UUID.str].asText()
                 val transactionId: String = message[Key.INITIATE_ID.str].asText()
                 logger.info("Sender event: ${event.name}")
-                rapidsConnection.publish(
-                    JsonMessage.newMessage(
-                        mapOf(
-                            Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
-                            Key.UUID.str to uuid,
-                            Key.INITIATE_ID.str to transactionId
-                        )
-                    ).toJson()
-                )
+                val message = JsonMessage.newMessage(
+                    mapOf(
+                        Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
+                        Key.EVENT_NAME.str to event.name,
+                        Key.UUID.str to uuid,
+                        Key.INITIATE_ID.str to transactionId
+                    )
+                ).toJson()
+                logger.info("Publiserer melding: " + message)
+                rapidsConnection.publish(message)
             }
             Transaction.IN_PROGRESS -> {
                 logger.error("Mottok ${Transaction.IN_PROGRESS}, skal ikke skje")
@@ -65,14 +67,16 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
     fun finalize(message: JsonMessage) {
         val uuid = message[Key.UUID.str].asText()
         val transactionId = message[Key.INITIATE_ID.str].asText()
+        val dok = message[Key.INNTEKTSMELDING_DOKUMENT.str].asText().orEmpty()
+
         logger.info("Finalize kvittering med id=$uuid")
-        redisStore.set(transactionId, message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
+        redisStore.set(transactionId, HentPersistertLøsning(dok).toJson(HentPersistertLøsning.serializer()).toString())
     }
 
     fun terminate(message: JsonMessage) {
         val uuid = message[Key.UUID.str].asText()
         logger.info("Terminate kvittering med id=$uuid")
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
+        redisStore.set(message[Key.INITIATE_ID.str].asText(), message[Key.FAIL.str].asText())
     }
 
     fun startStransactionIfAbsent(message: JsonMessage): Transaction {
@@ -84,7 +88,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
             logger.info("Mottok feilmelding på forespørsel $uuid, avslutter transaksjon")
             return Transaction.TERMINATE
         }
-        val eventKey = transactionId
+        val eventKey = uuid + "-" + transactionId
         val value = redisStore.get(eventKey)
         return if (value.isNullOrEmpty()) {
             redisStore.set(eventKey, uuid)
@@ -114,8 +118,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
 
         override fun accept(): River.PacketValidation {
             return River.PacketValidation {
-                it.requireKey(Key.INITIATE_ID.str)
-                it.interestedIn(Key.INNTEKTSMELDING_DOKUMENT.str)
+                it.requireKey(Key.INITIATE_ID.str, Key.UUID.str)
             }
         }
 

@@ -42,7 +42,7 @@ class OpprettOppgaveLøser(
     fun opprettOppgave(
         uuid: String,
         orgnr: String
-    ): String {
+    ): String { // ktlint-disable trailing-comma-on-declaration-site
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
                 uuid,
@@ -51,7 +51,9 @@ class OpprettOppgaveLøser(
                 orgnr,
                 "Inntektsmelding",
                 null,
-                uuid
+                uuid,
+                "Varsel om ny inntekstmelding",
+                "Vi trenger din inntektsmelding. Gå inn på nav.no."
             )
         }
     }

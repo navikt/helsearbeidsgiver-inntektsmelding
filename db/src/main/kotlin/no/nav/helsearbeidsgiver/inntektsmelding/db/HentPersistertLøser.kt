@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentPersistertLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
@@ -38,8 +39,8 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
             it.demandAll(Key.BEHOV.str, BEHOV)
             it.requireKey(Key.UUID.str, Key.INITIATE_ID.str)
             it.interestedIn(Key.EVENT_NAME.str)
-            it.rejectKey(Key.LØSNING.str)
-            it.rejectKey(Key.DATA.str)
+            //it.rejectKey(Key.LØSNING.str)
+            //it.rejectKey(Key.DATA.str)
         }
     }
 
@@ -64,6 +65,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
                 løsning = HentPersistertLøsning(dokument.toString())
             }
             publiserLøsning(løsning, packet)
+            publiserData(packet, dokument)
         } catch (ex: Exception) {
             logger.info("Klarte ikke hente persistert inntektsmelding")
             sikkerlogg.error("Klarte ikke hente persistert inntektsmelding", ex)
@@ -88,18 +90,17 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
         sikkerlogg.info("sender løsning: " + packet.toJson())
         packet.setLøsning(BEHOV, løsning)
         rapidsConnection.publish(packet.toJson())
+    }
+
+    private fun publiserData(packet: JsonMessage, inntektsmeldingDokument: InntektsmeldingDokument?) {
         val uuid = packet[Key.UUID.str].asText()
         val event = packet[Key.EVENT_NAME.str].asText()
         val transactionId = packet[Key.INITIATE_ID.str].asText()
-        publiserOK(uuid, transactionId, event, løsning.value!!)
-    }
-
-    private fun publiserOK(uuid: String, transactionId: String, event: String, inntektsmeldingDokument: String) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to event,
                 Key.DATA.str to "",
-                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                Key.INNTEKTSMELDING_DOKUMENT.str to if (inntektsmeldingDokument == null) "{}" else customObjectMapper().writeValueAsString(inntektsmeldingDokument),
                 Key.UUID.str to uuid,
                 Key.INITIATE_ID.str to transactionId
             )

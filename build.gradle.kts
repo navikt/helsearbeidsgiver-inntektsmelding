@@ -165,6 +165,7 @@ tasks {
 }
 
 fun getBuildableProjects(buildAll: Boolean = false): List<String> {
+    if (buildAll) return subprojects.map { it.name }
     val changedFiles = System.getenv("CHANGED_FILES")
         ?.takeIf(String::isNotBlank)
         ?.split(",")
@@ -182,7 +183,7 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
 
     return subprojects.map { it.name }
         .let { projects ->
-            if (hasCommonChanges || buildAll) {
+            if (hasCommonChanges) {
                 projects
             } else {
                 projects.filter { project ->
@@ -197,7 +198,7 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
 
 fun getDeployMatrixVariables(
     includeCluster: String? = null,
-    deployAll: Boolean = false
+    deployAll: Boolean = false,
 ): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
     val clustersByProject = getBuildableProjects(deployAll).associateWith { project ->
         File("config", project)
@@ -215,8 +216,11 @@ fun getDeployMatrixVariables(
             ?.ifEmpty { null }
     }
         .mapNotNull { (key, value) ->
-            if (value == null) null
-            else key to value
+            if (value == null) {
+                null
+            } else {
+                key to value
+            }
         }
         .toMap()
 

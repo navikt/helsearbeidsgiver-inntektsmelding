@@ -1,12 +1,18 @@
 val aaregClientVersion: String by project
 val altinnClientVersion: String by project
 val arbeidsgiverNotifikasjonVersion: String by project
+val brregKlientVersion: String by project
+val dokarkivKlientVersion: String by project
 val exposedVersion: String by project
 val flywayVersion: String by project
 val hikariVersion: String by project
+val inntektKlientVersion: String by project
+val junitJupiterVersion: String by project
 val ktorVersion: String by project
+val pdlKlientVersion: String by project
 val postgresqlVersion: String by project
-val testcontainersPostgresqlVersion: String by project
+val testcontainersRedisJunitVersion: String by project
+val testcontainersVersion: String by project
 
 dependencies {
     implementation(project(":aareg"))
@@ -30,10 +36,10 @@ dependencies {
     implementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")
     implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonVersion")
-    implementation("no.nav.helsearbeidsgiver:brreg-client:0.3.0")
-    implementation("no.nav.helsearbeidsgiver:dokarkiv-client:0.1.9")
-    implementation("no.nav.helsearbeidsgiver:inntekt-klient:0.1.9")
-    implementation("no.nav.helsearbeidsgiver:pdl-client:0.2.1")
+    implementation("no.nav.helsearbeidsgiver:brreg-client:$brregKlientVersion")
+    implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkivKlientVersion")
+    implementation("no.nav.helsearbeidsgiver:inntekt-klient:$inntektKlientVersion")
+    implementation("no.nav.helsearbeidsgiver:pdl-client:$pdlKlientVersion")
 
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
@@ -42,14 +48,14 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    implementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
 
     testApi(project(":api"))
 
-    testImplementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.2")
+    testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
-    testImplementation("org.testcontainers:kafka:1.17.6")
-    testImplementation("org.testcontainers:postgresql:1.17.6")
+    testImplementation("org.testcontainers:kafka:$testcontainersVersion")
+    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 }

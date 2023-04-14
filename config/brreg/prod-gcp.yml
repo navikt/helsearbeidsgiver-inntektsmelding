@@ -4,3 +4,5 @@ azure:
 env:
 - name: ENHETSREGISTERET_URL
   value: "https://data.brreg.no/enhetsregisteret/api/underenheter"
+externalHosts:
+  - data.brreg.no

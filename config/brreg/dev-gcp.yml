@@ -6,4 +6,4 @@ env:
 - name: ENHETSREGISTERET_URL
   value: "http://localhost"
 externalHosts:
-  - helsearbeidsgiver-proxy.prod-fss-pub.nais.io
+  - data.brreg.no

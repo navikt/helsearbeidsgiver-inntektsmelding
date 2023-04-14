@@ -10,10 +10,10 @@ val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-db")
 
 fun main() {
-    buildApp(mapHikariConfig(DatabaseConfig()), System.getenv())
+    buildApp(mapHikariConfig(DatabaseConfig()), System.getenv()).start()
 }
 
-fun buildApp(config: HikariConfig, env: Map<String, String>) {
+fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
     val database = Database(config)
     logger.info("Bruker database url: ${config.jdbcUrl}")
     logger.info("Migrering starter...")
@@ -21,10 +21,9 @@ fun buildApp(config: HikariConfig, env: Map<String, String>) {
     logger.info("Migrering ferdig.")
     val imRepo = InntektsmeldingRepository(database.db)
     val forespoerselRepo = ForespoerselRepository(database.db)
-    RapidApplication
+    return RapidApplication
         .create(env)
         .createDb(database, imRepo, forespoerselRepo)
-        .start()
 }
 
 fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingRepository, forespoerselRepo: ForespoerselRepository): RapidsConnection {

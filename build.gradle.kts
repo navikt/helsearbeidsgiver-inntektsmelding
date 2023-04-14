@@ -142,6 +142,7 @@ tasks {
             )
         }
     }
+
     create("buildAllMatrix") {
         doLast {
             mapper.taskOutput(
@@ -149,14 +150,17 @@ tasks {
             )
         }
     }
-    create("deployMatrixProd") {
-        deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
+
+    create("deployMatrix") {
+        deployMatrix(mapper)
     }
+
     create("deployMatrixDev") {
         deployMatrix(mapper, includeCluster = "dev-gcp")
     }
-    create("deployMatrix") {
-        deployMatrix(mapper)
+
+    create("deployMatrixProd") {
+        deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
     }
 }
 
@@ -191,33 +195,43 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
         }
 }
 
-fun getDeployMatrixVariables(includeCluster: String? = null, deployAll: Boolean = false): Triple<List<String>, Set<String>, List<Pair<String, String>>> {
-    // map of cluster to list of apps
-    val projects = getBuildableProjects(deployAll).filter { File("config", it).isDirectory }
+fun getDeployMatrixVariables(
+    includeCluster: String? = null,
+    deployAll: Boolean = false
+): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
+        val clustersByProject = getBuildableProjects(deployAll).associateWith { project ->
+            File("config", project)
+                .listFiles()
+                ?.filter { it.isFile && it.name.endsWith(".yml") }
+                ?.map { it.name.removeSuffix(".yml") }
+                ?.let { clusters ->
+                    if (includeCluster != null && clusters.contains(includeCluster)) {
+                        listOf(includeCluster)
+                    } else {
+                        clusters
+                    }
+                }
+                ?.toSet()
+                ?.ifEmpty { null }
+        }
+            .mapNotNull { (key, value) ->
+                if (value == null) null
+                else key to value
+            }
+            .toMap()
 
-    val clustersByProject = projects.associateWith { project ->
-        File("config", project)
-            .listFiles()
-            ?.filter { it.isFile && it.name.endsWith(".yml") }
-            ?.map { it.name.removeSuffix(".yml") }
-            ?.toSet()
-            .orEmpty()
-    }
-    val deployableProjects = if (includeCluster != null) clustersByProject.filter { it.value.contains(includeCluster) }.map { it.key } else projects
-    println(includeCluster)
-    val allClusters = if (includeCluster != null) setOf(includeCluster) else clustersByProject.values.flatten().toSet()
-    println(allClusters)
-    val exclusions = clustersByProject.flatMap { (project, clusters) ->
-        println(clusters)
-        allClusters.subtract(clusters)
-            .map { Pair(project, it) }
-    }
+        val allClusters = clustersByProject.values.flatten().toSet()
 
-    return Triple(
-        deployableProjects,
-        allClusters,
-        exclusions
-    )
+        val exclusions = clustersByProject.flatMap { (project, clusters) ->
+            allClusters.subtract(clusters)
+                .map { Pair(project, it) }
+        }
+
+        return Triple(
+            clustersByProject.keys,
+            allClusters,
+            exclusions
+        )
 }
 
 fun PluginAware.applyPlugins(vararg ids: String) {

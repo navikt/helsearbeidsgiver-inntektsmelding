@@ -1,0 +1,10 @@
+kafkaPool: nav-prod
+azure:
+  enabled: true
+env:
+- name: PDL_URL
+  value: "https://helsearbeidsgiver-proxy.prod-fss-pub.nais.io/pdl"
+- name: PROXY_SCOPE
+  value: "api://prod-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+externalHosts:
+  - helsearbeidsgiver-proxy.prod-fss-pub.nais.io

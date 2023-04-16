@@ -88,13 +88,14 @@ spec:
     {{/each}}{{/if}}
   accessPolicy:
     outbound:
-      rules:
-        - application: helsearbeidsgiver-redis
-        - application: notifikasjon-produsent-api
-          namespace: fager
-          cluster: dev-gcp
       external:
-        - host: helsearbeidsgiver-proxy.dev-fss-pub.nais.io
-        - host: api-gw-q1.oera.no
-        - host: ag-notifikasjon-produsent-api.dev.nav.no
-
+      {{#if externalHosts}}{{# each externalHosts as |item| }}
+        - host: {{ item }}
+      {{/each}}{{/if}}
+      rules:
+        {{#if apps}}{{# each apps as |app| }}
+        - application: {{ app.name }}
+          {{#if app.namespace}}
+          namespace: {{ app.namespace }}
+          {{/if}}
+        {{/each}}{{/if}}

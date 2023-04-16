@@ -1,9 +1,11 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-joark.intern.dev.nav.no 
+ingress: https://helsearbeidsgiver-im-joark.intern.dev.nav.no
 env:
 - name: PROXY_SCOPE
   value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
 - name: DOKARKIV_URL
   value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/dokarkiv/rest/journalpostapi/v1/"
+externalHosts:
+  - helsearbeidsgiver-proxy.dev-fss-pub.nais.io

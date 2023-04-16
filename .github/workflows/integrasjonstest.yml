@@ -1,4 +1,4 @@
-name: Test
+name: Integrasjonstester
 
 on: [pull_request]
 
@@ -29,9 +29,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-cache-
 
-      - name: Test
+      - name: Integrasjonstest
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: test --tests '*Test' jacocoTestReport
+          arguments: test -P integrasjonstest
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

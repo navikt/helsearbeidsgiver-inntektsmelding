@@ -78,21 +78,6 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Innt
         rapidsConnection.publish(packet.toJson())
     }
 
-//    private fun publiserInntektsmeldingMottatt(
-//        inntektsmeldingDokument: no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument,
-//        uuid: String
-//    ) {
-//        val packet: JsonMessage = JsonMessage.newMessage(
-//            mapOf(
-//                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-//                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
-//                Key.UUID.str to uuid
-//            )
-//        )
-//        logger.info("Publiserer event ${EventName.INNTEKTSMELDING_MOTTATT} for uuid: $uuid")
-//        publishEvent(packet)
-//    }
-
     fun publiserLøsning(løsning: PersisterImLøsning, packet: JsonMessage) {
         packet.setLøsning(PERSISTER_IM, løsning)
         publishBehov(packet)

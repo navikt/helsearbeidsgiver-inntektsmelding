@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
+import com.fasterxml.jackson.databind.JsonMappingException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
@@ -21,6 +22,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
+
+private const val EMPTY_PAYLOAD = "{}"
 
 fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
     val kvitteringProducer = KvitteringProducer(connection)
@@ -49,8 +52,9 @@ fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
                 )
                 val transaksjonsId = kvitteringProducer.publish(foresporselId)
                 val dok = redis.getString(transaksjonsId, 10, 500)
-                sikkerlogg.info("Fikk resultat: $dok")
-                if (dok == "{}") { // TODO .. litt smartere sjekk?
+                sikkerlogg.info("Forespørsel $foresporselId ga resultat: $dok")
+                if (dok == EMPTY_PAYLOAD) {
+                    // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
                     call.respond(HttpStatusCode.NotFound, "")
                 } else {
                     val innsending = mapInnsending(customObjectMapper().readValue(dok, InntektsmeldingDokument::class.java))
@@ -61,6 +65,9 @@ fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for $foresporselId")
                 call.respond(HttpStatusCode.BadRequest, validationResponseMapper(e.constraintViolations))
+            } catch (e: JsonMappingException) {
+                logger.error("Kunne ikke parse json-resultat for $foresporselId")
+                call.respond(HttpStatusCode.InternalServerError)
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for $foresporselId")
                 call.respond(HttpStatusCode.InternalServerError, RedisTimeoutResponse(foresporselId))

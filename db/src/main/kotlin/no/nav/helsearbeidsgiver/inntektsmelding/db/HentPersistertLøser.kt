@@ -16,31 +16,19 @@ import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
 
+private const val EMPTY_PAYLOAD = "{}"
+
 class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: InntektsmeldingRepository) : Løser(rapidsConnection) {
 
     private val BEHOV = BehovType.HENT_PERSISTERT_IM
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-//    init {
-//        logger.info("Starter HentPersistertLøser...")
-//        River(rapidsConnection).apply {
-//            validate {
-// //                it.demandAll(Key.BEHOV.str, BEHOV)
-// //                it.requireKey(Key.UUID.str, Key.INITIATE_ID.str)
-// //                it.interestedIn(Key.EVENT_NAME.str)
-// //                it.rejectKey(Key.LØSNING.str)
-//            }
-//        }.register(this)
-//    }
-
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandAll(Key.BEHOV.str, BEHOV)
             it.requireKey(Key.UUID.str, Key.INITIATE_ID.str)
             it.interestedIn(Key.EVENT_NAME.str)
-            // it.rejectKey(Key.LØSNING.str)
-            // it.rejectKey(Key.DATA.str)
         }
     }
 
@@ -101,7 +89,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
                 Key.EVENT_NAME.str to event,
                 Key.DATA.str to "",
                 Key.INNTEKTSMELDING_DOKUMENT.str to if (inntektsmeldingDokument == null) {
-                    "{}"
+                    EMPTY_PAYLOAD
                 } else {
                     customObjectMapper().writeValueAsString(
                         inntektsmeldingDokument

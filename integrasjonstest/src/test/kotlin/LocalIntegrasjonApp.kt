@@ -75,9 +75,7 @@ class DummyLøser(rapidsConnection: RapidsConnection, val behov: BehovType, val 
         logger.info("Fikk pakke: ${packet.toJson()}")
         packet.setLøsning(behov, getLøsning())
         packet.nesteBehov(nesteBehov)
-        val test = packet[Key.INITIATE_ID.str].asText()
         JsonMessage.newMessage()
-        println("test = $test")
         logger.info("Publiserer løsning: ${packet.toJson()}")
         this.rapid.publish(packet.toJson())
     }

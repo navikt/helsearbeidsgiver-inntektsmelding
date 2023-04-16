@@ -15,7 +15,7 @@ fun main() {
 
 fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
     val database = Database(config)
-    logger.info("Bruker database url: ${config.jdbcUrl}")
+    sikkerLogger.info("Bruker database url: ${config.jdbcUrl}")
     logger.info("Migrering starter...")
     database.migrate()
     logger.info("Migrering ferdig.")

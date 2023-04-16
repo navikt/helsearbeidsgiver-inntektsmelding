@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.json.parseJson
 import no.nav.helsearbeidsgiver.felles.log.loggerSikker
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
+// TODO rydd opp i sikkerlogg vs loggerSikker
 class RedisPoller {
     private val redisClient = RedisClient.create(
         Env.Redis.url

@@ -39,7 +39,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
                 val uuid: String = message[Key.UUID.str].asText()
                 val transactionId: String = message[Key.INITIATE_ID.str].asText()
                 logger.info("Sender event: ${event.name} for forespørsel $uuid")
-                val message = JsonMessage.newMessage(
+                val msg = JsonMessage.newMessage(
                     mapOf(
                         Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
                         Key.EVENT_NAME.str to event.name,
@@ -47,8 +47,8 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
                         Key.INITIATE_ID.str to transactionId
                     )
                 ).toJson()
-                logger.info("Publiserer melding: $message")
-                rapidsConnection.publish(message)
+                logger.info("Publiserer melding: $msg")
+                rapidsConnection.publish(msg)
             }
             Transaction.IN_PROGRESS -> {
                 logger.error("Mottok ${Transaction.IN_PROGRESS}, skal ikke skje")
@@ -77,7 +77,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
     }
 
     private fun startTransactionIfAbsent(message: JsonMessage): Transaction {
-        logger.info(message.toJson())
+        sikkerlogg.info("Mottok melding ${message.toJson()}")
         val uuid = message[Key.UUID.str].asText()
         val transactionId = message[Key.INITIATE_ID.str].asText()
         logger.info("Sjekker transaksjon $transactionId for forespørsel: $uuid")

@@ -69,7 +69,7 @@ fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
                 logger.error("Kunne ikke parse json-resultat for $foresporselId")
                 call.respond(HttpStatusCode.InternalServerError)
             } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout for $foresporselId")
+                logger.error("Fikk timeout for $foresporselId")
                 call.respond(HttpStatusCode.InternalServerError, RedisTimeoutResponse(foresporselId))
             }
         }

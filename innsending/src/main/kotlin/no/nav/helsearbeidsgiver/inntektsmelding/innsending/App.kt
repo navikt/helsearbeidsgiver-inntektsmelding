@@ -22,6 +22,6 @@ fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection 
 }
 
 fun buildRedisStore(environment: Environment): RedisStore {
-    logger.info("Redis url er " + environment.redisUrl)
+    sikkerlogg.info("Redis url er " + environment.redisUrl)
     return RedisStore(environment.redisUrl)
 }

@@ -23,7 +23,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val transaction: Transaction = startStransactionIfAbsent(packet)
+        val transaction: Transaction = startTransactionIfAbsent(packet)
 
         when (transaction) {
             Transaction.NEW -> dispatchBehov(packet, transaction)
@@ -38,7 +38,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
             Transaction.NEW -> {
                 val uuid: String = message[Key.UUID.str].asText()
                 val transactionId: String = message[Key.INITIATE_ID.str].asText()
-                logger.info("Sender event: ${event.name}")
+                logger.info("Sender event: ${event.name} for forespørsel $uuid")
                 val message = JsonMessage.newMessage(
                     mapOf(
                         Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
@@ -47,7 +47,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
                         Key.INITIATE_ID.str to transactionId
                     )
                 ).toJson()
-                logger.info("Publiserer melding: " + message)
+                logger.info("Publiserer melding: $message")
                 rapidsConnection.publish(message)
             }
             Transaction.IN_PROGRESS -> {
@@ -66,7 +66,6 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
         val uuid = message[Key.UUID.str].asText()
         val transactionId = message[Key.INITIATE_ID.str].asText()
         val dok = message[Key.INNTEKTSMELDING_DOKUMENT.str].asText()
-
         logger.info("Finalize kvittering med id=$uuid")
         redisStore.set(transactionId, dok)
     }
@@ -77,16 +76,17 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
         redisStore.set(message[Key.INITIATE_ID.str].asText(), message[Key.FAIL.str].asText())
     }
 
-    fun startStransactionIfAbsent(message: JsonMessage): Transaction {
+    private fun startTransactionIfAbsent(message: JsonMessage): Transaction {
         logger.info(message.toJson())
-        val uuid = message.get(Key.UUID.str).asText()
-        val transactionId = message.get(Key.INITIATE_ID.str).asText()
+        val uuid = message[Key.UUID.str].asText()
+        val transactionId = message[Key.INITIATE_ID.str].asText()
         logger.info("Sjekker transaksjon $transactionId for forespørsel: $uuid")
-        if (isFailMelding(message)) {
+        if (feilmelding(message)) {
             logger.info("Mottok feilmelding på forespørsel $uuid, avslutter transaksjon")
             return Transaction.TERMINATE
         }
-        val eventKey = uuid + "-" + transactionId
+        val eventKey = "$uuid-$transactionId"
+        // ^ bruke event.name + transactionId for mer generisk løsning hvis flere samtidige behov
         val value = redisStore.get(eventKey)
         return if (value.isNullOrEmpty()) {
             redisStore.set(eventKey, uuid)
@@ -96,11 +96,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
         }
     }
 
-//    fun allData(uuid: String) = arrayOf(uuid + DataFelter.INNTEKTSMELDING_DOKUMENT.str)
-//
-//    fun isDataCollected(vararg keys: String): Boolean = redisStore.exist(*keys) == keys.size.toLong()
-
-    fun isFailMelding(jsonMessage: JsonMessage): Boolean {
+    private fun feilmelding(jsonMessage: JsonMessage): Boolean {
         try {
             return !jsonMessage[Key.FAIL.str].asText().isNullOrEmpty()
         } catch (e: NoSuchFieldError) {

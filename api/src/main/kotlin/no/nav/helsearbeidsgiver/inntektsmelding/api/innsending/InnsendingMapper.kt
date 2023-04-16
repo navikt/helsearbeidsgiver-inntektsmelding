@@ -34,20 +34,19 @@ class InnsendingMapper(val uuid: String, resultat: Resultat) : ResultatMapper<In
 
 fun mapInnsending(inntektsmeldingDokument: InntektsmeldingDokument): InnsendingRequest {
     return InnsendingRequest(
-        inntektsmeldingDokument.orgnrUnderenhet,
-        inntektsmeldingDokument.identitetsnummer,
-        inntektsmeldingDokument.behandlingsdager,
-        inntektsmeldingDokument.egenmeldingsperioder,
-        inntektsmeldingDokument.arbeidsgiverperioder,
-        inntektsmeldingDokument.bestemmendeFraværsdag,
-        inntektsmeldingDokument.fraværsperioder,
+        orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
+        identitetsnummer = inntektsmeldingDokument.identitetsnummer,
+        behandlingsdager = inntektsmeldingDokument.behandlingsdager,
+        egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
+        arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
+        bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
+        fraværsperioder = inntektsmeldingDokument.fraværsperioder,
         // @TODO det er noe informasjon som vi mangler på InntektsMeldingDokument
-        Inntekt(true, inntektsmeldingDokument.beregnetInntekt, null, false),
-        inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
-        inntektsmeldingDokument.refusjon,
-        inntektsmeldingDokument.naturalytelser,
-        inntektsmeldingDokument.årsakInnsending,
-        // @TODO  hva e value for dette
-        false
+        inntekt = Inntekt(true, inntektsmeldingDokument.beregnetInntekt, null, false),
+        fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
+        refusjon = inntektsmeldingDokument.refusjon,
+        naturalytelser = inntektsmeldingDokument.naturalytelser,
+        årsakInnsending = inntektsmeldingDokument.årsakInnsending,
+        bekreftOpplysninger = true
     )
 }

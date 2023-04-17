@@ -58,6 +58,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Innt
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.DATA.str to "",
+                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
                 DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
                 Key.UUID.str to uuid
             )
@@ -67,6 +68,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Innt
 
     fun publiserFail(fail: Feilmelding, jsonMessage: JsonMessage) {
         val message = JsonMessage.newMessage(
+            mapOf(
                 Key.FAIL.str to customObjectMapper().writeValueAsString(fail),
                 Key.UUID.str to jsonMessage[Key.UUID.str].asText()
             )

@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import java.util.UUID
 
 class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
 
@@ -140,7 +141,8 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                     Key.INNTEKTSMELDING_DOKUMENT.str to message[Key.INNTEKTSMELDING_DOKUMENT.str],
-                    Key.UUID.str to message[Key.UUID.str]
+                    Key.UUID.str to UUID.randomUUID().toString(),
+                    Key.FORESPOERSEL_ID.str to redisStore.get(uuid + Key.FORESPOERSEL_ID.str)!!
                 )
             ).toJson()
         )

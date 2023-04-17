@@ -64,7 +64,7 @@ class FulltNavnLøser(
         packet.setLøsning(BEHOV, løsning)
         val json = packet.toJson()
         context.publish(json)
-        logger.info("FulltNavnLøser: publiserte: $json")
+        sikkerlogg.info("FulltNavnLøser: publiserte: $json")
     }
 
     fun publishDatagram(personInformasjon: PersonDato, jsonMessage: JsonMessage, context: MessageContext) {

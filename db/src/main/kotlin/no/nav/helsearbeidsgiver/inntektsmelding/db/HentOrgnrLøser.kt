@@ -42,7 +42,7 @@ class HentOrgnrLøser(rapidsConnection: RapidsConnection, val repository: Foresp
                 publiserLøsning(HentImOrgnrLøsning(orgnr), packet, context)
             }
         } catch (ex: Exception) {
-            logger.info("Klarte ikke hente persistert orgnr for inntektsmelding for forespørselId $forespørselId")
+            logger.error("Klarte ikke hente persistert orgnr for inntektsmelding for forespørselId $forespørselId")
             sikkerlogg.error("Klarte ikke hente persistert orgnr for inntektsmelding for forespørselId $forespørselId", ex)
             publiserLøsning(HentImOrgnrLøsning(error = Feilmelding("Klarte ikke hente orgnr for persistert inntektsmelding")), packet, context)
         }

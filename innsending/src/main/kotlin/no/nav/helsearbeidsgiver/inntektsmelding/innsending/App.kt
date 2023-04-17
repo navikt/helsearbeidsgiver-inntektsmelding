@@ -15,23 +15,13 @@ fun main() {
         .start()
 }
 
-fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starting Redis client...")
-    logger.info("Redis url er " + environment.redisUrl)
-    val redisClient = RedisStore(environment.redisUrl)
-    logger.info("Starting RapidApplication...")
-    val rapidsConnection = RapidApplication.create(environment.raw)
-    logger.info("Starting Innsending...")
-    InnsendingService(rapidsConnection, redisClient)
-    return rapidsConnection
-}
-
 fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection {
     InnsendingService(this, redisStore)
+    KvitteringService(this, redisStore)
     return this
 }
 
 fun buildRedisStore(environment: Environment): RedisStore {
-    logger.info("Redis url er " + environment.redisUrl)
+    sikkerlogg.info("Redis url er " + environment.redisUrl)
     return RedisStore(environment.redisUrl)
 }

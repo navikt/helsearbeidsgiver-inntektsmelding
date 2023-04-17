@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereR
 import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.InntektRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.KvitteringRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import org.slf4j.Logger
@@ -38,6 +39,7 @@ object Routes {
     const val INNSENDING = "/inntektsmelding"
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
+    const val KVITTERING = "/kvittering"
 }
 
 fun main() {
@@ -87,8 +89,8 @@ fun Application.apiModule(connection: RapidsConnection) {
                     ArbeidsgivereRoute()
                     TrengerRoute(tilgangCache)
                     InntektRoute(tilgangCache)
-                    // Midlertidig deaktivert, lik route lagt til uten auth for enklere manuell testing
                     InnsendingRoute(tilgangCache)
+                    KvitteringRoute(tilgangCache)
                 }
             }
         }

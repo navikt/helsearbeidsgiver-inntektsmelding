@@ -83,7 +83,6 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         sikkerlogg.info("Mottar pakke: ${packet.toJson()}")
         val uuid = packet[Key.ID.str].asText()
         logger.info("Løser behov $INNTEKT med id $uuid")
-        sikkerlogg.info("Løser behov $INNTEKT med id $uuid")
         val imLøsning = hentSpleisDataFraSession(packet)
         val fnr = imLøsning.value!!.fnr
         val orgnr = imLøsning.value!!.orgnr
@@ -109,9 +108,8 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
             context.publish(packet.toJson())
             sikkerlogg.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
         } catch (ex: Exception) {
-            logger.error("Feil!", ex)
+            sikkerlogg.error("Feil ved henting av inntekt for $fnr!", ex)
             packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
-            sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr", ex)
             context.publish(packet.toJson())
         }
     }

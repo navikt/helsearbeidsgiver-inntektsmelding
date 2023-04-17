@@ -181,7 +181,7 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
             "spesifikasjon.yaml"
         )
 
-    return subprojects.map { it.name }
+    return subprojects.map { it.name }.filter { it != "integrasjonstest" }
         .let { projects ->
             if (hasCommonChanges) {
                 projects

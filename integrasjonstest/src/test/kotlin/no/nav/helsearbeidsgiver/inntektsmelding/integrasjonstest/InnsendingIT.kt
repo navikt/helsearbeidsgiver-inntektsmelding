@@ -40,6 +40,7 @@ internal class InnsendingIT : EndToEndTest() {
     val SAK_ID = "sak_id_123"
     val OPPGAVE_ID = "oppgave_id_456"
     val FORESPØRSEL_ID = UUID.randomUUID().toString()
+    val TRANSAKSJONS_ID_INSENDING_STARTED = UUID.randomUUID().toString()
     val REQUEST = mockRequest()
     val JOURNALPOST_ID = "jp-789"
 
@@ -129,7 +130,7 @@ internal class InnsendingIT : EndToEndTest() {
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.UUID.str to UUID.randomUUID().toString(),
+                Key.UUID.str to TRANSAKSJONS_ID_INSENDING_STARTED,
                 Key.FORESPOERSEL_ID.str to FORESPØRSEL_ID,
                 Key.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to REQUEST.identitetsnummer,
@@ -142,7 +143,6 @@ internal class InnsendingIT : EndToEndTest() {
 
         with(filter(EventName.INSENDING_STARTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
             // Ble lagret i databasen
-            assertEquals(FORESPØRSEL_ID, get(Key.FORESPOERSEL_ID.str).asText())
             assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         }
 
@@ -153,13 +153,13 @@ internal class InnsendingIT : EndToEndTest() {
 
         with(filter(EventName.INNTEKTSMELDING_MOTTATT, null, løsning = false).first()) {
             // EVENT: Mottatt inntektsmelding
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
+            assertEquals(FORESPØRSEL_ID, get(Key.FORESPOERSEL_ID.str).asText())
         }
 
         with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, null, løsning = false).first()) {
             // EVENT: Journalføring
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
+            assertEquals(FORESPØRSEL_ID, get(Key.FORESPOERSEL_ID.str).asText())
             assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
         }
 

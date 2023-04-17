@@ -27,6 +27,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
                 it.requireKey(Key.SAK_ID.str)
                 it.rejectKey(Key.BEHOV.str)
                 it.rejectKey(Key.LØSNING.str)
+                it.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }.register(this)
     }
@@ -50,6 +51,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
                 Key.BEHOV.str to listOf(behovType),
                 Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
                 Key.UUID.str to uuid,
+                Key.FORESPOERSEL_ID.str to packet[Key.FORESPOERSEL_ID.str].asText(),
                 Key.OPPGAVE_ID.str to oppgaveId,
                 Key.SAK_ID.str to sakId,
                 Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]

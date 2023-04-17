@@ -31,13 +31,14 @@ class SakFerdigLøser(
                 it.requireKey(Key.UUID.str)
                 it.requireKey(Key.SAK_ID.str)
                 it.rejectKey(Key.LØSNING.str)
+                it.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerLogger.info("SakFerdigLøser fikk pakke: ${packet.toJson()}")
-        val forespoerselId = packet[Key.UUID.str].asText()
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val sakId = packet[Key.SAK_ID.str].asText()
         logger.info("SakFerdigLøser skal ferdigstille sakId $sakId for forespoerselId: $forespoerselId som utført...")
         val lenke = "$linkUrl/im-dialog/$forespoerselId"

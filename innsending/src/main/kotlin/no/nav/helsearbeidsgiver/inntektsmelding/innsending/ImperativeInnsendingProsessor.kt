@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DataKanal
@@ -13,11 +14,12 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 
 enum class DataFelter(val str: String) {
-    VIRKSOMHET("virksomhet"),
+    VIRKSOMHET(DataFelt.VIRKSOMHET.str),
     ARBEIDSFORHOLD("arbeidsforhold"),
     INNTEKTSMELDING_REQUEST(Key.INNTEKTSMELDING.str),
     INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str),
-    INITIATE_ID(Key.INITIATE_ID.str);
+    INITIATE_ID(Key.INITIATE_ID.str),
+    ARBEIDSTAKER_INFORMASJON(DataFelt.ARBEIDSTAKER_INFORMASJON.str);
 }
 
 class ImperativeInnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {

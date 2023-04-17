@@ -6,8 +6,10 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
@@ -75,13 +77,15 @@ internal class PersisterImLøserTest {
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                     Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
+                    DataFelt.VIRKSOMHET.str to "Test Virksomhet",
+                    DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test persjon", null),
                     Key.ID.str to UUID.randomUUID(),
                     Key.UUID.str to "uuid",
                     Key.INNTEKTSMELDING.str to request
                 )
             )
         )
-        val message = rapid.inspektør.message(1)
+        val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
         Assertions.assertNotNull(message.path(Key.INNTEKTSMELDING.str).asText())
     }

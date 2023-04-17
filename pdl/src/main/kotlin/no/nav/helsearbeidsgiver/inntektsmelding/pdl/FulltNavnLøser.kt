@@ -9,10 +9,12 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -32,6 +34,7 @@ class FulltNavnLøser(
                 it.requireKey(Key.ID.str)
                 it.requireKey(Key.IDENTITETSNUMMER.str)
                 it.rejectKey(Key.LØSNING.str)
+                it.interestedIn(Key.UUID.str)
             }
         }.register(this)
     }
@@ -47,10 +50,13 @@ class FulltNavnLøser(
             sikkerlogg.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for id: $id")
             logger.info("Fant navn for id: $id")
             publish(NavnLøsning(info), packet, context)
+            publishDatagram(info, packet, context)
         } catch (ex: Exception) {
             logger.error("Klarte ikke hente navn for id $id")
             sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for id: $id", ex)
             publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet, context)
+            publishDatagram(PersonDato("Ukjent person", null), packet, context)
+            // publishFail(Feilmelding("Klarte ikke hente navn"), packet, context)
         }
     }
 
@@ -59,6 +65,29 @@ class FulltNavnLøser(
         val json = packet.toJson()
         context.publish(json)
         sikkerlogg.info("FulltNavnLøser: publiserte: $json")
+    }
+
+    fun publishDatagram(personInformasjon: PersonDato, jsonMessage: JsonMessage, context: MessageContext) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
+                Key.DATA.str to "",
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
+                DataFelt.ARBEIDSTAKER_INFORMASJON.str to personInformasjon
+            )
+        )
+        context.publish(message.toJson())
+    }
+
+    fun publishFail(fail: Feilmelding, jsonMessage: JsonMessage, context: MessageContext) {
+        val message = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
+                Key.FAIL.str to customObjectMapper().writeValueAsString(fail),
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+            )
+        )
+        context.publish(message.toJson())
     }
 
     suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {

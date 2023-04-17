@@ -8,10 +8,10 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.OppgaveFerdigLøsning
-import no.nav.helsearbeidsgiver.felles.PersisterImLøsning
 import no.nav.helsearbeidsgiver.felles.SakFerdigLøsning
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
@@ -20,9 +20,10 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
+import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -42,10 +43,41 @@ internal class InnsendingIT : EndToEndTest() {
     val REQUEST = mockRequest()
     val JOURNALPOST_ID = "jp-789"
 
+    companion object {
+
+        fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson {
+            return PdlHentFullPerson(
+                hentPerson = PdlHentFullPerson.PdlFullPersonliste(
+                    navn = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlNavn(fornavn, mellomNavn, etternavn, PdlPersonNavnMetadata(""))),
+                    foedsel = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlFoedsel(fødselsdato)),
+                    doedsfall = emptyList(),
+                    adressebeskyttelse = emptyList(),
+                    statsborgerskap = emptyList(),
+                    bostedsadresse = emptyList(),
+                    kjoenn = emptyList()
+                ),
+                hentIdenter = PdlHentFullPerson.PdlIdentResponse(
+                    emptyList()
+                ),
+                hentGeografiskTilknytning = PdlHentFullPerson.PdlGeografiskTilknytning(
+                    PdlHentFullPerson.PdlGeografiskTilknytning.PdlGtType.KOMMUNE,
+                    null,
+                    null,
+                    null
+                )
+            )
+        }
+    }
+
     fun setup() {
         forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
         forespoerselRepository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
         forespoerselRepository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
+
+        val pdlClient = this.pdlClient
+        coEvery {
+            pdlClient.fullPerson(any(), any())
+        } returns mockPerson("Ola", "", "Normann", LocalDate.now())
 
         // Mocking
         val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
@@ -107,37 +139,35 @@ internal class InnsendingIT : EndToEndTest() {
 
         assertNotNull(meldinger)
 
-        with(filter(EventName.INSENDING_STARTED, BehovType.PERSISTER_IM, true).first()) {
+        with(filter(EventName.INSENDING_STARTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
             // Ble lagret i databasen
             assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
-            assertNotNull(get(Key.INNTEKTSMELDING.str).asText())
-            val løsning: PersisterImLøsning = get(Key.LØSNING.str).get(BehovType.PERSISTER_IM.name).toJsonElement().fromJson(PersisterImLøsning.serializer())
-            assertNull(løsning.error)
+            assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         }
 
-        with(filter(EventName.INNTEKTSMELDING_MOTTATT, BehovType.JOURNALFOER, true).first()) {
+        with(filter(EventName.INNTEKTSMELDING_MOTTATT, BehovType.JOURNALFOER, løsning = true).first()) {
             // Journalført i dokarkiv
             assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
         }
 
-        with(filter(EventName.INNTEKTSMELDING_MOTTATT, null, false).first()) {
+        with(filter(EventName.INNTEKTSMELDING_MOTTATT, null, løsning = false).first()) {
             // EVENT: Mottatt inntektsmelding
             assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
         }
 
-        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, null, false).first()) {
+        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, null, løsning = false).first()) {
             // EVENT: Journalføring
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
             assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
             assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
         }
 
-        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.DISTRIBUER_IM, false).first()) {
+        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.DISTRIBUER_IM, løsning = false).first()) {
             // Be om å distribuere
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
         }
 
-        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_SAK_STATUS, true).first()) {
+        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_SAK_STATUS, løsning = true).first()) {
             // Endre status for arbeidsgivernotifikasjon sak
             assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
             val løsning: SakFerdigLøsning =
@@ -145,7 +175,7 @@ internal class InnsendingIT : EndToEndTest() {
             assertEquals(SAK_ID, løsning.value)
         }
 
-        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_OPPGAVE_STATUS, true).first()) {
+        with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_OPPGAVE_STATUS, løsning = true).first()) {
             // Endre status for arbeidsgivernotifikasjon oppgave
             assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
             val løsning: OppgaveFerdigLøsning =

@@ -57,7 +57,6 @@ class InnsendingServiceIT : EndToEndTest() {
             )
             Result.success(listOf(arbeidsforhold))
         }
-
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
@@ -68,7 +67,7 @@ class InnsendingServiceIT : EndToEndTest() {
             )
         )
         Thread.sleep(10000)
-        assertEquals(getMessageCount(), 7) {
+        assertEquals(getMessageCount(), 9) {
             "Message count was " + getMessageCount()
         }
     }

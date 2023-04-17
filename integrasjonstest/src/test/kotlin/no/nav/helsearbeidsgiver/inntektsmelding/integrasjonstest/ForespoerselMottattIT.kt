@@ -66,6 +66,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
 
         publish(
             mapOf(
+                Key.EVENT_NAME.str to "dummy",
                 Pri.Key.NOTIS.str to Pri.NotisType.FORESPØRSEL_MOTTATT.name,
                 Pri.Key.ORGNR.str to ORGNR,
                 Pri.Key.FNR.str to FNR,
@@ -74,7 +75,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
         )
         Thread.sleep(8000)
 
-        with(getMessage(0)) {
+        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.NOTIFIKASJON_TRENGER_IM).first()) {
             assertEquals(BehovType.NOTIFIKASJON_TRENGER_IM.name, get(Key.BEHOV.str).asText())
 
             assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
@@ -83,7 +84,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
             assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
         }
 
-        with(getMessage(1)) {
+        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.FULLT_NAVN).first()) {
             assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
 
             assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
@@ -92,7 +93,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
             assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
         }
 
-        with(getMessage(2)) {
+        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.FULLT_NAVN, løsning = true).first()) {
             assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
             assertNotNull(get(Key.LØSNING.str).get(BehovType.FULLT_NAVN.name).asText())
 
@@ -105,7 +106,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
             assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
         }
 
-        with(getMessage(3)) {
+        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.PERSISTER_SAK_ID).first()) {
             assertEquals(BehovType.PERSISTER_SAK_ID.name, get(Key.BEHOV.str)[0].asText())
             assertEquals(BehovType.OPPRETT_OPPGAVE.name, get(Key.BEHOV.str)[1].asText())
 
@@ -116,7 +117,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
             assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
         }
 
-        with(getMessage(4)) {
+        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.PERSISTER_OPPGAVE_ID).first()) {
             assertEquals(BehovType.PERSISTER_OPPGAVE_ID.name, get(Key.BEHOV.str)[0].asText())
 
             assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())

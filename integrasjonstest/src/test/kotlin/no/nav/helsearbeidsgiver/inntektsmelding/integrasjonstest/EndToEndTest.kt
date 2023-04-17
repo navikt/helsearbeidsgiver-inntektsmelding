@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
@@ -116,8 +117,8 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         meldinger.add(Json.parseToJsonElement(message).toJsonNode())
     }
 
-    fun filter(event: EventName, behovType: BehovType? = null, løsning: Boolean? = false): List<JsonNode> {
-        return findMessage(meldinger, event, behovType, løsning)
+    fun filter(event: EventName, behovType: BehovType? = null, datafelt: DataFelt? = null, løsning: Boolean? = false): List<JsonNode> {
+        return findMessage(meldinger, event, behovType, datafelt, løsning)
     }
 
     @AfterAll

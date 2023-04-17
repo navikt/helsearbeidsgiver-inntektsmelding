@@ -36,12 +36,6 @@ fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
                 logger.warn("Ugyldig parameter: $foresporselId")
                 call.respond(HttpStatusCode.BadRequest)
             }
-//            try { // TODO hvorfor funker ikke dette..?
-//                val f = UUID.fromString(foresporselId)
-//            } catch (iae: IllegalArgumentException) {
-//                logger.warn("Ugyldig parameter: ${foresporselId}")
-//                call.respond(HttpStatusCode.BadRequest)
-//            }
             logger.info("Henter data for uuid: $foresporselId")
             try {
                 authorize(

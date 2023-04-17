@@ -20,6 +20,8 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
+import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -42,10 +44,38 @@ internal class InnsendingIT : EndToEndTest() {
     val REQUEST = mockRequest()
     val JOURNALPOST_ID = "jp-789"
 
+    fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson {
+        return PdlHentFullPerson(
+            hentPerson = PdlHentFullPerson.PdlFullPersonliste(
+                navn = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlNavn(fornavn, mellomNavn, etternavn, PdlPersonNavnMetadata(""))),
+                foedsel = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlFoedsel(fødselsdato)),
+                doedsfall = emptyList(),
+                adressebeskyttelse = emptyList(),
+                statsborgerskap = emptyList(),
+                bostedsadresse = emptyList(),
+                kjoenn = emptyList()
+            ),
+            hentIdenter = PdlHentFullPerson.PdlIdentResponse(
+                emptyList()
+            ),
+            hentGeografiskTilknytning = PdlHentFullPerson.PdlGeografiskTilknytning(
+                PdlHentFullPerson.PdlGeografiskTilknytning.PdlGtType.KOMMUNE,
+                null,
+                null,
+                null
+            )
+        )
+    }
+
     fun setup() {
         forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
         forespoerselRepository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
         forespoerselRepository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
+
+        val pdlClient = this.pdlClient
+        coEvery {
+            pdlClient.fullPerson(any(), any())
+        } returns mockPerson("Ola", "", "Normann", LocalDate.now())
 
         // Mocking
         val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient

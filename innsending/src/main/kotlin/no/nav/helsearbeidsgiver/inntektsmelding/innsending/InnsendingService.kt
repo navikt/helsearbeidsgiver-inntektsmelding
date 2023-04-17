@@ -77,6 +77,16 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
                         )
                     ).toJson()
                 )
+                rapidsConnection.publish(
+                    JsonMessage.newMessage(
+                        mapOf(
+                            Key.EVENT_NAME.str to event.name,
+                            Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
+                            Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
+                            Key.UUID.str to uuid
+                        )
+                    ).toJson()
+                )
             }
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {

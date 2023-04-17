@@ -165,7 +165,7 @@ tasks {
 }
 
 fun getBuildableProjects(buildAll: Boolean = false): List<String> {
-    if (buildAll) return subprojects.map { it.name }
+    if (buildAll) return subprojects.map { it.name }.filter { it != "integrasjonstest" }
     val changedFiles = System.getenv("CHANGED_FILES")
         ?.takeIf(String::isNotBlank)
         ?.split(",")

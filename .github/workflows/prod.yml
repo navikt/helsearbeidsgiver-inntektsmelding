@@ -45,14 +45,16 @@ jobs:
 
       - name: Determine changes files
         run: |
+          LATEST_TAG=$(git tag --sort version:refname | tail -n 1)
+          LAST_RELEASE_SHA=$(git rev-parse --short $LATEST_TAG) 
           # Create a comma-separated list of changed files for use in build.gradle.kts
-          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r -m $GITHUB_SHA | tr '\r\n' ',' | sed -e 's/,$//' | tr -d '"')
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r -m $GITHUB_SHA..$LAST_RELEASE_SHA | tr '\r\n' ',' | sed -e 's/,$//' | tr -d '"')
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
 
       - name: Determine projects to deploy
         id: set_matrix
         run: |
-          MATRIX=$(./gradlew -q buildAllMatrix --console=plain)
+          MATRIX=$(./gradlew -q buildMatrix --console=plain)
           echo $MATRIX
           echo $(./gradlew -q deployMatrixProd --console=plain)
           DEPLOY_MATRIX=$(./gradlew -q deployMatrixProd --console=plain)

@@ -160,7 +160,7 @@ tasks {
     }
 
     create("deployMatrixProd") {
-        deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
+        deployMatrix(mapper, includeCluster = "prod-gcp")
     }
 }
 

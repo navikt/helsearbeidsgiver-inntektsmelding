@@ -5,4 +5,3 @@ database: inntektsmelding
 envFrom:
   - type: secret
     name: google-sql-im-db
-env:

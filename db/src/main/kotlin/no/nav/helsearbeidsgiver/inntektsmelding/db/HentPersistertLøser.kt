@@ -27,8 +27,8 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandAll(Key.BEHOV.str, BEHOV)
-            it.requireKey(Key.UUID.str, Key.INITIATE_ID.str)
             it.interestedIn(Key.EVENT_NAME.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
     }
 
@@ -38,14 +38,14 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
     }
 
     override fun onBehov(packet: JsonMessage) {
-        val uuid = packet[Key.UUID.str].asText()
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
+        val transactionId = packet[Key.UUID.str].asText()
         val event = packet[Key.EVENT_NAME.str].asText()
-        val transactionId = packet[Key.INITIATE_ID.str].asText()
-        logger.info("Løser behov $BEHOV med id $uuid")
+        logger.info("Løser behov $BEHOV med id $forespoerselId")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         var løsning = HentPersistertLøsning(error = Feilmelding("Klarte ikke hente persistert inntektsmelding"))
         try {
-            val dokument = repository.hentNyeste(uuid)
+            val dokument = repository.hentNyeste(forespoerselId)
             if (dokument == null) {
                 løsning = HentPersistertLøsning("")
             } else {
@@ -57,17 +57,16 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
         } catch (ex: Exception) {
             logger.info("Klarte ikke hente persistert inntektsmelding")
             sikkerlogg.error("Klarte ikke hente persistert inntektsmelding", ex)
-            publiserFeil(uuid, transactionId, event, løsning.error)
+            publiserFeil(transactionId, event, løsning.error)
         }
     }
 
-    private fun publiserFeil(uuid: String, transactionId: String, event: String, error: Feilmelding?) {
+    private fun publiserFeil(transactionId: String, event: String, error: Feilmelding?) {
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to event,
                 Key.FAIL.str to customObjectMapper().writeValueAsString(error),
-                Key.UUID.str to uuid,
-                Key.INITIATE_ID.str to transactionId
+                Key.UUID.str to transactionId
             )
         )
         sikkerlogg.info("sender feil: " + message.toJson())
@@ -81,9 +80,8 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
     }
 
     private fun publiserData(packet: JsonMessage, inntektsmeldingDokument: InntektsmeldingDokument?) {
-        val uuid = packet[Key.UUID.str].asText()
+        val transaksjonsId = packet[Key.UUID.str].asText()
         val event = packet[Key.EVENT_NAME.str].asText()
-        val transactionId = packet[Key.INITIATE_ID.str].asText()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to event,
@@ -95,8 +93,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
                         inntektsmeldingDokument
                     )
                 },
-                Key.UUID.str to uuid,
-                Key.INITIATE_ID.str to transactionId
+                Key.UUID.str to transaksjonsId
             )
         )
         sikkerlogg.info("Publiserer data" + packet.toJson())

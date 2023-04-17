@@ -36,15 +36,15 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
     private fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         when (transaction) {
             Transaction.NEW -> {
-                val uuid: String = message[Key.UUID.str].asText()
-                val transactionId: String = message[Key.INITIATE_ID.str].asText()
-                logger.info("Sender event: ${event.name} for forespørsel $uuid")
+                val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
+                val transactionId: String = message[Key.UUID.str].asText()
+                logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
                 val msg = JsonMessage.newMessage(
                     mapOf(
                         Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
                         Key.EVENT_NAME.str to event.name,
-                        Key.UUID.str to uuid,
-                        Key.INITIATE_ID.str to transactionId
+                        Key.UUID.str to transactionId,
+                        Key.FORESPOERSEL_ID.str to forespoerselId
                     )
                 ).toJson()
                 logger.info("Publiserer melding: $msg")
@@ -66,14 +66,14 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
         val transaksjonsId = message[Key.UUID.str].asText()
         val dok = message[Key.INNTEKTSMELDING_DOKUMENT.str].asText()
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
-        redisStore.set(transaksjonsId + EventName.KVITTERING_REQUESTED, dok)
+        redisStore.set(transaksjonsId, dok)
     }
 
     fun terminate(message: JsonMessage) {
-        val uuid = message[Key.UUID.str].asText()
+        val transaksjonsId = message[Key.UUID.str].asText()
         val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
-        logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $uuid")
-        redisStore.set(uuid + EventName.KVITTERING_REQUESTED.name, message[Key.FAIL.str].asText())
+        logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
+        redisStore.set(transaksjonsId, message[Key.FAIL.str].asText())
     }
 
     private fun startTransactionIfAbsent(message: JsonMessage): Transaction {

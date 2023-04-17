@@ -91,13 +91,19 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
             }
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
+                    val arbeidstakerRedis = redisStore.get(uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str)
                     rapidsConnection.publish(
                         JsonMessage.newMessage(
                             mapOf(
                                 Key.EVENT_NAME.str to event.name,
                                 Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
-                                DataFelter.VIRKSOMHET.str to (redisStore.get(uuid + DataFelter.VIRKSOMHET.str)?:"Ukjent virksomhet"),
-                                DataFelter.ARBEIDSTAKER_INFORMASJON.str to (redisStore.get(uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str)?: PersonDato("Ukjent navn",null)),
+                                DataFelter.VIRKSOMHET.str to (redisStore.get(uuid + DataFelter.VIRKSOMHET.str) ?: "Ukjent virksomhet"),
+                                DataFelter.ARBEIDSTAKER_INFORMASJON.str to (
+                                    if (arbeidstakerRedis != null) customObjectMapper().readValue(arbeidstakerRedis,PersonDato::class.java) else PersonDato(
+                                        "Ukjent navn",
+                                        null
+                                    )
+                                    ),
                                 Key.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(uuid + DataFelter.INNTEKTSMELDING_REQUEST.str)!!),
                                 Key.UUID.str to uuid
                             )
@@ -158,7 +164,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
     fun step1data(uuid: String): Array<String> = arrayOf(
         uuid + DataFelter.VIRKSOMHET.str,
         uuid + DataFelter.ARBEIDSFORHOLD.str,
-        uuid + DataFelter.ARBEIDSTAKER_INFORMASJON
+        uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str
     )
     fun allData(uuid: String) = step1data(uuid) + (uuid + DataFelter.INNTEKTSMELDING_DOKUMENT.str)
 

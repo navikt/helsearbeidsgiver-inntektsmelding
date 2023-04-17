@@ -58,13 +58,13 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         } catch (ex: FantIkkeVirksomhetException) {
             sikkerlogg.info("Fant ikke virksomhet for $orgnr")
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")), packet, context)
-            //@TODO bruk FAIL istedenfor DATA element her publishFail(Feilmelding("Ugyldig virksomhet $orgnr"), packet, context)
+            // @TODO bruk FAIL istedenfor DATA element her publishFail(Feilmelding("Ugyldig virksomhet $orgnr"), packet, context)
             publishDatagram("Ukjent virksomhet", packet, context)
         } catch (ex: Exception) {
             sikkerlogg.info("Det oppstod en feil ved henting for $orgnr")
             sikkerlogg.error(ex.stackTraceToString())
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")), packet, context)
-            //publishFail(Feilmelding("Klarte ikke hente virksomhet"), packet, context)
+            // publishFail(Feilmelding("Klarte ikke hente virksomhet"), packet, context)
             publishDatagram("Ukjent virksomhet", packet, context)
         }
     }

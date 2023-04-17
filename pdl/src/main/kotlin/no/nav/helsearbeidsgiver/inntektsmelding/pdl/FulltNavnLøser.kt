@@ -34,6 +34,7 @@ class FulltNavnLøser(
                 it.requireKey(Key.ID.str)
                 it.requireKey(Key.IDENTITETSNUMMER.str)
                 it.rejectKey(Key.LØSNING.str)
+                it.interestedIn(Key.UUID.str)
             }
         }.register(this)
     }
@@ -54,8 +55,8 @@ class FulltNavnLøser(
             logger.error("Klarte ikke hente navn for id $id")
             sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for id: $id", ex)
             publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet, context)
-            publishDatagram(PersonDato("Ukjent person",null), packet, context)
-        //publishFail(Feilmelding("Klarte ikke hente navn"), packet, context)
+            publishDatagram(PersonDato("Ukjent person", null), packet, context)
+            // publishFail(Feilmelding("Klarte ikke hente navn"), packet, context)
         }
     }
 
@@ -72,7 +73,7 @@ class FulltNavnLøser(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
                 Key.DATA.str to "",
                 Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
-                DataFelt.ARBEIDSTAKER_INFORMASJON.str to customObjectMapper().writeValueAsString(personInformasjon)
+                DataFelt.ARBEIDSTAKER_INFORMASJON.str to personInformasjon
             )
         )
         context.publish(message.toJson())

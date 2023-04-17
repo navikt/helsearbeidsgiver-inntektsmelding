@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -58,13 +57,12 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Innt
     private fun publiserOK(uuid: String, inntektsmeldingDokument: InntektsmeldingDokument) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
                 Key.DATA.str to "",
                 Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
                 Key.UUID.str to uuid
             )
         )
-        rapidsConnection.publish(packet.toJson())
+        publishData(packet)
     }
 
     fun publiserFail(fail: Feilmelding, jsonMessage: JsonMessage) {

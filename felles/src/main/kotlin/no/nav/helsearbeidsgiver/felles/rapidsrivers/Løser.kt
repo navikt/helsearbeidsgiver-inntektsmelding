@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
     lateinit var eventName: EventName
-    lateinit var forespoerselId : String
+    lateinit var forespoerselId: String
 
     init {
         configure(

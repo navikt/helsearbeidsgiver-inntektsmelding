@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.fjernLedendeSlash
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 
@@ -31,7 +32,7 @@ fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
 
     route.route(Routes.KVITTERING) {
         get {
-            val foresporselId = call.parameters["uuid"].orEmpty()
+            val foresporselId = fjernLedendeSlash(call.parameters["uuid"].orEmpty())
             if (foresporselId.isEmpty() || foresporselId.length != 36) {
                 logger.warn("Ugyldig parameter: $foresporselId")
                 call.respond(HttpStatusCode.BadRequest)

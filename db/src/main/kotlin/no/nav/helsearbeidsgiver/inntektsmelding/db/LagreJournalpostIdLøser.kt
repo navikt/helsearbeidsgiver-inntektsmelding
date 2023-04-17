@@ -46,7 +46,7 @@ class LagreJournalpostIdLøser(
                 repository.oppdaterJournapostId(journalpostId, forespoerselId)
                 logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for forespoerselId $forespoerselId")
                 val inntektsmeldingDokument = repository.hentNyeste(forespoerselId)
-                publiser(transaksjonsId, journalpostId, inntektsmeldingDokument!!)
+                publiser(transaksjonsId, forespoerselId, journalpostId, inntektsmeldingDokument!!)
             } catch (ex: Exception) {
                 publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonsId"), packet)
                 logger.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for transaksjonsId $transaksjonsId")
@@ -57,13 +57,14 @@ class LagreJournalpostIdLøser(
 
     fun publiser(
         uuid: String,
+        forespoerselId: String,
         journalpostId: String,
         inntektsmeldingDokument: InntektsmeldingDokument
     ) {
-        val oppgaveId = forespoerselRepository.hentOppgaveId(uuid)
-        logger.info("Fant oppgaveId $oppgaveId for forespørselId $uuid")
-        val sakId = forespoerselRepository.hentSakId(uuid)
-        logger.info("Fant sakId $sakId for forespørselId $uuid")
+        val oppgaveId = forespoerselRepository.hentOppgaveId(forespoerselId)
+        logger.info("Fant oppgaveId $oppgaveId for forespørselId $forespoerselId")
+        val sakId = forespoerselRepository.hentSakId(forespoerselId)
+        logger.info("Fant sakId $sakId for forespørselId $forespoerselId")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,

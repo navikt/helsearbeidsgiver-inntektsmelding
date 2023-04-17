@@ -129,7 +129,8 @@ internal class InnsendingIT : EndToEndTest() {
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.UUID.str to FORESPØRSEL_ID,
+                Key.UUID.str to UUID.randomUUID().toString(),
+                Key.FORESPOERSEL_ID.str to FORESPØRSEL_ID,
                 Key.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to REQUEST.identitetsnummer,
                 Key.INNTEKTSMELDING.str to REQUEST
@@ -141,13 +142,13 @@ internal class InnsendingIT : EndToEndTest() {
 
         with(filter(EventName.INSENDING_STARTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
             // Ble lagret i databasen
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
+            assertEquals(FORESPØRSEL_ID, get(Key.FORESPOERSEL_ID.str).asText())
             assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         }
 
         with(filter(EventName.INNTEKTSMELDING_MOTTATT, BehovType.JOURNALFOER, løsning = true).first()) {
             // Journalført i dokarkiv
-            assertEquals(FORESPØRSEL_ID, get(Key.UUID.str).asText())
+            assertEquals(FORESPØRSEL_ID, get(Key.FORESPOERSEL_ID.str).asText())
         }
 
         with(filter(EventName.INNTEKTSMELDING_MOTTATT, null, løsning = false).first()) {

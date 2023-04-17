@@ -7,6 +7,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
@@ -95,6 +96,8 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
                             mapOf(
                                 Key.EVENT_NAME.str to event.name,
                                 Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
+                                DataFelter.VIRKSOMHET.str to (redisStore.get(uuid + DataFelter.VIRKSOMHET.str)?:"Ukjent virksomhet"),
+                                DataFelter.ARBEIDSTAKER_INFORMASJON.str to (redisStore.get(uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str)?: PersonDato("Ukjent navn",null)),
                                 Key.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(uuid + DataFelter.INNTEKTSMELDING_REQUEST.str)!!),
                                 Key.UUID.str to uuid
                             )
@@ -110,7 +113,8 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
     }
 
     fun finalize(message: JsonMessage) {
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
+        val uuid: String = message[Key.UUID.str].asText()
+        redisStore.set(uuid, message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(
@@ -151,7 +155,11 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         }
     }
 
-    fun step1data(uuid: String): Array<String> = arrayOf(uuid + DataFelter.VIRKSOMHET.str, uuid + DataFelter.ARBEIDSFORHOLD.str)
+    fun step1data(uuid: String): Array<String> = arrayOf(
+        uuid + DataFelter.VIRKSOMHET.str,
+        uuid + DataFelter.ARBEIDSFORHOLD.str,
+        uuid + DataFelter.ARBEIDSTAKER_INFORMASJON
+    )
     fun allData(uuid: String) = step1data(uuid) + (uuid + DataFelter.INNTEKTSMELDING_DOKUMENT.str)
 
     fun isDataCollected(vararg keys: String): Boolean = redisStore.exist(*keys) == keys.size.toLong()

@@ -7,9 +7,9 @@ import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.ResultatMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
 import org.valiktor.ConstraintViolation
@@ -32,10 +32,12 @@ class InnsendingMapper(val uuid: String, resultat: Resultat) : ResultatMapper<In
     }
 }
 
-fun mapInnsending(inntektsmeldingDokument: InntektsmeldingDokument): InnsendingRequest {
-    return InnsendingRequest(
+fun mapInnsending(inntektsmeldingDokument: InntektsmeldingDokument): KvitteringResponse {
+    return KvitteringResponse(
         orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
         identitetsnummer = inntektsmeldingDokument.identitetsnummer,
+        fulltNavn = inntektsmeldingDokument.fulltNavn,
+        virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
         behandlingsdager = inntektsmeldingDokument.behandlingsdager,
         egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
         arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
@@ -47,6 +49,7 @@ fun mapInnsending(inntektsmeldingDokument: InntektsmeldingDokument): InnsendingR
         refusjon = inntektsmeldingDokument.refusjon,
         naturalytelser = inntektsmeldingDokument.naturalytelser,
         årsakInnsending = inntektsmeldingDokument.årsakInnsending,
-        bekreftOpplysninger = true
+        bekreftOpplysninger = true,
+        tidspunkt = inntektsmeldingDokument.tidspunkt
     )
 }

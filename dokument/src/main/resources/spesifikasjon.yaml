@@ -10,6 +10,71 @@ info:
 paths: {}
 components:
   schemas:
+    KvitteringResponse:
+      type: object
+      required:
+        - orgnrUnderenhet
+        - identitetsnummer
+        - fulltNavn
+        - virksomhetNavn
+        - behandlingsdager
+        - egenmeldingsperioder
+        - arbeidsgiverperioder
+        - bestemmendeFraværsdag
+        - fraværsperioder
+        - inntekt
+        - fullLønnIArbeidsgiverPerioden
+        - refusjon
+        - årsakInnsending
+        - bekreftOpplysninger
+        - tidspunkt
+      properties:
+        orgnrUnderenhet:
+          type: string
+        identitetsnummer:
+          type: string
+        fulltNavn:
+          type: string
+        virksomhetNavn:
+          type: string
+        behandlingsdager:
+          type: array
+          items:
+            type: string
+            format: date
+        egenmeldingsperioder:
+          type: array
+          items:
+            $ref: '#/components/schemas/Periode'
+        arbeidsgiverperioder:
+          type: array
+          items:
+            $ref: '#/components/schemas/Periode'
+        bestemmendeFraværsdag:
+          type: string
+          format: date
+        fraværsperioder:
+          type: array
+          items:
+            $ref: '#/components/schemas/Periode'
+        inntekt:
+          $ref: '#/components/schemas/Inntekt'
+        fullLønnIArbeidsgiverPerioden:
+          $ref: '#/components/schemas/FullLonnIArbeidsgiverPerioden'
+        refusjon:
+          $ref: '#/components/schemas/Refusjon'
+        naturalytelser:
+          type: array
+          items:
+            $ref: '#/components/schemas/Naturalytelse'
+        årsakInnsending:
+          $ref: '#/components/schemas/ÅrsakInnsending'
+        bekreftOpplysninger:
+          type: boolean
+        tidspunkt:
+          type: string
+          format: date-time
+          pattern: yyyy-MM-dd'T'HH:mm:ss.SSSxx
     InnsendingRequest:
       type: object
       required:

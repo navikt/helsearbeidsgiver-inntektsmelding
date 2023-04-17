@@ -110,7 +110,7 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Test and build
-        run: ./gradlew ${{ matrix.project }}::test --tests '*Test' ${{ matrix.project }}::build
+        run: ./gradlew ${{ matrix.project }}::test ${{ matrix.project }}::build
 
       - name: Publish artefacts
         run: ./gradlew ${{ matrix.project }}::publish

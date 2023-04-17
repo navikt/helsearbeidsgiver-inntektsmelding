@@ -38,9 +38,9 @@ fun RouteExtra.InnsendingRoute(cache: LocalCache<Tilgang>) {
                     cache = cache
                 )
                 request.validate()
-                producer.publish(forespørselId, request)
-                logger.info("Publiserte til Rapid med forespørselId: $forespørselId")
-                val resultat = redis.getResultat(forespørselId, 10, 500)
+                val transaksjonsID = producer.publish(forespørselId, request)
+                logger.info("Publiserte til Rapid med forespørselId: $forespørselId og transaksjonsID=$transaksjonsID")
+                val resultat = redis.getResultat(transaksjonsID, 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
                 val mapper = InnsendingMapper(forespørselId, resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())

@@ -28,12 +28,14 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Innt
             it.interestedIn(Key.INNTEKTSMELDING.str)
             it.interestedIn(DataFelt.VIRKSOMHET.str)
             it.interestedIn(DataFelt.ARBEIDSTAKER_INFORMASJON.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
     }
 
     override fun onBehov(packet: JsonMessage) {
+        val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov $PERSISTER_IM med id $uuid")
+        logger.info("Løser behov $PERSISTER_IM med id $forespørselId")
         sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
         try {
             val arbeidsgiver = packet[DataFelt.VIRKSOMHET.str].asText()
@@ -43,14 +45,14 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Innt
             sikkerlogg.info("Fant fulltNavn: $fulltNavn")
             val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(packet[Key.INNTEKTSMELDING.str], InnsendingRequest::class.java)
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
-            repository.lagreInntektsmeldng(uuid, inntektsmeldingDokument)
-            sikkerlogg.info("Lagret InntektsmeldingDokument for uuid: $uuid")
+            repository.lagreInntektsmeldng(forespørselId, inntektsmeldingDokument)
+            sikkerlogg.info("Lagret InntektsmeldingDokument for forespoerselId: $forespørselId")
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
             publiserOK(uuid, inntektsmeldingDokument)
         } catch (ex: Exception) {
-            logger.error("Klarte ikke persistere: $uuid")
-            sikkerlogg.error("Klarte ikke persistere: $uuid", ex)
-            publiserFail(Feilmelding("Klarte ikke persistere: $uuid"), packet)
+            logger.error("Klarte ikke persistere: $forespørselId")
+            sikkerlogg.error("Klarte ikke persistere: $forespørselId", ex)
+            publiserFail(Feilmelding("Klarte ikke persistere: $forespørselId"), packet)
         }
     }
 

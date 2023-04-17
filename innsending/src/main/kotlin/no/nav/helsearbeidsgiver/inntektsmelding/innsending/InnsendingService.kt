@@ -31,6 +31,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
                 it.interestedIn(Key.INNTEKTSMELDING.str)
                 it.requireKey(Key.ORGNRUNDERENHET.str)
                 it.requireKey(Key.IDENTITETSNUMMER.str)
+                it.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }
 
@@ -116,6 +117,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
                                     }
                                     ),
                                 Key.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(uuid + DataFelter.INNTEKTSMELDING_REQUEST.str)!!),
+                                Key.FORESPOERSEL_ID.str to redisStore.get(uuid + Key.FORESPOERSEL_ID.str)!!,
                                 Key.UUID.str to uuid
                             )
                         ).toJson()
@@ -155,7 +157,9 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
             redisStore.set(eventKey, uuid)
             val uuid = redisStore.get(eventKey)
             val requestKey = "${uuid}${DataFelter.INNTEKTSMELDING_REQUEST.str}"
+            val forespoerselKey = "${uuid}${Key.FORESPOERSEL_ID.str}"
             redisStore.set(requestKey, message[DataFelter.INNTEKTSMELDING_REQUEST.str].toString())
+            redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].toString())
             return Transaction.NEW
         } else {
             if (isDataCollected(*allData(uuid))) return Transaction.FINALIZE

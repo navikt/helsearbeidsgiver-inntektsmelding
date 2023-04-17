@@ -19,8 +19,8 @@ class KvitteringProducer(
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                Key.UUID.str to foresporselId,
-                Key.INITIATE_ID.str to transaksjonsId
+                Key.UUID.str to transaksjonsId,
+                Key.FORESPOERSEL_ID.str to foresporselId
             )
         )
         rapid.publish(packet.toJson())

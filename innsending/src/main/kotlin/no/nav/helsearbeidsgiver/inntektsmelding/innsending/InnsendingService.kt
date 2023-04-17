@@ -40,6 +40,9 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val uuid = packet[Key.UUID.str]
+        sikkerlogg.info("InnsendingSerice: fikk melding $packet")
+        logger.info("InnsendingService $uuid")
         val transaction: Transaction = startStransactionIfAbsent(packet)
 
         when (transaction) {
@@ -58,6 +61,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         val uuid: String = message[Key.UUID.str].asText()
         when (transaction) {
             Transaction.NEW -> {
+                logger.info("InnsendingService: emitiing behov Virksomhet")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -68,6 +72,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
                         )
                     ).toJson()
                 )
+                logger.info("InnsendingService: emitiing behov ARBEIDSFORHOLD")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -78,6 +83,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
                         )
                     ).toJson()
                 )
+                logger.info("InnsendingService: emitiing behov FULLT_NAVN")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -92,6 +98,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
                     val arbeidstakerRedis = redisStore.get(uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str)
+                    logger.info("InnsendingService: emitiing behov PERSISTER_IM")
                     rapidsConnection.publish(
                         JsonMessage.newMessage(
                             mapOf(
@@ -125,6 +132,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
     fun finalize(message: JsonMessage) {
         val uuid: String = message[Key.UUID.str].asText()
         redisStore.set(uuid, message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
+        logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(

@@ -16,7 +16,8 @@ enum class DataFelter(val str: String) {
     VIRKSOMHET("virksomhet"),
     ARBEIDSFORHOLD("arbeidsforhold"),
     INNTEKTSMELDING_REQUEST(Key.INNTEKTSMELDING.str),
-    INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str);
+    INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str),
+    INITIATE_ID(Key.INITIATE_ID.str);
 }
 
 class ImperativeInnsendingProsessor(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {

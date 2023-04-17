@@ -51,15 +51,15 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         try {
             val navn = hentVirksomhet(orgnr)
-            sikkerlogg.info("Fant $navn for $orgnr")
+            logger.info("Fant $navn for $orgnr")
             publiserLøsning(VirksomhetLøsning(navn), packet, context)
             publishDatagram(navn, packet, context)
         } catch (ex: FantIkkeVirksomhetException) {
-            sikkerlogg.info("Fant ikke virksomhet for $orgnr")
+            logger.error("Fant ikke virksomhet for $orgnr")
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")), packet, context)
         } catch (ex: Exception) {
-            sikkerlogg.info("Det oppstod en feil ved henting for $orgnr")
-            sikkerlogg.error(ex.stackTraceToString())
+            logger.error("Det oppstod en feil ved henting for $orgnr")
+            sikkerlogg.error("Det oppstod en feil ved henting for orgnr $orgnr: ", ex)
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")), packet, context)
         }
     }

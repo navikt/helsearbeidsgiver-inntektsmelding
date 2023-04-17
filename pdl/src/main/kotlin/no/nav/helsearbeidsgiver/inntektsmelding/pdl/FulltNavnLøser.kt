@@ -58,7 +58,7 @@ class FulltNavnLøser(
         packet.setLøsning(BEHOV, løsning)
         val json = packet.toJson()
         context.publish(json)
-        logger.info("FulltNavnLøser: publiserte: $json")
+        sikkerlogg.info("FulltNavnLøser: publiserte: $json")
     }
 
     suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {

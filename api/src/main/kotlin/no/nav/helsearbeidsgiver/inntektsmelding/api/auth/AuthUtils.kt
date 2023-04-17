@@ -22,7 +22,7 @@ fun PipelineContext<Unit, ApplicationCall>.authorize(
     val innloggerFnr = hentIdentitetsnummerFraLoginToken(application.environment.config, call.request)
     runBlocking {
         val tilgang = cache.get("$innloggerFnr:$forespørselId") {
-            logger.info("Fant ikke forespøresel i cache ber om tilgangskontroll for $forespørselId")
+            logger.info("Fant ikke forespørsel i cache, ber om tilgangskontroll for $forespørselId")
             val tilgangId = tilgangProducer.publish(innloggerFnr, forespørselId)
             val resultatTilgang = redisPoller.getResultat(tilgangId.toString(), 10, 500)
             resultatTilgang.TILGANGSKONTROLL?.value ?: throw ManglerAltinnRettigheterException()
@@ -39,7 +39,7 @@ fun hentIdentitetsnummerFraLoginToken(config: ApplicationConfig, request: Applic
 private fun getTokenString(config: ApplicationConfig, request: ApplicationRequest): String {
     return request.headers["Authorization"]?.replaceFirst("Bearer ", "")
         ?: request.cookies[config.configList("no.nav.security.jwt.issuers")[0].property("cookie_name").getString()]
-        ?: throw IllegalAccessException("Du må angi et identitetstoken som i cookie eller i Authorization-headeren")
+        ?: throw IllegalAccessException("Mangler identitetstoken")
 }
 
 class ManglerAltinnRettigheterException : Exception()

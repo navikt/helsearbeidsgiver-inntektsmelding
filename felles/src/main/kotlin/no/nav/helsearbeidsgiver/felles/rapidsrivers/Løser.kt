@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
     lateinit var eventName: EventName
+    lateinit var forespoerselId : String
 
     init {
         configure(
@@ -26,15 +27,22 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
             it.demandKey(Key.BEHOV.str)
             it.rejectKey(Key.LØSNING.str)
             it.interestedIn(Key.UUID.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
     }
 
     fun publishBehov(message: JsonMessage) {
         message.set(Key.EVENT_NAME.str, eventName.name)
+        if (forespoerselId.isNotEmpty()) {
+            message.set(Key.FORESPOERSEL_ID.str, forespoerselId)
+        }
         rapidsConnection.publish(message.toJson())
     }
 
     fun publishEvent(message: JsonMessage) {
+        if (forespoerselId.isNotEmpty()) {
+            message.set(Key.FORESPOERSEL_ID.str, forespoerselId)
+        }
         rapidsConnection.publish(message.toJson())
     }
 
@@ -50,6 +58,7 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         eventName = EventName.valueOf(packet.get(Key.EVENT_NAME.str).asText())
+        forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         onBehov(packet)
     }
 

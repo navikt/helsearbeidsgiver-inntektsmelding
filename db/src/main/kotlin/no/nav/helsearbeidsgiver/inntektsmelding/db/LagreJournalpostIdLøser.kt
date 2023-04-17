@@ -32,24 +32,25 @@ class LagreJournalpostIdLøser(
     }
 
     override fun onBehov(packet: JsonMessage) {
-        val uuid = packet[Key.UUID.str].asText()
-        logger.info("LagreJournalpostIdLøser behov ${BehovType.LAGRE_JOURNALPOST_ID.name} med id $uuid")
+        val transaksjonsId = packet[Key.UUID.str].asText()
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
+        logger.info("LagreJournalpostIdLøser behov ${BehovType.LAGRE_JOURNALPOST_ID.name} med transaksjonsId $transaksjonsId")
         sikkerlogg.info("LagreJournalpostIdLøser fikk pakke: ${packet.toJson()}")
         val journalpostId = packet[Key.JOURNALPOST_ID.str].asText()
         if (journalpostId.isNullOrBlank()) {
-            logger.error("LagreJournalpostIdLøser fant ingen journalpostId for $uuid")
-            sikkerlogg.error("LagreJournalpostIdLøser fant ingen journalpostId for $uuid")
-            publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for $uuid. Tom journalpostID!!"), packet)
+            logger.error("LagreJournalpostIdLøser fant ingen journalpostId for transaksjonsId $transaksjonsId")
+            sikkerlogg.error("LagreJournalpostIdLøser fant ingen journalpostId for transaksjonsId $transaksjonsId")
+            publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonsId. Tom journalpostID!!"), packet)
         } else {
             try {
-                repository.oppdaterJournapostId(journalpostId, uuid)
-                logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for $uuid")
-                val inntektsmeldingDokument = repository.hentNyeste(uuid)
-                publiser(uuid, journalpostId, inntektsmeldingDokument!!)
+                repository.oppdaterJournapostId(journalpostId, forespoerselId)
+                logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for forespoerselId $forespoerselId")
+                val inntektsmeldingDokument = repository.hentNyeste(forespoerselId)
+                publiser(transaksjonsId, journalpostId, inntektsmeldingDokument!!)
             } catch (ex: Exception) {
-                publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for $uuid"), packet)
-                logger.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for $uuid")
-                sikkerlogg.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for $uuid", ex)
+                publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonsId"), packet)
+                logger.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for transaksjonsId $transaksjonsId")
+                sikkerlogg.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for transaksjonsId $transaksjonsId", ex)
             }
         }
     }

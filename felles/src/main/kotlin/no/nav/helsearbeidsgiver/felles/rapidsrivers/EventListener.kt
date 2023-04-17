@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 abstract class EventListener(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
     abstract val event: EventName
+    lateinit var forespørselId: String
     lateinit var ex: (packet: JsonMessage, context: MessageContext) -> Unit
 
     init {
@@ -29,15 +30,20 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             it.rejectKey(Key.LØSNING.str)
             it.rejectKey(Key.DATA.str)
             it.interestedIn(Key.UUID.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
     }
 
     fun publishBehov(message: JsonMessage) {
         message.set(Key.EVENT_NAME.str, event.name)
+        if (forespørselId.isNotEmpty()) {
+            message.set(Key.FORESPOERSEL_ID.str, forespørselId)
+        }
         rapidsConnection.publish(message.toJson())
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         onEvent(packet)
     }
 

@@ -20,12 +20,13 @@ class InnsendingServiceIT : EndToEndTest() {
 
     @Test
     fun `Test at innsnending er mottatt`() {
-        val uuid = UUID.randomUUID().toString()
-        forespoerselRepository.lagreForespørsel(uuid, TestData.validOrgNr)
+        val forespoerselId = UUID.randomUUID().toString()
+        val transaksjonsId = UUID.randomUUID().toString()
+        forespoerselRepository.lagreForespørsel(forespoerselId, TestData.validOrgNr)
         this.filterMessages = {
             val eventName = it.get(Key.EVENT_NAME.str).asText()
             val msgUuid = it.get(Key.UUID.str).asText()
-            msgUuid == uuid && (
+            msgUuid == transaksjonsId && (
                 eventName == EventName.INSENDING_STARTED.name ||
                     (eventName == EventName.INNTEKTSMELDING_MOTTATT.name && !it.has(Key.BEHOV.str))
                 ) && !it.has(
@@ -60,10 +61,11 @@ class InnsendingServiceIT : EndToEndTest() {
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                Key.UUID.str to uuid,
+                Key.UUID.str to transaksjonsId,
                 Key.INNTEKTSMELDING.str to GYLDIG,
                 Key.ORGNRUNDERENHET.str to TestData.validOrgNr,
-                Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer
+                Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer,
+                Key.FORESPOERSEL_ID.str to forespoerselId
             )
         )
         Thread.sleep(10000)

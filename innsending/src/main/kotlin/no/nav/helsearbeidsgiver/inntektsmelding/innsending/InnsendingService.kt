@@ -161,7 +161,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
             val requestKey = "${uuid}${DataFelter.INNTEKTSMELDING_REQUEST.str}"
             val forespoerselKey = "${uuid}${Key.FORESPOERSEL_ID.str}"
             redisStore.set(requestKey, message[DataFelter.INNTEKTSMELDING_REQUEST.str].toString())
-            redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].toString())
+            redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].asText())
             return Transaction.NEW
         } else {
             if (isDataCollected(*allData(uuid))) return Transaction.FINALIZE

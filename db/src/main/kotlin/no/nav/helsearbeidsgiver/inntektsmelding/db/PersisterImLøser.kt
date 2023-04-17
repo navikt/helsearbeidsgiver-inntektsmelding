@@ -58,7 +58,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Innt
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.DATA.str to "",
-                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
                 Key.UUID.str to uuid
             )
         )

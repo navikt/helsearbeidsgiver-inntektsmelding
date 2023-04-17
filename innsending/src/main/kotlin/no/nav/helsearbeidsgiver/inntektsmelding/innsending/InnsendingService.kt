@@ -99,10 +99,14 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
                                 Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
                                 DataFelter.VIRKSOMHET.str to (redisStore.get(uuid + DataFelter.VIRKSOMHET.str) ?: "Ukjent virksomhet"),
                                 DataFelter.ARBEIDSTAKER_INFORMASJON.str to (
-                                    if (arbeidstakerRedis != null) customObjectMapper().readValue(arbeidstakerRedis,PersonDato::class.java) else PersonDato(
-                                        "Ukjent navn",
-                                        null
-                                    )
+                                    if (arbeidstakerRedis != null) {
+                                        customObjectMapper().readValue(arbeidstakerRedis, PersonDato::class.java)
+                                    } else {
+                                        PersonDato(
+                                            "Ukjent navn",
+                                            null
+                                        )
+                                    }
                                     ),
                                 Key.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(uuid + DataFelter.INNTEKTSMELDING_REQUEST.str)!!),
                                 Key.UUID.str to uuid

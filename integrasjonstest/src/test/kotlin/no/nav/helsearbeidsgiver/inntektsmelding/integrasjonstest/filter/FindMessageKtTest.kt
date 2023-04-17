@@ -30,16 +30,16 @@ internal class FindMessageKtTest : AbstractFilterBase() {
 
     @Test
     fun `skal finne message for løsning`() {
-        assertEquals(1, findMessage(LISTE_MED_LØSNING, EVENT, BehovType.TILGANGSKONTROLL, true).size)
+        assertEquals(1, findMessage(LISTE_MED_LØSNING, EVENT, BehovType.TILGANGSKONTROLL, løsning = true).size)
     }
 
     @Test
     fun `skal ikke finne message for løsning`() {
-        assertEquals(1, findMessage(LISTE_MED_LØSNING, EVENT, BehovType.TILGANGSKONTROLL, false).size)
+        assertEquals(1, findMessage(LISTE_MED_LØSNING, EVENT, BehovType.TILGANGSKONTROLL, løsning = false).size)
     }
 
     @Test
     fun `skal ikke finne message når løsning kreves`() {
-        assertEquals(0, findMessage(LISTE_UTEN_LØSNING, EVENT, BehovType.TILGANGSKONTROLL, true).size)
+        assertEquals(0, findMessage(LISTE_UTEN_LØSNING, EVENT, BehovType.TILGANGSKONTROLL, løsning = true).size)
     }
 }

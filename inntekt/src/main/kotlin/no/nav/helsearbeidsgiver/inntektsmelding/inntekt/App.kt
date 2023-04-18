@@ -6,36 +6,35 @@ import io.ktor.serialization.kotlinx.json.json
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.json.jsonIgnoreUnknown
+import no.nav.helsearbeidsgiver.felles.log.loggerSikker
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-inntekt")
+val sikkerlogger = loggerSikker()
 
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createInntekt(buildInntektKlient(setUpEnvironment()))
+        .createInntekt(buildInntektKlient())
         .start()
 }
 
-fun RapidsConnection.createInntekt(inntektKlient: InntektKlient): RapidsConnection {
-    sikkerlogg.info("Starter InntektLøser...")
-    InntektLøser(this, inntektKlient)
-    return this
-}
+fun RapidsConnection.createInntekt(inntektKlient: InntektKlient): RapidsConnection =
+    also {
+        sikkerlogger.info("Starter InntektLøser...")
+        InntektLøser(this, inntektKlient)
+    }
 
-fun buildInntektKlient(environment: Environment): InntektKlient {
-    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return InntektKlient(environment.inntektUrl, tokenProvider, buildClient())
-}
+fun buildInntektKlient(): InntektKlient =
+    InntektKlient(
+        baseUrl = Env.inntektUrl,
+        stsClient = OAuth2ClientConfig(Env.azureOAuthEnvironment),
+        httpClient = buildClient()
+    )
 
-fun buildClient(): HttpClient {
-    return HttpClient {
+fun buildClient(): HttpClient =
+    HttpClient {
         install(ContentNegotiation) {
             json(jsonIgnoreUnknown)
         }
     }
-}

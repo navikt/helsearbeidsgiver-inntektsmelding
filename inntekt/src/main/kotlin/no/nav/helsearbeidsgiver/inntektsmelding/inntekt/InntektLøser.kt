@@ -50,7 +50,7 @@ fun finnSkjæringstidspunkt(sykmeldinger: List<Periode>): LocalDate =
     } else {
         sykmeldinger.sortedBy { it.fom }
             .reduce { p1, p2 ->
-                p1.slåSammenOrNull(p2)
+                p1.slåSammenIgnorerHelgOrNull(p2)
                     ?: p2
             }
     }
@@ -74,13 +74,13 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
 
     private fun hentInntekt(fnr: String, periode: Periode, callId: String): InntektskomponentResponse =
         runBlocking {
-            sikkerlogg.info("Henter inntekt for $fnr i perioden ${periode.fom} til ${periode.tom} (callId: $callId)")
+            sikkerlogger.info("Henter inntekt for $fnr i perioden ${periode.fom} til ${periode.tom} (callId: $callId)")
             inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", periode.fom, periode.tom, "8-28", "Sykepenger")
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Mottar pakke")
-        sikkerlogg.info("Mottar pakke: ${packet.toJson()}")
+        sikkerlogger.info("Mottar pakke: ${packet.toJson()}")
         val uuid = packet[Key.ID.str].asText()
         logger.info("Løser behov $INNTEKT med id $uuid")
         val imLøsning = hentSpleisDataFraSession(packet)
@@ -100,15 +100,15 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
         }
         try {
             val inntektPeriode = finnInntektPeriode(sykPeriode)
-            sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${inntektPeriode.fom} - ${inntektPeriode.tom}")
+            sikkerlogger.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${inntektPeriode.fom} - ${inntektPeriode.tom}")
             val inntektResponse = hentInntekt(fnr, inntektPeriode, "helsearbeidsgiver-im-inntekt-$uuid")
-            sikkerlogg.info("Fant inntektResponse: $inntektResponse")
+            sikkerlogger.info("Fant inntektResponse: $inntektResponse")
             val inntekt = mapInntekt(inntektResponse, orgnr)
             packet.setLøsning(INNTEKT, InntektLøsning(inntekt))
             context.publish(packet.toJson())
-            sikkerlogg.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
+            sikkerlogger.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
         } catch (ex: Exception) {
-            sikkerlogg.error("Feil ved henting av inntekt for $fnr!", ex)
+            sikkerlogger.error("Feil ved henting av inntekt for $fnr!", ex)
             packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
             context.publish(packet.toJson())
         }

@@ -1,6 +1,5 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.utils.keysToMap
 
 plugins {
     kotlin("jvm")

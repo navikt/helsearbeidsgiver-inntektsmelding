@@ -55,7 +55,6 @@ jobs:
         run: |
           MATRIX=$(./gradlew -q buildMatrix --console=plain)
           echo $MATRIX
-          echo $(./gradlew -q deployMatrixDev --console=plain)
           DEPLOY_MATRIX=$(./gradlew -q deployMatrixDev --console=plain)
           echo $DEPLOY_MATRIX
           MATRIX_SIZE=$(echo $MATRIX | jq '.project|length')

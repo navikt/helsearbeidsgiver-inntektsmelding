@@ -2,8 +2,13 @@
 
 package no.nav.helsearbeidsgiver.felles
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.Serializable
+import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.serializers.JsonAsStringSerializer
+import java.util.UUID
 
 sealed class Løsning {
     abstract val value: Any?
@@ -13,6 +18,31 @@ sealed class Løsning {
 data class Data<T>(
     val t: T? = null
 )
+
+data class Feil(
+    @JsonIgnore
+    val eventName: EventName,
+    val behov: BehovType?,
+    val feilmelding: String,
+    val data: HashMap<DataFelt, Any>?,
+    val uuid: String?,
+    val forespørselId: String?
+)
+
+fun Feil.toJsonMessage(): JsonMessage =
+    JsonMessage.newMessage(
+        mapOf(
+            Key.EVENT_NAME.str to this.eventName,
+            Key.FAIL.str to customObjectMapper().writeValueAsString(this),
+            Key.UUID.str to (this.uuid ?: "")
+        )
+    )
+
+fun JsonMessage.createFail(feilmelding: String, data: HashMap<DataFelt, Any>? = null, forespørselId: String? = null): Feil {
+    val behovNode: JsonNode? = this.valueNullable(Key.BEHOV)
+    val behov: BehovType? = if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null
+    return Feil(EventName.valueOf(this.get(Key.EVENT_NAME.str).asText()), behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId)
+}
 
 @Serializable
 data class Feilmelding(

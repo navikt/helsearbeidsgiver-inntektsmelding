@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -10,11 +11,16 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Feil
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.toJsonMessage
+import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -55,8 +61,7 @@ class FulltNavnLøser(
             logger.error("Klarte ikke hente navn for id $id")
             sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for id: $id", ex)
             publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet, context)
-            publishDatagram(PersonDato("Ukjent person", null), packet, context)
-            // publishFail(Feilmelding("Klarte ikke hente navn"), packet, context)
+            publishFail(packet.createFail("Ukjent person"), context)
         }
     }
 
@@ -77,6 +82,10 @@ class FulltNavnLøser(
             )
         )
         context.publish(message.toJson())
+    }
+
+    fun publishFail(feil: Feil, context: MessageContext) {
+        context.publish(feil.toJsonMessage().toJson())
     }
 
     fun publishFail(fail: Feilmelding, jsonMessage: JsonMessage, context: MessageContext) {

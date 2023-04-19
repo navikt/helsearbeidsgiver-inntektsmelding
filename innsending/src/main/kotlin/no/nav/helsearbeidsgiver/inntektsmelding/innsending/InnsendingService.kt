@@ -5,12 +5,10 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
@@ -42,6 +40,22 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         }
     }
 
+    fun onError(message: JsonMessage): Transaction {
+        val uuid = message.get(Key.UUID.str).asText()
+        val behovString = message.get(Key.FAIL.str).get(Key.BEHOV.str).asText()
+        val behov = BehovType.valueOf(behovString)
+        if (behov == BehovType.VIRKSOMHET) {
+            val virksomhetKey = "$uuid${DataFelter.VIRKSOMHET}"
+            redisStore.set(virksomhetKey, "Ukjent virksomhet")
+            return Transaction.IN_PROGRESS
+        } else if (behov == BehovType.FULLT_NAVN) {
+            val fulltNavnKey = "$uuid${DataFelter.ARBEIDSTAKER_INFORMASJON}"
+            redisStore.set(fulltNavnKey, customObjectMapper().writeValueAsString(PersonDato("Ukjent person", null)))
+            return Transaction.IN_PROGRESS
+        }
+        return Transaction.TERMINATE
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str]
         sikkerlogg.info("InnsendingSerice: fikk melding $packet")
@@ -51,7 +65,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
 
         when (transaction) {
             Transaction.NEW -> {
-                setInitialTransactionState(packet)
+                setBrukerTransactionState(packet)
                 dispatchBehov(packet, transaction)
             }
             Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
@@ -153,22 +167,6 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         )
     }
 
-    fun onError(message: JsonMessage): Transaction {
-        val uuid = message.get(Key.UUID.str).asText()
-        val behovString = message.get(Key.FAIL.str).get(Key.BEHOV.str).asText()
-        val behov = BehovType.valueOf(behovString)
-        if (behov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = "$uuid${DataFelter.VIRKSOMHET}"
-            redisStore.set(virksomhetKey, "Ukjent virksomhet")
-            return Transaction.IN_PROGRESS
-        } else if (behov == BehovType.FULLT_NAVN) {
-            val fulltNavnKey = "$uuid${DataFelter.ARBEIDSTAKER_INFORMASJON}"
-            redisStore.set(fulltNavnKey, PersonDato("Ukjent person", null).toString())
-            return Transaction.IN_PROGRESS
-        }
-        return Transaction.TERMINATE
-    }
-
     fun determineTransactionState(message: JsonMessage): Transaction {
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
             return onError(message)
@@ -185,13 +183,14 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         return Transaction.IN_PROGRESS
     }
 
-    fun setInitialTransactionState(message: JsonMessage) {
+    fun setBrukerTransactionState(message: JsonMessage) {
         val uuid = message.get(Key.UUID.str).asText()
         val requestKey = "${uuid}${DataFelter.INNTEKTSMELDING_REQUEST.str}"
         val forespoerselKey = "${uuid}${Key.FORESPOERSEL_ID.str}"
         redisStore.set(requestKey, message[DataFelter.INNTEKTSMELDING_REQUEST.str].toString())
         redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].asText())
     }
+
     fun isFailMelding(jsonMessage: JsonMessage): Boolean {
         try {
             return !jsonMessage[Key.FAIL.str].asText().isNullOrEmpty()

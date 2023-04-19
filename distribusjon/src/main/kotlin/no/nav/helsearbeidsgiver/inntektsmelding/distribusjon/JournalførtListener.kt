@@ -7,8 +7,11 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import org.slf4j.LoggerFactory
 
-class InntektsmeldingJournalførtListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     override val event: EventName = EventName.INNTEKTSMELDING_JOURNALFOERT
 
@@ -20,15 +23,17 @@ class InntektsmeldingJournalførtListener(rapidsConnection: RapidsConnection) : 
     }
 
     override fun onEvent(packet: JsonMessage) {
-        logger.info("Mottatt event ${EventName.INNTEKTSMELDING_JOURNALFOERT}")
-        sikkerlogg.info("Mottatt event ${EventName.INNTEKTSMELDING_JOURNALFOERT} med pakke ${packet.toJson()}")
+        logger.info("Fikk event om journalføre inntektsmelding...")
+        sikkerlogg.info("Fikk event om journalføre inntektsmelding med pakke ${packet.toJson()}")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
                 Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
                 Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
                 Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
             )
         )
         publishBehov(jsonMessage)
+        logger.info("Publiserte behov om å distribuere inntektsmelding")
     }
 }

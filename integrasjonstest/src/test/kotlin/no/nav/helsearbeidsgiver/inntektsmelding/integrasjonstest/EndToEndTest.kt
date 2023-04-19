@@ -27,6 +27,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.filter.findMessage
 import no.nav.helsearbeidsgiver.pdl.PdlClient
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
@@ -56,6 +57,7 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var notifikasjonLink = "notifikasjonLink"
     val priProducer = mockk<PriProducer>()
     lateinit var producer: TilgangProducer
+    val distribusjonKafkaProducer = mockk<KafkaProducer<String, String>>()
     var filterMessages: (JsonNode) -> Boolean = { true }
     var meldinger: MutableList<JsonNode> = mutableListOf()
 
@@ -99,7 +101,8 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
             arbeidsgiverNotifikasjonKlient,
             notifikasjonLink,
             priProducer,
-            altinnClient
+            altinnClient,
+            distribusjonKafkaProducer
         )
         producer = TilgangProducer(rapid)
         rapid.register(this)

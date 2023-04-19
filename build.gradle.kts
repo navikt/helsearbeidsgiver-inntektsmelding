@@ -1,5 +1,6 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.utils.keysToMap
 
 plugins {
     kotlin("jvm")
@@ -22,22 +23,9 @@ buildscript {
 }
 
 dependencies {
-    jacocoAggregation(project(":aareg"))
-    jacocoAggregation(project(":altinn"))
-    jacocoAggregation(project(":api"))
-    jacocoAggregation(project(":brreg"))
-    jacocoAggregation(project(":db"))
-    jacocoAggregation(project(":distribusjon"))
-    jacocoAggregation(project(":dokument"))
-    jacocoAggregation(project(":felles"))
-    jacocoAggregation(project(":forespoersel-mottatt"))
-    jacocoAggregation(project(":helsebro"))
-    jacocoAggregation(project(":innsending"))
-    jacocoAggregation(project(":inntekt"))
-    jacocoAggregation(project(":joark"))
-    jacocoAggregation(project(":notifikasjon"))
-    jacocoAggregation(project(":pdl"))
-    jacocoAggregation(project(":preutfylt"))
+    subprojects.filter { it.name != "integrasjonstest" }.forEach {
+        jacocoAggregation(project(":${it.name}"))
+    }
 }
 allprojects {
     tasks {

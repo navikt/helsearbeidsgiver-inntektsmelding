@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapHikariConfig
+import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
@@ -29,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.preutfylt.createPreutfylt
 import no.nav.helsearbeidsgiver.pdl.PdlClient
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -71,7 +73,8 @@ fun RapidsConnection.buildApp(
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     notifikasjonLink: String,
     priProducer: PriProducer,
-    altinnClient: AltinnClient
+    altinnClient: AltinnClient,
+    distribusjonKafkaProducer: KafkaProducer<String, String>
 ): RapidsConnection {
     logger.info("Starting App")
     this.createAareg(aaregClient)
@@ -79,7 +82,7 @@ fun RapidsConnection.buildApp(
     this.createBrreg(brregClient, true)
     this.createInnsending(redisStore)
     this.createDb(database, imoRepository, forespoerselRepository)
-    // this.createDistribusjon() // TODO Integrasjonstester må bruke distribusjon appen
+    this.createDistribusjon(distribusjonKafkaProducer)
     this.createForespoerselMottatt()
     this.createAltinn(altinnClient)
     this.createHelsebro(priProducer)

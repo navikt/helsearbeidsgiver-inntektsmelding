@@ -30,6 +30,7 @@ import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Innsending av skjema fra frontend")
@@ -121,6 +122,9 @@ internal class InnsendingIT : EndToEndTest() {
         } answers {
             OpprettJournalpostResponse(JOURNALPOST_ID, journalpostFerdigstilt = true, "FERDIGSTILT", "", emptyList())
         }
+        coEvery {
+            distribusjonKafkaProducer.send(any())
+        } returns CompletableFuture()
     }
 
     @Test
@@ -182,6 +186,12 @@ internal class InnsendingIT : EndToEndTest() {
             val løsning: OppgaveFerdigLøsning =
                 get(Key.LØSNING.str).get(BehovType.ENDRE_OPPGAVE_STATUS.name).toJsonElement().fromJson(OppgaveFerdigLøsning.serializer())
             assertEquals(OPPGAVE_ID, løsning.value)
+        }
+
+        with(filter(EventName.INNTEKTSMELDING_DISTRIBUERT).first()) {
+            // Verifiser at inntektsmelding er distribuert på ekstern kafka
+            assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
+            assertNotNull(get(Key.INNTEKTSMELDING_DOKUMENT.str))
         }
     }
 

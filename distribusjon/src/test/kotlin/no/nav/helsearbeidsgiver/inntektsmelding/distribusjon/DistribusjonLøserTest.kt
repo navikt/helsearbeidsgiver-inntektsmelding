@@ -59,7 +59,7 @@ internal class DistribusjonLøserTest {
         )
         sendMelding(mld)
         val melding = rapid.inspektør.message(0)
-        assertNotNull(melding,"Skal publisere event at inntektsmelding IKKE ble distribuert")
+        assertNotNull(melding, "Skal publisere event at inntektsmelding IKKE ble distribuert")
         assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, melding.get(Key.EVENT_NAME.str).asText())
         assertNotNull(melding.get(Key.FAIL.str).asText(), "Skal inneholde feil")
     }
@@ -77,7 +77,7 @@ internal class DistribusjonLøserTest {
         )
         sendMelding(mld)
         val melding = rapid.inspektør.message(0)
-        assertNotNull(melding,"Skal publisere event at inntektsmelding IKKE ble distribuert")
+        assertNotNull(melding, "Skal publisere event at inntektsmelding IKKE ble distribuert")
         assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, melding.get(Key.EVENT_NAME.str).asText())
         assertNotNull(melding.get(Key.FAIL.str).asText(), "Skal inneholde feil")
     }

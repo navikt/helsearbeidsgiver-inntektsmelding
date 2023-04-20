@@ -21,7 +21,7 @@ data class Data<T>(
 
 data class Feil(
     @JsonIgnore
-    val eventName: EventName,
+    val eventName: EventName?,
     val behov: BehovType?,
     val feilmelding: String,
     val data: HashMap<DataFelt, Any>?,
@@ -32,20 +32,22 @@ data class Feil(
 fun Feil.toJsonMessage(): JsonMessage =
     JsonMessage.newMessage(
         mapOf(
-            Key.EVENT_NAME.str to this.eventName,
-            Key.FAIL.str to customObjectMapper().writeValueAsString(this),
+            Key.EVENT_NAME.str to (this.eventName ?: ""),
+            Key.FAIL.str to this,
             Key.UUID.str to (this.uuid ?: "")
         )
     )
 fun JsonMessage.toFeilMessage(): Feil {
-   return customObjectMapper().treeToValue(this[Key.FAIL.str], Feil::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
+    return customObjectMapper().treeToValue(this[Key.FAIL.str], Feil::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
 }
 
-fun JsonMessage.createFail(feilmelding: String, data: HashMap<DataFelt, Any>? = null): Feil {
+fun JsonMessage.createFail(feilmelding: String, data: HashMap<DataFelt, Any>? = null, behoveType: BehovType? = null): Feil {
     val behovNode: JsonNode? = this.valueNullable(Key.BEHOV)
-    val behov: BehovType? = if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null
-    val forespørselId = this.valueNullable(Key.FORESPOERSEL_ID)?.asText()
-    return Feil(EventName.valueOf(this.get(Key.EVENT_NAME.str).asText()), behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId)
+    // behovtype trenger å vare definert eksplisit da behov elemente er en List
+    val behov: BehovType? = behoveType ?: if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null
+    val forespørselId = this.valueNullableOrUndefined(Key.FORESPOERSEL_ID)?.asText()
+    val eventName = this.valueNullableOrUndefined(Key.EVENT_NAME)?.asText()
+    return Feil(eventName?.let { EventName.valueOf(eventName) }, behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId)
 }
 
 @Serializable

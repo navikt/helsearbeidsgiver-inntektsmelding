@@ -30,6 +30,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
                 it.requireKey(Key.ORGNRUNDERENHET.str)
                 it.rejectKey(Key.LØSNING.str)
                 it.interestedIn(Key.UUID.str)
+                it.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }.register(this)
     }

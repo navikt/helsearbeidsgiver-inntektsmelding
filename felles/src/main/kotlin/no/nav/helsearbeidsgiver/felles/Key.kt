@@ -70,6 +70,9 @@ fun JsonMessage.value(key: Key): JsonNode =
 fun JsonMessage.valueNullable(key: Key): JsonNode? =
     value(key).takeUnless(JsonNode::isMissingOrNull)
 
+fun JsonMessage.valueNullableOrUndefined(key: Key): JsonNode? =
+    try { value(key).takeUnless(JsonNode::isMissingOrNull) } catch (e: IllegalArgumentException) { null }
+
 internal object KeySerializer : KSerializer<Key> {
     override val descriptor = PrimitiveSerialDescriptor("helsearbeidsgiver.felles.Key", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: Key) = value.str.let(encoder::encodeString)

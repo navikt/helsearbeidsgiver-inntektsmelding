@@ -38,6 +38,7 @@ class ArbeidsforholdLøser(
                     //    Key.UUID.str
                 )
                 it.interestedIn(Key.UUID.str)
+                it.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }.register(this)
     }

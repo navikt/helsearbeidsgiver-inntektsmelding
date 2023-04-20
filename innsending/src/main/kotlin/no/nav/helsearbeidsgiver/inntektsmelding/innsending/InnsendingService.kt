@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Data
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feil
 import no.nav.helsearbeidsgiver.felles.Key
@@ -49,7 +48,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
             return Transaction.IN_PROGRESS
         } else if (feil.behov == BehovType.FULLT_NAVN) {
-            val fulltNavnKey = "${feil.uuid}${DataFelter.ARBEIDSTAKER_INFORMASJON}"
+            val fulltNavnKey = "${feil.uuid}${DataFelter.ARBEIDSTAKER_INFORMASJON.str}"
             redisStore.set(fulltNavnKey, customObjectMapper().writeValueAsString(PersonDato("Ukjent person", null)))
             return Transaction.IN_PROGRESS
         }
@@ -193,7 +192,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
 
     fun isFailMelding(jsonMessage: JsonMessage): Boolean {
         try {
-            return !jsonMessage[Key.FAIL.str].asText().isNullOrEmpty()
+            return !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
         } catch (e: NoSuchFieldError) {
             return false
         } catch (e: IllegalArgumentException) {

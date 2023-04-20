@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
+package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock
 
 import com.zaxxer.hikari.HikariConfig
 import org.testcontainers.containers.PostgreSQLContainer

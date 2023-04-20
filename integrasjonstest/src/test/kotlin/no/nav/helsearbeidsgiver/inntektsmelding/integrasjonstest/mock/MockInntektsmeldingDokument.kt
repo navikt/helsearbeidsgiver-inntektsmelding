@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
+package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden

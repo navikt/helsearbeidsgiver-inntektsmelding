@@ -32,8 +32,8 @@ val Int.mars get(): LocalDate =
 fun Int.mars(aar: Int): LocalDate =
     LocalDate.of(aar, Month.MARCH, this)
 
-fun mars(aar: Int): LocalDate =
-    1.mars(aar)
+fun mars(aar: Int): YearMonth =
+    1.mars(aar).toYearMonth()
 
 val Int.april get(): LocalDate =
     april(defaultAar)
@@ -41,8 +41,8 @@ val Int.april get(): LocalDate =
 fun Int.april(aar: Int): LocalDate =
     LocalDate.of(aar, Month.APRIL, this)
 
-fun april(aar: Int): LocalDate =
-    1.april(aar)
+fun april(aar: Int): YearMonth =
+    1.april(aar).toYearMonth()
 
 val Int.mai get(): LocalDate =
     mai(defaultAar)
@@ -50,8 +50,8 @@ val Int.mai get(): LocalDate =
 fun Int.mai(aar: Int): LocalDate =
     LocalDate.of(aar, Month.MAY, this)
 
-fun mai(aar: Int): LocalDate =
-    1.mai(aar)
+fun mai(aar: Int): YearMonth =
+    1.mai(aar).toYearMonth()
 
 val Int.juni get(): LocalDate =
     juni(defaultAar)
@@ -59,8 +59,8 @@ val Int.juni get(): LocalDate =
 fun Int.juni(aar: Int): LocalDate =
     LocalDate.of(aar, Month.JUNE, this)
 
-fun juni(aar: Int): LocalDate =
-    1.juni(aar)
+fun juni(aar: Int): YearMonth =
+    1.juni(aar).toYearMonth()
 
 val Int.juli get(): LocalDate =
     juli(defaultAar)
@@ -68,8 +68,8 @@ val Int.juli get(): LocalDate =
 fun Int.juli(aar: Int): LocalDate =
     LocalDate.of(aar, Month.JULY, this)
 
-fun juli(aar: Int): LocalDate =
-    1.juli(aar)
+fun juli(aar: Int): YearMonth =
+    1.juli(aar).toYearMonth()
 
 val Int.august get(): LocalDate =
     august(defaultAar)
@@ -77,8 +77,8 @@ val Int.august get(): LocalDate =
 fun Int.august(aar: Int): LocalDate =
     LocalDate.of(aar, Month.AUGUST, this)
 
-fun august(aar: Int): LocalDate =
-    1.august(aar)
+fun august(aar: Int): YearMonth =
+    1.august(aar).toYearMonth()
 
 val Int.september get(): LocalDate =
     september(defaultAar)
@@ -86,8 +86,8 @@ val Int.september get(): LocalDate =
 fun Int.september(aar: Int): LocalDate =
     LocalDate.of(aar, Month.SEPTEMBER, this)
 
-fun september(aar: Int): LocalDate =
-    1.september(aar)
+fun september(aar: Int): YearMonth =
+    1.september(aar).toYearMonth()
 
 val Int.oktober get() =
     oktober(defaultAar)

@@ -5,12 +5,15 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Data
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Feil
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import no.nav.helsearbeidsgiver.felles.toFeilMessage
 
 class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
 
@@ -40,16 +43,13 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         }
     }
 
-    fun onError(message: JsonMessage): Transaction {
-        val uuid = message.get(Key.UUID.str).asText()
-        val behovString = message.get(Key.FAIL.str).get(Key.BEHOV.str).asText()
-        val behov = BehovType.valueOf(behovString)
-        if (behov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = "$uuid${DataFelter.VIRKSOMHET}"
+    fun onError(feil: Feil): Transaction {
+        if (feil.behov == BehovType.VIRKSOMHET) {
+            val virksomhetKey = "${feil.uuid}${DataFelter.VIRKSOMHET}"
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
             return Transaction.IN_PROGRESS
-        } else if (behov == BehovType.FULLT_NAVN) {
-            val fulltNavnKey = "$uuid${DataFelter.ARBEIDSTAKER_INFORMASJON}"
+        } else if (feil.behov == BehovType.FULLT_NAVN) {
+            val fulltNavnKey = "${feil.uuid}${DataFelter.ARBEIDSTAKER_INFORMASJON}"
             redisStore.set(fulltNavnKey, customObjectMapper().writeValueAsString(PersonDato("Ukjent person", null)))
             return Transaction.IN_PROGRESS
         }
@@ -169,7 +169,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
 
     fun determineTransactionState(message: JsonMessage): Transaction {
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
-            return onError(message)
+            return onError(message.toFeilMessage())
         }
         val uuid = message.get(Key.UUID.str).asText()
         val eventKey = "${uuid}${event.name}"

@@ -37,10 +37,14 @@ fun Feil.toJsonMessage(): JsonMessage =
             Key.UUID.str to (this.uuid ?: "")
         )
     )
+fun JsonMessage.toFeilMessage(): Feil {
+   return customObjectMapper().treeToValue(this[Key.FAIL.str], Feil::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
+}
 
-fun JsonMessage.createFail(feilmelding: String, data: HashMap<DataFelt, Any>? = null, forespørselId: String? = null): Feil {
+fun JsonMessage.createFail(feilmelding: String, data: HashMap<DataFelt, Any>? = null): Feil {
     val behovNode: JsonNode? = this.valueNullable(Key.BEHOV)
     val behov: BehovType? = if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null
+    val forespørselId = this.valueNullable(Key.FORESPOERSEL_ID)?.asText()
     return Feil(EventName.valueOf(this.get(Key.EVENT_NAME.str).asText()), behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId)
 }
 

@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.toJsonMessage
-import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
 import java.time.LocalDate

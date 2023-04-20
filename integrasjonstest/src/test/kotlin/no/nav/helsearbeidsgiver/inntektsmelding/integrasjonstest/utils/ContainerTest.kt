@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
+package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import com.redis.testcontainers.RedisContainer
 import org.apache.kafka.clients.admin.AdminClient

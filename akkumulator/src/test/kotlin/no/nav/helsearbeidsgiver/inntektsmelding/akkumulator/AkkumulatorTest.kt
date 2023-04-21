@@ -10,11 +10,8 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
@@ -23,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.list
+import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -79,24 +77,26 @@ internal class AkkumulatorTest {
             redisStore.set("uuid", any(), any())
         }
 
+        val publisert = rapid.firstMessage().fromJsonMapOnlyKeys()
+
         // Skal beholde eksisterende verdier
         listOf(
             Key.INNTEKTSMELDING to "placeholder",
             Key.UUID to "uuid"
         )
             .forEach { (key, expectedValue) ->
-                val actual = rapid.firstMessage().jsonObject[key.str]!!.fromJson(String.serializer())
+                val actual = publisert[key]!!.fromJson(String.serializer())
                 assertEquals(expectedValue, actual)
             }
 
         // Skal legge til neste behov i behovliste
-        val behov = rapid.firstMessage().jsonObject[Key.BEHOV.str]!!.fromJson(String.serializer().list())
+        val behov = publisert[Key.BEHOV]!!.fromJson(String.serializer().list())
         assertEquals(BEHOV_FULLT_NAVN, behov[0])
         assertEquals(BEHOV_ARBEIDSGIVERE, behov[1])
 
         // Skal fjernes
-        assertFalse(rapid.firstMessage().jsonObject.keys.contains(Key.LØSNING.str))
-        assertEquals(0, rapid.firstMessage().jsonObject[Key.NESTE_BEHOV.str]!!.jsonArray.size)
+        assertFalse(publisert.keys.contains(Key.LØSNING))
+        assertEquals(0, publisert[Key.NESTE_BEHOV]!!.jsonArray.size)
     }
 
     @Test
@@ -243,10 +243,9 @@ internal class AkkumulatorTest {
             redisStore.set(initId, any(), any())
         }
         val boomerang = rapid.firstMessage()
-            .jsonObject[Key.BOOMERANG.str]!!
-            .fromJson(
-                MapSerializer(Key.serializer(), JsonElement.serializer())
-            )
+            .fromJsonMapOnlyKeys()[Key.BOOMERANG]!!
+            .fromJsonMapOnlyKeys()
+
         // akkumulator skal fjerne neste behov!
         assertEquals(
             emptyList<BehovType>(),

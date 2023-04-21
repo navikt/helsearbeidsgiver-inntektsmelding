@@ -52,6 +52,14 @@ fun <T : Any> JsonElement.fromJson(serializer: KSerializer<T>): T =
 fun <T : Any> String.fromJson(serializer: KSerializer<T>): T =
     parseJson().fromJson(serializer)
 
+fun <T : Any> JsonElement.fromJsonMap(keySerializer: KSerializer<T>): Map<T, JsonElement> =
+    fromJson(
+        MapSerializer(
+            keySerializer,
+            JsonElement.serializer()
+        )
+    )
+
 fun String.parseJson(): JsonElement =
     Json.parseToJsonElement(this)
 

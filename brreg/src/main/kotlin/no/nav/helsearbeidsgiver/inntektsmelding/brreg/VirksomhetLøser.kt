@@ -14,7 +14,8 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.createFail
+import no.nav.helsearbeidsgiver.felles.publishFail
 import org.slf4j.LoggerFactory
 
 class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient, private val isPreProd: Boolean) : River.PacketListener {
@@ -30,6 +31,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
                 it.requireKey(Key.ORGNRUNDERENHET.str)
                 it.rejectKey(Key.LØSNING.str)
                 it.interestedIn(Key.UUID.str)
+                it.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }.register(this)
     }
@@ -58,14 +60,12 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")), packet, context)
-            // @TODO bruk FAIL istedenfor DATA element her publishFail(Feilmelding("Ugyldig virksomhet $orgnr"), packet, context)
-            publishDatagram("Ukjent virksomhet", packet, context)
+            publishFail(packet.createFail("Ugyldig virksomhet $orgnr", behoveType = BehovType.VIRKSOMHET), packet, context)
         } catch (ex: Exception) {
             logger.error("Det oppstod en feil ved henting for $orgnr")
             sikkerlogg.error("Det oppstod en feil ved henting for orgnr $orgnr: ", ex)
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")), packet, context)
-            // publishFail(Feilmelding("Klarte ikke hente virksomhet"), packet, context)
-            publishDatagram("Ukjent virksomhet", packet, context)
+            publishFail(packet.createFail("Klarte ikke hente virksomhet", behoveType = BehovType.VIRKSOMHET), packet, context)
         }
     }
 
@@ -84,17 +84,6 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
     fun publiserLøsning(virksomhetLøsning: VirksomhetLøsning, packet: JsonMessage, context: MessageContext) {
         packet.setLøsning(BEHOV, virksomhetLøsning)
         context.publish(packet.toJson())
-    }
-
-    fun publishFail(fail: Feilmelding, jsonMessage: JsonMessage, context: MessageContext) {
-        val message = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
-                Key.FAIL.str to customObjectMapper().writeValueAsString(fail),
-                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
-            )
-        )
-        context.publish(message.toJson())
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

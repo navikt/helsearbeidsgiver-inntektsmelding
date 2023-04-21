@@ -61,7 +61,8 @@ enum class Key(val str: String) {
 enum class DataFelt(val str: String) {
     VIRKSOMHET("virksomhet"),
     ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
-    INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str)
+    INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str),
+    ARBEIDSFORHOLD("arbeidsforhold")
 }
 
 fun JsonMessage.value(key: Key): JsonNode =
@@ -69,6 +70,9 @@ fun JsonMessage.value(key: Key): JsonNode =
 
 fun JsonMessage.valueNullable(key: Key): JsonNode? =
     value(key).takeUnless(JsonNode::isMissingOrNull)
+
+fun JsonMessage.valueNullableOrUndefined(key: Key): JsonNode? =
+    try { value(key).takeUnless(JsonNode::isMissingOrNull) } catch (e: IllegalArgumentException) { null }
 
 internal object KeySerializer : KSerializer<Key> {
     override val descriptor = PrimitiveSerialDescriptor("helsearbeidsgiver.felles.Key", PrimitiveKind.STRING)

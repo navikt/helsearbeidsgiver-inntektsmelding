@@ -5,7 +5,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -14,7 +13,8 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.createFail
+import no.nav.helsearbeidsgiver.felles.publishFail
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -35,6 +35,8 @@ class FulltNavnLøser(
                 it.requireKey(Key.IDENTITETSNUMMER.str)
                 it.rejectKey(Key.LØSNING.str)
                 it.interestedIn(Key.UUID.str)
+                it.interestedIn(Key.FORESPOERSEL_ID.str)
+                it.interestedIn(Key.EVENT_NAME.str)
             }
         }.register(this)
     }
@@ -55,8 +57,7 @@ class FulltNavnLøser(
             logger.error("Klarte ikke hente navn for id $id")
             sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for id: $id", ex)
             publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet, context)
-            publishDatagram(PersonDato("Ukjent person", null), packet, context)
-            // publishFail(Feilmelding("Klarte ikke hente navn"), packet, context)
+            publishFail(packet.createFail("Ukjent person", behoveType = BehovType.FULLT_NAVN), packet, context)
         }
     }
 
@@ -79,17 +80,6 @@ class FulltNavnLøser(
         context.publish(message.toJson())
     }
 
-    fun publishFail(fail: Feilmelding, jsonMessage: JsonMessage, context: MessageContext) {
-        val message = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
-                Key.FAIL.str to customObjectMapper().writeValueAsString(fail),
-                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
-            )
-        )
-        context.publish(message.toJson())
-    }
-
     suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
         val liste = pdlClient.fullPerson(identitetsnummer)?.hentPerson
         val fødselsdato: LocalDate? = liste?.foedsel?.firstOrNull()?.foedselsdato
@@ -102,6 +92,4 @@ class FulltNavnLøser(
             nøkkel.name to data
         )
     }
-
-    override fun onError(problems: MessageProblems, context: MessageContext) {}
 }

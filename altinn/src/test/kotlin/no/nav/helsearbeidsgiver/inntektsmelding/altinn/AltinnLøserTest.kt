@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest.LøserAnswer.Companion.toLøserAnswer
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import org.junit.jupiter.api.Test
 
@@ -41,7 +41,7 @@ class AltinnLøserTest : LøserTest() {
             Key.IDENTITETSNUMMER to mockId.toJson()
         )
 
-        val actualAnswer = testRapid.lastMessageJson()
+        val actualAnswer = testRapid.firstMessage()
             .toLøserAnswer(AltinnOrganisasjon.serializer().set())
 
         coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(mockId) }

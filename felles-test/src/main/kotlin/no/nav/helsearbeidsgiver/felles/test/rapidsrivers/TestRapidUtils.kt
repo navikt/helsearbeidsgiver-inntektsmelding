@@ -18,7 +18,7 @@ internal fun TestRapid.sendJson(keyValuePairs: Map<String, JsonElement>) {
         .let(this::sendTestMessage)
 }
 
-fun TestRapid.lastMessageJson(): JsonElement =
+fun TestRapid.firstMessage(): JsonElement =
     inspektør.message(0)
         .toString()
         .parseJson()

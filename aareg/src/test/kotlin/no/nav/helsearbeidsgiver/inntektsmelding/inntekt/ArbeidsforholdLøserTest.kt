@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.ArbeidsforholdLøser
 
@@ -46,7 +46,7 @@ class ArbeidsforholdLøserTest : FunSpec({
             Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
         )
 
-        val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
+        val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, MockUuid.STRING) }
         testRapid.inspektør.size shouldBeExactly 2
@@ -65,7 +65,7 @@ class ArbeidsforholdLøserTest : FunSpec({
             Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
         )
 
-        val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
+        val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, MockUuid.STRING) }
         testRapid.inspektør.size shouldBeExactly 2

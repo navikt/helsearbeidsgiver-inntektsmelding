@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.lastMessageJson
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import java.util.UUID
 
@@ -34,7 +34,7 @@ class ForespoerselMottattLøserTest : FunSpec({
             Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
-        val actual = testRapid.lastMessageJson().fromJson(Published.serializer())
+        val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
         testRapid.inspektør.size shouldBeExactly 1
         actual shouldBe expected

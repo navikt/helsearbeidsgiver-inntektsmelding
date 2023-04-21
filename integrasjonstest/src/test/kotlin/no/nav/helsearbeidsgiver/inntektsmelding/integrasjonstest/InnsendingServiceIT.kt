@@ -68,7 +68,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 Key.FORESPOERSEL_ID.str to forespoerselId
             )
         )
-        Thread.sleep(30000)
+        Thread.sleep(10000)
         assertEquals(getMessageCount(), 9) {
             "Message count was " + getMessageCount()
         }

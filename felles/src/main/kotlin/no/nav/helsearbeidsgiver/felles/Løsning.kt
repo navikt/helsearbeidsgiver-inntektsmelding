@@ -27,16 +27,36 @@ data class Feil(
     val data: HashMap<DataFelt, Any>?,
     val uuid: String?,
     val forespørselId: String?
-)
-
-fun Feil.toJsonMessage(): JsonMessage =
-    JsonMessage.newMessage(
-        mapOf(
-            Key.EVENT_NAME.str to (this.eventName ?: ""),
-            Key.FAIL.str to this,
-            Key.UUID.str to (this.uuid ?: "")
+) {
+    fun toJsonMessage(): JsonMessage {
+        return JsonMessage.newMessage(
+            mutableMapOf<String, Any>().putIfNotEmpty(
+                Key.EVENT_NAME.str to this.eventName,
+                Key.FAIL.str to this,
+                Key.UUID.str to this.uuid
+            )
         )
-    )
+    }
+
+/*
+    fun toJsonMessage(): JsonMessage =
+        JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to (this.eventName ?: ""),
+                Key.FAIL.str to this,
+                Key.UUID.str to (this.uuid ?: "")
+            )
+        )
+
+ */
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <K, V> MutableMap<K, V>.putIfNotEmpty(vararg pair: Pair<K, V?>): MutableMap<K, V> {
+    this.putAll(pair.filter { it.second != null } as Iterable<Pair<K, V>>)
+    return this
+}
+
 fun JsonMessage.toFeilMessage(): Feil {
     return customObjectMapper().treeToValue(this[Key.FAIL.str], Feil::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
 }

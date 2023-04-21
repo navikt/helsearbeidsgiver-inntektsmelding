@@ -12,10 +12,12 @@ import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Data
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.log.logger
+import no.nav.helsearbeidsgiver.felles.publishFail
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
@@ -63,7 +65,7 @@ class ArbeidsforholdLøser(
         if (arbeidsforhold != null) {
             publishDatagram(Data(arbeidsforhold), packet, context)
         } else {
-            publishFail(Feilmelding("Klarte ikke hente arbeidsforhold"), packet, context)
+            publishFail(packet.createFail("Klarte ikke hente arbeidsforhold", behoveType = BehovType.ARBEIDSFORHOLD), packet, context)
         }
     }
 
@@ -73,18 +75,7 @@ class ArbeidsforholdLøser(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
                 Key.DATA.str to "",
                 Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
-                "arbeidsforhold" to customObjectMapper().writeValueAsString(data)
-            )
-        )
-        context.publish(message.toJson())
-    }
-
-    fun publishFail(fail: Feilmelding, jsonMessage: JsonMessage, context: MessageContext) {
-        val message = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
-                Key.FAIL.str to customObjectMapper().writeValueAsString(fail),
-                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+                DataFelt.ARBEIDSFORHOLD.str to data
             )
         )
         context.publish(message.toJson())

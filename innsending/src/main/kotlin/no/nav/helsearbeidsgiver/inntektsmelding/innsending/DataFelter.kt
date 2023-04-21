@@ -5,7 +5,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 
 enum class DataFelter(val str: String) {
     VIRKSOMHET(DataFelt.VIRKSOMHET.str),
-    ARBEIDSFORHOLD("arbeidsforhold"),
+    ARBEIDSFORHOLD(DataFelter.ARBEIDSFORHOLD.str),
     INNTEKTSMELDING_REQUEST(Key.INNTEKTSMELDING.str),
     INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str),
     INITIATE_ID(Key.INITIATE_ID.str),

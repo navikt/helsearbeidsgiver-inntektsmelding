@@ -2,13 +2,8 @@
 
 package no.nav.helsearbeidsgiver.felles
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.Serializable
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.serializers.JsonAsStringSerializer
-import java.util.UUID
 
 sealed class Løsning {
     abstract val value: Any?
@@ -18,57 +13,6 @@ sealed class Løsning {
 data class Data<T>(
     val t: T? = null
 )
-
-data class Feil(
-    @JsonIgnore
-    val eventName: EventName?,
-    val behov: BehovType?,
-    val feilmelding: String,
-    val data: HashMap<DataFelt, Any>?,
-    val uuid: String?,
-    val forespørselId: String?
-) {
-    fun toJsonMessage(): JsonMessage {
-        return JsonMessage.newMessage(
-            mutableMapOf<String, Any>().putIfNotEmpty(
-                Key.EVENT_NAME.str to this.eventName,
-                Key.FAIL.str to this,
-                Key.UUID.str to this.uuid
-            )
-        )
-    }
-
-/*
-    fun toJsonMessage(): JsonMessage =
-        JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to (this.eventName ?: ""),
-                Key.FAIL.str to this,
-                Key.UUID.str to (this.uuid ?: "")
-            )
-        )
-
- */
-}
-
-@Suppress("UNCHECKED_CAST")
-fun <K, V> MutableMap<K, V>.putIfNotEmpty(vararg pair: Pair<K, V?>): MutableMap<K, V> {
-    this.putAll(pair.filter { it.second != null } as Iterable<Pair<K, V>>)
-    return this
-}
-
-fun JsonMessage.toFeilMessage(): Feil {
-    return customObjectMapper().treeToValue(this[Key.FAIL.str], Feil::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
-}
-
-fun JsonMessage.createFail(feilmelding: String, data: HashMap<DataFelt, Any>? = null, behoveType: BehovType? = null): Feil {
-    val behovNode: JsonNode? = this.valueNullable(Key.BEHOV)
-    // behovtype trenger å vare definert eksplisit da behov elemente er en List
-    val behov: BehovType? = behoveType ?: if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null
-    val forespørselId = this.valueNullableOrUndefined(Key.FORESPOERSEL_ID)?.asText()
-    val eventName = this.valueNullableOrUndefined(Key.EVENT_NAME)?.asText()
-    return Feil(eventName?.let { EventName.valueOf(eventName) }, behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId)
-}
 
 @Serializable
 data class Feilmelding(

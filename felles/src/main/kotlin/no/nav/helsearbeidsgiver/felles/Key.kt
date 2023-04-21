@@ -61,7 +61,8 @@ enum class Key(val str: String) {
 enum class DataFelt(val str: String) {
     VIRKSOMHET("virksomhet"),
     ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
-    INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str)
+    INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str),
+    ARBEIDSFORHOLD("arbeidsforhold")
 }
 
 fun JsonMessage.value(key: Key): JsonNode =

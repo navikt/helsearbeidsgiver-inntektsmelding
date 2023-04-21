@@ -6,7 +6,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Feil
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -42,7 +42,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         }
     }
 
-    fun onError(feil: Feil): Transaction {
+    fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.VIRKSOMHET) {
             val virksomhetKey = "${feil.uuid}${DataFelter.VIRKSOMHET}"
             redisStore.set(virksomhetKey, "Ukjent virksomhet")

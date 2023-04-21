@@ -8,14 +8,11 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
     lateinit var eventName: EventName
     lateinit var forespoerselId: String
-    lateinit var uuid: UUID
 
-    lateinit var localContext: ConcurrentHashMap<String, JsonMessage>
 
     init {
         configure(

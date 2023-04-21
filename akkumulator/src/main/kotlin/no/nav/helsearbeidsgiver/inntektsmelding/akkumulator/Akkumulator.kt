@@ -1,4 +1,4 @@
-Pre@file:Suppress("NonAsciiCharacters")
+@file:Suppress("NonAsciiCharacters")
 
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 

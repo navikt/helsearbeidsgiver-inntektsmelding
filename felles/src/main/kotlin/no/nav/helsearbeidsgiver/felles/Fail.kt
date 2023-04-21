@@ -14,13 +14,12 @@ data class Fail(
     val feilmelding: String,
     val data: HashMap<DataFelt, Any>?,
     val uuid: String?,
-    val forespørselId: String?,
-    private val originalMessage: JsonMessage
+    val forespørselId: String?
 ) {
     fun toJsonMessage(): JsonMessage {
         return JsonMessage.newMessage(
             mapOfNotNull(
-                Key.EVENT_NAME.str to originalMessage[Key.EVENT_NAME.str].asText(),
+                Key.EVENT_NAME.str to eventName.name,
                 Key.FAIL.str to this,
                 Key.UUID.str to this.uuid
             )

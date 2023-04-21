@@ -13,7 +13,6 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     lateinit var eventName: EventName
     lateinit var forespoerselId: String
 
-
     init {
         configure(
             River(rapidsConnection).apply {

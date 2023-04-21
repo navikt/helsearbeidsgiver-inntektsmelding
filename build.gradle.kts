@@ -216,11 +216,7 @@ fun getDeployMatrixVariables(
             ?.ifEmpty { null }
     }
         .mapNotNull { (key, value) ->
-            if (value == null) {
-                null
-            } else {
-                key to value
-            }
+            value?.let { key to it }
         }
         .toMap()
 

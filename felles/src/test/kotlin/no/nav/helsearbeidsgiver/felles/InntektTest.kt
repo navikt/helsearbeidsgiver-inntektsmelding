@@ -24,21 +24,21 @@ internal class InntektTest {
         val inntekter = mapOf(1 to 10.0, 2 to 20.0)
         val inntekt = Inntekt(genererHistoriskInntekt(inntekter))
         val forventetSnitt = 15.0
-        assertEquals(forventetSnitt, inntekt.bruttoInntekt)
+        assertEquals(forventetSnitt, inntekt.gjennomsnitt())
     }
 
     @Test
     fun `test korrekt float ved beregning av gjennomsnitt`() {
-        val inntekter = List(11) { it to 0.2 }.toMap()
+        val inntekter = List(11) { (it + 1) to 0.2 }.toMap()
         val total = 2.2
         val inntekt = Inntekt(genererHistoriskInntekt(inntekter))
         val forventetSnitt = total / inntekter.size
-        assertEquals(forventetSnitt, inntekt.bruttoInntekt)
+        assertEquals(forventetSnitt, inntekt.gjennomsnitt())
     }
 
     private fun genererHistoriskInntekt(inntekter: Map<Int, Double>): List<MottattHistoriskInntekt> {
         return inntekter.map {
-            MottattHistoriskInntekt(null, it.value)
+            MottattHistoriskInntekt(YearMonth.of(2018, it.key), it.value)
         }
     }
 }

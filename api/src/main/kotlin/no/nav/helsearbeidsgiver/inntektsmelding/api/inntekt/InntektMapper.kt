@@ -14,6 +14,6 @@ class InntektMapper(resultat: Resultat) : ResultatMapper<InntektResponse>(result
     }
 
     override fun getResultatResponse(): InntektResponse {
-        return InntektResponse(resultat.INNTEKT!!.value!!.bruttoInntekt, resultat.INNTEKT!!.value!!.historisk)
+        return InntektResponse(resultat.INNTEKT!!.value!!.gjennomsnitt(), resultat.INNTEKT!!.value!!.historisk)
     }
 }

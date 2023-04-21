@@ -29,6 +29,7 @@ class MapInntektKtTest {
         assertEquals(567.0, inntekt.gjennomsnitt())
         assertEquals(567.0, inntekt.total())
         assertEquals(YearMonth.of(2020, 4), inntekt.historisk[0].maanedsnavn)
+        assertEquals(YearMonth.of(2020, 4), inntekt.historisk[0].maaned)
     }
 
     @Test

@@ -17,9 +17,11 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.test.date.april
 import no.nav.helsearbeidsgiver.felles.test.date.februar
 import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.test.date.mai
+import no.nav.helsearbeidsgiver.felles.test.date.mars
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.felles.til
@@ -153,9 +155,18 @@ class InntektLøserTest {
         val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
         assertNull(inntektLøsning?.error)
         assertEquals(3, inntektLøsning?.value!!.historisk.size)
-        assertEquals(YearMonth.of(2022, 4), inntektLøsning.value!!.historisk[0].maanedsnavn)
-        assertEquals(YearMonth.of(2022, 3), inntektLøsning.value!!.historisk[1].maanedsnavn)
-        assertEquals(YearMonth.of(2022, 2), inntektLøsning.value!!.historisk[2].maanedsnavn)
+
+        val maanederGammel = inntektLøsning.value!!.historisk.map { it.maanedsnavn }
+
+        assertEquals(april(2022), maanederGammel[0])
+        assertEquals(mars(2022), maanederGammel[1])
+        assertEquals(februar(2022), maanederGammel[2])
+
+        val maanederNy = inntektLøsning.value!!.historisk.map { it.maaned }
+
+        assertEquals(april(2022), maanederNy[0])
+        assertEquals(mars(2022), maanederNy[1])
+        assertEquals(februar(2022), maanederNy[2])
     }
 
     private fun sendBehovTilLøser() {

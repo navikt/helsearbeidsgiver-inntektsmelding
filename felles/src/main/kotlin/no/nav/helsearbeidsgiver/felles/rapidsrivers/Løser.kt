@@ -5,11 +5,17 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
     lateinit var eventName: EventName
     lateinit var forespoerselId: String
+    lateinit var uuid: UUID
+
+    lateinit var localContext: ConcurrentHashMap<String, JsonMessage>
 
     init {
         configure(
@@ -49,6 +55,10 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     fun publishData(message: JsonMessage) {
         message.set(Key.EVENT_NAME.str, eventName.name)
         rapidsConnection.publish(message.toJson())
+    }
+
+    fun publishFail(fail: Fail) {
+        rapidsConnection.publish(fail.toJsonMessage().toJson())
     }
 
     fun publishFail(message: JsonMessage) {

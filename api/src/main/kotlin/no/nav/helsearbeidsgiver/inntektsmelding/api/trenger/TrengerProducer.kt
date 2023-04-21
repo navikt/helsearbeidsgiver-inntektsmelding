@@ -18,6 +18,7 @@ class TrengerProducer(
 
     fun publish(request: TrengerRequest, initiateId: UUID = UUID.randomUUID()): UUID {
         rapid.publish(
+            Key.EVENT_NAME to "TRENGER_REQUESTED".toJson(),
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.FORESPOERSEL_ID to request.uuid.toJson(),
             Key.BOOMERANG to mapOf(

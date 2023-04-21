@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
@@ -52,6 +53,7 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
         }
         hentTrengerImLøsning.value?.let {
             sikkerlogg.info("Fant løsning: $hentTrengerImLøsning")
+            packet[Key.EVENT_NAME.str] = "TRENGER_REQUESTED"
             packet[Key.IDENTITETSNUMMER.str] = it.fnr
             packet[Key.ORGNRUNDERENHET.str] = it.orgnr
             packet[Key.NESTE_BEHOV.str] = listOf(

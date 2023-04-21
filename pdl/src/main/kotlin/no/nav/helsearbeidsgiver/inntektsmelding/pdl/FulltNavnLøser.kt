@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -15,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.publishFail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -22,26 +22,18 @@ import java.time.LocalDate
 class FulltNavnLøser(
     rapidsConnection: RapidsConnection,
     private val pdlClient: PdlClient
-) : River.PacketListener {
+) : Løser(rapidsConnection) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val BEHOV = BehovType.FULLT_NAVN
-
-    init {
-        River(rapidsConnection).apply {
-            validate {
-                it.demandAll(Key.BEHOV.str, BEHOV)
-                it.requireKey(Key.ID.str)
-                it.requireKey(Key.IDENTITETSNUMMER.str)
-                it.rejectKey(Key.LØSNING.str)
-                it.interestedIn(Key.UUID.str)
-                it.interestedIn(Key.FORESPOERSEL_ID.str)
-                it.interestedIn(Key.EVENT_NAME.str)
-            }
-        }.register(this)
+    override fun accept(): River.PacketValidation {
+        return River.PacketValidation {
+            it.demandAll(Key.BEHOV.str, BEHOV)
+            it.requireKey(Key.IDENTITETSNUMMER.str)
+        }
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onBehov(packet: JsonMessage) {
         val id = packet[Key.ID.str].asText()
         logger.info("Henter navn for id: $id")
         val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
@@ -51,24 +43,24 @@ class FulltNavnLøser(
             }
             sikkerlogg.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for id: $id")
             logger.info("Fant navn for id: $id")
-            publish(NavnLøsning(info), packet, context)
-            publishDatagram(info, packet, context)
+            publish(NavnLøsning(info), packet)
+            publishDatagram(info, packet)
         } catch (ex: Exception) {
             logger.error("Klarte ikke hente navn for id $id")
             sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for id: $id", ex)
-            publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet, context)
-            publishFail(packet.createFail("Ukjent person", behoveType = BehovType.FULLT_NAVN), packet, context)
+            publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet)
+            publishFail(packet.createFail("Klarte ikke hente navn", behoveType = BehovType.FULLT_NAVN))
         }
     }
 
-    fun publish(løsning: NavnLøsning, packet: JsonMessage, context: MessageContext) {
+    fun publish(løsning: NavnLøsning, packet: JsonMessage) {
         packet.setLøsning(BEHOV, løsning)
         val json = packet.toJson()
-        context.publish(json)
+        super.publishBehov(packet)
         sikkerlogg.info("FulltNavnLøser: publiserte: $json")
     }
 
-    fun publishDatagram(personInformasjon: PersonDato, jsonMessage: JsonMessage, context: MessageContext) {
+    fun publishDatagram(personInformasjon: PersonDato, jsonMessage: JsonMessage) {
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
@@ -77,7 +69,7 @@ class FulltNavnLøser(
                 DataFelt.ARBEIDSTAKER_INFORMASJON.str to personInformasjon
             )
         )
-        context.publish(message.toJson())
+        super.publishData(message)
     }
 
     suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {

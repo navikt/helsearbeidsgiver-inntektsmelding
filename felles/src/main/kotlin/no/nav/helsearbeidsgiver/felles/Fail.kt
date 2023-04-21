@@ -14,12 +14,13 @@ data class Fail(
     val feilmelding: String,
     val data: HashMap<DataFelt, Any>?,
     val uuid: String?,
-    val forespørselId: String?
+    val forespørselId: String?,
+    private val originalMessage: JsonMessage
 ) {
     fun toJsonMessage(): JsonMessage {
         return JsonMessage.newMessage(
-            mutableMapOf<String, Any>().putIfNotEmpty(
-                Key.EVENT_NAME.str to this.eventName,
+            mapOfNotNull(
+                Key.EVENT_NAME.str to originalMessage[Key.EVENT_NAME.str].asText(),
                 Key.FAIL.str to this,
                 Key.UUID.str to this.uuid
             )
@@ -27,11 +28,10 @@ data class Fail(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-fun <K, V> MutableMap<K, V>.putIfNotEmpty(vararg pair: Pair<K, V?>): MutableMap<K, V> {
-    this.putAll(pair.filter { it.second != null } as Iterable<Pair<K, V>>)
-    return this
+fun <K : Any, V : Any>mapOfNotNull(vararg pair: Pair<K, V?>): Map<K, V> = mapOf(*pair).mapNotNull { (key, value) ->
+    value?.let { key to it }
 }
+    .toMap()
 
 fun JsonMessage.toFeilMessage(): Fail {
     return customObjectMapper().treeToValue(this[Key.FAIL.str], Fail::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
@@ -43,7 +43,7 @@ fun JsonMessage.createFail(feilmelding: String, data: HashMap<DataFelt, Any>? = 
     val behov: BehovType? = behoveType ?: if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null
     val forespørselId = this.valueNullableOrUndefined(Key.FORESPOERSEL_ID)?.asText()
     val eventName = this.valueNullableOrUndefined(Key.EVENT_NAME)?.asText()
-    return Fail(eventName?.let { EventName.valueOf(eventName) }, behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId)
+    return Fail(eventName?.let { EventName.valueOf(eventName) }, behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId, this)
 }
 
 fun River.PacketListener.publishFail(fail: Fail, jsonMessage: JsonMessage, context: MessageContext) {

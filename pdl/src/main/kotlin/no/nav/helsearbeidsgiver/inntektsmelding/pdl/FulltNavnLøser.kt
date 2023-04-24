@@ -43,7 +43,7 @@ class FulltNavnLøser(
             val info = runBlocking {
                 hentPersonInfo(identitetsnummer)
             }
-            sikkerlogg.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for id: $idtext")
+            sikkerlogg.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for $idtext")
             logger.info("Fant navn for id: $idtext")
             publish(NavnLøsning(info), packet)
             publishDatagram(info, packet)

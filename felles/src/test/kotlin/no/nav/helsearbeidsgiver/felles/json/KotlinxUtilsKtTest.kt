@@ -187,6 +187,27 @@ class KotlinxUtilsKtTest : FunSpec({
         actualObject shouldBe expectedObject
     }
 
+    test("'JsonElement.fromJsonMap(KSerializer<T>): Map<T, JsonElement>' deserialiserer korrekt") {
+        val gandalfJson = """
+            {
+                "name": {
+                    "first": "Gandalf",
+                    "last": "The Grey"
+                },
+                "age": 2000
+            }
+        """.removeJsonWhitespace()
+
+        val expectedObject = mapOf(
+            "name" to Name("Gandalf", "The Grey").toJson(Name.serializer()),
+            "age" to 2000.toJson(Int.serializer())
+        )
+
+        val actualObject = gandalfJson.parseJson().fromJsonMap(String.serializer())
+
+        actualObject shouldBe expectedObject
+    }
+
     test("'String.parseJson(): JsonElement' serialiserer korrekt") {
         val bilboJson = """
             {

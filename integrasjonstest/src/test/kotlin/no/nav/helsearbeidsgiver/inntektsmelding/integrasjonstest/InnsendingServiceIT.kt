@@ -8,6 +8,9 @@ import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.GYLDIG
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.TestData
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance

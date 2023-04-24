@@ -41,22 +41,23 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val transactionId = packet[Key.UUID.str].asText()
         val event = packet[Key.EVENT_NAME.str].asText()
-        logger.info("Løser behov $BEHOV med id $forespoerselId")
-        sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
+        logger.info("Skal hente persistert inntektsmelding med forespørselId $forespoerselId")
+        sikkerlogg.info("Skal hente persistert inntektsmelding for pakke: ${packet.toJson()}")
         var løsning = HentPersistertLøsning(error = Feilmelding("Klarte ikke hente persistert inntektsmelding"))
         try {
             val dokument = repository.hentNyeste(forespoerselId)
             if (dokument == null) {
+                logger.info("Fant IKKE persistert inntektsmelding for forespørselId $forespoerselId")
                 løsning = HentPersistertLøsning("")
             } else {
-                sikkerlogg.info("Fant dokument: $dokument")
+                logger.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
                 løsning = HentPersistertLøsning(dokument.toString())
             }
             publiserLøsning(løsning, packet)
             publiserData(packet, dokument)
         } catch (ex: Exception) {
-            logger.info("Klarte ikke hente persistert inntektsmelding")
-            sikkerlogg.error("Klarte ikke hente persistert inntektsmelding", ex)
+            logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId")
+            sikkerlogg.error("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId", ex)
             publiserFeil(transactionId, event, løsning.error)
         }
     }

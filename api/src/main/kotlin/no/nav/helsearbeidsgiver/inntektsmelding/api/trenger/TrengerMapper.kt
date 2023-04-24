@@ -70,7 +70,7 @@ class TrengerMapper(
             orgnrUnderenhet = mapOrgNummer(),
             fravaersperioder = mapFraværsperiode(),
             egenmeldingsperioder = mapEgenmeldingsperioder(),
-            bruttoinntekt = inntekt.bruttoInntekt,
+            bruttoinntekt = inntekt.gjennomsnitt(),
             tidligereinntekter = inntekt.historisk,
             behandlingsperiode = null,
             behandlingsdager = emptyList(),

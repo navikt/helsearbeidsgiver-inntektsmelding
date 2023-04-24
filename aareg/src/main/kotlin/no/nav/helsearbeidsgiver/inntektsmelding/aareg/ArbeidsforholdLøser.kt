@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.aareg.AaregClient
@@ -18,34 +17,29 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.log.logger
 import no.nav.helsearbeidsgiver.felles.publishFail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
 class ArbeidsforholdLøser(
     rapidsConnection: RapidsConnection,
     private val aaregClient: AaregClient
-) : River.PacketListener {
+) : Løser(rapidsConnection) {
     private val logger = this.logger()
 
     private val behovType = BehovType.ARBEIDSFORHOLD
 
-    init {
-        River(rapidsConnection).apply {
-            validate {
-                it.demandAll(Key.BEHOV.str, behovType)
-                it.rejectKey(Key.LØSNING.str)
-                it.requireKey(
-                    Key.ID.str,
-                    Key.IDENTITETSNUMMER.str
-                    //    Key.UUID.str
-                )
-                it.interestedIn(Key.UUID.str)
-                it.interestedIn(Key.FORESPOERSEL_ID.str)
-            }
-        }.register(this)
+    override fun accept(): River.PacketValidation {
+        return River.PacketValidation {
+            it.demandAll(Key.BEHOV.str, behovType)
+            it.requireKey(
+                Key.ID.str,
+                Key.IDENTITETSNUMMER.str
+            )
+        }
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onBehov(packet: JsonMessage) {
         val id = packet.value(Key.ID).asText()
         val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
 
@@ -60,25 +54,24 @@ class ArbeidsforholdLøser(
         }
 
         packet.setLøsning(behovType, løsning)
-        context.publish(packet.toJson())
+        super.publishBehov(packet)
 
         if (arbeidsforhold != null) {
-            publishDatagram(Data(arbeidsforhold), packet, context)
+            publishDatagram(Data(arbeidsforhold), packet)
         } else {
-            publishFail(packet.createFail("Klarte ikke hente arbeidsforhold", behoveType = BehovType.ARBEIDSFORHOLD), packet, context)
+            publishFail(packet.createFail("Klarte ikke hente arbeidsforhold", behoveType = BehovType.ARBEIDSFORHOLD))
         }
     }
 
-    fun publishDatagram(data: Data<Any>, jsonMessage: JsonMessage, context: MessageContext) {
+    fun publishDatagram(data: Data<Any>, jsonMessage: JsonMessage) {
         val message = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
                 Key.DATA.str to "",
                 Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
                 DataFelt.ARBEIDSFORHOLD.str to data
             )
         )
-        context.publish(message.toJson())
+        publishData(message)
     }
 
     private fun hentArbeidsforhold(fnr: String, callId: String): List<Arbeidsforhold>? =

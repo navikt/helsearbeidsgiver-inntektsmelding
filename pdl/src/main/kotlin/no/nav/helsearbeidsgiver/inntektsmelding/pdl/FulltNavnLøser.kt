@@ -34,20 +34,22 @@ class FulltNavnLøser(
     }
 
     override fun onBehov(packet: JsonMessage) {
-        val id = packet[Key.ID.str].asText()
-        logger.info("Henter navn for id: $id")
+        val idtext = packet[Key.UUID.str]?.asText().let { if (it.isNullOrEmpty()) null else "id is $it" }
+            ?: packet[Key.UUID.str]?.asText().let { if (it.isNullOrEmpty()) null else "forespoerselId is $it" }
+            ?: " kan ikke finne uuid/forespørselID"
+        logger.info("Henter navn for $idtext")
         val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
         try {
             val info = runBlocking {
                 hentPersonInfo(identitetsnummer)
             }
-            sikkerlogg.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for id: $id")
-            logger.info("Fant navn for id: $id")
+            sikkerlogg.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for id: $idtext")
+            logger.info("Fant navn for id: $idtext")
             publish(NavnLøsning(info), packet)
             publishDatagram(info, packet)
         } catch (ex: Exception) {
-            logger.error("Klarte ikke hente navn for id $id")
-            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for id: $id", ex)
+            logger.error("Klarte ikke hente navn for $idtext")
+            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for $idtext", ex)
             publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet)
             publishFail(packet.createFail("Klarte ikke hente navn", behoveType = BehovType.FULLT_NAVN))
         }

@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.require
@@ -45,8 +46,9 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             .fromJson(ForespoerselSvar.serializer())
 
         loggerSikker.info("Oversatte melding:\n$forespoerselSvar")
-
+        val initiateEvent = forespoerselSvar.boomerang.toJsonNode().get(Key.INITIATE_EVENT.str).asText()
         context.publish(
+            Key.EVENT_NAME to initiateEvent.toJson(),
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.LØSNING to mapOf(
                 BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()

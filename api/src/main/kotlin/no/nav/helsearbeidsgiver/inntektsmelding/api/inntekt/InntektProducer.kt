@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -21,6 +22,7 @@ class InntektProducer(
         val initiateId = UUID.randomUUID()
         val spleisForesporselId = request.forespoerselId
         rapid.publish(
+            Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(EventName.serializer()),
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.FORESPOERSEL_ID to spleisForesporselId.toJson(),
             Key.BOOMERANG to mapOf(

@@ -29,6 +29,7 @@ enum class Key(val str: String) {
     NESTE_BEHOV("neste_behov"),
     IDENTITETSNUMMER("identitetsnummer"),
     INITIATE_ID("initiateId"),
+    INITIATE_EVENT("initiate-event"),
     UUID("uuid"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNR("orgnr"),

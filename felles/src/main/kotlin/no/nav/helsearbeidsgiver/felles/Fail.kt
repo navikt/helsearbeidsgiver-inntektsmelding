@@ -19,7 +19,7 @@ data class Fail(
     fun toJsonMessage(): JsonMessage {
         return JsonMessage.newMessage(
             mapOfNotNull(
-                Key.EVENT_NAME.str to eventName.name,
+                Key.EVENT_NAME.str to eventName?.name,
                 Key.FAIL.str to this,
                 Key.UUID.str to this.uuid
             )
@@ -42,7 +42,7 @@ fun JsonMessage.createFail(feilmelding: String, data: HashMap<DataFelt, Any>? = 
     val behov: BehovType? = behoveType ?: if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null
     val forespørselId = this.valueNullableOrUndefined(Key.FORESPOERSEL_ID)?.asText()
     val eventName = this.valueNullableOrUndefined(Key.EVENT_NAME)?.asText()
-    return Fail(eventName?.let { EventName.valueOf(eventName) }, behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId, this)
+    return Fail(eventName?.let { EventName.valueOf(eventName) }, behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId)
 }
 
 fun River.PacketListener.publishFail(fail: Fail, jsonMessage: JsonMessage, context: MessageContext) {
@@ -53,5 +53,5 @@ fun River.PacketListener.publishFail(fail: Fail, jsonMessage: JsonMessage, conte
             Key.UUID.str to jsonMessage[Key.UUID.str].asText()
         )
     )
-    context.publish(fail.toJsonMessage().toJson())
+    context.publish(message.toJson())
 }

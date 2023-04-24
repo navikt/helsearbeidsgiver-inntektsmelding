@@ -39,6 +39,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         return River.PacketValidation {
             it.demandAll(Key.BEHOV.str, BEHOV)
             it.requireKey(Key.ORGNRUNDERENHET.str)
+            it.requireKey(Key.ID.str)
         }
     }
 

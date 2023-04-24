@@ -27,7 +27,7 @@ data class Fail(
     }
 }
 
-fun <K : Any, V : Any>mapOfNotNull(vararg pair: Pair<K, V?>): Map<K, V> = mapOf(*pair).mapNotNull { (key, value) ->
+fun <K : Any, V : Any> mapOfNotNull(vararg pair: Pair<K, V?>): Map<K, V> = mapOf(*pair).mapNotNull { (key, value) ->
     value?.let { key to it }
 }
     .toMap()

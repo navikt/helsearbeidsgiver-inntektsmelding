@@ -52,7 +52,6 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
         }
         hentTrengerImLøsning.value?.let {
             sikkerlogg.info("Fant løsning: $hentTrengerImLøsning")
-            packet[Key.EVENT_NAME.str] = packet[Key.EVENT_NAME.str]
             packet[Key.IDENTITETSNUMMER.str] = it.fnr
             packet[Key.ORGNRUNDERENHET.str] = it.orgnr
             packet[Key.NESTE_BEHOV.str] = listOf(

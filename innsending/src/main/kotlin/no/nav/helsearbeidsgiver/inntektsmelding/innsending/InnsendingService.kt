@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -18,9 +19,10 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
     override val event: EventName = EventName.INSENDING_STARTED
 
     init {
-        InnsendingStartedListener(this, rapidsConnection)
-        DelegatingFailKanal(EventName.INSENDING_STARTED, this, rapidsConnection)
-        StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), EventName.INSENDING_STARTED, this, rapidsConnection, redisStore)
+        withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
+        withDataKanal { StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(),event, it,rapidsConnection ,redisStore) }
+        withEventListener { InnsendingStartedListener(this, rapidsConnection) }
+
     }
 
     class InnsendingStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -133,7 +135,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
                                         )
                                     }
                                     ),
-                                Key.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(uuid + DataFelter.INNTEKTSMELDING_REQUEST.str)!!),
+                                Key.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(uuid + Key.INNTEKTSMELDING.str)!!),
                                 Key.FORESPOERSEL_ID.str to redisStore.get(uuid + Key.FORESPOERSEL_ID.str)!!,
                                 Key.UUID.str to uuid
                             )
@@ -166,9 +168,9 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
 
     override fun initialTransactionState(message: JsonMessage) {
         val uuid = message.get(Key.UUID.str).asText()
-        val requestKey = "${uuid}${DataFelter.INNTEKTSMELDING_REQUEST.str}"
+        val requestKey = "${uuid}${Key.INNTEKTSMELDING.str}"
         val forespoerselKey = "${uuid}${Key.FORESPOERSEL_ID.str}"
-        redisStore.set(requestKey, message[DataFelter.INNTEKTSMELDING_REQUEST.str].toString())
+        redisStore.set(requestKey, message[Key.INNTEKTSMELDING.str].toString())
         redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].asText())
     }
     fun step1data(uuid: String): Array<String> = arrayOf(

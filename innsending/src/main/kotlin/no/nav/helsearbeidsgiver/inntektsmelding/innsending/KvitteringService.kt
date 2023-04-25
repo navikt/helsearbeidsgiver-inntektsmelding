@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
@@ -19,7 +20,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, val redisStore: 
         logger.info("Starter kvitteringservice")
         listener = KvitteringStartedListener(this, rapidsConnection)
         DelegatingFailKanal(EventName.KVITTERING_REQUESTED, this, rapidsConnection)
-        StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), EventName.KVITTERING_REQUESTED, this, rapidsConnection, redisStore)
+        StatefullDataKanal(arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str), EventName.KVITTERING_REQUESTED, this, rapidsConnection, redisStore)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

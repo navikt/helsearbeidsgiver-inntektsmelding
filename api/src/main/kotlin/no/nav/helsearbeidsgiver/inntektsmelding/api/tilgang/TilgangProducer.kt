@@ -23,7 +23,7 @@ class TilgangProducer(private val rapid: RapidsConnection) {
             Key.IDENTITETSNUMMER to fnr.toJson(),
             Key.FORESPOERSEL_ID to forespørselId.toJson(),
             Key.BOOMERANG to mapOf(
-                Key.INITIATE_ID.str to UUID.randomUUID().toJson(),
+                Key.INITIATE_ID.str to initiateId.toJson(),
                 Key.NESTE_BEHOV.str to listOf(BehovType.TILGANGSKONTROLL).toJson(BehovType.serializer())
             ).toJson()
         ) {

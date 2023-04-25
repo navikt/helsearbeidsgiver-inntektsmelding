@@ -12,11 +12,10 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
-import no.nav.helsearbeidsgiver.felles.toFeilMessage
 
-class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: RedisStore) : River.PacketListener {
+class InnsendingService(val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
 
-    val event: EventName = EventName.INSENDING_STARTED
+    override val event: EventName = EventName.INSENDING_STARTED
 
     init {
         InnsendingStartedListener(this, rapidsConnection)
@@ -33,7 +32,6 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
                 it.interestedIn(Key.INNTEKTSMELDING.str)
                 it.requireKey(Key.ORGNRUNDERENHET.str)
                 it.requireKey(Key.IDENTITETSNUMMER.str)
-                it.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }
 
@@ -42,7 +40,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         }
     }
 
-    fun onError(feil: Fail): Transaction {
+    override fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.VIRKSOMHET) {
             val virksomhetKey = "${feil.uuid}${DataFelter.VIRKSOMHET}"
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
@@ -64,7 +62,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
 
         when (transaction) {
             Transaction.NEW -> {
-                setBrukerTransactionState(packet)
+                initialTransactionState(packet)
                 dispatchBehov(packet, transaction)
             }
             Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
@@ -73,11 +71,11 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         }
     }
 
-    fun terminate(message: JsonMessage) {
+    override fun terminate(message: JsonMessage) {
         redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
     }
 
-    fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
+    override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid: String = message[Key.UUID.str].asText()
         when (transaction) {
             Transaction.NEW -> {
@@ -150,7 +148,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         }
     }
 
-    fun finalize(message: JsonMessage) {
+    override fun finalize(message: JsonMessage) {
         val uuid: String = message[Key.UUID.str].asText()
         redisStore.set(uuid, message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
         logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
@@ -166,46 +164,16 @@ class InnsendingService(val rapidsConnection: RapidsConnection, val redisStore: 
         )
     }
 
-    fun determineTransactionState(message: JsonMessage): Transaction {
-        if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
-            return onError(message.toFeilMessage())
-        }
-        val uuid = message.get(Key.UUID.str).asText()
-        val eventKey = "${uuid}${event.name}"
-        val value = redisStore.get(eventKey)
-        if (value.isNullOrEmpty()) {
-            redisStore.set(eventKey, uuid)
-            return Transaction.NEW
-        } else {
-            if (isDataCollected(*allData(uuid))) return Transaction.FINALIZE
-        }
-        return Transaction.IN_PROGRESS
-    }
-
-    fun setBrukerTransactionState(message: JsonMessage) {
+    override fun initialTransactionState(message: JsonMessage) {
         val uuid = message.get(Key.UUID.str).asText()
         val requestKey = "${uuid}${DataFelter.INNTEKTSMELDING_REQUEST.str}"
         val forespoerselKey = "${uuid}${Key.FORESPOERSEL_ID.str}"
         redisStore.set(requestKey, message[DataFelter.INNTEKTSMELDING_REQUEST.str].toString())
         redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].asText())
     }
-
-    fun isFailMelding(jsonMessage: JsonMessage): Boolean {
-        try {
-            return !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
-        } catch (e: NoSuchFieldError) {
-            return false
-        } catch (e: IllegalArgumentException) {
-            return false
-        }
-    }
-
     fun step1data(uuid: String): Array<String> = arrayOf(
         uuid + DataFelter.VIRKSOMHET.str,
         uuid + DataFelter.ARBEIDSFORHOLD.str,
         uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str
     )
-    fun allData(uuid: String) = step1data(uuid) + (uuid + DataFelter.INNTEKTSMELDING_DOKUMENT.str)
-
-    fun isDataCollected(vararg keys: String): Boolean = redisStore.exist(*keys) == keys.size.toLong()
 }

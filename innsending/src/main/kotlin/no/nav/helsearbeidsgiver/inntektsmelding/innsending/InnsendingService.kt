@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -20,9 +19,8 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
-        withDataKanal { StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(),event, it,rapidsConnection ,redisStore) }
+        withDataKanal { StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), event, it, rapidsConnection, redisStore) }
         withEventListener { InnsendingStartedListener(this, rapidsConnection) }
-
     }
 
     class InnsendingStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {

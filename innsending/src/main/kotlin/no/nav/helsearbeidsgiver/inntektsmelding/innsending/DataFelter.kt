@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 
-
 enum class DataFelter(val str: String) {
 
     VIRKSOMHET(DataFelt.VIRKSOMHET.str),

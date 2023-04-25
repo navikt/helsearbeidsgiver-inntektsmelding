@@ -5,7 +5,9 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
+import java.util.UUID
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
     lateinit var eventName: EventName
@@ -49,6 +51,10 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     fun publishData(message: JsonMessage) {
         message.set(Key.EVENT_NAME.str, eventName.name)
         rapidsConnection.publish(message.toJson())
+    }
+
+    fun publishFail(fail: Fail) {
+        rapidsConnection.publish(fail.toJsonMessage().toJson())
     }
 
     fun publishFail(message: JsonMessage) {

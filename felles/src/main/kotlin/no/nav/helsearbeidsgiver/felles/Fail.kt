@@ -18,8 +18,8 @@ data class Fail(
 ) {
     fun toJsonMessage(): JsonMessage {
         return JsonMessage.newMessage(
-            mutableMapOf<String, Any>().putIfNotEmpty(
-                Key.EVENT_NAME.str to this.eventName,
+            mapOfNotNull(
+                Key.EVENT_NAME.str to eventName?.name,
                 Key.FAIL.str to this,
                 Key.UUID.str to this.uuid
             )
@@ -27,11 +27,10 @@ data class Fail(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-fun <K, V> MutableMap<K, V>.putIfNotEmpty(vararg pair: Pair<K, V?>): MutableMap<K, V> {
-    this.putAll(pair.filter { it.second != null } as Iterable<Pair<K, V>>)
-    return this
+fun <K : Any, V : Any> mapOfNotNull(vararg pair: Pair<K, V?>): Map<K, V> = mapOf(*pair).mapNotNull { (key, value) ->
+    value?.let { key to it }
 }
+    .toMap()
 
 fun JsonMessage.toFeilMessage(): Fail {
     return customObjectMapper().treeToValue(this[Key.FAIL.str], Fail::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
@@ -54,5 +53,5 @@ fun River.PacketListener.publishFail(fail: Fail, jsonMessage: JsonMessage, conte
             Key.UUID.str to jsonMessage[Key.UUID.str].asText()
         )
     )
-    context.publish(fail.toJsonMessage().toJson())
+    context.publish(message.toJson())
 }

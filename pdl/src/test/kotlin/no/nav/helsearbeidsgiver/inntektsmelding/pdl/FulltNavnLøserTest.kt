@@ -11,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.pdl.PdlClient
@@ -45,6 +46,7 @@ internal class FulltNavnLøserTest {
         } returns mockPerson("Ola", "", "Normann", LocalDate.now())
         val løsning = sendMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.EVENT_FOR_TEST,
                 Key.BEHOV.str to listOf(BEHOV.name),
                 Key.ID.str to UUID.randomUUID(),
                 Key.IDENTITETSNUMMER.str to "abc"
@@ -59,6 +61,7 @@ internal class FulltNavnLøserTest {
     fun `skal håndtere ukjente feil`() {
         val løsning = sendMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.EVENT_FOR_TEST,
                 Key.BEHOV.str to listOf(BEHOV.name),
                 Key.ID.str to UUID.randomUUID(),
                 Key.IDENTITETSNUMMER.str to "abc"

@@ -41,7 +41,8 @@ class Akkumulator(
                     Key.INITIATE_ID.str,
                     Key.UUID.str,
                     Key.IDENTITETSNUMMER.str,
-                    Key.NESTE_BEHOV.str
+                    Key.NESTE_BEHOV.str,
+                    Key.EVENT_NAME.str
                 )
             }
         }.register(this)

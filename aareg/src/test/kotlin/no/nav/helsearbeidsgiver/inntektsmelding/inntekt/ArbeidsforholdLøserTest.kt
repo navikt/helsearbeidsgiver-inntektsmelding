@@ -14,6 +14,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -40,6 +41,7 @@ class ArbeidsforholdLøserTest : FunSpec({
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
 
         testRapid.sendJson(
+            Key.EVENT_NAME to EventName.EVENT_FOR_TEST.toJson(EventName.serializer()),
             Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
             Key.ID to MockUuid.STRING.toJson(),
             Key.UUID to "uuid".toJson(),
@@ -59,6 +61,7 @@ class ArbeidsforholdLøserTest : FunSpec({
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
 
         testRapid.sendJson(
+            Key.EVENT_NAME to EventName.EVENT_FOR_TEST.toJson(EventName.serializer()),
             Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
             Key.ID to MockUuid.STRING.toJson(),
             Key.UUID to "uuiid".toJson(),

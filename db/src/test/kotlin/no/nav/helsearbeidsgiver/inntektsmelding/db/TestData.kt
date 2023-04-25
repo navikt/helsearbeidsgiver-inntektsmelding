@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -15,6 +16,12 @@ val INNTEKTSMELDING_DOKUMENT = no.nav.helsearbeidsgiver.felles.inntektsmelding.f
     fraværsperioder = emptyList(),
     arbeidsgiverperioder = emptyList(),
     beregnetInntekt = 502.0.toBigDecimal(),
+    Inntekt(
+        bekreftet = true,
+        beregnetInntekt = 502.0.toBigDecimal(),
+        endringÅrsak = null,
+        manueltKorrigert = false
+    ),
     refusjon = Refusjon(
         true,
         500.0.toBigDecimal(),
@@ -30,3 +37,5 @@ val INNTEKTSMELDING_DOKUMENT = no.nav.helsearbeidsgiver.felles.inntektsmelding.f
     ),
     identitetsnummerInnsender = "123"
 )
+
+val INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT = INNTEKTSMELDING_DOKUMENT.copy(inntekt = null)

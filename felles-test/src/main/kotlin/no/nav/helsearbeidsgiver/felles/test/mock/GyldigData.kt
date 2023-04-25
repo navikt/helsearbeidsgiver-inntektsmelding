@@ -1,11 +1,16 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock
+package no.nav.helsearbeidsgiver.felles.test.mock
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
+import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.OffsetDateTime
 
 object TestData {
     val validIdentitetsnummer = "20015001543"
@@ -15,7 +20,7 @@ object TestData {
     val notValidOrgNr = "123456789"
 }
 
-val GYLDIG = InnsendingRequest(
+val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
     TestData.validOrgNr,
     TestData.validIdentitetsnummer,
     listOf(LocalDate.now().plusDays(5)),
@@ -44,3 +49,26 @@ val GYLDIG = InnsendingRequest(
     no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.ENDRING,
     true
 )
+
+val INNTEKTSMELDING_DOK_MED_GAMMEL_INNTEKT = InntektsmeldingDokument(
+    orgnrUnderenhet = TestData.validOrgNr,
+    identitetsnummer = TestData.validIdentitetsnummer,
+    fulltNavn = "Testnavn",
+    virksomhetNavn = "Test A/S",
+    behandlingsdager = emptyList(),
+    egenmeldingsperioder = emptyList(),
+    bestemmendeFraværsdag = LocalDate.now(),
+    fraværsperioder = emptyList(),
+    arbeidsgiverperioder = emptyList(),
+    beregnetInntekt = BigDecimal.ONE,
+    inntekt = null,
+    fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(utbetalerFullLønn = true),
+    refusjon = Refusjon(false),
+    naturalytelser = null,
+    tidspunkt = OffsetDateTime.now(),
+    årsakInnsending = ÅrsakInnsending.NY,
+    identitetsnummerInnsender = null
+)
+
+val DOK_MED_NY_INNTEKT =
+    INNTEKTSMELDING_DOK_MED_GAMMEL_INNTEKT.copy(inntekt = Inntekt(true, BigDecimal.ONE, NyStillingsprosent(LocalDate.of(2020, 1, 1)), true))

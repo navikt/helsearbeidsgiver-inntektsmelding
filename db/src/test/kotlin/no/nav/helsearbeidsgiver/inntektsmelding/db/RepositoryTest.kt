@@ -85,6 +85,30 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         }
     }
 
+    test("skal returnere im med gammelt inntekt-format ok") {
+        transaction {
+            InntektsmeldingEntitet.selectAll().toList()
+        }.shouldBeEmpty()
+        transaction {
+            ForespoerselEntitet.selectAll().toList()
+        }.shouldBeEmpty()
+
+        val UUID = "abc-1234"
+        val DOK_1 = INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT
+
+        foresporselRepo.lagreForespørsel(UUID, ORGNR)
+        inntektsmeldingRepo.lagreInntektsmeldng(UUID, DOK_1)
+
+        transaction {
+            InntektsmeldingEntitet.select {
+                all(
+                    InntektsmeldingEntitet.forespoerselId eq UUID,
+                    InntektsmeldingEntitet.dokument eq DOK_1
+                )
+            }.single()
+        }
+    }
+
     test("skal oppdatere journalpostId") {
         transaction {
             InntektsmeldingEntitet.selectAll().toList()

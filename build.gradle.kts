@@ -21,6 +21,11 @@ buildscript {
     }
 }
 
+dependencies {
+    subprojects.filter { it.name != "integrasjonstest" }.forEach {
+        jacocoAggregation(project(":${it.name}"))
+    }
+}
 allprojects {
     tasks {
         val jvmTargetVersion: String by project
@@ -98,6 +103,7 @@ subprojects {
             dependsOn(test)
             reports {
                 xml.required.set(true)
+                html.required.set(true)
                 csv.required.set(false)
                 html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
             }
@@ -162,6 +168,18 @@ tasks {
     create("deployMatrixProd") {
         deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
     }
+}
+
+reporting {
+    reports {
+        val testCodeCoverageReport2 by creating(JacocoCoverageReport::class) {
+            testType.set(TestSuiteType.UNIT_TEST)
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.named<JacocoReport>("testCodeCoverageReport"))
 }
 
 fun getBuildableProjects(buildAll: Boolean = false): List<String> {

@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -11,14 +10,14 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
-class KvitteringService(val rapidsConnection: RapidsConnection,override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
+class KvitteringService(val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
 
     override val event: EventName = EventName.KVITTERING_REQUESTED
     init {
         logger.info("Starter kvitteringservice")
         withEventListener { KvitteringStartedListener(this, rapidsConnection) }
-        withFailKanal { DelegatingFailKanal(event, this, rapidsConnection)}
-        withDataKanal { StatefullDataKanal(arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str), event, this, rapidsConnection, redisStore)}
+        withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
+        withDataKanal { StatefullDataKanal(arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str), event, this, rapidsConnection, redisStore) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {

@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
 class InnsendingService(val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
 
@@ -24,7 +23,10 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
         withEventListener { InnsendingStartedListener(this, rapidsConnection) }
     }
 
-    class InnsendingStartedListener(mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : DelegatingEventListener(mainListener,rapidsConnection) {
+    class InnsendingStartedListener(mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : DelegatingEventListener(
+        mainListener,
+        rapidsConnection
+    ) {
 
         override val event: EventName = EventName.INSENDING_STARTED
         override fun accept(): River.PacketValidation {

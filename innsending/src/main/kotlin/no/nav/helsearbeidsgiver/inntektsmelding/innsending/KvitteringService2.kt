@@ -1,25 +1,21 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
 class KvitteringService2(
-      override val rapidsConnection: RapidsConnection, override val redisStore: RedisStore
+    override val rapidsConnection: RapidsConnection,
+    override val redisStore: RedisStore
 ) : DefaultEventListener(
-        arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str),
-        redisStore,
-        EventName.KVITTERING_REQUESTED,
-        rapidsConnection
-    ) {
-
+    arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str),
+    redisStore,
+    EventName.KVITTERING_REQUESTED,
+    rapidsConnection
+) {
 
     init {
         start()

@@ -6,30 +6,33 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 
-open class DefaultEventListener(val dataFelter: Array<String>,
-                           override val redisStore: RedisStore,
-                           override val event: EventName,
-                           open val rapidsConnection: RapidsConnection
+open class DefaultEventListener(
+    val dataFelter: Array<String>,
+    override val redisStore: RedisStore,
+    override val event: EventName,
+    open val rapidsConnection: RapidsConnection
 ) : CompositeEventListener(redisStore) {
 
-
-
     fun start() {
-        withEventListener { object : DelegatingEventListener(this@DefaultEventListener,this.rapidsConnection) {
-            override val event: EventName = this@DefaultEventListener.event
+        withEventListener {
+            object : DelegatingEventListener(this@DefaultEventListener, this.rapidsConnection) {
+                override val event: EventName = this@DefaultEventListener.event
 
-            override fun accept(): River.PacketValidation = River.PacketValidation {  }
-        } }
+                override fun accept(): River.PacketValidation = River.PacketValidation { }
+            }
+        }
 
-        withDataKanal { StatefullDataKanal(dataFelter,
-            this.event,
-            this@DefaultEventListener,
-            this@DefaultEventListener.rapidsConnection,
-            this@DefaultEventListener.redisStore)  }
-        withFailKanal { DelegatingFailKanal(this.event,this@DefaultEventListener,this@DefaultEventListener.rapidsConnection) }
+        withDataKanal {
+            StatefullDataKanal(
+                dataFelter,
+                this.event,
+                this@DefaultEventListener,
+                this@DefaultEventListener.rapidsConnection,
+                this@DefaultEventListener.redisStore
+            )
+        }
+        withFailKanal { DelegatingFailKanal(this.event, this@DefaultEventListener, this@DefaultEventListener.rapidsConnection) }
     }
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         TODO("Not yet implemented")

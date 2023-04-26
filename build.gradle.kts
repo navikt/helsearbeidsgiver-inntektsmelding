@@ -104,7 +104,7 @@ subprojects {
             reports {
                 xml.required.set(true)
                 html.required.set(true)
-                csv.required.set(false)
+                csv.required.set(true)
                 html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
             }
         }
@@ -167,14 +167,6 @@ tasks {
 
     create("deployMatrixProd") {
         deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
-    }
-}
-
-reporting {
-    reports {
-        val testCodeCoverageReport2 by creating(JacocoCoverageReport::class) {
-            testType.set(TestSuiteType.UNIT_TEST)
-        }
     }
 }
 

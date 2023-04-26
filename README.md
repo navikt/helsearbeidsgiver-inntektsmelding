@@ -24,3 +24,9 @@ Start:
  LocalAkkumulatorApp.kt
  LocalApiApp.kt
 ```
+
+### Aggregert Testdekning: 
+```
+gradle testCodeCoverageReport
+```
+Output havner i build/reports/jacoco/testCodeCoverageReport

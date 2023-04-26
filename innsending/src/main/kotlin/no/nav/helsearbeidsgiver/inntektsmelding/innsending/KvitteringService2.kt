@@ -11,14 +11,18 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
-class KvitteringService(val rapidsConnection: RapidsConnection,override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
+class KvitteringService2(
+      override val rapidsConnection: RapidsConnection, override val redisStore: RedisStore
+) : DefaultEventListener(
+        arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str),
+        redisStore,
+        EventName.KVITTERING_REQUESTED,
+        rapidsConnection
+    ) {
 
-    override val event: EventName = EventName.KVITTERING_REQUESTED
+
     init {
-        logger.info("Starter kvitteringservice")
-        withEventListener { KvitteringStartedListener(this, rapidsConnection) }
-        withFailKanal { DelegatingFailKanal(event, this, rapidsConnection)}
-        withDataKanal { StatefullDataKanal(arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str), event, this, rapidsConnection, redisStore)}
+        start()
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -62,17 +66,5 @@ class KvitteringService(val rapidsConnection: RapidsConnection,override val redi
         val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
         redisStore.set(transaksjonsId, message[Key.FAIL.str].asText())
-    }
-    class KvitteringStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
-
-        override val event: EventName = EventName.KVITTERING_REQUESTED
-
-        override fun accept(): River.PacketValidation {
-            return River.PacketValidation {}
-        }
-
-        override fun onEvent(packet: JsonMessage) {
-            mainListener.onPacket(packet, rapidsConnection)
-        }
     }
 }

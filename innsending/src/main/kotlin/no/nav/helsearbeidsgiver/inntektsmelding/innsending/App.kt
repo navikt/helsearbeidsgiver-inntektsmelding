@@ -34,7 +34,8 @@ fun createApp(environment: Environment): RapidsConnection {
 
 fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection {
     InnsendingService(this, redisStore)
-    KvitteringService(this, redisStore)
+    KvitteringService2(this, redisStore)
+    //KvitteringService(this, redisStore)
     return this
 }
 

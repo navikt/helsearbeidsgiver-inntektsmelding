@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 
@@ -23,20 +24,15 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
         withEventListener { InnsendingStartedListener(this, rapidsConnection) }
     }
 
-    class InnsendingStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+    class InnsendingStartedListener(mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : DelegatingEventListener(mainListener,rapidsConnection) {
 
         override val event: EventName = EventName.INSENDING_STARTED
-
         override fun accept(): River.PacketValidation {
             return River.PacketValidation {
                 it.interestedIn(Key.INNTEKTSMELDING.str)
                 it.requireKey(Key.ORGNRUNDERENHET.str)
                 it.requireKey(Key.IDENTITETSNUMMER.str)
             }
-        }
-
-        override fun onEvent(packet: JsonMessage) {
-            mainListener.onPacket(packet, rapidsConnection)
         }
     }
 

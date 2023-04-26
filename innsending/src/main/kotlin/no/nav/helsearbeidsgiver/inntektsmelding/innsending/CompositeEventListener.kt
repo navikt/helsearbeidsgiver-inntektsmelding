@@ -58,7 +58,7 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
     abstract fun dispatchBehov(message: JsonMessage, transaction: Transaction)
     abstract fun finalize(message: JsonMessage)
     abstract fun terminate(message: JsonMessage)
-    abstract fun initialTransactionState(message: JsonMessage)
+    open fun initialTransactionState(message: JsonMessage) {}
 
     open fun onError(feil: Fail): Transaction {
         return Transaction.TERMINATE

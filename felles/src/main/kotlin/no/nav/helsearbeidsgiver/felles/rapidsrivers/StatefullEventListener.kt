@@ -7,8 +7,16 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 
-class StatefullEventListener(val redisStore: RedisStore,
-                             override val event: EventName, val dataFelter : Array<String>, override val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : DelegatingEventListener(mainListener,rapidsConnection) {
+class StatefullEventListener(
+    val redisStore: RedisStore,
+    override val event: EventName,
+    val dataFelter: Array<String>,
+    override val mainListener: River.PacketListener,
+    rapidsConnection: RapidsConnection
+) : DelegatingEventListener(
+    mainListener,
+    rapidsConnection
+) {
     override fun accept(): River.PacketValidation = River.PacketValidation {
         it.interestedIn(*dataFelter)
     }
@@ -17,14 +25,13 @@ class StatefullEventListener(val redisStore: RedisStore,
         val uuid = packet[Key.UUID.str].asText()
         dataFelter.map { dataFelt ->
             Pair(dataFelt, packet[dataFelt])
-        }.forEach{data ->
+        }.forEach { data ->
             val str = if (data!!.second.isTextual) { data!!.second.asText() } else data!!.second.toString()
             redisStore.set(packet[Key.UUID.str].asText() + data!!.first, str)
         }
     }
     override fun onEvent(packet: JsonMessage) {
         collectData(packet)
-        mainListener.onPacket(packet,rapidsConnection)
-
+        mainListener.onPacket(packet, rapidsConnection)
     }
 }

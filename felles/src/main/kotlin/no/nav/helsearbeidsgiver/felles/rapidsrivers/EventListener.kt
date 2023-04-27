@@ -11,7 +11,6 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
 
     abstract val event: EventName
     lateinit var forespørselId: String
-    lateinit var ex: (packet: JsonMessage, context: MessageContext) -> Unit
 
     init {
         configureAsListener(
@@ -34,7 +33,6 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
     }
-
     fun publishBehov(message: JsonMessage) {
         message.set(Key.EVENT_NAME.str, event.name)
         if (forespørselId.isNotEmpty()) {

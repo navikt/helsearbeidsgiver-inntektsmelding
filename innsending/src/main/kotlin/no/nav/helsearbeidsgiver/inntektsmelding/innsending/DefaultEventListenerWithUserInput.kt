@@ -1,14 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
+import jdk.jfr.Experimental
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DataFields
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.InputFelter
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 
-open class DefaultEventListener2(
-    val dataFelter: DataFields,
+@Experimental
+open class DefaultEventListenerWithUserInput(
+    val dataFelter: InputFelter,
     override val redisStore: RedisStore,
     override val event: EventName,
     open val rapidsConnection: RapidsConnection
@@ -16,19 +18,19 @@ open class DefaultEventListener2(
 
     fun start() {
         withEventListener {
-            StatefullEventListener(redisStore, event, dataFelter.IN.toTypedArray(), this@DefaultEventListener2, this.rapidsConnection)
+            StatefullEventListener(redisStore, event, dataFelter.IN.toTypedArray(), this@DefaultEventListenerWithUserInput, this.rapidsConnection)
         }
 
         withDataKanal {
             StatefullDataKanal(
                 dataFelter.OUT.toTypedArray(),
                 this.event,
-                this@DefaultEventListener2,
-                this@DefaultEventListener2.rapidsConnection,
-                this@DefaultEventListener2.redisStore
+                this@DefaultEventListenerWithUserInput,
+                this@DefaultEventListenerWithUserInput.rapidsConnection,
+                this@DefaultEventListenerWithUserInput.redisStore
             )
         }
-        withFailKanal { DelegatingFailKanal(this.event, this@DefaultEventListener2, this@DefaultEventListener2.rapidsConnection) }
+        withFailKanal { DelegatingFailKanal(this.event, this@DefaultEventListenerWithUserInput, this@DefaultEventListenerWithUserInput.rapidsConnection) }
     }
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         TODO("Not yet implemented")

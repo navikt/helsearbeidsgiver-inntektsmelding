@@ -7,9 +7,6 @@ import org.junit.jupiter.api.Test
 import org.mapstruct.factory.Mappers
 
 internal class InntektDokumentTilSkjemainnholdMapperTest {
-
-    val dokument = MockInntektsmeldingDokument()
-
     @Test
     fun `skall mappe InntektsMeldingdokument til Skjema`() {
         val inntektsmeldingDokument = MockInntektsmeldingDokument()
@@ -31,6 +28,7 @@ internal class InntektDokumentTilSkjemainnholdMapperTest {
         assertEquals(skjema.refusjon.endringIRefusjonListe.size, 3)
         assertEquals(skjema.opphoerAvNaturalytelseListe.size, 2)
         assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
+        assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
         println(xmlMapper().writeValueAsString(im))
     }
 }

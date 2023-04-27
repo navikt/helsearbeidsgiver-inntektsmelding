@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
@@ -52,48 +53,48 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal akseptere gyldig`() {
-        GYLDIG.validate()
+        GYLDIG_INNSENDING_REQUEST.validate()
     }
 
     @Test
     fun `skal kunne konvertere til json`() {
-        println(customObjectMapper().writeValueAsString(GYLDIG))
+        println(customObjectMapper().writeValueAsString(GYLDIG_INNSENDING_REQUEST))
     }
 
     @Test
     fun `skal gi feilmelding når orgnummer er ugyldig`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(orgnrUnderenhet = "").validate()
+            GYLDIG_INNSENDING_REQUEST.copy(orgnrUnderenhet = "").validate()
         }
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(orgnrUnderenhet = TestData.notValidOrgNr).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(orgnrUnderenhet = TestData.notValidOrgNr).validate()
         }
     }
 
     @Test
     fun `skal gi feilmelding når fnr er ugyldig`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(identitetsnummer = "").validate()
+            GYLDIG_INNSENDING_REQUEST.copy(identitetsnummer = "").validate()
         }
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(identitetsnummer = TestData.notValidIdentitetsnummer).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(identitetsnummer = TestData.notValidIdentitetsnummer).validate()
         }
     }
 
     @Test
     fun `skal godta tom liste med behandlingsdager`() {
-        GYLDIG.copy(behandlingsdager = emptyList()).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(behandlingsdager = emptyList()).validate()
     }
 
     @Test
     fun `skal godta tom liste med egenmeldinger`() {
-        GYLDIG.copy(egenmeldingsperioder = emptyList()).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(egenmeldingsperioder = emptyList()).validate()
     }
 
     @Test
     fun `skal ikke godta egenmeldinger hvor tom er før fom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(
+            GYLDIG_INNSENDING_REQUEST.copy(
                 egenmeldingsperioder = listOf(
                     Periode(
                         NOW.plusDays(1),
@@ -107,31 +108,31 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom bruttoInntekt er for høy`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG.inntekt.copy(beregnetInntekt = MAX_INNTEKT)
-            GYLDIG.copy(inntekt = inntekt).validate()
+            val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = MAX_INNTEKT)
+            GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt er negativ`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG.inntekt.copy(beregnetInntekt = NEGATIVT_BELØP)
-            GYLDIG.copy(inntekt = inntekt).validate()
+            val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = NEGATIVT_BELØP)
+            GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom bruttoInntekt ikke er bekreftet`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG.inntekt.copy(bekreftet = false)
-            GYLDIG.copy(inntekt = inntekt).validate()
+            val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(bekreftet = false)
+            GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom arbeidsgiver ikke betaler lønn og refusjonsbeløp er tom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(
+            GYLDIG_INNSENDING_REQUEST.copy(
                 fullLønnIArbeidsgiverPerioden = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden(
                     false
                 )
@@ -142,33 +143,33 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom refusjonsbeløp er for høyt`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(refusjon = Refusjon(true, MAX_REFUSJON)).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, MAX_REFUSJON)).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom refusjonsbeløp er negativt`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(refusjon = Refusjon(true, NEGATIVT_BELØP, LocalDate.now())).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, NEGATIVT_BELØP, LocalDate.now())).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom refusjonskravet opphører i perioden og dato er tom`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(refusjon = Refusjon(true, NEGATIVT_BELØP)).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, NEGATIVT_BELØP)).validate()
         }
     }
 
     @Test
     fun `skal godta tom liste med naturalytelser`() {
-        GYLDIG.copy(naturalytelser = emptyList()).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(naturalytelser = emptyList()).validate()
     }
 
     @Test
     fun `skal ikke godta naturalytelser med negativt beløp`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(
+            GYLDIG_INNSENDING_REQUEST.copy(
                 naturalytelser = listOf(
                     no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
                         no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
@@ -183,7 +184,7 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal ikke godta naturalytelser med for høyt beløp`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(
+            GYLDIG_INNSENDING_REQUEST.copy(
                 naturalytelser = listOf(
                     no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
                         no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
@@ -198,14 +199,14 @@ internal class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom opplysninger ikke er bekreftet`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG.copy(bekreftOpplysninger = false).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(bekreftOpplysninger = false).validate()
         }
     }
 
     @Test
     fun `skal bruke språkfil for feil`() {
         try {
-            GYLDIG.copy(
+            GYLDIG_INNSENDING_REQUEST.copy(
                 naturalytelser = listOf(
                     no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
                         no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
@@ -223,13 +224,13 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal godta ulike årsak innsendinger`() {
-        GYLDIG.copy(årsakInnsending = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.NY).validate()
-        GYLDIG.copy(årsakInnsending = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.ENDRING).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.NY).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.ENDRING).validate()
     }
 
     @Test
     fun `skal godta uten endringsårsak`() {
-        GYLDIG.copy(
+        GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = null,
                 beregnetInntekt = 1.0.toBigDecimal(),
@@ -241,7 +242,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal godta endringsårsak - Tariffendring`() {
-        GYLDIG.copy(
+        GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = Tariffendring(LocalDate.now(), LocalDate.now()),
                 beregnetInntekt = 1.0.toBigDecimal(),
@@ -253,7 +254,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal godta endringsårsak - Ferie`() {
-        GYLDIG.copy(
+        GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = Ferie(
                     listOf(
@@ -272,7 +273,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal godta endringsårsak - VarigLønnsendring`() {
-        GYLDIG.copy(
+        GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = VarigLonnsendring(LocalDate.now()),
                 beregnetInntekt = 1.0.toBigDecimal(),
@@ -284,7 +285,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal godta endringsårsak - Permisjon`() {
-        GYLDIG.copy(
+        GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = Permisjon(
                     listOf(
@@ -303,7 +304,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal godta endringsårsak - Permittering`() {
-        GYLDIG.copy(
+        GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = Permittering(
                     listOf(
@@ -322,7 +323,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal godta endringsårsak - NyStilling`() {
-        GYLDIG.copy(
+        GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = NyStilling(LocalDate.now()),
                 beregnetInntekt = 1.0.toBigDecimal(),
@@ -334,7 +335,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal godta endringsårsak - NyStillingsprosent`() {
-        GYLDIG.copy(
+        GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = NyStillingsprosent(LocalDate.now()),
                 beregnetInntekt = 1.0.toBigDecimal(),
@@ -346,7 +347,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal godta endringsårsak - Bonus`() {
-        GYLDIG.copy(
+        GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = Bonus(),
                 beregnetInntekt = 1.0.toBigDecimal(),

@@ -19,6 +19,7 @@ fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, ar
             request.fraværsperioder,
             request.arbeidsgiverperioder,
             request.inntekt.beregnetInntekt,
+            request.inntekt,
             request.fullLønnIArbeidsgiverPerioden,
             request.refusjon,
             request.naturalytelser,

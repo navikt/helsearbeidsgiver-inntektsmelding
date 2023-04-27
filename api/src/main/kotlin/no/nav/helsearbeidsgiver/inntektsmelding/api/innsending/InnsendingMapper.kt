@@ -43,8 +43,13 @@ fun mapInnsending(inntektsmeldingDokument: InntektsmeldingDokument): KvitteringR
         arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
         bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
         fraværsperioder = inntektsmeldingDokument.fraværsperioder,
-        // @TODO det er noe informasjon som vi mangler på InntektsMeldingDokument
-        inntekt = Inntekt(true, inntektsmeldingDokument.beregnetInntekt, null, false),
+        inntekt = Inntekt(
+            true,
+            // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
+            inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
+            inntektsmeldingDokument.inntekt?.endringÅrsak,
+            inntektsmeldingDokument.inntekt?.manueltKorrigert ?: false
+        ),
         fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
         refusjon = inntektsmeldingDokument.refusjon,
         naturalytelser = inntektsmeldingDokument.naturalytelser,

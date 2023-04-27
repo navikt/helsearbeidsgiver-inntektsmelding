@@ -54,6 +54,7 @@ dependencies {
 
     testApi(project(":api"))
 
+    testImplementation(project(":felles-test"))
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")

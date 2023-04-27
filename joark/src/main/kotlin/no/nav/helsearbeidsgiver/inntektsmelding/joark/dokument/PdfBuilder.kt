@@ -11,7 +11,10 @@ class PdfBuilder(
     val paddingHorisontal: Int = 45,
     val fontName: String = "Source Sans Pro Regular 400.ttf",
     val fontBold: String = "Source Sans Pro SemiBold 600.ttf",
-    val fontItalic: String = "Source Sans Pro Italic 400.ttf"
+    val fontItalic: String = "Source Sans Pro Italic 400.ttf",
+    val titleSize: Int = 30,
+    val sectionSize: Int = 24,
+    val bodySize: Int = 16,
 ) {
 
     private val list: MutableList<Text> = mutableListOf()
@@ -21,19 +24,19 @@ class PdfBuilder(
     private val PAGE_HEIGHT = 1560 - paddingVertical * 2 // 1560
 
     fun addTitle(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(30, title, false, false, x, y))
+        return add(Text(titleSize, title, false, false, x, y))
     }
 
     fun addSection(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(24, title, false, false, x, y))
+        return add(Text(sectionSize, title, false, false, x, y))
     }
 
     fun addBody(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(16, title, false, false, x, y))
+        return add(Text(bodySize, title, false, false, x, y))
     }
 
     fun addBold(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(16, title, true, false, x, y))
+        return add(Text(bodySize, title, true, false, x, y))
     }
 
     fun addLine(x: Int = 0, y: Int = 0): PdfBuilder {
@@ -41,7 +44,7 @@ class PdfBuilder(
     }
 
     fun addItalics(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(16, title, false, true, x, y))
+        return add(Text(bodySize, title, false, true, x, y))
     }
 
     fun add(text: Text): PdfBuilder {

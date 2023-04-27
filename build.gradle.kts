@@ -6,10 +6,10 @@ plugins {
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
     id("maven-publish")
-    java
-    jacoco
-    `jacoco-report-aggregation`
-    `jvm-test-suite`
+    id("java")
+    id("jacoco")
+    id("jacoco-report-aggregation")
+    id("jvm-test-suite")
 }
 
 buildscript {
@@ -22,10 +22,12 @@ buildscript {
 }
 
 dependencies {
-    subprojects.filter { it.name != "integrasjonstest" }.forEach {
-        jacocoAggregation(project(":${it.name}"))
-    }
+    subprojects.filter { it.name != "integrasjonstest" }
+        .forEach {
+            jacocoAggregation(project(":${it.name}"))
+        }
 }
+
 allprojects {
     tasks {
         val jvmTargetVersion: String by project
@@ -138,6 +140,7 @@ subprojects {
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 }
+
 tasks {
     val mapper = ObjectMapper()
 
@@ -168,18 +171,10 @@ tasks {
     create("deployMatrixProd") {
         deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
     }
-}
 
-reporting {
-    reports {
-        val testCodeCoverageReport2 by creating(JacocoCoverageReport::class) {
-            testType.set(TestSuiteType.UNIT_TEST)
-        }
+    check {
+        dependsOn(named<JacocoReport>("testCodeCoverageReport"))
     }
-}
-
-tasks.check {
-    dependsOn(tasks.named<JacocoReport>("testCodeCoverageReport"))
 }
 
 fun getBuildableProjects(buildAll: Boolean = false): List<String> {

@@ -28,6 +28,7 @@ class InntektProducer(
             Key.BOOMERANG to mapOf(
                 Key.NESTE_BEHOV.str to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
                 Key.INITIATE_ID.str to initiateId.toJson(UuidSerializer), // Akkumulator velger denne som ny UUID v / neste behov!
+                Key.INITIATE_EVENT.str to EventName.INNTEKT_REQUESTED.toJson(EventName.serializer()),
                 Key.INNTEKT_DATO.str to request.skjaeringstidspunkt.toJson(LocalDateSerializer)
             ).toJson()
         ) {

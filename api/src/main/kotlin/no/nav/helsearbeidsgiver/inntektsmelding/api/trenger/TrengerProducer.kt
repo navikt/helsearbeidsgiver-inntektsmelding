@@ -18,6 +18,7 @@ class TrengerProducer(
     }
 
     fun publish(request: TrengerRequest, initiateId: UUID = UUID.randomUUID()): UUID {
+        sikkerlogg.info("trenger request is $request")
         rapid.publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),

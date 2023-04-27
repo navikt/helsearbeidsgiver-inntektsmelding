@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -33,8 +34,8 @@ class InnsendingRouteKtTest : ApiTest() {
     private val FORESPØRSEL_ID = "id_123"
     private val PATH = Routes.PREFIX + Routes.INNSENDING + "/$FORESPØRSEL_ID"
 
-    val GYLDIG_REQUEST = GYLDIG
-    val UGYLDIG_REQUEST = GYLDIG.copy(
+    val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST
+    val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(
         identitetsnummer = TestData.notValidIdentitetsnummer,
         orgnrUnderenhet = TestData.notValidOrgNr
     )

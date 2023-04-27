@@ -6,10 +6,10 @@ plugins {
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
     id("maven-publish")
-    java
-    jacoco
-    `jacoco-report-aggregation`
-    `jvm-test-suite`
+    id("java")
+    id("jacoco")
+    id("jacoco-report-aggregation")
+    id("jvm-test-suite")
 }
 
 buildscript {
@@ -19,6 +19,13 @@ buildscript {
     dependencies {
         classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4.2")
     }
+}
+
+dependencies {
+    subprojects.filter { it.name != "integrasjonstest" }
+        .forEach {
+            jacocoAggregation(project(":${it.name}"))
+        }
 }
 
 allprojects {
@@ -98,7 +105,8 @@ subprojects {
             dependsOn(test)
             reports {
                 xml.required.set(true)
-                csv.required.set(false)
+                html.required.set(true)
+                csv.required.set(true)
                 html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
             }
         }
@@ -132,6 +140,7 @@ subprojects {
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 }
+
 tasks {
     val mapper = ObjectMapper()
 
@@ -161,6 +170,10 @@ tasks {
 
     create("deployMatrixProd") {
         deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
+    }
+
+    check {
+        dependsOn(named<JacocoReport>("testCodeCoverageReport"))
     }
 }
 

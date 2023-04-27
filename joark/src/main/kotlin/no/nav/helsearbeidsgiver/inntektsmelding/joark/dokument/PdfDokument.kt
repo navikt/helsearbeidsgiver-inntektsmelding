@@ -33,6 +33,22 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         moveCursorBy(pdf.bodySize)
     }
 
+    fun addSection(title: String) {
+        pdf.addSection(title, KOLONNE_EN, y)
+        moveCursorBy(pdf.sectionSize * 2)
+    }
+
+    fun addLabel(title: String, value: String){
+        lagLabel(pdf, KOLONNE_TO, y, title, value)
+        moveCursorBy(pdf.bodySize * 4)
+    }
+
+    fun addLabels(title: String, value: String, title2: String, value2: String){
+        lagLabel(pdf, KOLONNE_EN, y, title, value)
+        lagLabel(pdf, KOLONNE_TO, y, title2, value2)
+        moveCursorBy(pdf.bodySize * 4)
+    }
+
     fun addHeader() {
         pdf.addTitle(
             title = when (dokument.årsakInnsending) {
@@ -46,63 +62,60 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     }
 
     fun addAnsatte() {
-        pdf.addSection("Den ansatte", KOLONNE_EN, y)
-        moveCursorBy(pdf.sectionSize * 2)
-        lagLabel(pdf, KOLONNE_EN, y, "Navn", dokument.fulltNavn)
-        lagLabel(pdf, KOLONNE_TO, y, "Personnummer", dokument.identitetsnummer)
-        moveCursorBy(pdf.bodySize * 5)
+        addSection("Den ansatte")
+        addLabels("Navn", dokument.fulltNavn, "Personnummer", dokument.identitetsnummer)
     }
 
     fun addArbeidsgiver() {
-        pdf.addSection("Arbeidsgiveren", KOLONNE_EN, y)
-        moveCursorBy(pdf.sectionSize * 2)
-        lagLabel(pdf, KOLONNE_EN, y, "Virksomhetsnavn", dokument.virksomhetNavn)
-        lagLabel(pdf, KOLONNE_TO, y, "Organisasjonsnummer for underenhet", dokument.orgnrUnderenhet)
-        moveCursorBy(pdf.bodySize * 4)
+        addSection("Arbeidsgiveren")
+        addLabels("Virksomhetsnavn", dokument.virksomhetNavn, "Organisasjonsnummer for underenhet", dokument.orgnrUnderenhet)
     }
 
     fun addFraværsperiode() { // TODO
+        addSection("Fraværsperiode")
+
         val startY = y
-        pdf.addSection("Fraværsperiode", 0, y)
-        moveCursorBy(pdf.sectionSize * 2)
-        // LISTE
-        pdf.addBold("Egenmelding", 0, y + 35)
-        var egenmeldingIndex = 1
-        var egenmeldingY = y
-        dokument.egenmeldingsperioder.forEach {
-            egenmeldingY = y + 10 + egenmeldingIndex * 60
-            lagPeriode(pdf, 0, egenmeldingY, it.fom.toNorsk(), it.tom.toNorsk())
-            egenmeldingIndex++
-        }
-        // LISTE
-        var fraværsY = egenmeldingY + 80
-        pdf.addBold("Fravær knyttet til sykmelding", 0, fraværsY)
-        dokument.fraværsperioder.forEach {
-            fraværsY += 60
-            lagPeriode(pdf, 0, fraværsY - 20, it.fom.toNorsk(), it.tom.toNorsk())
-        }
-        val bestemmendeX = 430
-        val bestemmendeY = 420
-        lagLabel(pdf, bestemmendeX, y + 80, "Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.")
-        lagLabel(pdf, bestemmendeX, bestemmendeY + 60, "Dato", dokument.bestemmendeFraværsdag.toNorsk())
+
+        pdf.addBold("Egenmelding", 0, y)
+        moveCursorByBody(2f)
+
+        addPerioder(KOLONNE_EN, dokument.egenmeldingsperioder)
+
+        moveCursorByBody(2f)
+        pdf.addBold("Fravær knyttet til sykmelding", KOLONNE_EN, y)
+        moveCursorByBody(2f)
+
+        addPerioder(KOLONNE_EN, dokument.fraværsperioder)
+
+        val kolonne1max = y
+
+        y = startY
+
+        lagLabel(pdf, KOLONNE_TO, y, "Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.")
+        moveCursorByBody(4f)
+        lagLabel(pdf, KOLONNE_TO, y, "Dato", dokument.bestemmendeFraværsdag.toNorsk())
+        moveCursorByBody(4f)
         lagLabel(
             pdf,
-            bestemmendeX,
-            bestemmendeY + 120,
+            KOLONNE_TO,
+            y,
             "Arbeidsgiverperiode",
             "Arbeidsgivers har ansvar vanligvis for å betale lønn til den sykemeldte under arbeidsgiverperioden"
         )
-        // LISTE
-        var arbeidsgiverperiodeY = startY + 200
-        dokument.arbeidsgiverperioder.forEach {
-            arbeidsgiverperiodeY += 60
-            lagPeriode(pdf, bestemmendeX, arbeidsgiverperiodeY, it.fom.toNorsk(), it.tom.toNorsk())
-        }
-        if (arbeidsgiverperiodeY > fraværsY) {
-            moveCursorBy(arbeidsgiverperiodeY - startY + 40)
+
+        moveCursorByBody(4f)
+
+        addPerioder(KOLONNE_TO, dokument.arbeidsgiverperioder)
+
+        val kolonne2max = y
+
+        if (kolonne1max > kolonne2max) {
+            y = kolonne1max
         } else {
-            moveCursorBy(fraværsY - startY + 40)
+            y = kolonne2max
         }
+
+        moveCursorByBody(2f)
     }
 
     fun lagPerioder(): List<Periode> {
@@ -173,8 +186,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     }
 
     fun addInntekt() {
-        pdf.addSection("Beregnet månedslønn", 0, y)
-        moveCursorBy(pdf.sectionSize*2)
+        addSection("Beregnet månedslønn")
         lagLabel(pdf, KOLONNE_EN, y, "Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
         moveCursorBy(pdf.bodySize*4)
         val endringType = 1
@@ -191,8 +203,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     }
 
     fun addRefusjon() {
-        pdf.addSection("Refusjon", KOLONNE_EN, y)
-        moveCursorBy(pdf.sectionSize*2)
+        addSection("Refusjon")
         val full = dokument.fullLønnIArbeidsgiverPerioden
         val refusjon = dokument.refusjon
         lagLabel(pdf, KOLONNE_EN, y, "Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", full.utbetalerFullLønn.toNorsk())
@@ -212,9 +223,8 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     }
 
     fun addNaturalytelser() {
+        addSection("Bortfall av naturalytelser")
         val antallNaturalytelser = dokument.naturalytelser?.size ?: 0
-        pdf.addSection("Bortfall av naturalytelser", KOLONNE_EN, y)
-        moveCursorBy(pdf.sectionSize*2)
         if (antallNaturalytelser == 0) {
             pdf.addBody("Nei", KOLONNE_EN, y)
         } else {
@@ -243,13 +253,6 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     fun lagLabel(b: PdfBuilder, x: Int, y: Int, label: String, text: String) {
         b.addBold(label, x, y)
         b.addBody(text, x, y + pdf.bodySize + (pdf.bodySize/2))
-    }
-
-    fun lagPeriode(b: PdfBuilder, x: Int = 0, y: Int, fom: String, tom: String) {
-        b.addBold("Fra", x, y)
-        b.addBold("Til", x + 182, y)
-        b.addBody(fom, x, y + pdf.bodySize + (pdf.bodySize/2))
-        b.addBody(tom, x + 182, y + pdf.bodySize + (pdf.bodySize/2))
     }
 
     fun export(): ByteArray {

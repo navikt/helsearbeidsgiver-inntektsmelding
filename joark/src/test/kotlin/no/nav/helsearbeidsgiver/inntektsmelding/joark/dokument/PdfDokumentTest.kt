@@ -41,9 +41,14 @@ internal class PdfDokumentTest {
                 350.0.toBigDecimal()
             ),
             Naturalytelse(
-                NaturalytelseKode.BIL,
-                dag.plusDays(5),
-                350.0.toBigDecimal()
+                NaturalytelseKode.BEDRIFTSBARNEHAGEPLASS,
+                dag.plusDays(7),
+                44.0.toBigDecimal()
+            ),
+            Naturalytelse(
+                NaturalytelseKode.YRKEBIL_TJENESTLIGBEHOV_LISTEPRIS,
+                dag.plusDays(3),
+                12.0.toBigDecimal()
             )
         ),
         fraværsperioder = listOf(

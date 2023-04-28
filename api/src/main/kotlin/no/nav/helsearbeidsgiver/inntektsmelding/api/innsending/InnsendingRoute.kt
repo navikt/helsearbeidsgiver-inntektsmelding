@@ -6,12 +6,10 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
-import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
@@ -20,7 +18,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 
-fun RouteExtra.InnsendingRoute(cache: LocalCache<Tilgang>) {
+fun RouteExtra.InnsendingRoute() {
     val producer = InnsendingProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
 
@@ -35,7 +33,7 @@ fun RouteExtra.InnsendingRoute(cache: LocalCache<Tilgang>) {
                     forespørselId = forespørselId,
                     tilgangProducer = tilgangProducer,
                     redisPoller = redis,
-                    cache = cache
+                    cache = tilgangCache
                 )
                 request.validate()
                 val transaksjonsID = producer.publish(forespørselId, request)

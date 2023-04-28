@@ -39,6 +39,10 @@ class PdfBuilder(
         return add(Text(bodySize, title, true, false, x, y))
     }
 
+    fun addText(title: String, x: Int = 0, y: Int = 0, bold: Boolean = false): PdfBuilder {
+        return add(Text(bodySize, title, bold, false, x, y))
+    }
+
     fun addLine(x: Int = 0, y: Int = 0): PdfBuilder {
         return add(Text(1, LINETEXT, false, false, x, y))
     }

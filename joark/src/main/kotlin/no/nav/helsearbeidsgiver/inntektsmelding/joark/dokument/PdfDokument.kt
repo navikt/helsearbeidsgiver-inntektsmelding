@@ -10,13 +10,14 @@ import java.time.LocalDate
 
 class PdfDokument(val dokument: InntektsmeldingDokument) {
 
-    private val pdf = PdfBuilder(bodySize = 22)
+    private val pdf = PdfBuilder(bodySize = 16)
     private var y = 0
     private val KOLONNE_EN = 0
     private val KOLONNE_TO = 420
     private val NATURALYTELSE_1 = KOLONNE_EN
     private val NATURALYTELSE_2 = KOLONNE_EN + 400
     private val NATURALYTELSE_3 = KOLONNE_EN + 700
+    private val BOLD_LABELS = true
 
     fun export(): ByteArray {
         addHeader()
@@ -51,9 +52,9 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     }
 
     fun addLabel(label: String, text: String? = null, x: Int = KOLONNE_EN, newY: Int = y, linefeed: Boolean = true) {
-        pdf.addBold(label, x, newY)
+        pdf.addText(label, x, newY, BOLD_LABELS)
         if (text != null) {
-            pdf.addBody(text, x, newY + pdf.bodySize + (pdf.bodySize/2))
+            pdf.addText(text, x, newY + pdf.bodySize + (pdf.bodySize/2), !BOLD_LABELS)
         }
         if (linefeed){
             moveCursorBy(if (text == null) {pdf.bodySize*2} else {pdf.bodySize*4})
@@ -61,7 +62,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     }
 
     fun addText(text: String, x1: Int = KOLONNE_EN, y2: Int = y, linefeed: Boolean = true) {
-        pdf.addBody(text, x1, y2)
+        pdf.addText(text, x1, y2, !BOLD_LABELS)
         if (linefeed){
             moveCursorBy(pdf.bodySize*2)
         }

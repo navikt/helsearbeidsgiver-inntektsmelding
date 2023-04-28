@@ -10,7 +10,7 @@ import java.time.LocalDate
 
 class PdfDokument(val dokument: InntektsmeldingDokument) {
 
-    private val pdf = PdfBuilder(bodySize = 17)
+    private val pdf = PdfBuilder(bodySize = 22)
     private var y = 0
     private val KOLONNE_EN = 0
     private val KOLONNE_TO = 420
@@ -98,7 +98,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addPerioder(KOLONNE_EN, dokument.egenmeldingsperioder)
         addLabel("Fravær knyttet til sykmelding")
         addPerioder(KOLONNE_EN, dokument.fraværsperioder)
-        val kolonne1max = y
+        val kolonne1max = y // Husk maks høyden på venstre side
         y = startY
         addLabel( "Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.", KOLONNE_TO)
         addLabel("Dato", dokument.bestemmendeFraværsdag.toNorsk(), KOLONNE_TO)
@@ -111,12 +111,8 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addText("til den sykemeldte under arbeidsgiverperioden", KOLONNE_TO)
         moveCursorBy(pdf.bodySize)
         addPerioder(KOLONNE_TO, dokument.arbeidsgiverperioder)
-        val kolonne2max = y
-        if (kolonne1max > kolonne2max) {
-            y = kolonne1max
-        } else {
-            y = kolonne2max
-        }
+        val kolonne2max = y // Husk maks høyden på høyre side
+        y = if (kolonne1max > kolonne2max) { kolonne1max } else { kolonne2max } // Plasser cursor etter høyeste side
         moveCursorBy(pdf.bodySize*2)
     }
 

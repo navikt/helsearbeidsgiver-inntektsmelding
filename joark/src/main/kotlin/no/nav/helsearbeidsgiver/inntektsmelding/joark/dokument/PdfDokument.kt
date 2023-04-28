@@ -2,8 +2,16 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
 import java.time.LocalDate
@@ -92,7 +100,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addLabel("Organisasjonsnummer for underenhet", dokument.orgnrUnderenhet, KOLONNE_TO)
     }
 
-    fun addFraværsperiode() { // TODO
+    fun addFraværsperiode() {
         addSection("Fraværsperiode")
         val startY = y
         addLabel("Egenmelding")
@@ -127,16 +135,30 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     fun addInntekt() {
         addSection("Beregnet månedslønn")
         addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
-        val endringType = 1
-        when (endringType) {
-            1 -> addPermisjon()
-            8 -> addFerie()
-            2 -> addPermittering()
-            3 -> addTariffendring()
-            4 -> addVarigLonnsendring()
-            5 -> addNyStilling()
-            6 -> addNyStillingsprosent()
-            7 -> addBonus()
+        val endringsårsak = dokument.inntekt?.endringÅrsak
+        if (endringsårsak is Permisjon) {
+            addPermisjon(endringsårsak)
+        }
+        if (endringsårsak is Ferie) {
+            addFerie(endringsårsak)
+        }
+        if (endringsårsak is Permittering) {
+            addPermittering(endringsårsak)
+        }
+        if (endringsårsak is Tariffendring) {
+            addTariffendring(endringsårsak)
+        }
+        if (endringsårsak is VarigLonnsendring) {
+            addVarigLonnsendring(endringsårsak)
+        }
+        if (endringsårsak is NyStilling) {
+            addNyStilling(endringsårsak)
+        }
+        if (endringsårsak is NyStillingsprosent) {
+            addNyStillingsprosent(endringsårsak)
+        }
+        if (endringsårsak is Bonus) {
+            addBonus(endringsårsak)
         }
     }
 
@@ -145,48 +167,40 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addPerioder(KOLONNE_TO, perioder)
     }
 
-    fun addPermisjon(){
-        val perioder = MockPerioder() // TODO
-        addInntektEndringPerioder("Permisjon", perioder)
+    fun addPermisjon(permisjon: Permisjon) {
+        addInntektEndringPerioder("Permisjon", permisjon.liste)
     }
 
-    fun addFerie(){
-        val perioder = MockPerioder() // TODO
-        addInntektEndringPerioder("Ferie", perioder)
+    fun addFerie(ferie: Ferie){
+        addInntektEndringPerioder("Ferie", ferie.liste)
     }
 
-    fun addPermittering(){
-        val perioder = MockPerioder() // TODO
-        addInntektEndringPerioder("Permittering", perioder)
+    fun addPermittering(permittering: Permittering){
+        addInntektEndringPerioder("Permittering", permittering.liste)
     }
 
-    fun addTariffendring(){
-        val gjelderFra = LocalDate.now() // TODO
-        val bleKjent = LocalDate.now() // TODO
+    fun addTariffendring(tariffendring: Tariffendring){
         addLabel("Forklaring for endring", "Tariffendring")
-        addLabel("Gjelder fra", gjelderFra.toNorsk())
-        addLabel("Ble kjent", bleKjent.toNorsk())
+        addLabel("Gjelder fra", tariffendring.gjelderFra.toNorsk())
+        addLabel("Ble kjent", tariffendring.bleKjent.toNorsk())
     }
 
-    fun addVarigLonnsendring(){
-        val gjelderFra = LocalDate.now() // TODO
+    fun addVarigLonnsendring(varigLonnsendring: VarigLonnsendring){
         addLabel("Forklaring for endring", "Varig lønnsendring")
-        addLabel("Gjelder fra", gjelderFra.toNorsk(), KOLONNE_TO)
+        addLabel("Gjelder fra", varigLonnsendring.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
-    fun addNyStilling(){
-        val gjelderFra = LocalDate.now() // TODO
+    fun addNyStilling(nyStilling: NyStilling){
         addLabel("Forklaring for endring", "Ny stilling")
-        addLabel("Gjelder fra", gjelderFra.toNorsk(), KOLONNE_TO)
+        addLabel("Gjelder fra", nyStilling.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
-    fun addNyStillingsprosent(){
-        val gjelderFra = LocalDate.now() // TODO
+    fun addNyStillingsprosent(nyStillingsprosent: NyStillingsprosent){
         addLabel("Forklaring for endring", "Ny stillingsprosent")
-        addLabel("Gjelder fra", gjelderFra.toNorsk(), KOLONNE_TO)
+        addLabel("Gjelder fra", nyStillingsprosent.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
-    fun addBonus(){
+    fun addBonus(bonus: Bonus){
         addLabel( "Forklaring for endring", "Bonus")
     }
 

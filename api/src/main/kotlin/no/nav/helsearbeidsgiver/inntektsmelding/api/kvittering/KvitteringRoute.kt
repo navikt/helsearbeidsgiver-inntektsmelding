@@ -6,14 +6,12 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
-import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
-import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.mapInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
@@ -26,7 +24,7 @@ import org.valiktor.ConstraintViolationException
 
 private const val EMPTY_PAYLOAD = "{}"
 
-fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
+fun RouteExtra.KvitteringRoute() {
     val kvitteringProducer = KvitteringProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
 
@@ -43,7 +41,7 @@ fun RouteExtra.KvitteringRoute(cache: LocalCache<Tilgang>) {
                     forespørselId = foresporselId,
                     tilgangProducer = tilgangProducer,
                     redisPoller = redis,
-                    cache = cache
+                    cache = tilgangCache
                 )
                 val transaksjonsId = kvitteringProducer.publish(foresporselId)
                 val dok = redis.getString(transaksjonsId, 10, 500)

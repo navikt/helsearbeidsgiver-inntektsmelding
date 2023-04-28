@@ -19,12 +19,12 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.configure
 import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.cache.LocalCache
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.InntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.KvitteringRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
+import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.minutes
@@ -44,17 +44,18 @@ object Routes {
 
 fun main() {
     val env = System.getenv()
-    RapidApplication.create(env).also(::startServer)
+    RapidApplication.create(env)
+        .also(::startServer)
         .start()
 }
 
-fun startServer(connection: RapidsConnection) {
+fun startServer(rapid: RapidsConnection) {
     embeddedServer(Netty, port = 8080) {
-        apiModule(connection)
+        apiModule(rapid)
     }.start(wait = true)
 }
 
-fun Application.apiModule(connection: RapidsConnection) {
+fun Application.apiModule(rapid: RapidsConnection) {
     customAuthentication()
 
     install(ContentNegotiation) {
@@ -85,21 +86,13 @@ fun Application.apiModule(connection: RapidsConnection) {
 
         authenticate {
             route(Routes.PREFIX) {
-                routeExtra(connection, redisPoller) {
+                routeExtra(rapid, redisPoller, tilgangCache) {
                     ArbeidsgivereRoute()
-                    TrengerRoute(tilgangCache)
-                    InntektRoute(tilgangCache)
-                    InnsendingRoute(tilgangCache)
-                    KvitteringRoute(tilgangCache)
+                    TrengerRoute()
+                    InntektRoute()
+                    InnsendingRoute()
+                    KvitteringRoute()
                 }
-            }
-        }
-
-        route(Routes.PREFIX) {
-            routeExtra(connection, redisPoller) {
-//                InnsendingRoute()
-//                InntektRoute()
-//                TrengerRoute()
             }
         }
     }

@@ -28,5 +28,5 @@ private fun printPeriode(): (Periode) -> CharSequence = { "fra ${it.fom} til ${i
 
 @Mapper
 abstract class InntektEndringAarsakMapper {
-    fun inntektEndringAarsakTilString(inntektEndringAarsak: InntektEndringAarsak): String = inntektEndringAarsak.stringValue()
+    fun inntektEndringAarsakTilString(inntektEndringAarsak: InntektEndringAarsak?): String? = inntektEndringAarsak?.stringValue()
 }

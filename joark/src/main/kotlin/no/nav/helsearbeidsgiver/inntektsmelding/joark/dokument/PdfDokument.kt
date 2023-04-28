@@ -10,21 +10,33 @@ import java.time.LocalDate
 
 class PdfDokument(val dokument: InntektsmeldingDokument) {
 
-    private val pdf = PdfBuilder()
+    private val pdf = PdfBuilder(bodySize = 17)
     private var y = 0
     private val KOLONNE_EN = 0
     private val KOLONNE_TO = 420
-    private val KOLONNE_TRE = 600
     private val NATURALYTELSE_1 = KOLONNE_EN
     private val NATURALYTELSE_2 = KOLONNE_EN + 400
     private val NATURALYTELSE_3 = KOLONNE_EN + 700
 
-    fun moveCursorBy(y: Int) {
-        this.y += y
+    fun export(): ByteArray {
+        addHeader()
+        addAnsatt()
+        addArbeidsgiver()
+        addLine()
+        addFraværsperiode()
+        addLine()
+        addInntekt()
+        addLine()
+        addRefusjon()
+        addLine()
+        addNaturalytelser()
+        addLine()
+        addTidspunkt()
+        return pdf.export()
     }
 
-    fun moveCursorByBody(y: Float) {
-        this.y += (y * pdf.bodySize).toInt()
+    fun moveCursorBy(y: Int) {
+        this.y += y
     }
 
     fun addLine() {
@@ -44,22 +56,15 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             pdf.addBody(text, x, newY + pdf.bodySize + (pdf.bodySize/2))
         }
         if (linefeed){
-            moveCursorByBody(if (text == null) {2f} else {4f})
+            moveCursorBy(if (text == null) {pdf.bodySize*2} else {pdf.bodySize*4})
         }
     }
 
     fun addText(text: String, x1: Int = KOLONNE_EN, y2: Int = y, linefeed: Boolean = true) {
         pdf.addBody(text, x1, y2)
         if (linefeed){
-            moveCursorByBody(2f)
+            moveCursorBy(pdf.bodySize*2)
         }
-    }
-
-    fun addLabels(title: String, value: String, title2: String, value2: String, x1: Int = KOLONNE_EN, x2: Int = KOLONNE_TO){
-        val newY = y
-        addLabel(title, value, x1, newY)
-        addLabel(title2, value2, x2, newY)
-
     }
 
     fun addHeader() {
@@ -74,7 +79,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         moveCursorBy(pdf.titleSize * 2)
     }
 
-    fun addAnsatte() {
+    fun addAnsatt() {
         addSection("Den ansatte")
         addLabel("Navn", dokument.fulltNavn, linefeed = false)
         addLabel("Personnummer", dokument.identitetsnummer, KOLONNE_TO)
@@ -99,9 +104,12 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addLabel("Dato", dokument.bestemmendeFraværsdag.toNorsk(), KOLONNE_TO)
         addLabel(
             "Arbeidsgiverperiode",
-            "Arbeidsgivers har ansvar vanligvis for å betale lønn til den sykemeldte under arbeidsgiverperioden",
+            "Arbeidsgivers har ansvar vanligvis for å betale lønn",
             KOLONNE_TO
         )
+        moveCursorBy(-pdf.bodySize)
+        addText("til den sykemeldte under arbeidsgiverperioden", KOLONNE_TO)
+        moveCursorBy(pdf.bodySize)
         addPerioder(KOLONNE_TO, dokument.arbeidsgiverperioder)
         val kolonne2max = y
         if (kolonne1max > kolonne2max) {
@@ -109,7 +117,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         } else {
             y = kolonne2max
         }
-        moveCursorByBody(2f)
+        moveCursorBy(pdf.bodySize*2)
     }
 
     fun addPerioder(x: Int, perioder: List<Periode>) {
@@ -119,23 +127,39 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         }
     }
 
+    fun addInntekt() {
+        addSection("Beregnet månedslønn")
+        addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
+        val endringType = 1
+        when (endringType) {
+            1 -> addPermisjon()
+            8 -> addFerie()
+            2 -> addPermittering()
+            3 -> addTariffendring()
+            4 -> addVarigLonnsendring()
+            5 -> addNyStilling()
+            6 -> addNyStillingsprosent()
+            7 -> addBonus()
+        }
+    }
+
     fun addInntektEndringPerioder(endringsårsak: String, perioder: List<Periode>){
-        addLabel("Forklaring for endring", endringsårsak)
+        addLabel("Forklaring for endring", endringsårsak, linefeed = false)
         addPerioder(KOLONNE_TO, perioder)
     }
 
     fun addPermisjon(){
-        val perioder = mockPerioder() // TODO
+        val perioder = MockPerioder() // TODO
         addInntektEndringPerioder("Permisjon", perioder)
     }
 
     fun addFerie(){
-        val perioder = mockPerioder() // TODO
+        val perioder = MockPerioder() // TODO
         addInntektEndringPerioder("Ferie", perioder)
     }
 
     fun addPermittering(){
-        val perioder = mockPerioder() // TODO
+        val perioder = MockPerioder() // TODO
         addInntektEndringPerioder("Permittering", perioder)
     }
 
@@ -167,22 +191,6 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
 
     fun addBonus(){
         addLabel( "Forklaring for endring", "Bonus")
-    }
-
-    fun addInntekt() {
-        addSection("Beregnet månedslønn")
-        addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
-        val endringType = 1
-        when (endringType) {
-            1 -> addPermisjon()
-            8 -> addFerie()
-            2 -> addPermittering()
-            3 -> addTariffendring()
-            4 -> addVarigLonnsendring()
-            5 -> addNyStilling()
-            6 -> addNyStillingsprosent()
-            7 -> addBonus()
-        }
     }
 
     fun addRefusjon() {
@@ -222,30 +230,4 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         moveCursorBy(pdf.bodySize)
     }
 
-    fun export(): ByteArray {
-        addHeader()
-        addAnsatte()
-        addArbeidsgiver()
-        addLine()
-        addFraværsperiode()
-        addLine()
-        addInntekt()
-        addLine()
-        addRefusjon()
-        addLine()
-        addNaturalytelser()
-        addLine()
-        addTidspunkt()
-        return pdf.export()
-    }
-
-}
-
-fun mockPerioder(): List<Periode> {
-    val dato = LocalDate.now()
-    return listOf(
-        Periode(dato, dato.plusDays(20)),
-        Periode(dato.plusDays(10), dato.plusDays(20)),
-        Periode(dato.plusDays(20), dato.plusDays(30))
-    )
 }

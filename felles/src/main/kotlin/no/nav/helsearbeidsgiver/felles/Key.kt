@@ -31,6 +31,7 @@ enum class Key(val str: String) {
     INITIATE_ID("initiateId"),
     INITIATE_EVENT("initiate-event"),
     UUID("uuid"),
+    TRANSACTION_ORIGIN("transaction-origin"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNR("orgnr"),
     FNR("fnr"),

@@ -1,11 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.EventName
 
 class TestCompositeEventListener(
-    rapidsConnection: RapidsConnection,
     override val event: EventName,
     redisStore: RedisStore
 ) :

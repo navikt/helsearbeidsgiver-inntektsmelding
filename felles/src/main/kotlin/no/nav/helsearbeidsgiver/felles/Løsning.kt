@@ -45,12 +45,6 @@ data class ArbeidsforholdLøsning(
 ) : Løsning()
 
 @Serializable
-data class JournalpostLøsning(
-    override val value: String? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
 data class NotifikasjonLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null

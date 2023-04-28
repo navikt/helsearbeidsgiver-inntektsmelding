@@ -20,11 +20,10 @@ class TilgangProducer(private val rapid: RapidsConnection) {
         rapid.publish(
             Key.EVENT_NAME to EventName.HENT_PREUTFYLT.name.toJson(),
             Key.BEHOV to listOf(BehovType.HENT_IM_ORGNR).toJson(BehovType.serializer()),
+            Key.NESTE_BEHOV to listOf(BehovType.TILGANGSKONTROLL).toJson(BehovType.serializer()),
+            Key.UUID to initiateId.toJson(),
             Key.IDENTITETSNUMMER to fnr.toJson(),
-            Key.FORESPOERSEL_ID to forespørselId.toJson(),
-            Key.BOOMERANG to mapOf(
-                Key.NESTE_BEHOV.str to listOf(BehovType.TILGANGSKONTROLL).toJson(BehovType.serializer())
-            ).toJson()
+            Key.FORESPOERSEL_ID to forespørselId.toJson()
         ) {
             logger.info("Publiserte tilgang behov id=$initiateId")
             sikkerlogg.info("Publiserte tilgang behov id=$initiateId json=${it.toJson()}")

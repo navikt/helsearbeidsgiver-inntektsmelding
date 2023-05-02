@@ -14,7 +14,7 @@ class PdfBuilder(
     val fontItalic: String = "Source Sans Pro Italic 400.ttf",
     val titleSize: Int = 30,
     val sectionSize: Int = 24,
-    val bodySize: Int = 16,
+    val bodySize: Int = 16
 ) {
 
     private val list: MutableList<Text> = mutableListOf()

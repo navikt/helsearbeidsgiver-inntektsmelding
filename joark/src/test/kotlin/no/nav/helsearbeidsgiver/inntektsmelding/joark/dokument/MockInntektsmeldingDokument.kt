@@ -11,7 +11,7 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 
 fun MockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): InntektsmeldingDokument =
-    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument(
+    InntektsmeldingDokument(
         orgnrUnderenhet = "123456789",
         identitetsnummer = "12345678901",
         fulltNavn = "Ola Normann",

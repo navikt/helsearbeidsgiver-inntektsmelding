@@ -14,18 +14,17 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendri
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
-import java.time.LocalDate
 
 class PdfDokument(val dokument: InntektsmeldingDokument) {
 
-    private val pdf = PdfBuilder(bodySize = 16)
+    private val pdf = PdfBuilder(bodySize = 20) // Setter skriftstørrelsen på labels og text
     private var y = 0
     private val KOLONNE_EN = 0
     private val KOLONNE_TO = 420
     private val NATURALYTELSE_1 = KOLONNE_EN
     private val NATURALYTELSE_2 = KOLONNE_EN + 400
     private val NATURALYTELSE_3 = KOLONNE_EN + 700
-    private val BOLD_LABELS = true
+    private val BOLD_LABELS = false // Bestemmer om navnet på label eller verdien skal stå i bold
 
     fun export(): ByteArray {
         addHeader()
@@ -62,17 +61,17 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     fun addLabel(label: String, text: String? = null, x: Int = KOLONNE_EN, newY: Int = y, linefeed: Boolean = true) {
         pdf.addText(label, x, newY, BOLD_LABELS)
         if (text != null) {
-            pdf.addText(text, x, newY + pdf.bodySize + (pdf.bodySize/2), !BOLD_LABELS)
+            pdf.addText(text, x, newY + pdf.bodySize + (pdf.bodySize / 2), !BOLD_LABELS)
         }
-        if (linefeed){
-            moveCursorBy(if (text == null) {pdf.bodySize*2} else {pdf.bodySize*4})
+        if (linefeed) {
+            moveCursorBy(if (text == null) { pdf.bodySize * 2 } else { pdf.bodySize * 4 })
         }
     }
 
     fun addText(text: String, x1: Int = KOLONNE_EN, y2: Int = y, linefeed: Boolean = true) {
         pdf.addText(text, x1, y2, !BOLD_LABELS)
-        if (linefeed){
-            moveCursorBy(pdf.bodySize*2)
+        if (linefeed) {
+            moveCursorBy(pdf.bodySize * 2)
         }
     }
 
@@ -109,7 +108,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addPerioder(KOLONNE_EN, dokument.fraværsperioder)
         val kolonne1max = y // Husk maks høyden på venstre side
         y = startY
-        addLabel( "Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.", KOLONNE_TO)
+        addLabel("Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.", KOLONNE_TO)
         addLabel("Dato", dokument.bestemmendeFraværsdag.toNorsk(), KOLONNE_TO)
         addLabel(
             "Arbeidsgiverperiode",
@@ -122,7 +121,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addPerioder(KOLONNE_TO, dokument.arbeidsgiverperioder)
         val kolonne2max = y // Husk maks høyden på høyre side
         y = if (kolonne1max > kolonne2max) { kolonne1max } else { kolonne2max } // Plasser cursor etter høyeste side
-        moveCursorBy(pdf.bodySize*2)
+        moveCursorBy(pdf.bodySize * 2)
     }
 
     fun addPerioder(x: Int, perioder: List<Periode>) {
@@ -136,33 +135,20 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addSection("Beregnet månedslønn")
         addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
         val endringsårsak = dokument.inntekt?.endringÅrsak
-        if (endringsårsak is Permisjon) {
-            addPermisjon(endringsårsak)
-        }
-        if (endringsårsak is Ferie) {
-            addFerie(endringsårsak)
-        }
-        if (endringsårsak is Permittering) {
-            addPermittering(endringsårsak)
-        }
-        if (endringsårsak is Tariffendring) {
-            addTariffendring(endringsårsak)
-        }
-        if (endringsårsak is VarigLonnsendring) {
-            addVarigLonnsendring(endringsårsak)
-        }
-        if (endringsårsak is NyStilling) {
-            addNyStilling(endringsårsak)
-        }
-        if (endringsårsak is NyStillingsprosent) {
-            addNyStillingsprosent(endringsårsak)
-        }
-        if (endringsårsak is Bonus) {
-            addBonus(endringsårsak)
+        when (endringsårsak) {
+            is Permisjon -> addPermisjon(endringsårsak)
+            is Ferie -> addFerie(endringsårsak)
+            is Permittering -> addPermittering(endringsårsak)
+            is Tariffendring -> addTariffendring(endringsårsak)
+            is VarigLonnsendring -> addVarigLonnsendring(endringsårsak)
+            is NyStilling -> addNyStilling(endringsårsak)
+            is NyStillingsprosent -> addNyStillingsprosent(endringsårsak)
+            is Bonus -> addBonus(endringsårsak)
+            else -> {}
         }
     }
 
-    fun addInntektEndringPerioder(endringsårsak: String, perioder: List<Periode>){
+    fun addInntektEndringPerioder(endringsårsak: String, perioder: List<Periode>) {
         addLabel("Forklaring for endring", endringsårsak, linefeed = false)
         addPerioder(KOLONNE_TO, perioder)
     }
@@ -171,50 +157,66 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addInntektEndringPerioder("Permisjon", permisjon.liste)
     }
 
-    fun addFerie(ferie: Ferie){
+    fun addFerie(ferie: Ferie) {
         addInntektEndringPerioder("Ferie", ferie.liste)
     }
 
-    fun addPermittering(permittering: Permittering){
+    fun addPermittering(permittering: Permittering) {
         addInntektEndringPerioder("Permittering", permittering.liste)
     }
 
-    fun addTariffendring(tariffendring: Tariffendring){
+    fun addTariffendring(tariffendring: Tariffendring) {
         addLabel("Forklaring for endring", "Tariffendring")
         addLabel("Gjelder fra", tariffendring.gjelderFra.toNorsk())
         addLabel("Ble kjent", tariffendring.bleKjent.toNorsk())
     }
 
-    fun addVarigLonnsendring(varigLonnsendring: VarigLonnsendring){
+    fun addVarigLonnsendring(varigLonnsendring: VarigLonnsendring) {
         addLabel("Forklaring for endring", "Varig lønnsendring")
         addLabel("Gjelder fra", varigLonnsendring.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
-    fun addNyStilling(nyStilling: NyStilling){
+    fun addNyStilling(nyStilling: NyStilling) {
         addLabel("Forklaring for endring", "Ny stilling")
         addLabel("Gjelder fra", nyStilling.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
-    fun addNyStillingsprosent(nyStillingsprosent: NyStillingsprosent){
+    fun addNyStillingsprosent(nyStillingsprosent: NyStillingsprosent) {
         addLabel("Forklaring for endring", "Ny stillingsprosent")
         addLabel("Gjelder fra", nyStillingsprosent.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
-    fun addBonus(bonus: Bonus){
-        addLabel( "Forklaring for endring", "Bonus")
+    fun addBonus(bonus: Bonus) {
+        addLabel("Forklaring for endring", "Bonus")
     }
 
     fun addRefusjon() {
         addSection("Refusjon")
+
         val full = dokument.fullLønnIArbeidsgiverPerioden
-        val refusjon = dokument.refusjon
         addLabel("Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", full.utbetalerFullLønn.toNorsk())
-        addLabel("Begrunnelse", full.begrunnelse?.name ?: "-")
-        addLabel("Utbetalt under arbeidsgiverperiode", (full.utbetalt?.toNorsk() ?: "-") + " kr")
-        addLabel("Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", "Ja")
-        addLabel("Refusjonsbeløp pr måned", (refusjon.refusjonPrMnd?.toNorsk() ?: "-") + " kr/måned") // Arbeidsgiver
-        addLabel("Opphører refusjonskravet i perioden", refusjon.refusjonOpphører?.toNorsk() ?: "-")
-        addLabel("Siste dag dere krever refusjon for", refusjon.refusjonOpphører?.toNorsk() ?: "-")
+        if (full.utbetalerFullLønn) {
+            addLabel("Begrunnelse", full.begrunnelse?.name ?: "-")
+            addLabel("Utbetalt under arbeidsgiverperiode", (full.utbetalt?.toNorsk() ?: "-") + " kr")
+        }
+
+        val refusjon = dokument.refusjon
+        addLabel("Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", refusjon.utbetalerHeleEllerDeler.toNorsk())
+
+        if (dokument.refusjon.utbetalerHeleEllerDeler) {
+            addLabel("Refusjonsbeløp pr måned", (refusjon.refusjonPrMnd?.toNorsk() ?: "-") + " kr/måned") // Arbeidsgiver
+            addLabel("Opphører refusjonskravet i perioden", refusjon.refusjonOpphører?.toNorsk() ?: "-")
+            addLabel("Siste dag dere krever refusjon for", refusjon.refusjonOpphører?.toNorsk() ?: "-")
+        }
+
+        val endringer = dokument.refusjon.refusjonEndringer ?: emptyList()
+        addLabel("Endringer i refusjon i perioden", (!endringer.isEmpty()).toNorsk())
+        if (endringer.isEmpty() == false) {
+            endringer.forEach {
+                addLabel("Beløp", it.beløp?.toNorsk() ?: "-", KOLONNE_EN, linefeed = false)
+                addLabel("Dato", it.dato?.toNorsk() ?: "-", KOLONNE_TO)
+            }
+        }
     }
 
     fun addNaturalytelser() {
@@ -223,7 +225,6 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         if (antallNaturalytelser == 0) {
             addLabel("Nei")
         } else {
-            addLabel("Ja")
             addLabel("Naturalytelser", x = NATURALYTELSE_1, linefeed = false)
             addLabel("Dato naturalytelse bortfaller", x = NATURALYTELSE_2, linefeed = false)
             addLabel("Verdi naturalytelse - kr/måned", x = NATURALYTELSE_3)
@@ -232,7 +233,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
                 addText(it.dato.toNorsk(), NATURALYTELSE_2, linefeed = false)
                 addText(it.beløp.toNorsk(), NATURALYTELSE_3)
             }
-            moveCursorBy(pdf.bodySize*2)
+            moveCursorBy(pdf.bodySize * 2)
         }
     }
 
@@ -240,5 +241,4 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         pdf.addItalics("Innsendt: ${dokument.tidspunkt.toNorsk()}", KOLONNE_EN, y)
         moveCursorBy(pdf.bodySize)
     }
-
 }

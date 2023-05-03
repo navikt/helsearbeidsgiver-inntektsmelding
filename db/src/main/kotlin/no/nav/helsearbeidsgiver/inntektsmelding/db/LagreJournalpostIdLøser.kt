@@ -67,7 +67,7 @@ class LagreJournalpostIdLøser(
         logger.info("Fant sakId $sakId for forespørselId $forespoerselId")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT.name,
                 Key.JOURNALPOST_ID.str to journalpostId,
                 Key.OPPGAVE_ID.str to oppgaveId!!, // TODO Lag bedre feilhåndtering dersom oppgaveId ikke ble funnet i db
                 Key.SAK_ID.str to sakId!!, // TODO Lag bedre feilhåndtering dersom oppgaveId ikke ble funnet i db

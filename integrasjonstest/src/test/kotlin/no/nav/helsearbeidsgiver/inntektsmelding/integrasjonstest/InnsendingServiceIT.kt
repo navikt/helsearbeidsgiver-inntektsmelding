@@ -9,8 +9,8 @@ import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.GYLDIG
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.TestData
+import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
+import no.nav.helsearbeidsgiver.felles.test.mock.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -66,7 +66,7 @@ class InnsendingServiceIT : EndToEndTest() {
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.UUID.str to transaksjonsId,
-                Key.INNTEKTSMELDING.str to GYLDIG,
+                Key.INNTEKTSMELDING.str to GYLDIG_INNSENDING_REQUEST,
                 Key.ORGNRUNDERENHET.str to TestData.validOrgNr,
                 Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer,
                 Key.FORESPOERSEL_ID.str to forespoerselId

@@ -276,6 +276,8 @@ components:
             $ref: '#/components/schemas/Periode'
         beregnetInntekt:
           type: number
+        inntekt:
+          $ref: '#/components/schemas/Inntekt'
         fullLønnIArbeidsgiverPerioden:
           $ref: '#/components/schemas/FullLonnIArbeidsgiverPerioden'
         refusjon:

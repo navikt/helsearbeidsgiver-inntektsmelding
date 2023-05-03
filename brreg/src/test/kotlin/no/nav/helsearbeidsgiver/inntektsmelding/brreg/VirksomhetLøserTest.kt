@@ -57,7 +57,7 @@ internal class VirksomhetLøserTest {
         } returns null
         val løsning = sendMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.EVENT_FOR_TEST.name,
+                Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
@@ -74,7 +74,7 @@ internal class VirksomhetLøserTest {
         } returns VIRKSOMHET_NAVN
         val løsning = sendMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.EVENT_FOR_TEST.name,
+                Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
@@ -88,7 +88,7 @@ internal class VirksomhetLøserTest {
     fun `skal håndtere ukjente feil`() {
         val løsning = sendMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.EVENT_FOR_TEST.name,
+                Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 Key.ORGNRUNDERENHET.str to ORGNR

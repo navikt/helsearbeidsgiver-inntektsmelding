@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import java.util.UUID
 
 class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
 
@@ -21,8 +22,10 @@ class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnecti
     }
 
     override fun onEvent(packet: JsonMessage) {
-        val uuid = packet[Key.UUID.str]
-        logger.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT} med uuid=$uuid")
+        val txOrigin = packet[Key.TRANSACTION_ORIGIN.str]
+        val uuid = UUID.randomUUID().toString()
+        logger.info("Mottatt event ${EventName.INNTEKTSMELDING_MOTTATT} med txOrigin=$txOrigin")
+        logger.info("Starter ny journalføring transaksjon med uuid:$uuid")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,

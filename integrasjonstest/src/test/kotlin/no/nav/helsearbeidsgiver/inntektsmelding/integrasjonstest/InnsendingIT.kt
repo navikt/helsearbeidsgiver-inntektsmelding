@@ -124,9 +124,14 @@ internal class InnsendingIT : EndToEndTest() {
             assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         }
 
-        with(filter(EventName.INNTEKTSMELDING_MOTTATT, BehovType.JOURNALFOER, løsning = true).first()) {
+        with(filter(EventName.INNTEKTSMELDING_MOTTATT, BehovType.JOURNALFOER, løsning = false).first()) {
             // Journalført i dokarkiv
             assertEquals(FORESPØRSEL_ID, get(Key.FORESPOERSEL_ID.str).asText())
+        }
+        with(filter(EventName.INNTEKTSMELDING_MOTTATT, BehovType.LAGRE_JOURNALPOST_ID, løsning = false).first()) {
+            // Journalført i dokarkiv
+            assertEquals(FORESPØRSEL_ID, get(Key.FORESPOERSEL_ID.str).asText())
+            assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
         }
 
         with(filter(EventName.INNTEKTSMELDING_MOTTATT, null, løsning = false).first()) {

@@ -41,7 +41,7 @@ class ArbeidsforholdLøserTest : FunSpec({
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.EVENT_FOR_TEST.toJson(EventName.serializer()),
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
             Key.ID to MockUuid.STRING.toJson(),
             Key.UUID to "uuid".toJson(),
@@ -61,7 +61,7 @@ class ArbeidsforholdLøserTest : FunSpec({
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.EVENT_FOR_TEST.toJson(EventName.serializer()),
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
             Key.ID to MockUuid.STRING.toJson(),
             Key.UUID to "uuiid".toJson(),

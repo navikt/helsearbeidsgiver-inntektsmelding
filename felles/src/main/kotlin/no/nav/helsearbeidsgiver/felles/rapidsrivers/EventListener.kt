@@ -29,8 +29,11 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             it.rejectKey(Key.LØSNING.str)
             it.rejectKey(Key.DATA.str)
             it.rejectKey(Key.FAIL.str)
+            // transaksjon kan ikke ha UUID / transaksjonsID som egentlig betyr noe, men jeg beholder det for øyebliket
+            // for backward compatability
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
+            it.interestedIn(Key.TRANSACTION_ORIGIN.str)
         }
     }
     fun publishBehov(message: JsonMessage) {

@@ -155,7 +155,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                     Key.INNTEKTSMELDING_DOKUMENT.str to message[Key.INNTEKTSMELDING_DOKUMENT.str],
-                    Key.UUID.str to uuid,
+                    Key.TRANSACTION_ORIGIN.str to uuid,
                     Key.FORESPOERSEL_ID.str to redisStore.get(uuid + Key.FORESPOERSEL_ID.str)!!
                 )
             ).toJson()

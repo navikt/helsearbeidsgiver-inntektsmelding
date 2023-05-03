@@ -77,16 +77,7 @@ class LagreJournalpostIdLøser(
         )
         publishEvent(jsonMessage)
     }
-
-    fun publishLagret(uuid: String) {
-        val message = JsonMessage.newMessage(
-            mapOf(
-                Key.DATA.str to "Lagret",
-                Key.UUID.str to uuid
-            )
-        )
-        this.publishData(message)
-    }
+    
 
     fun publiserFeil(feilmelding: Feilmelding, packet: JsonMessage) {
         val fail = JsonMessage.newMessage(

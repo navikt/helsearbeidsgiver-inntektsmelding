@@ -6,13 +6,14 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 
 data class Fail(
     @JsonIgnore
     val eventName: EventName?,
     val behov: BehovType?,
     val feilmelding: String,
-    val data: HashMap<DataFelt, Any>?,
+    val data: Map<DataFelt, Any?>?,
     val uuid: String?,
     val forespørselId: String?
 ) {
@@ -27,16 +28,11 @@ data class Fail(
     }
 }
 
-fun <K : Any, V : Any> mapOfNotNull(vararg pair: Pair<K, V?>): Map<K, V> = mapOf(*pair).mapNotNull { (key, value) ->
-    value?.let { key to it }
-}
-    .toMap()
-
 fun JsonMessage.toFeilMessage(): Fail {
     return customObjectMapper().treeToValue(this[Key.FAIL.str], Fail::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
 }
 
-fun JsonMessage.createFail(feilmelding: String, data: HashMap<DataFelt, Any>? = null, behoveType: BehovType? = null): Fail {
+fun JsonMessage.createFail(feilmelding: String, data: Map<DataFelt, Any?>? = null, behoveType: BehovType? = null): Fail {
     val behovNode: JsonNode? = this.valueNullable(Key.BEHOV)
     // behovtype trenger å vare definert eksplisit da behov elemente er en List
     val behov: BehovType? = behoveType ?: if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null

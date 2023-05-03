@@ -11,7 +11,6 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
 
     abstract val event: EventName
     lateinit var forespørselId: String
-    lateinit var ex: (packet: JsonMessage, context: MessageContext) -> Unit
 
     init {
         configureAsListener(
@@ -30,11 +29,13 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             it.rejectKey(Key.LØSNING.str)
             it.rejectKey(Key.DATA.str)
             it.rejectKey(Key.FAIL.str)
+            // transaksjon kan ikke ha UUID / transaksjonsID som egentlig betyr noe, men jeg beholder det for øyebliket
+            // for backward compatability
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
+            it.interestedIn(Key.TRANSACTION_ORIGIN.str)
         }
     }
-
     fun publishBehov(message: JsonMessage) {
         message.set(Key.EVENT_NAME.str, event.name)
         if (forespørselId.isNotEmpty()) {

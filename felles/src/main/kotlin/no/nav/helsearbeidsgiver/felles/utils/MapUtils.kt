@@ -13,3 +13,8 @@ fun <K : Any, V : Any, R : Any> Map<K, V>.mapValuesNotNull(transform: (V) -> R?)
             ?.let { key to it }
     }
         .toMap()
+
+fun <K : Any, V : Any> mapOfNotNull(vararg pair: Pair<K, V?>): Map<K, V> = mapOf(*pair).mapNotNull { (key, value) ->
+    value?.let { key to it }
+}
+    .toMap()

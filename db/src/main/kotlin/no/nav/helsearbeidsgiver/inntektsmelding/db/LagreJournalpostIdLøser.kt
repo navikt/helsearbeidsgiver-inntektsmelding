@@ -77,7 +77,6 @@ class LagreJournalpostIdLøser(
         )
         publishEvent(jsonMessage)
     }
-    
 
     fun publiserFeil(feilmelding: Feilmelding, packet: JsonMessage) {
         val fail = JsonMessage.newMessage(

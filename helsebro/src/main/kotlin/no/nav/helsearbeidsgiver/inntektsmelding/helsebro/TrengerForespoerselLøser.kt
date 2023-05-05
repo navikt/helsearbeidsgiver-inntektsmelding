@@ -48,6 +48,7 @@ class TrengerForespoerselLøser(
             forespoerselId = Key.FORESPOERSEL_ID.fra(packet).fromJson(UuidSerializer),
             boomerang = Key.BOOMERANG.fra(packet)
         )
+        logger.info("Sending message to helsebro for " + trengerForespoersel.forespoerselId + " current time" + System.currentTimeMillis())
 
         priProducer.send(trengerForespoersel)
             .ifTrue {

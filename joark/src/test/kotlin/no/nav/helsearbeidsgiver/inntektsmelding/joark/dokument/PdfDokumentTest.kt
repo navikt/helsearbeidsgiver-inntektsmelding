@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
@@ -10,34 +12,83 @@ import java.time.LocalDate
 
 internal class PdfDokumentTest {
 
-    val dag = LocalDate.of(2022, 12, 24)
-
-    val im = MockInntektsmeldingDokument()
-
-    val refusjon = Refusjon(
-        true,
-        25000.0.toBigDecimal(),
-        dag.plusDays(3),
-        listOf(
-            RefusjonEndring(140.0.toBigDecimal(), dag.minusDays(4)),
-            RefusjonEndring(150.0.toBigDecimal(), dag.minusDays(5)),
-            RefusjonEndring(160.0.toBigDecimal(), dag.minusDays(6))
-        )
-    )
+    private val dag = LocalDate.of(2022, 12, 24)
+    private val im = MockInntektsmeldingDokument()
 
     @Test
-    fun `uten refusjon`() {
-        writePDF("uten_refusjon", im.copy(refusjon = Refusjon(false)))
+    fun `betaler full lønn i arbeidsgiverperioden`() {
+        writePDF(
+            "ikke_refusjon_og_full_lønn_i_arbeidsgiverperioden",
+            im.copy(
+                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                refusjon = Refusjon(false)
+            )
+        )
     }
 
     @Test
-    fun `med refusjon uten endringer`() {
-        writePDF("med_refusjon_uten_endringer", im.copy(refusjon = refusjon.copy(refusjonEndringer = null)))
+    fun `betaler ikke full lønn i arbeidsgiverperioden`() {
+        writePDF(
+            "ikke_refusjon_og_ikke_full_lønn_i_arbeidsgiverperioden",
+            im.copy(
+                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                    false,
+                    BegrunnelseIngenEllerRedusertUtbetalingKode.PERMITTERING,
+                    5000.0.toBigDecimal()
+                ),
+                refusjon = Refusjon(false)
+            )
+        )
+    }
+
+    @Test
+    fun `krever refusjon etter arbeidsgiverperioden`() {
+        writePDF(
+            "med_refusjon_og_full_lønn_arbeidsgiverperioden_opphører",
+            im.copy(
+                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                refusjon = Refusjon(
+                    true,
+                    25000.0.toBigDecimal(),
+                    dag.plusDays(3)
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `med refusjon og uten endringer`() {
+        writePDF(
+            "med_refusjon_og_full_lønn_arbeidsgiverperioden_oppnører_ikke",
+            im.copy(
+                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                refusjon = Refusjon(
+                    true,
+                    25000.0.toBigDecimal(),
+                    null
+                )
+            )
+        )
     }
 
     @Test
     fun `med refusjon med endringer`() {
-        writePDF("med_refusjon_med_endringer", im.copy(refusjon = refusjon))
+        writePDF(
+            "med_refusjon_og_endringer_i_beloep",
+            im.copy(
+                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                refusjon = Refusjon(
+                    true,
+                    25000.0.toBigDecimal(),
+                    null,
+                    refusjonEndringer = listOf(
+                        RefusjonEndring(140.0.toBigDecimal(), dag.minusDays(4)),
+                        RefusjonEndring(150.0.toBigDecimal(), dag.minusDays(5)),
+                        RefusjonEndring(160.0.toBigDecimal(), dag.minusDays(6))
+                    )
+                )
+            )
+        )
     }
 
     fun writePDF(title: String, im: InntektsmeldingDokument) {

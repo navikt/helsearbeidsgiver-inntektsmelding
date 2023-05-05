@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendri
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.pdf.PdfBuilder
+import java.time.LocalDate
 
 class PdfDokument(val dokument: InntektsmeldingDokument) {
 
@@ -187,35 +188,52 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     }
 
     fun addBonus(bonus: Bonus) {
+        val årligBonus = 0.toBigDecimal() // TODO Må bruke bonus fra datamodell
+        val datoBonus = LocalDate.now() // TODO Må bruke dato fra datamodell
         addLabel("Forklaring for endring", "Bonus")
+        addLabel("Estimert årlig bonus", årligBonus.toNorsk())
+        addLabel("Dato siste bonus", datoBonus.toNorsk())
     }
 
     fun addRefusjon() {
         addSection("Refusjon")
 
-        val full = dokument.fullLønnIArbeidsgiverPerioden
-        addLabel("Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", full.utbetalerFullLønn.toNorsk())
-        if (full.utbetalerFullLønn) {
-            addLabel("Begrunnelse", full.begrunnelse?.name ?: "-")
-            addLabel("Utbetalt under arbeidsgiverperiode", (full.utbetalt?.toNorsk() ?: "-") + " kr")
+        val lønnArbeidsgiverperioden = dokument.fullLønnIArbeidsgiverPerioden
+        addLabel("Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", lønnArbeidsgiverperioden.utbetalerFullLønn.toNorsk())
+        if (lønnArbeidsgiverperioden.utbetalerFullLønn) {
+            // Ja
+        } else {
+            // Nei - to ekstra spørsmål
+            addLabel("Begrunnelse", lønnArbeidsgiverperioden.begrunnelse?.name ?: "-")
+            addLabel("Utbetalt under arbeidsgiverperiode", (lønnArbeidsgiverperioden.utbetalt?.toNorsk() ?: "-") + " kr")
         }
 
         val refusjon = dokument.refusjon
         addLabel("Betaler arbeidsgiver lønn under hele eller deler av sykefraværet?", refusjon.utbetalerHeleEllerDeler.toNorsk())
 
         if (dokument.refusjon.utbetalerHeleEllerDeler) {
+            // Ja - tre ekstra spørsmål
             addLabel("Refusjonsbeløp pr måned", (refusjon.refusjonPrMnd?.toNorsk() ?: "-") + " kr/måned") // Arbeidsgiver
-            addLabel("Opphører refusjonskravet i perioden", refusjon.refusjonOpphører?.toNorsk() ?: "-")
-            addLabel("Siste dag dere krever refusjon for", refusjon.refusjonOpphører?.toNorsk() ?: "-")
-        }
 
-        val endringer = dokument.refusjon.refusjonEndringer ?: emptyList()
-        addLabel("Endringer i refusjon i perioden", (!endringer.isEmpty()).toNorsk())
-        if (endringer.isEmpty() == false) {
-            endringer.forEach {
-                addLabel("Beløp", it.beløp?.toNorsk() ?: "-", KOLONNE_EN, linefeed = false)
-                addLabel("Dato", it.dato?.toNorsk() ?: "-", KOLONNE_TO)
+            val opphørerKravet = refusjon.refusjonOpphører != null
+            addLabel("Opphører refusjonskravet i perioden", opphørerKravet.toNorsk())
+            if (opphørerKravet) {
+                addLabel("Siste dag dere krever refusjon for", refusjon.refusjonOpphører?.toNorsk() ?: "-")
             }
+
+            val endringer = dokument.refusjon.refusjonEndringer ?: emptyList()
+            addLabel("Endringer i refusjon i perioden", (!endringer.isEmpty()).toNorsk())
+            if (endringer.isEmpty()) {
+                // Nei - Ingen endringer i perioden
+            } else {
+                // Ja - endringer
+                endringer.forEach {
+                    addLabel("Beløp", it.beløp?.toNorsk() ?: "-", KOLONNE_EN, linefeed = false)
+                    addLabel("Dato", it.dato?.toNorsk() ?: "-", KOLONNE_TO)
+                }
+            }
+        } else {
+            // Nei - ingen flere spørsmål
         }
     }
 

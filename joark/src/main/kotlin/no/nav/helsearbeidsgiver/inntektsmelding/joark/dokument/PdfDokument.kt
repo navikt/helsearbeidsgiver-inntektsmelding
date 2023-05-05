@@ -105,38 +105,28 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     }
 
     fun addFraværsperiode() {
-        /**
-         * Skjæringstidspunkt    Egnemeldingsperioder
-         *
-         * Arbeidsgiverperioder  Sykemeldingsperioder
-         */
         addSection("Fraværsperiode")
         val seksjonStartY = y // Husk når denne seksjonen starter i y-aksen
 
         // --- Kolonnen til venstre -------------------------------------------------
-        addLabel("Egenmelding")
-        addPerioder(KOLONNE_EN, dokument.egenmeldingsperioder)
-        addLabel("Fravær knyttet til sykmelding")
-        addPerioder(KOLONNE_EN, dokument.fraværsperioder)
-        val kolonneVenstreMaxY = y // Husk maks høyden på venstre side
+        addLabel("Bestemmende fraværsdag (skjæringstidpunkt)", dokument.bestemmendeFraværsdag.toNorsk(), KOLONNE_EN)
+        addLabel("Arbeidsgiverperiode", x = KOLONNE_EN)
+        addPerioder(KOLONNE_EN, dokument.arbeidsgiverperioder)
+
+        // Husk maks høyden på venstre side
+        val kolonneVenstreMaxY = y
 
         // --- Kolonnen til høyre ---------------------------------------------------
         moveCursorTo(seksjonStartY) // Gjenopprett y-aksen fra tidligere
+        addLabel("Egenmelding", x = KOLONNE_TO)
+        addPerioder(KOLONNE_TO, dokument.egenmeldingsperioder)
+        addLabel("Sykemeldingsperioder", x = KOLONNE_TO)
+        addPerioder(KOLONNE_TO, dokument.fraværsperioder)
 
-        addLabel("Bestemmende fraværsdag", "Bestemmende fraværsdag angir datoen som sykelønn skal beregnes ut i fra.", KOLONNE_TO)
-        addLabel("Dato", dokument.bestemmendeFraværsdag.toNorsk(), KOLONNE_TO)
-        addLabel(
-            "Arbeidsgiverperiode",
-            "Arbeidsgivers har ansvar vanligvis for å betale lønn",
-            KOLONNE_TO
-        )
-        moveCursorBy(-pdf.bodySize)
-        addText("til den sykemeldte under arbeidsgiverperioden", KOLONNE_TO)
-        moveCursorBy(pdf.bodySize)
-        addPerioder(KOLONNE_TO, dokument.arbeidsgiverperioder)
+        // Husk maks høyden på høyre side
+        val kolonneHøyreMaxY = y
 
         // --- Finn ut hvilken kolonne som ble høyest -------------------------------
-        val kolonneHøyreMaxY = y // Husk maks høyden på høyre side
         val maksKolonneY = if (kolonneVenstreMaxY > kolonneHøyreMaxY) { kolonneVenstreMaxY } else { kolonneHøyreMaxY }
         moveCursorTo(maksKolonneY)
         moveCursorBy(pdf.bodySize * 2)

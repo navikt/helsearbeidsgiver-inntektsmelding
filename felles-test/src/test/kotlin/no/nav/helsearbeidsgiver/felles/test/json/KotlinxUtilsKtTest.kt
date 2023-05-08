@@ -1,12 +1,10 @@
 package no.nav.helsearbeidsgiver.felles.test.json
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.data.Row2
-import io.kotest.data.row
-import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.list
 import no.nav.helsearbeidsgiver.felles.json.parseJson
@@ -43,15 +41,16 @@ class KotlinxUtilsKtTest : FunSpec({
         actualMap shouldBe expectedMap
     }
 
-    context("tryOrNull-hjelpefunksjon") {
-        withData(
-            @Suppress("RemoveExplicitTypeArguments")
-            mapOf<_, Row2<() -> String, String?>>(
-                "exception mappes til null" to row({ throw RuntimeException("\uD83D\uDC80") }, null),
-                "verdi returneres" to row({ "\uD83D\uDC85" }, "\uD83D\uDC85")
-            )
-        ) { (block, expectedResult) ->
-            tryOrNull(block) shouldBe expectedResult
-        }
+    test("'Map<Key, JsonElement>.toJson(): JsonElement' serialiserer korrekt") {
+        val hitchhikersMapToTheGalaxy = mapOf(
+            Key.BEHOV to "Hva er meningen med livet?".toJson(),
+            Key.LØSNING to 42.toJson(Int.serializer())
+        )
+
+        val expected = hitchhikersMapToTheGalaxy.mapKeys { (key, _) -> key.str }.let(::JsonObject)
+
+        val actual = hitchhikersMapToTheGalaxy.toJson()
+
+        actual shouldBe expected
     }
 })

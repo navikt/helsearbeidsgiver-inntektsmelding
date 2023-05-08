@@ -5,7 +5,7 @@
 # docker run --rm -it -v $(PWD)/config:/config \
 #   -e CLUSTER=dev-fss \
 #   -e VAR="team=tbd,app=aareg" \
-#   docker.pkg.github.com/nais/deploy/deploy:latest /app/deploy \
+#   ghcr.io/nais/deploy/deploy:latest /app/deploy \
 #     --dry-run --print-payload --resource /config/nais.yml --vars /config/myapp/dev-fss.yml
 apiVersion: nais.io/v1alpha1
 kind: Application
@@ -88,5 +88,14 @@ spec:
     {{/each}}{{/if}}
   accessPolicy:
     outbound:
+      external:
+      {{#if externalHosts}}{{# each externalHosts as |item| }}
+        - host: {{ item }}
+      {{/each}}{{/if}}
       rules:
-        - application: helsearbeidsgiver-redis
+        {{#if apps}}{{# each apps as |app| }}
+        - application: {{ app.name }}
+          {{#if app.namespace}}
+          namespace: {{ app.namespace }}
+          {{/if}}
+        {{/each}}{{/if}}

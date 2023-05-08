@@ -2,23 +2,27 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-joark")
 
 fun main() {
-    createApp(setUpEnvironment()).start()
+    RapidApplication
+        .create(System.getenv())
+        .createJoark(buildDokArkivClient(setUpEnvironment()))
+        .start()
 }
 
-internal fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starting RapidApplication...")
-    val rapidsConnection = RapidApplication.create(environment.raw)
-    logger.info("Starting JournalførInntektsmeldingLøser...")
+fun RapidsConnection.createJoark(buildDokArkivClient: DokArkivClient): RapidsConnection {
+    sikkerLogger.info("Starting JournalførInntektsmeldingLøser...")
     JournalførInntektsmeldingLøser(
-        rapidsConnection,
-        buildDokArkivClient(environment)
+        this,
+        buildDokArkivClient
     )
-    JournalfoerInntektsmeldingMottattListener(rapidsConnection)
-    return rapidsConnection
+    sikkerLogger.info("Starting JournalfoerInntektsmeldingMottattListener...")
+    JournalfoerInntektsmeldingMottattListener(this)
+    return this
 }

@@ -14,6 +14,7 @@ import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -56,6 +57,7 @@ internal class VirksomhetLøserTest {
         } returns null
         val løsning = sendMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
@@ -72,6 +74,7 @@ internal class VirksomhetLøserTest {
         } returns VIRKSOMHET_NAVN
         val løsning = sendMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
@@ -85,6 +88,7 @@ internal class VirksomhetLøserTest {
     fun `skal håndtere ukjente feil`() {
         val løsning = sendMessage(
             mapOf(
+                Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 Key.ORGNRUNDERENHET.str to ORGNR

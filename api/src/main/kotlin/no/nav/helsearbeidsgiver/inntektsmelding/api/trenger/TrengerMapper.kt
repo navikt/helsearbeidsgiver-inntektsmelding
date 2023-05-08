@@ -41,7 +41,7 @@ class TrengerMapper(
         resultat.HENT_TRENGER_IM?.value?.forespurtData ?: emptyList()
 
     fun mapFulltNavn(): String {
-        return resultat.FULLT_NAVN?.value ?: "Mangler navn"
+        return resultat.FULLT_NAVN?.value?.navn ?: "Mangler navn"
     }
 
     fun mapArbeidsgiver(): String {
@@ -69,7 +69,7 @@ class TrengerMapper(
             orgnrUnderenhet = mapOrgNummer(),
             fravaersperioder = mapFraværsperiode(),
             egenmeldingsperioder = mapEgenmeldingsperioder(),
-            bruttoinntekt = inntekt.bruttoInntekt,
+            bruttoinntekt = inntekt.gjennomsnitt(),
             tidligereinntekter = inntekt.historisk,
             behandlingsperiode = null,
             behandlingsdager = emptyList(),

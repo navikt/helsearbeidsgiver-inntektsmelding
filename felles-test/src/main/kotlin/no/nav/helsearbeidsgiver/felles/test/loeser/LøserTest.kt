@@ -1,22 +1,22 @@
 package no.nav.helsearbeidsgiver.felles.test.loeser
 
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.every
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.fromJsonMap
 import no.nav.helsearbeidsgiver.felles.json.list
 import no.nav.helsearbeidsgiver.felles.json.løsning
 import no.nav.helsearbeidsgiver.felles.loeser.Løser
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
+import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.mockObject
 import java.util.UUID
 
@@ -37,7 +37,7 @@ abstract class LøserTest {
     ) {
         companion object {
             fun <T : Any> JsonElement.toLøserAnswer(tSerializer: KSerializer<T>): LøserAnswer<T> =
-                jsonObject
+                fromJsonMapOnlyKeys()
                     .let {
                         val behov = behov(it)
                         LøserAnswer(
@@ -47,29 +47,29 @@ abstract class LøserTest {
                         )
                     }
 
-            private fun behov(json: JsonObject): BehovType =
-                json.get(Key.BEHOV)
+            private fun behov(json: Map<Key, JsonElement>): BehovType =
+                json[Key.BEHOV]
+                    .shouldNotBeNull()
                     .fromJson(BehovType.serializer().list())
+                    .shouldNotBeEmpty()
                     .first()
 
-            private fun initiateId(json: JsonObject): UUID =
-                json.get(Key.INITIATE_ID)
+            private fun initiateId(json: Map<Key, JsonElement>): UUID =
+                json[Key.INITIATE_ID]
+                    .shouldNotBeNull()
                     .fromJson(UuidSerializer)
 
-            private fun <T : Any> løsning(json: JsonObject, behovType: BehovType, tSerializer: KSerializer<T>): Løsning<T> =
-                json.get(Key.LØSNING)
-                    .fromJson(
-                        MapSerializer(
-                            BehovType.serializer(),
-                            JsonElement.serializer()
-                        )
-                    )
+            private fun <T : Any> løsning(
+                json: Map<Key, JsonElement>,
+                behovType: BehovType,
+                tSerializer: KSerializer<T>
+            ): Løsning<T> =
+                json[Key.LØSNING]
+                    .shouldNotBeNull()
+                    .fromJsonMap(BehovType.serializer())
                     .get(behovType)
                     .shouldNotBeNull()
                     .fromJson(tSerializer.løsning())
         }
     }
 }
-
-private fun JsonObject.get(key: Key): JsonElement =
-    get(key.str).shouldNotBeNull()

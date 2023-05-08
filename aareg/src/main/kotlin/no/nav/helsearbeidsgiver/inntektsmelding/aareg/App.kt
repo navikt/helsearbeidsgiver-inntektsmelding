@@ -11,16 +11,19 @@ val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-aareg")
 
 fun main() {
-    createApp(setUpEnvironment()).start()
+    RapidApplication
+        .create(System.getenv())
+        .createAareg(buildClient(setUpEnvironment()))
+        .start()
 }
 
-internal fun createApp(environment: Environment): RapidsConnection {
-    logger.info("Starting RapidApplication...")
-    val rapidsConnection = RapidApplication.create(environment.raw)
+fun RapidsConnection.createAareg(aaregClient: AaregClient): RapidsConnection {
+    sikkerlogg.info("Starter ArbeidsforholdLøser...")
+    ArbeidsforholdLøser(this, aaregClient)
+    return this
+}
+
+fun buildClient(environment: Environment): AaregClient {
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    val aaregClient = AaregClient(url = environment.aaregUrl, getAccessToken = tokenProvider::getToken)
-    logger.info("Starter løser...")
-    ArbeidsforholdLøser(rapidsConnection, aaregClient)
-    logger.info("Løser klar...")
-    return rapidsConnection
+    return AaregClient(url = environment.aaregUrl, getAccessToken = tokenProvider::getToken)
 }

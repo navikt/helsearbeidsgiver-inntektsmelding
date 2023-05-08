@@ -9,7 +9,7 @@ tasks {
     test {
         environment("LOGINSERVICE_IDPORTEN_DISCOVERY_URL", "http://localhost:6666/loginservice-issuer/.well-known/openid-configuration")
         environment("LOGINSERVICE_IDPORTEN_AUDIENCE", "aud-localhost")
-        environment("REDIS_URL", "test_url")
+        environment("REDIS_URL", "redis://test_url:6379/0")
     }
 }
 
@@ -25,8 +25,10 @@ dependencies {
     implementation("no.nav.security:token-validation-ktor-v2:$tokenSupportVersion")
     implementation("org.valiktor:valiktor-core:$valiktorVersion")
 
+    testImplementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOauth2ServerVersion")
+    testImplementation(project(":felles-test"))
     testImplementation(kotlin("test"))
 }

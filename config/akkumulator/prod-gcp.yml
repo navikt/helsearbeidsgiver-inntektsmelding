@@ -1,0 +1,8 @@
+kafkaPool: nav-prod
+azure:
+  enabled: true
+env:
+- name: REDIS_URL
+  value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
+apps:
+  - name: helsearbeidsgiver-redis

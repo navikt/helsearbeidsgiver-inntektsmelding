@@ -7,23 +7,32 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.IdType
 import no.nav.helsearbeidsgiver.dokarkiv.Journalposttype
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.toJsonStr
+import no.nav.helsearbeidsgiver.dokarkiv.Sak
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
 import java.time.LocalDate
 import java.util.Base64
+
+// NAV-enheten som personen som utfører journalføring jobber for. Ved automatisk journalføring uten
+// mennesker involvert, skal enhet settes til "9999".
+internal const val AUTOMATISK_JOURNALFOERING_ENHET = "9999"
 
 /**
  * Journalføring til dagens løsning:
  * https://github.com/navikt/dokmotaltinn/blob/master/app/src/test/resources/__files/journalpostapi/opprettjournalpostrequest.json
  */
-fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingDokument, arbeidsgiver: String): OpprettJournalpostRequest {
+fun mapOpprettJournalpostRequest(
+    uuid: String,
+    inntektsmelding: InntektsmeldingDokument,
+    arbeidsgiver: String
+): OpprettJournalpostRequest {
     return OpprettJournalpostRequest(
         tema = "SYK",
         behandlingsTema = "ab0326",
         tittel = "Inntektsmelding",
         journalposttype = Journalposttype.INNGAAENDE,
-        journalfoerendeEnhet = null,
+        journalfoerendeEnhet = AUTOMATISK_JOURNALFOERING_ENHET,
         kanal = "NAV_NO",
         bruker = Bruker(inntektsmelding.identitetsnummer, IdType.FNR), //  Bruker.id er fnr til personen kravet gjelder for
         eksternReferanseId = "ARI-$uuid",
@@ -38,15 +47,21 @@ fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingD
                 brevkode = "4936",
                 dokumentVarianter = listOf(
                     DokumentVariant(
-                        filtype = "JSON",
-                        fysiskDokument = inntektsmelding.toJsonStr(InntektsmeldingDokument.serializer())
-                            .toByteArray()
-                            .let {
-                                Base64.getEncoder().encodeToString(it)
-                            },
+                        filtype = "XML",
+                        fysiskDokument = Base64.getEncoder().encodeToString(transformToXML(inntektsmelding).toByteArray()),
                         variantFormat = "ORIGINAL",
-                        filnavn = "ari-$uuid.json"
+                        filnavn = "ari-$uuid.xml"
                     ),
+//                    DokumentVariant(
+//                        filtype = "JSON",
+//                        fysiskDokument = customObjectMapper().writeValueAsString(inntektsmelding)
+//                            .toByteArray()
+//                            .let {
+//                                Base64.getEncoder().encodeToString(it)
+//                            },
+//                        variantFormat = "ARKIV",
+//                        filnavn = "ari-$uuid.json"
+//                    ),
                     DokumentVariant(
                         filtype = "PDFA",
                         variantFormat = "ARKIV",
@@ -56,6 +71,7 @@ fun mapOpprettJournalpostRequest(uuid: String, inntektsmelding: InntektsmeldingD
                 )
             )
         ),
+        sak = Sak.GENERELL,
         datoMottatt = LocalDate.now()
     )
 }

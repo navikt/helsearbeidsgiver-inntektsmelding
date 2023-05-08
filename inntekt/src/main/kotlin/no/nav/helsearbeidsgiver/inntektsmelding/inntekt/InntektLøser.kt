@@ -3,6 +3,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -10,63 +12,135 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.value
+import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
+import no.nav.helsearbeidsgiver.inntekt.LocalDateSerializer
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import kotlin.system.measureTimeMillis
 
-fun finnStartMnd(now: LocalDate = LocalDate.now()): LocalDate {
-    return LocalDate.of(now.year, now.month, 1)
+/**
+ * @return en periode tre måneder tilbake fra nyeste sammenhengende
+ * sykmeldingsperiode
+ */
+fun finnInntektPeriode(sykmeldinger: List<Periode>): Periode {
+    val skjæringstidspunkt = finnSkjæringstidspunkt(sykmeldinger)
+    val skjæringstidspunktMåned = skjæringstidspunkt.withDayOfMonth(1)
+    return Periode(
+        skjæringstidspunktMåned.minusMonths(3),
+        skjæringstidspunktMåned.minusDays(1)
+    )
 }
+
+/**
+ * Sorter fom fra minst til størst,
+ * returnerer den siste sammenhengende perioden i lista,
+ * eller det siste elementet om ingen hører sammen
+ */
+fun finnSkjæringstidspunkt(sykmeldinger: List<Periode>): LocalDate =
+    if (sykmeldinger.size <= 1) {
+        sykmeldinger.first()
+    } else {
+        sykmeldinger.sortedBy { it.fom }
+            .reduce { p1, p2 ->
+                p1.slåSammenIgnorerHelgOrNull(p2)
+                    ?: p2
+            }
+    }
+        .fom
 
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private val BEHOV = BehovType.INNTEKT
+    private val INNTEKT = BehovType.INNTEKT
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAll(Key.BEHOV.str, BEHOV)
-                it.requireKey(Key.ID.str, Key.IDENTITETSNUMMER.str, Key.ORGNRUNDERENHET.str)
+                it.demandAll(Key.BEHOV.str, INNTEKT)
+                it.requireKey(Key.ID.str, Key.SESSION.str)
+                it.interestedIn(Key.BOOMERANG.str) // TODO: forsøk å heller splitte opp i to løsere
                 it.rejectKey(Key.LØSNING.str)
             }
         }.register(this)
     }
 
-    private fun hentInntekt(fnr: String, fra: LocalDate, til: LocalDate, callId: String): InntektskomponentResponse =
+    private fun hentInntekt(fnr: String, periode: Periode, callId: String): InntektskomponentResponse =
         runBlocking {
-            sikkerlogg.info("Henter inntekt for $fnr i perioden $fra til $til (callId: $callId)")
-            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", fra, til, "8-28", "Sykepenger")
+            sikkerlogger.info("Henter inntekt for $fnr i perioden ${periode.fom} til ${periode.tom} (callId: $callId)")
+            val response: InntektskomponentResponse
+            measureTimeMillis {
+                response = inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", periode.fom, periode.tom, "8-28", "Sykepenger")
+            }.also {
+                logger.info("Inntekt endepunkt took $it")
+            }
+            response
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottar pakke")
-        sikkerlogg.info("Mottar pakke: ${packet.toJson()}")
-        val uuid = packet[Key.ID.str].asText()
-        logger.info("Løser behov $BEHOV med id $uuid")
-        sikkerlogg.info("Løser behov $BEHOV med id $uuid")
-        val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
-        val orgnr = packet.value(Key.ORGNRUNDERENHET).asText()
-        val til = finnStartMnd()
-        val fra = til.minusMonths(9) // TODO: skal endres til 3 mnd
-        sikkerlogg.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: $fra - $til")
-        try {
-            val inntektResponse = hentInntekt(fnr, fra, til, "helsearbeidsgiver-im-inntekt-$uuid")
-            sikkerlogg.info("Fant inntektResponse: $inntektResponse")
-            val inntekt = mapInntekt(inntektResponse, orgnr)
-            packet.setLøsning(BEHOV, InntektLøsning(inntekt))
-            context.publish(packet.toJson())
-            sikkerlogg.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
-        } catch (ex: Exception) {
-            logger.error("Feil!", ex)
-            packet.setLøsning(BEHOV, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
-            sikkerlogg.info("Det oppstod en feil ved henting av inntekt for $fnr", ex)
-            context.publish(packet.toJson())
+        measureTimeMillis {
+            logger.info("Mottar pakke")
+            sikkerlogger.info("Mottar pakke: ${packet.toJson()}")
+            val uuid = packet[Key.ID.str].asText()
+            logger.info("Løser behov $INNTEKT med id $uuid")
+            val imLøsning = hentSpleisDataFraSession(packet)
+            val fnr = imLøsning.value!!.fnr
+            val orgnr = imLøsning.value!!.orgnr
+            val nyInntektDato = packet.valueNullable(Key.BOOMERANG)
+                ?.toJsonElement()
+                ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
+                ?.get(Key.INNTEKT_DATO)
+                ?.fromJson(LocalDateSerializer)
+            val sykPeriode = bestemPeriode(nyInntektDato, imLøsning.value?.sykmeldingsperioder)
+            if (sykPeriode.isEmpty()) {
+                logger.error("Sykmeldingsperiode mangler for uuid $uuid")
+                packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
+                context.publish(packet.toJson())
+                return
+            }
+            try {
+                val inntektPeriode = finnInntektPeriode(sykPeriode)
+                sikkerlogger.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${inntektPeriode.fom} - ${inntektPeriode.tom}")
+                val inntektResponse = hentInntekt(fnr, inntektPeriode, "helsearbeidsgiver-im-inntekt-$uuid")
+                sikkerlogger.info("Fant inntektResponse: $inntektResponse")
+                val inntekt = mapInntekt(inntektResponse, orgnr)
+                packet.setLøsning(INNTEKT, InntektLøsning(inntekt))
+                context.publish(packet.toJson())
+                sikkerlogger.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
+            } catch (ex: Exception) {
+                sikkerlogger.error("Feil ved henting av inntekt for $fnr!", ex)
+                packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
+                context.publish(packet.toJson())
+            }
+        }.also {
+            logger.info("Inntekt Løser took $it")
         }
+    }
+
+    private fun hentSpleisDataFraSession(packet: JsonMessage): HentTrengerImLøsning =
+        try {
+            packet[Key.SESSION.str][BehovType.HENT_TRENGER_IM.name]
+                .toJsonElement()
+                .fromJson(HentTrengerImLøsning.serializer())
+        } catch (ex: Exception) {
+            HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut spleisdata fra ${Key.SESSION},  ${BehovType.HENT_TRENGER_IM}"))
+        }
+
+    private fun bestemPeriode(dato: LocalDate?, sykmeldingPeriode: List<Periode>?): List<Periode> {
+        if (dato == null) {
+            logger.debug("Bruker sykmeldingsperiode fra spleis-forespørsel")
+            return sykmeldingPeriode ?: emptyList()
+        }
+        logger.debug("Bruker innsendt dato $dato fra bruker")
+        return listOf(Periode(dato, dato))
     }
 
     private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {

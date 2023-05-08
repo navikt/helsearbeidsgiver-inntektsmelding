@@ -8,8 +8,10 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 
 @Serializable(KeySerializer::class)
 enum class Key(val str: String) {
@@ -27,14 +29,22 @@ enum class Key(val str: String) {
     NESTE_BEHOV("neste_behov"),
     IDENTITETSNUMMER("identitetsnummer"),
     INITIATE_ID("initiateId"),
+    INITIATE_EVENT("initiate_event"),
     UUID("uuid"),
+    TRANSACTION_ORIGIN("transaction_origin"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNR("orgnr"),
     FNR("fnr"),
     FORESPOERSEL_ID("forespoerselId"),
     INNTEKTSMELDING("inntektsmelding"),
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
-    JOURNALPOST_ID("journalpostId");
+    JOURNALPOST_ID("journalpostId"),
+    INNTEKT_DATO("inntektDato"),
+    NAVN("navn"),
+    SAK_ID("sak_id"),
+    DATA("data"),
+    FAIL("fail"),
+    OPPGAVE_ID("oppgave_id");
 
     override fun toString(): String =
         str
@@ -45,6 +55,16 @@ enum class Key(val str: String) {
                 json == it.str
             }
     }
+
+    fun fra(message: JsonMessage): JsonElement =
+        message[str].toJsonElement()
+}
+
+enum class DataFelt(val str: String) {
+    VIRKSOMHET("virksomhet"),
+    ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
+    INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str),
+    ARBEIDSFORHOLD("arbeidsforhold")
 }
 
 fun JsonMessage.value(key: Key): JsonNode =
@@ -52,6 +72,9 @@ fun JsonMessage.value(key: Key): JsonNode =
 
 fun JsonMessage.valueNullable(key: Key): JsonNode? =
     value(key).takeUnless(JsonNode::isMissingOrNull)
+
+fun JsonMessage.valueNullableOrUndefined(key: Key): JsonNode? =
+    try { value(key).takeUnless(JsonNode::isMissingOrNull) } catch (e: IllegalArgumentException) { null }
 
 internal object KeySerializer : KSerializer<Key> {
     override val descriptor = PrimitiveSerialDescriptor("helsearbeidsgiver.felles.Key", PrimitiveKind.STRING)

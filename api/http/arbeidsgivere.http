@@ -1,5 +1,5 @@
 ### Arbeidsgivere
-GET https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/arbeidsgivere
+GET https://helsearbeidsgiver-im-api.intern.dev.nav.no/api/v1/arbeidsgivere
 
 > {%
 client.test("Response OK", () => {

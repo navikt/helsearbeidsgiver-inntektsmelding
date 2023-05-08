@@ -5,9 +5,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -16,10 +14,12 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.fromJsonMap
 import no.nav.helsearbeidsgiver.felles.json.list
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.felles.valueNullable
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 
 class Akkumulator(
     val rapidsConnection: RapidsConnection,
@@ -41,21 +41,18 @@ class Akkumulator(
                     Key.INITIATE_ID.str,
                     Key.UUID.str,
                     Key.IDENTITETSNUMMER.str,
-                    Key.NESTE_BEHOV.str
+                    Key.NESTE_BEHOV.str,
+                    Key.EVENT_NAME.str
                 )
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        sikkerlogg.debug("Fikk pakke ${packet.toJson()}")
         val boomerang = Key.BOOMERANG.let(packet::valueNullable)
             ?.toJsonElement()
-            ?.fromJson(
-                MapSerializer(
-                    Key.serializer(),
-                    JsonElement.serializer()
-                )
-            )
+            ?.fromJsonMap(Key.serializer())
             .orEmpty()
 
         val uuid = boomerang[Key.INITIATE_ID]?.fromJson(String.serializer())

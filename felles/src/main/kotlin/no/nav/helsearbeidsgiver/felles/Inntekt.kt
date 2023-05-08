@@ -2,34 +2,37 @@
 
 package no.nav.helsearbeidsgiver.felles
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.serializers.YearMonthSerializer
-import java.math.BigDecimal
-import java.math.RoundingMode
+import no.nav.helsearbeidsgiver.felles.utils.divideMoney
+import no.nav.helsearbeidsgiver.felles.utils.sumMoney
 import java.time.YearMonth
 
 @Serializable
+@OptIn(ExperimentalSerializationApi::class)
 data class MottattHistoriskInntekt(
-    val maanedsnavn: YearMonth?,
-    val inntekt: Double?
+    val maaned: YearMonth,
+    val inntekt: Double,
+    @EncodeDefault
+    @Deprecated("Bruk maaned-felt.", ReplaceWith("maaned"))
+    val maanedsnavn: YearMonth = maaned
 )
 
 @Serializable
 data class Inntekt(
     val historisk: List<MottattHistoriskInntekt>
 ) {
-    val bruttoInntekt = gjennomsnitt()
-
     fun total(): Double =
-        historisk.map { BigDecimal.valueOf(it.inntekt ?: 0.0) }
-            .fold(BigDecimal.ZERO) { sum, delsum -> sum + delsum }
-            .toDouble()
+        historisk.map { it.inntekt }
+            .sumMoney()
 
-    // Beholder navnet bruttoInntekt for nå, er mer et "forslag til bruttoInntekt" som akkurat nå beregnes ved snitt...
-    fun gjennomsnitt(): Double {
-        if (historisk.size <= 1) return total()
-        return BigDecimal.valueOf(total()).divide(BigDecimal(historisk.size), RoundingMode.HALF_UP)
-            .toDouble()
-    }
+    fun gjennomsnitt(): Double =
+        if (historisk.isEmpty()) {
+            0.0
+        } else {
+            total().divideMoney(historisk.size)
+        }
 }

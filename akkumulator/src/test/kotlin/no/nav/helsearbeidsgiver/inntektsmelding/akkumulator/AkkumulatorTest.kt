@@ -3,7 +3,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -11,12 +10,23 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.jsonArray
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.list
+import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class AkkumulatorTest {
@@ -34,8 +44,8 @@ internal class AkkumulatorTest {
     private val UUID_PDL = "uuid_" + BEHOV_FULLT_NAVN
 
     val LØSNING_FEIL = NavnLøsning(error = Feilmelding("Fikk 500"))
-    val LØSNING_OK = NavnLøsning(value = "abc")
-    val PDL_OK = NavnLøsning(value = "xyz")
+    val LØSNING_OK = NavnLøsning(value = PersonDato("abc", LocalDate.now()))
+    val PDL_OK = NavnLøsning(value = PersonDato("xyz", LocalDate.now()))
 
     internal val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -66,17 +76,27 @@ internal class AkkumulatorTest {
         verify(exactly = 0) {
             redisStore.set("uuid", any(), any())
         }
-        val behov: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("@behov")
-        val løsning: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("@løsning")
-        val neste_behov: JsonNode = rapid.inspektør.message(rapid.inspektør.size - 1).path("neste_behov")
+
+        val publisert = rapid.firstMessage().fromJsonMapOnlyKeys()
+
         // Skal beholde eksisterende verdier
-        assertEquals("placeholder", rapid.inspektør.message(rapid.inspektør.size - 1).path("inntektsmelding").asText())
-        assertEquals("uuid", rapid.inspektør.message(rapid.inspektør.size - 1).path("uuid").asText())
-        // Nytt behov
-        assertEquals("", løsning.asText())
-        assertEquals("", neste_behov.asText()) // Fjerne neste behov
-        assertEquals(BEHOV_FULLT_NAVN, behov.get(0).asText())
-        assertEquals(BEHOV_ARBEIDSGIVERE, behov.get(1).asText())
+        listOf(
+            Key.INNTEKTSMELDING to "placeholder",
+            Key.UUID to "uuid"
+        )
+            .forEach { (key, expectedValue) ->
+                val actual = publisert[key]!!.fromJson(String.serializer())
+                assertEquals(expectedValue, actual)
+            }
+
+        // Skal legge til neste behov i behovliste
+        val behov = publisert[Key.BEHOV]!!.fromJson(String.serializer().list())
+        assertEquals(BEHOV_FULLT_NAVN, behov[0])
+        assertEquals(BEHOV_ARBEIDSGIVERE, behov[1])
+
+        // Skal fjernes
+        assertFalse(publisert.keys.contains(Key.LØSNING))
+        assertEquals(0, publisert[Key.NESTE_BEHOV]!!.jsonArray.size)
     }
 
     @Test
@@ -194,5 +214,47 @@ internal class AkkumulatorTest {
         verify(exactly = 0) {
             redisStore.set("uuid", any(), any())
         }
+    }
+
+    @Test
+    fun `skal videresende boomerang i neste behov`() {
+        every { redisStore.set(any(), any(), timeout) } returns Unit
+        val initId = "whateva"
+        val dato = "whenever"
+        val foedselsnummer = "fnr"
+        val originalBoomerang = mapOf(
+            Key.NESTE_BEHOV.str to listOf(BehovType.ARBEIDSGIVERE.toString()),
+            Key.INITIATE_ID.str to initId,
+            Key.INNTEKT_DATO.str to dato,
+            Key.FNR.str to foedselsnummer
+        )
+        val melding = mapOf(
+            Key.LØSNING.str to mapOf(
+                BEHOV_FULLT_NAVN to LØSNING_OK
+            ),
+            Key.BEHOV.str to listOf(BEHOV_FULLT_NAVN),
+            Key.BOOMERANG.str to originalBoomerang
+        )
+        rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
+        verify(exactly = 1) {
+            redisStore.set(any(), objectMapper.writeValueAsString(LØSNING_OK), timeout)
+        }
+        verify(exactly = 0) {
+            redisStore.set(initId, any(), any())
+        }
+        val boomerang = rapid.firstMessage()
+            .fromJsonMapOnlyKeys()[Key.BOOMERANG]!!
+            .fromJsonMapOnlyKeys()
+
+        // akkumulator skal fjerne neste behov!
+        assertEquals(
+            emptyList<BehovType>(),
+            boomerang[Key.NESTE_BEHOV]?.fromJson(BehovType.serializer().list())
+        )
+        assertEquals(
+            originalBoomerang.keys.toList(),
+            boomerang.keys.map(Key::str), // må mappe om til string! :/
+            "Alle keys skal beholdes i boomerang"
+        )
     }
 }

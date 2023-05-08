@@ -8,9 +8,13 @@ import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonStr
+import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -21,25 +25,30 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import kotlin.test.assertNotNull
 
-private const val PATH = Routes.PREFIX + Routes.INNSENDING
+private const val PATH = Routes.PREFIX + Routes.INNSENDING + "/${MockUuid.STRING}"
 
+// TODO gjør kompatibel med TestClient
 class InnsendingRouteKtTest : ApiTest() {
-    val GYLDIG_REQUEST = GYLDIG
-    val UGYLDIG_REQUEST = GYLDIG.copy(
+    val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST
+    val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(
         identitetsnummer = TestData.notValidIdentitetsnummer,
         orgnrUnderenhet = TestData.notValidOrgNr
     )
 
-    val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning("verdi"))
+    val RESULTAT_IKKE_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.IKKE_TILGANG))
+    val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
+
+    val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning(PersonDato("verdi", LocalDate.now())))
     val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
 
     @Test
     fun `skal godta og returnere kvittering`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_OK
+        } returns RESULTAT_HAR_TILGANG andThen RESULTAT_OK
 
         val response = post(PATH, GYLDIG_REQUEST)
 
@@ -51,7 +60,7 @@ class InnsendingRouteKtTest : ApiTest() {
     fun `skal returnere valideringsfeil ved ugyldig request`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_FEIL
+        } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
 
         val response = post(PATH, UGYLDIG_REQUEST)
 
@@ -81,7 +90,7 @@ class InnsendingRouteKtTest : ApiTest() {
     fun `skal vise feil når et behov feiler`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_FEIL
+        } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
 
         val response = post(PATH, UGYLDIG_REQUEST)
 

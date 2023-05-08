@@ -1,15 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.FullLønnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.request.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBehandlingsdager
 import org.valiktor.functions.isGreaterThan
+import org.valiktor.functions.isGreaterThanOrEqualTo
 import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isNotNull
 import org.valiktor.functions.isTrue
@@ -28,15 +26,16 @@ fun InnsendingRequest.validate() {
         validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
         // Egenmelding
         validate(InnsendingRequest::egenmeldingsperioder).validateForEach {
-            validate(Periode::fom).isNotNull()
-            validate(Periode::tom).isNotNull()
-            validate(Periode::tom).isGreaterThan(it.fom)
+            it.fom
+            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode::fom).isNotNull()
+            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode::tom).isNotNull()
+            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode::tom).isGreaterThanOrEqualTo(it.fom)
         }
         // Brutto inntekt
         validate(InnsendingRequest::inntekt).validate {
             validate(Inntekt::bekreftet).isTrue()
-            validate(Inntekt::beregnetInntekt).isGreaterThan(0.0)
-            validate(Inntekt::beregnetInntekt).isLessThan(1_000_000.0)
+            validate(Inntekt::beregnetInntekt).isGreaterThan(0.0.toBigDecimal())
+            validate(Inntekt::beregnetInntekt).isLessThan(1_000_000.0.toBigDecimal())
             if (it.manueltKorrigert) {
                 validate(Inntekt::endringÅrsak).isNotNull()
             }
@@ -44,23 +43,23 @@ fun InnsendingRequest.validate() {
         // Betaler arbeidsgiver full lønn til arbeidstaker
         validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {
             if (!it.utbetalerFullLønn) {
-                validate(FullLønnIArbeidsgiverPerioden::begrunnelse).isNotNull()
+                validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden::begrunnelse).isNotNull()
             }
         }
         // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
         validate(InnsendingRequest::refusjon).validate {
             if (it.utbetalerHeleEllerDeler) {
-                validate(Refusjon::refusjonPrMnd).isGreaterThan(0.0)
-                validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0)
+                validate(Refusjon::refusjonPrMnd).isGreaterThan(0.0.toBigDecimal())
+                validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0.toBigDecimal())
             }
         }
         // Naturalytelser
         validate(InnsendingRequest::naturalytelser).validateForEach {
-            validate(Naturalytelse::naturalytelse).isNotNull()
-            validate(Naturalytelse::dato).isNotNull()
-            validate(Naturalytelse::beløp).isNotNull()
-            validate(Naturalytelse::beløp).isGreaterThan(0.0)
-            validate(Naturalytelse::beløp).isLessThan(1_000_000.0)
+            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse::naturalytelse).isNotNull()
+            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse::dato).isNotNull()
+            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse::beløp).isNotNull()
+            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse::beløp).isGreaterThan(0.0.toBigDecimal())
+            validate(no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse::beløp).isLessThan(1_000_000.0.toBigDecimal())
         }
         validate(InnsendingRequest::bekreftOpplysninger).isTrue()
     }

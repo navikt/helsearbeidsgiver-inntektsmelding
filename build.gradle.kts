@@ -5,10 +5,11 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
-    java
-    jacoco
-    `jacoco-report-aggregation`
-    `jvm-test-suite`
+    id("maven-publish")
+    id("java")
+    id("jacoco")
+    id("jacoco-report-aggregation")
+    id("jvm-test-suite")
 }
 
 buildscript {
@@ -18,6 +19,13 @@ buildscript {
     dependencies {
         classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4.2")
     }
+}
+
+dependencies {
+    subprojects.filter { it.name != "integrasjonstest" }
+        .forEach {
+            jacocoAggregation(project(":${it.name}"))
+        }
 }
 
 allprojects {
@@ -60,26 +68,22 @@ subprojects {
         "org.jetbrains.kotlin.jvm",
         "org.jetbrains.kotlin.plugin.serialization",
         "org.jmailen.kotlinter",
+        "maven-publish",
         "java",
         "jacoco"
     )
-    tasks.jacocoTestReport {
-        dependsOn(tasks.test)
-        reports {
-            xml.required.set(true)
-            csv.required.set(false)
-            html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
-        }
-    }
+
     tasks {
-        if (!project.erFellesModul() && !project.erFellesTestModul()) {
+        if (!project.erFellesModul() && !project.erFellesTestModul() && !project.erDokumentModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
                 val mainClass = project.mainClass()
 
                 doLast {
-                    validateMainClassFound(mainClass)
+                    if (project.name != "dokument") {
+                        validateMainClassFound(mainClass)
+                    }
                 }
 
                 manifest {
@@ -96,6 +100,16 @@ subprojects {
                 }
             }
         }
+
+        jacocoTestReport {
+            dependsOn(test)
+            reports {
+                xml.required.set(true)
+                html.required.set(true)
+                csv.required.set(true)
+                html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+            }
+        }
     }
 
     val junitJupiterVersion: String by project
@@ -103,13 +117,20 @@ subprojects {
     val kotlinCoroutinesVersion: String by project
     val kotlinSerializationVersion: String by project
     val mockkVersion: String by project
+    val utilsVersion: String by project
 
     dependencies {
-        if (!erFellesModul()) {
-            implementation(project(":felles"))
-        }
-        if (!erFellesTestModul()) {
-            testImplementation(project(":felles-test"))
+        if (!erDokumentModul()) {
+            if (!erFellesModul()) {
+                implementation(project(":felles"))
+                implementation(project(":dokument"))
+            }
+            if (!erFellesTestModul()) {
+                testImplementation(project(":felles-test"))
+            }
+
+            // dokument har inkompatibel java-versjon
+            implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         }
 
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
@@ -137,29 +158,33 @@ tasks {
         }
     }
 
-    create("deployMatrix") {
+    create("buildAllMatrix") {
         doLast {
-            val (
-                deployableProjects,
-                clusters,
-                exclusions
-            ) = getDeployMatrixVariables()
-
             mapper.taskOutput(
-                "project" to deployableProjects,
-                "cluster" to clusters,
-                "exclude" to exclusions.map { (project, cluster) ->
-                    mapOf(
-                        "project" to project,
-                        "cluster" to cluster
-                    )
-                }
+                "project" to getBuildableProjects(buildAll = true)
             )
         }
     }
+
+    create("deployMatrix") {
+        deployMatrix(mapper)
+    }
+
+    create("deployMatrixDev") {
+        deployMatrix(mapper, includeCluster = "dev-gcp")
+    }
+
+    create("deployMatrixProd") {
+        deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
+    }
+
+    check {
+        dependsOn(named<JacocoReport>("testCodeCoverageReport"))
+    }
 }
 
-fun getBuildableProjects(): List<String> {
+fun getBuildableProjects(buildAll: Boolean = false): List<String> {
+    if (buildAll) return subprojects.map { it.name }.filter { it != "integrasjonstest" }
     val changedFiles = System.getenv("CHANGED_FILES")
         ?.takeIf(String::isNotBlank)
         ?.split(",")
@@ -171,33 +196,48 @@ fun getBuildableProjects(): List<String> {
             "config/nais.yml",
             "build.gradle.kts",
             "Dockerfile",
-            "gradle.properties"
+            "gradle.properties",
+            "spesifikasjon.yaml"
         )
 
-    return subprojects.map { it.name }
+    return subprojects.map { it.name }.filter { it != "integrasjonstest" }
         .let { projects ->
-            if (hasCommonChanges) projects
-            else projects.filter { project ->
-                changedFiles.any {
-                    it.startsWith("$project/") ||
-                        it.startsWith("config/$project/")
+            if (hasCommonChanges) {
+                projects
+            } else {
+                projects.filter { project ->
+                    changedFiles.any {
+                        it.startsWith("$project/") ||
+                            it.startsWith("config/$project/")
+                    }
                 }
             }
         }
 }
 
-fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Pair<String, String>>> {
-    // map of cluster to list of apps
-    val deployableProjects = getBuildableProjects().filter { File("config", it).isDirectory }
-
-    val clustersByProject = deployableProjects.associateWith { project ->
+fun getDeployMatrixVariables(
+    includeCluster: String? = null,
+    deployAll: Boolean = false,
+): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
+    val clustersByProject = getBuildableProjects(deployAll).associateWith { project ->
         File("config", project)
             .listFiles()
             ?.filter { it.isFile && it.name.endsWith(".yml") }
             ?.map { it.name.removeSuffix(".yml") }
+            ?.let { clusters ->
+                if (includeCluster != null) {
+                    listOf(includeCluster).intersect(clusters)
+                } else {
+                    clusters
+                }
+            }
             ?.toSet()
-            .orEmpty()
+            ?.ifEmpty { null }
     }
+        .mapNotNull { (key, value) ->
+            value?.let { key to it }
+        }
+        .toMap()
 
     val allClusters = clustersByProject.values.flatten().toSet()
 
@@ -207,7 +247,7 @@ fun getDeployMatrixVariables(): Triple<List<String>, Set<String>, List<Pair<Stri
     }
 
     return Triple(
-        deployableProjects,
+        clustersByProject.keys,
         allClusters,
         exclusions
     )
@@ -233,14 +273,17 @@ fun Task.validateMainClassFound(mainClass: String) {
     if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
 }
 
-fun Project.mainClass() =
+fun Project.mainClass(): String =
     "$group.${name.replace("-", "")}.AppKt"
 
-fun Project.erFellesModul() =
+fun Project.erFellesModul(): Boolean =
     name == "felles"
 
-fun Project.erFellesTestModul() =
+fun Project.erFellesTestModul(): Boolean =
     name == "felles-test"
+
+fun Project.erDokumentModul(): Boolean =
+    name == "dokument"
 
 fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
     mapOf(*keyValuePairs)
@@ -248,5 +291,26 @@ fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
         .let(::println)
 }
 
-fun List<String>.containsAny(vararg others: String) =
+fun List<String>.containsAny(vararg others: String): Boolean =
     this.intersect(others.toSet()).isNotEmpty()
+
+fun Task.deployMatrix(mapper: ObjectMapper, includeCluster: String? = null, deployAll: Boolean = false) {
+    doLast {
+        val (
+            deployableProjects,
+            clusters,
+            exclusions,
+        ) = getDeployMatrixVariables(includeCluster, deployAll)
+
+        mapper.taskOutput(
+            "project" to deployableProjects,
+            "cluster" to clusters,
+            "exclude" to exclusions.map { (project, cluster) ->
+                mapOf(
+                    "project" to project,
+                    "cluster" to cluster
+                )
+            }
+        )
+    }
+}

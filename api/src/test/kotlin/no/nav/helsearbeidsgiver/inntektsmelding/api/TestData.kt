@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import java.time.LocalDate
@@ -27,7 +28,7 @@ fun buildResultat(): Resultat {
     val arbeidsforhold = listOf(mockArbeidsforhold())
     val fra = LocalDate.of(2022, 10, 5)
     return Resultat(
-        FULLT_NAVN = NavnLøsning("Navn Navnesen"),
+        FULLT_NAVN = NavnLøsning(PersonDato("Navn Navnesen", LocalDate.now())),
         VIRKSOMHET = VirksomhetLøsning("Virksomhet AS"),
         ARBEIDSFORHOLD = ArbeidsforholdLøsning(arbeidsforhold),
         INNTEKT = InntektLøsning(Inntekt(listOf(MottattHistoriskInntekt(YearMonth.of(fra.year, fra.month), 32_000.0))))

@@ -1,5 +1,5 @@
 ### Innsending
-POST https://helsearbeidsgiver-im-api.dev.nav.no/api/v1/inntektsmelding
+POST https://helsearbeidsgiver-im-api.intern.dev.nav.no/api/v1/inntektsmelding
 Content-Type: application/json
 
 {
@@ -13,27 +13,27 @@ Content-Type: application/json
   ],
   "fraværsperioder": [
     {
-      "fom": "2022-10-05",
-      "tom": "2022-10-15"
+      "fom": "2022-10-01",
+      "tom": "2022-10-31"
     }
   ],
   "arbeidsgiverperioder": [
     {
-      "fom": "2022-01-01",
-      "tom": "2022-01-02"
-    },
-    {
-      "fom": "2022-10-05",
-      "tom": "2022-10-15"
+      "fom": "2022-10-01",
+      "tom": "2022-10-16"
     }
   ],
   "inntekt": {
     "bekreftet": true,
-    "beregnetInntekt": 12345,
+    "beregnetInntekt": 1234,
     "manueltKorrigert": true,
-    "endringÅrsak": "FeilInntekt"
+    "endringÅrsak": {
+      "typpe": "Tariffendring",
+      "gjelderFra": "2022-10-01",
+      "bleKjent": "2022-10-01"
+    }
   },
-  "bestemmendeFraværsdag": "2022-10-05",
+  "bestemmendeFraværsdag": "2022-10-01",
   "fullLønnIArbeidsgiverPerioden": {
     "utbetalerFullLønn": true
   },
@@ -41,9 +41,7 @@ Content-Type: application/json
     "utbetalerHeleEllerDeler": false
   },
   "bekreftOpplysninger": true,
-  "behandlingsdager": [
-    "2022-10-06"
-  ],
+  "behandlingsdager": [],
   "årsakInnsending": "Ny"
 }
 

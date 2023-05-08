@@ -1,44 +1,40 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import kotlinx.serialization.KSerializer
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.db.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonStr
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
-
 object InntektsmeldingEntitet : Table("inntektsmelding") {
     val id = integer("id").autoIncrement(
         idSeqName = "inntektsmelding_id_seq"
     )
-    val dokument = json("dokument", InntektsmeldingDokument.serializer())
-    val opprettet = datetime("opprettet")
-    val uuid = text("uuid")
+    val forespoerselId = varchar(name = "forespoersel_id", length = 40) references ForespoerselEntitet.forespoerselId
+    val dokument = json("dokument", InntektsmeldingDokument::class.java).nullable()
+    val innsendt = datetime("innsendt")
     val journalpostId = varchar("journalpostid", 30).nullable()
     override val primaryKey = PrimaryKey(id, name = "id")
 }
 
 private fun <T : Any> Table.json(
     name: String,
-    serializer: KSerializer<T>
+    clazz: Class<T>
 ): Column<T> =
     registerColumn(
         name = name,
-        type = JsonColumnType(serializer)
+        type = JsonColumnType(clazz)
     )
 
-class JsonColumnType<T : Any>(private val serializer: KSerializer<T>) : ColumnType() {
+class JsonColumnType<T : Any>(private val clazz: Class<T>) : ColumnType() {
     override fun sqlType(): String =
         "jsonb"
 
-    override fun valueFromDB(value: Any): T =
-        (value as String).fromJson(serializer)
+    override fun valueFromDB(value: Any): T = customObjectMapper().readValue(value as String, clazz)
 
     @Suppress("UNCHECKED_CAST")
     override fun notNullValueToDB(value: Any): String =
-        (value as T).toJsonStr(serializer)
+        customObjectMapper().writeValueAsString(value)
 
     override fun valueToString(value: Any?): String =
         when (value) {

@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 
-fun JsonMessage.demandValue(key: Pri.Key, value: Pri.ValueEnum) {
+fun JsonMessage.demandValue(key: Pri.Key, value: Pri.MessageType) {
     demandValue(key.str, value.name)
 }
 

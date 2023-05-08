@@ -1,6 +1,9 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 
 object Pri {
     const val TOPIC = "helsearbeidsgiver.pri"
@@ -21,19 +24,22 @@ object Pri {
 
         override fun toString(): String =
             str
+
+        fun fra(message: JsonMessage): JsonElement =
+            message[str].toJsonElement()
+    }
+
+    sealed interface MessageType {
+        val name: String
     }
 
     @Serializable
-    enum class BehovType : ValueEnum {
+    enum class BehovType : MessageType {
         TRENGER_FORESPØRSEL
     }
 
     @Serializable
-    enum class NotisType : ValueEnum {
+    enum class NotisType : MessageType {
         FORESPØRSEL_MOTTATT
-    }
-
-    sealed interface ValueEnum {
-        val name: String
     }
 }

@@ -1,0 +1,13 @@
+### Hent fra Spleis / Helsebro
+POST http://0.0.0.0:8080/api/v1/trenger
+Content-Type: application/json
+
+{
+  "uuid": "77c9e7ed-efcc-45e5-9177-4db2d4e466c1"
+}
+
+> {%
+client.test("Response OK", () => {
+    client.assert(response.status === 201, "Response not OK: " + response.status)
+})
+%}

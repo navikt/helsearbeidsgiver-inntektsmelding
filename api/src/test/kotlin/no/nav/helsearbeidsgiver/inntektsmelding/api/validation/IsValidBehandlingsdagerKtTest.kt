@@ -7,7 +7,8 @@ import java.time.LocalDate
 
 internal class IsValidBehandlingsdagerKtTest {
 
-    val now = LocalDate.now()
+    val now = LocalDate.of(2023, 3, 27)
+    val SUNDAY = LocalDate.of(2023, 3, 26)
 
     @Test
     fun `skal godta uten dato`() {
@@ -37,6 +38,11 @@ internal class IsValidBehandlingsdagerKtTest {
     @Test
     fun `skal ikke godta flere samme uke`() {
         assertFalse(isValidBehandlingsdager(listOf(now, now.plusDays(1))), "Skal feile dagen etterpå")
+    }
+
+    @Test
+    fun `skal godta datoer på søndag og førstkommende mandag`() {
+        assertTrue(isValidBehandlingsdager(listOf(SUNDAY, SUNDAY.plusDays(1))), "Skal godta søndag og mandag etterpå")
     }
 
     @Test

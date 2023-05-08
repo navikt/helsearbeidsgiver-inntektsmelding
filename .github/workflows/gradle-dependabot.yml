@@ -2,8 +2,10 @@ name: Monitor dependencies with Dependabot
 on:
   push:
     branches:
-      - dependabot
-
+      - main
+    paths:
+      - "**.gradle.kts"
+      - "gradle.properties"
 jobs:
   dependabot:
     name: Monitor dependencies with Dependabot

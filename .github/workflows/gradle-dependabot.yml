@@ -18,8 +18,6 @@ jobs:
       - name: Run snapshot action
         uses: mikepenz/gradle-dependency-submission@v0.8.6
         with:
-          gradle-build-configuration: |-
-            debugCompileClasspath
           sub-module-mode: COMBINED
           fail-on-error: false
           include-build-environment: true

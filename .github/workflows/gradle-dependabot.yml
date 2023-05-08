@@ -38,4 +38,3 @@ jobs:
             :pdl
             :preutfylt
           fail-on-error: false
-          gradle-dependency-path: "build.gradle.kts"

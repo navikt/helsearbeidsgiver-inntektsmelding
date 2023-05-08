@@ -89,6 +89,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             x = 0,
             y = y
         )
+        // pdf.addImage("logo.svg", 500, y)
         moveCursorBy(pdf.titleSize * 2)
     }
 

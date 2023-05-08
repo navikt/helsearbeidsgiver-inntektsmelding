@@ -16,6 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3 # ratchet:actions/checkout@v3
       - name: Run snapshot action
+        env:
+          GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         uses: mikepenz/gradle-dependency-submission@v0.8.6
         with:
           sub-module-mode: COMBINED

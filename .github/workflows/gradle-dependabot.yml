@@ -2,11 +2,8 @@ name: Monitor dependencies with Dependabot
 on:
   push:
     branches:
-      - main
-    paths:
-      - "**.gradle.kts"
-      - "gradle.properties"
-  workflow_dispatch:
+      - dependabot
+
 jobs:
   dependabot:
     name: Monitor dependencies with Dependabot
@@ -21,5 +18,7 @@ jobs:
           sub-module-mode: COMBINED
           fail-on-error: false
           include-build-environment: true
+          gradle-build-configuration: |-
+            compileClasspath
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

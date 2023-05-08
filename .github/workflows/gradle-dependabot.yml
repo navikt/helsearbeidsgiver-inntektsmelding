@@ -2,15 +2,12 @@ name: Monitor dependencies with Dependabot
 on:
   push:
     branches:
-      - main
-    paths:
-      - "**.gradle.kts"
-      - "gradle.properties"
-  workflow_dispatch:
+      - dependabot
+
 jobs:
   dependabot:
     name: Monitor dependencies with Dependabot
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     permissions: # The Dependency Submission API requires write permission
       contents: write
     steps:
@@ -21,5 +18,7 @@ jobs:
           sub-module-mode: COMBINED
           fail-on-error: false
           include-build-environment: true
+          gradle-build-configuration: |-
+            compileClasspath
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

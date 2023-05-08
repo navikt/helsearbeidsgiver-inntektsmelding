@@ -40,6 +40,5 @@ jobs:
           include-build-environment: true
           gradle-build-configuration: |-
             compileClasspath
-          gradle-dependency-path: "build.gradle.kts"
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

@@ -92,9 +92,10 @@ internal class PdfDokumentTest {
     }
 
     fun writePDF(title: String, im: InntektsmeldingDokument) {
-        val file = File(System.getProperty("user.home"), "/Desktop/$title.pdf")
-        // val file = File.createTempFile("$title", "pdf")
+        // val file = File(System.getProperty("user.home"), "/Desktop/$title.pdf")
+        val file = File.createTempFile("$title", ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
+        println("Lagde PDF $title med filnavn ${file.toPath()}")
     }
 }

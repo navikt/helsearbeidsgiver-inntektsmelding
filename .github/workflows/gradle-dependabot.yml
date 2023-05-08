@@ -21,22 +21,4 @@ jobs:
         uses: mikepenz/gradle-dependency-submission@v0.8.6
         with:
           sub-module-mode: COMBINED
-          gradle-build-module: |-
-            :aareg
-            :akkumulator
-            :altinn
-            :api
-            :brreg
-            :db
-            :distribusjon
-            :dokument
-            :felles
-            :forespoersel-mottatt
-            :helsebro
-            :innsending
-            :inntekt
-            :joark
-            :notifikasjon
-            :pdl
-            :preutfylt
           fail-on-error: false

@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - dependabot
     paths:
       - "**.gradle.kts"
       - "gradle.properties"

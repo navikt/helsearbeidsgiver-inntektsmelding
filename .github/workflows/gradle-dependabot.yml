@@ -1,0 +1,22 @@
+name: Monitor dependencies with Dependabot
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**.gradle.kts"
+      - "gradle.properties"
+  workflow_dispatch:
+jobs:
+  dependabot:
+    name: Monitor dependencies with Dependabot
+    runs-on: ubuntu-20.04
+    permissions: # The Dependency Submission API requires write permission
+      contents: write
+    steps:
+      - uses: actions/checkout@v3 # ratchet:actions/checkout@v3
+      - name: Run snapshot action
+        uses: mikepenz/gradle-dependency-submission@v0.8.6
+        with:
+          fail-on-error: false
+          gradle-dependency-path: "build.gradle.kts"

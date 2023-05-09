@@ -50,7 +50,7 @@ internal class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere valideringsfeil ved ugyldig request`() = testApi {
-        val response = post(PATH, UGYLDIG_REQUEST)
+        val response = post(PATH, UGYLDIG_REQUEST, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
 
@@ -66,7 +66,7 @@ internal class TrengerRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_HAR_TILGANG andThenMany listOf(RESULTAT_TRENGER_INNTEKT, RESULTAT_OK)
 
-        val response = post(PATH, GYLDIG_REQUEST)
+        val response = post(PATH, GYLDIG_REQUEST, TrengerRequest.serializer())
 
         assertEquals(HttpStatusCode.Created, response.status)
     }
@@ -76,7 +76,7 @@ internal class TrengerRouteKtTest : ApiTest() {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_IKKE_TILGANG
-        val response = post(PATH, GYLDIG_REQUEST)
+        val response = post(PATH, GYLDIG_REQUEST, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
@@ -85,7 +85,7 @@ internal class TrengerRouteKtTest : ApiTest() {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_TILGANG_FEIL
-        val response = post(PATH, GYLDIG_REQUEST)
+        val response = post(PATH, GYLDIG_REQUEST, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
@@ -94,7 +94,7 @@ internal class TrengerRouteKtTest : ApiTest() {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } throws RedisPollerTimeoutException(MockUuid.STRING)
-        val response = post(PATH, GYLDIG_REQUEST)
+        val response = post(PATH, GYLDIG_REQUEST, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.InternalServerError, response.status)
     }
 }

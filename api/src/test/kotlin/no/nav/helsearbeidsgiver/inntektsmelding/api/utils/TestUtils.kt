@@ -13,7 +13,10 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.json.jsonIgnoreUnknown
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.mock.mockConstructor
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -55,7 +58,7 @@ class TestClient(
 
     fun post(
         path: String,
-        body: Any,
+        body: JsonElement,
         block: HttpRequestBuilder.() -> Unit = { withAuth() }
     ): HttpResponse =
         MockUuid.with {
@@ -66,6 +69,18 @@ class TestClient(
                 block()
             }
         }
+
+    fun <T : Any> post(
+        path: String,
+        body: T,
+        bodySerializer: KSerializer<T>,
+        block: HttpRequestBuilder.() -> Unit = { withAuth() }
+    ): HttpResponse =
+        post(
+            path,
+            body.toJson(bodySerializer),
+            block
+        )
 
     private fun HttpRequestBuilder.withAuth() {
         bearerAuth(authToken())

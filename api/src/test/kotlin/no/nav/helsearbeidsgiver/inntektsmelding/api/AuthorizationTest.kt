@@ -77,5 +77,6 @@ private fun TestClient.postUtenAuth(path: String): HttpResponse =
     post(
         path = path,
         body = "",
+        bodySerializer = String.serializer(),
         block = {} // override default auth-block
     )

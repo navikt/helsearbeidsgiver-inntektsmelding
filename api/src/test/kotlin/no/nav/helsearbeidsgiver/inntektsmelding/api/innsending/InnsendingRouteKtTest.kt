@@ -5,6 +5,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
@@ -12,7 +13,10 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.parseJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonStr
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
@@ -29,6 +33,8 @@ import java.time.LocalDate
 import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.INNSENDING + "/${MockUuid.STRING}"
+
+private val objectMapper = customObjectMapper()
 
 // TODO gjør kompatibel med TestClient
 class InnsendingRouteKtTest : ApiTest() {
@@ -50,7 +56,7 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_HAR_TILGANG andThen RESULTAT_OK
 
-        val response = post(PATH, GYLDIG_REQUEST)
+        val response = post(PATH, GYLDIG_REQUEST.toJson())
 
         assertEquals(HttpStatusCode.Created, response.status)
         assertEquals(InnsendingResponse(MockUuid.STRING).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
@@ -62,7 +68,7 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
 
-        val response = post(PATH, UGYLDIG_REQUEST)
+        val response = post(PATH, UGYLDIG_REQUEST.toJson())
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
@@ -80,7 +86,7 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } throws RedisPollerTimeoutException(MockUuid.STRING)
 
-        val response = post(PATH, GYLDIG_REQUEST)
+        val response = post(PATH, GYLDIG_REQUEST.toJson())
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
         assertEquals(RedisTimeoutResponse(MockUuid.STRING).toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
@@ -92,7 +98,7 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
 
-        val response = post(PATH, UGYLDIG_REQUEST)
+        val response = post(PATH, UGYLDIG_REQUEST.toJson())
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
@@ -102,3 +108,6 @@ class InnsendingRouteKtTest : ApiTest() {
         assertEquals(2, violations.size)
     }
 }
+
+private fun InnsendingRequest.toJson(): JsonElement =
+    objectMapper.writeValueAsString(this).parseJson()

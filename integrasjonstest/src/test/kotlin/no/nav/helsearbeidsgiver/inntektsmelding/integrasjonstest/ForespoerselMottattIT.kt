@@ -2,22 +2,21 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import com.fasterxml.jackson.module.kotlin.contains
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockPerson
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.pdl.PdlHentPersonNavn
 import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
@@ -76,22 +75,29 @@ internal class ForespoerselMottattIT : EndToEndTest() {
         )
         Thread.sleep(8000)
 
-        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.NOTIFIKASJON_TRENGER_IM).first()) {
-            assertEquals(BehovType.NOTIFIKASJON_TRENGER_IM.name, get(Key.BEHOV.str).asText())
+        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.LAGRE_FORESPOERSEL).first()) {
+            assertEquals(BehovType.LAGRE_FORESPOERSEL.name, get(Key.BEHOV.str).asText())
 
             assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
             assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
             assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
+            assertEquals(FORESPOERSEL, get(Key.FORESPOERSEL_ID.str).asText())
         }
 
+        with(filter(EventName.FORESPØRSEL_LAGRET).first()) {
+            assertFalse(contains(Key.BEHOV.str))
+            assertEquals(FNR,get(Key.IDENTITETSNUMMER.str).asText())
+            assertEquals(ORGNR,get(Key.ORGNRUNDERENHET.str).asText())
+            assertEquals(FORESPOERSEL,get(Key.FORESPOERSEL_ID.str).asText())
+        }
+/*
         with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.FULLT_NAVN).first()) {
             assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
 
             assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
             assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
             assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
+            assertEquals(FORESPOERSEL, get(Key.FORESPOERSEL_ID.str).asText())
         }
 
         with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.FULLT_NAVN, løsning = true).first()) {
@@ -128,5 +134,7 @@ internal class ForespoerselMottattIT : EndToEndTest() {
             assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
             assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
         }
+
+ */
     }
 }

@@ -35,8 +35,10 @@ fun RouteExtra.InnsendingRoute() {
 
             val forespørselId = call.parameters["forespørselId"] ?: ""
 
-            logger.info("Mottok innsending med forespørselId: $forespørselId")
-            sikkerlogg.info("Mottok innsending med forespørselId: $forespørselId og request:\n$request")
+            "Mottok innsending med forespørselId: $forespørselId".let {
+                logger.info(it)
+                sikkerlogg.info("$it og request:\n$request")
+            }
 
             try {
                 authorize(

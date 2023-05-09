@@ -20,7 +20,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
-import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -83,7 +83,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals(RedisTimeoutResponse(MockUuid.STRING, "Brukte for lang tid").toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
+        assertEquals(RedisTimeoutResponse(MockUuid.STRING).toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
     }
 
     @Test

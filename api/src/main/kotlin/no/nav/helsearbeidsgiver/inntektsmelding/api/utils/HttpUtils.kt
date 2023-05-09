@@ -37,6 +37,10 @@ suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondForbidden(me
     respond(HttpStatusCode.Forbidden, message, serializer)
 }
 
+suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondNotFound(message: T, serializer: KSerializer<T>) {
+    respond(HttpStatusCode.NotFound, message, serializer)
+}
+
 suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondInternalServerError(message: T, serializer: KSerializer<T>) {
     respond(HttpStatusCode.InternalServerError, message, serializer)
 }

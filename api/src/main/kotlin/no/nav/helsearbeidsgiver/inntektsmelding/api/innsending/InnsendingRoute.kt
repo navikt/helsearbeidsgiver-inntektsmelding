@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import com.fasterxml.jackson.databind.JsonMappingException
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
@@ -12,7 +13,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
@@ -31,18 +33,18 @@ fun RouteExtra.InnsendingRoute() {
 
     route.route(Routes.INNSENDING + "/{forespørselId}") {
         post {
-            val request = receiveInnsendingRequest()
-
-            val forespørselId = call.parameters["forespørselId"] ?: ""
-
-            "Mottok innsending med forespørselId: $forespørselId".let {
-                logger.info(it)
-                sikkerlogg.info("$it og request:\n$request")
-            }
+            val forespoerselId = call.parameters["forespørselId"] ?: ""
 
             try {
+                val request = receiveInnsendingRequest()
+
+                "Mottok innsending med forespørselId: $forespoerselId".let {
+                    logger.info(it)
+                    sikkerlogg.info("$it og request:\n$request")
+                }
+
                 authorize(
-                    forespørselId = forespørselId,
+                    forespørselId = forespoerselId,
                     tilgangProducer = tilgangProducer,
                     redisPoller = redis,
                     cache = tilgangCache
@@ -50,20 +52,26 @@ fun RouteExtra.InnsendingRoute() {
 
                 request.validate()
 
-                val transaksjonId = producer.publish(forespørselId, request)
-                logger.info("Publiserte til rapid med forespørselId: $forespørselId og transaksjonId=$transaksjonId")
+                val transaksjonId = producer.publish(forespoerselId, request)
+                logger.info("Publiserte til rapid med forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
 
                 val resultat = redis.getResultat(transaksjonId, 10, 500)
                 sikkerlogg.info("Fikk resultat: $resultat")
 
-                val mapper = InnsendingMapper(forespørselId, resultat)
+                val mapper = InnsendingMapper(forespoerselId, resultat)
                 respond(mapper.getStatus(), mapper.getResponse(), InnsendingResponse.serializer())
             } catch (e: ConstraintViolationException) {
-                logger.info("Fikk valideringsfeil for forespørselId: $forespørselId")
+                logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
                 respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
+            } catch (e: JsonMappingException) {
+                "Kunne ikke parse json-resultat for $forespoerselId".let {
+                    logger.error(it)
+                    sikkerlogg.error(it, e)
+                    respondInternalServerError(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
+                }
             } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout for forespørselId: $forespørselId")
-                respondInternalServerError(RedisTimeoutResponse(forespørselId), RedisTimeoutResponse.serializer())
+                logger.info("Fikk timeout for forespørselId: $forespoerselId")
+                respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
             }
         }
     }

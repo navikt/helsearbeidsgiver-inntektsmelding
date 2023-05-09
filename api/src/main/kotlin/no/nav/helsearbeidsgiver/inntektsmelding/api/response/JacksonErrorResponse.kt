@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class JacksonErrorResponse(
-    val uuid: String
+    val forespoerselId: String
 ) {
     val error = "Feil under serialisering med jackson."
 }

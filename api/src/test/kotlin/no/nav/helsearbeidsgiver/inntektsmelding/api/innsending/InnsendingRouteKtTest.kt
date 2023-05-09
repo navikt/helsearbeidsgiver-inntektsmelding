@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingR
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.parseJson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonStr
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
@@ -24,6 +25,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
@@ -36,7 +38,6 @@ private const val PATH = Routes.PREFIX + Routes.INNSENDING + "/${MockUuid.STRING
 
 private val objectMapper = customObjectMapper()
 
-// TODO gjør kompatibel med TestClient
 class InnsendingRouteKtTest : ApiTest() {
     val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST
     val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(
@@ -78,6 +79,17 @@ class InnsendingRouteKtTest : ApiTest() {
         assertEquals(2, violations.size)
         assertEquals(Key.ORGNRUNDERENHET.str, violations[0].property)
         assertEquals("identitetsnummer", violations[1].property)
+    }
+
+    @Test
+    fun `gir jackson-feil ved ugyldig request-json`() = testApi {
+        val response = post(PATH, "\"ikke en request\"".toJson())
+
+        val feilmelding = response.bodyAsText().fromJson(JacksonErrorResponse.serializer())
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(MockUuid.STRING, feilmelding.forespoerselId)
+        assertEquals("Feil under serialisering med jackson.", feilmelding.error)
     }
 
     @Test

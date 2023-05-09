@@ -67,7 +67,7 @@ fun RouteExtra.InnsendingRoute() {
                 "Kunne ikke parse json-resultat for $forespoerselId".let {
                     logger.error(it)
                     sikkerlogg.error(it, e)
-                    respondInternalServerError(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
+                    respondBadRequest(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
                 }
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for forespørselId: $forespoerselId")

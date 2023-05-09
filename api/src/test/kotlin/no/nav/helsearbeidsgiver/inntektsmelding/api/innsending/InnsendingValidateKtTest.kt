@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
@@ -35,10 +36,6 @@ internal class InnsendingValidateKtTest {
         GYLDIG_INNSENDING_REQUEST.validate()
     }
 
-
-
-
-
     @Test
     fun `skal ikke godta tom liste med arbeidsgiverperioder når arbeidsgiver betaler lønn`() {
         assertThrows<ConstraintViolationException> {
@@ -52,20 +49,10 @@ internal class InnsendingValidateKtTest {
     @Test
     fun `skal godta tom liste med arbeidsgiverperioder når arbeidsgiver ikke betaler lønn`() {
         GYLDIG_INNSENDING_REQUEST.copy(
-            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(false),
+            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(false, BegrunnelseIngenEllerRedusertUtbetalingKode.FISKER_MED_HYRE),
             arbeidsgiverperioder = emptyList()
         ).validate()
     }
-
-
-
-
-
-
-
-
-
-
 
     @Test
     fun `skal ikke godta arbeidsgiverperioder med ugyldig periode (fom ETTER tom))`() {
@@ -378,5 +365,4 @@ internal class InnsendingValidateKtTest {
             )
         ).validate()
     }
-
 }

@@ -9,8 +9,6 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBehandlingsdager
-import org.valiktor.ConstraintViolationException
-import org.valiktor.functions.isEmpty
 import org.valiktor.functions.isGreaterThan
 import org.valiktor.functions.isGreaterThanOrEqualTo
 import org.valiktor.functions.isLessThan
@@ -36,15 +34,9 @@ fun InnsendingRequest.validate() {
         }
         // Er tillatt å unngå arbeidsgiverperioder når:
         // - arbeidsgiver ikke betaler lønn i arbeidsgiverperioden
-
-        println("Utbetaler: ${it.fullLønnIArbeidsgiverPerioden.utbetalerFullLønn}")
-        println("Perioder: ${it.arbeidsgiverperioder.size}")
-
         if (it.fullLønnIArbeidsgiverPerioden.utbetalerFullLønn) {
-            println("utbetalerFullLønn")
             validate(InnsendingRequest::arbeidsgiverperioder).isNotEmpty()
         } else {
-            println("ikke fullLønn")
         }
         // Fraværsperiode
         validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager

@@ -4,9 +4,9 @@ on:
     branches:
       - main
       - dependabot
-    paths:
-      - "**.gradle.kts"
-      - "gradle.properties"
+#    paths:
+#      - "**.gradle.kts"
+#      - "gradle.properties"
 jobs:
   dependabot:
     name: Monitor dependencies with Dependabot
@@ -15,6 +15,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v3 # ratchet:actions/checkout@v3
+      - name: Build
+        run: ./gradlew clean build -x test
       - name: Run snapshot action
         uses: mikepenz/gradle-dependency-submission@v0.8.6
         with:

@@ -1,0 +1,45 @@
+name: Monitor dependencies with Dependabot
+on:
+  push:
+    branches:
+      - main
+      - dependabot
+    paths:
+      - "**.gradle.kts"
+      - "gradle.properties"
+jobs:
+  dependabot:
+    name: Monitor dependencies with Dependabot
+    runs-on: ubuntu-latest
+    permissions: # The Dependency Submission API requires write permission
+      contents: write
+    steps:
+      - uses: actions/checkout@v3 # ratchet:actions/checkout@v3
+      - name: Run snapshot action
+        uses: mikepenz/gradle-dependency-submission@v0.8.6
+        with:
+          gradle-build-module: |-
+            :aareg
+            :akkumulator
+            :altinn
+            :api
+            :brreg
+            :db
+            :distribusjon
+            :dokument
+            :felles
+            :forespoersel-mottatt
+            :helsebro
+            :innsending
+            :inntekt
+            :joark
+            :notifikasjon
+            :pdl
+            :preutfylt
+          sub-module-mode: COMBINED
+          fail-on-error: false
+          include-build-environment: true
+          gradle-build-configuration: |-
+            compileClasspath
+        env:
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

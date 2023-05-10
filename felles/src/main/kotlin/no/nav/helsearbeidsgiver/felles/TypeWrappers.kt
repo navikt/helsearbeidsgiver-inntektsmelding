@@ -3,9 +3,10 @@ package no.nav.helsearbeidsgiver.felles
 import kotlinx.serialization.Serializable
 
 private val orgnrRgx = Regex("\\d{9}")
+
 private val fnrRgx = Regex(
     "(?:0[1-9]|[12]\\d|3[01])" + // to første siffer er gyldig dag
-        "(?:0[1-9]|1[012])" + // to neste siffer er gyldig måned
+        "(?:[048][1-9]|[159][012])" + // to neste siffer er gyldig måned, med støtte for testpersoner (+40 for NAV, +80 for TestNorge)
         "\\d{7}" // resten er tall (siste del kan forbedres)
 )
 

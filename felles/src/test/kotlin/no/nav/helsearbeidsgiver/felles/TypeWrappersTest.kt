@@ -64,7 +64,11 @@ class TypeWrappersTest : FunSpec({
                     "29104512345",
                     "31129912345",
                     "25056712345",
-                    "11085812345"
+                    "11085812345",
+                    "01490012345", // Testperson fra NAV
+                    "01500012345", // Testperson fra NAV
+                    "01890012345", // Testperson fra TestNorge
+                    "01900012345" // Testperson fra TestNorge
                 )
             ) {
                 shouldNotThrowAny {
@@ -82,6 +86,12 @@ class TypeWrappersTest : FunSpec({
                     "01000012345", // måned 0, fjerde siffer feil
                     "01130012345", // måned 13, fjerde siffer feil
                     "01200012345", // måned 20, tredje siffer feil
+                    "01390012345", // måned 39, tredje og fjerde siffer feil
+                    "01400012345", // måned 40, fjerde siffer feil (testperson)
+                    "01530012345", // måned 53, fjerde siffer feil (testperson)
+                    "01790012345", // måned 79, tredje og fjerde siffer feil
+                    "01800012345", // måned 80, fjerde siffer feil (testperson)
+                    "01930012345", // måned 93, fjerde siffer feil (testperson)
                     "0101001234", // for kort
                     "010100123456", // for langt
                     "010100x2345", // med bokstav

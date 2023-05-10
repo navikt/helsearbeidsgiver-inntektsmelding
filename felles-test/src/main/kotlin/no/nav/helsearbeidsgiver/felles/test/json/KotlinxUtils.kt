@@ -1,19 +1,18 @@
 package no.nav.helsearbeidsgiver.felles.test.json
 
-import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.fromJsonMap
-import no.nav.helsearbeidsgiver.felles.utils.mapKeysNotNull
+import no.nav.helsearbeidsgiver.felles.json.fromJsonMapFiltered
+import no.nav.helsearbeidsgiver.felles.json.toJson
 
 fun JsonElement.fromJsonMapOnlyKeys(): Map<Key, JsonElement> =
-    fromJsonMap(String.serializer())
-        .mapKeysNotNull {
-            tryOrNull {
-                "\"$it\"".fromJson(Key.serializer())
-            }
-        }
+    fromJsonMapFiltered(Key.serializer())
 
-internal fun <T : Any> tryOrNull(block: () -> T): T? =
-    runCatching(block).getOrNull()
+fun Map<Key, JsonElement>.toJson(): JsonElement =
+    toJson(
+        MapSerializer(
+            Key.serializer(),
+            JsonElement.serializer()
+        )
+    )

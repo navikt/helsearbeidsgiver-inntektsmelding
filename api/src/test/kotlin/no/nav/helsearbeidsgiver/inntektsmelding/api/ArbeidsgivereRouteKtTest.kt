@@ -1,13 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import io.ktor.client.call.body
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.NothingSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.json.fromJson
@@ -34,7 +33,7 @@ class ArbeidsgivereRouteKtTest : ApiTest() {
 
         Assertions.assertEquals(HttpStatusCode.OK, response.status)
 
-        val responseBody = response.body<JsonElement>().fromJson(AltinnOrganisasjon.serializer().set())
+        val responseBody = response.bodyAsText().fromJson(AltinnOrganisasjon.serializer().set())
         Assertions.assertEquals(MockOk.responseBody, responseBody)
     }
 
@@ -48,7 +47,7 @@ class ArbeidsgivereRouteKtTest : ApiTest() {
 
         Assertions.assertEquals(HttpStatusCode.InternalServerError, response.status)
 
-        val responseBody = response.body<JsonElement>().fromJson(String.serializer())
+        val responseBody = response.bodyAsText().fromJson(String.serializer())
         Assertions.assertEquals(MockInternalServerError.responseBody, responseBody)
     }
 }

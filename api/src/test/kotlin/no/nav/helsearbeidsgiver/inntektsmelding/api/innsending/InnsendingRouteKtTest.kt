@@ -36,16 +36,13 @@ import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.INNSENDING + "/${MockUuid.STRING}"
 
-private val objectMapper = customObjectMapper()
-
 class InnsendingRouteKtTest : ApiTest() {
-    val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST
+    val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson)
     val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(
         identitetsnummer = TestData.notValidIdentitetsnummer,
         orgnrUnderenhet = TestData.notValidOrgNr
-    )
+    ).let(Jackson::toJson)
 
-    val RESULTAT_IKKE_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.IKKE_TILGANG))
     val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
 
     val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning(PersonDato("verdi", LocalDate.now())))
@@ -57,7 +54,7 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_HAR_TILGANG andThen RESULTAT_OK
 
-        val response = post(PATH, GYLDIG_REQUEST.toJson())
+        val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.Created, response.status)
         assertEquals(InnsendingResponse(MockUuid.STRING).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
@@ -69,7 +66,7 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
 
-        val response = post(PATH, UGYLDIG_REQUEST.toJson())
+        val response = post(PATH, UGYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
@@ -98,7 +95,7 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } throws RedisPollerTimeoutException(MockUuid.STRING)
 
-        val response = post(PATH, GYLDIG_REQUEST.toJson())
+        val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
         assertEquals(RedisTimeoutResponse(MockUuid.STRING).toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
@@ -110,7 +107,7 @@ class InnsendingRouteKtTest : ApiTest() {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
 
-        val response = post(PATH, UGYLDIG_REQUEST.toJson())
+        val response = post(PATH, UGYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
@@ -119,7 +116,11 @@ class InnsendingRouteKtTest : ApiTest() {
 
         assertEquals(2, violations.size)
     }
-}
 
-private fun InnsendingRequest.toJson(): JsonElement =
-    objectMapper.writeValueAsString(this).parseJson()
+    private object Jackson {
+        private val objectMapper = customObjectMapper()
+
+        fun toJson(innsendingRequest: InnsendingRequest): JsonElement =
+            objectMapper.writeValueAsString(innsendingRequest).parseJson()
+    }
+}

@@ -7,6 +7,7 @@ import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringResponse
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.parseJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -31,8 +32,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationRespons
 import org.valiktor.ConstraintViolationException
 
 private const val EMPTY_PAYLOAD = "{}"
-
-private val objectMapper = customObjectMapper()
 
 fun RouteExtra.KvitteringRoute() {
     val kvitteringProducer = KvitteringProducer(connection)
@@ -68,10 +67,10 @@ fun RouteExtra.KvitteringRoute() {
                     // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
                     respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                 } else {
-                    val innsending = mapInnsending(resultat.parseInntektsmeldingDokument())
+                    val innsending = mapInnsending(Jackson.parseInntektsmeldingDokument(resultat))
 
                     respondOk(
-                        objectMapper.writeValueAsString(innsending).parseJson(),
+                        Jackson.toJson(innsending).parseJson(),
                         JsonElement.serializer()
                     )
                 }
@@ -94,5 +93,12 @@ fun RouteExtra.KvitteringRoute() {
     }
 }
 
-private fun String.parseInntektsmeldingDokument(): InntektsmeldingDokument =
-    objectMapper.readValue(this, InntektsmeldingDokument::class.java)
+private object Jackson {
+    private val objectMapper = customObjectMapper()
+
+    fun parseInntektsmeldingDokument(json: String): InntektsmeldingDokument =
+        objectMapper.readValue(json, InntektsmeldingDokument::class.java)
+
+    fun toJson(kvitteringResponse: KvitteringResponse): String =
+        objectMapper.writeValueAsString(kvitteringResponse)
+}

@@ -6,7 +6,6 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import io.ktor.util.pipeline.PipelineContext
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -25,8 +24,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 
-private val objectMapper = customObjectMapper()
-
 fun RouteExtra.InnsendingRoute() {
     val producer = InnsendingProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
@@ -36,7 +33,7 @@ fun RouteExtra.InnsendingRoute() {
             val forespoerselId = call.parameters["forespørselId"] ?: ""
 
             try {
-                val request = receiveInnsendingRequest()
+                val request = Jackson.receiveInnsendingRequest(call)
 
                 "Mottok innsending med forespørselId: $forespoerselId".let {
                     logger.info(it)
@@ -77,5 +74,9 @@ fun RouteExtra.InnsendingRoute() {
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.receiveInnsendingRequest(): InnsendingRequest =
-    objectMapper.readValue(call.receiveText(), InnsendingRequest::class.java)
+private object Jackson {
+    private val objectMapper = customObjectMapper()
+
+    suspend fun receiveInnsendingRequest(call: ApplicationCall): InnsendingRequest =
+        objectMapper.readValue(call.receiveText(), InnsendingRequest::class.java)
+}

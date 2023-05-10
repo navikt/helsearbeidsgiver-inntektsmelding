@@ -73,7 +73,7 @@ class OpprettSakLøser(
                 mapOf(
                     Key.DATA.str to "",
                     Key.FORESPOERSEL_ID.str to forespoerselId,
-                    Key.SAK_ID.str to sakId
+                    DataFelt.SAK_ID.str to sakId
                 )
             )
         )

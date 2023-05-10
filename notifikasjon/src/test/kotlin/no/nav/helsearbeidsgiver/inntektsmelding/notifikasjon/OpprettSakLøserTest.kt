@@ -60,8 +60,8 @@ internal class OpprettSakLøserTest {
         )
         assertNotNull(resultat)
         resultat.contains(Key.DATA.str)
-        resultat.contains(Key.SAK_ID.str)
-        val sakId = resultat.get(Key.SAK_ID.str).asText()
+        resultat.contains(DataFelt.SAK_ID.str)
+        val sakId = resultat.get(DataFelt.SAK_ID.str).asText()
         assertEquals(sakId, "ID")
     }
 

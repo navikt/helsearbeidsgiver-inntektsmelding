@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.pdl.PdlHentPersonNavn
 import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
@@ -86,9 +85,9 @@ internal class ForespoerselMottattIT : EndToEndTest() {
 
         with(filter(EventName.FORESPØRSEL_LAGRET).first()) {
             assertFalse(contains(Key.BEHOV.str))
-            assertEquals(FNR,get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(ORGNR,get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FORESPOERSEL,get(Key.FORESPOERSEL_ID.str).asText())
+            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
+            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
+            assertEquals(FORESPOERSEL, get(Key.FORESPOERSEL_ID.str).asText())
         }
 /*
         with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.FULLT_NAVN).first()) {

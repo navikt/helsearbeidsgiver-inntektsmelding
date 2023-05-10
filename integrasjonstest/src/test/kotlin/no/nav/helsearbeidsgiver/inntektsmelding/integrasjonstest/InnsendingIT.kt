@@ -153,7 +153,7 @@ internal class InnsendingIT : EndToEndTest() {
 
         with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_SAK_STATUS, løsning = true).first()) {
             // Endre status for arbeidsgivernotifikasjon sak
-            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
+            assertEquals(SAK_ID, get(DataFelt.SAK_ID.str).asText())
             val løsning: SakFerdigLøsning =
                 get(Key.LØSNING.str).get(BehovType.ENDRE_SAK_STATUS.name).toJsonElement().fromJson(SakFerdigLøsning.serializer())
             assertEquals(SAK_ID, løsning.value)

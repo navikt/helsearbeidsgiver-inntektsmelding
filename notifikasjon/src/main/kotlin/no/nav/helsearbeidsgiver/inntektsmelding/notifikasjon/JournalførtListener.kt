@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -26,7 +27,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
                 it.interestedIn(Key.TRANSACTION_ORIGIN.str)
                 it.requireKey(Key.JOURNALPOST_ID.str)
                 it.requireKey(Key.OPPGAVE_ID.str)
-                it.requireKey(Key.SAK_ID.str)
+                it.requireKey(DataFelt.SAK_ID.str)
                 it.rejectKey(Key.BEHOV.str)
                 it.rejectKey(Key.LØSNING.str)
                 it.interestedIn(Key.FORESPOERSEL_ID.str)
@@ -37,7 +38,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = UUID.randomUUID().toString() // packet[Key.UUID.str].asText()
         val oppgaveId = packet[Key.OPPGAVE_ID.str].asText()
-        val sakId = packet[Key.SAK_ID.str].asText()
+        val sakId = packet[DataFelt.SAK_ID.str].asText()
         logger.info("JournalførtListener fikk pakke for $uuid")
         sikkerLogger.info("JournalførtListener fikk pakke ${EventName.INNTEKTSMELDING_JOURNALFOERT} med pakke ${packet.toJson()}")
         listOf(BehovType.DISTRIBUER_IM, BehovType.ENDRE_SAK_STATUS, BehovType.ENDRE_OPPGAVE_STATUS).forEach {
@@ -55,7 +56,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
                 Key.UUID.str to uuid,
                 Key.FORESPOERSEL_ID.str to packet[Key.FORESPOERSEL_ID.str].asText(),
                 Key.OPPGAVE_ID.str to oppgaveId,
-                Key.SAK_ID.str to sakId,
+                DataFelt.SAK_ID.str to sakId,
                 Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
             )
         )

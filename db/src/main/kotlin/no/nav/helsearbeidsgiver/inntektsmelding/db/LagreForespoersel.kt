@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import java.util.UUID
 
 class LagreForespoersel(rapidsConnection: RapidsConnection, val repository: ForespoerselRepository) : Løser(rapidsConnection) {
 
@@ -30,8 +31,9 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, val repository: Fore
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
+                    Key.UUID.str to UUID.randomUUID().toString(),
                     Key.IDENTITETSNUMMER.str to fnr,
-                    Key.ORGNRUNDERENHET.str to orgnr,
+                    Key.ORGNRUNDERENHET.str to orgnr
                 )
             )
 

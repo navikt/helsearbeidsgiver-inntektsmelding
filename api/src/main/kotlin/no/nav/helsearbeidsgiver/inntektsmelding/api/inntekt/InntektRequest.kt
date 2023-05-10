@@ -4,8 +4,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
+import no.nav.helsearbeidsgiver.felles.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import java.time.LocalDate
 import java.util.UUID
 

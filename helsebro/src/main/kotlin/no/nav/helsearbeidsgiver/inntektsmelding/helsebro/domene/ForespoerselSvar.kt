@@ -7,9 +7,9 @@ import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import java.util.UUID
 
 @Serializable

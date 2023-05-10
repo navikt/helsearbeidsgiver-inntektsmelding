@@ -4,10 +4,10 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import java.util.UUID
 

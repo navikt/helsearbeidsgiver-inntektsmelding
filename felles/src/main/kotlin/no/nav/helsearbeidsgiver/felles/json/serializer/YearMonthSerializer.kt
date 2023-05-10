@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.serializers
+package no.nav.helsearbeidsgiver.felles.json.serializer
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

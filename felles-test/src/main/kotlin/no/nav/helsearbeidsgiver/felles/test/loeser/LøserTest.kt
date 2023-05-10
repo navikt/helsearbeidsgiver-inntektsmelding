@@ -13,9 +13,9 @@ import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.fromJsonMap
 import no.nav.helsearbeidsgiver.felles.json.list
 import no.nav.helsearbeidsgiver.felles.json.løsning
+import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.loeser.Løser
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.mockObject
 import java.util.UUID

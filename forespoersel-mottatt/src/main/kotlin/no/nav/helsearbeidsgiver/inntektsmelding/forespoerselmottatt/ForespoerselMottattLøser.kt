@@ -10,10 +10,10 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.fromJson
+import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import org.slf4j.LoggerFactory
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */

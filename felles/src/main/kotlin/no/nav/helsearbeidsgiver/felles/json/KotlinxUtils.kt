@@ -8,9 +8,9 @@ import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.serializers.LocalDateSerializer
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import java.time.LocalDate
 import java.util.UUID
 

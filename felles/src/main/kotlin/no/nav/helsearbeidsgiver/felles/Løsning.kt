@@ -3,7 +3,7 @@
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
-import no.nav.helsearbeidsgiver.felles.serializers.JsonAsStringSerializer
+import no.nav.helsearbeidsgiver.felles.json.serializer.JsonAsStringSerializer
 
 sealed class Løsning {
     abstract val value: Any?

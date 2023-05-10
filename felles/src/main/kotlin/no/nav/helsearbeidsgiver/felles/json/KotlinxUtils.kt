@@ -11,6 +11,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
+import no.nav.helsearbeidsgiver.felles.utils.mapKeysNotNull
 import java.time.LocalDate
 import java.util.UUID
 
@@ -60,6 +61,14 @@ fun <T : Any> JsonElement.fromJsonMap(keySerializer: KSerializer<T>): Map<T, Jso
         )
     )
 
+fun <T : Any> JsonElement.fromJsonMapFiltered(keySerializer: KSerializer<T>): Map<T, JsonElement> =
+    fromJsonMap(String.serializer())
+        .mapKeysNotNull {
+            tryOrNull {
+                "\"$it\"".fromJson(keySerializer)
+            }
+        }
+
 fun String.parseJson(): JsonElement =
     Json.parseToJsonElement(this)
 
@@ -74,3 +83,6 @@ fun <T : Any> KSerializer<T>.set(): KSerializer<Set<T>> =
 
 fun <T : Any> KSerializer<T>.løsning(): KSerializer<Løsning<T>> =
     Løsning.serializer(this)
+
+internal fun <T : Any> tryOrNull(block: () -> T): T? =
+    runCatching(block).getOrNull()

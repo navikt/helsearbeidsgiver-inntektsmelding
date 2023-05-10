@@ -104,7 +104,7 @@ internal class PdfDokumentTest {
 
     @Test
     fun `med inntekt endring årsak - alle varianter`() {
-        val perioder = listOf(Periode(dag, dag.plusDays(12)))
+        val perioder = listOf(Periode(dag, dag.plusDays(12)), Periode(dag.plusDays(13), dag.plusDays(18)))
         val map = HashMap<String, InntektEndringAarsak>()
         map.put("tariffendring", Tariffendring(dag, dag.plusDays(2)))
         map.put("ferie", Ferie(perioder))

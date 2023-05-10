@@ -176,22 +176,22 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
 
     fun addTariffendring(tariffendring: Tariffendring) {
         addLabel("Forklaring for endring", "Tariffendring")
-        addLabel("Gjelder fra", tariffendring.gjelderFra.toNorsk())
-        addLabel("Ble kjent", tariffendring.bleKjent.toNorsk())
+        addLabel("Gjelder fra", tariffendring.gjelderFra.toNorsk(), linefeed = false)
+        addLabel("Ble kjent", tariffendring.bleKjent.toNorsk(), KOLONNE_TO)
     }
 
     fun addVarigLonnsendring(varigLonnsendring: VarigLonnsendring) {
         addLabel("Forklaring for endring", "Varig lønnsendring")
-        addLabel("Gjelder fra", varigLonnsendring.gjelderFra.toNorsk(), KOLONNE_TO)
+        addLabel("Gjelder fra", varigLonnsendring.gjelderFra.toNorsk())
     }
 
     fun addNyStilling(nyStilling: NyStilling) {
-        addLabel("Forklaring for endring", "Ny stilling")
+        addLabel("Forklaring for endring", "Ny stilling", linefeed = false)
         addLabel("Gjelder fra", nyStilling.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
     fun addNyStillingsprosent(nyStillingsprosent: NyStillingsprosent) {
-        addLabel("Forklaring for endring", "Ny stillingsprosent")
+        addLabel("Forklaring for endring", "Ny stillingsprosent", linefeed = false)
         addLabel("Gjelder fra", nyStillingsprosent.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 

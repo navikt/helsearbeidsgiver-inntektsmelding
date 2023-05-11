@@ -199,8 +199,8 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         val årligBonus = 0.toBigDecimal() // TODO Må bruke bonus fra datamodell
         val datoBonus = LocalDate.now() // TODO Må bruke dato fra datamodell
         addLabel("Forklaring for endring", "Bonus")
-        //addLabel("Estimert årlig bonus", årligBonus.toNorsk())
-        //addLabel("Dato siste bonus", datoBonus.toNorsk())
+        // addLabel("Estimert årlig bonus", årligBonus.toNorsk())
+        // addLabel("Dato siste bonus", datoBonus.toNorsk())
     }
 
     fun addRefusjon() {

@@ -1,23 +1,23 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers.InntektDokumentTilSkjemainnholdMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.mapstruct.factory.Mappers
+import java.math.BigDecimal
 
 internal class InntektDokumentTilSkjemainnholdMapperTest {
 
-    val dokument = MockInntektsmeldingDokument()
+    val inntektsmeldingDokument = MockInntektsmeldingDokument()
+    val mapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
 
     @Test
-    fun `skall mappe InntektsMeldingdokument til Skjema`() {
-        val inntektsmeldingDokument = MockInntektsmeldingDokument()
-        val mapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
-
+    fun `skal mappe InntektsMeldingdokument til Skjema`() {
         val im = mapper.InntektDokumentTilInntekstmeldingM(inntektsmeldingDokument)
         val skjema = im.skjemainnhold
-
         assertNotNull(skjema.aarsakTilInnsending)
         assertNotNull(skjema.arbeidsgiver)
         assertEquals(skjema.arbeidsgiver.virksomhetsnummer, inntektsmeldingDokument.orgnrUnderenhet)
@@ -31,6 +31,22 @@ internal class InntektDokumentTilSkjemainnholdMapperTest {
         assertEquals(skjema.refusjon.endringIRefusjonListe.size, 3)
         assertEquals(skjema.opphoerAvNaturalytelseListe.size, 2)
         assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
+        assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
         println(xmlMapper().writeValueAsString(im))
+    }
+
+    @Test
+    fun `skal godta null-verdi i InntektEndringÅrsak`() {
+        val inntektmeldingUtenAarsak =
+            inntektsmeldingDokument.copy(
+                inntekt = Inntekt(
+                    true,
+                    BigDecimal.ONE,
+                    null,
+                    false
+                )
+            )
+        val skjema = mapper.inntektDokumentTilSkjemaInnhold(inntektmeldingUtenAarsak)
+        assertNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
     }
 }

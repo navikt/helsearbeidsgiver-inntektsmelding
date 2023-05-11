@@ -2,12 +2,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -23,11 +25,12 @@ fun MockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): In
             Periode(dag, dag.plusDays(2)),
             Periode(dag.plusDays(3), dag.plusDays(4))
         ),
-        beregnetInntekt = 25000.0.toBigDecimal(),
+        beregnetInntekt = 25_000.0.toBigDecimal(),
+        inntekt = Inntekt(true, 25000.0.toBigDecimal(), Tariffendring(dag, dag), false),
         fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
             true,
             begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT,
-            utbetalt = 10000.toBigDecimal()
+            utbetalt = 10_000.toBigDecimal()
         ),
         refusjon = Refusjon(
             true,

@@ -62,7 +62,6 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
 
         val initiateEvent = forespoerselSvar.boomerang.fromJsonMap(String.serializer())[Key.INITIATE_EVENT.str]
             ?: throw IllegalArgumentException("Mangler ${Key.INITIATE_EVENT} i ${Key.BOOMERANG}.")
-
         context.publish(
             Key.EVENT_NAME to initiateEvent,
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
@@ -77,7 +76,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                 ),
             Key.BOOMERANG to forespoerselSvar.boomerang
         )
-
+        logger.info("Recieve answer from helsebro for " + forespoerselSvar.forespoerselId + " current time" + System.currentTimeMillis())
         logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")
     }
 }

@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 class JournalførtListener(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
@@ -21,7 +22,8 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
             validate {
                 it.requireValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_JOURNALFOERT.name)
                 it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
-                it.requireKey(Key.UUID.str)
+                it.interestedIn(Key.UUID.str)
+                it.interestedIn(Key.TRANSACTION_ORIGIN.str)
                 it.requireKey(Key.JOURNALPOST_ID.str)
                 it.requireKey(Key.OPPGAVE_ID.str)
                 it.requireKey(Key.SAK_ID.str)
@@ -33,7 +35,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val uuid = packet[Key.UUID.str].asText()
+        val uuid = UUID.randomUUID().toString() // packet[Key.UUID.str].asText()
         val oppgaveId = packet[Key.OPPGAVE_ID.str].asText()
         val sakId = packet[Key.SAK_ID.str].asText()
         logger.info("JournalførtListener fikk pakke for $uuid")

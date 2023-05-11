@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.log.logger
 import no.nav.helsearbeidsgiver.felles.publishFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.value
+import kotlin.system.measureTimeMillis
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
 class ArbeidsforholdLøser(
@@ -40,26 +41,30 @@ class ArbeidsforholdLøser(
     }
 
     override fun onBehov(packet: JsonMessage) {
-        val id = packet.value(Key.ID).asText()
-        val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
+        measureTimeMillis {
+            val id = packet.value(Key.ID).asText()
+            val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
 
-        logger.info("Løser behov $behovType med id $id")
+            logger.info("Løser behov $behovType med id $id")
 
-        val arbeidsforhold = hentArbeidsforhold(identitetsnummer, id)
+            val arbeidsforhold = hentArbeidsforhold(identitetsnummer, id)
 
-        val løsning = if (arbeidsforhold != null) {
-            ArbeidsforholdLøsning(arbeidsforhold)
-        } else {
-            ArbeidsforholdLøsning(error = Feilmelding("Klarte ikke hente arbeidsforhold"))
-        }
+            val løsning = if (arbeidsforhold != null) {
+                ArbeidsforholdLøsning(arbeidsforhold)
+            } else {
+                ArbeidsforholdLøsning(error = Feilmelding("Klarte ikke hente arbeidsforhold"))
+            }
 
-        packet.setLøsning(behovType, løsning)
-        super.publishBehov(packet)
+            packet.setLøsning(behovType, løsning)
+            super.publishBehov(packet)
 
-        if (arbeidsforhold != null) {
-            publishDatagram(Data(arbeidsforhold), packet)
-        } else {
-            publishFail(packet.createFail("Klarte ikke hente arbeidsforhold", behoveType = BehovType.ARBEIDSFORHOLD))
+            if (arbeidsforhold != null) {
+                publishDatagram(Data(arbeidsforhold), packet)
+            } else {
+                publishFail(packet.createFail("Klarte ikke hente arbeidsforhold", behoveType = BehovType.ARBEIDSFORHOLD))
+            }
+        }.also {
+            logger.info("Arbeidsforhold løser took $it")
         }
     }
 
@@ -77,7 +82,13 @@ class ArbeidsforholdLøser(
     private fun hentArbeidsforhold(fnr: String, callId: String): List<Arbeidsforhold>? =
         runCatching {
             runBlocking {
-                aaregClient.hentArbeidsforhold(fnr, callId)
+                val arbeidsforhold: List<no.nav.helsearbeidsgiver.aareg.Arbeidsforhold>
+                measureTimeMillis {
+                    arbeidsforhold = aaregClient.hentArbeidsforhold(fnr, callId)
+                }.also {
+                    logger.info("arbeidsforhold endeåpunkt took $it")
+                }
+                arbeidsforhold
             }
         }
             .onFailure {

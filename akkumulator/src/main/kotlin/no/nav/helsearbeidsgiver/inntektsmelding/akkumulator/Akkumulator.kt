@@ -40,9 +40,7 @@ class Akkumulator(
                     Key.BOOMERANG.str,
                     Key.INITIATE_ID.str,
                     Key.UUID.str,
-                    Key.IDENTITETSNUMMER.str,
-                    Key.NESTE_BEHOV.str,
-                    Key.EVENT_NAME.str
+                    Key.NESTE_BEHOV.str
                 )
             }
         }.register(this)
@@ -61,10 +59,16 @@ class Akkumulator(
                 .let {
                     if (it.isNullOrEmpty()) {
                         packet.value(Key.INITIATE_ID).asText()
+                            .takeUnless(String::isNullOrBlank)
                     } else {
                         it
                     }
                 }
+
+        if (uuid == null) {
+            logger.error("Mangler UUID.")
+            return
+        }
 
         val behovListe = packet.value(Key.BEHOV).map(JsonNode::asText)
         val nesteBehov = boomerang[Key.NESTE_BEHOV]?.fromJson(BehovType.serializer().list())?.takeUnless(List<BehovType>::isEmpty)
@@ -72,10 +76,9 @@ class Akkumulator(
                 .map(JsonNode::asText)
                 .map(BehovType::valueOf)
 
-        val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
         "Behov: $behovListe Neste: $nesteBehov Uuid: $uuid".let {
             logger.info(it)
-            sikkerlogg.info("$it Fnr: $identitetsnummer Pakke: ${packet.toJson()}")
+            sikkerlogg.info("$it Pakke: ${packet.toJson()}")
         }
 
         val mangler = mutableListOf<String>()
@@ -136,7 +139,7 @@ class Akkumulator(
                     logger.info("Legger til Neste behov $nesteBehov")
                     val ny = hentNesteBehov(results, packet, objectMapper).toString()
                     sikkerlogg.info("Legger til Neste behov $nesteBehov Json: $ny")
-                    rapidsConnection.publish(identitetsnummer, ny)
+                    rapidsConnection.publish(ny)
                 }
             }
         }

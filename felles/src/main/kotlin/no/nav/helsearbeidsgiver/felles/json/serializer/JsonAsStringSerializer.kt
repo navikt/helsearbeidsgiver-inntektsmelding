@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.serializers
+package no.nav.helsearbeidsgiver.felles.json.serializer
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement

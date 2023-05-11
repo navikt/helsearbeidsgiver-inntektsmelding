@@ -48,4 +48,11 @@ class StatefullDataKanal(
         redisStore.set(message[Key.UUID.str].asText() + data!!.first, str)
         return true
     }
+
+    fun isAllDataCollected(uuid: String): Boolean {
+        return redisStore.exist(*dataFelter.map { uuid + it }.toTypedArray()) == dataFelter.size.toLong()
+    }
+    fun isDataCollected(vararg keys: String): Boolean {
+        return redisStore.exist(*keys) == keys.size.toLong()
+    }
 }

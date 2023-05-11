@@ -16,8 +16,10 @@ import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.publishFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.pdl.PdlClient
+import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import kotlin.system.measureTimeMillis
 
 class FulltNavnLøser(
     rapidsConnection: RapidsConnection,
@@ -34,24 +36,28 @@ class FulltNavnLøser(
     }
 
     override fun onBehov(packet: JsonMessage) {
-        val idtext = packet[Key.UUID.str]?.asText().let { if (it.isNullOrEmpty()) null else "id is $it" }
-            ?: packet[Key.FORESPOERSEL_ID.str]?.asText().let { if (it.isNullOrEmpty()) null else "forespoerselId is $it" }
-            ?: " kan ikke finne uuid/forespørselID"
-        logger.info("Henter navn for $idtext")
-        val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
-        try {
-            val info = runBlocking {
-                hentPersonInfo(identitetsnummer)
+        measureTimeMillis {
+            val idtext = packet[Key.UUID.str]?.asText().let { if (it.isNullOrEmpty()) null else "id is $it" }
+                ?: packet[Key.FORESPOERSEL_ID.str]?.asText().let { if (it.isNullOrEmpty()) null else "forespoerselId is $it" }
+                ?: " kan ikke finne uuid/forespørselID"
+            logger.info("Henter navn for $idtext")
+            val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
+            try {
+                val info = runBlocking {
+                    hentPersonInfo(identitetsnummer)
+                }
+                sikkerlogg.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for $idtext")
+                logger.info("Fant navn for id: $idtext")
+                publish(NavnLøsning(info), packet)
+                publishDatagram(info, packet)
+            } catch (ex: Exception) {
+                logger.error("Klarte ikke hente navn for $idtext")
+                sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for $idtext", ex)
+                publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet)
+                publishFail(packet.createFail("Klarte ikke hente navn", behoveType = BehovType.FULLT_NAVN))
             }
-            sikkerlogg.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for $idtext")
-            logger.info("Fant navn for id: $idtext")
-            publish(NavnLøsning(info), packet)
-            publishDatagram(info, packet)
-        } catch (ex: Exception) {
-            logger.error("Klarte ikke hente navn for $idtext")
-            sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for $idtext", ex)
-            publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet)
-            publishFail(packet.createFail("Klarte ikke hente navn", behoveType = BehovType.FULLT_NAVN))
+        }.also {
+            logger.info("FullNavn løser took $it")
         }
     }
 
@@ -75,7 +81,12 @@ class FulltNavnLøser(
     }
 
     suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
-        val liste = pdlClient.fullPerson(identitetsnummer)?.hentPerson
+        val liste: PdlHentFullPerson.PdlFullPersonliste?
+        measureTimeMillis {
+            liste = pdlClient.fullPerson(identitetsnummer)?.hentPerson
+        }.also {
+            logger.info("PDL invocation took $it")
+        }
         val fødselsdato: LocalDate? = liste?.foedsel?.firstOrNull()?.foedselsdato
         val fulltNavn = liste?.trekkUtFulltNavn() ?: "Ukjent"
         return PersonDato(fulltNavn, fødselsdato)

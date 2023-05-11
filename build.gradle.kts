@@ -6,10 +6,10 @@ plugins {
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
     id("maven-publish")
-    java
-    jacoco
-    `jacoco-report-aggregation`
-    `jvm-test-suite`
+    id("java")
+    id("jacoco")
+    id("jacoco-report-aggregation")
+    id("jvm-test-suite")
 }
 
 buildscript {
@@ -22,10 +22,12 @@ buildscript {
 }
 
 dependencies {
-    subprojects.filter { it.name != "integrasjonstest" }.forEach {
-        jacocoAggregation(project(":${it.name}"))
-    }
+    subprojects.filter { it.name != "integrasjonstest" }
+        .forEach {
+            jacocoAggregation(project(":${it.name}"))
+        }
 }
+
 allprojects {
     tasks {
         val jvmTargetVersion: String by project
@@ -72,7 +74,7 @@ subprojects {
     )
 
     tasks {
-        if (!project.erFellesModul() && !project.erFellesTestModul()) {
+        if (!project.erFellesModul() && !project.erFellesTestModul() && !project.erDokumentModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -115,14 +117,20 @@ subprojects {
     val kotlinCoroutinesVersion: String by project
     val kotlinSerializationVersion: String by project
     val mockkVersion: String by project
+    val utilsVersion: String by project
 
     dependencies {
-        if (!erFellesModul()) {
-            implementation(project(":felles"))
-            implementation(project(":dokument"))
-        }
-        if (!erFellesTestModul() && project.name != "dokument") {
-            testImplementation(project(":felles-test"))
+        if (!erDokumentModul()) {
+            if (!erFellesModul()) {
+                implementation(project(":felles"))
+                implementation(project(":dokument"))
+            }
+            if (!erFellesTestModul()) {
+                testImplementation(project(":felles-test"))
+            }
+
+            // dokument har inkompatibel java-versjon
+            implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         }
 
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
@@ -138,6 +146,7 @@ subprojects {
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 }
+
 tasks {
     val mapper = ObjectMapper()
 
@@ -168,10 +177,10 @@ tasks {
     create("deployMatrixProd") {
         deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
     }
-}
 
-tasks.check {
-    dependsOn(tasks.named<JacocoReport>("testCodeCoverageReport"))
+    check {
+        dependsOn(named<JacocoReport>("testCodeCoverageReport"))
+    }
 }
 
 fun getBuildableProjects(buildAll: Boolean = false): List<String> {
@@ -264,14 +273,17 @@ fun Task.validateMainClassFound(mainClass: String) {
     if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")
 }
 
-fun Project.mainClass() =
+fun Project.mainClass(): String =
     "$group.${name.replace("-", "")}.AppKt"
 
-fun Project.erFellesModul() =
-    name == "felles" || name == "dokument"
+fun Project.erFellesModul(): Boolean =
+    name == "felles"
 
-fun Project.erFellesTestModul() =
+fun Project.erFellesTestModul(): Boolean =
     name == "felles-test"
+
+fun Project.erDokumentModul(): Boolean =
+    name == "dokument"
 
 fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
     mapOf(*keyValuePairs)
@@ -279,7 +291,7 @@ fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
         .let(::println)
 }
 
-fun List<String>.containsAny(vararg others: String) =
+fun List<String>.containsAny(vararg others: String): Boolean =
     this.intersect(others.toSet()).isNotEmpty()
 
 fun Task.deployMatrix(mapper: ObjectMapper, includeCluster: String? = null, deployAll: Boolean = false) {

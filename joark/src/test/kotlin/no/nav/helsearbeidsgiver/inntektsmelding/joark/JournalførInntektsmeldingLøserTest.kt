@@ -7,8 +7,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.contains
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.treeToValue
 import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -17,11 +18,11 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.JournalpostLøsning
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.MockInntektsmeldingDokument
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -40,15 +41,17 @@ internal class JournalførInntektsmeldingLøserTest {
         løser = JournalførInntektsmeldingLøser(rapid, dokArkivClient)
     }
 
-    fun sendMessage(packet: Map<String, Any>): JournalpostLøsning {
+    fun sendMessage(packet: Map<String, Any>) {
         rapid.reset()
         rapid.sendTestMessage(
             objectMapper.writeValueAsString(
                 packet
             )
         )
-        val losning: JsonNode = rapid.inspektør.message(0).path(Key.LØSNING.str)
-        return objectMapper.readValue<JournalpostLøsning>(losning.get(BehovType.JOURNALFOER.name).toString())
+    }
+
+    fun retrieveMessage(index: Int): JsonNode {
+        return rapid.inspektør.message(index)
     }
 
     @Test
@@ -56,7 +59,7 @@ internal class JournalførInntektsmeldingLøserTest {
         coEvery {
             dokArkivClient.opprettJournalpost(any(), any(), any())
         } throws DokArkivException(Exception(""))
-        val løsning = sendMessage(
+        sendMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to BehovType.JOURNALFOER.name,
@@ -65,7 +68,10 @@ internal class JournalførInntektsmeldingLøserTest {
                 Key.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument()
             )
         )
-        assertEquals("Kall mot dokarkiv feilet", løsning.error?.melding)
+        val message = retrieveMessage(0)
+        assert(message.contains(Key.FAIL.str).and(!message.contains(Key.INNTEKTSMELDING_DOKUMENT.str)))
+        val fail = objectMapper.treeToValue(message.path(Key.FAIL.str), Fail::class.java)
+        assertEquals("Kall mot dokarkiv feilet", fail.feilmelding)
     }
 
     @Test
@@ -90,14 +96,8 @@ internal class JournalførInntektsmeldingLøserTest {
                 )
             )
         )
-        assertEquals("jp-123", løsning.value)
-        assertEquals(2, rapid.inspektør.size)
 
-        val msg = rapid.inspektør.message(0)
-        assertEquals(BehovType.JOURNALFOER.name, msg.path(Key.BEHOV.str).asText())
-        assertEquals("uuid", msg.path(Key.UUID.str).asText())
-
-        val msg2 = rapid.inspektør.message(1)
+        val msg2 = rapid.inspektør.message(0)
         assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, msg2.path(Key.BEHOV.str).asText())
         assertEquals("jp-123", msg2.path(Key.JOURNALPOST_ID.str).asText())
         assertEquals("uuid", msg2.path(Key.UUID.str).asText())
@@ -105,7 +105,7 @@ internal class JournalførInntektsmeldingLøserTest {
 
     @Test
     fun `skal håndtere ukjente feil`() {
-        val løsning = sendMessage(
+        sendMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to BEHOV,
@@ -116,6 +116,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 Key.INNTEKTSMELDING_DOKUMENT.str to "xyz"
             )
         )
-        assertNotNull(løsning.error)
+        val fail = objectMapper.treeToValue(retrieveMessage(0).get(Key.FAIL.str), Fail::class.java)
+        assertTrue(fail.feilmelding.isNotEmpty())
     }
 }

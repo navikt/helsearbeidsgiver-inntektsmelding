@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import no.nav.helsearbeidsgiver.inntekt.LocalDateSerializer
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import kotlin.system.measureTimeMillis
 
 /**
  * @return en periode tre måneder tilbake fra nyeste sammenhengende
@@ -75,42 +76,52 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
     private fun hentInntekt(fnr: String, periode: Periode, callId: String): InntektskomponentResponse =
         runBlocking {
             sikkerlogger.info("Henter inntekt for $fnr i perioden ${periode.fom} til ${periode.tom} (callId: $callId)")
-            inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", periode.fom, periode.tom, "8-28", "Sykepenger")
+            val response: InntektskomponentResponse
+            measureTimeMillis {
+                response = inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", periode.fom, periode.tom, "8-28", "Sykepenger")
+            }.also {
+                logger.info("Inntekt endepunkt took $it")
+            }
+            response
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottar pakke")
-        sikkerlogger.info("Mottar pakke: ${packet.toJson()}")
-        val uuid = packet[Key.ID.str].asText()
-        logger.info("Løser behov $INNTEKT med id $uuid")
-        val imLøsning = hentSpleisDataFraSession(packet)
-        val fnr = imLøsning.value!!.fnr
-        val orgnr = imLøsning.value!!.orgnr
-        val nyInntektDato = packet.valueNullable(Key.BOOMERANG)
-            ?.toJsonElement()
-            ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
-            ?.get(Key.INNTEKT_DATO)
-            ?.fromJson(LocalDateSerializer)
-        val sykPeriode = bestemPeriode(nyInntektDato, imLøsning.value?.sykmeldingsperioder)
-        if (sykPeriode.isEmpty()) {
-            logger.error("Sykmeldingsperiode mangler for uuid $uuid")
-            packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
-            context.publish(packet.toJson())
-            return
-        }
-        try {
-            val inntektPeriode = finnInntektPeriode(sykPeriode)
-            sikkerlogger.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${inntektPeriode.fom} - ${inntektPeriode.tom}")
-            val inntektResponse = hentInntekt(fnr, inntektPeriode, "helsearbeidsgiver-im-inntekt-$uuid")
-            sikkerlogger.info("Fant inntektResponse: $inntektResponse")
-            val inntekt = mapInntekt(inntektResponse, orgnr)
-            packet.setLøsning(INNTEKT, InntektLøsning(inntekt))
-            context.publish(packet.toJson())
-            sikkerlogger.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
-        } catch (ex: Exception) {
-            sikkerlogger.error("Feil ved henting av inntekt for $fnr!", ex)
-            packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
-            context.publish(packet.toJson())
+        measureTimeMillis {
+            logger.info("Mottar pakke")
+            sikkerlogger.info("Mottar pakke: ${packet.toJson()}")
+            val uuid = packet[Key.ID.str].asText()
+            logger.info("Løser behov $INNTEKT med id $uuid")
+            val imLøsning = hentSpleisDataFraSession(packet)
+            val fnr = imLøsning.value!!.fnr
+            val orgnr = imLøsning.value!!.orgnr
+            val nyInntektDato = packet.valueNullable(Key.BOOMERANG)
+                ?.toJsonElement()
+                ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
+                ?.get(Key.INNTEKT_DATO)
+                ?.fromJson(LocalDateSerializer)
+            val sykPeriode = bestemPeriode(nyInntektDato, imLøsning.value?.sykmeldingsperioder)
+            if (sykPeriode.isEmpty()) {
+                logger.error("Sykmeldingsperiode mangler for uuid $uuid")
+                packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
+                context.publish(packet.toJson())
+                return
+            }
+            try {
+                val inntektPeriode = finnInntektPeriode(sykPeriode)
+                sikkerlogger.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${inntektPeriode.fom} - ${inntektPeriode.tom}")
+                val inntektResponse = hentInntekt(fnr, inntektPeriode, "helsearbeidsgiver-im-inntekt-$uuid")
+                sikkerlogger.info("Fant inntektResponse: $inntektResponse")
+                val inntekt = mapInntekt(inntektResponse, orgnr)
+                packet.setLøsning(INNTEKT, InntektLøsning(inntekt))
+                context.publish(packet.toJson())
+                sikkerlogger.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
+            } catch (ex: Exception) {
+                sikkerlogger.error("Feil ved henting av inntekt for $fnr!", ex)
+                packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
+                context.publish(packet.toJson())
+            }
+        }.also {
+            logger.info("Inntekt Løser took $it")
         }
     }
 

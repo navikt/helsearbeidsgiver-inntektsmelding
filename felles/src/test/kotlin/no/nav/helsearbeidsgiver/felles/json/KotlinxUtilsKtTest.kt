@@ -2,6 +2,9 @@ package no.nav.helsearbeidsgiver.felles.json
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.data.Row2
+import io.kotest.data.row
+import io.kotest.datatest.withData
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
@@ -208,6 +211,27 @@ class KotlinxUtilsKtTest : FunSpec({
         actualObject shouldBe expectedObject
     }
 
+    test("'JsonElement.fromJsonMapFiltered(KSerializer<T>): Map<T, JsonElement>' deserialiserer korrekt") {
+        val booksJson = """
+            {
+                "precursor": "The Hobbit",
+                "1": "The Fellowship of the Ring",
+                "2": "The Two Towers",
+                "3": "The Return of the King"
+            }
+        """.removeJsonWhitespace()
+
+        val expectedObject = mapOf(
+            1 to "The Fellowship of the Ring".toJson(),
+            2 to "The Two Towers".toJson(),
+            3 to "The Return of the King".toJson()
+        )
+
+        val actualObject = booksJson.parseJson().fromJsonMapFiltered(Int.serializer())
+
+        actualObject shouldBe expectedObject
+    }
+
     test("'String.parseJson(): JsonElement' serialiserer korrekt") {
         val bilboJson = """
             {
@@ -255,6 +279,18 @@ class KotlinxUtilsKtTest : FunSpec({
                 }
                 hobbit["age"].shouldNotBeNull().jsonPrimitive.content shouldBe "111"
             }
+        }
+    }
+
+    context("tryOrNull-hjelpefunksjon") {
+        withData(
+            @Suppress("RemoveExplicitTypeArguments")
+            mapOf<_, Row2<() -> String, String?>>(
+                "exception mappes til null" to row({ throw RuntimeException("\uD83D\uDC80") }, null),
+                "verdi returneres" to row({ "\uD83D\uDC85" }, "\uD83D\uDC85")
+            )
+        ) { (block, expectedResult) ->
+            tryOrNull(block) shouldBe expectedResult
         }
     }
 })

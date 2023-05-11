@@ -3,7 +3,7 @@
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
-import no.nav.helsearbeidsgiver.felles.serializers.JsonAsStringSerializer
+import no.nav.helsearbeidsgiver.felles.json.serializer.JsonAsStringSerializer
 
 sealed class Løsning {
     abstract val value: Any?
@@ -41,12 +41,6 @@ data class InntektLøsning(
 @Serializable
 data class ArbeidsforholdLøsning(
     override val value: List<Arbeidsforhold> = emptyList(),
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
-data class JournalpostLøsning(
-    override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 

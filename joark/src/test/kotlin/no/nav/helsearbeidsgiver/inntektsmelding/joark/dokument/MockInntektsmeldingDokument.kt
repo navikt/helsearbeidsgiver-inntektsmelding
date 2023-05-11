@@ -4,6 +4,8 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Begrunnelse
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
@@ -13,7 +15,7 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 
 fun MockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): InntektsmeldingDokument =
-    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument(
+    InntektsmeldingDokument(
         orgnrUnderenhet = "123456789",
         identitetsnummer = "12345678901",
         fulltNavn = "Ola Normann",
@@ -41,13 +43,13 @@ fun MockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): In
             )
         ),
         naturalytelser = listOf(
-            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
-                no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.BIL,
+            Naturalytelse(
+                NaturalytelseKode.BIL,
                 dag.plusDays(5),
                 350.0.toBigDecimal()
             ),
-            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
-                no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.BIL,
+            Naturalytelse(
+                NaturalytelseKode.BIL,
                 dag.plusDays(5),
                 350.0.toBigDecimal()
             )

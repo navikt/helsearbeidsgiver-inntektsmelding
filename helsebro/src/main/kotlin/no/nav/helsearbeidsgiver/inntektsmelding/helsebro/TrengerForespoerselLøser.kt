@@ -10,12 +10,12 @@ import no.nav.helsearbeidsgiver.felles.ifFalse
 import no.nav.helsearbeidsgiver.felles.ifTrue
 import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.list
+import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
-import no.nav.helsearbeidsgiver.felles.serializers.UuidSerializer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import org.slf4j.LoggerFactory
 
@@ -48,6 +48,7 @@ class TrengerForespoerselLøser(
             forespoerselId = Key.FORESPOERSEL_ID.fra(packet).fromJson(UuidSerializer),
             boomerang = Key.BOOMERANG.fra(packet)
         )
+        logger.info("Sending message to helsebro for " + trengerForespoersel.forespoerselId + " current time" + System.currentTimeMillis())
 
         priProducer.send(trengerForespoersel)
             .ifTrue {

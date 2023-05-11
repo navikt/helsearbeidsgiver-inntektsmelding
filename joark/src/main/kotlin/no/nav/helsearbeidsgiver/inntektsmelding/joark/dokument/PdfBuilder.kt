@@ -4,6 +4,7 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.font.PDType0Font
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import java.io.ByteArrayOutputStream
 
 class PdfBuilder(
@@ -11,7 +12,11 @@ class PdfBuilder(
     val paddingHorisontal: Int = 45,
     val fontName: String = "Source Sans Pro Regular 400.ttf",
     val fontBold: String = "Source Sans Pro SemiBold 600.ttf",
-    val fontItalic: String = "Source Sans Pro Italic 400.ttf"
+    val fontItalic: String = "Source Sans Pro Italic 400.ttf",
+    val titleSize: Int = 30,
+    val sectionSize: Int = 24,
+    val bodySize: Int = 16,
+    val logo: String = "logo.png"
 ) {
 
     private val list: MutableList<Text> = mutableListOf()
@@ -19,21 +24,26 @@ class PdfBuilder(
     private val RATIO = 0.5f
     private val MAX = 780
     private val PAGE_HEIGHT = 1560 - paddingVertical * 2 // 1560
+    private val PAGE_WIDTH = 630f
 
     fun addTitle(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(30, title, false, false, x, y))
+        return add(Text(titleSize, title, false, false, x, y))
     }
 
     fun addSection(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(24, title, false, false, x, y))
+        return add(Text(sectionSize, title, false, false, x, y))
     }
 
     fun addBody(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(16, title, false, false, x, y))
+        return add(Text(bodySize, title, false, false, x, y))
     }
 
     fun addBold(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(16, title, true, false, x, y))
+        return add(Text(bodySize, title, true, false, x, y))
+    }
+
+    fun addText(title: String, x: Int = 0, y: Int = 0, bold: Boolean = false): PdfBuilder {
+        return add(Text(bodySize, title, bold, false, x, y))
     }
 
     fun addLine(x: Int = 0, y: Int = 0): PdfBuilder {
@@ -41,7 +51,7 @@ class PdfBuilder(
     }
 
     fun addItalics(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(16, title, false, true, x, y))
+        return add(Text(bodySize, title, false, true, x, y))
     }
 
     fun add(text: Text): PdfBuilder {
@@ -60,16 +70,23 @@ class PdfBuilder(
     fun producePage(pageNr: Int, doc: PDDocument, FONT_NORMAL: PDType0Font, FONT_BOLD: PDType0Font, FONT_ITALIC: PDType0Font): PDPage {
         val page = PDPage()
         val contentStream = PDPageContentStream(doc, page)
-        if (pageNr == 10_000) {
-            contentStream.addRect(456f * RATIO, MAX - 390f * RATIO, 550f * RATIO, -300f * RATIO)
-            contentStream.stroke()
+
+        if (pageNr == 0) {
+            val stream = this::class.java.classLoader.getResource(logo)!!.openStream()
+            val pdImage = PDImageXObject.createFromByteArray(doc, stream.readAllBytes(), logo)
+            val w = pdImage.width.toFloat() / 3
+            val h = pdImage.height.toFloat() / 3
+            val logoX = PAGE_WIDTH - w - paddingHorisontal
+            val logoY = MAX - h
+            contentStream.drawImage(pdImage, logoX, logoY, w, h)
         }
+
         val filteredList = list.filter { isPage(it.y, pageNr) }
         val firstY = if (pageNr == 0) 0 else filteredList.minOf { it.y }
         filteredList.forEach {
             if (LINETEXT.equals(it.value)) {
                 contentStream.moveTo((paddingHorisontal + it.x.toFloat()) * RATIO, MAX - (paddingVertical + it.y.toFloat() - 20 - firstY) * RATIO)
-                contentStream.lineTo((620f - paddingHorisontal), MAX - (paddingVertical + it.y.toFloat() - 20 - firstY) * RATIO)
+                contentStream.lineTo((PAGE_WIDTH - paddingHorisontal), MAX - (paddingVertical + it.y.toFloat() - 20 - firstY) * RATIO)
                 contentStream.stroke()
             } else {
                 contentStream.beginText()

@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.publishFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
+import kotlin.system.measureTimeMillis
 
 class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient, private val isPreProd: Boolean) : Løser(rapidsConnection) {
 
@@ -32,7 +33,15 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             }
             return "Ukjent arbeidsgiver"
         }
-        return runBlocking { brregClient.hentVirksomhetNavn(orgnr) } ?: throw FantIkkeVirksomhetException(orgnr)
+        return runBlocking {
+            val virksomhetNav: String?
+            measureTimeMillis {
+                virksomhetNav = brregClient.hentVirksomhetNavn(orgnr)
+            }.also {
+                logger.info("BREG execution took " + it)
+            }
+            virksomhetNav
+        } ?: throw FantIkkeVirksomhetException(orgnr)
     }
 
     override fun accept(): River.PacketValidation {

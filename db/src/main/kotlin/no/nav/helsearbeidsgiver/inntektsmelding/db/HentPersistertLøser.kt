@@ -50,7 +50,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
                 logger.info("Fant IKKE persistert inntektsmelding for forespørselId $forespoerselId")
                 løsning = HentPersistertLøsning("")
             } else {
-                logger.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
+                sikkerlogg.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
                 løsning = HentPersistertLøsning(dokument.toString())
             }
             publiserLøsning(løsning, packet)

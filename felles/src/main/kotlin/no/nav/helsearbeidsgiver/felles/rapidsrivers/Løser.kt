@@ -33,6 +33,9 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
         }
     }
 
+    // Ungå å bruke det, hvis du kan.
+    // Alle løser som publiserer Behov vil få kunskap om nedstrøms løserne.
+    // i tilleg gjenbruktbarhet av løseren vil vare betydelig redusert
     fun publishBehov(message: JsonMessage) {
         message.set(Key.EVENT_NAME.str, eventName.name)
         if (forespoerselId.isNotEmpty()) {

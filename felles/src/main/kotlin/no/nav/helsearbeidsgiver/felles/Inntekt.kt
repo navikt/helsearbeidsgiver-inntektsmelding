@@ -6,7 +6,7 @@ import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.helsearbeidsgiver.felles.serializers.YearMonthSerializer
+import no.nav.helsearbeidsgiver.felles.json.serializer.YearMonthSerializer
 import no.nav.helsearbeidsgiver.felles.utils.divideMoney
 import no.nav.helsearbeidsgiver.felles.utils.sumMoney
 import java.time.YearMonth

@@ -2,10 +2,10 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
@@ -20,7 +21,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
-import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -28,19 +30,15 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import kotlin.test.assertNotNull
 
+private const val PATH = Routes.PREFIX + Routes.INNSENDING + "/${MockUuid.STRING}"
+
 class InnsendingRouteKtTest : ApiTest() {
-    val objectMapper = customObjectMapper()
-
-    private val FORESPØRSEL_ID = "id_123"
-    private val PATH = Routes.PREFIX + Routes.INNSENDING + "/$FORESPØRSEL_ID"
-
-    val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST
+    val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson)
     val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(
         identitetsnummer = TestData.notValidIdentitetsnummer,
         orgnrUnderenhet = TestData.notValidOrgNr
-    )
+    ).let(Jackson::toJson)
 
-    val RESULTAT_IKKE_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.IKKE_TILGANG))
     val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
 
     val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning(PersonDato("verdi", LocalDate.now())))
@@ -55,7 +53,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals(objectMapper.writeValueAsString(InnsendingResponse(FORESPØRSEL_ID)), response.bodyAsText())
+        assertEquals(InnsendingResponse(MockUuid.STRING).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
     }
 
     @Test
@@ -68,11 +66,23 @@ class InnsendingRouteKtTest : ApiTest() {
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
-        val data: String = response.bodyAsText()
-        val violations = objectMapper.readValue<ValidationResponse>(data).errors
+
+        val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
+
         assertEquals(2, violations.size)
         assertEquals(Key.ORGNRUNDERENHET.str, violations[0].property)
         assertEquals("identitetsnummer", violations[1].property)
+    }
+
+    @Test
+    fun `gir jackson-feil ved ugyldig request-json`() = testApi {
+        val response = post(PATH, "\"ikke en request\"".toJson())
+
+        val feilmelding = response.bodyAsText().fromJson(JacksonErrorResponse.serializer())
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(MockUuid.STRING, feilmelding.forespoerselId)
+        assertEquals("Feil under serialisering med jackson.", feilmelding.error)
     }
 
     @Test
@@ -84,7 +94,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val response = post(PATH, GYLDIG_REQUEST)
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals(objectMapper.writeValueAsString(RedisTimeoutResponse(FORESPØRSEL_ID, "Brukte for lang tid")), response.bodyAsText())
+        assertEquals(RedisTimeoutResponse(MockUuid.STRING).toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
     }
 
     @Test
@@ -97,8 +107,16 @@ class InnsendingRouteKtTest : ApiTest() {
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
-        val data: String = response.bodyAsText()
-        val violations = objectMapper.readValue<ValidationResponse>(data).errors
+
+        val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
+
         assertEquals(2, violations.size)
+    }
+
+    private object Jackson {
+        private val objectMapper = customObjectMapper()
+
+        fun toJson(innsendingRequest: InnsendingRequest): JsonElement =
+            objectMapper.writeValueAsString(innsendingRequest).parseJson()
     }
 }

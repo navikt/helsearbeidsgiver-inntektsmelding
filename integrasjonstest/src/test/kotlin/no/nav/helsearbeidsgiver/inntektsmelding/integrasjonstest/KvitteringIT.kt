@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class KvitteringIT : EndToEndTest() {
@@ -19,15 +20,15 @@ internal class KvitteringIT : EndToEndTest() {
     private val ORGNR = "987"
     private val INNTEKTSMELDING_DOKUMENT = MockInntektsmeldingDokument()
     private val INNTEKTSMELDING_NOT_FOUND = "{}"
-    private val transactionId = "123456"
 
     @Test
     fun `skal gi feilmelding når forespørsel ikke finnes`() {
+        val transactionId = UUID.randomUUID().toString()
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                Key.UUID.str to UGYLDIG_FORESPPØRSEL_ID,
-                Key.INITIATE_ID.str to transactionId
+                Key.UUID.str to transactionId,
+                Key.FORESPOERSEL_ID.str to UGYLDIG_FORESPPØRSEL_ID
             )
         )
         Thread.sleep(5000)
@@ -35,20 +36,21 @@ internal class KvitteringIT : EndToEndTest() {
         with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
             // Skal ikke finne inntektsmeldingdokument - men en dummy payload
             assertEquals(INNTEKTSMELDING_NOT_FOUND, get(Key.INNTEKTSMELDING_DOKUMENT.str).asText())
-            assertEquals(UGYLDIG_FORESPPØRSEL_ID, get(Key.UUID.str).asText())
+            assertEquals(transactionId, get(Key.UUID.str).asText())
         }
     }
 
     @Test
     fun `skal hente data til kvittering`() {
+        val transactionId = UUID.randomUUID().toString()
         meldinger.clear()
         forespoerselRepository.lagreForespørsel(GYLDIG_FORESPØRSEL_ID, ORGNR)
         imoRepository.lagreInntektsmeldng(GYLDIG_FORESPØRSEL_ID, INNTEKTSMELDING_DOKUMENT)
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                Key.UUID.str to GYLDIG_FORESPØRSEL_ID,
-                Key.INITIATE_ID.str to transactionId
+                Key.UUID.str to transactionId,
+                Key.FORESPOERSEL_ID.str to GYLDIG_FORESPØRSEL_ID
             )
         )
         Thread.sleep(5000)
@@ -57,7 +59,7 @@ internal class KvitteringIT : EndToEndTest() {
             assertNotNull(get(Key.INNTEKTSMELDING_DOKUMENT.str))
             // Skal finne inntektsmeldingdokumentet
             assertNotEquals(INNTEKTSMELDING_NOT_FOUND, get(Key.INNTEKTSMELDING_DOKUMENT.str))
-            assertEquals(GYLDIG_FORESPØRSEL_ID, get(Key.UUID.str).asText())
+            assertEquals(transactionId, get(Key.UUID.str).asText())
         }
     }
 }

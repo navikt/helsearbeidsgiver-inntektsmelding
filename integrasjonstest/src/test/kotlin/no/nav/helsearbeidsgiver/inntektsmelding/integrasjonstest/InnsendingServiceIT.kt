@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import com.fasterxml.jackson.module.kotlin.contains
 import io.kotest.common.runBlocking
 import io.mockk.every
 import no.nav.helsearbeidsgiver.aareg.Arbeidsavtale
@@ -28,7 +29,7 @@ class InnsendingServiceIT : EndToEndTest() {
         forespoerselRepository.lagreForespørsel(forespoerselId, TestData.validOrgNr)
         this.filterMessages = {
             val eventName = it.get(Key.EVENT_NAME.str).asText()
-            val msgUuid = it.get(Key.UUID.str).asText()
+            val msgUuid = if (it.contains(Key.UUID.str)) it.get(Key.UUID.str).asText() else it.get(Key.TRANSACTION_ORIGIN.str).asText()
             msgUuid == transaksjonsId && (
                 eventName == EventName.INSENDING_STARTED.name ||
                     (eventName == EventName.INNTEKTSMELDING_MOTTATT.name && !it.has(Key.BEHOV.str))

@@ -101,7 +101,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             OPPGAVE_ID
         }
 
-
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,

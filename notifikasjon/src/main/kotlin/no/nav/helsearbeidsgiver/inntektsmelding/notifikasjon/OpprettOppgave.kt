@@ -18,25 +18,22 @@ import java.util.UUID
 class ForespørselMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
     override val event: EventName = EventName.FORESPØRSEL_MOTTATT
 
-    override fun accept(): River.PacketValidation  = River.PacketValidation {
+    override fun accept(): River.PacketValidation = River.PacketValidation {
         it.requireKey(Key.ORGNRUNDERENHET.str)
     }
     override fun onEvent(packet: JsonMessage) {
-        val uuid:String = UUID.randomUUID().toString()
+        val uuid: String = UUID.randomUUID().toString()
         publishBehov(
-                JsonMessage.newMessage(
-                    mapOf(
-                        Key.BEHOV.str to BehovType.OPPRETT_OPPGAVE,
-                        Key.UUID.str to uuid,
-                        Key.ORGNRUNDERENHET.str to packet[Key.ORGNRUNDERENHET.str]
-                    )
+            JsonMessage.newMessage(
+                mapOf(
+                    Key.BEHOV.str to BehovType.OPPRETT_OPPGAVE,
+                    Key.UUID.str to uuid,
+                    Key.ORGNRUNDERENHET.str to packet[Key.ORGNRUNDERENHET.str]
                 )
+            )
         )
     }
-
-
 }
-
 
 class OpprettOppgaveLøser(
     rapidsConnection: RapidsConnection,
@@ -69,13 +66,12 @@ class OpprettOppgaveLøser(
     }
 
     override fun accept(): River.PacketValidation =
-         River.PacketValidation {
+        River.PacketValidation {
             it.requireValue(Key.EVENT_NAME.str, EVENT.name)
             it.demandAll(Key.BEHOV.str, listOf(BehovType.OPPRETT_OPPGAVE.name))
             it.requireKey(Key.UUID.str)
             it.interestedIn(Key.ORGNRUNDERENHET.str)
         }
-
 
     override fun onBehov(packet: JsonMessage) {
         sikkerLogger.info("OpprettOppgaveLøser mottok pakke: ${packet.toJson()}")

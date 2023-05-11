@@ -33,7 +33,6 @@ import no.nav.helsearbeidsgiver.pdl.PdlClient
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import kotlin.concurrent.thread
 

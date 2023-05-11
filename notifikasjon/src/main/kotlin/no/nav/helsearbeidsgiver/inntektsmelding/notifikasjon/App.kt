@@ -24,6 +24,7 @@ fun RapidsConnection.createNotifikasjon(
     linkUrl: String
 ): RapidsConnection {
     OpprettSakLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+    ForespørselMottattListener(this)
     OpprettOppgaveLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
     SakFerdigLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
     OppgaveFerdigLøser(this, arbeidsgiverNotifikasjonKlient)

@@ -143,7 +143,7 @@ internal class InnsendingIT : EndToEndTest() {
             // EVENT: Journalføring
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
             assertEquals(FORESPØRSEL_ID, get(Key.FORESPOERSEL_ID.str).asText())
-            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
+            assertEquals(OPPGAVE_ID, get(DataFelt.OPPGAVE_ID.str).asText())
         }
 
         with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.DISTRIBUER_IM, løsning = false).first()) {
@@ -161,7 +161,7 @@ internal class InnsendingIT : EndToEndTest() {
 
         with(filter(EventName.INNTEKTSMELDING_JOURNALFOERT, BehovType.ENDRE_OPPGAVE_STATUS, løsning = true).first()) {
             // Endre status for arbeidsgivernotifikasjon oppgave
-            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
+            assertEquals(OPPGAVE_ID, get(DataFelt.OPPGAVE_ID.str).asText())
             val løsning: OppgaveFerdigLøsning =
                 get(Key.LØSNING.str).get(BehovType.ENDRE_OPPGAVE_STATUS.name).toJsonElement().fromJson(OppgaveFerdigLøsning.serializer())
             assertEquals(OPPGAVE_ID, løsning.value)

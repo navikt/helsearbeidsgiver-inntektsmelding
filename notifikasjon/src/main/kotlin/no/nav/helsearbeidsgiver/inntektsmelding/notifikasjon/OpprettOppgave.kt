@@ -7,6 +7,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -16,7 +17,7 @@ import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class ForespørselMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
-    override val event: EventName = EventName.FORESPØRSEL_MOTTATT
+    override val event: EventName = EventName.FORESPØRSEL_LAGRET
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
         it.requireKey(Key.ORGNRUNDERENHET.str)
@@ -67,8 +68,8 @@ class OpprettOppgaveLøser(
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
-            it.requireValue(Key.EVENT_NAME.str, EVENT.name)
-            it.demandAll(Key.BEHOV.str, listOf(BehovType.OPPRETT_OPPGAVE.name))
+            it.demandValue(Key.EVENT_NAME.str, EVENT.name)
+            it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
             it.requireKey(Key.UUID.str)
             it.interestedIn(Key.ORGNRUNDERENHET.str)
         }
@@ -80,14 +81,13 @@ class OpprettOppgaveLøser(
         val oppgaveId = opprettOppgave(uuid, orgnr)
         val message = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EVENT,
-                Key.BEHOV.str to listOf(BehovType.PERSISTER_OPPGAVE_ID.name),
+                Key.BEHOV.str to BehovType.PERSISTER_OPPGAVE_ID.name,
                 Key.UUID.str to uuid,
                 Key.ORGNRUNDERENHET.str to orgnr,
-                Key.OPPGAVE_ID.str to oppgaveId
+                DataFelt.OPPGAVE_ID.str to oppgaveId
             )
         )
-        publishData(message)
+        publishBehov(message)
         sikkerLogger.info("OpprettOppgaveLøser publiserte uuid $uuid med json: $message")
     }
 }

@@ -81,7 +81,6 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.SAK_OPPRETTET.name,
-                    Key.UUID.str to UUID.randomUUID().toString(),
                     Key.FORESPOERSEL_ID.str to message[Key.FORESPOERSEL_ID.str],
                     DataFelt.SAK_ID.str to redisStore.get(transaksjonsId + DataFelt.SAK_ID.str)!!
                 )

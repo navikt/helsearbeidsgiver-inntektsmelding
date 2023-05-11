@@ -10,9 +10,33 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
+import java.util.UUID
+
+class ForespørselMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+    override val event: EventName = EventName.FORESPØRSEL_MOTTATT
+
+    override fun accept(): River.PacketValidation  = River.PacketValidation {
+        it.requireKey(Key.ORGNRUNDERENHET.str)
+    }
+    override fun onEvent(packet: JsonMessage) {
+        val uuid:String = UUID.randomUUID().toString()
+        publishBehov(
+                JsonMessage.newMessage(
+                    mapOf(
+                        Key.BEHOV.str to BehovType.OPPRETT_OPPGAVE,
+                        Key.UUID.str to uuid,
+                        Key.ORGNRUNDERENHET.str to packet[Key.ORGNRUNDERENHET.str]
+                    )
+                )
+        )
+    }
+
+
+}
+
 
 class OpprettOppgaveLøser(
     rapidsConnection: RapidsConnection,
@@ -44,14 +68,14 @@ class OpprettOppgaveLøser(
         }
     }
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
+    override fun accept(): River.PacketValidation =
+         River.PacketValidation {
             it.requireValue(Key.EVENT_NAME.str, EVENT.name)
             it.demandAll(Key.BEHOV.str, listOf(BehovType.OPPRETT_OPPGAVE.name))
             it.requireKey(Key.UUID.str)
             it.interestedIn(Key.ORGNRUNDERENHET.str)
         }
-    }
+
 
     override fun onBehov(packet: JsonMessage) {
         sikkerLogger.info("OpprettOppgaveLøser mottok pakke: ${packet.toJson()}")

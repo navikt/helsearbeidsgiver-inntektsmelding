@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.inntektsmelding.trengerim.OpprettSak
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -31,7 +30,6 @@ fun createApp(environment: Environment): RapidsConnection {
 fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection {
     InnsendingService(this, redisStore)
     KvitteringServiceExperimental(this, redisStore)
-    OpprettSak(this, redisStore)
     return this
 }
 

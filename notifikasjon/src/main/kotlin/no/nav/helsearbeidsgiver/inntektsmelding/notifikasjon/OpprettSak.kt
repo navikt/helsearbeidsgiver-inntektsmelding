@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.trengerim
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -8,10 +8,10 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.CompositeEventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.StatefullDataKanal
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.Transaction
 import java.util.UUID
 
 class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {

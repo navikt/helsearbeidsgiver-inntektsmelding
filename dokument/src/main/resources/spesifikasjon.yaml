@@ -207,6 +207,12 @@ components:
     Bonus:
       allOf:
         - $ref: '#/components/schemas/InntektEndringAarsak'
+      properties:
+        aarligBonus:
+          type: number
+        datoForBonus:
+          type: string
+          format: date
     Permisjon:
       required:
         - liste

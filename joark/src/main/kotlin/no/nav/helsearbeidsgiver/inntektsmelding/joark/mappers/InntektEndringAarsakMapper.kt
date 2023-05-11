@@ -13,14 +13,14 @@ import org.mapstruct.Mapper
 
 fun InntektEndringAarsak.stringValue(): String {
     return when (this) {
-        is Ferie -> this.typpe + ": " + liste.joinToString(transform = printPeriode())
-        is NyStilling -> "Ny stilling: fra ${this.gjelderFra}"
-        is NyStillingsprosent -> "Ny stillingsprosent: fra ${this.gjelderFra}"
-        is Permisjon -> this.typpe + ": " + liste.joinToString(transform = printPeriode())
-        is Permittering -> this.typpe + ": " + liste.joinToString(transform = printPeriode())
-        is Tariffendring -> this.typpe + ": fra ${this.gjelderFra}"
-        is VarigLonnsendring -> "Varig lønnsendring: fra ${this.gjelderFra}"
-        else -> "" + this.typpe
+        is Ferie -> typpe + ": " + liste.joinToString(transform = printPeriode())
+        is NyStilling -> "Ny stilling: fra gjelderFra"
+        is NyStillingsprosent -> "Ny stillingsprosent: fra $gjelderFra"
+        is Permisjon -> typpe + ": " + liste.joinToString(transform = printPeriode())
+        is Permittering -> typpe + ": " + liste.joinToString(transform = printPeriode())
+        is Tariffendring -> typpe + ": fra $gjelderFra"
+        is VarigLonnsendring -> "Varig lønnsendring: fra $gjelderFra"
+        else -> "" + typpe
     }
 }
 

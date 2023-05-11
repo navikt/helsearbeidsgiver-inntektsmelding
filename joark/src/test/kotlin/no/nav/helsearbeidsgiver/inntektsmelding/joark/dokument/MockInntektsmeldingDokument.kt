@@ -25,12 +25,12 @@ fun MockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): In
             Periode(dag, dag.plusDays(2)),
             Periode(dag.plusDays(3), dag.plusDays(4))
         ),
-        beregnetInntekt = 25000.0.toBigDecimal(),
+        beregnetInntekt = 25_000.0.toBigDecimal(),
         inntekt = Inntekt(true, 25000.0.toBigDecimal(), Tariffendring(dag, dag), false),
         fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
             true,
             begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT,
-            utbetalt = 10000.toBigDecimal()
+            utbetalt = 10_000.toBigDecimal()
         ),
         refusjon = Refusjon(
             true,

@@ -15,16 +15,16 @@ internal class InntektEndringAarsakMapperTest {
     fun inntektEndringAarsakTilString() {
         val gjelderFra = LocalDate.of(2020, 1, 1)
         val gjelderTil = LocalDate.of(2020, 1, 3)
-        val t = Tariffendring(gjelderFra, gjelderFra)
+        val tariffendring = Tariffendring(gjelderFra, gjelderFra)
         val mapper = Mappers.getMapper(InntektEndringAarsakMapper::class.java)
-        assertEquals("Tariffendring: fra $gjelderFra", mapper.inntektEndringAarsakTilString(t))
+        assertEquals("Tariffendring: fra $gjelderFra", mapper.inntektEndringAarsakTilString(tariffendring))
 
-        val ferie = listOf(Periode(gjelderFra, gjelderTil), Periode(gjelderFra, gjelderTil))
-        val f = Ferie(ferie)
-        val ferieString = mapper.inntektEndringAarsakTilString(f)
+        val feriePerioder = listOf(Periode(gjelderFra, gjelderTil), Periode(gjelderFra, gjelderTil))
+        val ferie = Ferie(feriePerioder)
+        val ferieString = mapper.inntektEndringAarsakTilString(ferie)
         assertEquals("Ferie: fra $gjelderFra til $gjelderTil, fra $gjelderFra til $gjelderTil", ferieString)
 
-        val v = VarigLonnsendring(gjelderFra)
-        assertEquals("Varig lønnsendring: fra $gjelderFra", mapper.inntektEndringAarsakTilString(v))
+        val varigLonnsendring = VarigLonnsendring(gjelderFra)
+        assertEquals("Varig lønnsendring: fra $gjelderFra", mapper.inntektEndringAarsakTilString(varigLonnsendring))
     }
 }

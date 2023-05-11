@@ -53,9 +53,7 @@ class InnsendingRouteKtTest : ApiTest() {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
         } returns RESULTAT_HAR_TILGANG andThen RESULTAT_OK
-
         val response = post(PATH, GYLDIG_REQUEST)
-
         assertEquals(HttpStatusCode.Created, response.status)
         assertEquals(InnsendingResponse(MockUuid.STRING).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
     }

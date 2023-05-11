@@ -23,9 +23,18 @@ class PersisterSakLøser(
 
     override fun onBehov(packet: JsonMessage) {
         sikkerLogger.info("PersisterSakLøser mottok pakke: ${packet.toJson()}")
-        val uuid = packet[Key.FORESPOERSEL_ID.str].asText()
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val sakId = packet[DataFelt.SAK_ID.str].asText()
-        repository.oppdaterSakId(sakId, uuid)
-        sikkerLogger.info("PersisterSakLøser lagred sakId: $sakId for uuid: $uuid")
+        repository.oppdaterSakId(sakId, forespoerselId)
+        sikkerLogger.info("PersisterSakLøser lagred sakId: $sakId for forespoerselId: $forespoerselId")
+        publishData(
+            JsonMessage.newMessage(
+                mapOf(
+                    Key.DATA.str to "",
+                    DataFelt.PERSISTERT_SAK_ID.str to sakId,
+                    Key.UUID.str to packet[Key.UUID.str]
+                )
+            )
+        )
     }
 }

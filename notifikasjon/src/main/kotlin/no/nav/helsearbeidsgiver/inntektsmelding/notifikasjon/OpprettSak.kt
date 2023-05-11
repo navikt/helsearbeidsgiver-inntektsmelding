@@ -27,7 +27,15 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
                 rapidsConnection
             )
         }
-        withDataKanal { StatefullDataKanal(arrayOf(DataFelt.ARBEIDSTAKER_INFORMASJON.str, DataFelt.SAK_ID.str), event, this, rapidsConnection, redisStore) }
+        withDataKanal {
+            StatefullDataKanal(
+                arrayOf(DataFelt.ARBEIDSTAKER_INFORMASJON.str, DataFelt.SAK_ID.str, DataFelt.PERSISTERT_SAK_ID.str),
+                event,
+                this,
+                rapidsConnection,
+                redisStore
+            )
+        }
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
     }
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -41,13 +49,13 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
                         Key.UUID.str to transaksjonsId,
                         Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
                         Key.IDENTITETSNUMMER.str to redisStore.get(transaksjonsId + Key.IDENTITETSNUMMER.str)!!,
-                        Key.FORESPOERSEL_ID.str to redisStore.get(transaksjonsId + Key.FORESPOERSEL_ID.str)!!
+                        Key.FORESPOERSEL_ID.str to forespørselId
 
                     )
                 ).toJson()
             )
         } else if (transaction == Transaction.IN_PROGRESS) {
-            if (isDataCollected(*arrayOf(DataFelt.SAK_ID.str))) {
+            if (isDataCollected(*arrayOf(transaksjonsId + DataFelt.SAK_ID.str))) {
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(

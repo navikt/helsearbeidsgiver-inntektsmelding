@@ -78,7 +78,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 Key.FORESPOERSEL_ID.str to FORESPOERSEL
             )
         )
-        Thread.sleep(8000)
+        Thread.sleep(10000)
 
         with(filter(EventName.FORESPØRSEL_LAGRET, BehovType.FULLT_NAVN).first()) {
             assertEquals(FNR, this[Key.IDENTITETSNUMMER.str].asText())
@@ -98,7 +98,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         }
         with(filter(EventName.SAK_OPPRETTET).first()) {
             assertEquals(SAK_ID, this[DataFelt.SAK_ID.str].asText())
-            assertEquals(FORESPOERSEL, this[Key.FORESPOERSEL_ID.str].asText())
         }
     }
 

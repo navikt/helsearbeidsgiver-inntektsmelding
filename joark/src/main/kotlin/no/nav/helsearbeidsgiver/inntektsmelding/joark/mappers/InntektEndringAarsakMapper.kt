@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektEndringAarsak
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
@@ -13,6 +14,7 @@ import org.mapstruct.Mapper
 
 fun InntektEndringAarsak.stringValue(): String {
     return when (this) {
+        is Bonus -> "Bonus" // Mangler beløp og dato
         is Ferie -> typpe + ": " + liste.joinToString(transform = printPeriode())
         is NyStilling -> "Ny stilling: fra gjelderFra"
         is NyStillingsprosent -> "Ny stillingsprosent: fra $gjelderFra"

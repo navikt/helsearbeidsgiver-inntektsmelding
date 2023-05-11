@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Periode
-import no.nav.helsearbeidsgiver.felles.PreutfyltResponse
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.ResultatMapper
@@ -18,7 +17,7 @@ import org.valiktor.DefaultConstraintViolation
 
 class TrengerMapper(
     resultat: Resultat
-) : ResultatMapper<PreutfyltResponse>(resultat) {
+) : ResultatMapper<TrengerResponse>(resultat) {
 
     override fun mapConstraint(løsning: Løsning): ConstraintViolation {
         if (løsning is VirksomhetLøsning) {
@@ -61,9 +60,9 @@ class TrengerMapper(
         return resultat.HENT_TRENGER_IM?.value?.orgnr ?: ""
     }
 
-    override fun getResultatResponse(): PreutfyltResponse {
+    override fun getResultatResponse(): TrengerResponse {
         val inntekt = mapInntekt()
-        return PreutfyltResponse(
+        return TrengerResponse(
             navn = mapFulltNavn(),
             orgNavn = mapArbeidsgiver(),
             identitetsnummer = mapIdentitetsNummer(),

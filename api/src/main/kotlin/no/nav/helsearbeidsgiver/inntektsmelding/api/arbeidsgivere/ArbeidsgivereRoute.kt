@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere
 
-import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import io.ktor.server.routing.get
 import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
@@ -35,9 +35,9 @@ fun RouteExtra.ArbeidsgivereRoute() {
 
         when (løsning) {
             is Løsning.Success ->
-                respondOk(løsning.resultat)
+                respondOk(løsning.resultat, AltinnOrganisasjon.serializer().set())
             is Løsning.Failure ->
-                respondInternalServerError(løsning.feilmelding)
+                respondInternalServerError(løsning.feilmelding, String.serializer())
         }
     }
 }
@@ -50,7 +50,7 @@ private fun JsonElement.toLøsning(): Løsning<Set<AltinnOrganisasjon>> =
         )
     )
         .get(BehovType.ARBEIDSGIVERE)
-        ?: throw ArbeidsgivereJsonMismatchedInputException("Fant ikke behov.")
+        ?: throw ArbeidsgivereJsonException("Fant ikke nødvendig løsning i JSON fra Redis.")
 
 private fun loggPublisert(message: JsonMessage) {
     "Publiserte til rapid. id=${message.id}".let {
@@ -59,4 +59,4 @@ private fun loggPublisert(message: JsonMessage) {
     }
 }
 
-private class ArbeidsgivereJsonMismatchedInputException(message: String) : MismatchedInputException(null, message)
+private class ArbeidsgivereJsonException(message: String) : IllegalStateException(message)

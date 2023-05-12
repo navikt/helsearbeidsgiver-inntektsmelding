@@ -17,12 +17,13 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, val repository: Fore
         return River.PacketValidation {
             it.requireKey(Key.ORGNRUNDERENHET.str)
             it.requireKey(Key.IDENTITETSNUMMER.str)
+            it.requireKey(Key.FORESPOERSEL_ID.str)
         }
     }
 
     override fun onBehov(packet: JsonMessage) {
         val uuid = packet[Key.FORESPOERSEL_ID.str].asText()
-        sikkerLogger.info("ForespørselMottattListener mottok: ${packet.toJson()}")
+        sikkerLogger.info("LagreForespoersel mottok: ${packet.toJson()}")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         repository.lagreForespørsel(uuid, orgnr)
@@ -38,6 +39,6 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, val repository: Fore
             )
 
         publishEvent(msg)
-        sikkerLogger.info("ForespørselMottattListener publiserte: ${msg.toJson()}")
+        sikkerLogger.info("LagreForespoersel publiserte: ${msg.toJson()}")
     }
 }

@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import java.util.UUID
 
 class LagreForespoersel(rapidsConnection: RapidsConnection, val repository: ForespoerselRepository) : Løser(rapidsConnection) {
 

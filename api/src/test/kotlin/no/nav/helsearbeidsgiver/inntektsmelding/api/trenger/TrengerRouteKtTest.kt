@@ -194,8 +194,7 @@ private fun MottattHistoriskInntekt.hardcodedJson(): String =
     """
     {
         "maaned": "$maaned",
-        "inntekt": $inntekt,
-        "maanedsnavn": "$maanedsnavn"
+        "inntekt": $inntekt
     }
     """
 

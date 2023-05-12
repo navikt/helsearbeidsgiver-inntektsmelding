@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-class ForespørselMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
     override val event: EventName = EventName.FORESPØRSEL_LAGRET
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
@@ -70,7 +70,6 @@ class OpprettOppgaveLøser(
         River.PacketValidation {
             it.demandValue(Key.EVENT_NAME.str, EVENT.name)
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
-            it.requireKey(Key.UUID.str)
             it.interestedIn(Key.ORGNRUNDERENHET.str)
         }
 

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.mapstruct.factory.Mappers
 import java.time.LocalDate
 
-internal class InntektEndringAarsakMapperTest {
+class InntektEndringAarsakMapperTest {
 
     @Test
     fun inntektEndringAarsakTilString() {
@@ -26,5 +27,8 @@ internal class InntektEndringAarsakMapperTest {
 
         val varigLonnsendring = VarigLonnsendring(gjelderFra)
         assertEquals("Varig lønnsendring: fra $gjelderFra", mapper.inntektEndringAarsakTilString(varigLonnsendring))
+
+        val bonus = Bonus()
+        assertEquals("Bonus", mapper.inntektEndringAarsakTilString(bonus))
     }
 }

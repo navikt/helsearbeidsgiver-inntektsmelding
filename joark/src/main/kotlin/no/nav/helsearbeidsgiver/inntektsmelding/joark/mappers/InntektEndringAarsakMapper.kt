@@ -14,9 +14,9 @@ import org.mapstruct.Mapper
 
 fun InntektEndringAarsak.stringValue(): String {
     return when (this) {
-        is Bonus -> "Bonus" // Mangler beløp og dato
+        is Bonus -> "Bonus" // Beløp og dato ikke implementert i frontend
         is Ferie -> typpe + ": " + liste.joinToString(transform = printPeriode())
-        is NyStilling -> "Ny stilling: fra gjelderFra"
+        is NyStilling -> "Ny stilling: fra $gjelderFra"
         is NyStillingsprosent -> "Ny stillingsprosent: fra $gjelderFra"
         is Permisjon -> typpe + ": " + liste.joinToString(transform = printPeriode())
         is Permittering -> typpe + ": " + liste.joinToString(transform = printPeriode())

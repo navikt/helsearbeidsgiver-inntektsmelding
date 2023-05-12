@@ -14,6 +14,7 @@ env:
   - name: REDIS_URL
     value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
 apps:
+  - name: helsearbeidsgiver-redis
   - name: notifikasjon-produsent-api
     namespace: fager
 externalHosts:

@@ -145,11 +145,7 @@ private object Mock {
                 25.april til 30.april
             ),
             forespurtData = listOf(
-                ForespurtData.ArbeidsgiverPeriode(
-                    forslag = listOf(
-                        1.april til 16.april
-                    )
-                ),
+                ForespurtData.ArbeidsgiverPeriode,
                 ForespurtData.Inntekt(
                     forslag = ForslagInntekt(
                         beregningsmåneder = listOf(
@@ -202,12 +198,7 @@ private fun MottattHistoriskInntekt.hardcodedJson(): String =
 private fun ForespurtData.hardcodedJson(): String =
     when (this) {
         is ForespurtData.ArbeidsgiverPeriode ->
-            """
-            {
-                "opplysningstype": "Arbeidsgiverperiode",
-                "forslag": [${forslag.joinToString(transform = Periode::hardcodedJson)}]
-            }
-            """
+            """{ "opplysningstype": "Arbeidsgiverperiode" }"""
         is ForespurtData.Inntekt ->
             """
             {

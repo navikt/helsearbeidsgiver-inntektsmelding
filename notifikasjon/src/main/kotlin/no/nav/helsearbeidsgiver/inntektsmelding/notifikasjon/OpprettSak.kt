@@ -58,7 +58,7 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
                 ).toJson()
             )
         } else if (transaction == Transaction.IN_PROGRESS) {
-            if (isDataCollected(*arrayOf(transaksjonsId + DataFelt.SAK_ID.str))) {
+            if (isDataCollected(*steg3(transaksjonsId))) {
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -70,7 +70,7 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
                         )
                     ).toJson()
                 )
-            } else if (isDataCollected(*arrayOf(transaksjonsId + DataFelt.ARBEIDSTAKER_INFORMASJON.str))) {
+            } else if (isDataCollected(*steg2(transaksjonsId))) {
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -111,4 +111,7 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
         }
         return Transaction.TERMINATE
     }
+
+    fun steg2(transactionId:String) = arrayOf(transactionId + DataFelt.ARBEIDSTAKER_INFORMASJON.str)
+    fun steg3(transactionId:String) = arrayOf(transactionId + DataFelt.SAK_ID.str)
 }

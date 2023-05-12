@@ -78,6 +78,6 @@ class OpprettSakLøser(
                 )
             )
         )
-        sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId")
+        sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=$forespoerselId")
     }
 }

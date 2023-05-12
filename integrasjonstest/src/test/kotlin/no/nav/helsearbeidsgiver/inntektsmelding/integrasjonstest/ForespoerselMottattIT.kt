@@ -89,51 +89,5 @@ internal class ForespoerselMottattIT : EndToEndTest() {
             assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
             assertEquals(FORESPOERSEL, get(Key.FORESPOERSEL_ID.str).asText())
         }
-/*
-        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.FULLT_NAVN).first()) {
-            assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
-
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.FORESPOERSEL_ID.str).asText())
-        }
-
-        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.FULLT_NAVN, løsning = true).first()) {
-            assertEquals(BehovType.FULLT_NAVN.name, get(Key.BEHOV.str)[0].asText())
-            assertNotNull(get(Key.LØSNING.str).get(BehovType.FULLT_NAVN.name).asText())
-
-            val løsning = get(Key.LØSNING.str).get(BehovType.FULLT_NAVN.name).toJsonElement().fromJson(NavnLøsning.serializer())
-            assertNotNull(løsning)
-
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
-        }
-
-        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.PERSISTER_SAK_ID).first()) {
-            assertEquals(BehovType.PERSISTER_SAK_ID.name, get(Key.BEHOV.str)[0].asText())
-            assertEquals(BehovType.OPPRETT_OPPGAVE.name, get(Key.BEHOV.str)[1].asText())
-
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
-            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
-        }
-
-        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.PERSISTER_OPPGAVE_ID).first()) {
-            assertEquals(BehovType.PERSISTER_OPPGAVE_ID.name, get(Key.BEHOV.str)[0].asText())
-
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.UUID.str).asText())
-            assertEquals(SAK_ID, get(Key.SAK_ID.str).asText())
-            assertEquals(OPPGAVE_ID, get(Key.OPPGAVE_ID.str).asText())
-        }
-
- */
     }
 }

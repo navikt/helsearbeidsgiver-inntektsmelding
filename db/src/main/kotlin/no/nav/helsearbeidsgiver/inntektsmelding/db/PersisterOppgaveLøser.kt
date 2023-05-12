@@ -16,13 +16,14 @@ class PersisterOppgaveLøser(
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
         it.demandValue(Key.BEHOV.str, BehovType.PERSISTER_OPPGAVE_ID.name)
+        it.requireKey(Key.FORESPOERSEL_ID.str)
         it.requireKey(DataFelt.OPPGAVE_ID.str)
     }
     override fun onBehov(packet: JsonMessage) {
         sikkerLogger.info("PersisterOppgaveLøser mottok pakke: ${packet.toJson()}")
-        val uuid = packet[Key.UUID.str].asText()
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val oppgaveId = packet[DataFelt.OPPGAVE_ID.str].asText()
-        repository.oppdaterOppgaveId(uuid, oppgaveId)
+        repository.oppdaterOppgaveId(forespoerselId, oppgaveId)
         publishEvent(
             JsonMessage.newMessage(
                 mapOf(
@@ -31,6 +32,6 @@ class PersisterOppgaveLøser(
                 )
             )
         )
-        sikkerLogger.info("PersisterOppgaveLøser lagret oppgaveId $oppgaveId for uuid $uuid")
+        sikkerLogger.info("PersisterOppgaveLøser lagret oppgaveId $oppgaveId for forespoerselID $forespoerselId")
     }
 }

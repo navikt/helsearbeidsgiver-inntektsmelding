@@ -22,17 +22,16 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, val repository: Fore
     }
 
     override fun onBehov(packet: JsonMessage) {
-        val uuid = packet[Key.FORESPOERSEL_ID.str].asText()
+        val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         sikkerLogger.info("LagreForespoersel mottok: ${packet.toJson()}")
         val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
-        repository.lagreForespørsel(uuid, orgnr)
+        repository.lagreForespørsel(forespørselId, orgnr)
 
         val msg =
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
-                    Key.UUID.str to UUID.randomUUID().toString(),
                     Key.IDENTITETSNUMMER.str to fnr,
                     Key.ORGNRUNDERENHET.str to orgnr
                 )

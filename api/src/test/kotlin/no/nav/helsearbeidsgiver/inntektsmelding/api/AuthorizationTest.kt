@@ -7,6 +7,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.TestClient
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.identitetsnummer
@@ -52,7 +53,7 @@ class AuthorizationTest : ApiTest() {
 
                         Assertions.assertEquals(mockPid, identitetsnummer)
 
-                        respondOk("")
+                        respondOk("", String.serializer())
                     }
                 }
             }
@@ -76,5 +77,6 @@ private fun TestClient.postUtenAuth(path: String): HttpResponse =
     post(
         path = path,
         body = "",
+        bodySerializer = String.serializer(),
         block = {} // override default auth-block
     )

@@ -12,7 +12,7 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 
-@Mapper(uses = arrayOf(DateMapper::class))
+@Mapper(uses = arrayOf(DateMapper::class, InntektEndringAarsakMapper::class))
 interface InntektDokumentTilSkjemainnholdMapper {
 
     @Mapping(source = ".", target = "skjemainnhold")
@@ -27,6 +27,7 @@ interface InntektDokumentTilSkjemainnholdMapper {
         Mapping(source = "identitetsnummer", target = "arbeidstakerFnr"),
         Mapping(source = "bestemmendeFraværsdag", target = "arbeidsforhold.foersteFravaersdag"),
         Mapping(source = "beregnetInntekt", target = "arbeidsforhold.beregnetInntekt.beloep"),
+        Mapping(source = "inntekt.endringÅrsak", target = "arbeidsforhold.beregnetInntekt.aarsakVedEndring"),
         Mapping(source = "arbeidsgiverperioder", target = "sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe"),
         Mapping(source = "fullLønnIArbeidsgiverPerioden.utbetalt", target = "sykepengerIArbeidsgiverperioden.bruttoUtbetalt"),
         Mapping(source = "refusjon", target = "refusjon"),

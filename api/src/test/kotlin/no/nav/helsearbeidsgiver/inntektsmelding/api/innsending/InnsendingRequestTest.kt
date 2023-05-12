@@ -26,7 +26,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
-internal class InnsendingRequestTest {
+class InnsendingRequestTest {
 
     private val NOW = LocalDate.now()
     private val MAX_INNTEKT: BigDecimal = 1_000_001.0.toBigDecimal()
@@ -42,12 +42,12 @@ internal class InnsendingRequestTest {
             endringÅrsak = NyStilling(LocalDate.now()),
             manueltKorrigert = false
         )
-        println(customObjectMapper().writeValueAsString(inntekt))
+        println(Jackson.toJson(inntekt))
     }
 
     @Test
     fun `skal lese innsendingrequest`() {
-        val request: InnsendingRequest = customObjectMapper().readValue("innsendingrequest.json".readResource(), InnsendingRequest::class.java)
+        val request = "innsendingrequest.json".readResource().let(Jackson::parseInnsendingRequest)
         request.validate()
     }
 
@@ -58,7 +58,7 @@ internal class InnsendingRequestTest {
 
     @Test
     fun `skal kunne konvertere til json`() {
-        println(customObjectMapper().writeValueAsString(GYLDIG_INNSENDING_REQUEST))
+        println(Jackson.toJson(GYLDIG_INNSENDING_REQUEST))
     }
 
     @Test
@@ -355,5 +355,18 @@ internal class InnsendingRequestTest {
                 manueltKorrigert = false
             )
         ).validate()
+    }
+
+    private object Jackson {
+        private val objectMapper = customObjectMapper()
+
+        fun toJson(inntekt: Inntekt): String =
+            objectMapper.writeValueAsString(inntekt)
+
+        fun toJson(innsendingRequest: InnsendingRequest): String =
+            objectMapper.writeValueAsString(innsendingRequest)
+
+        fun parseInnsendingRequest(json: String): InnsendingRequest =
+            objectMapper.readValue(json, InnsendingRequest::class.java)
     }
 }

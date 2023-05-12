@@ -6,7 +6,7 @@ secureLogs:
   enabled: true
 env:
   - name: ARBEIDSGIVER_NOTIFIKASJON_API_URL
-    value: "https://ag-notifikasjon-produsent-api.dev.nav.no/api/graphql"
+    value: "http://notifikasjon-produsent-api.fager/api/graphql"
   - name: ARBEIDSGIVER_NOTIFIKASJON_SCOPE
     value: "api://dev-gcp.fager.notifikasjon-produsent-api/.default"
   - name: LINK_URL
@@ -17,5 +17,3 @@ apps:
   - name: helsearbeidsgiver-redis
   - name: notifikasjon-produsent-api
     namespace: fager
-externalHosts:
-  - ag-notifikasjon-produsent-api.dev.nav.no

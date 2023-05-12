@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.nyStatusSak
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.SakFerdigLøsning
@@ -29,7 +30,7 @@ class SakFerdigLøser(
             validate {
                 it.requireAll(Key.BEHOV.str, BEHOV)
                 it.requireKey(Key.UUID.str)
-                it.requireKey(Key.SAK_ID.str)
+                it.requireKey(DataFelt.SAK_ID.str)
                 it.rejectKey(Key.LØSNING.str)
                 it.interestedIn(Key.FORESPOERSEL_ID.str)
             }
@@ -39,7 +40,7 @@ class SakFerdigLøser(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerLogger.info("SakFerdigLøser fikk pakke: ${packet.toJson()}")
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        val sakId = packet[Key.SAK_ID.str].asText()
+        val sakId = packet[DataFelt.SAK_ID.str].asText()
         logger.info("SakFerdigLøser skal ferdigstille sakId $sakId for forespoerselId: $forespoerselId som utført...")
         val lenke = "$linkUrl/im-dialog/$forespoerselId"
         try {

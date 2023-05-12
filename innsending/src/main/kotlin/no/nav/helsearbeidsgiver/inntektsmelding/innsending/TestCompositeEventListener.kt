@@ -2,6 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 
 class TestCompositeEventListener(
     override val event: EventName,

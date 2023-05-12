@@ -7,6 +7,8 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.InputFelter
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 
 @Experimental
 open class DefaultEventListenerWithUserInput(

@@ -90,6 +90,6 @@ fun RapidsConnection.buildApp(
     this.createJoark(dokarkivClient)
     this.createPdl(pdlClient)
     this.createPreutfylt()
-    this.createNotifikasjon(arbeidsgiverNotifikasjonKlient, notifikasjonLink)
+    this.createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, notifikasjonLink)
     return this
 }

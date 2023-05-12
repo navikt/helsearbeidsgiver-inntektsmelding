@@ -29,7 +29,7 @@ fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
 
 fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingRepository, forespoerselRepo: ForespoerselRepository): RapidsConnection {
     logger.info("Starter ForespørselMottattListener...")
-    ForespørselMottattListener(this, forespoerselRepo)
+    LagreForespoersel(this, forespoerselRepo)
     logger.info("Starter PersisterImLøser...")
     PersisterImLøser(this, imRepo)
     logger.info("Starter HentPersistertLøser...")

@@ -47,10 +47,10 @@ class ForespoerselMottattLøser(
 
         val msg = mapOf(
             Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT.name,
-            Key.BEHOV.str to BehovType.NOTIFIKASJON_TRENGER_IM.name,
+            Key.BEHOV.str to BehovType.LAGRE_FORESPOERSEL,
             Key.ORGNRUNDERENHET.str to orgnr,
             Key.IDENTITETSNUMMER.str to fnr,
-            Key.UUID.str to forespoerselId
+            Key.FORESPOERSEL_ID.str to forespoerselId
         )
 
         val json = om.writeValueAsString(msg)

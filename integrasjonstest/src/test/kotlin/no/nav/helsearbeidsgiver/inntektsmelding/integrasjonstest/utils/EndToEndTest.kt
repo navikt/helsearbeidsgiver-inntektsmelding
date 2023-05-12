@@ -115,6 +115,11 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
         Thread.sleep(2000)
     }
 
+    fun resetMessages() {
+        meldinger.clear()
+        results.clear()
+    }
+
     override fun onMessage(message: String, context: MessageContext) {
         logger.info("onMessage: $message")
         if (filterMessages.invoke(customObjectMapper().readTree(message))) {

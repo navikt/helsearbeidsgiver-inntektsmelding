@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.contains
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -10,11 +11,12 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -48,17 +50,19 @@ internal class OpprettSakLøserTest {
         } answers { "ID" }
         val resultat = sendMelding(
             mapOf(
-                Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT.name,
-                Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
-                Key.LØSNING.str to mapOf<String, Any>(
-                    BehovType.FULLT_NAVN.name to NavnLøsning(value = PersonDato(NAVN, FØDSELSDATO))
-                ),
-                Key.UUID.str to "uuid-abc",
+                Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET,
+                Key.BEHOV.str to BehovType.OPPRETT_SAK.name,
+                DataFelt.ARBEIDSTAKER_INFORMASJON.str to customObjectMapper().valueToTree(PersonDato(NAVN, FØDSELSDATO)),
+                Key.FORESPOERSEL_ID.str to "uuid-abc",
                 Key.ORGNRUNDERENHET.str to "org-456",
                 Key.IDENTITETSNUMMER.str to "12345678901"
             )
         )
         assertNotNull(resultat)
+        resultat.contains(Key.DATA.str)
+        resultat.contains(DataFelt.SAK_ID.str)
+        val sakId = resultat.get(DataFelt.SAK_ID.str).asText()
+        assertEquals(sakId, "ID")
     }
 
     private fun sendMelding(melding: Map<String, Any>): JsonNode {

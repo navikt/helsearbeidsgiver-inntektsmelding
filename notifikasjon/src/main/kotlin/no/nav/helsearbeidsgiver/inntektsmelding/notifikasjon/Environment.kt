@@ -15,6 +15,10 @@ fun setUpEnvironment(): Environment {
             azureAppClientID = getEnvVar("AZURE_APP_CLIENT_ID"),
             azureAppClientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET"),
             azureAppJwk = getEnvVar("AZURE_APP_JWK")
+        ),
+        redisUrl = getEnvVar(
+            "REDIS_URL",
+            "helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local"
         )
     )
 }
@@ -23,5 +27,6 @@ data class Environment(
     val raw: Map<String, String>,
     val notifikasjonUrl: String,
     val linkUrl: String,
-    val azureOAuthEnvironment: AzureOAuth2Environment
+    val azureOAuthEnvironment: AzureOAuth2Environment,
+    val redisUrl: String
 )

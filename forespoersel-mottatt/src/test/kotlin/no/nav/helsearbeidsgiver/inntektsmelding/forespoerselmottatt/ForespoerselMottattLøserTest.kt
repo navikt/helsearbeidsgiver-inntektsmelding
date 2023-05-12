@@ -25,8 +25,7 @@ class ForespoerselMottattLøserTest : FunSpec({
 
     test("Ved notis om mottatt forespørsel publiseres behov om notifikasjon") {
         val expected = Published.mock()
-        val forespoerselId = expected.uuid
-
+        val forespoerselId = expected.forespoerselId!!
         testRapid.sendJson(
             Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
             Pri.Key.ORGNR to expected.orgnrUnderenhet.toJson(),
@@ -47,15 +46,15 @@ private data class Published(
     val behov: BehovType,
     val orgnrUnderenhet: String,
     val identitetsnummer: String,
-    val uuid: UUID
+    val forespoerselId: UUID?
 ) {
     companion object {
         fun mock(): Published =
             Published(
-                behov = BehovType.NOTIFIKASJON_TRENGER_IM,
+                behov = BehovType.LAGRE_FORESPOERSEL,
                 orgnrUnderenhet = "certainly-stereo-facsimile",
                 identitetsnummer = "resort-cringe-huddle",
-                uuid = UUID.randomUUID()
+                forespoerselId = UUID.randomUUID()
             )
     }
 }

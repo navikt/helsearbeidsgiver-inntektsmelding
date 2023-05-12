@@ -41,10 +41,8 @@ enum class Key(val str: String) {
     JOURNALPOST_ID("journalpostId"),
     INNTEKT_DATO("inntektDato"),
     NAVN("navn"),
-    SAK_ID("sak_id"),
     DATA("data"),
-    FAIL("fail"),
-    OPPGAVE_ID("oppgave_id");
+    FAIL("fail");
 
     override fun toString(): String =
         str
@@ -64,7 +62,10 @@ enum class DataFelt(val str: String) {
     VIRKSOMHET("virksomhet"),
     ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
     INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str),
-    ARBEIDSFORHOLD("arbeidsforhold")
+    ARBEIDSFORHOLD("arbeidsforhold"),
+    SAK_ID("sak_id"),
+    PERSISTERT_SAK_ID("persistert_sak_id"),
+    OPPGAVE_ID("oppgave_id")
 }
 
 fun JsonMessage.value(key: Key): JsonNode =

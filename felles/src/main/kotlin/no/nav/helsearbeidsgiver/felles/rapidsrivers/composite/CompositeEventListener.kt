@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.innsending
+package no.nav.helsearbeidsgiver.felles.rapidsrivers.composite
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -9,6 +9,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.StatefullDataKanal
 
 abstract class CompositeEventListener(open val redisStore: RedisStore) : River.PacketListener {
 

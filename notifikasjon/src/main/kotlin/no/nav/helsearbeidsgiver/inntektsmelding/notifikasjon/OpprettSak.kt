@@ -5,7 +5,10 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
@@ -98,5 +101,14 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
 
     override fun terminate(message: JsonMessage) {
         TODO("Not yet implemented")
+    }
+
+    override fun onError(feil: Fail): Transaction {
+        if (feil.behov == BehovType.FULLT_NAVN) {
+            val fulltNavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
+            redisStore.set(fulltNavnKey, customObjectMapper().writeValueAsString(PersonDato("Ukjent person", null)))
+            return Transaction.IN_PROGRESS
+        }
+        return Transaction.TERMINATE
     }
 }

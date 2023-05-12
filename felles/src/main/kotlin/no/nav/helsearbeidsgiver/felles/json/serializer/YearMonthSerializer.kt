@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.json.serializer
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -11,5 +12,8 @@ import java.time.YearMonth
 object YearMonthSerializer : KSerializer<YearMonth> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("java.time.YearMonth", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: YearMonth) = value.toString().let(encoder::encodeString)
-    override fun deserialize(decoder: Decoder): YearMonth = decoder.decodeString().let(YearMonth::parse)
+    override fun deserialize(decoder: Decoder): YearMonth =
+        decoder.decodeString()
+            .runCatching(YearMonth::parse)
+            .getOrElse { throw SerializationException(it) }
 }

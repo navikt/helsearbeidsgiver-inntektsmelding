@@ -22,7 +22,6 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: gradle
-          run: ./gradlew clean build -x test
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
       - name: Run snapshot action

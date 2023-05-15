@@ -36,13 +36,11 @@ fun InnsendingRequest.validate() {
         // - arbeidsgiver ikke betaler lønn i arbeidsgiverperioden
         if (it.fullLønnIArbeidsgiverPerioden.utbetalerFullLønn) {
             validate(InnsendingRequest::arbeidsgiverperioder).isNotEmpty()
-        } else {
         }
         // Fraværsperiode
         validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
         // Egenmelding
         validate(InnsendingRequest::egenmeldingsperioder).validateForEach {
-            it.fom
             validate(Periode::fom).isNotNull()
             validate(Periode::tom).isNotNull()
             validate(Periode::tom).isGreaterThanOrEqualTo(it.fom)
@@ -55,12 +53,6 @@ fun InnsendingRequest.validate() {
             if (it.manueltKorrigert) {
                 validate(Inntekt::endringÅrsak).isNotNull()
             }
-        }
-        validate(InnsendingRequest::egenmeldingsperioder).validateForEach {
-            it.fom
-            validate(Periode::fom).isNotNull()
-            validate(Periode::tom).isNotNull()
-            validate(Periode::tom).isGreaterThanOrEqualTo(it.fom)
         }
         // Betaler arbeidsgiver full lønn til arbeidstaker
         validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {

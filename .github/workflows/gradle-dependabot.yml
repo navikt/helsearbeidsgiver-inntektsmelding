@@ -45,7 +45,7 @@ jobs:
             :notifikasjon
             :pdl
             :preutfylt
-          sub-module-mode: COMBINED
+          sub-module-mode: INDIVIDUAL
           fail-on-error: false
           include-build-environment: true
           gradle-build-configuration: |-

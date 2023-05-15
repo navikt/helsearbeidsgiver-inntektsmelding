@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.log.logger
-import no.nav.helsearbeidsgiver.felles.publishFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.value
 import kotlin.system.measureTimeMillis
@@ -61,7 +60,7 @@ class ArbeidsforholdLøser(
             if (arbeidsforhold != null) {
                 publishDatagram(Data(arbeidsforhold), packet)
             } else {
-                publishFail(packet.createFail("Klarte ikke hente arbeidsforhold", behoveType = BehovType.ARBEIDSFORHOLD))
+                publishFail(packet.createFail("Klarte ikke hente arbeidsforhold", behovType = BehovType.ARBEIDSFORHOLD))
             }
         }.also {
             logger.info("Arbeidsforhold løser took $it")
@@ -86,7 +85,7 @@ class ArbeidsforholdLøser(
                 measureTimeMillis {
                     arbeidsforhold = aaregClient.hentArbeidsforhold(fnr, callId)
                 }.also {
-                    logger.info("arbeidsforhold endeåpunkt took $it")
+                    logger.info("arbeidsforhold endepunkt tok $it")
                 }
                 arbeidsforhold
             }

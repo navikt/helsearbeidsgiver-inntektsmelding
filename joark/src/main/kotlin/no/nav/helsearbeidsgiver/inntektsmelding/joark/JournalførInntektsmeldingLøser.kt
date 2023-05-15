@@ -67,15 +67,15 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         } catch (ex: DokArkivException) {
             sikkerlogg.error("Klarte ikke journalføre", ex)
             val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
-            publishFail(packet.createFail("Kall mot dokarkiv feilet", data, behoveType = JOURNALFOER_BEHOV))
+            publishFail(packet.createFail("Kall mot dokarkiv feilet", data, behovType = JOURNALFOER_BEHOV))
         } catch (ex: UgyldigFormatException) {
             sikkerlogg.error("Klarte ikke journalføre: feil format!", ex)
             val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
-            publishFail(packet.createFail("Feil format i InntektsmeldingDokument", data, behoveType = JOURNALFOER_BEHOV))
+            publishFail(packet.createFail("Feil format i InntektsmeldingDokument", data, behovType = JOURNALFOER_BEHOV))
         } catch (ex: Exception) {
             sikkerlogg.error("Klarte ikke journalføre!", ex)
             val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
-            publishFail(packet.createFail("Klarte ikke journalføre", data, behoveType = JOURNALFOER_BEHOV))
+            publishFail(packet.createFail("Klarte ikke journalføre", data, behovType = JOURNALFOER_BEHOV))
         }
     }
 

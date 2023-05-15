@@ -32,10 +32,10 @@ fun JsonMessage.toFeilMessage(): Fail {
     return customObjectMapper().treeToValue(this[Key.FAIL.str], Fail::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
 }
 
-fun JsonMessage.createFail(feilmelding: String, data: Map<DataFelt, Any?>? = null, behoveType: BehovType? = null): Fail {
+fun JsonMessage.createFail(feilmelding: String, data: Map<DataFelt, Any?>? = null, behovType: BehovType? = null): Fail {
     val behovNode: JsonNode? = this.valueNullable(Key.BEHOV)
     // behovtype trenger å vare definert eksplisit da behov elemente er en List
-    val behov: BehovType? = behoveType ?: if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null
+    val behov: BehovType? = behovType ?: if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null
     val forespørselId = this.valueNullableOrUndefined(Key.FORESPOERSEL_ID)?.asText()
     val eventName = this.valueNullableOrUndefined(Key.EVENT_NAME)?.asText()
     return Fail(eventName?.let { EventName.valueOf(eventName) }, behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId)

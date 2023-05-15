@@ -13,5 +13,4 @@ dependencies {
     api("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
-    implementation(project(":dokument"))
 }

@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.createFail
-import no.nav.helsearbeidsgiver.felles.publishFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
@@ -54,7 +53,7 @@ class FulltNavnLøser(
                 logger.error("Klarte ikke hente navn for $idtext")
                 sikkerlogg.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for $idtext", ex)
                 publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet)
-                publishFail(packet.createFail("Klarte ikke hente navn", behoveType = BehovType.FULLT_NAVN))
+                publishFail(packet.createFail("Klarte ikke hente navn", behovType = BehovType.FULLT_NAVN))
             }
         }.also {
             logger.info("FullNavn løser took $it")

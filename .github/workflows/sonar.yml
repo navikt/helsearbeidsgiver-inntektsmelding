@@ -15,7 +15,7 @@ jobs:
       - name: Setup Java environment
         uses: actions/setup-java@v1
         with:
-          java-version: '11.x'
+          java-version: '17'
       - name: Cache Gradle wrapper
         uses: actions/cache@v2
         with:

@@ -4,9 +4,9 @@ on:
     branches:
       - main
       - dependabot
-    paths:
-      - "**.gradle.kts"
-      - "gradle.properties"
+#    paths:
+#      - "**.gradle.kts"
+#      - "gradle.properties"
 jobs:
   dependabot:
     name: Monitor dependencies with Dependabot
@@ -14,7 +14,17 @@ jobs:
     permissions: # The Dependency Submission API requires write permission
       contents: write
     steps:
-      - uses: actions/checkout@v3 # ratchet:actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3 # ratchet:actions/checkout@v3
+      - name: Build
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: gradle
+          run: ./gradlew clean build -x test
+        env:
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
       - name: Run snapshot action
         uses: mikepenz/gradle-dependency-submission@v0.8.6
         with:

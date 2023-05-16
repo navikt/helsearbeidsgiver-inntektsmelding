@@ -109,10 +109,10 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Test and build
-        run: ./gradlew ${{ matrix.project }}::test ${{ matrix.project }}::build
+        run: ./gradlew ${{ matrix.project }}:test ${{ matrix.project }}:build
 
       - name: Publish artefacts
-        run: ./gradlew ${{ matrix.project }}::publish
+        run: ./gradlew ${{ matrix.project }}:publish
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingR
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
@@ -357,6 +358,17 @@ class InnsendingRequestTest {
         ).validate()
     }
 
+    @Test
+    fun `skal godta endringsårsak - Nyansatt`() {
+        GYLDIG_INNSENDING_REQUEST.copy(
+            inntekt = Inntekt(
+                endringÅrsak = Nyansatt(),
+                beregnetInntekt = 1.0.toBigDecimal(),
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
     private object Jackson {
         private val objectMapper = customObjectMapper()
 

@@ -14,6 +14,7 @@ import org.mapstruct.Mapper
 
 fun InntektEndringAarsak.stringValue(): String {
     return when (this) {
+        is Nyansatt -> "Nyansatt"
         is Bonus -> "Bonus" // Beløp og dato ikke implementert i frontend
         is Ferie -> typpe + ": " + liste.joinToString(transform = printPeriode())
         is NyStilling -> "Ny stilling: fra $gjelderFra"

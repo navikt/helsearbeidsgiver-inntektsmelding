@@ -23,7 +23,7 @@ class InnsendingProducer(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
-               // Key.UUID.str to transaksjonsId,
+                // Key.UUID.str to transaksjonsId,
                 Key.CLIENT_ID to clienId,
                 Key.FORESPOERSEL_ID.str to forespørselId,
                 Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,

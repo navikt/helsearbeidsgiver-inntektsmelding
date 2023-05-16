@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
-import no.nav.helsearbeidsgiver.felles.log.logger
 import no.nav.helsearbeidsgiver.felles.log.loggerSikker
 import no.nav.helsearbeidsgiver.felles.publishFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DataKanal
@@ -32,15 +31,20 @@ class StatefullDataKanal(
         }
     }
     fun validate(packet: JsonMessage) {
-
     }
 
     override fun onData(packet: JsonMessage) {
         if (packet[Key.UUID.str] == null || packet[Key.UUID.str].isEmpty) {
             loggerSikker().error("TransaksjonsID er ikke initialisert for ${packet.toJson()}")
-            publishFail(packet.createFail("TransaksjonsID / UUID kan ikke vare tom da man bruker Composite Service", behovType =  BehovType.valueOf(packet[Key.BEHOV.str].asText())),packet,rapidsConnection)
-        }
-        else if (collectData(packet)) {
+            publishFail(
+                packet.createFail(
+                    "TransaksjonsID / UUID kan ikke vare tom da man bruker Composite Service",
+                    behovType = BehovType.valueOf(packet[Key.BEHOV.str].asText())
+                ),
+                packet,
+                rapidsConnection
+            )
+        } else if (collectData(packet)) {
             loggerSikker().info("data collected for event ${eventName.name} med packet ${packet.toJson()}")
             mainListener.onPacket(packet, rapidsConnection)
         } else {

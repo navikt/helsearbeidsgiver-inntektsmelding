@@ -40,7 +40,7 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
             return onError(message.toFeilMessage())
         }
         if (isEventMelding(message)) {
-            if( message[Key.UUID.str] == null || message[Key.UUID.str].isEmpty ) {
+            if (message[Key.UUID.str] == null || message[Key.UUID.str].isEmpty) {
                 transactionId = UUID.randomUUID().toString()
             }
         }
@@ -67,8 +67,8 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
 
     fun isEventMelding(jsonMessage: JsonMessage): Boolean {
         try {
-            return (!(jsonMessage[Key.EVENT_NAME.str].isNull || jsonMessage[Key.EVENT_NAME.str].isEmpty))
-                && ( jsonMessage[Key.DATA.str].isNull && jsonMessage[Key.FAIL.str].isNull )
+            return (!(jsonMessage[Key.EVENT_NAME.str].isNull || jsonMessage[Key.EVENT_NAME.str].isEmpty)) &&
+                (jsonMessage[Key.DATA.str].isNull && jsonMessage[Key.FAIL.str].isNull)
         } catch (e: NoSuchFieldError) {
             return false
         } catch (e: IllegalArgumentException) {

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
@@ -34,12 +33,11 @@ class StatefullDataKanal(
     }
 
     override fun onData(packet: JsonMessage) {
-        if (packet[Key.UUID.str] == null || packet[Key.UUID.str].isEmpty) {
+        if (packet[Key.UUID.str] == null || packet[Key.UUID.str].asText().isNullOrEmpty()) {
             loggerSikker().error("TransaksjonsID er ikke initialisert for ${packet.toJson()}")
             publishFail(
                 packet.createFail(
-                    "TransaksjonsID / UUID kan ikke vare tom da man bruker Composite Service",
-                    behovType = BehovType.valueOf(packet[Key.BEHOV.str].asText())
+                    "TransaksjonsID / UUID kan ikke vare tom da man bruker Composite Service"
                 ),
                 packet,
                 rapidsConnection

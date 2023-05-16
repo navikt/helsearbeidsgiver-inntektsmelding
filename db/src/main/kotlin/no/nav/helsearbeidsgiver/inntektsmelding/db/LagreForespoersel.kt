@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -14,6 +15,7 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, val repository: Fore
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
+            it.demandValue(Key.BEHOV.str, BehovType.LAGRE_FORESPOERSEL.name)
             it.requireKey(Key.ORGNRUNDERENHET.str)
             it.requireKey(Key.IDENTITETSNUMMER.str)
             it.requireKey(Key.FORESPOERSEL_ID.str)

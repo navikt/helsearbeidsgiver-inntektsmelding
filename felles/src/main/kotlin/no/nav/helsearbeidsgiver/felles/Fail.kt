@@ -40,14 +40,3 @@ fun JsonMessage.createFail(feilmelding: String, data: Map<DataFelt, Any?>? = nul
     val eventName = this.valueNullableOrUndefined(Key.EVENT_NAME)?.asText()
     return Fail(eventName?.let { EventName.valueOf(eventName) }, behov, feilmelding, data, this.valueNullable(Key.UUID)?.asText(), forespørselId)
 }
-
-fun River.PacketListener.publishFail(fail: Fail, jsonMessage: JsonMessage, context: MessageContext) {
-    val message = JsonMessage.newMessage(
-        mapOf(
-            Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
-            Key.FAIL.str to customObjectMapper().writeValueAsString(fail),
-            Key.UUID.str to jsonMessage[Key.UUID.str].asText()
-        )
-    )
-    context.publish(message.toJson())
-}

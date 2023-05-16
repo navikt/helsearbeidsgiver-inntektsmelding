@@ -30,7 +30,7 @@ class StatefullDataKanal(
 
     override fun onData(packet: JsonMessage) {
         if (collectData(packet)) {
-            loggerSikker("data collected for event ${eventName.name} med packet $packet" )
+            loggerSikker().info("data collected for event ${eventName.name} med packet $packet")
             mainListener.onPacket(packet, rapidsConnection)
         } else {
             // @TODO fiks logging logger.warn("Unrecognized package with uuid:" + packet[Key.UUID.str])

@@ -18,13 +18,12 @@ class InnsendingProducer(
     }
 
     fun publish(forespørselId: String, request: InnsendingRequest): String {
-        val clientId = UUID.randomUUID().toString()
+        val transaksjonsId = UUID.randomUUID().toString()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
-                // Key.UUID.str to transaksjonsId,
-                Key.CLIENT_ID to clienId,
+                Key.UUID.str to transaksjonsId,
                 Key.FORESPOERSEL_ID.str to forespørselId,
                 Key.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to request.identitetsnummer,

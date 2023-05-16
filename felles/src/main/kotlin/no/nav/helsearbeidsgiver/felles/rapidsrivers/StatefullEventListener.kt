@@ -32,7 +32,7 @@ class StatefullEventListener(
         }
     }
     override fun onEvent(packet: JsonMessage) {
-        loggerSikker().info("Statefull event listener for event ${event.name}" + " med paket $packet")
+        loggerSikker().info("Statefull event listener for event ${event.name}" + " med paket  ${packet.toJson()}")
         collectData(packet)
         mainListener.onPacket(packet, rapidsConnection)
     }

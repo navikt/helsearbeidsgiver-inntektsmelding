@@ -59,7 +59,7 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
 
     fun isFailMelding(jsonMessage: JsonMessage): Boolean {
         try {
-            return jsonMessage[Key.FAIL.str] != null
+            return !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
         } catch (e: NoSuchFieldError) {
             return false
         } catch (e: IllegalArgumentException) {

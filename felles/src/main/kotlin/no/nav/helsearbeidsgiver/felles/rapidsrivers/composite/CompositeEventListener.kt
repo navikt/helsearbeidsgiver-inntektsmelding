@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.log.logger
 import no.nav.helsearbeidsgiver.felles.log.loggerSikker
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal

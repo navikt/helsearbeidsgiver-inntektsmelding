@@ -15,9 +15,9 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
-import no.nav.helsearbeidsgiver.felles.log.logger
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.value
+import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
@@ -25,7 +25,7 @@ class ArbeidsforholdLøser(
     rapidsConnection: RapidsConnection,
     private val aaregClient: AaregClient
 ) : Løser(rapidsConnection) {
-    private val logger = this.logger()
+    private val logger = logger()
 
     private val behovType = BehovType.ARBEIDSFORHOLD
 

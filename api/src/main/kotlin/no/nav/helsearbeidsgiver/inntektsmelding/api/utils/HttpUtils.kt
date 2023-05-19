@@ -9,9 +9,9 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.KSerializer
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Auth
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.security.token.support.core.jwt.JwtToken
 
 fun PipelineContext<Unit, ApplicationCall>.identitetsnummer(): String =

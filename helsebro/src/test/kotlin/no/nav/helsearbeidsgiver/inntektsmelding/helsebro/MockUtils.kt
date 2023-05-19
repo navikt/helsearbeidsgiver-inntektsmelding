@@ -2,13 +2,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntektListe
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
 fun mockTrengerForespoersel(): TrengerForespoersel =

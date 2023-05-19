@@ -6,17 +6,17 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.ifFalse
-import no.nav.helsearbeidsgiver.felles.ifTrue
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.list
-import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
+import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import org.slf4j.LoggerFactory
 
 class TrengerForespoerselLøser(

@@ -7,15 +7,15 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.NothingSerializer
 import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.løsning
-import no.nav.helsearbeidsgiver.felles.json.parseJson
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningSerializer
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
-import no.nav.helsearbeidsgiver.felles.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.fail
 import kotlin.reflect.KClass
 

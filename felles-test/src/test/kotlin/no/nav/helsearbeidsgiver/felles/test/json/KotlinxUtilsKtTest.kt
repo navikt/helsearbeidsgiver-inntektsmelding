@@ -6,9 +6,10 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.list
-import no.nav.helsearbeidsgiver.felles.json.parseJson
-import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class KotlinxUtilsKtTest : FunSpec({
     test("'JsonElement.fromJsonMapOnlyKeys(): Map<Key, JsonElement>' deserialiserer og filtrerer korrekt") {

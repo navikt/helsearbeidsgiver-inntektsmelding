@@ -14,13 +14,13 @@ import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class ForespoerselSvarLøserTest : FunSpec({
     val testRapid = TestRapid()

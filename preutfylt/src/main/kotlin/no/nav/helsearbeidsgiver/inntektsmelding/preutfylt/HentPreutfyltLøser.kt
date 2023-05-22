@@ -10,8 +10,8 @@ import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonLink
 import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
-import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.slf4j.LoggerFactory
 
 class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketListener {

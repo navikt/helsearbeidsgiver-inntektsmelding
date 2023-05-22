@@ -5,12 +5,12 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.json.jsonIgnoreUnknown
-import no.nav.helsearbeidsgiver.felles.log.loggerSikker
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
+import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-val sikkerlogger = loggerSikker()
+val sikkerlogger = sikkerLogger()
 
 fun main() {
     RapidApplication

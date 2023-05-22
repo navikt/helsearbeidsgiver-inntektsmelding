@@ -4,9 +4,9 @@ package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.helsearbeidsgiver.felles.json.serializer.YearMonthSerializer
 import no.nav.helsearbeidsgiver.felles.utils.divideMoney
 import no.nav.helsearbeidsgiver.felles.utils.sumMoney
+import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.YearMonth
 
 @Serializable

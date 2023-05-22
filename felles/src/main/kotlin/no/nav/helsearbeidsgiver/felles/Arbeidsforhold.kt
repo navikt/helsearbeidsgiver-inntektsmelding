@@ -4,8 +4,8 @@ package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.helsearbeidsgiver.felles.json.serializer.LocalDateSerializer
-import no.nav.helsearbeidsgiver.felles.json.serializer.LocalDateTimeSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import java.time.LocalDate
 import java.time.LocalDateTime
 

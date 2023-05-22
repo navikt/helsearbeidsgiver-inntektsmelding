@@ -233,6 +233,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Periode'
+    Nyansatt:
+      allOf:
+        - $ref: '#/components/schemas/InntektEndringAarsak'
 
     InntektsmeldingDokument:
       type: object

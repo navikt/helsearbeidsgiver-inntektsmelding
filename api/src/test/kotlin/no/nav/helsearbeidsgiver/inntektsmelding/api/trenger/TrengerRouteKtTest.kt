@@ -19,13 +19,11 @@ import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
-import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.test.date.april
 import no.nav.helsearbeidsgiver.felles.test.date.februar
 import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.test.date.mai
 import no.nav.helsearbeidsgiver.felles.test.date.mars
-import no.nav.helsearbeidsgiver.felles.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -33,6 +31,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
@@ -145,11 +145,7 @@ private object Mock {
                 25.april til 30.april
             ),
             forespurtData = listOf(
-                ForespurtData.ArbeidsgiverPeriode(
-                    forslag = listOf(
-                        1.april til 16.april
-                    )
-                ),
+                ForespurtData.ArbeidsgiverPeriode,
                 ForespurtData.Inntekt(
                     forslag = ForslagInntekt(
                         beregningsmåneder = listOf(
@@ -201,12 +197,7 @@ private fun MottattHistoriskInntekt.hardcodedJson(): String =
 private fun ForespurtData.hardcodedJson(): String =
     when (this) {
         is ForespurtData.ArbeidsgiverPeriode ->
-            """
-            {
-                "opplysningstype": "Arbeidsgiverperiode",
-                "forslag": [${forslag.joinToString(transform = Periode::hardcodedJson)}]
-            }
-            """
+            """{ "opplysningstype": "Arbeidsgiverperiode" }"""
         is ForespurtData.Inntekt ->
             """
             {

@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class StatefullEventListener(
     val redisStore: RedisStore,
@@ -31,6 +32,7 @@ class StatefullEventListener(
         }
     }
     override fun onEvent(packet: JsonMessage) {
+        sikkerLogger().info("Statefull event listener for event ${event.name}" + " med paket  ${packet.toJson()}")
         collectData(packet)
         mainListener.onPacket(packet, rapidsConnection)
     }

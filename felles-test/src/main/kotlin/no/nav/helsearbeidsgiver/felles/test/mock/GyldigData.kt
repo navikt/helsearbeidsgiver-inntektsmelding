@@ -5,7 +5,10 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIAr
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import java.math.BigDecimal
@@ -25,12 +28,17 @@ val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
     TestData.validIdentitetsnummer,
     listOf(LocalDate.now().plusDays(5)),
     listOf(
-        no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode(
+        Periode(
             LocalDate.now(),
             LocalDate.now().plusDays(2)
         )
     ),
-    emptyList(),
+    arbeidsgiverperioder = listOf(
+        Periode(
+            LocalDate.now(),
+            LocalDate.now().plusDays(2)
+        )
+    ),
     LocalDate.now(),
     emptyList(),
     Inntekt(true, 32100.0.toBigDecimal(), endringÅrsak = null, false),
@@ -40,13 +48,13 @@ val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
     ),
     Refusjon(true, 200.0.toBigDecimal(), LocalDate.now()),
     listOf(
-        no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
-            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
+        Naturalytelse(
+            NaturalytelseKode.KOST_DOEGN,
             LocalDate.now(),
             300.0.toBigDecimal()
         )
     ),
-    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.ENDRING,
+    ÅrsakInnsending.ENDRING,
     true
 )
 

@@ -8,10 +8,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.løsning
-import no.nav.helsearbeidsgiver.felles.json.set
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -21,6 +18,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.identitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.toJson
 
 fun RouteExtra.ArbeidsgivereRoute() {
     route.get(Routes.ARBEIDSGIVERE) {

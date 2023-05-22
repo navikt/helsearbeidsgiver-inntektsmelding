@@ -10,12 +10,12 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.pritopic.sendJson
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
 class ForespoerselMottattLøserTest : FunSpec({
@@ -25,8 +25,7 @@ class ForespoerselMottattLøserTest : FunSpec({
 
     test("Ved notis om mottatt forespørsel publiseres behov om notifikasjon") {
         val expected = Published.mock()
-        val forespoerselId = expected.uuid
-
+        val forespoerselId = expected.forespoerselId!!
         testRapid.sendJson(
             Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
             Pri.Key.ORGNR to expected.orgnrUnderenhet.toJson(),
@@ -47,15 +46,15 @@ private data class Published(
     val behov: BehovType,
     val orgnrUnderenhet: String,
     val identitetsnummer: String,
-    val uuid: UUID
+    val forespoerselId: UUID?
 ) {
     companion object {
         fun mock(): Published =
             Published(
-                behov = BehovType.NOTIFIKASJON_TRENGER_IM,
+                behov = BehovType.LAGRE_FORESPOERSEL,
                 orgnrUnderenhet = "certainly-stereo-facsimile",
                 identitetsnummer = "resort-cringe-huddle",
-                uuid = UUID.randomUUID()
+                forespoerselId = UUID.randomUUID()
             )
     }
 }

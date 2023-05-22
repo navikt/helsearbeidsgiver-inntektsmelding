@@ -9,7 +9,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringResponse
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.json.parseJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
@@ -29,6 +28,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import org.valiktor.ConstraintViolationException
 
 private const val EMPTY_PAYLOAD = "{}"

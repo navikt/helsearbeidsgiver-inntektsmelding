@@ -4,9 +4,9 @@ import io.lettuce.core.RedisClient
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.parseJson
-import no.nav.helsearbeidsgiver.felles.log.loggerSikker
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 // TODO rydd opp i sikkerlogg vs loggerSikker
@@ -14,12 +14,12 @@ class RedisPoller {
     private val redisClient = RedisClient.create(
         Env.Redis.url
     )
-    private val loggerSikker = loggerSikker()
+    private val sikkerLogger = sikkerLogger()
 
     suspend fun hent(key: String, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
         val json = getString(key, maxRetries, waitMillis)
 
-        loggerSikker.info("Hentet verdi for: $key = $json")
+        sikkerLogger.info("Hentet verdi for: $key = $json")
 
         return try {
             json.parseJson()

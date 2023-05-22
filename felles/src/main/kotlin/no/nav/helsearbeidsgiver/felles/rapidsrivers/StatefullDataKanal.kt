@@ -5,7 +5,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DataKanal
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class StatefullDataKanal(
     val dataFelter: Array<String>,
@@ -26,9 +28,19 @@ class StatefullDataKanal(
             }
         }
     }
+    fun validate(packet: JsonMessage) {
+    }
 
     override fun onData(packet: JsonMessage) {
-        if (collectData(packet)) {
+        if (packet[Key.UUID.str] == null || packet[Key.UUID.str].asText().isNullOrEmpty()) {
+            sikkerLogger().error("TransaksjonsID er ikke initialisert for ${packet.toJson()}")
+            rapidsConnection.publish(
+                packet.createFail(
+                    "TransaksjonsID / UUID kan ikke vare tom da man bruker Composite Service"
+                ).toJsonMessage().toJson()
+            )
+        } else if (collectData(packet)) {
+            sikkerLogger().info("data collected for event ${eventName.name} med packet ${packet.toJson()}")
             mainListener.onPacket(packet, rapidsConnection)
         } else {
             // @TODO fiks logging logger.warn("Unrecognized package with uuid:" + packet[Key.UUID.str])

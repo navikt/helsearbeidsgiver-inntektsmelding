@@ -9,13 +9,13 @@ import kotlinx.serialization.builtins.NothingSerializer
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.løsning
-import no.nav.helsearbeidsgiver.felles.json.set
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 

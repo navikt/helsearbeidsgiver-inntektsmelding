@@ -1,4 +1,3 @@
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -15,9 +14,6 @@ plugins {
 buildscript {
     repositories {
         mavenCentral()
-    }
-    dependencies {
-        classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4.2")
     }
 }
 
@@ -148,34 +144,32 @@ subprojects {
 }
 
 tasks {
-    val mapper = ObjectMapper()
-
     create("buildMatrix") {
         doLast {
-            mapper.taskOutput(
-                "project" to getBuildableProjects()
+            taskOutputJson(
+                "project" to getBuildableProjects().toJsonList()
             )
         }
     }
 
     create("buildAllMatrix") {
         doLast {
-            mapper.taskOutput(
-                "project" to getBuildableProjects(buildAll = true)
+            taskOutputJson(
+                "project" to getBuildableProjects(buildAll = true).toJsonList()
             )
         }
     }
 
     create("deployMatrix") {
-        deployMatrix(mapper)
+        deployMatrix()
     }
 
     create("deployMatrixDev") {
-        deployMatrix(mapper, includeCluster = "dev-gcp")
+        deployMatrix(includeCluster = "dev-gcp")
     }
 
     create("deployMatrixProd") {
-        deployMatrix(mapper, includeCluster = "prod-gcp", deployAll = true)
+        deployMatrix(includeCluster = "prod-gcp", deployAll = true)
     }
 
     check {
@@ -285,16 +279,10 @@ fun Project.erFellesTestModul(): Boolean =
 fun Project.erDokumentModul(): Boolean =
     name == "dokument"
 
-fun ObjectMapper.taskOutput(vararg keyValuePairs: Pair<String, Any>) {
-    mapOf(*keyValuePairs)
-        .let(this::writeValueAsString)
-        .let(::println)
-}
-
 fun List<String>.containsAny(vararg others: String): Boolean =
     this.intersect(others.toSet()).isNotEmpty()
 
-fun Task.deployMatrix(mapper: ObjectMapper, includeCluster: String? = null, deployAll: Boolean = false) {
+fun Task.deployMatrix(includeCluster: String? = null, deployAll: Boolean = false) {
     doLast {
         val (
             deployableProjects,
@@ -302,15 +290,38 @@ fun Task.deployMatrix(mapper: ObjectMapper, includeCluster: String? = null, depl
             exclusions,
         ) = getDeployMatrixVariables(includeCluster, deployAll)
 
-        mapper.taskOutput(
-            "project" to deployableProjects,
-            "cluster" to clusters,
+        taskOutputJson(
+            "project" to deployableProjects.toJsonList(),
+            "cluster" to clusters.toJsonList(),
             "exclude" to exclusions.map { (project, cluster) ->
-                mapOf(
+                listOf(
                     "project" to project,
                     "cluster" to cluster
                 )
+                    .toJsonObject()
             }
+                .toJsonList { it }
         )
     }
 }
+
+fun taskOutputJson(vararg keyValuePairs: Pair<String, String>) {
+    keyValuePairs.toList()
+        .toJsonObject { it }
+        .let(::println)
+}
+
+fun Iterable<String>.toJsonList(
+    transform: (String) -> String = { it.inQuotes() }
+): String =
+    joinToString(prefix = "[", postfix = "]", transform = transform)
+
+fun Iterable<Pair<String, String>>.toJsonObject(
+    transformValue: (String) -> String = { it.inQuotes() }
+): String =
+    joinToString(prefix = "{", postfix = "}") { (key, value) ->
+        "${key.inQuotes()}: ${transformValue(value)}"
+    }
+
+fun String.inQuotes(): String =
+    "\"$this\""

@@ -4,8 +4,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.json.jsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
+import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
 
 fun buildDokArkivClient(environment: Environment): DokArkivClient {
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)

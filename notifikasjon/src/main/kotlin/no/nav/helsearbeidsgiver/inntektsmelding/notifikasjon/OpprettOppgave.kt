@@ -21,7 +21,6 @@ class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventList
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
         it.requireKey(Key.ORGNRUNDERENHET.str)
-        it.requireKey(Key.FORESPOERSEL_ID.str)
     }
     override fun onEvent(packet: JsonMessage) {
         val uuid: String = UUID.randomUUID().toString()
@@ -73,7 +72,6 @@ class OpprettOppgaveLøser(
             it.demandValue(Key.EVENT_NAME.str, EVENT.name)
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
             it.interestedIn(Key.ORGNRUNDERENHET.str)
-            it.requireKey(Key.FORESPOERSEL_ID.str)
         }
 
     override fun onBehov(packet: JsonMessage) {

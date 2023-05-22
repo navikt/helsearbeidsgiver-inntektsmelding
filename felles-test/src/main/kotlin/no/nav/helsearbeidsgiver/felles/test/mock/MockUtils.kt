@@ -27,12 +27,7 @@ object MockUuid {
 
 fun mockForespurtDataListe(): List<ForespurtData> =
     listOf(
-        ForespurtData.ArbeidsgiverPeriode(
-            forslag = listOf(
-                1.januar til 10.januar,
-                15.januar til 20.januar
-            )
-        ),
+        ForespurtData.ArbeidsgiverPeriode,
         ForespurtData.Inntekt(
             forslag = ForslagInntekt(
                 beregningsmåneder = listOf(
@@ -47,12 +42,7 @@ fun mockForespurtDataListe(): List<ForespurtData> =
 
 fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtData> =
     listOf(
-        ForespurtData.ArbeidsgiverPeriode(
-            forslag = listOf(
-                1.januar til 10.januar,
-                15.januar til 20.januar
-            )
-        ),
+        ForespurtData.ArbeidsgiverPeriode,
         ForespurtData.FastsattInntekt(
             fastsattInntekt = 31415.92
         ),

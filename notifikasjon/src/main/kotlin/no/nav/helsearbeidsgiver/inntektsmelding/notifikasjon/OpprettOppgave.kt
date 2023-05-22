@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -26,7 +27,7 @@ class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventList
     override fun onEvent(packet: JsonMessage) {
         val uuid: String = UUID.randomUUID().toString()
         val forespørselId = packet[Key.FORESPOERSEL_ID.str]
-        if (forespørselId.isNull || forespørselId.isEmpty) {
+        if (forespørselId.isMissingOrNull() || forespørselId.asText().isEmpty()) {
             publishFail(packet.createFail("Mangler forespørselId"))
             return
         }
@@ -46,7 +47,7 @@ class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventList
 class OpprettOppgaveLøser(
     rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-    private val linkUrl: String,
+    private val linkUrl: String
 ) : Løser(rapidsConnection) {
 
     private val om = customObjectMapper()
@@ -55,7 +56,7 @@ class OpprettOppgaveLøser(
 
     fun opprettOppgave(
         forespørselId: String,
-        orgnr: String,
+        orgnr: String
     ): String { // ktlint-disable trailing-comma-on-declaration-site
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
@@ -83,7 +84,7 @@ class OpprettOppgaveLøser(
     override fun onBehov(packet: JsonMessage) {
         sikkerLogger.info("OpprettOppgaveLøser mottok pakke: ${packet.toJson()}")
         val forespørselId = packet[Key.FORESPOERSEL_ID.str]
-        if (forespørselId.isNull || forespørselId.isEmpty) {
+        if (forespørselId.isMissingOrNull() || forespørselId.asText().isEmpty()) {
             publishFail(packet.createFail("Mangler forespørselId"))
             return
         }

@@ -90,6 +90,6 @@ class OpprettOppgaveLøser(
             )
         )
         publishBehov(message)
-        sikkerLogger.info("OpprettOppgaveLøser publiserte uuid $forespørselId med json: $message")
+        sikkerLogger.info("OpprettOppgaveLøser publiserte med json: $message")
     }
 }

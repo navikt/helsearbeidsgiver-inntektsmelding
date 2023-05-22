@@ -45,6 +45,12 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
             if (message[Key.UUID.str].isNull || message[Key.UUID.str].isEmpty) {
                 transactionId = UUID.randomUUID().toString()
             }
+            else {
+                sikkerLogger().info("Event transaksjonsID er ${message[Key.UUID.str].asText()}")
+            }
+        }
+        else {
+            sikkerLogger().info("transaksjonsID er ${message[Key.UUID.str].asText()}")
         }
         val eventKey = "${transactionId}${event.name}"
         val value = redisStore.get(eventKey)

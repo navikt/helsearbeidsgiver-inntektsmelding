@@ -15,12 +15,12 @@ import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.json.jsonIgnoreUnknown
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.mock.mockConstructor
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
+import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
+import no.nav.helsearbeidsgiver.utils.json.toJson
 
 abstract class ApiTest : MockAuthToken() {
     fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {

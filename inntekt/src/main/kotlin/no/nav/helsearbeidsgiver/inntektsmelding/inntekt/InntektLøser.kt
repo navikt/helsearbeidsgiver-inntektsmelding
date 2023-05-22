@@ -16,13 +16,13 @@ import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
-import no.nav.helsearbeidsgiver.felles.json.fromJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import no.nav.helsearbeidsgiver.inntekt.LocalDateSerializer
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import kotlin.system.measureTimeMillis

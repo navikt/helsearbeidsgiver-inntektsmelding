@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.innsending
+package no.nav.helsearbeidsgiver.felles.rapidsrivers.composite
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -9,6 +9,10 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.StatefullDataKanal
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 abstract class CompositeEventListener(open val redisStore: RedisStore) : River.PacketListener {
 
@@ -30,17 +34,30 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
     }
 
     fun determineTransactionState(message: JsonMessage): Transaction {
+        // event bør ikke ha UUID men dette er ikke konsistent akkuratt nå så midlertidig blir det sånn til vi får det konsistent.
+        // vi trenger også clientID for correlation
+        var transactionId = message.get(Key.UUID.str).asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
+            sikkerLogger().info("Feilmelding er ${message.toJson()}")
             return onError(message.toFeilMessage())
         }
-        val uuid = message.get(Key.UUID.str).asText()
-        val eventKey = "${uuid}${event.name}"
+        if (isEventMelding(message)) {
+            if (message[Key.UUID.str].isNull || message[Key.UUID.str].isEmpty) {
+                transactionId = UUID.randomUUID().toString()
+                sikkerLogger().info("Event transaksjonsID er generert $transactionId")
+            } else {
+                sikkerLogger().info("Event transaksjonsID er ${message[Key.UUID.str].asText()}")
+            }
+        } else {
+            sikkerLogger().info("transaksjonsID er ${message[Key.UUID.str].asText()}")
+        }
+        val eventKey = "${transactionId}${event.name}"
         val value = redisStore.get(eventKey)
         if (value.isNullOrEmpty()) {
-            redisStore.set(eventKey, uuid)
+            redisStore.set(eventKey, transactionId)
             return Transaction.NEW
         } else {
-            if (isDataCollected(uuid)) return Transaction.FINALIZE
+            if (isDataCollected(transactionId)) return Transaction.FINALIZE
         }
         return Transaction.IN_PROGRESS
     }
@@ -48,6 +65,17 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
     fun isFailMelding(jsonMessage: JsonMessage): Boolean {
         try {
             return !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
+        } catch (e: NoSuchFieldError) {
+            return false
+        } catch (e: IllegalArgumentException) {
+            return false
+        }
+    }
+
+    fun isEventMelding(jsonMessage: JsonMessage): Boolean {
+        try {
+            return (!(jsonMessage[Key.EVENT_NAME.str].isNull || jsonMessage[Key.EVENT_NAME.str].isEmpty)) &&
+                (jsonMessage[Key.DATA.str].isNull && jsonMessage[Key.FAIL.str].isNull)
         } catch (e: NoSuchFieldError) {
             return false
         } catch (e: IllegalArgumentException) {

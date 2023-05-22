@@ -9,11 +9,11 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.json.fromJson
-import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import org.slf4j.LoggerFactory
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
@@ -47,10 +47,10 @@ class ForespoerselMottattLøser(
 
         val msg = mapOf(
             Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT.name,
-            Key.BEHOV.str to BehovType.NOTIFIKASJON_TRENGER_IM.name,
+            Key.BEHOV.str to BehovType.LAGRE_FORESPOERSEL,
             Key.ORGNRUNDERENHET.str to orgnr,
             Key.IDENTITETSNUMMER.str to fnr,
-            Key.UUID.str to forespoerselId
+            Key.FORESPOERSEL_ID.str to forespoerselId
         )
 
         val json = om.writeValueAsString(msg)

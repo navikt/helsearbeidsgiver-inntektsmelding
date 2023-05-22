@@ -1,23 +1,19 @@
-@file:Suppress("NonAsciiCharacters")
-
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
-import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.junit.jupiter.api.Test
@@ -27,7 +23,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
-class InnsendingRequestTest {
+internal class InnsendingValidateKtTest {
 
     private val NOW = LocalDate.now()
     private val MAX_INNTEKT: BigDecimal = 1_000_001.0.toBigDecimal()
@@ -36,30 +32,42 @@ class InnsendingRequestTest {
     private val MAX_NATURAL_BELØP: BigDecimal = 1_000_000.0.toBigDecimal()
 
     @Test
-    fun `skal serialisere InntektEndringÅrsak`() {
-        val inntekt = Inntekt(
-            bekreftet = false,
-            beregnetInntekt = 300.0.toBigDecimal(),
-            endringÅrsak = NyStilling(LocalDate.now()),
-            manueltKorrigert = false
-        )
-        println(Jackson.toJson(inntekt))
-    }
-
-    @Test
-    fun `skal lese innsendingrequest`() {
-        val request = "innsendingrequest.json".readResource().let(Jackson::parseInnsendingRequest)
-        request.validate()
-    }
-
-    @Test
     fun `skal akseptere gyldig`() {
         GYLDIG_INNSENDING_REQUEST.validate()
     }
 
     @Test
-    fun `skal kunne konvertere til json`() {
-        println(Jackson.toJson(GYLDIG_INNSENDING_REQUEST))
+    fun `skal ikke godta tom liste med arbeidsgiverperioder når arbeidsgiver betaler lønn`() {
+        assertThrows<ConstraintViolationException> {
+            GYLDIG_INNSENDING_REQUEST.copy(
+                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                arbeidsgiverperioder = emptyList()
+            ).validate()
+        }
+    }
+
+    @Test
+    fun `skal godta tom liste med arbeidsgiverperioder når arbeidsgiver ikke betaler lønn`() {
+        GYLDIG_INNSENDING_REQUEST.copy(
+            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(false, BegrunnelseIngenEllerRedusertUtbetalingKode.FISKER_MED_HYRE),
+            arbeidsgiverperioder = emptyList()
+        ).validate()
+    }
+
+    @Test
+    fun `skal ikke godta arbeidsgiverperioder med ugyldig periode (fom ETTER tom))`() {
+        assertThrows<ConstraintViolationException> {
+            GYLDIG_INNSENDING_REQUEST.copy(
+                arbeidsgiverperioder = listOf(Periode(NOW, NOW.minusDays(5)))
+            ).validate()
+        }
+    }
+
+    @Test
+    fun `skal godta arbeidsgiverperioder med gyldig periode (fom FØR tom)`() {
+        GYLDIG_INNSENDING_REQUEST.copy(
+            arbeidsgiverperioder = listOf(Periode(NOW, NOW.plusDays(3)))
+        ).validate()
     }
 
     @Test
@@ -134,7 +142,7 @@ class InnsendingRequestTest {
     fun `skal gi feil dersom arbeidsgiver ikke betaler lønn og refusjonsbeløp er tom`() {
         assertThrows<ConstraintViolationException> {
             GYLDIG_INNSENDING_REQUEST.copy(
-                fullLønnIArbeidsgiverPerioden = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden(
+                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
                     false
                 )
             ).validate()
@@ -151,7 +159,7 @@ class InnsendingRequestTest {
     @Test
     fun `skal gi feil dersom refusjonsbeløp er negativt`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, NEGATIVT_BELØP, LocalDate.now())).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, NEGATIVT_BELØP, NOW)).validate()
         }
     }
 
@@ -356,29 +364,5 @@ class InnsendingRequestTest {
                 manueltKorrigert = false
             )
         ).validate()
-    }
-
-    @Test
-    fun `skal godta endringsårsak - Nyansatt`() {
-        GYLDIG_INNSENDING_REQUEST.copy(
-            inntekt = Inntekt(
-                endringÅrsak = Nyansatt(),
-                beregnetInntekt = 1.0.toBigDecimal(),
-                bekreftet = true,
-                manueltKorrigert = false
-            )
-        ).validate()
-    }
-    private object Jackson {
-        private val objectMapper = customObjectMapper()
-
-        fun toJson(inntekt: Inntekt): String =
-            objectMapper.writeValueAsString(inntekt)
-
-        fun toJson(innsendingRequest: InnsendingRequest): String =
-            objectMapper.writeValueAsString(innsendingRequest)
-
-        fun parseInnsendingRequest(json: String): InnsendingRequest =
-            objectMapper.readValue(json, InnsendingRequest::class.java)
     }
 }

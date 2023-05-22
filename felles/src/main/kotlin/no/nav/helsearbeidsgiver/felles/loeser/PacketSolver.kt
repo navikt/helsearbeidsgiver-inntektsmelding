@@ -9,10 +9,10 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.løsning
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
-import no.nav.helsearbeidsgiver.felles.orDefault
 import no.nav.helsearbeidsgiver.felles.value
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
 private const val DEFAULT_ERROR_MESSAGE = "Ukjent feil."
 

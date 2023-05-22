@@ -7,8 +7,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonClassDiscriminator
-import no.nav.helsearbeidsgiver.felles.json.serializer.LocalDateSerializer
-import no.nav.helsearbeidsgiver.felles.json.serializer.YearMonthSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.LocalDate
 import java.time.YearMonth
 

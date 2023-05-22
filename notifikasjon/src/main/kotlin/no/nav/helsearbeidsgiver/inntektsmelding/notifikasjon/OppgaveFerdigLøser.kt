@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.oppgaveUtfoert
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.OppgaveFerdigLøsning
@@ -26,7 +27,7 @@ class OppgaveFerdigLøser(
         River(rapidsConnection).apply {
             validate {
                 it.requireAll(Key.BEHOV.str, BEHOV)
-                it.requireKey(Key.OPPGAVE_ID.str)
+                it.requireKey(DataFelt.OPPGAVE_ID.str)
                 it.requireKey(Key.UUID.str)
                 it.rejectKey(Key.LØSNING.str)
             }
@@ -34,7 +35,7 @@ class OppgaveFerdigLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val oppgaveId = packet[Key.OPPGAVE_ID.str].asText()
+        val oppgaveId = packet[DataFelt.OPPGAVE_ID.str].asText()
         logger.info("OppgaveFerdigLøser skal markere oppgaveId: $oppgaveId som utført...")
         try {
             runBlocking {

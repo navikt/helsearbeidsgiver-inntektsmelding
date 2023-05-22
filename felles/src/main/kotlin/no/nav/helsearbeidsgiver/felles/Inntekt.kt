@@ -2,8 +2,6 @@
 
 package no.nav.helsearbeidsgiver.felles
 
-import kotlinx.serialization.EncodeDefault
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.felles.utils.divideMoney
@@ -12,13 +10,9 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.YearMonth
 
 @Serializable
-@OptIn(ExperimentalSerializationApi::class)
 data class MottattHistoriskInntekt(
     val maaned: YearMonth,
-    val inntekt: Double,
-    @EncodeDefault
-    @Deprecated("Bruk maaned-felt.", ReplaceWith("maaned"))
-    val maanedsnavn: YearMonth = maaned
+    val inntekt: Double
 )
 
 @Serializable

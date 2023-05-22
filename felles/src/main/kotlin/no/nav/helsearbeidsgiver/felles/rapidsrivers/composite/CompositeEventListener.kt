@@ -39,7 +39,7 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
         // vi trenger også clientID for correlation
         var transactionId = message.get(Key.UUID.str).asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
-            sikkerLogger().info("Feilmelding er ${message.toJson()}")
+            sikkerLogger().error("Feilmelding er ${message.toJson()}")
             return onError(message.toFeilMessage())
         }
         /*

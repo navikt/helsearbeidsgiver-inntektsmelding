@@ -26,7 +26,6 @@ class StatefullEventListener(
     fun collectData(packet: JsonMessage) {
         var uuid = packet[Key.UUID.str].asText()
         if (uuid.isNullOrEmpty()) {
-            println("setting uuid")
             uuid = UUID.randomUUID().toString()
             packet.set(Key.UUID.str, uuid)
         }

@@ -42,7 +42,7 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
             return onError(message.toFeilMessage())
         }
         if (isEventMelding(message)) {
-            if (message[Key.UUID.str] == null || message[Key.UUID.str].isEmpty) {
+            if (message[Key.UUID.str].isNull || message[Key.UUID.str].isEmpty) {
                 transactionId = UUID.randomUUID().toString()
             }
         }

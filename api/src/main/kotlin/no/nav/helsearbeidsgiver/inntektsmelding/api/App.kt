@@ -17,7 +17,6 @@ import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.InntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.KvitteringRoute
@@ -35,7 +34,6 @@ val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api")
 object Routes {
     const val PREFIX = "/api/v1"
 
-    const val ARBEIDSGIVERE = "/arbeidsgivere"
     const val INNSENDING = "/inntektsmelding"
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
@@ -85,7 +83,6 @@ fun Application.apiModule(rapid: RapidsConnection) {
         authenticate {
             route(Routes.PREFIX) {
                 routeExtra(rapid, redisPoller, tilgangCache) {
-                    ArbeidsgivereRoute()
                     TrengerRoute()
                     InntektRoute()
                     InnsendingRoute()

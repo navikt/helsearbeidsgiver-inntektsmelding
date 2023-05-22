@@ -20,7 +20,6 @@ class AuthorizationTest : ApiTest() {
     @Test
     fun `stopp uautoriserte kall mot API`() = testApi {
         listOf(
-            Routes.ARBEIDSGIVERE to ::getUtenAuth,
             Routes.TRENGER to ::postUtenAuth
             // Auth midlertidig deaktivert for enklere manuell testing
             // Routes.INNSENDING to ::postUtenAuth
@@ -66,12 +65,6 @@ class AuthorizationTest : ApiTest() {
         Assertions.assertEquals(HttpStatusCode.OK, response.status)
     }
 }
-
-private fun TestClient.getUtenAuth(path: String): HttpResponse =
-    get(
-        path = path,
-        block = {} // override default auth-block
-    )
 
 private fun TestClient.postUtenAuth(path: String): HttpResponse =
     post(

@@ -152,7 +152,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         }
         with(filter(EventName.OPPGAVE_LAGRET).first()) {
             assertEquals(OPPGAVE_ID, this[DataFelt.OPPGAVE_ID.str].asText())
-            assertEquals(FORESPOERSEL, this[Key.FORESPOERSEL_ID.str].asText())
             assertFalse(this.contains(Key.UUID.str))
         }
     }

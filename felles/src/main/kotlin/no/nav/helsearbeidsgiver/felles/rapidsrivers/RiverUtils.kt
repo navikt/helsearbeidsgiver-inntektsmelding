@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
-import no.nav.helsearbeidsgiver.felles.mapFirst
+import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
 fun JsonMessage.demandAll(key: Key, values: List<BehovType>) {
     demandAll(key.str, values.map(BehovType::name))

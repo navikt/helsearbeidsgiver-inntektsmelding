@@ -6,12 +6,12 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.log.loggerSikker
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.StatefullDataKanal
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 abstract class CompositeEventListener(open val redisStore: RedisStore) : River.PacketListener {
@@ -38,7 +38,7 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
         // vi trenger også clientID for correlation
         var transactionId = message.get(Key.UUID.str).asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
-            loggerSikker().info("Feilmelding er ${message.toJson()}")
+            sikkerLogger().info("Feilmelding er ${message.toJson()}")
             return onError(message.toFeilMessage())
         }
         if (isEventMelding(message)) {

@@ -2,11 +2,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.log.logger
-import no.nav.helsearbeidsgiver.felles.log.loggerSikker
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 val logger = "im-helsebro".logger()
-val loggerSikker = loggerSikker()
+val loggerSikker = sikkerLogger()
 
 fun main() {
     logger.info("im-helsebro er oppe og kjører!")

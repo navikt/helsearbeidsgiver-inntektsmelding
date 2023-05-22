@@ -2,87 +2,12 @@ package no.nav.helsearbeidsgiver.felles.json
 
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.SetSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.json.serializer.LocalDateSerializer
-import no.nav.helsearbeidsgiver.felles.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.utils.mapKeysNotNull
-import java.time.LocalDate
-import java.util.UUID
-
-val jsonIgnoreUnknown = Json {
-    ignoreUnknownKeys = true
-}
-
-fun <T : Any> T.toJson(serializer: KSerializer<T>): JsonElement =
-    Json.encodeToJsonElement(serializer, this)
-
-fun <T : Any> T.toJsonStr(serializer: KSerializer<T>): String =
-    toJson(serializer).toString()
-
-fun <T : Any> List<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =
-    toJson(
-        elementSerializer.list()
-    )
-
-fun String.toJson(): JsonElement =
-    toJson(String.serializer())
-
-fun LocalDate.toJson(): JsonElement =
-    toJson(LocalDateSerializer)
-
-fun UUID.toJson(): JsonElement =
-    toJson(UuidSerializer)
-
-fun Map<String, JsonElement>.toJson(): JsonElement =
-    toJson(
-        MapSerializer(
-            String.serializer(),
-            JsonElement.serializer()
-        )
-    )
-
-fun <T : Any> JsonElement.fromJson(serializer: KSerializer<T>): T =
-    jsonIgnoreUnknown.decodeFromJsonElement(serializer, this)
-
-fun <T : Any> String.fromJson(serializer: KSerializer<T>): T =
-    parseJson().fromJson(serializer)
-
-fun <T : Any> JsonElement.fromJsonMap(keySerializer: KSerializer<T>): Map<T, JsonElement> =
-    fromJson(
-        MapSerializer(
-            keySerializer,
-            JsonElement.serializer()
-        )
-    )
-
-fun <T : Any> JsonElement.fromJsonMapFiltered(keySerializer: KSerializer<T>): Map<T, JsonElement> =
-    fromJsonMap(String.serializer())
-        .mapKeysNotNull {
-            tryOrNull {
-                "\"$it\"".fromJson(keySerializer)
-            }
-        }
-
-fun String.parseJson(): JsonElement =
-    Json.parseToJsonElement(this)
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 
 fun JsonNode.toJsonElement(): JsonElement =
     toString().parseJson()
 
-fun <T : Any> KSerializer<T>.list(): KSerializer<List<T>> =
-    ListSerializer(this)
-
-fun <T : Any> KSerializer<T>.set(): KSerializer<Set<T>> =
-    SetSerializer(this)
-
 fun <T : Any> KSerializer<T>.løsning(): KSerializer<Løsning<T>> =
     Løsning.serializer(this)
-
-internal fun <T : Any> tryOrNull(block: () -> T): T? =
-    runCatching(block).getOrNull()

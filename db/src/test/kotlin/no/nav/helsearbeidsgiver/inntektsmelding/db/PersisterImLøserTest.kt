@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-internal class PersisterImLøserTest {
+class PersisterImLøserTest {
 
     private val rapid = TestRapid()
     private var løser: PersisterImLøser

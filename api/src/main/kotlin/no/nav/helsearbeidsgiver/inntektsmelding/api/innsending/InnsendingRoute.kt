@@ -5,7 +5,7 @@ import io.ktor.http.*
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
-import io.ktor.server.response.*
+import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse

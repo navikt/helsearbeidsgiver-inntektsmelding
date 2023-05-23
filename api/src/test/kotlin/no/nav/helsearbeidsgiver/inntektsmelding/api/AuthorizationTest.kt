@@ -66,6 +66,12 @@ class AuthorizationTest : ApiTest() {
     }
 }
 
+private fun TestClient.getUtenAuth(path: String): HttpResponse =
+    get(
+        path = path,
+        block = {} // override default auth-block
+    )
+
 private fun TestClient.postUtenAuth(path: String): HttpResponse =
     post(
         path = path,

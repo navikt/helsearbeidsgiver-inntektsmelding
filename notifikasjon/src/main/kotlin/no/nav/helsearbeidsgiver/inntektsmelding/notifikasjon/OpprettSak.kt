@@ -71,6 +71,7 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
                     ).toJson()
                 )
             } else if (isDataCollected(*steg2(transaksjonsId))) {
+                val arbeidstakerRedis = redisStore.get(transaksjonsId + DataFelt.ARBEIDSTAKER_INFORMASJON.str)
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -78,7 +79,18 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
                             Key.UUID.str to transaksjonsId,
                             Key.BEHOV.str to BehovType.OPPRETT_SAK,
                             Key.FORESPOERSEL_ID.str to forespørselId,
-                            Key.ORGNRUNDERENHET.str to redisStore.get(transaksjonsId + Key.ORGNRUNDERENHET.str)!!
+                            Key.ORGNRUNDERENHET.str to redisStore.get(transaksjonsId + Key.ORGNRUNDERENHET.str)!!,
+                            //@TODO this transformation is not nessesary. StatefullDataKanal should be fixed to use Tree
+                            DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
+                                if (arbeidstakerRedis != null) {
+                                    customObjectMapper().readValue(arbeidstakerRedis, PersonDato::class.java)
+                                } else {
+                                    PersonDato(
+                                        "Ukjent navn",
+                                        null
+                                    )
+                                }
+                                )
                         )
                     ).toJson()
                 )

@@ -113,7 +113,7 @@ private object Mock {
     }
 
     object Failure {
-        val expectedFeilmelding = "ånei!"
+        const val expectedFeilmelding = "ånei!"
 
         val expectedJson = """
             {

@@ -22,7 +22,7 @@ abstract class FailKanal(val rapidsConnection: RapidsConnection) : River.PacketL
         return River.PacketValidation { }
     }
 
-    protected fun configure(river: River): River {
+    private fun configure(river: River): River {
         return river.validate {
             it.demandValue(Key.EVENT_NAME.str, eventName.name)
             it.demandKey(Key.FAIL.str)

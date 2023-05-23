@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.innsending
+package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -6,13 +6,12 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DataKanal
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class StatefullDataKanal(
-    val dataFelter: Array<String>,
+    private val dataFelter: Array<String>,
     override val eventName: EventName,
-    val mainListener: River.PacketListener,
+    private val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,
     val redisStore: RedisStore
 ) : DataKanal(
@@ -47,7 +46,7 @@ class StatefullDataKanal(
         }
     }
 
-    fun collectData(message: JsonMessage): Boolean {
+    private fun collectData(message: JsonMessage): Boolean {
         // Akkuratt nå bare svarer med 1 data element men kan svare med mange
         val data = dataFelter.filter { dataFelt ->
             !message[dataFelt].isMissingNode

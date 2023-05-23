@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-fun RouteExtra.ArbeidsgivereRoute() {
+fun RouteExtra.arbeidsgivereRoute() {
     route.get(Routes.ARBEIDSGIVERE) {
         val messageId = connection.publish(
             // TODO Behov må være liste. Dette bør endres i Akkumulatoren.

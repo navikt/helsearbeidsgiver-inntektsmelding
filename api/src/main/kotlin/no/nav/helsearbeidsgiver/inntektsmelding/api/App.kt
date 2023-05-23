@@ -17,11 +17,11 @@ import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.ArbeidsgivereRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.InntektRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.KvitteringRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.arbeidsgivere.arbeidsgivereRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.trengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
@@ -85,11 +85,11 @@ fun Application.apiModule(rapid: RapidsConnection) {
         authenticate {
             route(Routes.PREFIX) {
                 routeExtra(rapid, redisPoller, tilgangCache) {
-                    ArbeidsgivereRoute()
-                    TrengerRoute()
-                    InntektRoute()
-                    InnsendingRoute()
-                    KvitteringRoute()
+                    arbeidsgivereRoute()
+                    trengerRoute()
+                    inntektRoute()
+                    innsendingRoute()
+                    kvitteringRoute()
                 }
             }
         }

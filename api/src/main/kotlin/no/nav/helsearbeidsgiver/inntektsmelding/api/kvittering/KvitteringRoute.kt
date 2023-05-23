@@ -33,7 +33,7 @@ import org.valiktor.ConstraintViolationException
 
 private const val EMPTY_PAYLOAD = "{}"
 
-fun RouteExtra.KvitteringRoute() {
+fun RouteExtra.kvitteringRoute() {
     val kvitteringProducer = KvitteringProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
 

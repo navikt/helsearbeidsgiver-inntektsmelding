@@ -31,7 +31,7 @@ fun RouteExtra.InnsendingRoute() {
     route.route(Routes.INNSENDING + "/{forespørselId}") {
         post {
             val forespoerselId = call.parameters["forespørselId"] ?: ""
-
+            var transaksjonId = ""
             try {
                 val request = Jackson.receiveInnsendingRequest(call)
 
@@ -49,7 +49,7 @@ fun RouteExtra.InnsendingRoute() {
 
                 request.validate()
 
-                val transaksjonId = producer.publish(forespoerselId, request)
+                transaksjonId = producer.publish(forespoerselId, request)
                 logger.info("Publiserte til rapid med forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
 
                 val resultat = redis.getResultat(transaksjonId, 10, 500)
@@ -67,7 +67,7 @@ fun RouteExtra.InnsendingRoute() {
                     respondBadRequest(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
                 }
             } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout for forespørselId: $forespoerselId")
+                logger.info("Fikk timeout for forespørselId: $forespoerselId og transaksjonsID $transaksjonId")
                 respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
             }
         }

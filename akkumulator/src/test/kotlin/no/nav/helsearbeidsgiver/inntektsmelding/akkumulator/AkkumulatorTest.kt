@@ -47,7 +47,7 @@ internal class AkkumulatorTest {
     val LØSNING_OK = NavnLøsning(value = PersonDato("abc", LocalDate.now()))
     val PDL_OK = NavnLøsning(value = PersonDato("xyz", LocalDate.now()))
 
-    internal val objectMapper: ObjectMapper = jacksonObjectMapper()
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .registerModule(JavaTimeModule())

@@ -14,10 +14,13 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 class InnsendingService(val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
 
     override val event: EventName = EventName.INSENDING_STARTED
+
+    private val logger = logger()
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
@@ -55,7 +58,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str]
-        sikkerlogg.info("InnsendingSerice: fikk melding $packet")
+        sikkerLogger.info("InnsendingSerice: fikk melding $packet")
         logger.info("InnsendingService $uuid")
         // val transaction: Transaction = startStransactionIfAbsent(packet)
         val transaction: Transaction = determineTransactionState(packet)

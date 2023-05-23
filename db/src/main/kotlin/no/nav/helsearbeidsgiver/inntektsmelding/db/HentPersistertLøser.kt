@@ -14,15 +14,16 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 private const val EMPTY_PAYLOAD = "{}"
 
 class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: InntektsmeldingRepository) : Løser(rapidsConnection) {
 
     private val BEHOV = BehovType.HENT_PERSISTERT_IM
-    private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
@@ -42,7 +43,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
         val transactionId = packet[Key.UUID.str].asText()
         val event = packet[Key.EVENT_NAME.str].asText()
         logger.info("Skal hente persistert inntektsmelding med forespørselId $forespoerselId")
-        sikkerlogg.info("Skal hente persistert inntektsmelding for pakke: ${packet.toJson()}")
+        sikkerLogger.info("Skal hente persistert inntektsmelding for pakke: ${packet.toJson()}")
         var løsning = HentPersistertLøsning(error = Feilmelding("Klarte ikke hente persistert inntektsmelding"))
         try {
             val dokument = repository.hentNyeste(forespoerselId)
@@ -50,14 +51,14 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
                 logger.info("Fant IKKE persistert inntektsmelding for forespørselId $forespoerselId")
                 løsning = HentPersistertLøsning("")
             } else {
-                sikkerlogg.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
+                sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
                 løsning = HentPersistertLøsning(dokument.toString())
             }
             publiserLøsning(løsning, packet)
             publiserData(packet, dokument)
         } catch (ex: Exception) {
             logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId")
-            sikkerlogg.error("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId", ex)
+            sikkerLogger.error("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId", ex)
             publiserFeil(transactionId, event, løsning.error)
         }
     }
@@ -70,12 +71,12 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
                 Key.UUID.str to transactionId
             )
         )
-        sikkerlogg.info("sender feil: " + message.toJson())
+        sikkerLogger.info("sender feil: " + message.toJson())
         rapidsConnection.publish(message.toJson())
     }
 
     fun publiserLøsning(løsning: HentPersistertLøsning, packet: JsonMessage) {
-        sikkerlogg.info("sender løsning: " + packet.toJson())
+        sikkerLogger.info("sender løsning: " + packet.toJson())
         packet.setLøsning(BEHOV, løsning)
         rapidsConnection.publish(packet.toJson())
     }
@@ -97,7 +98,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
                 Key.UUID.str to transaksjonsId
             )
         )
-        sikkerlogg.info("Publiserer data" + packet.toJson())
+        sikkerLogger.info("Publiserer data" + packet.toJson())
         rapidsConnection.publish(packet.toJson())
     }
 

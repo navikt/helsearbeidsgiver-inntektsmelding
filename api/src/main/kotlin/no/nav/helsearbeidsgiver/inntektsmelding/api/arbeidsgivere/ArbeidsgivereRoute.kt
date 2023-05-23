@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.identitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
@@ -55,7 +55,7 @@ private fun JsonElement.toLøsning(): Løsning<Set<AltinnOrganisasjon>> =
 private fun loggPublisert(message: JsonMessage) {
     "Publiserte til rapid. id=${message.id}".let {
         logger.info(it)
-        sikkerlogg.info("$it json=${message.toJson()}")
+        sikkerLogger.info("$it json=${message.toJson()}")
     }
 }
 

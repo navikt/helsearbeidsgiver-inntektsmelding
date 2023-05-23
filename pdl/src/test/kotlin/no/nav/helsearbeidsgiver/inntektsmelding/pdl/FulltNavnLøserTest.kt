@@ -29,7 +29,7 @@ internal class FulltNavnLøserTest {
     private val rapid = TestRapid()
     private var løser: FulltNavnLøser
     private val BEHOV = BehovType.FULLT_NAVN
-    internal val objectMapper: ObjectMapper = jacksonObjectMapper()
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .registerModule(JavaTimeModule())

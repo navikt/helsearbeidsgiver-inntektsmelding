@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-val sikkerlogger = sikkerLogger()
+val sikkerLogger = sikkerLogger()
 
 fun main() {
     RapidApplication
@@ -21,7 +21,7 @@ fun main() {
 
 fun RapidsConnection.createInntekt(inntektKlient: InntektKlient): RapidsConnection =
     also {
-        sikkerlogger.info("Starter InntektLøser...")
+        sikkerLogger.info("Starter InntektLøser...")
         InntektLøser(this, inntektKlient)
     }
 

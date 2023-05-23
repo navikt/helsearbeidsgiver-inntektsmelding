@@ -12,11 +12,13 @@ import no.nav.helsearbeidsgiver.felles.PersonLink
 import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketListener {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         River(rapidsConnection).apply {
@@ -34,24 +36,24 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
                 .toJsonElement()
                 .fromJson(HentTrengerImLøsning.serializer())
         } catch (ex: Exception) {
-            sikkerlogg.error("Det oppstod en feil ved henting av session data for ${BehovType.HENT_TRENGER_IM}", ex)
+            sikkerLogger.error("Det oppstod en feil ved henting av session data for ${BehovType.HENT_TRENGER_IM}", ex)
             logger.error("Klarte ikke hente ut session data for ${BehovType.HENT_TRENGER_IM}")
             HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut løsning"))
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerlogg.info("Fikk preutfylt pakke ${packet.toJson()}")
+        sikkerLogger.info("Fikk preutfylt pakke ${packet.toJson()}")
         val hentTrengerImLøsning = hentLøsning(packet)
         logger.info("Fikk preutfylt pakke")
-        sikkerlogg.info("Fikk trenger løsning: ${hentTrengerImLøsning.error}")
+        sikkerLogger.info("Fikk trenger løsning: ${hentTrengerImLøsning.error}")
         hentTrengerImLøsning.error?.let {
-            sikkerlogg.error("Fant løsning med feil: ${it.melding}")
+            sikkerLogger.error("Fant løsning med feil: ${it.melding}")
             packet[Key.LØSNING.str] = mapOf(
                 BehovType.PREUTFYLL to PreutfyltLøsning(error = Feilmelding("Klarte ikke hente informasjon fra link"))
             )
         }
         hentTrengerImLøsning.value?.let {
-            sikkerlogg.info("Fant løsning: $hentTrengerImLøsning")
+            sikkerLogger.info("Fant løsning: $hentTrengerImLøsning")
             packet[Key.IDENTITETSNUMMER.str] = it.fnr
             packet[Key.ORGNRUNDERENHET.str] = it.orgnr
             packet[Key.NESTE_BEHOV.str] = listOf(

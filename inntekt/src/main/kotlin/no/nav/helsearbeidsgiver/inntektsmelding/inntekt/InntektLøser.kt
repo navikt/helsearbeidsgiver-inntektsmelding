@@ -17,13 +17,12 @@ import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import no.nav.helsearbeidsgiver.inntekt.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import kotlin.system.measureTimeMillis
 
@@ -59,7 +58,7 @@ fun finnSkjæringstidspunkt(sykmeldinger: List<Periode>): LocalDate =
 
 class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
     private val INNTEKT = BehovType.INNTEKT
 
     init {
@@ -75,7 +74,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
 
     private fun hentInntekt(fnr: String, periode: Periode, callId: String): InntektskomponentResponse =
         runBlocking {
-            sikkerlogger.info("Henter inntekt for $fnr i perioden ${periode.fom} til ${periode.tom} (callId: $callId)")
+            sikkerLogger.info("Henter inntekt for $fnr i perioden ${periode.fom} til ${periode.tom} (callId: $callId)")
             val response: InntektskomponentResponse
             measureTimeMillis {
                 response = inntektKlient.hentInntektListe(fnr, callId, "helsearbeidsgiver-im-inntekt", periode.fom, periode.tom, "8-28", "Sykepenger")
@@ -88,7 +87,7 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         measureTimeMillis {
             logger.info("Mottar pakke")
-            sikkerlogger.info("Mottar pakke: ${packet.toJson()}")
+            sikkerLogger.info("Mottar pakke: ${packet.toJson()}")
             val uuid = packet[Key.ID.str].asText()
             logger.info("Løser behov $INNTEKT med id $uuid")
             val imLøsning = hentSpleisDataFraSession(packet)
@@ -108,15 +107,15 @@ class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: Innte
             }
             try {
                 val inntektPeriode = finnInntektPeriode(sykPeriode)
-                sikkerlogger.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${inntektPeriode.fom} - ${inntektPeriode.tom}")
+                sikkerLogger.info("Skal finne inntekt for $fnr orgnr $orgnr i perioden: ${inntektPeriode.fom} - ${inntektPeriode.tom}")
                 val inntektResponse = hentInntekt(fnr, inntektPeriode, "helsearbeidsgiver-im-inntekt-$uuid")
-                sikkerlogger.info("Fant inntektResponse: $inntektResponse")
+                sikkerLogger.info("Fant inntektResponse: $inntektResponse")
                 val inntekt = mapInntekt(inntektResponse, orgnr)
                 packet.setLøsning(INNTEKT, InntektLøsning(inntekt))
                 context.publish(packet.toJson())
-                sikkerlogger.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
+                sikkerLogger.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
             } catch (ex: Exception) {
-                sikkerlogger.error("Feil ved henting av inntekt for $fnr!", ex)
+                sikkerLogger.error("Feil ved henting av inntekt for $fnr!", ex)
                 packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
                 context.publish(packet.toJson())
             }

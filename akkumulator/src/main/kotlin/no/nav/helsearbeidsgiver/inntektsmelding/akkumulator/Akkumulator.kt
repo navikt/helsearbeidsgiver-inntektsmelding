@@ -47,7 +47,7 @@ class Akkumulator(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerlogg.debug("Fikk pakke ${packet.toJson()}")
+        sikkerLogger.debug("Fikk pakke ${packet.toJson()}")
         val boomerang = Key.BOOMERANG.let(packet::valueNullable)
             ?.toJsonElement()
             ?.fromJsonMap(Key.serializer())
@@ -78,7 +78,7 @@ class Akkumulator(
 
         "Behov: $behovListe Neste: $nesteBehov Uuid: $uuid".let {
             logger.info(it)
-            sikkerlogg.info("$it Pakke: ${packet.toJson()}")
+            sikkerLogger.info("$it Pakke: ${packet.toJson()}")
         }
 
         val mangler = mutableListOf<String>()
@@ -97,15 +97,15 @@ class Akkumulator(
             if (løsning.isNullOrEmpty()) { // Fant ikke løsning i pakke
                 val stored = redisStore.get(redisKey)
                 if (stored.isNullOrEmpty()) { // Ingenting i Redis
-                    sikkerlogg.info("Behov: $behovType. Løsning: n/a")
+                    sikkerLogger.info("Behov: $behovType. Løsning: n/a")
                     mangler.add(behovType)
                 } else { // Fant i Redis
                     val node = objectMapper.readTree(stored)
-                    sikkerlogg.info("Behov: $behovType. Løsning: (Redis) $node")
+                    sikkerLogger.info("Behov: $behovType. Løsning: (Redis) $node")
                     results.putIfAbsent(behovType, node)
                 }
             } else { // Fant løsning i pakke
-                sikkerlogg.info("Behov: $behovType. Løsning: $løsning")
+                sikkerLogger.info("Behov: $behovType. Løsning: $løsning")
                 // Lagre løsning
                 redisStore.set(redisKey, løsning, timeout)
 
@@ -123,7 +123,7 @@ class Akkumulator(
             feil.isNotEmpty() -> {
                 val data = results.toString()
                 logger.info("Behov: $uuid har feil $feil")
-                sikkerlogg.info("Publiserer løsning: $data")
+                sikkerLogger.info("Publiserer løsning: $data")
                 redisStore.set(uuid, data, timeout)
             }
             mangler.isNotEmpty() -> {
@@ -133,12 +133,12 @@ class Akkumulator(
                 val data = results.toString()
                 if (nesteBehov.isEmpty()) {
                     logger.info("Behov: $uuid er komplett.")
-                    sikkerlogg.info("Publiserer løsning: $data")
+                    sikkerLogger.info("Publiserer løsning: $data")
                     redisStore.set(uuid, data, timeout)
                 } else {
                     logger.info("Legger til Neste behov $nesteBehov")
                     val ny = hentNesteBehov(results, packet, objectMapper).toString()
-                    sikkerlogg.info("Legger til Neste behov $nesteBehov Json: $ny")
+                    sikkerLogger.info("Legger til Neste behov $nesteBehov Json: $ny")
                     rapidsConnection.publish(ny)
                 }
             }

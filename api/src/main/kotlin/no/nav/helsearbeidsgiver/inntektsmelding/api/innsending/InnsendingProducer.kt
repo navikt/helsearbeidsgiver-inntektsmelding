@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -32,7 +32,7 @@ class InnsendingProducer(
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())
         logger.info("Publiserte til kafka forespørselId: $forespørselId og transaksjonsId=$transaksjonsId")
-        sikkerlogg.info("Publiserte til kafka forespørselId: $forespørselId json=${packet.toJson()}")
+        sikkerLogger.info("Publiserte til kafka forespørselId: $forespørselId json=${packet.toJson()}")
         return transaksjonsId
     }
 }

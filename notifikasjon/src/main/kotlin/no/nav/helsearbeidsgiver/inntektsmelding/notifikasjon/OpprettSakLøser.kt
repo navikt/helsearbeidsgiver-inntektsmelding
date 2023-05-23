@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -23,7 +23,7 @@ class OpprettSakLøser(
     private val linkUrl: String
 ) : Løser(rapidsConnection) {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {

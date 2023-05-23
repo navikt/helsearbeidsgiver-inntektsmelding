@@ -5,8 +5,8 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-val logger = "im-helsebro".logger()
-val loggerSikker = sikkerLogger()
+private val logger = "im-helsebro".logger()
+val sikkerLogger = sikkerLogger()
 
 fun main() {
     logger.info("im-helsebro er oppe og kjører!")

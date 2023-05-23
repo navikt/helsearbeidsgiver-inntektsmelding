@@ -7,11 +7,13 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class PersisterSakLøser(
     rapidsConnection: RapidsConnection,
     val repository: ForespoerselRepository
 ) : Løser(rapidsConnection) {
+    private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {

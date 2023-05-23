@@ -7,11 +7,11 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
 
     override val event: EventName = EventName.INNTEKTSMELDING_JOURNALFOERT
 
@@ -24,7 +24,7 @@ class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(r
 
     override fun onEvent(packet: JsonMessage) {
         logger.info("Fikk event om journalføre inntektsmelding...")
-        sikkerlogg.info("Fikk event om journalføre inntektsmelding med pakke ${packet.toJson()}")
+        sikkerLogger.info("Fikk event om journalføre inntektsmelding med pakke ${packet.toJson()}")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,

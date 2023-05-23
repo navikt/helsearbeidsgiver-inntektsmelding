@@ -15,19 +15,19 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
-import org.slf4j.LoggerFactory
 
 class TrengerForespoerselLøser(
     rapid: RapidsConnection,
     private val priProducer: PriProducer
 ) : River.PacketListener {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
 
     init {
-        loggerSikker.info("Starting TrengerForespoerselLøser...")
+        sikkerLogger.info("Starting TrengerForespoerselLøser...")
         River(rapid).apply {
             validate { msg ->
                 msg.demandAll(Key.BEHOV, listOf(BehovType.HENT_TRENGER_IM))
@@ -42,7 +42,7 @@ class TrengerForespoerselLøser(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Mottok behov om ${Key.BEHOV.fra(packet).fromJson(BehovType.serializer().list())}")
-        loggerSikker.info("Mottok behov:\n${packet.toJson()}")
+        sikkerLogger.info("Mottok behov:\n${packet.toJson()}")
 
         val trengerForespoersel = TrengerForespoersel(
             forespoerselId = Key.FORESPOERSEL_ID.fra(packet).fromJson(UuidSerializer),
@@ -53,7 +53,7 @@ class TrengerForespoerselLøser(
         priProducer.send(trengerForespoersel)
             .ifTrue {
                 logger.info("Publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
-                loggerSikker.info("Publiserte melding på pri-topic:\n${trengerForespoersel.toJson(TrengerForespoersel.serializer())}")
+                sikkerLogger.info("Publiserte melding på pri-topic:\n${trengerForespoersel.toJson(TrengerForespoersel.serializer())}")
             }
             .ifFalse {
                 logger.warn("Klarte ikke publiserte melding på pri-topic om ${trengerForespoersel.behov}.")

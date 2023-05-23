@@ -6,12 +6,12 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class LagreForespoersel(rapidsConnection: RapidsConnection, val repository: ForespoerselRepository) : Løser(rapidsConnection) {
 
-    private val om = customObjectMapper()
+    private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {

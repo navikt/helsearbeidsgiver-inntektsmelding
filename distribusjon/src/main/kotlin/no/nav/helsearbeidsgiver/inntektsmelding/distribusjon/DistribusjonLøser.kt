@@ -12,15 +12,15 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntektsmel
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.JournalførtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.utils.log.logger
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.slf4j.LoggerFactory
 
 private const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
 
 class DistribusjonLøser(rapidsConnection: RapidsConnection, val kafkaProducer: KafkaProducer<String, String>) : Løser(rapidsConnection) {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
 
     init {
         logger.info("Starting DistribuerIMLøser...")
@@ -46,7 +46,7 @@ class DistribusjonLøser(rapidsConnection: RapidsConnection, val kafkaProducer: 
     }
 
     override fun onBehov(packet: JsonMessage) {
-        sikkerlogg.info("Skal distribuere pakken: ${packet.toJson()}")
+        sikkerLogger.info("Skal distribuere pakken: ${packet.toJson()}")
         val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
         logger.info("Skal distribuere inntektsmelding for journalpostId $journalpostId...")
         val eventName = packet[Key.EVENT_NAME.str].asText()
@@ -56,7 +56,7 @@ class DistribusjonLøser(rapidsConnection: RapidsConnection, val kafkaProducer: 
             val journalførtJson = customObjectMapper().writeValueAsString(journalførtInntektsmelding)
             kafkaProducer.send(ProducerRecord(TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN, journalførtJson))
             logger.info("Distribuerte eksternt for journalpostId: $journalpostId")
-            sikkerlogg.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalførtJson")
+            sikkerLogger.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalførtJson")
             publishEvent(
                 JsonMessage.newMessage(
                     mapOf(
@@ -69,7 +69,7 @@ class DistribusjonLøser(rapidsConnection: RapidsConnection, val kafkaProducer: 
             logger.info("Distribuerte inntektsmelding for journalpostId: $journalpostId")
         } catch (e: DeserialiseringException) {
             logger.error("Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId")
-            sikkerlogg.error("Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId", e)
+            sikkerLogger.error("Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId", e)
             publishFail(
                 JsonMessage.newMessage(
                     eventName,
@@ -81,7 +81,7 @@ class DistribusjonLøser(rapidsConnection: RapidsConnection, val kafkaProducer: 
             )
         } catch (e: Exception) {
             logger.error("Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId")
-            sikkerlogg.error("Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId", e)
+            sikkerLogger.error("Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId", e)
             publishFail(
                 JsonMessage.newMessage(
                     eventName,

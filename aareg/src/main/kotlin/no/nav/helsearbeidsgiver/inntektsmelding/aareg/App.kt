@@ -4,11 +4,9 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-aareg")
+val sikkerLogger = sikkerLogger()
 
 fun main() {
     RapidApplication
@@ -18,7 +16,7 @@ fun main() {
 }
 
 fun RapidsConnection.createAareg(aaregClient: AaregClient): RapidsConnection {
-    sikkerlogg.info("Starter ArbeidsforholdLøser...")
+    sikkerLogger.info("Starter ArbeidsforholdLøser...")
     ArbeidsforholdLøser(this, aaregClient)
     return this
 }

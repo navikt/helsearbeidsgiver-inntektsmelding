@@ -7,11 +7,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
 class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
 
     override val event: EventName = EventName.INNTEKTSMELDING_MOTTATT
+
+    private val logger = logger()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {

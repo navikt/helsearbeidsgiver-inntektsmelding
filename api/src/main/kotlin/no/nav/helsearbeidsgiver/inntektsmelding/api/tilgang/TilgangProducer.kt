@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -26,7 +26,7 @@ class TilgangProducer(private val rapid: RapidsConnection) {
             Key.FORESPOERSEL_ID to forespørselId.toJson()
         ) {
             logger.info("Publiserte tilgang behov id=$initiateId")
-            sikkerlogg.info("Publiserte tilgang behov id=$initiateId json=${it.toJson()}")
+            sikkerLogger.info("Publiserte tilgang behov id=$initiateId json=${it.toJson()}")
         }
 
         return initiateId

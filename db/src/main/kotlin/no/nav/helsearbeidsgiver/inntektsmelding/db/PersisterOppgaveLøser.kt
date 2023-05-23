@@ -8,11 +8,13 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class PersisterOppgaveLøser(
     rapidsConnection: RapidsConnection,
     val repository: ForespoerselRepository
 ) : Løser(rapidsConnection) {
+    private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
         it.demandValue(Key.BEHOV.str, BehovType.PERSISTER_OPPGAVE_ID.name)

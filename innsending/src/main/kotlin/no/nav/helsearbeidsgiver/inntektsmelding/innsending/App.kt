@@ -2,11 +2,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("innsending")
+private val logger = "helsearbeidsgiver-im-innsending".logger()
+val sikkerLogger = sikkerLogger()
 
 fun main() {
     RapidApplication
@@ -34,6 +34,6 @@ fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection 
 }
 
 fun buildRedisStore(environment: Environment): RedisStore {
-    sikkerlogg.info("Redis url er " + environment.redisUrl)
+    sikkerLogger.info("Redis url er " + environment.redisUrl)
     return RedisStore(environment.redisUrl)
 }

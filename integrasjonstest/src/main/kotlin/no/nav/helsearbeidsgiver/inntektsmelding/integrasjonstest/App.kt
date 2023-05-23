@@ -30,11 +30,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.preutfylt.createPreutfylt
 import no.nav.helsearbeidsgiver.pdl.PdlClient
+import no.nav.helsearbeidsgiver.utils.log.logger
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-integrasjon")
+val logger = "helsearbeidsgiver-im-integrasjon".logger()
 
 fun main() {
     val env = mutableMapOf<String, String>()

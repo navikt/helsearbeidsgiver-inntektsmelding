@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettighete
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.receive
@@ -43,7 +43,7 @@ fun RouteExtra.TrengerRoute() {
 
                 val trengerId = trengerProducer.publish(request)
                 val resultat = redis.getResultat(trengerId.toString(), 10, 500)
-                sikkerlogg.info("Fikk resultat: $resultat")
+                sikkerLogger.info("Fikk resultat: $resultat")
 
                 val mapper = TrengerMapper(resultat)
                 respond(mapper.getStatus(), mapper.getResponse(), TrengerResponse.serializer())

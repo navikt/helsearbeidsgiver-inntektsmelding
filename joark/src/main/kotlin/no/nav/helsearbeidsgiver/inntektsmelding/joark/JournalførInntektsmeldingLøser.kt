@@ -18,17 +18,18 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntektsmel
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDateTime
 
 class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : Løser(rapidsConnection) {
 
-    private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
-    private val logger = LoggerFactory.getLogger(this::class.java)
     private val JOURNALFOER_BEHOV = BehovType.JOURNALFOER
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     suspend fun opprettJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument): String {
-        sikkerlogg.info("Bruker inntektsinformasjon $inntektsmelding")
+        sikkerLogger.info("Bruker inntektsinformasjon $inntektsmelding")
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
         logger.info("Skal ferdigstille journalpost for $uuid...")
         val journalpostId = dokarkivClient.opprettJournalpost(request, true, "callId_$uuid").journalpostId
@@ -55,25 +56,25 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
     override fun onBehov(packet: JsonMessage) {
         val uuid = packet[Key.UUID.str].asText()
         logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid $uuid")
-        sikkerlogg.info("Fikk pakke: ${packet.toJson()}")
+        sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
         var inntektsmeldingDokument: InntektsmeldingDokument? = null
         try {
             inntektsmeldingDokument = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING_DOKUMENT.str])
-            sikkerlogg.info("Skal journalføre: $inntektsmeldingDokument")
+            sikkerLogger.info("Skal journalføre: $inntektsmeldingDokument")
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmeldingDokument) }
-            sikkerlogg.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
+            sikkerLogger.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
             logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
             publiserLagring(uuid, journalpostId)
         } catch (ex: DokArkivException) {
-            sikkerlogg.error("Klarte ikke journalføre", ex)
+            sikkerLogger.error("Klarte ikke journalføre", ex)
             val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
             publishFail(packet.createFail("Kall mot dokarkiv feilet", data, behovType = JOURNALFOER_BEHOV))
         } catch (ex: UgyldigFormatException) {
-            sikkerlogg.error("Klarte ikke journalføre: feil format!", ex)
+            sikkerLogger.error("Klarte ikke journalføre: feil format!", ex)
             val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
             publishFail(packet.createFail("Feil format i InntektsmeldingDokument", data, behovType = JOURNALFOER_BEHOV))
         } catch (ex: Exception) {
-            sikkerlogg.error("Klarte ikke journalføre!", ex)
+            sikkerLogger.error("Klarte ikke journalføre!", ex)
             val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
             publishFail(packet.createFail("Klarte ikke journalføre", data, behovType = JOURNALFOER_BEHOV))
         }

@@ -3,10 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.log.logger
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-val logger = "im-forespoersel-mottatt".logger()
-val loggerSikker = sikkerLogger()
+private val logger = "im-forespoersel-mottatt".logger()
 
 fun main() {
     logger.info("Jeg er oppe og kjører!")

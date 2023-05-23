@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
 class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -52,7 +52,7 @@ class OpprettOppgaveLøser(
 
     private val om = customObjectMapper()
     private val EVENT = EventName.FORESPØRSEL_LAGRET
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
 
     fun opprettOppgave(
         forespørselId: String,

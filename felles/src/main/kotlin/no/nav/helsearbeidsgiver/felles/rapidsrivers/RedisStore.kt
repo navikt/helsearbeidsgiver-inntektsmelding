@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.innsending
+package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
 import io.lettuce.core.RedisClient
 import io.lettuce.core.SetArgs

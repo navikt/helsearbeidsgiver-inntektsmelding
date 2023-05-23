@@ -9,11 +9,10 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.StatefullDataKanal
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.UUID
 
 abstract class CompositeEventListener(open val redisStore: RedisStore) : River.PacketListener {
 

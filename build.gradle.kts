@@ -178,7 +178,7 @@ tasks {
 }
 
 fun getBuildableProjects(buildAll: Boolean = false): List<String> {
-    if (buildAll) return subprojects.map { it.name }.filter { it != "integrasjonstest" }
+    if (buildAll) return subprojects.map { it.name }
     val changedFiles = System.getenv("CHANGED_FILES")
         ?.takeIf(String::isNotBlank)
         ?.split(",")
@@ -194,7 +194,7 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
             "spesifikasjon.yaml"
         )
 
-    return subprojects.map { it.name }.filter { it != "integrasjonstest" }
+    return subprojects.map { it.name }
         .let { projects ->
             if (hasCommonChanges) {
                 projects

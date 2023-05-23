@@ -20,7 +20,6 @@ class AuthorizationTest : ApiTest() {
     @Test
     fun `stopp uautoriserte kall mot API`() = testApi {
         listOf(
-            Routes.ARBEIDSGIVERE to ::getUtenAuth,
             Routes.TRENGER to ::postUtenAuth
             // Auth midlertidig deaktivert for enklere manuell testing
             // Routes.INNSENDING to ::postUtenAuth

@@ -10,12 +10,11 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.StatefullDataKanal
-import java.util.UUID
 
 class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
     override val event: EventName = EventName.FORESPØRSEL_LAGRET
@@ -71,6 +70,7 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
                     ).toJson()
                 )
             } else if (isDataCollected(*steg2(transaksjonsId))) {
+                val arbeidstakerRedis = redisStore.get(transaksjonsId + DataFelt.ARBEIDSTAKER_INFORMASJON.str)
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -78,7 +78,18 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
                             Key.UUID.str to transaksjonsId,
                             Key.BEHOV.str to BehovType.OPPRETT_SAK,
                             Key.FORESPOERSEL_ID.str to forespørselId,
-                            Key.ORGNRUNDERENHET.str to redisStore.get(transaksjonsId + Key.ORGNRUNDERENHET.str)!!
+                            Key.ORGNRUNDERENHET.str to redisStore.get(transaksjonsId + Key.ORGNRUNDERENHET.str)!!,
+                            // @TODO this transformation is not nessesary. StatefullDataKanal should be fixed to use Tree
+                            DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
+                                if (arbeidstakerRedis != null) {
+                                    customObjectMapper().readValue(arbeidstakerRedis, PersonDato::class.java)
+                                } else {
+                                    PersonDato(
+                                        "Ukjent navn",
+                                        null
+                                    )
+                                }
+                                )
                         )
                     ).toJson()
                 )

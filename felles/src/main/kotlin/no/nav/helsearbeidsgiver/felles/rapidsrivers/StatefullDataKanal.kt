@@ -43,6 +43,7 @@ class StatefullDataKanal(
             sikkerLogger().info("data collected for event ${eventName.name} med packet ${packet.toJson()}")
             mainListener.onPacket(packet, rapidsConnection)
         } else {
+            sikkerLogger().warn("Mangler data for $packet")
             // @TODO fiks logging logger.warn("Unrecognized package with uuid:" + packet[Key.UUID.str])
         }
     }

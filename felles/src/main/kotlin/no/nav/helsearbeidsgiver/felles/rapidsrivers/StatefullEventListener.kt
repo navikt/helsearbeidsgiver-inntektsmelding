@@ -32,8 +32,8 @@ class StatefullEventListener(
         dataFelter.map { dataFelt ->
             Pair(dataFelt, packet[dataFelt])
         }.forEach { data ->
-            val str = if (data!!.second.isTextual) { data!!.second.asText() } else data!!.second.toString()
-            redisStore.set(uuid + data!!.first, str)
+            val str = if (data.second.isTextual) { data.second.asText() } else data.second.toString()
+            redisStore.set(uuid + data.first, str)
         }
     }
     override fun onEvent(packet: JsonMessage) {

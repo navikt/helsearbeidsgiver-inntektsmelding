@@ -42,6 +42,7 @@ class RedisPoller {
     suspend fun getString(key: String, maxRetries: Int, waitMillis: Long): String {
         redisClient.connect().use { connection ->
             repeat(maxRetries) {
+                logger.debug("Polling redis: $it time(s) for key $key")
                 val str = connection.sync().get(key)
 
                 if (!str.isNullOrEmpty()) return str

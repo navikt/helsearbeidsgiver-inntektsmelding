@@ -12,6 +12,8 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -154,6 +156,7 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
     override fun finalize(message: JsonMessage) {
         val uuid: String = message[Key.UUID.str].asText()
         redisStore.set(uuid, message[Key.INNTEKTSMELDING_DOKUMENT.str].asText())
+        logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
         logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
         rapidsConnection.publish(
             JsonMessage.newMessage(
@@ -163,7 +166,9 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
                     Key.TRANSACTION_ORIGIN.str to uuid,
                     Key.FORESPOERSEL_ID.str to redisStore.get(uuid + Key.FORESPOERSEL_ID.str)!!
                 )
-            ).toJson()
+            ).toJson().also {
+                logger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
+            }
         )
     }
 

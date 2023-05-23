@@ -98,7 +98,7 @@ class TrengerRouteKtTest : ApiTest() {
 }
 
 private object Mock {
-    val UUID = "abc-123"
+    const val UUID = "abc-123"
     val GYLDIG_REQUEST = TrengerRequest(UUID)
     val UGYLDIG_REQUEST = TrengerRequest(" ")
 

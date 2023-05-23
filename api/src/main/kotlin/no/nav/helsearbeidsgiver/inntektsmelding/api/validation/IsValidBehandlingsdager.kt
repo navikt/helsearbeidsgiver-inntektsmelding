@@ -16,19 +16,19 @@ fun isValidBehandlingsdager(behandlingsdager: List<LocalDate>): Boolean {
         return false
     }
     val dager = behandlingsdager.sorted()
-    for (i in 1..dager.size - 1) {
-        val forrige = dager.get(i - 1)
+    for (i in 1 until dager.size) {
+        val forrige = dager[i - 1]
         val forrigePlus15 = forrige.plusDays(15)
-        val neste = dager.get(i)
+        val neste = dager[i]
         if (neste.isAfter(forrigePlus15)) {
             return false
         }
-        if (neste.equals(forrige)) {
+        if (neste == forrige) {
             return false
         }
         val forrigeUke = forrige.get(WeekFields.ISO.weekOfYear())
         val nesteUke = neste.get(WeekFields.ISO.weekOfYear())
-        if (forrigeUke.equals(nesteUke)) {
+        if (forrigeUke == nesteUke) {
             return false
         }
     }

@@ -43,16 +43,16 @@ object Routes {
 }
 
 fun main() {
-    val env = System.getenv()
-    RapidApplication.create(env)
-        .also(::startServer)
-        .start()
-}
+    val rapid = RapidApplication.create(System.getenv())
 
-fun startServer(rapid: RapidsConnection) {
-    embeddedServer(Netty, port = 8080) {
-        apiModule(rapid)
-    }.start(wait = true)
+    embeddedServer(
+        factory = Netty,
+        port = 8080,
+        module = { apiModule(rapid) }
+    )
+        .start(wait = true)
+
+    rapid.start()
 }
 
 fun Application.apiModule(rapid: RapidsConnection) {

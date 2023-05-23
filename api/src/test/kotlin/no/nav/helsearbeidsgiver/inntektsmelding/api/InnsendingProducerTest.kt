@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProduce
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
-internal class InnsendingProducerTest {
+class InnsendingProducerTest {
 
     @Test
     fun skal_returnere_uuid() {

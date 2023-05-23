@@ -18,8 +18,8 @@ class KvitteringRouteKtTest : ApiTest() {
 
     private val PATH = Routes.PREFIX + Routes.KVITTERING
 
-    val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
-    val RESULTAT_OK =
+    private val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
+    private val RESULTAT_OK =
         """{"orgnrUnderenhet":"123456789","identitetsnummer":"12345678901",
         "fulltNavn":"Ukjent","virksomhetNavn":"Ukjent","behandlingsdager":[],"egenmeldingsperioder":[],
         "bestemmendeFraværsdag":"2023-01-01","fraværsperioder":[{"fom":"2023-01-01","tom":"2023-01-31"}],
@@ -32,13 +32,13 @@ class KvitteringRouteKtTest : ApiTest() {
 
     @Test
     fun `skal ikke godta tom uuid`() = testApi {
-        val response = get(PATH + "?uuid=")
+        val response = get("$PATH?uuid=")
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
     @Test
     fun `skal ikke godta ugyldig uuid`() = testApi {
-        val response = get(PATH + "?uuid=" + UGYLDIG_UUID)
+        val response = get("$PATH?uuid=$UGYLDIG_UUID")
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 

@@ -36,8 +36,8 @@ class FulltNavnLøser(
 
     override fun onBehov(packet: JsonMessage) {
         measureTimeMillis {
-            val idtext = packet[Key.UUID.str]?.asText().let { if (it.isNullOrEmpty()) null else "id is $it" }
-                ?: packet[Key.FORESPOERSEL_ID.str]?.asText().let { if (it.isNullOrEmpty()) null else "forespoerselId is $it" }
+            val idtext = packet[Key.UUID.str].asText().let { if (it.isNullOrEmpty()) null else "id is $it" }
+                ?: packet[Key.FORESPOERSEL_ID.str].asText().let { if (it.isNullOrEmpty()) null else "forespoerselId is $it" }
                 ?: " kan ikke finne uuid/forespørselID"
             logger.info("Henter navn for $idtext")
             val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()

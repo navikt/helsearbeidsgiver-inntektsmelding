@@ -25,10 +25,8 @@ class FoedselsNrValidator(input: String?) {
             }
 
             val c2 = checksum(kontrollsiffer2, asString)
-            if (c2 == 10 || c2 != ks2) {
-                return false
-            }
-            return true
+
+            return c2 == ks2 && c2 != 10
         }
 
     companion object {
@@ -76,11 +74,8 @@ class OrganisasjonsnummerValidator(input: String?) {
         get() {
             val kontrollsiffer = asString[8].toString().toInt()
             val kalulertKontrollsiffer = checksum(weights, asString)
-            if (kalulertKontrollsiffer == 10 || kalulertKontrollsiffer != kontrollsiffer) {
-                return false
-            }
 
-            return true
+            return kalulertKontrollsiffer == kontrollsiffer && kalulertKontrollsiffer != 10
         }
 
     companion object {

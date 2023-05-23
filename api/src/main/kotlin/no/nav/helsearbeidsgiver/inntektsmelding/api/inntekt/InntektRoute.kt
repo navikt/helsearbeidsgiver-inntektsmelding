@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettighete
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
@@ -39,14 +39,14 @@ fun RouteExtra.InntektRoute() {
 
             "Henter oppdatert inntekt for forespørselId: ${request.forespoerselId}".let {
                 logger.info(it)
-                sikkerlogg.info("$it og request:\n$request")
+                sikkerLogger.info("$it og request:\n$request")
             }
 
             try {
                 val transaksjonId = inntektProducer.publish(request).toString()
 
                 val resultat = redis.getResultat(transaksjonId, 10, 500)
-                sikkerlogg.info("Fikk resultat: $resultat")
+                sikkerLogger.info("Fikk resultat: $resultat")
 
                 val mapper = InntektMapper(resultat)
                 call.respond(mapper.getStatus(), mapper.getResponse())

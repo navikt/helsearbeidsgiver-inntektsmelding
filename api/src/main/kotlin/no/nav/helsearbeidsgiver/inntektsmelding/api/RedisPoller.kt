@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
-// TODO rydd opp i sikkerlogg vs loggerSikker
 class RedisPoller {
     private val redisClient = RedisClient.create(
         Env.Redis.url
@@ -25,7 +24,7 @@ class RedisPoller {
             json.parseJson()
         } catch (e: Exception) {
             "JSON-parsing feilet.".let {
-                sikkerlogg.error("$it key=$key json=$json")
+                sikkerLogger.error("$it key=$key json=$json")
                 throw RedisPollerJsonParseException("$it Se sikker logg for mer info. key=$key", e)
             }
         }

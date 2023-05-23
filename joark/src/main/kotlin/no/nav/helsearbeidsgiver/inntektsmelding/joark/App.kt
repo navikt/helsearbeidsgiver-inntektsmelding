@@ -3,11 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
-internal val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-joark")
+private val logger = "helsearbeidsgiver-im-joark".logger()
 
 fun main() {
     RapidApplication
@@ -17,12 +15,12 @@ fun main() {
 }
 
 fun RapidsConnection.createJoark(buildDokArkivClient: DokArkivClient): RapidsConnection {
-    sikkerLogger.info("Starting JournalførInntektsmeldingLøser...")
+    logger.info("Starting JournalførInntektsmeldingLøser...")
     JournalførInntektsmeldingLøser(
         this,
         buildDokArkivClient
     )
-    sikkerLogger.info("Starting JournalfoerInntektsmeldingMottattListener...")
+    logger.info("Starting JournalfoerInntektsmeldingMottattListener...")
     JournalfoerInntektsmeldingMottattListener(this)
     return this
 }

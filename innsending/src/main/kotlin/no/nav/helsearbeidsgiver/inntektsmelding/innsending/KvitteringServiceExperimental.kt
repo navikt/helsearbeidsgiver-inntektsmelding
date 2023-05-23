@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.InputFelter
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
 class KvitteringServiceExperimental(
@@ -20,6 +21,7 @@ class KvitteringServiceExperimental(
     EventName.KVITTERING_REQUESTED,
     rapidsConnection
 ) {
+    private val logger = logger()
 
     init {
         start()

@@ -9,13 +9,13 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
 class JournalførtListener(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
     private val om = customObjectMapper()
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
 
     init {
         logger.info("Starting JournalførtListener...")

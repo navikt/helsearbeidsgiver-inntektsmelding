@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
@@ -18,7 +18,7 @@ class TrengerProducer(
     }
 
     fun publish(request: TrengerRequest, initiateId: UUID = UUID.randomUUID()): UUID {
-        sikkerlogg.info("trenger request is $request")
+        sikkerLogger.info("trenger request is $request")
         rapid.publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
@@ -30,7 +30,7 @@ class TrengerProducer(
             ).toJson()
         ) {
             logger.info("Publiserte trenger behov id=$initiateId")
-            sikkerlogg.info("Publiserte trenger behov id=$initiateId json=${it.toJson()}")
+            sikkerLogger.info("Publiserte trenger behov id=$initiateId json=${it.toJson()}")
         }
 
         return initiateId

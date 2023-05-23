@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.mapInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.fjernLedendeSlash
@@ -61,7 +61,7 @@ fun RouteExtra.KvitteringRoute() {
                 val transaksjonId = kvitteringProducer.publish(forespoerselId)
 
                 val resultat = redis.getString(transaksjonId, 10, 500)
-                sikkerlogg.info("Forespørsel $forespoerselId ga resultat: $resultat")
+                sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
 
                 if (resultat == EMPTY_PAYLOAD) {
                     // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
@@ -82,7 +82,7 @@ fun RouteExtra.KvitteringRoute() {
             } catch (e: JsonMappingException) {
                 "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
                     logger.error(it)
-                    sikkerlogg.error(it, e)
+                    sikkerLogger.error(it, e)
                     respondInternalServerError(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
                 }
             } catch (_: RedisPollerTimeoutException) {

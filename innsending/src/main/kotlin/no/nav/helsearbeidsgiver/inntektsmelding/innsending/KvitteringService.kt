@@ -10,11 +10,15 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
 class KvitteringService(val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
 
     override val event: EventName = EventName.KVITTERING_REQUESTED
+
+    private val logger = logger()
+
     init {
         logger.info("Starter kvitteringservice")
         withEventListener { KvitteringStartedListener(this, rapidsConnection) }

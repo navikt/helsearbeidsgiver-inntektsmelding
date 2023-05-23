@@ -28,12 +28,11 @@ import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLøser
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-integrasjon")
+val logger = "helsearbeidsgiver-im-integrasjon-local".logger()
 
 fun main() {
     val env = LocalApp().setupEnvironment("im-helsebro", 8083)

@@ -24,12 +24,12 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.time.Duration.Companion.minutes
 
-val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-val logger: Logger = LoggerFactory.getLogger("helsearbeidsgiver-im-api")
+val logger = "helsearbeidsgiver-im-api".logger()
+val sikkerLogger = sikkerLogger()
 
 object Routes {
     const val PREFIX = "/api/v1"

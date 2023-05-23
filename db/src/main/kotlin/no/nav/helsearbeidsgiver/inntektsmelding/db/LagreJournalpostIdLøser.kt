@@ -12,7 +12,8 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class LagreJournalpostIdLøser(
     rapidsConnection: RapidsConnection,
@@ -21,8 +22,8 @@ class LagreJournalpostIdLøser(
 ) :
     Løser(rapidsConnection) {
 
-    private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
@@ -36,11 +37,11 @@ class LagreJournalpostIdLøser(
         val transaksjonsId = packet[Key.UUID.str].asText()
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("LagreJournalpostIdLøser behov ${BehovType.LAGRE_JOURNALPOST_ID.name} med transaksjonsId $transaksjonsId")
-        sikkerlogg.info("LagreJournalpostIdLøser fikk pakke: ${packet.toJson()}")
+        sikkerLogger.info("LagreJournalpostIdLøser fikk pakke: ${packet.toJson()}")
         val journalpostId = packet[Key.JOURNALPOST_ID.str].asText()
         if (journalpostId.isNullOrBlank()) {
             logger.error("LagreJournalpostIdLøser fant ingen journalpostId for transaksjonsId $transaksjonsId")
-            sikkerlogg.error("LagreJournalpostIdLøser fant ingen journalpostId for transaksjonsId $transaksjonsId")
+            sikkerLogger.error("LagreJournalpostIdLøser fant ingen journalpostId for transaksjonsId $transaksjonsId")
             publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonsId. Tom journalpostID!!"), packet)
         } else {
             try {
@@ -51,7 +52,7 @@ class LagreJournalpostIdLøser(
             } catch (ex: Exception) {
                 publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonsId"), packet)
                 logger.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for transaksjonsId $transaksjonsId")
-                sikkerlogg.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for transaksjonsId $transaksjonsId", ex)
+                sikkerLogger.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for transaksjonsId $transaksjonsId", ex)
             }
         }
     }

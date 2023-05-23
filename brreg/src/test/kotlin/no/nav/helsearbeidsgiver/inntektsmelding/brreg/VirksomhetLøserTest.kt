@@ -27,7 +27,7 @@ internal class VirksomhetLøserTest {
     private val rapid = TestRapid()
     private var løser: VirksomhetLøser
     private val BEHOV = BehovType.VIRKSOMHET.name
-    internal val objectMapper: ObjectMapper = jacksonObjectMapper()
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .registerModule(JavaTimeModule())

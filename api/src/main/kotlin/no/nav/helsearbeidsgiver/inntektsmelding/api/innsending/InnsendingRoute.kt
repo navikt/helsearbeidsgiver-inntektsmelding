@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerlogg
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
@@ -37,7 +37,7 @@ fun RouteExtra.InnsendingRoute() {
 
                 "Mottok innsending med forespørselId: $forespoerselId".let {
                     logger.info(it)
-                    sikkerlogg.info("$it og request:\n$request")
+                    sikkerLogger.info("$it og request:\n$request")
                 }
 
                 authorize(
@@ -53,7 +53,7 @@ fun RouteExtra.InnsendingRoute() {
                 logger.info("Publiserte til rapid med forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
 
                 val resultat = redis.getResultat(transaksjonId, 10, 500)
-                sikkerlogg.info("Fikk resultat: $resultat")
+                sikkerLogger.info("Fikk resultat: $resultat")
 
                 val mapper = InnsendingMapper(forespoerselId, resultat)
                 respond(mapper.getStatus(), mapper.getResponse(), InnsendingResponse.serializer())
@@ -63,7 +63,7 @@ fun RouteExtra.InnsendingRoute() {
             } catch (e: JsonMappingException) {
                 "Kunne ikke parse json-resultat for $forespoerselId".let {
                     logger.error(it)
-                    sikkerlogg.error(it, e)
+                    sikkerLogger.error(it, e)
                     respondBadRequest(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
                 }
             } catch (_: RedisPollerTimeoutException) {

@@ -1,16 +1,6 @@
 [
   {
-    "opplysningstype": "Arbeidsgiverperiode",
-    "forslag": [
-      {
-        "fom": "2018-01-01",
-        "tom": "2018-01-10"
-      },
-      {
-        "fom": "2018-01-15",
-        "tom": "2018-01-20"
-      }
-    ]
+    "opplysningstype": "Arbeidsgiverperiode"
   },
   {
     "opplysningstype": "Inntekt",

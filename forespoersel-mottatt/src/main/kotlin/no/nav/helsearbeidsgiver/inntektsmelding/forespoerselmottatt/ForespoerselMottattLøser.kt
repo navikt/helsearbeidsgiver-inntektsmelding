@@ -14,15 +14,17 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLøser(
-    val rapid: RapidsConnection
+    private val rapid: RapidsConnection
 ) : River.PacketListener {
 
     private val om = customObjectMapper()
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         River(rapid).apply {
@@ -39,7 +41,7 @@ class ForespoerselMottattLøser(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("ForespoerselMottattLøser: Mottok melding på pri-topic om ${Pri.Key.NOTIS.fra(packet).fromJson(Pri.NotisType.serializer())}.")
-        loggerSikker.info("ForespoerselMottattLøser: Mottok melding på pri-topic:\n${packet.toJson()}")
+        sikkerLogger.info("ForespoerselMottattLøser: Mottok melding på pri-topic:\n${packet.toJson()}")
 
         val orgnr = Pri.Key.ORGNR.fra(packet).fromJson(String.serializer())
         val fnr = Pri.Key.FNR.fra(packet).fromJson(String.serializer())
@@ -55,7 +57,7 @@ class ForespoerselMottattLøser(
 
         val json = om.writeValueAsString(msg)
         rapid.publish(json)
-        loggerSikker.info("ForespoerselMottattLøser: publiserte $json")
+        sikkerLogger.info("ForespoerselMottattLøser: publiserte $json")
         logger.info("ForespoerselMottattLøser: ferdig")
     }
 }

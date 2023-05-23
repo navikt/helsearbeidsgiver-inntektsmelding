@@ -91,12 +91,12 @@ class ArbeidsforholdLøser(
             }
         }
             .onFailure {
-                sikkerlogg.error("Det oppstod en feil ved henting av arbeidsforhold for $fnr", it)
+                sikkerLogger.error("Det oppstod en feil ved henting av arbeidsforhold for $fnr", it)
             }
             .getOrNull()
             ?.map(KlientArbeidsforhold::tilArbeidsforhold)
             ?.also {
-                sikkerlogg.info("Fant arbeidsforhold $it for $fnr")
+                sikkerLogger.info("Fant arbeidsforhold $it for $fnr")
             }
 }
 

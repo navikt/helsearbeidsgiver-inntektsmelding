@@ -11,14 +11,14 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class TilgangskontrollLøser(rapidsConnection: RapidsConnection, val altinnClient: AltinnClient) : River.PacketListener {
 
     private val BEHOV = BehovType.TILGANGSKONTROLL
-    private val logger = LoggerFactory.getLogger(this::class.java)
-    private val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         logger.info("Starter TilgangskontrollLøser...")

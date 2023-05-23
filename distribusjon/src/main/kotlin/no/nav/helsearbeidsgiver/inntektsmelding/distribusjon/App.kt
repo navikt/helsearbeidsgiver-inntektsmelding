@@ -2,10 +2,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.slf4j.LoggerFactory
 
-internal val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
+val sikkerLogger = sikkerLogger()
 
 fun main() {
     RapidApplication

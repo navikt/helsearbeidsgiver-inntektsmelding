@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.SakFerdigLøsning
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 class SakFerdigLøser(
     rapidsConnection: RapidsConnection,
@@ -21,7 +21,7 @@ class SakFerdigLøser(
     private val linkUrl: String
 ) : River.PacketListener {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
     private val BEHOV = BehovType.ENDRE_SAK_STATUS
 
     init {

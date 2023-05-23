@@ -14,12 +14,12 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
 
 class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient, private val isPreProd: Boolean) : Løser(rapidsConnection) {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
     private val BEHOV = BehovType.VIRKSOMHET
 
     fun hentVirksomhet(orgnr: String): String {
@@ -65,7 +65,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             publishFail(packet.createFail("Ugyldig virksomhet $orgnr", behovType = BehovType.VIRKSOMHET))
         } catch (ex: Exception) {
             logger.error("Det oppstod en feil ved henting for $orgnr")
-            sikkerlogg.error("Det oppstod en feil ved henting for orgnr $orgnr: ", ex)
+            sikkerLogger.error("Det oppstod en feil ved henting for orgnr $orgnr: ", ex)
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")), packet)
             publishFail(packet.createFail("Klarte ikke hente virksomhet", behovType = BehovType.VIRKSOMHET))
         }

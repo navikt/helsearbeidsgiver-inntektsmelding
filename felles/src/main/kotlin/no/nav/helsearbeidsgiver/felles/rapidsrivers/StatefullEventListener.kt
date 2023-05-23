@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 class StatefullEventListener(
     val redisStore: RedisStore,
@@ -23,12 +24,16 @@ class StatefullEventListener(
     }
 
     fun collectData(packet: JsonMessage) {
-        val uuid = packet[Key.UUID.str].asText()
+        var uuid = packet[Key.UUID.str].asText()
+        if (uuid.isNullOrEmpty()) {
+            uuid = UUID.randomUUID().toString()
+            packet.set(Key.UUID.str, uuid)
+        }
         dataFelter.map { dataFelt ->
             Pair(dataFelt, packet[dataFelt])
         }.forEach { data ->
-            val str = if (data!!.second.isTextual) { data!!.second.asText() } else data!!.second.toString()
-            redisStore.set(uuid + data!!.first, str)
+            val str = if (data.second.isTextual) { data.second.asText() } else data.second.toString()
+            redisStore.set(uuid + data.first, str)
         }
     }
     override fun onEvent(packet: JsonMessage) {

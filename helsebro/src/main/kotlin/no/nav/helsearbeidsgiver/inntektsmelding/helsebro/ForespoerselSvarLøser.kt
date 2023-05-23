@@ -21,13 +21,13 @@ import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
     init {
-        loggerSikker.info("Starting ForespoerselSvarLøser...")
+        sikkerLogger.info("Starting ForespoerselSvarLøser...")
         River(rapid).apply {
             validate { jsonMessage ->
                 jsonMessage.demandValue(Pri.Key.BEHOV, ForespoerselSvar.behovType)
@@ -45,20 +45,20 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             .onFailure { feil ->
                 "Ukjent feil.".let {
                     logger.error("$it Se sikker logg for mer info.")
-                    loggerSikker.error(it, feil)
+                    sikkerLogger.error(it, feil)
                 }
             }
     }
 
     private fun JsonMessage.loesBehov(context: MessageContext) {
         logger.info("Mottok løsning på pri-topic om ${Pri.Key.BEHOV.fra(this).fromJson(Pri.BehovType.serializer())}.")
-        loggerSikker.info("Mottok løsning på pri-topic:\n${toJson()}")
+        sikkerLogger.info("Mottok løsning på pri-topic:\n${toJson()}")
 
         val forespoerselSvar = Pri.Key.LØSNING.let(::value)
             .toJsonElement()
             .fromJson(ForespoerselSvar.serializer())
 
-        loggerSikker.info("Oversatte melding:\n$forespoerselSvar")
+        sikkerLogger.info("Oversatte melding:\n$forespoerselSvar")
 
         val initiateEvent = forespoerselSvar.boomerang.fromJsonMap(String.serializer())[Key.INITIATE_EVENT.str]
             ?: throw IllegalArgumentException("Mangler ${Key.INITIATE_EVENT} i ${Key.BOOMERANG}.")

@@ -156,17 +156,11 @@ class InntektLøserTest {
         assertNull(inntektLøsning?.error)
         assertEquals(3, inntektLøsning?.value!!.historisk.size)
 
-        val maanederGammel = inntektLøsning.value!!.historisk.map { it.maanedsnavn }
+        val maaneder = inntektLøsning.value!!.historisk.map { it.maaned }
 
-        assertEquals(april(2022), maanederGammel[0])
-        assertEquals(mars(2022), maanederGammel[1])
-        assertEquals(februar(2022), maanederGammel[2])
-
-        val maanederNy = inntektLøsning.value!!.historisk.map { it.maaned }
-
-        assertEquals(april(2022), maanederNy[0])
-        assertEquals(mars(2022), maanederNy[1])
-        assertEquals(februar(2022), maanederNy[2])
+        assertEquals(april(2022), maaneder[0])
+        assertEquals(mars(2022), maaneder[1])
+        assertEquals(februar(2022), maaneder[2])
     }
 
     private fun sendBehovTilLøser() {

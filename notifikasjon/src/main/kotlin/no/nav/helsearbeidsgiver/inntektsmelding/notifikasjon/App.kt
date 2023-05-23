@@ -5,10 +5,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-val sikkerLogger: Logger = LoggerFactory.getLogger("tjenestekall")
+val sikkerLogger = sikkerLogger()
 
 fun main() {
     val environment = setUpEnvironment()

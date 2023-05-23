@@ -12,14 +12,14 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.OppgaveFerdigLøsning
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 class OppgaveFerdigLøser(
     rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
 ) : River.PacketListener {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
     private val BEHOV = BehovType.ENDRE_OPPGAVE_STATUS
 
     init {

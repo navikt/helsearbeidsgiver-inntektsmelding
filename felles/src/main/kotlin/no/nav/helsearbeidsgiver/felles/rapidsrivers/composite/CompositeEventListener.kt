@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.composite
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -38,9 +39,10 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
         // vi trenger også clientID for correlation
         var transactionId = message.get(Key.UUID.str).asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
-            sikkerLogger().info("Feilmelding er ${message.toJson()}")
+            sikkerLogger().error("Feilmelding er ${message.toJson()}")
             return onError(message.toFeilMessage())
         }
+        /*
         if (isEventMelding(message)) {
             if (message[Key.UUID.str].isNull || message[Key.UUID.str].isEmpty) {
                 transactionId = UUID.randomUUID().toString()
@@ -51,6 +53,7 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
         } else {
             sikkerLogger().info("transaksjonsID er ${message[Key.UUID.str].asText()}")
         }
+        */
         val eventKey = "${transactionId}${event.name}"
         val value = redisStore.get(eventKey)
         if (value.isNullOrEmpty()) {
@@ -74,8 +77,8 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
 
     fun isEventMelding(jsonMessage: JsonMessage): Boolean {
         try {
-            return (!(jsonMessage[Key.EVENT_NAME.str].isNull || jsonMessage[Key.EVENT_NAME.str].isEmpty)) &&
-                (jsonMessage[Key.DATA.str].isNull && jsonMessage[Key.FAIL.str].isNull)
+            return !(jsonMessage[Key.EVENT_NAME.str].isMissingOrNull()) &&
+                (jsonMessage[Key.DATA.str].isMissingNode && jsonMessage[Key.FAIL.str].isMissingNode && jsonMessage[Key.BEHOV.str].isMissingNode)
         } catch (e: NoSuchFieldError) {
             return false
         } catch (e: IllegalArgumentException) {

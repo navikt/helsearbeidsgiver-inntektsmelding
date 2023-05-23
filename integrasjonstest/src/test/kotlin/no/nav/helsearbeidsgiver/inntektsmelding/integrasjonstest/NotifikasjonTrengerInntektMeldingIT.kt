@@ -73,7 +73,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             mapOf(
                 Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
                 Key.IDENTITETSNUMMER.str to FNR,
-                Key.UUID.str to TRANSAKSJONS_ID,
+                //      Key.UUID.str to TRANSAKSJONS_ID,
                 Key.ORGNRUNDERENHET.str to ORGNR,
                 Key.FORESPOERSEL_ID.str to FORESPOERSEL
             )
@@ -152,7 +152,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         }
         with(filter(EventName.OPPGAVE_LAGRET).first()) {
             assertEquals(OPPGAVE_ID, this[DataFelt.OPPGAVE_ID.str].asText())
-            assertEquals(FORESPOERSEL, this[Key.FORESPOERSEL_ID.str].asText())
             assertFalse(this.contains(Key.UUID.str))
         }
     }

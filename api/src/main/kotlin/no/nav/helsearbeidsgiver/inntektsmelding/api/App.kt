@@ -43,7 +43,11 @@ object Routes {
 }
 
 fun main() {
-    val rapid = RapidApplication.create(System.getenv())
+    startServer()
+}
+
+fun startServer(env: Map<String, String> = System.getenv()) {
+    val rapid = RapidApplication.create(env)
 
     embeddedServer(
         factory = Netty,

@@ -25,7 +25,7 @@ class JournalførtListenerTest {
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
                 Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-                Key.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument()
+                Key.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
             )
         )
         val melding = rapid.inspektør.message(0)

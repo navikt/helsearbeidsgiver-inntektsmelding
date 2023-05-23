@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -15,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIAr
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -34,11 +32,6 @@ internal class PersisterImLøserTest {
     private fun sendMelding(melding: JsonMessage) {
         rapid.reset()
         rapid.sendTestMessage(melding.toJson())
-    }
-
-    private fun sendMelding(vararg melding: Pair<Key, JsonElement>) {
-        rapid.reset()
-        rapid.sendJson(*melding.toList().toTypedArray())
     }
 
     @Test

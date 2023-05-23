@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: InntektsmeldingRepository) : Løser(rapidsConnection) {
+class PersisterImLøser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Løser(rapidsConnection) {
 
     private val PERSISTER_IM = BehovType.PERSISTER_IM
     private val logger = logger()
@@ -69,7 +69,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, val repository: Innt
         publishData(packet)
     }
 
-    fun publiserFail(fail: Feilmelding, jsonMessage: JsonMessage) {
+    private fun publiserFail(fail: Feilmelding, jsonMessage: JsonMessage) {
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.FAIL.str to customObjectMapper().writeValueAsString(fail),

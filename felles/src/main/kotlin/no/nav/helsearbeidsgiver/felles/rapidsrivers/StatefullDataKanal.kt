@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.innsending
+package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DataKanal
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class StatefullDataKanal(
@@ -43,6 +42,7 @@ class StatefullDataKanal(
             sikkerLogger().info("data collected for event ${eventName.name} med packet ${packet.toJson()}")
             mainListener.onPacket(packet, rapidsConnection)
         } else {
+            sikkerLogger().warn("Mangler data for $packet")
             // @TODO fiks logging logger.warn("Unrecognized package with uuid:" + packet[Key.UUID.str])
         }
     }

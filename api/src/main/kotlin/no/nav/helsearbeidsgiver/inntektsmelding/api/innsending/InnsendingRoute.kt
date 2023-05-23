@@ -1,9 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import com.fasterxml.jackson.databind.JsonMappingException
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
+import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
@@ -17,7 +19,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
@@ -31,7 +32,7 @@ fun RouteExtra.InnsendingRoute() {
     route.route(Routes.INNSENDING + "/{forespørselId}") {
         post {
             val forespoerselId = call.parameters["forespørselId"] ?: ""
-
+            var transaksjonId = ""
             try {
                 val request = Jackson.receiveInnsendingRequest(call)
 
@@ -49,14 +50,19 @@ fun RouteExtra.InnsendingRoute() {
 
                 request.validate()
 
-                val transaksjonId = producer.publish(forespoerselId, request)
+                transaksjonId = producer.publish(forespoerselId, request)
                 logger.info("Publiserte til rapid med forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
 
-                val resultat = redis.getResultat(transaksjonId, 10, 500)
+                val resultat = redis.getString(transaksjonId, 10, 500) // .getResultat(transaksjonId, 10, 500)
                 sikkerLogger.info("Fikk resultat: $resultat")
 
-                val mapper = InnsendingMapper(forespoerselId, resultat)
-                respond(mapper.getStatus(), mapper.getResponse(), InnsendingResponse.serializer())
+                //    val mapper = InnsendingMapper(forespoerselId, resultat)
+                call.respond(
+                    status = HttpStatusCode.OK,
+                    message = resultat
+                )
+
+                //  respond(HttpStatusCode.OK, resultat) // mapper.getStatus(), mapper.getResponse(), InnsendingResponse.serializer())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
                 respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
@@ -67,7 +73,7 @@ fun RouteExtra.InnsendingRoute() {
                     respondBadRequest(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
                 }
             } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout for forespørselId: $forespoerselId")
+                logger.info("Fikk timeout for forespørselId: $forespoerselId og transaksjonsID $transaksjonId")
                 respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
             }
         }

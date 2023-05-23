@@ -4,7 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 val sikkerLogger = sikkerLogger()

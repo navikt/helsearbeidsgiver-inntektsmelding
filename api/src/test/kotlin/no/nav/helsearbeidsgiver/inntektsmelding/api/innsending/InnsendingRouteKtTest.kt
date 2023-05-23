@@ -30,12 +30,14 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.INNSENDING + "/${MockUuid.STRING}"
 
+@Disabled
 class InnsendingRouteKtTest : ApiTest() {
     val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson)
     val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(

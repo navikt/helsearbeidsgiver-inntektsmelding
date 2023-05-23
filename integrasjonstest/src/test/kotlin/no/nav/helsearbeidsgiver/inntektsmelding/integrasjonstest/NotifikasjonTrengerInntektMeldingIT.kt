@@ -24,16 +24,15 @@ import java.util.UUID
 
 class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
-    val FNR = "fnr-123"
-    val ORGNR = "orgnr-456"
-    val FORESPOERSEL = UUID.randomUUID().toString()
-    val SAK_ID = "sak_id_123"
-    val OPPGAVE_ID = "oppgave_id_456"
-    val FORNAVN = "Ola"
-    val ETTERNAVN = "Normann"
-    val MELLOMNAVN = ""
-    val FØDSELSDATO = LocalDate.of(2012, 1, 15)
-    val TRANSAKSJONS_ID = UUID.randomUUID().toString()
+    private val FNR = "fnr-123"
+    private val ORGNR = "orgnr-456"
+    private val FORESPOERSEL = UUID.randomUUID().toString()
+    private val SAK_ID = "sak_id_123"
+    private val OPPGAVE_ID = "oppgave_id_456"
+    private val FORNAVN = "Ola"
+    private val ETTERNAVN = "Normann"
+    private val MELLOMNAVN = ""
+    private val FØDSELSDATO: LocalDate = LocalDate.of(2012, 1, 15)
 
     @BeforeEach
     fun beforeEach() {

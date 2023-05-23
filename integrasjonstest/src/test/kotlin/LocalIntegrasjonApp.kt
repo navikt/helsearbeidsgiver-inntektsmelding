@@ -56,7 +56,11 @@ fun main() {
     rapid.start()
 }
 
-class DummyLøser(rapidsConnection: RapidsConnection, val behov: BehovType, val nesteBehov: List<BehovType> = emptyList()) : River.PacketListener {
+class DummyLøser(
+    rapidsConnection: RapidsConnection,
+    private val behov: BehovType,
+    private val nesteBehov: List<BehovType> = emptyList()
+) : River.PacketListener {
     private val rapid = rapidsConnection
 
     init {
@@ -132,7 +136,7 @@ private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
     )
 }
 private fun JsonMessage.nesteBehov(behov: List<BehovType>) {
-    if (behov.isNullOrEmpty()) {
+    if (behov.isEmpty()) {
         return
     }
     this[Key.NESTE_BEHOV.str] = behov

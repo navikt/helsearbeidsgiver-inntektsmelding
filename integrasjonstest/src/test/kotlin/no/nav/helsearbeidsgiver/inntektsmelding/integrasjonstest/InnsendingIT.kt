@@ -34,18 +34,18 @@ import java.util.concurrent.CompletableFuture
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Innsending av skjema fra frontend")
-internal class InnsendingIT : EndToEndTest() {
+class InnsendingIT : EndToEndTest() {
 
-    val FNR = "fnr-123"
-    val ORGNR = "orgnr-456"
-    val SAK_ID = "sak_id_123"
-    val OPPGAVE_ID = "oppgave_id_456"
-    val FORESPØRSEL_ID = UUID.randomUUID().toString()
-    val TRANSAKSJONS_ID_INSENDING_STARTED = UUID.randomUUID().toString()
-    val REQUEST = mockRequest()
-    val JOURNALPOST_ID = "jp-789"
+    private val FNR = "fnr-123"
+    private val ORGNR = "orgnr-456"
+    private val SAK_ID = "sak_id_123"
+    private val OPPGAVE_ID = "oppgave_id_456"
+    private val FORESPØRSEL_ID = UUID.randomUUID().toString()
+    private val TRANSAKSJONS_ID_INSENDING_STARTED = UUID.randomUUID().toString()
+    private val REQUEST = mockRequest()
+    private val JOURNALPOST_ID = "jp-789"
 
-    fun setup() {
+    private fun setup() {
         forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
         forespoerselRepository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
         forespoerselRepository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)

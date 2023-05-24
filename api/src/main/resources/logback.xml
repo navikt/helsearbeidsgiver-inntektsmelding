@@ -6,7 +6,7 @@
     <root level="info">
         <appender-ref ref="STDOUT_JSON" />
     </root>
-    <logger name="no.nav" level="DEBUG">
+    <logger name="no.nav" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT_JSON" />
     </logger>
 

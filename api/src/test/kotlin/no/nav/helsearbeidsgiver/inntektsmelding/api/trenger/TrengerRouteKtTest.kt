@@ -40,7 +40,7 @@ import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.TRENGER
 
-@Disabled
+
 class TrengerRouteKtTest : ApiTest() {
 
     @Test

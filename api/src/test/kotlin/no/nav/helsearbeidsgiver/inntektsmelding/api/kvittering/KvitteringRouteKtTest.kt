@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
-@Disabled
+
 class KvitteringRouteKtTest : ApiTest() {
 
     private val UGYLDIG_UUID = "id_123"

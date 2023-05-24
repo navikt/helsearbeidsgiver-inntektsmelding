@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-@Disabled
 class AuthorizationTest : ApiTest() {
 
     @Test

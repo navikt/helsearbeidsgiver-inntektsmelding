@@ -37,7 +37,6 @@ import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.INNSENDING + "/${MockUuid.STRING}"
 
-@Disabled
 class InnsendingRouteKtTest : ApiTest() {
     val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson)
     val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(

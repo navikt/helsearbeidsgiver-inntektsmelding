@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class LagreForespoersel(rapidsConnection: RapidsConnection, val repository: ForespoerselRepository) : Løser(rapidsConnection) {
+class LagreForespoersel(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) : Løser(rapidsConnection) {
 
     private val sikkerLogger = sikkerLogger()
 

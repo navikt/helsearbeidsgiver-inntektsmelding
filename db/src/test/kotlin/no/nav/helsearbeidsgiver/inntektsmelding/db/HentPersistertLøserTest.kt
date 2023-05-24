@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class HentPersistertLøserTest {
+class HentPersistertLøserTest {
 
     private val rapid = TestRapid()
     private var løser: HentPersistertLøser

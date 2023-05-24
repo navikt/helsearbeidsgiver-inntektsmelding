@@ -44,10 +44,9 @@ class RedisPoller {
     suspend fun getString(key: String, maxRetries: Int, waitMillis: Long): String {
         repeat(maxRetries) {
             logger.debug("Polling redis: $it time(s) for key $key")
-            val str = syncCommands.get(key)
-
-            if (!str.isNullOrEmpty()) return str
-
+            if ( syncCommands.exists(key) == 1.toLong() ) {
+                return syncCommands.get(key)
+            }
             delay(waitMillis)
         }
 

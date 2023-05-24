@@ -352,26 +352,27 @@ components:
         - TidligereVirksomhet
     NaturalytelseKode:
       type: string
+
       enum:
-        - AksjerGrunnfondsbevisTilUnderkurs
-        - Losji
-        - KostDoegn
-        - BesoeksreiserHjemmetAnnet
-        - KostbesparelseIHjemmet
-        - RentefordelLaan
-        - Bil
-        - KostDager
-        - Bolig
-        - SkattepliktigDelForsikringer
-        - FriTransport
-        - Opsjoner
-        - TilskuddBarnehageplass
-        - Annet
-        - Bedriftsbarnehageplass
-        - YrkebilTjenestligbehovKilometer
-        - YrkebilTjenestligbehovListepris
-        - InnbetalingTilUtenlandskPensjonsordning
-        - ElektroniskKommunikasjon
+        - AKSJERGRUNNFONDSBEVISTILUNDERKURS
+        - LOSJI
+        - KOSTDOEGN
+        - BESOEKSREISERHJEMMETANNET
+        - KOSTBESPARELSEIHJEMMET
+        - RENTEFORDELLAAN
+        - BIL
+        - KOSTDAGER
+        - BOLIG
+        - SKATTEPLIKTIGDELFORSIKRINGER
+        - FRITRANSPORT
+        - OPSJONER
+        - TILSKUDDBARNEHAGEPLASS
+        - ANNET
+        - BEDRIFTSBARNEHAGEPLASS
+        - YRKEBILTJENESTLIGBEHOVKILOMETER
+        - YRKEBILTJENESTLIGBEHOVLISTEPRIS
+        - INNBETALINGTILUTENLANDSKPENSJONSORDNING
+        - ELEKTRONISKKOMMUNIKASJON
     Naturalytelse:
       required:
         - naturalytelse

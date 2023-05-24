@@ -34,12 +34,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationRespons
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.TRENGER
-
 
 class TrengerRouteKtTest : ApiTest() {
 

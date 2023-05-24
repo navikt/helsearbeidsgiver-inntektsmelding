@@ -16,11 +16,10 @@ class RedisPoller {
         Env.Redis.url
     )
     private lateinit var connection: StatefulRedisConnection<String, String>
-    private lateinit var syncCommands : RedisCommands<String, String>
+    private lateinit var syncCommands: RedisCommands<String, String>
     private val sikkerLogger = sikkerLogger()
 
-
-    private fun redisCommand() : RedisCommands<String, String> {
+    private fun redisCommand(): RedisCommands<String, String> {
         if (connection == null) {
             connection = redisClient.connect()
             syncCommands = connection.sync()

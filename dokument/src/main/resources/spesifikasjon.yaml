@@ -154,6 +154,9 @@ components:
       properties:
         typpe:
           type: string
+    Nyansatt:
+      allOf:
+        - $ref: '#/components/schemas/InntektEndringAarsak'
     Tariffendring:
       required:
         - gjelderFra
@@ -167,6 +170,16 @@ components:
         bleKjent:
           type: string
           format: date
+    Sykefravaer:
+      required:
+        - liste
+      allOf:
+        - $ref: '#/components/schemas/InntektEndringAarsak'
+      properties:
+        liste:
+          type: array
+          items:
+            $ref: '#/components/schemas/Periode'
     Ferie:
       required:
         - liste
@@ -233,9 +246,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Periode'
-    Nyansatt:
-      allOf:
-        - $ref: '#/components/schemas/InntektEndringAarsak'
 
     InntektsmeldingDokument:
       type: object

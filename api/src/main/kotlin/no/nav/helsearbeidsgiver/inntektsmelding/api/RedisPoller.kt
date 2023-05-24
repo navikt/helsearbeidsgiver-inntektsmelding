@@ -13,6 +13,8 @@ class RedisPoller {
     private val redisClient = RedisClient.create(
         Env.Redis.url
     )
+    private val connection = redisClient.connect()
+    private val syncCommands = connection.sync()
     private val sikkerLogger = sikkerLogger()
 
     suspend fun hent(key: String, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
@@ -40,15 +42,13 @@ class RedisPoller {
     }
 
     suspend fun getString(key: String, maxRetries: Int, waitMillis: Long): String {
-        redisClient.connect().use { connection ->
-            repeat(maxRetries) {
-                logger.debug("Polling redis: $it time(s) for key $key")
-                val str = connection.sync().get(key)
+        repeat(maxRetries) {
+            logger.debug("Polling redis: $it time(s) for key $key")
+            val str = syncCommands.get(key)
 
-                if (!str.isNullOrEmpty()) return str
+            if (!str.isNullOrEmpty()) return str
 
-                delay(waitMillis)
-            }
+            delay(waitMillis)
         }
 
         throw RedisPollerTimeoutException(key)

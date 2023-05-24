@@ -1,11 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import com.fasterxml.jackson.databind.JsonMappingException
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
-import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest

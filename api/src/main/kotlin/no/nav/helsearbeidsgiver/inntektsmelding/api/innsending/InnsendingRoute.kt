@@ -74,6 +74,7 @@ fun RouteExtra.InnsendingRoute() {
                 }
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for forespørselId: $forespoerselId og transaksjonsID $transaksjonId")
+                logger.info(it.toString())
                 respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
             }
         }

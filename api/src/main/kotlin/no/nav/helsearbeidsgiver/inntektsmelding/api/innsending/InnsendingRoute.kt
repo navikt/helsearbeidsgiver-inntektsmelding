@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
@@ -53,16 +54,12 @@ fun RouteExtra.InnsendingRoute() {
                 transaksjonId = producer.publish(forespoerselId, request)
                 logger.info("Publiserte til rapid med forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
 
-                val resultat = redis.getString(transaksjonId, 10, 500) // .getResultat(transaksjonId, 10, 500)
+                val resultat = redis.getResultat(transaksjonId, 10, 500) // .getResultat(transaksjonId, 10, 500)
                 sikkerLogger.info("Fikk resultat: $resultat")
 
                 //    val mapper = InnsendingMapper(forespoerselId, resultat)
-                call.respond(
-                    status = HttpStatusCode.OK,
-                    message = resultat
-                )
-
-                //  respond(HttpStatusCode.OK, resultat) // mapper.getStatus(), mapper.getResponse(), InnsendingResponse.serializer())
+                val mapper = InnsendingMapper(forespoerselId, resultat)
+                respond(mapper.getStatus(), mapper.getResponse(), InnsendingResponse.serializer())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
                 respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())

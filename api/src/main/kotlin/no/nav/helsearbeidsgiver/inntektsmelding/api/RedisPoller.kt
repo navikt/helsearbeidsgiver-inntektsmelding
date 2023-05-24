@@ -20,7 +20,7 @@ class RedisPoller {
     private val sikkerLogger = sikkerLogger()
 
     private fun redisCommand(): RedisCommands<String, String> {
-        if (connection == null) {
+        if (!::connection.isInitialized) {
             connection = redisClient.connect()
             syncCommands = connection.sync()
         }

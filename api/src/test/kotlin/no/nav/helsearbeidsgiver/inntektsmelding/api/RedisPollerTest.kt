@@ -21,11 +21,11 @@ import org.junit.jupiter.api.assertThrows
 class RedisPollerTest {
     private val id = "123"
     private val løsningSuccess = "noe data".toLøsningSuccess().toJson(String.serializer().løsning())
-    private val gyldigRedisInnholdListe = List(4) { "" } + løsningSuccess.toString()
+    private val gyldigRedisInnhold = løsningSuccess.toString()
 
     @Test
     fun `skal finne med tillatt antall forsøk`() {
-        val redisPoller = mockRedisPoller(gyldigRedisInnholdListe)
+        val redisPoller = mockRedisPoller(gyldigRedisInnhold, 4)
 
         val json = runBlocking {
             redisPoller.hent(id, 5, 0)
@@ -36,7 +36,7 @@ class RedisPollerTest {
 
     @Test
     fun `skal gi opp etter flere forsøk`() {
-        val redisPoller = mockRedisPoller(gyldigRedisInnholdListe)
+        val redisPoller = mockRedisPoller(gyldigRedisInnhold, 5)
 
         assertThrows<RedisPollerTimeoutException> {
             runBlocking {
@@ -47,7 +47,7 @@ class RedisPollerTest {
 
     @Test
     fun `skal ikke finne etter maks forsøk`() {
-        val redisPoller = mockRedisPoller(gyldigRedisInnholdListe)
+        val redisPoller = mockRedisPoller(gyldigRedisInnhold, 5)
 
         assertThrows<RedisPollerTimeoutException> {
             runBlocking {
@@ -73,10 +73,10 @@ class RedisPollerTest {
             }
         """
 
-        val redisPoller = mockRedisPoller(listOf(expectedJson))
+        val redisPoller = mockRedisPoller(expectedJson, 0)
 
         runBlocking {
-            val resultat = redisPoller.getResultat(id, 1, 0)
+            val resultat = redisPoller.getResultat(id, 5, 0)
             resultat shouldBe expected
         }
     }

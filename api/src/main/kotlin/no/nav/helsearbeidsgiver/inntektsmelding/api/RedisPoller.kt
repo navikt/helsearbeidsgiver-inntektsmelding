@@ -53,7 +53,7 @@ class RedisPoller {
 
     suspend fun getString(key: String, maxRetries: Int, waitMillis: Long): String {
         repeat(maxRetries) {
-            logger.debug("Polling redis: $it time(s) for key $key")
+            sikkerLogger.debug("Polling redis: $it time(s) for key $key")
             if (redisCommand().exists(key) == 1.toLong()) {
                 return syncCommands.get(key)
             }

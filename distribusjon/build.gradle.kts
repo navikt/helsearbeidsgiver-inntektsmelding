@@ -1,4 +1,0 @@
-
-dependencies {
-    implementation(kotlin("stdlib"))
-}

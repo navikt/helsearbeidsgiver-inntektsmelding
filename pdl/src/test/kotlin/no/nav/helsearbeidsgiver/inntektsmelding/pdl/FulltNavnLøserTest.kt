@@ -46,7 +46,7 @@ internal class FulltNavnLøserTest {
         } returns mockPerson("Ola", "", "Normann", LocalDate.now())
         val løsning = sendMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.EVENT_FOR_TEST,
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to listOf(BEHOV.name),
                 Key.ID.str to UUID.randomUUID(),
                 Key.IDENTITETSNUMMER.str to "abc"
@@ -61,7 +61,7 @@ internal class FulltNavnLøserTest {
     fun `skal håndtere ukjente feil`() {
         val løsning = sendMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.EVENT_FOR_TEST,
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to listOf(BEHOV.name),
                 Key.ID.str to UUID.randomUUID(),
                 Key.IDENTITETSNUMMER.str to "abc"

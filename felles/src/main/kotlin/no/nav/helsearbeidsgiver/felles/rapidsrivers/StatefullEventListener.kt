@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class StatefullEventListener(
-    val redisStore: RedisStore,
+    val redisStore: IRedisStore,
     override val event: EventName,
     val dataFelter: Array<String>,
     override val mainListener: River.PacketListener,

@@ -39,7 +39,6 @@ class DataKanalTest {
                 )
             ).toJson()
         )
-        Thread.sleep(1000)
         assert(testDataKanal.invocations == 1)
     }
 
@@ -65,7 +64,6 @@ class DataKanalTest {
                 )
             ).toJson()
         )
-        Thread.sleep(1000)
         assert(testDataKanal.invocations == 0)
     }
 

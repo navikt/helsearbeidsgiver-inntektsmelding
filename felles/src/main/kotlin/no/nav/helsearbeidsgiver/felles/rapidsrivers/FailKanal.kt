@@ -28,6 +28,7 @@ abstract class FailKanal(val rapidsConnection: RapidsConnection) : River.PacketL
             it.demandKey(Key.FAIL.str)
             it.rejectKey(Key.BEHOV.str)
             it.rejectKey(Key.LØSNING.str)
+            it.rejectKey(Key.DATA.str)
             it.requireKey(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }

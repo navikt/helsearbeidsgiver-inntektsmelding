@@ -38,9 +38,9 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
         }
     }
     fun publishBehov(message: JsonMessage) {
-        message.set(Key.EVENT_NAME.str, event.name)
+        message[Key.EVENT_NAME.str] = event.name
         if (forespørselId.isNotEmpty()) {
-            message.set(Key.FORESPOERSEL_ID.str, forespørselId)
+            message[Key.FORESPOERSEL_ID.str] = forespørselId
         }
         rapidsConnection.publish(message.toJson())
     }

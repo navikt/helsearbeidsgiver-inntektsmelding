@@ -18,9 +18,9 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-internal class AkkumulatorTest {
+class AkkumulatorTest {
 
     private val rapid = TestRapid()
     private val redisStore = mockk<RedisStore>()
@@ -40,12 +40,12 @@ internal class AkkumulatorTest {
     private val BEHOV_BRREG = BehovType.VIRKSOMHET.toString()
     private val BEHOV_ARBEIDSGIVERE = BehovType.ARBEIDSGIVERE.toString()
 
-    private val UUID_BRREG = "uuid_" + BEHOV_BRREG
-    private val UUID_PDL = "uuid_" + BEHOV_FULLT_NAVN
+    private val UUID_BRREG = "uuid_$BEHOV_BRREG"
+    private val UUID_PDL = "uuid_$BEHOV_FULLT_NAVN"
 
-    val LØSNING_FEIL = NavnLøsning(error = Feilmelding("Fikk 500"))
-    val LØSNING_OK = NavnLøsning(value = PersonDato("abc", LocalDate.now()))
-    val PDL_OK = NavnLøsning(value = PersonDato("xyz", LocalDate.now()))
+    private val LØSNING_FEIL = NavnLøsning(error = Feilmelding("Fikk 500"))
+    private val LØSNING_OK = NavnLøsning(value = PersonDato("abc", LocalDate.now()))
+    private val PDL_OK = NavnLøsning(value = PersonDato("xyz", LocalDate.now()))
 
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

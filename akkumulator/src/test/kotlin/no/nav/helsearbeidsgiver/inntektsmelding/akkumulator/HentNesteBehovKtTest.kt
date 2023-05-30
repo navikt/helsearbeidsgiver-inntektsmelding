@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-internal class HentNesteBehovKtTest {
+class HentNesteBehovKtTest {
 
     private val FULLT_NAVN_OK = NavnLøsning(value = PersonDato("xyz", LocalDate.now()))
     private val objectMapper = ObjectMapper()
@@ -76,7 +76,7 @@ internal class HentNesteBehovKtTest {
         assertEquals(3, neste_behov.size(), "neste_behov skal inneholde resten")
     }
 
-    fun sendMelding(melding: Map<String, Any>): JsonNode {
+    private fun sendMelding(melding: Map<String, Any>): JsonNode {
         val packet = JsonMessage.newMessage(melding)
         val results = objectMapper.createObjectNode()
         val løsning1 = objectMapper.createObjectNode()

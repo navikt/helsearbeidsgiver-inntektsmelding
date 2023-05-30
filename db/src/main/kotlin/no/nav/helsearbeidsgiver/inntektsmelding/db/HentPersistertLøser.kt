@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 private const val EMPTY_PAYLOAD = "{}"
 
-class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: InntektsmeldingRepository) : Løser(rapidsConnection) {
+class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Løser(rapidsConnection) {
 
     private val BEHOV = BehovType.HENT_PERSISTERT_IM
     private val logger = logger()
@@ -34,7 +34,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        eventName = EventName.valueOf(packet.get(Key.EVENT_NAME.str).asText())
+        eventName = EventName.valueOf(packet[Key.EVENT_NAME.str].asText())
         onBehov(packet)
     }
 
@@ -47,12 +47,12 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
         var løsning = HentPersistertLøsning(error = Feilmelding("Klarte ikke hente persistert inntektsmelding"))
         try {
             val dokument = repository.hentNyeste(forespoerselId)
-            if (dokument == null) {
+            løsning = if (dokument == null) {
                 logger.info("Fant IKKE persistert inntektsmelding for forespørselId $forespoerselId")
-                løsning = HentPersistertLøsning("")
+                HentPersistertLøsning("")
             } else {
                 sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
-                løsning = HentPersistertLøsning(dokument.toString())
+                HentPersistertLøsning(dokument.toString())
             }
             publiserLøsning(løsning, packet)
             publiserData(packet, dokument)
@@ -75,7 +75,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, val repository: I
         rapidsConnection.publish(message.toJson())
     }
 
-    fun publiserLøsning(løsning: HentPersistertLøsning, packet: JsonMessage) {
+    private fun publiserLøsning(løsning: HentPersistertLøsning, packet: JsonMessage) {
         sikkerLogger.info("sender løsning: " + packet.toJson())
         packet.setLøsning(BEHOV, løsning)
         rapidsConnection.publish(packet.toJson())

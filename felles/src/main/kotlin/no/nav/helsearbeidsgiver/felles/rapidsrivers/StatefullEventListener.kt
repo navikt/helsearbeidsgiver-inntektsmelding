@@ -5,14 +5,13 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class StatefullEventListener(
-    val redisStore: RedisStore,
+    val redisStore: IRedisStore,
     override val event: EventName,
-    val dataFelter: Array<String>,
+    private val dataFelter: Array<String>,
     override val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection
 ) : DelegatingEventListener(
@@ -23,11 +22,11 @@ class StatefullEventListener(
         it.interestedIn(*dataFelter)
     }
 
-    fun collectData(packet: JsonMessage) {
+    private fun collectData(packet: JsonMessage) {
         var uuid = packet[Key.UUID.str].asText()
         if (uuid.isNullOrEmpty()) {
             uuid = UUID.randomUUID().toString()
-            packet.set(Key.UUID.str, uuid)
+            packet[Key.UUID.str] = uuid
         }
         dataFelter.map { dataFelt ->
             Pair(dataFelt, packet[dataFelt])

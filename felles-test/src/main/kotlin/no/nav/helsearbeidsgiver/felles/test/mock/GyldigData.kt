@@ -16,11 +16,8 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 
 object TestData {
-    val validIdentitetsnummer = "20015001543"
-    val notValidIdentitetsnummer = "50012001987"
-    val notValidIdentitetsnummerInvalidCheckSum2 = "20015001544"
-    val validOrgNr = "123456785"
-    val notValidOrgNr = "123456789"
+    const val validIdentitetsnummer = "20015001543"
+    const val validOrgNr = "123456785"
 }
 
 val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
@@ -49,7 +46,7 @@ val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
     Refusjon(true, 200.0.toBigDecimal(), LocalDate.now()),
     listOf(
         Naturalytelse(
-            NaturalytelseKode.KOST_DOEGN,
+            NaturalytelseKode.KOSTDOEGN,
             LocalDate.now(),
             300.0.toBigDecimal()
         )

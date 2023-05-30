@@ -13,8 +13,8 @@ import java.util.UUID
 
 class DelegatingFailKanalTest {
 
-    val testRapid = TestRapid()
-    val mockPacketListener: River.PacketListener = mockk()
+    private val testRapid = TestRapid()
+    private val mockPacketListener: River.PacketListener = mockk()
     val failKanal = DelegatingFailKanal(EventName.INSENDING_STARTED, mockPacketListener, testRapid)
 
     @Test

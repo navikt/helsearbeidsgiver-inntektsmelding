@@ -16,11 +16,8 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 
 object TestData {
-    val validIdentitetsnummer = "20015001543"
-    val notValidIdentitetsnummer = "50012001987"
-    val notValidIdentitetsnummerInvalidCheckSum2 = "20015001544"
-    val validOrgNr = "123456785"
-    val notValidOrgNr = "123456789"
+    const val validIdentitetsnummer = "20015001543"
+    const val validOrgNr = "123456785"
 }
 
 val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(

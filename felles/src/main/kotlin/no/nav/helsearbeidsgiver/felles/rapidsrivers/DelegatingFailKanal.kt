@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 
 class DelegatingFailKanal(
     override val eventName: EventName,
-    val mainListener: River.PacketListener,
+    private val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection
 ) : FailKanal(rapidsConnection) {
     override fun onFail(packet: JsonMessage) {

@@ -30,7 +30,7 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
 
     fun getConstraintViolations(): List<ConstraintViolation> {
         return findAll()
-            .filter { it.error != null && it.error!!.melding.isNotBlank() }
+            .filter { !it.error?.melding.isNullOrBlank() }
             .map { mapConstraint(it) }
     }
 

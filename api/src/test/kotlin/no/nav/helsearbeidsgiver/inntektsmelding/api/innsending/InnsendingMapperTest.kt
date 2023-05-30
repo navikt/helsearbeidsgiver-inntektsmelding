@@ -31,7 +31,7 @@ class InnsendingMapperTest {
 
     @Test
     fun `skal kaste constraints exception når feil oppstår`() {
-        val mapper = buildMapper(true, to = false)
+        val mapper = buildMapper(en = true, to = false)
         assertThrows<ConstraintViolationException> {
             mapper.getResponse()
         }

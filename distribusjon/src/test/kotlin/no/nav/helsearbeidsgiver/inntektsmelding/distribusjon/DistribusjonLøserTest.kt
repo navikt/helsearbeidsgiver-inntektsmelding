@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
 
-internal class DistribusjonLøserTest {
+class DistribusjonLøserTest {
 
     private val rapid = TestRapid()
     private var løser: DistribusjonLøser
@@ -35,7 +35,7 @@ internal class DistribusjonLøserTest {
             Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
             Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
             Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            Key.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument()
+            Key.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
         )
         sendMelding(mld)
         val melding = rapid.inspektør.message(0)

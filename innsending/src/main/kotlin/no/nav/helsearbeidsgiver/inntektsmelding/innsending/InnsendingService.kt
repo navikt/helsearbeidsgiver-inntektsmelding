@@ -18,7 +18,10 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventList
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.utils.log.logger
 
-class InnsendingService(val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
+class InnsendingService(
+    private val rapidsConnection: RapidsConnection,
+    override val redisStore: IRedisStore
+) : CompositeEventListener(redisStore) {
 
     override val event: EventName = EventName.INSENDING_STARTED
 
@@ -173,13 +176,13 @@ class InnsendingService(val rapidsConnection: RapidsConnection, override val red
     }
 
     override fun initialTransactionState(message: JsonMessage) {
-        val uuid = message.get(Key.UUID.str).asText()
+        val uuid = message[Key.UUID.str].asText()
         val requestKey = "${uuid}${Key.INNTEKTSMELDING.str}"
         val forespoerselKey = "${uuid}${Key.FORESPOERSEL_ID.str}"
         redisStore.set(requestKey, message[Key.INNTEKTSMELDING.str].toString())
         redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].asText())
     }
-    fun step1data(uuid: String): Array<String> = arrayOf(
+    private fun step1data(uuid: String): Array<String> = arrayOf(
         uuid + DataFelter.VIRKSOMHET.str,
         uuid + DataFelter.ARBEIDSFORHOLD.str,
         uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str

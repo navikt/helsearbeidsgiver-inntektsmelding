@@ -17,8 +17,8 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class LagreJournalpostIdLøser(
     rapidsConnection: RapidsConnection,
-    val repository: InntektsmeldingRepository,
-    val forespoerselRepository: ForespoerselRepository
+    private val repository: InntektsmeldingRepository,
+    private val forespoerselRepository: ForespoerselRepository
 ) :
     Løser(rapidsConnection) {
 
@@ -57,7 +57,7 @@ class LagreJournalpostIdLøser(
         }
     }
 
-    fun publiser(
+    private fun publiser(
         uuid: String,
         forespoerselId: String,
         journalpostId: String,
@@ -80,7 +80,7 @@ class LagreJournalpostIdLøser(
         publishEvent(jsonMessage)
     }
 
-    fun publiserFeil(feilmelding: Feilmelding, packet: JsonMessage) {
+    private fun publiserFeil(feilmelding: Feilmelding, packet: JsonMessage) {
         val fail = JsonMessage.newMessage(
             mapOf(
                 Key.FAIL.str to feilmelding,
@@ -88,11 +88,5 @@ class LagreJournalpostIdLøser(
             )
         )
         publishBehov(fail)
-    }
-
-    private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this[Key.LØSNING.str] = mapOf(
-            nøkkel.name to data
-        )
     }
 }

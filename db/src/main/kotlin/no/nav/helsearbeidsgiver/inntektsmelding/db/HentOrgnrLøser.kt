@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class HentOrgnrLøser(rapidsConnection: RapidsConnection, val repository: ForespoerselRepository) : River.PacketListener {
+class HentOrgnrLøser(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) : River.PacketListener {
 
     private val BEHOV = BehovType.HENT_IM_ORGNR
     private val logger = logger()
@@ -49,7 +49,7 @@ class HentOrgnrLøser(rapidsConnection: RapidsConnection, val repository: Foresp
         }
     }
 
-    fun publiserLøsning(løsning: HentImOrgnrLøsning, packet: JsonMessage, context: MessageContext) {
+    private fun publiserLøsning(løsning: HentImOrgnrLøsning, packet: JsonMessage, context: MessageContext) {
         packet.setLøsning(BEHOV, løsning)
         context.publish(packet.toJson())
     }

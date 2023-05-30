@@ -18,9 +18,7 @@ object Pri {
         BOOMERANG("boomerang"),
         ORGNR("orgnr"),
         FNR("fnr"),
-        FORESPOERSEL_ID("forespoerselId"),
-        RESULTAT("resultat"),
-        FEIL("feil");
+        FORESPOERSEL_ID("forespoerselId");
 
         override fun toString(): String =
             str

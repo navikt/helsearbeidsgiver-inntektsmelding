@@ -10,7 +10,7 @@ class Database(
 ) {
     val dataSource by lazy { HikariDataSource(dbConfig) }
     val db by lazy { ExposedDatabase.connect(dataSource) }
-    val config = dbConfig
+    private val config = dbConfig
     fun migrate() {
         migrationConfig(config)
             .let(::HikariDataSource)

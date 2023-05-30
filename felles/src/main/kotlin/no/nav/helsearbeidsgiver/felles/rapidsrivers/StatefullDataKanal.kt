@@ -13,7 +13,7 @@ class StatefullDataKanal(
     override val eventName: EventName,
     private val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,
-    val redisStore: RedisStore
+    val redisStore: IRedisStore
 ) : DataKanal(
     rapidsConnection
 ) {
@@ -26,8 +26,6 @@ class StatefullDataKanal(
                 it.interestedIn(datafelt)
             }
         }
-    }
-    fun validate(packet: JsonMessage) {
     }
 
     override fun onData(packet: JsonMessage) {

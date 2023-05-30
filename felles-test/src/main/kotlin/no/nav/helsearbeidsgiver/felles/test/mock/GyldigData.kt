@@ -46,7 +46,7 @@ val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
     Refusjon(true, 200.0.toBigDecimal(), LocalDate.now()),
     listOf(
         Naturalytelse(
-            NaturalytelseKode.KOST_DOEGN,
+            NaturalytelseKode.KOSTDOEGN,
             LocalDate.now(),
             300.0.toBigDecimal()
         )

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -28,13 +29,13 @@ fun createApp(environment: Environment): RapidsConnection {
     return rapidsConnection
 }
 
-fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection {
+fun RapidsConnection.createInnsending(redisStore: IRedisStore): RapidsConnection {
     InnsendingService(this, redisStore)
     KvitteringServiceExperimental(this, redisStore)
     return this
 }
 
-fun buildRedisStore(environment: Environment): RedisStore {
+fun buildRedisStore(environment: Environment): IRedisStore {
     sikkerLogger.info("Redis url er " + environment.redisUrl)
     return RedisStore(environment.redisUrl)
 }

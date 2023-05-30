@@ -9,11 +9,11 @@ import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class StatefullDataKanal(
-    val dataFelter: Array<String>,
+    private val dataFelter: Array<String>,
     override val eventName: EventName,
-    val mainListener: River.PacketListener,
+    private val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,
-    val redisStore: RedisStore
+    val redisStore: IRedisStore
 ) : DataKanal(
     rapidsConnection
 ) {
@@ -26,8 +26,6 @@ class StatefullDataKanal(
                 it.interestedIn(datafelt)
             }
         }
-    }
-    fun validate(packet: JsonMessage) {
     }
 
     override fun onData(packet: JsonMessage) {
@@ -47,7 +45,7 @@ class StatefullDataKanal(
         }
     }
 
-    fun collectData(message: JsonMessage): Boolean {
+    private fun collectData(message: JsonMessage): Boolean {
         // Akkuratt nå bare svarer med 1 data element men kan svare med mange
         val data = dataFelter.filter { dataFelt ->
             !message[dataFelt].isMissingNode

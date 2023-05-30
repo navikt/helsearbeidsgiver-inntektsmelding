@@ -21,10 +21,9 @@ fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
     logger.info("Migrering ferdig.")
     val imRepo = InntektsmeldingRepository(database.db)
     val forespoerselRepo = ForespoerselRepository(database.db)
-    val rapid = RapidApplication
+    return RapidApplication
         .create(env)
         .createDb(database, imRepo, forespoerselRepo)
-    return rapid
 }
 
 fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingRepository, forespoerselRepo: ForespoerselRepository): RapidsConnection {

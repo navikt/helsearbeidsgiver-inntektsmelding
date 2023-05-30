@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
-internal class MapInntektsmeldingDokumentTest {
+class MapInntektsmeldingDokumentTest {
 
     @Test
     fun testmapInntektsmeldingDokument() {

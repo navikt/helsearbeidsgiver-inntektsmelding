@@ -18,7 +18,10 @@ import org.apache.kafka.clients.producer.ProducerRecord
 
 private const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
 
-class DistribusjonLøser(rapidsConnection: RapidsConnection, val kafkaProducer: KafkaProducer<String, String>) : Løser(rapidsConnection) {
+class DistribusjonLøser(
+    rapidsConnection: RapidsConnection,
+    private val kafkaProducer: KafkaProducer<String, String>
+) : Løser(rapidsConnection) {
 
     private val logger = logger()
 
@@ -34,7 +37,7 @@ class DistribusjonLøser(rapidsConnection: RapidsConnection, val kafkaProducer: 
         }
     }
 
-    fun hentInntektsmeldingDokument(packet: JsonMessage): InntektsmeldingDokument {
+    private fun hentInntektsmeldingDokument(packet: JsonMessage): InntektsmeldingDokument {
         try {
             return customObjectMapper().treeToValue(
                 packet[Key.INNTEKTSMELDING_DOKUMENT.str],

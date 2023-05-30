@@ -23,7 +23,6 @@ enum class Key(val str: String) {
     OPPRETTET("@opprettet"),
 
     // Egendefinerte
-    NOTIS("notis"),
     BOOMERANG("boomerang"),
     SESSION("session"),
     NESTE_BEHOV("neste_behov"),
@@ -40,7 +39,6 @@ enum class Key(val str: String) {
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
     JOURNALPOST_ID("journalpostId"),
     INNTEKT_DATO("inntektDato"),
-    NAVN("navn"),
     DATA("data"),
     FAIL("fail");
 

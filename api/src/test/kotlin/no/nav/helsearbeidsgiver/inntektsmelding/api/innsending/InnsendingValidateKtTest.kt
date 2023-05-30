@@ -5,6 +5,8 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
@@ -180,8 +182,8 @@ class InnsendingValidateKtTest {
         assertThrows<ConstraintViolationException> {
             GYLDIG_INNSENDING_REQUEST.copy(
                 naturalytelser = listOf(
-                    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
-                        no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
+                    Naturalytelse(
+                        NaturalytelseKode.YRKEBILTJENESTLIGBEHOVKILOMETER,
                         NOW,
                         NEGATIVT_BELØP
                     )
@@ -195,8 +197,8 @@ class InnsendingValidateKtTest {
         assertThrows<ConstraintViolationException> {
             GYLDIG_INNSENDING_REQUEST.copy(
                 naturalytelser = listOf(
-                    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
-                        no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
+                    Naturalytelse(
+                        NaturalytelseKode.BOLIG,
                         NOW,
                         MAX_NATURAL_BELØP
                     )
@@ -217,8 +219,8 @@ class InnsendingValidateKtTest {
         try {
             GYLDIG_INNSENDING_REQUEST.copy(
                 naturalytelser = listOf(
-                    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
-                        no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
+                    Naturalytelse(
+                        NaturalytelseKode.INNBETALINGTILUTENLANDSKPENSJONSORDNING,
                         NOW,
                         MAX_NATURAL_BELØP.plus(1.toBigDecimal())
                     )

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.YearMonth
 
-internal class InntektTest {
+class InntektTest {
 
     @Test
     fun `gjennomsnitt av ingen Inntekt er 0`() {

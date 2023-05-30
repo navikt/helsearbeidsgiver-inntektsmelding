@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -16,12 +17,12 @@ fun main() {
         .start()
 }
 
-fun RapidsConnection.createAkkumulator(redisStore: RedisStore): RapidsConnection {
+fun RapidsConnection.createAkkumulator(redisStore: IRedisStore): RapidsConnection {
     logger.info("Starting Akkumulator...")
     Akkumulator(this, redisStore)
     return this
 }
 
-fun buildRedisStore(environment: Environment): RedisStore {
+fun buildRedisStore(environment: Environment): IRedisStore {
     return RedisStore(environment.redisUrl)
 }

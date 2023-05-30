@@ -1,5 +1,3 @@
-@file:Suppress("NonAsciiCharacters")
-
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest

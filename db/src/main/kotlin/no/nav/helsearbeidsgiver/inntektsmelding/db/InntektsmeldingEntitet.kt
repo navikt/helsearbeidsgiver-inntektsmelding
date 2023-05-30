@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
+
 object InntektsmeldingEntitet : Table("inntektsmelding") {
     val id = integer("id").autoIncrement(
         idSeqName = "inntektsmelding_id_seq"
@@ -32,7 +33,6 @@ class JsonColumnType<T : Any>(private val clazz: Class<T>) : ColumnType() {
 
     override fun valueFromDB(value: Any): T = customObjectMapper().readValue(value as String, clazz)
 
-    @Suppress("UNCHECKED_CAST")
     override fun notNullValueToDB(value: Any): String =
         customObjectMapper().writeValueAsString(value)
 

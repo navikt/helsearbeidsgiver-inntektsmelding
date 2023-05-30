@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class LagreJournalpostIdLøserTest {
+class LagreJournalpostIdLøserTest {
 
     private val rapid = TestRapid()
     private var løser: LagreJournalpostIdLøser

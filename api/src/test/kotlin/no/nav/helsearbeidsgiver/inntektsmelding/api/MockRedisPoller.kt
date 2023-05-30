@@ -7,12 +7,13 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.felles.test.mock.mockStatic
 
-fun mockRedisPoller(answers: List<String>): RedisPoller {
+fun mockRedisPoller(answers: String, attemptsBeforeSuccess: Int): RedisPoller {
     val command = mockk<RedisCommands<String, String>> {
-        every { this@mockk.get(any()) } returnsMany answers
+        every { this@mockk.get(any()) } returns answers
+        every { this@mockk.exists(any()) } returnsMany List(attemptsBeforeSuccess) { 0L } + 1L
     }
 
-    val connection = mockk<StatefulRedisConnection<String, String>> {
+    val connection = mockk<StatefulRedisConnection<String, String>>(relaxed = true) {
         every { sync() } returns command
         every { use {} } returns Unit
     }

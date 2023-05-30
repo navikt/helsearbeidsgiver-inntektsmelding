@@ -182,4 +182,4 @@ jobs:
           CLUSTER: ${{ matrix.cluster }}
           IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_PREFIX }}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}
           RESOURCE: config/nais.yml
-          VAR: team=helsearbeidsgiver,app=${{ matrix.project }}
+          VAR: app=${{ matrix.project }}

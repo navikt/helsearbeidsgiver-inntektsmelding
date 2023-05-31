@@ -1,5 +1,5 @@
-val arbeidsgiverNotifikasjonVersion: String by project
+val arbeidsgiverNotifikasjonKlientVersion: String by project
 
 dependencies {
-    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonVersion")
+    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonKlientVersion")
 }

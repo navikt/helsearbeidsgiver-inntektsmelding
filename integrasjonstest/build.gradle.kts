@@ -1,6 +1,6 @@
 val aaregClientVersion: String by project
 val altinnClientVersion: String by project
-val arbeidsgiverNotifikasjonVersion: String by project
+val arbeidsgiverNotifikasjonKlientVersion: String by project
 val brregKlientVersion: String by project
 val dokarkivKlientVersion: String by project
 val exposedVersion: String by project
@@ -35,7 +35,7 @@ dependencies {
 
     implementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")
-    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonVersion")
+    implementation("no.nav.helsearbeidsgiver:arbeidsgiver-notifikasjon-klient:$arbeidsgiverNotifikasjonKlientVersion")
     implementation("no.nav.helsearbeidsgiver:brreg-client:$brregKlientVersion")
     implementation("no.nav.helsearbeidsgiver:dokarkiv-client:$dokarkivKlientVersion")
     implementation("no.nav.helsearbeidsgiver:inntekt-klient:$inntektKlientVersion")

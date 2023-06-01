@@ -132,8 +132,8 @@ class InnsendingService(
                             mapOf(
                                 Key.EVENT_NAME.str to event.name,
                                 Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
-                                DataFelter.VIRKSOMHET.str to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet"),
-                                DataFelter.ARBEIDSTAKER_INFORMASJON.str to (
+                                DataFelt.VIRKSOMHET.str to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet"),
+                                DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
                                     arbeidstakerRedis ?: PersonDato(
                                         "Ukjent navn",
                                         null
@@ -156,14 +156,14 @@ class InnsendingService(
 
     override fun finalize(message: JsonMessage) {
         val uuid: String = message[Key.UUID.str].asText()
-        redisStore.set(uuid, redisStore.get(uuid + Key.INNTEKTSMELDING_DOKUMENT.str)!!)
+        redisStore.set(uuid, redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
         logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                    Key.INNTEKTSMELDING_DOKUMENT.str to message[Key.INNTEKTSMELDING_DOKUMENT.str],
+                    DataFelt.INNTEKTSMELDING_DOKUMENT.str to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str],
                     Key.TRANSACTION_ORIGIN.str to uuid,
                     DataFelt.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!
                 )
@@ -178,9 +178,9 @@ class InnsendingService(
         redisStore.set(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING), message[DataFelt.INNTEKTSMELDING.str])
         redisStore.set(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID), message[Key.FORESPOERSEL_ID.str].asText())
     }
-    private fun step1data(uuid: String): Array<String> = arrayOf(
-        uuid + DataFelter.VIRKSOMHET.str,
-        uuid + DataFelter.ARBEIDSFORHOLD.str,
-        uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str
+    private fun step1data(uuid: String): Array<RedisKey> = arrayOf(
+        RedisKey.of(uuid, DataFelt.VIRKSOMHET),
+        RedisKey.of(uuid, DataFelt.ARBEIDSFORHOLD),
+        RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON)
     )
 }

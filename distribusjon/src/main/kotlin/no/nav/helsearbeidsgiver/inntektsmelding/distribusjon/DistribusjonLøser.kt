@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
@@ -32,7 +33,7 @@ class DistribusjonLøser(
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)
-            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+            it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
             it.requireKey(Key.JOURNALPOST_ID.str)
         }
     }
@@ -40,7 +41,7 @@ class DistribusjonLøser(
     private fun hentInntektsmeldingDokument(packet: JsonMessage): InntektsmeldingDokument {
         try {
             return customObjectMapper().treeToValue(
-                packet[Key.INNTEKTSMELDING_DOKUMENT.str],
+                packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str],
                 InntektsmeldingDokument::class.java
             )
         } catch (ex: Exception) {
@@ -64,7 +65,7 @@ class DistribusjonLøser(
                 JsonMessage.newMessage(
                     mapOf(
                         Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_DISTRIBUERT,
-                        Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                        DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
                         Key.JOURNALPOST_ID.str to journalpostId
                     )
                 )

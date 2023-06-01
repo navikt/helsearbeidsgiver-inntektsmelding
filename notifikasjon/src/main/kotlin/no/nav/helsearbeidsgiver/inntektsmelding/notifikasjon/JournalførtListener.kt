@@ -22,7 +22,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
         River(rapidsConnection).apply {
             validate {
                 it.requireValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_JOURNALFOERT.name)
-                it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+                it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
                 it.interestedIn(Key.UUID.str)
                 it.interestedIn(Key.TRANSACTION_ORIGIN.str)
                 it.requireKey(Key.JOURNALPOST_ID.str)
@@ -57,7 +57,7 @@ class JournalførtListener(val rapidsConnection: RapidsConnection) : River.Packe
                 Key.FORESPOERSEL_ID.str to packet[Key.FORESPOERSEL_ID.str].asText(),
                 DataFelt.OPPGAVE_ID.str to oppgaveId,
                 DataFelt.SAK_ID.str to sakId,
-                Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str]
             )
         )
         rapidsConnection.publish(json)

@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class StatefullDataKanal(
@@ -60,10 +61,10 @@ class StatefullDataKanal(
         return true
     }
 
-    fun isAllDataCollected(uuid: String): Boolean {
-        return redisStore.exist(*dataFelter.map { uuid + it }.toTypedArray()) == dataFelter.size.toLong()
+    fun isAllDataCollected(key: RedisKey): Boolean {
+        return redisStore.exist(*dataFelter.map { key.toString() + it }.toTypedArray()) == dataFelter.size.toLong()
     }
-    fun isDataCollected(vararg keys: String): Boolean {
+    fun isDataCollected(vararg keys: RedisKey): Boolean {
         return redisStore.exist(*keys) == keys.size.toLong()
     }
 }

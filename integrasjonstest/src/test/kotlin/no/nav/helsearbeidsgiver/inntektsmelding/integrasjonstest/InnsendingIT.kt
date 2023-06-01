@@ -168,7 +168,7 @@ internal class InnsendingIT : EndToEndTest() {
         with(filter(EventName.INNTEKTSMELDING_DISTRIBUERT).first()) {
             // Verifiser at inntektsmelding er distribuert på ekstern kafka
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-            assertNotNull(get(Key.INNTEKTSMELDING_DOKUMENT.str))
+            assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         }
     }
 

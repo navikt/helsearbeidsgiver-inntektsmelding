@@ -10,5 +10,6 @@ interface IRedisStore {
     fun get(key: RedisKey): String?
     fun <T : Any> get(key: RedisKey, clazz: Class<T>): T?
     fun exist(vararg keys: String): Long
+    fun exist(vararg keys: RedisKey): Long
     fun shutdown()
 }

@@ -7,6 +7,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
@@ -77,7 +78,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
             mapOf(
                 Key.EVENT_NAME.str to event,
                 Key.DATA.str to "",
-                Key.INNTEKTSMELDING_DOKUMENT.str to (inntektsmeldingDokument ?: EMPTY_PAYLOAD),
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to (inntektsmeldingDokument ?: EMPTY_PAYLOAD),
                 Key.UUID.str to transaksjonsId
             )
         )

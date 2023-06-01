@@ -35,6 +35,10 @@ class MockRedisStore : IRedisStore {
         TODO("Not yet implemented")
     }
 
+    override fun exist(vararg keys: RedisKey): Long {
+        TODO("Not yet implemented")
+    }
+
     override fun shutdown() {
         TODO("Not yet implemented")
     }

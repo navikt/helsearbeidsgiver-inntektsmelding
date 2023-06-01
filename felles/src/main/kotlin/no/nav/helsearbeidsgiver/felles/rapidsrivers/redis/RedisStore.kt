@@ -49,6 +49,12 @@ class RedisStore(redisUrl: String) : IRedisStore {
         return count
     }
 
+    override fun exist(vararg keys: RedisKey): Long {
+        val count = syncCommands.exists(*keys.map { it.toString() }.toTypedArray())
+        sikkerLogger().debug("Checking exist in redis: ${keys.contentToString()} -> $count")
+        return count
+    }
+
     override fun shutdown() {
         connection.close()
         redisClient.shutdown()

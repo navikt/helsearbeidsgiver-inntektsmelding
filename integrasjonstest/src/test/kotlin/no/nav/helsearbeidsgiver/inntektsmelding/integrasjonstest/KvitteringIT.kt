@@ -35,7 +35,7 @@ internal class KvitteringIT : EndToEndTest() {
         assertNotNull(meldinger)
         with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
             // Skal ikke finne inntektsmeldingdokument - men en dummy payload
-            assertEquals(INNTEKTSMELDING_NOT_FOUND, get(Key.INNTEKTSMELDING_DOKUMENT.str).asText())
+            assertEquals(INNTEKTSMELDING_NOT_FOUND, get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText())
             assertEquals(transactionId, get(Key.UUID.str).asText())
         }
     }
@@ -56,9 +56,9 @@ internal class KvitteringIT : EndToEndTest() {
         Thread.sleep(5000)
         assertNotNull(meldinger)
         with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
-            assertNotNull(get(Key.INNTEKTSMELDING_DOKUMENT.str))
+            assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
             // Skal finne inntektsmeldingdokumentet
-            assertNotEquals(INNTEKTSMELDING_NOT_FOUND, get(Key.INNTEKTSMELDING_DOKUMENT.str))
+            assertNotEquals(INNTEKTSMELDING_NOT_FOUND, get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
             assertEquals(transactionId, get(Key.UUID.str).asText())
         }
     }

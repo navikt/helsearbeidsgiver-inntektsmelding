@@ -4,6 +4,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
@@ -57,7 +58,7 @@ class JournalfoerInntektsmeldingMottattListenerTest {
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
                     Key.ID.str to UUID.randomUUID(),
                     Key.UUID.str to "uuid",
-                    Key.INNTEKTSMELDING_DOKUMENT.str to request
+                    DataFelt.INNTEKTSMELDING_DOKUMENT.str to request
                 )
             )
         )

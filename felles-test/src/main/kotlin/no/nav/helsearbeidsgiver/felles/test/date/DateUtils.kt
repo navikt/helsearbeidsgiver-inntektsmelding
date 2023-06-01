@@ -6,7 +6,7 @@ import java.time.Month
 import java.time.YearMonth
 
 // 01.01.2018 er en mandag
-private val defaultAar = 2018
+private const val defaultAar = 2018
 
 val Int.januar get(): LocalDate =
     januar(defaultAar)

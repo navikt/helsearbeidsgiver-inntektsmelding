@@ -14,7 +14,7 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -22,8 +22,8 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 
 class Akkumulator(
-    val rapidsConnection: RapidsConnection,
-    private val redisStore: RedisStore,
+    private val rapidsConnection: RapidsConnection,
+    private val redisStore: IRedisStore,
     private val timeout: Long = 600
 ) : River.PacketListener {
 

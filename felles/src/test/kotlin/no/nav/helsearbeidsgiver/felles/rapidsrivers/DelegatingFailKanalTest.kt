@@ -13,8 +13,8 @@ import java.util.UUID
 
 class DelegatingFailKanalTest {
 
-    val testRapid = TestRapid()
-    val mockPacketListener: River.PacketListener = mockk()
+    private val testRapid = TestRapid()
+    private val mockPacketListener: River.PacketListener = mockk()
     val failKanal = DelegatingFailKanal(EventName.INSENDING_STARTED, mockPacketListener, testRapid)
 
     @Test
@@ -24,7 +24,6 @@ class DelegatingFailKanalTest {
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                    Key.DATA.str to "",
                     Key.UUID.str to UUID.randomUUID().toString(),
                     Key.FAIL.str to "This is a fail"
                 )
@@ -40,7 +39,6 @@ class DelegatingFailKanalTest {
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_REQUESTED,
-                    Key.DATA.str to "",
                     Key.UUID.str to UUID.randomUUID().toString(),
                     Key.FAIL.str to "This is a fail"
                 )

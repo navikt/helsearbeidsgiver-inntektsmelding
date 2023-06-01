@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventList
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 
 open class DefaultEventListener(
-    val dataFelter: Array<String>,
+    private val dataFelter: Array<String>,
     override val redisStore: RedisStore,
     override val event: EventName,
     open val rapidsConnection: RapidsConnection

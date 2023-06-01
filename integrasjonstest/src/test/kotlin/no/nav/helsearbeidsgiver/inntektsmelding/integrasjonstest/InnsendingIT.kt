@@ -12,7 +12,10 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Begrunnelse
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockPerson
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -190,13 +193,13 @@ internal class InnsendingIT : EndToEndTest() {
             ),
             Refusjon(true, 200.0.toBigDecimal(), LocalDate.now()),
             listOf(
-                no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse(
-                    no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode.KOST_DOEGN,
+                Naturalytelse(
+                    NaturalytelseKode.KOSTDOEGN,
                     LocalDate.now(),
                     300.0.toBigDecimal()
                 )
             ),
-            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.ENDRING,
+            ÅrsakInnsending.ENDRING,
             true
         )
     }

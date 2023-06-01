@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 
 @Experimental
 open class DefaultEventListenerWithUserInput(
-    val dataFelter: InputFelter,
+    private val dataFelter: InputFelter,
     override val redisStore: IRedisStore,
     override val event: EventName,
     open val rapidsConnection: RapidsConnection

@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.MessageContext
@@ -51,11 +50,6 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     var inntektKlient = mockk<InntektKlient>()
     var dokarkivClient = mockk<DokArkivClient>()
     var altinnClient = mockk<AltinnClient>()
-    val placeholderSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakKt")
-    val placeholderOppgave = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettOppgaveKt")
-    val placeholderNyStatusSak = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.NyStatusSakByGrupperingsidKt")
-    val placeholderOppgaveUtfoertKt = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OppgaveUtfoertKt")
-    val placeholdernyStatusSakKt = mockkStatic("no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.NyStatusSakKt")
     var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
     var notifikasjonLink = "notifikasjonLink"
     val priProducer = mockk<PriProducer>()

@@ -4,8 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import com.fasterxml.jackson.module.kotlin.contains
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName

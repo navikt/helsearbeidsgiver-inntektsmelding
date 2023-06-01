@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 
 class Akkumulator(
-    val rapidsConnection: RapidsConnection,
+    private val rapidsConnection: RapidsConnection,
     private val redisStore: IRedisStore,
     private val timeout: Long = 600
 ) : River.PacketListener {

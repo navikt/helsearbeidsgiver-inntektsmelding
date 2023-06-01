@@ -17,8 +17,8 @@ class KvitteringServiceTest {
 
     private val testRapid: TestRapid = TestRapid()
 
-    val foresporselid = "abc"
-    val transactionId = "123456"
+    private val foresporselid = "abc"
+    private val transactionId = "123456"
 
     @BeforeEach
     fun setup() {
@@ -26,7 +26,7 @@ class KvitteringServiceTest {
     }
 
     @Test
-    fun `kvitteringServiceTest`() {
+    fun kvitteringServiceTest() {
         val service = KvitteringService(testRapid, redisStore)
 
         val packet: JsonMessage = JsonMessage.newMessage(

@@ -34,7 +34,7 @@ fun RapidsConnection.createNotifikasjon(
 
 fun buildClient(environment: Environment): ArbeidsgiverNotifikasjonKlient {
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return ArbeidsgiverNotifikasjonKlient(environment.notifikasjonUrl) { tokenProvider.getToken() }
+    return ArbeidsgiverNotifikasjonKlient(environment.notifikasjonUrl, tokenProvider::getToken)
 }
 
 fun buildRedisStore(environment: Environment): RedisStore {

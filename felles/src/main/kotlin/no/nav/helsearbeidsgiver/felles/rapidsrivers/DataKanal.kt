@@ -20,7 +20,7 @@ abstract class DataKanal(val rapidsConnection: RapidsConnection) : River.PacketL
 
     abstract fun accept(): River.PacketValidation
 
-    protected fun configure(river: River): River {
+    private fun configure(river: River): River {
         return river.validate {
             it.demandValue(Key.EVENT_NAME.str, eventName.name)
             it.demandKey(Key.DATA.str)

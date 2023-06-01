@@ -15,7 +15,10 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
-class KvitteringService(val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
+class KvitteringService(
+    private val rapidsConnection: RapidsConnection,
+    override val redisStore: RedisStore
+) : CompositeEventListener(redisStore) {
 
     override val event: EventName = EventName.KVITTERING_REQUESTED
 
@@ -70,7 +73,7 @@ class KvitteringService(val rapidsConnection: RapidsConnection, override val red
         logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
         redisStore.set(transaksjonsId, message[Key.FAIL.str].asText())
     }
-    class KvitteringStartedListener(val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+    class KvitteringStartedListener(private val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
 
         override val event: EventName = EventName.KVITTERING_REQUESTED
 

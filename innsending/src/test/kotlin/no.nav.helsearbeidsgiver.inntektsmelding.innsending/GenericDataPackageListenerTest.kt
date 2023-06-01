@@ -17,7 +17,7 @@ import java.util.UUID
 
 class GenericDataPackageListenerTest {
 
-    class MockListener(val validation: (message: JsonMessage) -> Unit) : River.PacketListener {
+    class MockListener(private val validation: (message: JsonMessage) -> Unit) : River.PacketListener {
         override fun onPacket(packet: JsonMessage, context: MessageContext) {
             validation.invoke(packet)
         }
@@ -31,9 +31,9 @@ class GenericDataPackageListenerTest {
         FELT
     }
 
-    var mockListener: River.PacketListener = mockk()
+    private var mockListener: River.PacketListener = mockk()
 
-    lateinit var dataListener: StatefullDataKanal
+    private lateinit var dataListener: StatefullDataKanal
 
     private val redisStore = mockk<RedisStore>()
 
@@ -53,7 +53,7 @@ class GenericDataPackageListenerTest {
     @Test
     fun `Listener fanger data`() {
         every { mockListener.onPacket(any(), any()) } answers {
-            val jsonMessages: JsonMessage = it.invocation.args.get(0) as JsonMessage
+            val jsonMessages: JsonMessage = it.invocation.args[0] as JsonMessage
             assert(jsonMessages[TestFelter.FELT1.name].asText() == "Hello")
         }
         every { redisStore.set(any<String>(), any(), 60L) } returns Unit

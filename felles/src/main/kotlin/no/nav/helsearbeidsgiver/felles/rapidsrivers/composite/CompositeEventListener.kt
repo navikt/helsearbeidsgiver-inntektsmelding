@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
 
     abstract val event: EventName
-    lateinit var dataKanal: StatefullDataKanal
+    private lateinit var dataKanal: StatefullDataKanal
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val transaction: Transaction = determineTransactionState(packet)
@@ -36,7 +36,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
     fun determineTransactionState(message: JsonMessage): Transaction {
         // event bør ikke ha UUID men dette er ikke konsistent akkuratt nå så midlertidig blir det sånn til vi får det konsistent.
         // vi trenger også clientID for correlation
-        var transactionId = message.get(Key.UUID.str).asText()
+        val transactionId = message[Key.UUID.str].asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
             sikkerLogger().error("Feilmelding er ${message.toJson()}")
             return onError(message.toFeilMessage())
@@ -64,24 +64,24 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         return Transaction.IN_PROGRESS
     }
 
-    fun isFailMelding(jsonMessage: JsonMessage): Boolean {
-        try {
-            return !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
+    private fun isFailMelding(jsonMessage: JsonMessage): Boolean {
+        return try {
+            !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
         } catch (e: NoSuchFieldError) {
-            return false
+            false
         } catch (e: IllegalArgumentException) {
-            return false
+            false
         }
     }
 
     fun isEventMelding(jsonMessage: JsonMessage): Boolean {
-        try {
-            return !(jsonMessage[Key.EVENT_NAME.str].isMissingOrNull()) &&
+        return try {
+            !(jsonMessage[Key.EVENT_NAME.str].isMissingOrNull()) &&
                 (jsonMessage[Key.DATA.str].isMissingNode && jsonMessage[Key.FAIL.str].isMissingNode && jsonMessage[Key.BEHOV.str].isMissingNode)
         } catch (e: NoSuchFieldError) {
-            return false
+            false
         } catch (e: IllegalArgumentException) {
-            return false
+            false
         }
     }
 

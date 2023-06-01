@@ -1,17 +1,12 @@
 package no.nav.helsearbeidsgiver.felles
 
 import com.fasterxml.jackson.databind.JsonNode
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 
 @Serializable(KeySerializer::class)
 enum class Key(val str: String) {
@@ -23,7 +18,6 @@ enum class Key(val str: String) {
     OPPRETTET("@opprettet"),
 
     // Egendefinerte
-    NOTIS("notis"),
     BOOMERANG("boomerang"),
     SESSION("session"),
     NESTE_BEHOV("neste_behov"),
@@ -40,7 +34,6 @@ enum class Key(val str: String) {
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
     JOURNALPOST_ID("journalpostId"),
     INNTEKT_DATO("inntektDato"),
-    NAVN("navn"),
     DATA("data"),
     FAIL("fail");
 
@@ -48,16 +41,18 @@ enum class Key(val str: String) {
         str
 
     companion object {
-        internal fun fromJson(json: String): Key? =
+        internal fun fromJson(json: String): Key =
             Key.values().firstOrNull {
                 json == it.str
             }
+                ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$json'.")
     }
 
     fun fra(message: JsonMessage): JsonElement =
         message[str].toJsonElement()
 }
 
+@Serializable(DataFeltSerializer::class)
 enum class DataFelt(val str: String) {
     VIRKSOMHET("virksomhet"),
     ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
@@ -65,7 +60,18 @@ enum class DataFelt(val str: String) {
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),
     PERSISTERT_SAK_ID("persistert_sak_id"),
-    OPPGAVE_ID("oppgave_id")
+    OPPGAVE_ID("oppgave_id");
+
+    override fun toString(): String =
+        str
+
+    companion object {
+        internal fun fromJson(json: String): DataFelt =
+            DataFelt.values().firstOrNull {
+                json == it.str
+            }
+                ?: throw IllegalArgumentException("Fant ingen DataFelt med verdi som matchet '$json'.")
+    }
 }
 
 fun JsonMessage.value(key: Key): JsonNode =
@@ -77,11 +83,12 @@ fun JsonMessage.valueNullable(key: Key): JsonNode? =
 fun JsonMessage.valueNullableOrUndefined(key: Key): JsonNode? =
     try { value(key).takeUnless(JsonNode::isMissingOrNull) } catch (e: IllegalArgumentException) { null }
 
-internal object KeySerializer : KSerializer<Key> {
-    override val descriptor = PrimitiveSerialDescriptor("helsearbeidsgiver.felles.Key", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: Key) = value.str.let(encoder::encodeString)
-    override fun deserialize(decoder: Decoder): Key = decoder.decodeString().let { json ->
-        Key.fromJson(json)
-            ?: throw SerializationException("Fant ingen Key med verdi som matchet '$json'.")
-    }
-}
+internal object KeySerializer : AsStringSerializer<Key>(
+    serialName = "helsearbeidsgiver.kotlinx.felles.Key",
+    parse = Key::fromJson
+)
+
+internal object DataFeltSerializer : AsStringSerializer<DataFelt>(
+    serialName = "helsearbeidsgiver.kotlinx.felles.DataFelt",
+    parse = DataFelt::fromJson
+)

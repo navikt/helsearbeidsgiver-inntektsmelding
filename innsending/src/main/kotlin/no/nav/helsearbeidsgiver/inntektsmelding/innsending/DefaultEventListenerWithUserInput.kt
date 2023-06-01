@@ -5,8 +5,8 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.InputFelter
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
@@ -14,8 +14,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 
 @Experimental
 open class DefaultEventListenerWithUserInput(
-    val dataFelter: InputFelter,
-    override val redisStore: RedisStore,
+    private val dataFelter: InputFelter,
+    override val redisStore: IRedisStore,
     override val event: EventName,
     open val rapidsConnection: RapidsConnection
 ) : CompositeEventListener(redisStore) {

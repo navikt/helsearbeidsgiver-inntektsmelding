@@ -1,6 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.lettuce.core.RedisClient
+import io.lettuce.core.api.StatefulRedisConnection
+import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Resultat
@@ -13,7 +15,17 @@ class RedisPoller {
     private val redisClient = RedisClient.create(
         Env.Redis.url
     )
+    private lateinit var connection: StatefulRedisConnection<String, String>
+    private lateinit var syncCommands: RedisCommands<String, String>
     private val sikkerLogger = sikkerLogger()
+
+    private fun redisCommand(): RedisCommands<String, String> {
+        if (!::connection.isInitialized) {
+            connection = redisClient.connect()
+            syncCommands = connection.sync()
+        }
+        return syncCommands
+    }
 
     suspend fun hent(key: String, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
         val json = getString(key, maxRetries, waitMillis)
@@ -40,15 +52,12 @@ class RedisPoller {
     }
 
     suspend fun getString(key: String, maxRetries: Int, waitMillis: Long): String {
-        redisClient.connect().use { connection ->
-            repeat(maxRetries) {
-                logger.debug("Polling redis: $it time(s) for key $key")
-                val str = connection.sync().get(key)
-
-                if (!str.isNullOrEmpty()) return str
-
-                delay(waitMillis)
+        repeat(maxRetries) {
+            sikkerLogger.debug("Polling redis: $it time(s) for key $key")
+            if (redisCommand().exists(key) == 1.toLong()) {
+                return syncCommands.get(key)
             }
+            delay(waitMillis)
         }
 
         throw RedisPollerTimeoutException(key)

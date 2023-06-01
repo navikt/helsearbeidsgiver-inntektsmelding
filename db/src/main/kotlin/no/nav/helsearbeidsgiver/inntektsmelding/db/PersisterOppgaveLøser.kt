@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class PersisterOppgaveLøser(
     rapidsConnection: RapidsConnection,
-    val repository: ForespoerselRepository
+    private val repository: ForespoerselRepository
 ) : Løser(rapidsConnection) {
     private val sikkerLogger = sikkerLogger()
 

@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
-import java.util.UUID
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
     lateinit var eventName: EventName
@@ -37,22 +36,22 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     // Alle løser som publiserer Behov vil få kunskap om nedstrøms løserne.
     // i tilleg gjenbruktbarhet av løseren vil vare betydelig redusert
     fun publishBehov(message: JsonMessage) {
-        message.set(Key.EVENT_NAME.str, eventName.name)
+        message[Key.EVENT_NAME.str] = eventName.name
         if (forespoerselId.isNotEmpty()) {
-            message.set(Key.FORESPOERSEL_ID.str, forespoerselId)
+            message[Key.FORESPOERSEL_ID.str] = forespoerselId
         }
         rapidsConnection.publish(message.toJson())
     }
 
     fun publishEvent(message: JsonMessage) {
         if (forespoerselId.isNotEmpty()) {
-            message.set(Key.FORESPOERSEL_ID.str, forespoerselId)
+            message[Key.FORESPOERSEL_ID.str] = forespoerselId
         }
         rapidsConnection.publish(message.toJson())
     }
 
     fun publishData(message: JsonMessage) {
-        message.set(Key.EVENT_NAME.str, eventName.name)
+        message[Key.EVENT_NAME.str] = eventName.name
         rapidsConnection.publish(message.toJson())
     }
 
@@ -61,12 +60,12 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     fun publishFail(message: JsonMessage) {
-        message.set(Key.EVENT_NAME.str, eventName.name)
+        message[Key.EVENT_NAME.str] = eventName.name
         rapidsConnection.publish(message.toJson())
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        eventName = EventName.valueOf(packet.get(Key.EVENT_NAME.str).asText())
+        eventName = EventName.valueOf(packet[Key.EVENT_NAME.str].asText())
         forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         onBehov(packet)
     }

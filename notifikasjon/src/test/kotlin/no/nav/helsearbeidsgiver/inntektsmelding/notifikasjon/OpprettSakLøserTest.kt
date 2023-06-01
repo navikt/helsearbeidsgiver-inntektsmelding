@@ -54,7 +54,7 @@ internal class OpprettSakLøserTest {
                 Key.BEHOV.str to BehovType.OPPRETT_SAK.name,
                 DataFelt.ARBEIDSTAKER_INFORMASJON.str to customObjectMapper().valueToTree(PersonDato(NAVN, FØDSELSDATO)),
                 Key.FORESPOERSEL_ID.str to "uuid-abc",
-                Key.ORGNRUNDERENHET.str to "org-456",
+                DataFelt.ORGNRUNDERENHET.str to "org-456",
                 Key.IDENTITETSNUMMER.str to "12345678901"
             )
         )

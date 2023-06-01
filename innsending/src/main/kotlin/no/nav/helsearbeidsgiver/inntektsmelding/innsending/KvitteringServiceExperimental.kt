@@ -5,9 +5,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.InputFelter
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.

@@ -14,11 +14,13 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.jsonArray
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -58,7 +60,7 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal publisere neste behov`() {
-        every { redisStore.set(any(), any(), timeout) } returns Unit
+        every { redisStore.set(any<String>(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
@@ -67,7 +69,7 @@ internal class AkkumulatorTest {
             "@løsning" to mapOf(
                 BEHOV_FULLT_NAVN to PDL_OK
             ),
-            "inntektsmelding" to "placeholder"
+            DataFelt.INNTEKTSMELDING.str to "placeholder"
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
@@ -79,13 +81,15 @@ internal class AkkumulatorTest {
 
         val publisert = rapid.firstMessage().fromJsonMapOnlyKeys()
 
+        val dataFelter = rapid.firstMessage().fromJsonMapOnlyDatafelter()
         // Skal beholde eksisterende verdier
         listOf(
-            Key.INNTEKTSMELDING to "placeholder",
+            DataFelt.INNTEKTSMELDING to "placeholder",
             Key.UUID to "uuid"
         )
             .forEach { (key, expectedValue) ->
-                val actual = publisert[key]!!.fromJson(String.serializer())
+                val keyy = publisert[key] ?: dataFelter[key]
+                val actual = keyy!!.fromJson(String.serializer())
                 assertEquals(expectedValue, actual)
             }
 
@@ -102,7 +106,7 @@ internal class AkkumulatorTest {
     @Test
     fun `skal lagre verdi`() {
         every { redisStore.get(UUID_BRREG) } returns ""
-        every { redisStore.set(any(), any(), timeout) } returns Unit
+        every { redisStore.set(any<String>(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
@@ -126,7 +130,7 @@ internal class AkkumulatorTest {
     @Test
     fun `skal håndtere en feil før alle løsninger er klare`() {
         every { redisStore.get(UUID_BRREG) } returns ""
-        every { redisStore.set(any(), any(), timeout) } returns Unit
+        every { redisStore.set(any<String>(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
@@ -151,7 +155,7 @@ internal class AkkumulatorTest {
     fun `skal behandle en feil blant løsninger`() {
         every { redisStore.set(UUID_PDL, any(), timeout) } returns Unit
         every { redisStore.get(UUID_BRREG) } returns ""
-        every { redisStore.set(any(), any(), timeout) } returns Unit
+        every { redisStore.set(any<String>(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
@@ -174,7 +178,7 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal behandle komplett løsning`() {
-        every { redisStore.set(any(), any(), timeout) } returns Unit
+        every { redisStore.set(any<String>(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
@@ -198,7 +202,7 @@ internal class AkkumulatorTest {
     fun `skal behandle ukomplett løsning`() {
         every { redisStore.get(UUID_BRREG) } returns objectMapper.writeValueAsString(LØSNING_OK)
         every { redisStore.get(UUID_PDL) } returns ""
-        every { redisStore.set(any(), any(), timeout) } returns Unit
+        every { redisStore.set(any<String>(), any(), timeout) } returns Unit
         val melding = mapOf(
             "@id" to UUID.randomUUID(),
             "uuid" to "uuid",
@@ -218,7 +222,7 @@ internal class AkkumulatorTest {
 
     @Test
     fun `skal videresende boomerang i neste behov`() {
-        every { redisStore.set(any(), any(), timeout) } returns Unit
+        every { redisStore.set(any<String>(), any(), timeout) } returns Unit
         val initId = "whateva"
         val dato = "whenever"
         val foedselsnummer = "fnr"
@@ -237,7 +241,7 @@ internal class AkkumulatorTest {
         )
         rapid.sendTestMessage(objectMapper.writeValueAsString(melding))
         verify(exactly = 1) {
-            redisStore.set(any(), objectMapper.writeValueAsString(LØSNING_OK), timeout)
+            redisStore.set(any<String>(), objectMapper.writeValueAsString(LØSNING_OK), timeout)
         }
         verify(exactly = 0) {
             redisStore.set(initId, any(), any())

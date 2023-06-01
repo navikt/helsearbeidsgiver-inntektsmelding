@@ -14,6 +14,7 @@ import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
@@ -61,7 +62,7 @@ internal class VirksomhetLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                Key.ORGNRUNDERENHET.str to ORGNR
+                DataFelt.ORGNRUNDERENHET.str to ORGNR
             )
         )
         assertEquals("Ugyldig virksomhet $ORGNR", løsning.error?.melding)
@@ -78,7 +79,7 @@ internal class VirksomhetLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                Key.ORGNRUNDERENHET.str to ORGNR
+                DataFelt.ORGNRUNDERENHET.str to ORGNR
             )
         )
         assertEquals(VIRKSOMHET_NAVN, løsning.value)
@@ -91,7 +92,7 @@ internal class VirksomhetLøserTest {
                 Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
-                Key.ORGNRUNDERENHET.str to ORGNR
+                DataFelt.ORGNRUNDERENHET.str to ORGNR
             )
         )
         assertNotNull(løsning.error)

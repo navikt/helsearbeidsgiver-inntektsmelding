@@ -74,7 +74,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
                 Key.IDENTITETSNUMMER.str to FNR,
                 //      Key.UUID.str to TRANSAKSJONS_ID,
-                Key.ORGNRUNDERENHET.str to ORGNR,
+                DataFelt.ORGNRUNDERENHET.str to ORGNR,
                 Key.FORESPOERSEL_ID.str to FORESPOERSEL
             )
         )
@@ -133,7 +133,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
-                Key.ORGNRUNDERENHET.str to ORGNR,
+                DataFelt.ORGNRUNDERENHET.str to ORGNR,
                 Key.FORESPOERSEL_ID.str to FORESPOERSEL
             )
         )
@@ -141,7 +141,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         var transaksjonsId: String
         with(filter(EventName.FORESPØRSEL_LAGRET, BehovType.OPPRETT_OPPGAVE).first()) {
             assertNotNull(this[Key.UUID.str].asText().also { transaksjonsId = this[Key.UUID.str].asText() })
-            assertEquals(ORGNR, this[Key.ORGNRUNDERENHET.str].asText())
+            assertEquals(ORGNR, this[DataFelt.ORGNRUNDERENHET.str].asText())
             assertEquals(FORESPOERSEL, this[Key.FORESPOERSEL_ID.str].asText())
         }
 

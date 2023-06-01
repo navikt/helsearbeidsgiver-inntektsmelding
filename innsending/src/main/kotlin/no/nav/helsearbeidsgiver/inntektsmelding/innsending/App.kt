@@ -2,8 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 

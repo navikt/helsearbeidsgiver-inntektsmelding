@@ -2,7 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Resultat
@@ -19,7 +19,7 @@ class InnsendingMapper(val uuid: String, resultat: Resultat) : ResultatMapper<In
 
     override fun mapConstraint(løsning: Løsning): ConstraintViolation {
         if (løsning is VirksomhetLøsning) {
-            return DefaultConstraintViolation(Key.ORGNRUNDERENHET.str, løsning.error!!.melding, FeilmeldingConstraint)
+            return DefaultConstraintViolation(DataFelt.ORGNRUNDERENHET.str, løsning.error!!.melding, FeilmeldingConstraint)
         }
         if (løsning is NavnLøsning) {
             return DefaultConstraintViolation("identitetsnummer", løsning.error!!.melding, FeilmeldingConstraint)

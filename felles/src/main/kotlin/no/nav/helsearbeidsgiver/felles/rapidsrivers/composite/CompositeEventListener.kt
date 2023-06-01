@@ -9,8 +9,8 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 

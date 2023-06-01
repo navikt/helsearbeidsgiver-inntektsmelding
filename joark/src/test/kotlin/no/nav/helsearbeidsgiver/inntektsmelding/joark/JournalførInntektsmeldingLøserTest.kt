@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -112,7 +113,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",
                 "identitetsnummer" to "000",
-                Key.ORGNRUNDERENHET.str to "abc",
+                DataFelt.ORGNRUNDERENHET.str to "abc",
                 Key.INNTEKTSMELDING_DOKUMENT.str to "xyz"
             )
         )

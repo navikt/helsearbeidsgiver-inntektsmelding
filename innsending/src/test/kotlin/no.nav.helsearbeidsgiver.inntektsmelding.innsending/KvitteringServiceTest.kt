@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull

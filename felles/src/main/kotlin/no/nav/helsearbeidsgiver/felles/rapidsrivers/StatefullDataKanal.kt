@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class StatefullDataKanal(
@@ -29,7 +30,7 @@ class StatefullDataKanal(
     }
 
     override fun onData(packet: JsonMessage) {
-        if (packet[Key.UUID.str] == null || packet[Key.UUID.str].asText().isNullOrEmpty()) {
+        if (packet[Key.UUID.str].asText().isNullOrEmpty()) {
             sikkerLogger().error("TransaksjonsID er ikke initialisert for ${packet.toJson()}")
             rapidsConnection.publish(
                 packet.createFail(

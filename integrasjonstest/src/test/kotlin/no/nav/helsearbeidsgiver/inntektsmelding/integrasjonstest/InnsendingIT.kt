@@ -113,9 +113,9 @@ internal class InnsendingIT : EndToEndTest() {
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.UUID.str to TRANSAKSJONS_ID_INSENDING_STARTED,
                 Key.FORESPOERSEL_ID.str to FORESPØRSEL_ID,
-                Key.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
+                DataFelt.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to REQUEST.identitetsnummer,
-                Key.INNTEKTSMELDING.str to REQUEST
+                DataFelt.INNTEKTSMELDING.str to REQUEST
             )
         )
         Thread.sleep(10000)

@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.aareg.Arbeidsavtale
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
@@ -66,8 +67,8 @@ class InnsendingServiceIT : EndToEndTest() {
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.UUID.str to transaksjonsId,
-                Key.INNTEKTSMELDING.str to GYLDIG_INNSENDING_REQUEST,
-                Key.ORGNRUNDERENHET.str to TestData.validOrgNr,
+                DataFelt.INNTEKTSMELDING.str to GYLDIG_INNSENDING_REQUEST,
+                DataFelt.ORGNRUNDERENHET.str to TestData.validOrgNr,
                 Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer,
                 Key.FORESPOERSEL_ID.str to forespoerselId
             )

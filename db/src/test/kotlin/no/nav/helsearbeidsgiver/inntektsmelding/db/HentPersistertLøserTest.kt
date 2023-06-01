@@ -1,23 +1,24 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.contains
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.HentPersistertLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -37,13 +38,18 @@ class HentPersistertLøserTest {
         coEvery {
             repository.hentNyeste(any())
         } returns INNTEKTSMELDING_DOKUMENT
-        val løsning = sendMelding(
+        sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
-        assertNotNull(løsning.value)
+        val melding = hentMelding(0)
+        assertTrue(melding.contains(Key.DATA.str))
+        assertTrue(melding.contains(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
+        assertTrue(
+            customObjectMapper().treeToValue(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str), InntektsmeldingDokument::class.java) is InntektsmeldingDokument
+        )
     }
 
     @Test
@@ -66,25 +72,24 @@ class HentPersistertLøserTest {
         coEvery {
             repository.hentNyeste(any())
         } returns null
-        val løsning = sendMelding(
+        sendMelding(
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
-        assertEquals("", løsning.value)
-        assertNull(løsning.error)
+        val message = hentMelding(0)
+        assertTrue(message.contains(Key.DATA.str))
+        assertEquals(message.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText(), "{}")
     }
 
-    private fun sendMelding(vararg melding: Pair<Key, JsonElement>): HentPersistertLøsning {
+    private fun sendMelding(vararg melding: Pair<Key, JsonElement>) {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())
-        return rapid.inspektør
-            .message(0)
-            .path(Key.LØSNING.str)
-            .get(BehovType.HENT_PERSISTERT_IM.name)
-            .toJsonElement()
-            .fromJson(HentPersistertLøsning.serializer())
+    }
+
+    private fun hentMelding(index: Int): JsonNode {
+        return rapid.inspektør.message(index)
     }
 
     private fun sendMeldingMedFeil(vararg melding: Pair<Key, JsonElement>): Feilmelding {

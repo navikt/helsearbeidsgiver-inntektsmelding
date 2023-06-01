@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
@@ -18,8 +19,10 @@ class StatefullEventListener(
     mainListener,
     rapidsConnection
 ) {
-    override fun accept(): River.PacketValidation = River.PacketValidation {
-        it.interestedIn(*dataFelter)
+    override fun accept(): River.PacketValidation {
+        return River.PacketValidation {
+            it.interestedIn(*dataFelter)
+        }
     }
 
     fun collectData(packet: JsonMessage) {

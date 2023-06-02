@@ -17,12 +17,16 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
 
-class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClient: BrregClient, private val isPreProd: Boolean) : Løser(rapidsConnection) {
+class VirksomhetLøser(
+    rapidsConnection: RapidsConnection,
+    private val brregClient: BrregClient,
+    private val isPreProd: Boolean
+) : Løser(rapidsConnection) {
 
     private val logger = logger()
     private val BEHOV = BehovType.VIRKSOMHET
 
-    fun hentVirksomhet(orgnr: String): String {
+    private fun hentVirksomhet(orgnr: String): String {
         if (isPreProd) {
             when (orgnr) {
                 "810007702" -> return "ANSTENDIG PIGGSVIN BYDEL"
@@ -37,7 +41,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
             measureTimeMillis {
                 virksomhetNav = brregClient.hentVirksomhetNavn(orgnr)
             }.also {
-                logger.info("BREG execution took " + it)
+                logger.info("BREG execution took $it")
             }
             virksomhetNav
         } ?: throw FantIkkeVirksomhetException(orgnr)
@@ -71,7 +75,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         }
     }
 
-    fun publishDatagram(navn: String, jsonMessage: JsonMessage) {
+    private fun publishDatagram(navn: String, jsonMessage: JsonMessage) {
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
@@ -83,7 +87,7 @@ class VirksomhetLøser(rapidsConnection: RapidsConnection, private val brregClie
         super.publishData(message)
     }
 
-    fun publiserLøsning(virksomhetLøsning: VirksomhetLøsning, packet: JsonMessage) {
+    private fun publiserLøsning(virksomhetLøsning: VirksomhetLøsning, packet: JsonMessage) {
         packet.setLøsning(BEHOV, virksomhetLøsning)
         super.publishBehov(packet)
     }

@@ -30,7 +30,7 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
         }.register(this)
     }
 
-    fun hentLøsning(packet: JsonMessage): HentTrengerImLøsning =
+    private fun hentLøsning(packet: JsonMessage): HentTrengerImLøsning =
         try {
             packet[Key.SESSION.str][BehovType.HENT_TRENGER_IM.name]
                 .toJsonElement()

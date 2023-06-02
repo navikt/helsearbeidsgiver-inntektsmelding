@@ -58,9 +58,9 @@ fun RouteExtra.KvitteringRoute() {
                     cache = tilgangCache
                 )
 
-                val transaksjonId = kvitteringProducer.publish(forespoerselId)
+                val clientId = kvitteringProducer.publish(forespoerselId)
 
-                val resultat = redis.getString(transaksjonId, 10, 500)
+                val resultat = redis.getString(clientId, 10, 500)
                 sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
 
                 if (resultat == EMPTY_PAYLOAD) {

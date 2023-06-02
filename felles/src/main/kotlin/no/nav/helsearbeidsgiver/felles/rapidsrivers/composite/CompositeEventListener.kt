@@ -43,10 +43,11 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
             return onError(message.toFeilMessage())
         }
 
-        val eventKey = RedisKey.Companion.of(transactionId, event)
+        val eventKey = RedisKey.of(transactionId, event)
         val value = redisStore.get(eventKey)
         if (value.isNullOrEmpty()) {
-            redisStore.set(eventKey, transactionId)
+            val clientId = if (message[Key.CLIENT_ID.str].isMissingOrNull()) transactionId else message[Key.CLIENT_ID.str].asText()
+            redisStore.set(eventKey, clientId)
             return Transaction.NEW
         } else {
             if (isDataCollected(transactionId)) return Transaction.FINALIZE

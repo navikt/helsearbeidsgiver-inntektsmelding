@@ -156,7 +156,8 @@ class InnsendingService(
 
     override fun finalize(message: JsonMessage) {
         val uuid: String = message[Key.UUID.str].asText()
-        redisStore.set(uuid, redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
+        val clientId = redisStore.get(RedisKey.of(uuid, event))
+        redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
         logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
         rapidsConnection.publish(

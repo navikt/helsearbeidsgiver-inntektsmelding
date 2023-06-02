@@ -26,16 +26,14 @@ class StatefullEventListener(
     }
 
     private fun collectData(packet: JsonMessage) {
-        var uuid = packet[Key.CLIENT_ID.str].asText()
-        if (uuid.isNullOrEmpty()) {
-            uuid = UUID.randomUUID().toString()
-            packet[Key.UUID.str] = uuid
-        }
+        val transactionId = UUID.randomUUID().toString()
+        packet[Key.UUID.str] = transactionId
+
         dataFelter.map { dataFelt ->
             Pair(dataFelt, packet[dataFelt])
         }.forEach { data ->
             val str = if (data.second.isTextual) { data.second.asText() } else data.second.toString()
-            redisStore.set(uuid + data.first, str)
+            redisStore.set(transactionId + data.first, str)
         }
     }
     override fun onEvent(packet: JsonMessage) {

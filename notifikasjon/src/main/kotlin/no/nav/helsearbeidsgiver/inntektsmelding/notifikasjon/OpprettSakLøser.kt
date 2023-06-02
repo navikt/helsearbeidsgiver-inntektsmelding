@@ -31,7 +31,7 @@ class OpprettSakLøser(
         }
     }
 
-    fun opprettSak(
+    private fun opprettSak(
         forespoerselId: String,
         orgnr: String,
         navn: String,
@@ -51,7 +51,7 @@ class OpprettSakLøser(
         }
     }
 
-    fun hentNavn(packet: JsonMessage): PersonDato {
+    private fun hentNavn(packet: JsonMessage): PersonDato {
         if (packet[DataFelt.ARBEIDSTAKER_INFORMASJON.str].isMissingNode) return PersonDato("Ukjent", null)
         return customObjectMapper().treeToValue(packet[DataFelt.ARBEIDSTAKER_INFORMASJON.str], PersonDato::class.java)
     }

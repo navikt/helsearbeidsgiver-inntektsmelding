@@ -49,7 +49,7 @@ class OppgaveFerdigLøser(
         }
     }
 
-    fun publiserLøsning(løsning: OppgaveFerdigLøsning, packet: JsonMessage, context: MessageContext) {
+    private fun publiserLøsning(løsning: OppgaveFerdigLøsning, packet: JsonMessage, context: MessageContext) {
         packet[Key.LØSNING.str] = mapOf(
             BEHOV.name to løsning
         )

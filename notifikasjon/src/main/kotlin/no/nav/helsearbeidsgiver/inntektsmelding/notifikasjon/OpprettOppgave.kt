@@ -11,10 +11,8 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
 class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -49,11 +47,9 @@ class OpprettOppgaveLøser(
     private val linkUrl: String
 ) : Løser(rapidsConnection) {
 
-    private val om = customObjectMapper()
     private val EVENT = EventName.FORESPØRSEL_LAGRET
-    private val logger = logger()
 
-    fun opprettOppgave(
+    private fun opprettOppgave(
         forespørselId: String,
         orgnr: String
     ): String { // ktlint-disable trailing-comma-on-declaration-site

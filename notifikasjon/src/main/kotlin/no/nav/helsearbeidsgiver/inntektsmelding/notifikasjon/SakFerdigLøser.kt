@@ -55,7 +55,7 @@ class SakFerdigLøser(
         }
     }
 
-    fun publiserLøsning(løsning: SakFerdigLøsning, packet: JsonMessage, context: MessageContext) {
+    private fun publiserLøsning(løsning: SakFerdigLøsning, packet: JsonMessage, context: MessageContext) {
         packet[Key.LØSNING.str] = mapOf(
             BEHOV.name to løsning
         )

@@ -11,7 +11,7 @@ class XMLMapperTest {
 
     @Test
     fun `Bør generere xml fra InnsendingM dokument`() {
-        val mockInntektsmeldingDokument = MockInntektsmeldingDokument()
+        val mockInntektsmeldingDokument = mockInntektsmeldingDokument()
         val mapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
         val sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
         val inntektM = mapper.InntektDokumentTilInntekstmeldingM(mockInntektsmeldingDokument)

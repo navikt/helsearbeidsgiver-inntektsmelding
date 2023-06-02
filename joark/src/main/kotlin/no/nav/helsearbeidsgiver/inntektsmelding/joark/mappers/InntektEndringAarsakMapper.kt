@@ -24,7 +24,7 @@ fun InntektEndringAarsak.stringValue(): String {
         is NyStillingsprosent -> "Ny stillingsprosent: fra $gjelderFra"
         is Permisjon -> typpe + ": " + liste.joinToString(transform = printPeriode())
         is Permittering -> typpe + ": " + liste.joinToString(transform = printPeriode())
-        is Tariffendring -> typpe + ": fra $gjelderFra"
+        is Tariffendring -> "$typpe: fra $gjelderFra"
         is VarigLonnsendring -> "Varig lønnsendring: fra $gjelderFra"
         else -> "" + typpe
     }

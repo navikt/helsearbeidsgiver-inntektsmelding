@@ -21,10 +21,10 @@ import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
 
-internal class PdfDokumentTest {
+class PdfDokumentTest {
 
     private val dag = LocalDate.of(2022, 12, 24)
-    private val im = MockInntektsmeldingDokument()
+    private val im = mockInntektsmeldingDokument()
 
     @Test
     fun `betaler full lønn i arbeidsgiverperioden`() {
@@ -106,14 +106,14 @@ internal class PdfDokumentTest {
     fun `med inntekt endring årsak - alle varianter`() {
         val perioder = listOf(Periode(dag, dag.plusDays(12)), Periode(dag.plusDays(13), dag.plusDays(18)))
         val map = HashMap<String, InntektEndringAarsak>()
-        map.put("tariffendring", Tariffendring(dag, dag.plusDays(2)))
-        map.put("ferie", Ferie(perioder))
-        map.put("variglonnsendring", VarigLonnsendring(dag))
-        map.put("nystilling", NyStilling(dag))
-        map.put("nystillingsprosent", NyStillingsprosent(dag))
-        map.put("bonus", Bonus())
-        map.put("permisjon", Permisjon(perioder))
-        map.put("permittering", Permittering(perioder))
+        map["tariffendring"] = Tariffendring(dag, dag.plusDays(2))
+        map["ferie"] = Ferie(perioder)
+        map["variglonnsendring"] = VarigLonnsendring(dag)
+        map["nystilling"] = NyStilling(dag)
+        map["nystillingsprosent"] = NyStillingsprosent(dag)
+        map["bonus"] = Bonus()
+        map["permisjon"] = Permisjon(perioder)
+        map["permittering"] = Permittering(perioder)
 
         map.forEach {
             writePDF(
@@ -125,9 +125,9 @@ internal class PdfDokumentTest {
         }
     }
 
-    fun writePDF(title: String, im: InntektsmeldingDokument) {
+    private fun writePDF(title: String, im: InntektsmeldingDokument) {
         // val file = File(System.getProperty("user.home"), "/Desktop/$title.pdf")
-        val file = File.createTempFile("$title", ".pdf")
+        val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
         println("Lagde PDF $title med filnavn ${file.toPath()}")

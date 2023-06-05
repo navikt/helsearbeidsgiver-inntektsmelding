@@ -17,7 +17,6 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytel
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockPerson
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Innsending av skjema fra frontend")
@@ -48,32 +46,7 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
         forespoerselRepository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
 
-        val pdlClient = this.pdlClient
-        coEvery {
-            pdlClient.fullPerson(any(), any())
-        } returns mockPerson("Ola", "", "Normann", LocalDate.now())
-
         // Mocking
-        val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.nyStatusSak(any(), any(), any(), any())
-        } answers {
-            "?"
-        }
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any())
-        } answers {
-            "?"
-        }
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.oppgaveUtfoert(any())
-        } answers {
-            "?"
-        }
-
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
         } answers {
@@ -85,18 +58,10 @@ class InnsendingIT : EndToEndTest() {
             OPPGAVE_ID
         }
         coEvery {
-            aaregClient.hentArbeidsforhold(any(), any())
-        } answers {
-            emptyList()
-        }
-        coEvery {
             dokarkivClient.opprettJournalpost(any(), any(), any())
         } answers {
             OpprettJournalpostResponse(JOURNALPOST_ID, journalpostFerdigstilt = true, "FERDIGSTILT", "", emptyList())
         }
-        coEvery {
-            distribusjonKafkaProducer.send(any())
-        } returns CompletableFuture()
     }
 
     @Test

@@ -7,10 +7,8 @@ import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -18,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
-import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
@@ -28,8 +25,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.buildApp
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.filter.findMessage
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mapHikariConfigByContainer
-import no.nav.helsearbeidsgiver.pdl.PdlClient
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
@@ -44,17 +39,13 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
     private lateinit var thread: Thread
 
     // Clients
-    var pdlClient = mockk<PdlClient>()
-    var aaregClient = mockk<AaregClient>()
-    var brregClient = mockk<BrregClient>()
-    var inntektKlient = mockk<InntektKlient>()
-    var dokarkivClient = mockk<DokArkivClient>()
     var altinnClient = mockk<AltinnClient>()
-    var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
+    var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
+    var dokarkivClient = mockk<DokArkivClient>(relaxed = true)
+
     var notifikasjonLink = "notifikasjonLink"
     val priProducer = mockk<PriProducer>()
     lateinit var producer: TilgangProducer
-    val distribusjonKafkaProducer = mockk<KafkaProducer<String, String>>()
     var filterMessages: (JsonNode) -> Boolean = { true }
     var meldinger: MutableList<JsonNode> = mutableListOf()
 
@@ -90,16 +81,16 @@ open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
             database,
             imoRepository,
             forespoerselRepository,
-            aaregClient,
-            brregClient,
-            inntektKlient,
+            mockk(relaxed = true),
+            mockk(relaxed = true),
+            mockk(relaxed = true),
             dokarkivClient,
-            pdlClient,
+            mockk(relaxed = true),
             arbeidsgiverNotifikasjonKlient,
             notifikasjonLink,
             priProducer,
             altinnClient,
-            distribusjonKafkaProducer
+            mockk(relaxed = true)
         )
         producer = TilgangProducer(rapid)
         rapid.register(this)

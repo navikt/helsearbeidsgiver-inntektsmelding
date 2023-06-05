@@ -42,9 +42,9 @@ class InnsendingIT : EndToEndTest() {
     private val JOURNALPOST_ID = "jp-789"
 
     private fun setup() {
-        forespoerselRepo.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
-        forespoerselRepo.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
-        forespoerselRepo.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
+        forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
+        forespoerselRepository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
+        forespoerselRepository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
 
         // Mocking
         coEvery {

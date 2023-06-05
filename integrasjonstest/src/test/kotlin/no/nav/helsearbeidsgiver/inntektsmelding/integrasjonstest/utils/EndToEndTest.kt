@@ -61,8 +61,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val results = mutableListOf<String>()
 
     val tilgangProducer by lazy { TilgangProducer(rapid) }
-    val imRepo by lazy { InntektsmeldingRepository(database.db) }
-    val forespoerselRepo by lazy { ForespoerselRepository(database.db) }
+    val imRepository by lazy { InntektsmeldingRepository(database.db) }
+    val forespoerselRepository by lazy { ForespoerselRepository(database.db) }
 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
@@ -79,8 +79,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         rapid.buildApp(
             redisStore,
             database,
-            imRepo,
-            forespoerselRepo,
+            imRepository,
+            forespoerselRepository,
             mockk(relaxed = true),
             mockk(relaxed = true),
             mockk(relaxed = true),

@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndT
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -23,11 +22,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
     private val FORESPOERSEL = UUID.randomUUID().toString()
     private val SAK_ID = "sak_id_123"
     private val OPPGAVE_ID = "oppgave_id_456"
-
-    @BeforeEach
-    fun beforeEach() {
-        resetMessages()
-    }
 
     @Test
     fun `Oppretter og lagrer sak etter at forespørselen er mottatt`() {

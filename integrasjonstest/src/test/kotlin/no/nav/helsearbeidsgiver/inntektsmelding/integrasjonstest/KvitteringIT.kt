@@ -44,8 +44,8 @@ class KvitteringIT : EndToEndTest() {
     fun `skal hente data til kvittering`() {
         val transactionId = UUID.randomUUID().toString()
         meldinger.clear()
-        forespoerselRepository.lagreForespørsel(GYLDIG_FORESPØRSEL_ID, ORGNR)
-        imoRepository.lagreInntektsmeldng(GYLDIG_FORESPØRSEL_ID, INNTEKTSMELDING_DOKUMENT)
+        forespoerselRepo.lagreForespørsel(GYLDIG_FORESPØRSEL_ID, ORGNR)
+        imRepo.lagreInntektsmeldng(GYLDIG_FORESPØRSEL_ID, INNTEKTSMELDING_DOKUMENT)
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,

@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.filter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class GetBehovKtTest : AbstractFilterBase() {
+class GetBehovKtTest : AbstractFilterBase() {
 
     @Test
     fun `skal finne behov når null`() {

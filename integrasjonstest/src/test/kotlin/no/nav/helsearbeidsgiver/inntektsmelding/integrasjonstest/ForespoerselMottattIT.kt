@@ -20,17 +20,17 @@ import java.time.LocalDate
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class ForespoerselMottattIT : EndToEndTest() {
+class ForespoerselMottattIT : EndToEndTest() {
 
-    val FNR = "fnr-123"
-    val ORGNR = "orgnr-456"
-    val FORESPOERSEL = UUID.randomUUID().toString()
-    val SAK_ID = "sak_id_123"
-    val OPPGAVE_ID = "oppgave_id_456"
-    val FORNAVN = "Ola"
-    val ETTERNAVN = "Normann"
-    val MELLOMNAVN = ""
-    val FØDSELSDATO = LocalDate.of(2012, 1, 15)
+    private val FNR = "fnr-123"
+    private val ORGNR = "orgnr-456"
+    private val FORESPOERSEL = UUID.randomUUID().toString()
+    private val SAK_ID = "sak_id_123"
+    private val OPPGAVE_ID = "oppgave_id_456"
+    private val FORNAVN = "Ola"
+    private val ETTERNAVN = "Normann"
+    private val MELLOMNAVN = ""
+    private val FØDSELSDATO: LocalDate = LocalDate.of(2012, 1, 15)
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {

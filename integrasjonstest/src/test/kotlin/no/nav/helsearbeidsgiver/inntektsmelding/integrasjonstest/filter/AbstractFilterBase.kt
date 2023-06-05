@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 
 abstract class AbstractFilterBase {
 
-    val om = customObjectMapper()
+    private val om = customObjectMapper()
     val BEHOV_NULL = mapOf(
         Key.EVENT_NAME.str to EventName.SAK_OPPRETTET
     )
@@ -37,11 +37,11 @@ abstract class AbstractFilterBase {
             BehovType.TILGANGSKONTROLL to PersisterImLøsning("ghi")
         )
     )
-    val BEHOV_UTEN_LØSNING = mapOf(
+    private val BEHOV_UTEN_LØSNING = mapOf(
         Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
         Key.BEHOV.str to listOf(BehovType.TILGANGSKONTROLL, BehovType.ARBEIDSGIVERE)
     )
-    val BEHOV_ANNET = mapOf(
+    private val BEHOV_ANNET = mapOf(
         Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETTET,
         Key.BEHOV.str to listOf(BehovType.ENDRE_SAK_STATUS, BehovType.ENDRE_OPPGAVE_STATUS)
     )

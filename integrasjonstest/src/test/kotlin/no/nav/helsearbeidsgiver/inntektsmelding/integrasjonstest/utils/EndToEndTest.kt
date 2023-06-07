@@ -7,10 +7,8 @@ import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -18,90 +16,82 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.buildApp
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.filter.findMessage
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mapHikariConfigByContainer
-import no.nav.helsearbeidsgiver.pdl.PdlClient
-import org.apache.kafka.clients.producer.KafkaProducer
+import no.nav.helsearbeidsgiver.utils.log.logger
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import kotlin.concurrent.thread
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-open class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
+private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
-    lateinit var rapid: RapidsConnection
-    private val om = customObjectMapper()
-    var results: MutableList<String> = mutableListOf()
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
+
     private lateinit var thread: Thread
 
-    // Clients
-    var pdlClient = mockk<PdlClient>()
-    var aaregClient = mockk<AaregClient>()
-    var brregClient = mockk<BrregClient>()
-    var inntektKlient = mockk<InntektKlient>()
-    var dokarkivClient = mockk<DokArkivClient>()
-    var altinnClient = mockk<AltinnClient>()
-    var arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
-    var notifikasjonLink = "notifikasjonLink"
-    val priProducer = mockk<PriProducer>()
-    lateinit var producer: TilgangProducer
-    val distribusjonKafkaProducer = mockk<KafkaProducer<String, String>>()
-    var filterMessages: (JsonNode) -> Boolean = { true }
-    var meldinger: MutableList<JsonNode> = mutableListOf()
+    private val logger = logger()
 
-    // Database
-    var database = mockk<Database>()
-    var imoRepository = mockk<InntektsmeldingRepository>()
-    var forespoerselRepository = mockk<ForespoerselRepository>()
+    private val rapid by lazy {
+        RapidApplication.create(
+            mapOf(
+                "KAFKA_RAPID_TOPIC" to TOPIC,
+                "KAFKA_CREATE_TOPICS" to TOPIC,
+                "RAPID_APP_NAME" to "HAG",
+                "KAFKA_BOOTSTRAP_SERVERS" to kafkaContainer.bootstrapServers,
+                "KAFKA_CONSUMER_GROUP_ID" to "HAG"
+            )
+        )
+    }
+
+    private val database by lazy {
+        println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
+        postgreSQLContainer.let(::mapHikariConfigByContainer)
+            .let(::Database)
+            .also(Database::migrate)
+    }
+
+    val meldinger = mutableListOf<JsonNode>()
+    val results = mutableListOf<String>()
+
+    val tilgangProducer by lazy { TilgangProducer(rapid) }
+    val imRepository by lazy { InntektsmeldingRepository(database.db) }
+    val forespoerselRepository by lazy { ForespoerselRepository(database.db) }
+
+    val altinnClient = mockk<AltinnClient>()
+    val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
+    val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
+
+    private val om = customObjectMapper()
+
+    var filterMessages: (JsonNode) -> Boolean = { true }
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        val env = HashMap<String, String>().also {
-            it.put("KAFKA_RAPID_TOPIC", TOPIC)
-            it.put("KAFKA_CREATE_TOPICS", TOPIC)
-            it.put("RAPID_APP_NAME", "HAG")
-            it.put("KAFKA_BOOTSTRAP_SERVERS", kafkaContainer.bootstrapServers)
-            it.put("KAFKA_CONSUMER_GROUP_ID", "HAG")
-        }
-        // Klienter
         val redisStore = RedisStore(redisContainer.redisURI)
 
-        // Databasen - konfig må gjøres her ETTER at postgreSQLContainer er startet
-        val config = mapHikariConfigByContainer(postgreSQLContainer)
-
-        println("Database: jdbcUrl: ${config.jdbcUrl}")
-        database = Database(config)
-        imoRepository = InntektsmeldingRepository(database.db)
-        forespoerselRepository = ForespoerselRepository(database.db)
-        database.migrate()
-
-        // Rapids
-        rapid = RapidApplication.create(env).buildApp(
+        rapid.buildApp(
             redisStore,
             database,
-            imoRepository,
+            imRepository,
             forespoerselRepository,
-            aaregClient,
-            brregClient,
-            inntektKlient,
+            mockk(relaxed = true),
+            mockk(relaxed = true),
+            mockk(relaxed = true),
             dokarkivClient,
-            pdlClient,
+            mockk(relaxed = true),
             arbeidsgiverNotifikasjonKlient,
-            notifikasjonLink,
-            priProducer,
+            NOTIFIKASJON_LINK,
+            mockk(),
             altinnClient,
-            distribusjonKafkaProducer
+            mockk(relaxed = true)
         )
-        producer = TilgangProducer(rapid)
         rapid.register(this)
         thread = thread {
             rapid.start()

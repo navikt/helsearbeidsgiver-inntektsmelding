@@ -12,7 +12,7 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 
-@Mapper(uses = arrayOf(DateMapper::class, InntektEndringAarsakMapper::class))
+@Mapper(uses = arrayOf(DateMapper::class, InntektEndringAarsakMapper::class, ArbeidsgiverperiodeListeMapper::class))
 interface InntektDokumentTilSkjemainnholdMapper {
 
     @Mapping(source = ".", target = "skjemainnhold")

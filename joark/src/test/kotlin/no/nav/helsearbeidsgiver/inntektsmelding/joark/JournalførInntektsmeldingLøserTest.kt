@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -65,11 +66,11 @@ internal class JournalførInntektsmeldingLøserTest {
                 Key.BEHOV.str to BehovType.JOURNALFOER.name,
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",
-                Key.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument()
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument()
             )
         )
         val message = retrieveMessage(0)
-        assert(message.contains(Key.FAIL.str).and(!message.contains(Key.INNTEKTSMELDING_DOKUMENT.str)))
+        assert(message.contains(Key.FAIL.str).and(!message.contains(DataFelt.INNTEKTSMELDING_DOKUMENT.str)))
         val fail = objectMapper.treeToValue(message.path(Key.FAIL.str), Fail::class.java)
         assertEquals("Kall mot dokarkiv feilet", fail.feilmelding)
     }
@@ -88,7 +89,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 "@behov" to BehovType.JOURNALFOER.name,
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                Key.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument(),
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument(),
                 "session" to mapOf(
                     "Virksomhet" to mapOf(
                         "value" to "Norge AS"
@@ -112,8 +113,8 @@ internal class JournalførInntektsmeldingLøserTest {
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",
                 "identitetsnummer" to "000",
-                Key.ORGNRUNDERENHET.str to "abc",
-                Key.INNTEKTSMELDING_DOKUMENT.str to "xyz"
+                DataFelt.ORGNRUNDERENHET.str to "abc",
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to "xyz"
             )
         )
         val fail = objectMapper.treeToValue(retrieveMessage(0).get(Key.FAIL.str), Fail::class.java)

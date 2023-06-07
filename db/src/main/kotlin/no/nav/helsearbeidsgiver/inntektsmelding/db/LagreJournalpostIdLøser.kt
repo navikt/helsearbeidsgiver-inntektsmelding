@@ -74,7 +74,7 @@ class LagreJournalpostIdLøser(
                 DataFelt.OPPGAVE_ID.str to oppgaveId!!, // TODO Lag bedre feilhåndtering dersom oppgaveId ikke ble funnet i db
                 DataFelt.SAK_ID.str to sakId!!, // TODO Lag bedre feilhåndtering dersom oppgaveId ikke ble funnet i db
                 Key.TRANSACTION_ORIGIN.str to uuid,
-                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument
             )
         )
         publishEvent(jsonMessage)

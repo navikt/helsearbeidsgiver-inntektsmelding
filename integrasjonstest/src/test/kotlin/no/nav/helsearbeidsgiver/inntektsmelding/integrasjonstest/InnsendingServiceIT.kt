@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import com.fasterxml.jackson.module.kotlin.contains
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
@@ -34,8 +35,8 @@ class InnsendingServiceIT : EndToEndTest() {
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.UUID.str to transaksjonsId,
-                Key.INNTEKTSMELDING.str to GYLDIG_INNSENDING_REQUEST,
-                Key.ORGNRUNDERENHET.str to TestData.validOrgNr,
+                DataFelt.INNTEKTSMELDING.str to GYLDIG_INNSENDING_REQUEST,
+                DataFelt.ORGNRUNDERENHET.str to TestData.validOrgNr,
                 Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer,
                 Key.FORESPOERSEL_ID.str to forespoerselId
             )

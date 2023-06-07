@@ -30,6 +30,7 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             it.rejectKey(Key.LØSNING.str)
             it.rejectKey(Key.DATA.str)
             it.rejectKey(Key.FAIL.str)
+            it.interestedIn(Key.CLIENT_ID.str)
             // transaksjon kan ikke ha UUID / transaksjonsID som egentlig betyr noe, men jeg beholder det for øyebliket
             // for backward compatability
             it.interestedIn(Key.UUID.str)

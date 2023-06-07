@@ -73,9 +73,9 @@ class InnsendingIT : EndToEndTest() {
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.UUID.str to TRANSAKSJONS_ID_INSENDING_STARTED,
                 Key.FORESPOERSEL_ID.str to FORESPØRSEL_ID,
-                Key.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
+                DataFelt.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to REQUEST.identitetsnummer,
-                Key.INNTEKTSMELDING.str to REQUEST
+                DataFelt.INNTEKTSMELDING.str to REQUEST
             )
         )
         Thread.sleep(10000)
@@ -133,7 +133,7 @@ class InnsendingIT : EndToEndTest() {
         with(filter(EventName.INNTEKTSMELDING_DISTRIBUERT).first()) {
             // Verifiser at inntektsmelding er distribuert på ekstern kafka
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-            assertNotNull(get(Key.INNTEKTSMELDING_DOKUMENT.str))
+            assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         }
     }
 

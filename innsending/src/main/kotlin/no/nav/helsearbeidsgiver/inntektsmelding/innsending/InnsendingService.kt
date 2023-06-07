@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -12,10 +13,11 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 class InnsendingService(
@@ -41,8 +43,8 @@ class InnsendingService(
         override val event: EventName = EventName.INSENDING_STARTED
         override fun accept(): River.PacketValidation {
             return River.PacketValidation {
-                it.interestedIn(Key.INNTEKTSMELDING.str)
-                it.requireKey(Key.ORGNRUNDERENHET.str)
+                it.interestedIn(DataFelt.INNTEKTSMELDING.str)
+                it.requireKey(DataFelt.ORGNRUNDERENHET.str)
                 it.requireKey(Key.IDENTITETSNUMMER.str)
             }
         }
@@ -93,7 +95,7 @@ class InnsendingService(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
                             Key.BEHOV.str to listOf(BehovType.VIRKSOMHET.name),
-                            Key.ORGNRUNDERENHET.str to message[Key.ORGNRUNDERENHET.str].asText(),
+                            DataFelt.ORGNRUNDERENHET.str to message[DataFelt.ORGNRUNDERENHET.str].asText(),
                             Key.UUID.str to uuid
                         )
                     ).toJson()
@@ -123,26 +125,22 @@ class InnsendingService(
             }
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
-                    val arbeidstakerRedis = redisStore.get(uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str)
+                    val arbeidstakerRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java)
                     logger.info("InnsendingService: emitiing behov PERSISTER_IM")
                     rapidsConnection.publish(
                         JsonMessage.newMessage(
                             mapOf(
                                 Key.EVENT_NAME.str to event.name,
                                 Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
-                                DataFelter.VIRKSOMHET.str to (redisStore.get(uuid + DataFelter.VIRKSOMHET.str) ?: "Ukjent virksomhet"),
-                                DataFelter.ARBEIDSTAKER_INFORMASJON.str to (
-                                    if (arbeidstakerRedis != null) {
-                                        customObjectMapper().readValue(arbeidstakerRedis, PersonDato::class.java)
-                                    } else {
-                                        PersonDato(
-                                            "Ukjent navn",
-                                            null
-                                        )
-                                    }
+                                DataFelt.VIRKSOMHET.str to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet"),
+                                DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
+                                    arbeidstakerRedis ?: PersonDato(
+                                        "Ukjent navn",
+                                        null
+                                    )
                                     ),
-                                Key.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(uuid + Key.INNTEKTSMELDING.str)!!),
-                                Key.FORESPOERSEL_ID.str to redisStore.get(uuid + Key.FORESPOERSEL_ID.str)!!,
+                                DataFelt.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING)))!!,
+                                Key.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!,
                                 Key.UUID.str to uuid
                             )
                         ).toJson()
@@ -158,16 +156,17 @@ class InnsendingService(
 
     override fun finalize(message: JsonMessage) {
         val uuid: String = message[Key.UUID.str].asText()
-        redisStore.set(uuid, redisStore.get(uuid + Key.INNTEKTSMELDING_DOKUMENT.str)!!)
+        val clientId = redisStore.get(RedisKey.of(uuid, event))
+        redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
         logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                    Key.INNTEKTSMELDING_DOKUMENT.str to message[Key.INNTEKTSMELDING_DOKUMENT.str],
+                    DataFelt.INNTEKTSMELDING_DOKUMENT.str to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str],
                     Key.TRANSACTION_ORIGIN.str to uuid,
-                    Key.FORESPOERSEL_ID.str to redisStore.get(uuid + Key.FORESPOERSEL_ID.str)!!
+                    DataFelt.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!
                 )
             ).toJson().also {
                 logger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
@@ -177,14 +176,12 @@ class InnsendingService(
 
     override fun initialTransactionState(message: JsonMessage) {
         val uuid = message[Key.UUID.str].asText()
-        val requestKey = "${uuid}${Key.INNTEKTSMELDING.str}"
-        val forespoerselKey = "${uuid}${Key.FORESPOERSEL_ID.str}"
-        redisStore.set(requestKey, message[Key.INNTEKTSMELDING.str].toString())
-        redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].asText())
+        redisStore.set(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING), message[DataFelt.INNTEKTSMELDING.str])
+        redisStore.set(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID), message[Key.FORESPOERSEL_ID.str].asText())
     }
-    private fun step1data(uuid: String): Array<String> = arrayOf(
-        uuid + DataFelter.VIRKSOMHET.str,
-        uuid + DataFelter.ARBEIDSFORHOLD.str,
-        uuid + DataFelter.ARBEIDSTAKER_INFORMASJON.str
+    private fun step1data(uuid: String): Array<RedisKey> = arrayOf(
+        RedisKey.of(uuid, DataFelt.VIRKSOMHET),
+        RedisKey.of(uuid, DataFelt.ARBEIDSFORHOLD),
+        RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON)
     )
 }

@@ -4,14 +4,16 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
@@ -62,9 +64,10 @@ class KvitteringService(
 
     override fun finalize(message: JsonMessage) {
         val transaksjonsId = message[Key.UUID.str].asText()
-        val dok = message[Key.INNTEKTSMELDING_DOKUMENT.str].asText()
+        val clientId = redisStore.get(RedisKey.Companion.of(transaksjonsId))
+        val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
-        redisStore.set(transaksjonsId, dok)
+        redisStore.set(clientId!!, dok)
     }
 
     override fun terminate(message: JsonMessage) {

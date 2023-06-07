@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
@@ -18,7 +19,7 @@ class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnecti
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
-            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+            it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.ID.str)
         }
@@ -34,7 +35,7 @@ class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnecti
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                 Key.BEHOV.str to BehovType.JOURNALFOER,
                 Key.UUID.str to uuid,
-                Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str]
             )
         )
         publishBehov(jsonMessage)

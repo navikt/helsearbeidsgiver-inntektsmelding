@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -50,7 +51,7 @@ class ForespoerselMottattLøser(
         val msg = mapOf(
             Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT.name,
             Key.BEHOV.str to BehovType.LAGRE_FORESPOERSEL,
-            Key.ORGNRUNDERENHET.str to orgnr,
+            DataFelt.ORGNRUNDERENHET.str to orgnr,
             Key.IDENTITETSNUMMER.str to fnr,
             Key.FORESPOERSEL_ID.str to forespoerselId
         )

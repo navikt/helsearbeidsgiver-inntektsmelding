@@ -17,9 +17,7 @@ class XMLMapperTest {
     }
 
     @Test
-    fun `tomme lister i dokument skal bli null`() {
-        // Uten @AfterMapping i Mapper vil tomme lister gi felt ala <arbeidsgiverperioder/>, som ikke er lov.
-        // Null gjør at unmarshaller skipper disse, det er ok siden kontrakten uansett definerer disse som minOccurs=0
+    fun `tom arbeidsgviverPeriodelister i dokument skal bli null`() {
         mapToXML(mockInntektMeldingDokMedTommeLister())
     }
     private fun mapToXML(mockInntektsmeldingDokument: InntektsmeldingDokument) {
@@ -32,6 +30,6 @@ class XMLMapperTest {
         val unmarshaller = CONTEXT.createUnmarshaller()
         unmarshaller.schema = xsdSchema
         unmarshaller.unmarshal(stringReader)
-        // println(xml)
+        println(xml)
     }
 }

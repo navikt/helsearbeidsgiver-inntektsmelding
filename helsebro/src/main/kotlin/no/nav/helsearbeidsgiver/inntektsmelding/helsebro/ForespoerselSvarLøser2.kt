@@ -64,8 +64,8 @@ class ForespoerselSvarLøser2(rapid: RapidsConnection) : River.PacketListener {
             ?: throw IllegalArgumentException("Mangler ${Key.INITIATE_EVENT} i ${Key.BOOMERANG}.")
         context.publish(
             Key.EVENT_NAME to initiateEvent,
-            Key.DATA to "".toJson(),
-       //     Key.FORESPOERSEL_SVAR to forespoerselSvar
+            Key.DATA to "".toJson()
+            //     Key.FORESPOERSEL_SVAR to forespoerselSvar
 
         )
 

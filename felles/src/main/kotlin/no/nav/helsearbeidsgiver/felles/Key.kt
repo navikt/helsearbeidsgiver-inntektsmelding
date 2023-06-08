@@ -8,12 +8,11 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 
-
-
 sealed interface IKey {
 
-    override fun toString():String
+    override fun toString(): String
 }
+
 @Serializable(KeySerializer::class)
 enum class Key(val str: String) : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
@@ -57,7 +56,7 @@ enum class Key(val str: String) : IKey {
 }
 
 @Serializable(DataFeltSerializer::class)
-enum class DataFelt(val str: String) :IKey {
+enum class DataFelt(val str: String) : IKey {
     VIRKSOMHET("virksomhet"),
     ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),

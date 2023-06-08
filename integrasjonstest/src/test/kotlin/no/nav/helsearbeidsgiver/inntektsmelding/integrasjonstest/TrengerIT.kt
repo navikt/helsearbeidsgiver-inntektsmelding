@@ -14,15 +14,12 @@ class TrengerIT : EndToEndTest() {
     private fun setup() {
         forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
 
-
         coEvery {
             dokarkivClient.opprettJournalpost(any(), any(), any())
         } answers {
             OpprettJournalpostResponse(JOURNALPOST_ID, journalpostFerdigstilt = true, "FERDIGSTILT", "", emptyList())
         }
     }
-        fun `Test trengerIM meldingsflyt`() {
-
-        }
-
+    fun `Test trengerIM meldingsflyt`() {
+    }
 }

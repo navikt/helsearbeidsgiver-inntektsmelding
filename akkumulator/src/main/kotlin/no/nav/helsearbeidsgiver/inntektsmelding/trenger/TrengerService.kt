@@ -17,14 +17,14 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class TrengerService(private val rapidsConnection: RapidsConnection,override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
+class TrengerService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
 
     override val event: EventName = EventName.TRENGER_REQUESTED2
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
         withDataKanal { StatefullDataKanal(listOf<String>().toTypedArray(), event, it, rapidsConnection, redisStore) }
-        withEventListener { StatefullEventListener(redisStore, event, listOf<String>().toTypedArray(), it, rapidsConnection)}
+        withEventListener { StatefullEventListener(redisStore, event, listOf<String>().toTypedArray(), it, rapidsConnection) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -38,17 +38,14 @@ class TrengerService(private val rapidsConnection: RapidsConnection,override val
                     Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL).toJson(BehovType.serializer()),
                     Key.INITIATE_ID.str to uuid.toJson(),
                     Key.INITIATE_EVENT.str to EventName.TRENGER_REQUESTED.toJson()
-            ).toJson()
+                ).toJson()
             )
         }
     }
 
     override fun finalize(message: JsonMessage) {
-
     }
 
     override fun terminate(message: JsonMessage) {
-
     }
-
 }

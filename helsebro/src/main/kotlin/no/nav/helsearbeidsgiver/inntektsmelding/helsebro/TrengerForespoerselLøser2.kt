@@ -1,19 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.demand
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValue
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer

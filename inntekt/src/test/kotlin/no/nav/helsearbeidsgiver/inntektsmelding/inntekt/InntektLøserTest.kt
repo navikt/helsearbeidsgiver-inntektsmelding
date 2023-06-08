@@ -191,7 +191,8 @@ class InntektLøserTest {
             TrengerInntekt(
                 fnr = "fnr",
                 orgnr = ORGNR,
-                sykmeldingsperioder = listOf(1.mai(2022) til 16.mai(2022)),
+                sykmeldingsperioder = listOf(2.mai(2022) til 16.mai(2022)),
+                egenmeldingsperioder = listOf(1.mai(2022) til 1.mai(2022)),
                 forespurtData = emptyList()
             )
         )

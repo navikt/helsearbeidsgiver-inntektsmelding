@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.coEvery
+import io.mockk.coVerifySequence
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.serialization.builtins.MapSerializer
@@ -13,11 +14,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.test.date.april
 import no.nav.helsearbeidsgiver.felles.test.date.februar
 import no.nav.helsearbeidsgiver.felles.test.date.januar
+import no.nav.helsearbeidsgiver.felles.test.date.juli
+import no.nav.helsearbeidsgiver.felles.test.date.juni
 import no.nav.helsearbeidsgiver.felles.test.date.mai
 import no.nav.helsearbeidsgiver.felles.test.date.mars
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -26,7 +30,6 @@ import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsInntektInformasjon
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsinntektMaaned
 import no.nav.helsearbeidsgiver.inntekt.Ident
-import no.nav.helsearbeidsgiver.inntekt.Inntekt
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
 import no.nav.helsearbeidsgiver.inntekt.LocalDateSerializer
@@ -40,6 +43,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
+import no.nav.helsearbeidsgiver.inntekt.Inntekt as Arbeidsinntekt
 
 private const val ORGNR = "123456789"
 
@@ -95,6 +99,30 @@ class InntektLøserTest {
         val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
         assertNull(inntektLøsning?.error)
         assertNotNull(inntektLøsning?.value)
+    }
+
+    @Test
+    fun `egenmeldinger påvirker hvilke inntektsmåneder som hentes`() {
+        val response = "response.json".readResource().fromJson(InntektskomponentResponse.serializer())
+
+        coEvery {
+            inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
+        } returns response
+
+        rapid.sendJson(
+            Key.BEHOV to listOf(BehovType.FULLT_NAVN, BehovType.INNTEKT).toJson(BehovType.serializer()),
+            Key.ID to UUID.randomUUID().toJson(),
+            Key.UUID to "uuid".toJson(),
+            Key.SESSION to sessionDataJson(
+                orgnr = "123456785",
+                sykmeldingsperioder = listOf(1.juli(2020) til 31.juli(2020)),
+                egenmeldingsperioder = listOf(30.juni(2020) til 30.juni(2020))
+            )
+        )
+
+        coVerifySequence {
+            inntektKlient.hentInntektListe(any(), any(), any(), fraOgMed = 1.mars(2020), tilOgMed = 31.mai(2020), any(), any())
+        }
     }
 
     @Test
@@ -186,13 +214,17 @@ class InntektLøserTest {
         )
     }
 
-    private fun sessionDataJson(): JsonElement = mapOf(
+    private fun sessionDataJson(
+        orgnr: String = ORGNR,
+        sykmeldingsperioder: List<Periode> = listOf(2.mai(2022) til 16.mai(2022)),
+        egenmeldingsperioder: List<Periode> = listOf(1.mai(2022) til 1.mai(2022))
+    ): JsonElement = mapOf(
         BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
             TrengerInntekt(
                 fnr = "fnr",
-                orgnr = ORGNR,
-                sykmeldingsperioder = listOf(2.mai(2022) til 16.mai(2022)),
-                egenmeldingsperioder = listOf(1.mai(2022) til 1.mai(2022)),
+                orgnr = orgnr,
+                sykmeldingsperioder = sykmeldingsperioder,
+                egenmeldingsperioder = egenmeldingsperioder,
                 forespurtData = emptyList()
             )
         )
@@ -208,7 +240,7 @@ class InntektLøserTest {
             aarMaaned = mnd,
             arbeidsInntektInformasjon = ArbeidsInntektInformasjon(
                 inntektListe = listOf(
-                    Inntekt(
+                    Arbeidsinntekt(
                         beloep = 1.0,
                         virksomhet = Ident(ORGNR)
                     )

@@ -39,6 +39,7 @@ internal class HentPreutfyltLøserTest {
                         orgnr = "123",
                         fnr = "456",
                         sykmeldingsperioder = emptyList(),
+                        egenmeldingsperioder = emptyList(),
                         forespurtData = mockForespurtDataListe()
                     )
                 )

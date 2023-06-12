@@ -8,9 +8,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 object TestData {
-    val validIdentitetsnummer = "20015001543"
-    val notValidIdentitetsnummer = "50012001987"
-    val notValidOrgNr = "123456789"
+    const val validIdentitetsnummer = "20015001543"
+    const val notValidIdentitetsnummer = "50012001987"
+    const val notValidOrgNr = "123456789"
 }
 
 fun mockArbeidsforhold(): Arbeidsforhold =

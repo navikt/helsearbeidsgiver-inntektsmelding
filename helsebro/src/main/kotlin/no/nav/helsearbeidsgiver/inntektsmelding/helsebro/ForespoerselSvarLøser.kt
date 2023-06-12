@@ -29,9 +29,9 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
     init {
         sikkerLogger.info("Starting ForespoerselSvarLøser...")
         River(rapid).apply {
-            validate { jsonMessage ->
-                jsonMessage.demandValue(Pri.Key.BEHOV, ForespoerselSvar.behovType)
-                jsonMessage.require(
+            validate { msg ->
+                msg.demandValue(Pri.Key.BEHOV, ForespoerselSvar.behovType)
+                msg.require(
                     Pri.Key.LØSNING to { it.fromJson(ForespoerselSvar.serializer()) }
                 )
             }
@@ -88,6 +88,7 @@ fun ForespoerselSvar.toHentTrengerImLøsning(): HentTrengerImLøsning =
                 orgnr = resultat.orgnr,
                 fnr = resultat.fnr,
                 sykmeldingsperioder = resultat.sykmeldingsperioder,
+                egenmeldingsperioder = resultat.egenmeldingsperioder,
                 forespurtData = resultat.forespurtData
             )
         )

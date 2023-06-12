@@ -18,12 +18,12 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TilgangskontrollIT : EndToEndTest() {
 
-    val INNLOGGET_FNR = "fnr-456"
-    val FORESPØRSEL_ID_HAR_TILGANG = UUID.randomUUID().toString()
-    val FORESPØRSEL_ID_IKKE_TILGANG = UUID.randomUUID().toString()
-    val FORESPØRSEL_ID_FINNES_IKKE = UUID.randomUUID().toString()
-    val ORGNR_HAR_TILGANG = "org-456"
-    val ORGNR_IKKE_TILGANG = "org-789"
+    private val INNLOGGET_FNR = "fnr-456"
+    private val FORESPØRSEL_ID_HAR_TILGANG = UUID.randomUUID().toString()
+    private val FORESPØRSEL_ID_IKKE_TILGANG = UUID.randomUUID().toString()
+    private val FORESPØRSEL_ID_FINNES_IKKE = UUID.randomUUID().toString()
+    private val ORGNR_HAR_TILGANG = "org-456"
+    private val ORGNR_IKKE_TILGANG = "org-789"
 
     @BeforeAll
     fun before() {
@@ -40,7 +40,7 @@ class TilgangskontrollIT : EndToEndTest() {
     @Test
     fun `skal få melding om at forespørsel ikke finnes`() {
         results.clear()
-        producer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_FINNES_IKKE)
+        tilgangProducer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_FINNES_IKKE)
         Thread.sleep(4000)
         with(getMessage(0)) {
             assertEquals(BehovType.HENT_IM_ORGNR.name, get(Key.BEHOV.str)[0].asText())
@@ -54,7 +54,7 @@ class TilgangskontrollIT : EndToEndTest() {
     @Test
     fun `skal bli nektet tilgang`() {
         results.clear()
-        producer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_IKKE_TILGANG)
+        tilgangProducer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_IKKE_TILGANG)
         Thread.sleep(4000)
         with(getMessage(3)) {
             assertNotNull(get(Key.LØSNING.str))
@@ -69,7 +69,7 @@ class TilgangskontrollIT : EndToEndTest() {
     @Test
     fun `skal få tilgang`() {
         results.clear()
-        producer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_HAR_TILGANG)
+        tilgangProducer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_HAR_TILGANG)
         Thread.sleep(6000)
         assertNotNull(results)
         with(getMessage(1)) {

@@ -18,19 +18,20 @@ fun InntektEndringAarsak.stringValue(): String {
     return when (this) {
         is Nyansatt -> "Nyansatt"
         is Bonus -> "Bonus" // Beløp og dato ikke implementert i frontend
-        is Ferie -> typpe + ": " + liste.joinToString(transform = printPeriode())
-        is Sykefravaer -> "Sykefravær:" + ": " + liste.joinToString(transform = printPeriode())
+        is Ferie -> "$typpe: ${liste.lesbar()}"
+        is Sykefravaer -> "Sykefravær: ${liste.lesbar()}"
         is NyStilling -> "Ny stilling: fra $gjelderFra"
         is NyStillingsprosent -> "Ny stillingsprosent: fra $gjelderFra"
-        is Permisjon -> typpe + ": " + liste.joinToString(transform = printPeriode())
-        is Permittering -> typpe + ": " + liste.joinToString(transform = printPeriode())
-        is Tariffendring -> typpe + ": fra $gjelderFra"
+        is Permisjon -> "$typpe: ${liste.lesbar()}"
+        is Permittering -> "$typpe: ${liste.lesbar()}"
+        is Tariffendring -> "$typpe: fra $gjelderFra"
         is VarigLonnsendring -> "Varig lønnsendring: fra $gjelderFra"
-        else -> "" + typpe
+        else -> typpe
     }
 }
 
-private fun printPeriode(): (Periode) -> CharSequence = { "fra ${it.fom} til ${it.tom}" }
+private fun List<Periode>.lesbar(): String =
+    joinToString { "fra ${it.fom} til ${it.tom}" }
 
 @Mapper
 abstract class InntektEndringAarsakMapper {

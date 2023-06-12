@@ -22,16 +22,16 @@ import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException
 import java.time.LocalDate
 
-internal class InnsendingMapperTest {
+class InnsendingMapperTest {
 
-    val løsningOk = NavnLøsning(PersonDato("abc", LocalDate.now()))
-    val løsningVirksomhet = VirksomhetLøsning("abc")
-    val løsningVirksomhetFeil = VirksomhetLøsning(error = Feilmelding("Oops"))
-    val løsningFeil = NavnLøsning(error = Feilmelding("Oops"))
+    private val løsningOk = NavnLøsning(PersonDato("abc", LocalDate.now()))
+    private val løsningVirksomhet = VirksomhetLøsning("abc")
+    private val løsningVirksomhetFeil = VirksomhetLøsning(error = Feilmelding("Oops"))
+    private val løsningFeil = NavnLøsning(error = Feilmelding("Oops"))
 
     @Test
     fun `skal kaste constraints exception når feil oppstår`() {
-        val mapper = buildMapper(true, false)
+        val mapper = buildMapper(en = true, to = false)
         assertThrows<ConstraintViolationException> {
             mapper.getResponse()
         }
@@ -43,16 +43,16 @@ internal class InnsendingMapperTest {
 
     @Test
     fun `skal returnere feilinformasjon når feil oppstår`() {
-        assertEquals(HttpStatusCode.InternalServerError, buildMapper(true, false).getStatus())
-        assertTrue(buildMapper(true, false).hasErrors())
-        assertEquals(HttpStatusCode.InternalServerError, buildMapper(false, false).getStatus())
-        assertTrue(buildMapper(false, false).hasErrors())
+        assertEquals(HttpStatusCode.InternalServerError, buildMapper(en = true, to = false).getStatus())
+        assertTrue(buildMapper(en = true, to = false).hasErrors())
+        assertEquals(HttpStatusCode.InternalServerError, buildMapper(en = false, to = false).getStatus())
+        assertTrue(buildMapper(en = false, to = false).hasErrors())
     }
 
     @Test
     fun `skal returnere kvittering når det ikke er feil`() {
-        assertEquals(HttpStatusCode.Created, buildMapper(true, true).getStatus())
-        assertFalse(buildMapper(true, true).hasErrors())
+        assertEquals(HttpStatusCode.Created, buildMapper(en = true, to = true).getStatus())
+        assertFalse(buildMapper(en = true, to = true).hasErrors())
     }
 
     @Test
@@ -73,7 +73,7 @@ internal class InnsendingMapperTest {
         assertNotNull(kvitteringResponse.inntekt.endringÅrsak)
     }
 
-    fun buildMapper(en: Boolean, to: Boolean): InnsendingMapper {
+    private fun buildMapper(en: Boolean, to: Boolean): InnsendingMapper {
         val løsninger = mutableListOf<Løsning>()
         løsninger.add(if (en) { løsningOk } else { løsningFeil })
         løsninger.add(if (to) { løsningOk } else { løsningFeil })

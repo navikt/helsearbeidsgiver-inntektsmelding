@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class EnvironmentKtTest {
+class EnvironmentKtTest {
 
     @Test
     fun kan_lese_local() {

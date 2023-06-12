@@ -13,7 +13,7 @@ import org.mapstruct.factory.Mappers
 import java.io.StringWriter
 import javax.xml.bind.JAXBContext
 
-val CONTEXT = JAXBContext.newInstance(ObjectFactory::class.java)
+val CONTEXT: JAXBContext = JAXBContext.newInstance(ObjectFactory::class.java)
 
 fun xmlMapper(): ObjectMapper = XmlMapper().apply {
     this.registerModule(JaxbAnnotationModule())

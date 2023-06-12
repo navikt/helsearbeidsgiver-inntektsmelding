@@ -12,7 +12,7 @@ class XMLMapperTest {
 
     @Test
     fun `Bør generere xml fra InnsendingM dokument`() {
-        val mockInntektsmeldingDokument = MockInntektsmeldingDokument()
+        val mockInntektsmeldingDokument = mockInntektsmeldingDokument()
         mapToXML(mockInntektsmeldingDokument)
     }
 

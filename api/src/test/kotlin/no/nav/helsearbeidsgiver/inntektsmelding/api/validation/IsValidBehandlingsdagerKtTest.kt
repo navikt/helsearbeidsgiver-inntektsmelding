@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-internal class IsValidBehandlingsdagerKtTest {
+class IsValidBehandlingsdagerKtTest {
 
-    val now = LocalDate.of(2023, 3, 27)
-    val SUNDAY = LocalDate.of(2023, 3, 26)
+    private val now: LocalDate = LocalDate.of(2023, 3, 27)
+    private val SUNDAY: LocalDate = LocalDate.of(2023, 3, 26)
 
     @Test
     fun `skal godta uten dato`() {

@@ -34,7 +34,7 @@ class InnsendingRequestTest {
     private val NOW = LocalDate.now()
     private val MAX_INNTEKT: BigDecimal = 1_000_001.0.toBigDecimal()
     private val MAX_REFUSJON: BigDecimal = 1_000_001.0.toBigDecimal()
-    private val NEGATIVT_BELØP: BigDecimal = -0.1.toBigDecimal()
+    private val NEGATIVT_BELØP: BigDecimal = (-0.1).toBigDecimal()
     private val MAX_NATURAL_BELØP: BigDecimal = 1_000_000.0.toBigDecimal()
 
     @Test

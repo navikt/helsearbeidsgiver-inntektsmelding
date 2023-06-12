@@ -93,7 +93,8 @@ class DummyLøser(
                     value = TrengerInntekt(
                         orgnr = orgnr,
                         fnr = fnr,
-                        sykmeldingsperioder = listOf(1.januar til 2.januar),
+                        sykmeldingsperioder = listOf(2.januar til 3.januar),
+                        egenmeldingsperioder = listOf(1.januar til 1.januar),
                         forespurtData = emptyList()
                     )
                 )

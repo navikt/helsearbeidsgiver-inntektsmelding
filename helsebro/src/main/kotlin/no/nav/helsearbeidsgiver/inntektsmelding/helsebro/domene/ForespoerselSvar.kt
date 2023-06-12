@@ -28,6 +28,7 @@ data class ForespoerselSvar(
         val orgnr: String,
         val fnr: String,
         val sykmeldingsperioder: List<Periode>,
+        val egenmeldingsperioder: List<Periode>,
         val forespurtData: List<ForespurtData>
     )
 

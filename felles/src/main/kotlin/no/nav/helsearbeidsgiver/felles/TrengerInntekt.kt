@@ -7,6 +7,6 @@ data class TrengerInntekt(
     val fnr: String,
     val orgnr: String,
     val sykmeldingsperioder: List<Periode>,
-    val egenmeldingsperioder: List<Periode> = emptyList(),
+    val egenmeldingsperioder: List<Periode>,
     val forespurtData: List<ForespurtData>
 )

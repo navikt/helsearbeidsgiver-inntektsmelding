@@ -21,7 +21,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 
-fun RouteExtra.TrengerRoute() {
+fun RouteExtra.trengerRoute() {
     val trengerProducer = TrengerProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
 

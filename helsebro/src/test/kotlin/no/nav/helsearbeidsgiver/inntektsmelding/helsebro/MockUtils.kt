@@ -45,7 +45,8 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
         orgnr = "hungry-traitor-chaplain",
         fnr = "deputize-snowy-quirk",
-        sykmeldingsperioder = listOf(1.januar til 16.januar),
+        sykmeldingsperioder = listOf(2.januar til 16.januar),
+        egenmeldingsperioder = listOf(1.januar til 1.januar),
         forespurtData = mockForespurtDataListe()
     )
 
@@ -54,9 +55,10 @@ fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
         orgnr = "full-traitor-chaplain",
         fnr = "captain-snowy-quirk",
         sykmeldingsperioder = listOf(
-            1.januar til 10.januar,
+            2.januar til 10.januar,
             15.januar til 31.januar
         ),
+        egenmeldingsperioder = listOf(1.januar til 1.januar),
         forespurtData = mockForespurtDataMedFastsattInntektListe()
     )
 

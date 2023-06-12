@@ -25,7 +25,7 @@ class InnsendingServiceIT : EndToEndTest() {
         this.filterMessages = {
             val eventName = it.get(Key.EVENT_NAME.str).asText()
             if (it.contains(Key.CLIENT_ID.str)) {
-                assertEquals(clientID,it[Key.CLIENT_ID.str].asText())
+                assertEquals(clientID, it[Key.CLIENT_ID.str].asText())
                 true
             } else {
                 if (transaksjonsID == null && (eventName == EventName.INSENDING_STARTED.name && it.contains(Key.BEHOV.str))) {
@@ -57,6 +57,5 @@ class InnsendingServiceIT : EndToEndTest() {
         }
         val innsendingStr = redisStore.get(clientID)
         assertTrue(innsendingStr?.length!! > 2)
-
     }
 }

@@ -17,10 +17,10 @@ import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.InntektRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.KvitteringRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.TrengerRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.trengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
@@ -41,16 +41,20 @@ object Routes {
 }
 
 fun main() {
-    val env = System.getenv()
-    RapidApplication.create(env)
-        .also(::startServer)
-        .start()
+    startServer()
 }
 
-fun startServer(rapid: RapidsConnection) {
-    embeddedServer(Netty, port = 8080) {
-        apiModule(rapid)
-    }.start(wait = true)
+fun startServer(env: Map<String, String> = System.getenv()) {
+    val rapid = RapidApplication.create(env)
+
+    embeddedServer(
+        factory = Netty,
+        port = 8080,
+        module = { apiModule(rapid) }
+    )
+        .start(wait = true)
+
+    rapid.start()
 }
 
 fun Application.apiModule(rapid: RapidsConnection) {
@@ -83,10 +87,10 @@ fun Application.apiModule(rapid: RapidsConnection) {
         authenticate {
             route(Routes.PREFIX) {
                 routeExtra(rapid, redisPoller, tilgangCache) {
-                    TrengerRoute()
-                    InntektRoute()
-                    InnsendingRoute()
-                    KvitteringRoute()
+                    trengerRoute()
+                    inntektRoute()
+                    innsendingRoute()
+                    kvitteringRoute()
                 }
             }
         }

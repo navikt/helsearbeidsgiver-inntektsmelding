@@ -35,7 +35,7 @@ value class Messages(
         event: EventName,
         behovType: BehovType? = null,
         dataFelt: DataFelt? = null,
-        loesning: Boolean = false
+        maaHaLoesning: Boolean = false
     ): JsonElement =
         value.firstOrNull { jsonMsg ->
             val msg = jsonMsg.fromJsonMapOnlyKeys()
@@ -50,7 +50,7 @@ value class Messages(
             val matchesDataFelt = dataFelt == null ||
                 (msg.contains(Key.DATA) && jsonMsg.fromJsonMapFiltered(DataFelt.serializer()).contains(dataFelt))
 
-            val containsLoesning = !loesning ||
+            val containsLoesning = !maaHaLoesning ||
                 (behovType == null && msg.contains(Key.LØSNING)) ||
                 (behovType != null && msg[Key.LØSNING]?.fromJsonMapFiltered(BehovType.serializer())?.contains(behovType).orDefault(false))
 

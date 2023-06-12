@@ -108,7 +108,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     }
 
     fun filter(event: EventName, behovType: BehovType? = null, datafelt: DataFelt? = null, løsning: Boolean = false): List<JsonNode> =
-        messages.find(event, behovType, datafelt, løsning)
+        messages.find(event, behovType, datafelt, maaHaLoesning = løsning)
             .toJsonNode()
             .let(::listOf)
 

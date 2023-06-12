@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test
 import org.mapstruct.factory.Mappers
 import java.math.BigDecimal
 
-internal class InntektDokumentTilSkjemainnholdMapperTest {
+class InntektDokumentTilSkjemainnholdMapperTest {
 
-    val inntektsmeldingDokument = MockInntektsmeldingDokument()
-    val mapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
+    private val inntektsmeldingDokument = mockInntektsmeldingDokument()
+    private val mapper: InntektDokumentTilSkjemainnholdMapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
 
     @Test
     fun `skal mappe InntektsMeldingdokument til Skjema`() {

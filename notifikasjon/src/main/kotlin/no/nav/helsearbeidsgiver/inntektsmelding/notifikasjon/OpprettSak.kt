@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 
-class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
+class OpprettSak(private val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
     override val event: EventName = EventName.FORESPØRSEL_LAGRET
 
     init {
@@ -123,6 +123,6 @@ class OpprettSak(val rapidsConnection: RapidsConnection, override val redisStore
         return Transaction.TERMINATE
     }
 
-    fun steg2(transactionId: String) = arrayOf(transactionId + DataFelt.ARBEIDSTAKER_INFORMASJON.str)
-    fun steg3(transactionId: String) = arrayOf(transactionId + DataFelt.SAK_ID.str)
+    private fun steg2(transactionId: String) = arrayOf(transactionId + DataFelt.ARBEIDSTAKER_INFORMASJON.str)
+    private fun steg3(transactionId: String) = arrayOf(transactionId + DataFelt.SAK_ID.str)
 }

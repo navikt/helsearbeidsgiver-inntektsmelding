@@ -101,7 +101,7 @@ class InntektLøser(
                 ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
                 ?.get(Key.INNTEKT_DATO)
                 ?.fromJson(LocalDateSerializer)
-            val sykPeriode = bestemPeriode(nyInntektDato, imLøsning.value?.sykmeldingsperioder)
+            val sykPeriode = bestemPeriode(nyInntektDato, imLøsning.value?.sykmeldingsperioder, imLøsning.value?.egenmeldingsperioder)
             if (sykPeriode.isEmpty()) {
                 logger.error("Sykmeldingsperiode mangler for uuid $uuid")
                 packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
@@ -136,10 +136,10 @@ class InntektLøser(
             HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente ut spleisdata fra ${Key.SESSION},  ${BehovType.HENT_TRENGER_IM}"))
         }
 
-    private fun bestemPeriode(dato: LocalDate?, sykmeldingPeriode: List<Periode>?): List<Periode> {
+    private fun bestemPeriode(dato: LocalDate?, sykmeldingPerioder: List<Periode>?, egenmeldingPerioder: List<Periode>?): List<Periode> {
         if (dato == null) {
             logger.debug("Bruker sykmeldingsperiode fra spleis-forespørsel")
-            return sykmeldingPeriode ?: emptyList()
+            return egenmeldingPerioder.orEmpty() + sykmeldingPerioder.orEmpty()
         }
         logger.debug("Bruker innsendt dato $dato fra bruker")
         return listOf(Periode(dato, dato))

@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnse
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
-fun MockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): InntektsmeldingDokument =
+fun mockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): InntektsmeldingDokument =
     InntektsmeldingDokument(
         orgnrUnderenhet = "123456789",
         identitetsnummer = "12345678901",
@@ -69,3 +69,32 @@ fun MockInntektsmeldingDokument(dag: LocalDate = LocalDate.of(2022, 12, 24)): In
         årsakInnsending = ÅrsakInnsending.NY,
         identitetsnummerInnsender = "123123123123123"
     )
+
+fun mockInntektMeldingDokMedTommeLister(dag: LocalDate = LocalDate.of(2022, 12, 24)) = InntektsmeldingDokument(
+    orgnrUnderenhet = "123456789",
+    identitetsnummer = "12345678901",
+    fulltNavn = "Ola Normann",
+    virksomhetNavn = "Norge AS",
+    behandlingsdager = emptyList(),
+    egenmeldingsperioder = emptyList(),
+    beregnetInntekt = 25_000.0.toBigDecimal(),
+    inntekt = Inntekt(true, 25000.0.toBigDecimal(), Tariffendring(dag, dag), false),
+    fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+        true,
+        begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT,
+        utbetalt = 10_000.toBigDecimal()
+    ),
+    refusjon = Refusjon(
+        true,
+        25000.0.toBigDecimal(),
+        dag.plusDays(3),
+        emptyList()
+    ),
+    naturalytelser = emptyList(),
+    fraværsperioder = emptyList(),
+    arbeidsgiverperioder = emptyList(),
+    bestemmendeFraværsdag = dag.plusDays(90),
+    tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
+    årsakInnsending = ÅrsakInnsending.NY,
+    identitetsnummerInnsender = "123123123123123"
+)

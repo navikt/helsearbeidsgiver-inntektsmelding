@@ -5,7 +5,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class FindMessageKtTest : AbstractFilterBase() {
+class FindMessageKtTest : AbstractFilterBase() {
 
     @Test
     fun `skal finne message for event`() {

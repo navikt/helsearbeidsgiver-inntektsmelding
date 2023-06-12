@@ -1,8 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
-import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.data.row
 import io.kotest.datatest.withData
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldBeNull
@@ -26,55 +27,32 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-private const val UNEXPECTED_NULL_ERROR_MSG = "Expected value to not be null, but was null."
-
 class MessagesTest : FunSpec({
 
     test("finner korrekt melding for event") {
         val expectedEventName = EventName.HENT_PREUTFYLT
 
-        val funnetMelding = Mock.meldingerMedBehovMedLoesning.find(
-            event = expectedEventName,
-            behovType = null,
-            dataFelt = null,
-            maaHaLoesning = false
-        )
+        val funnetMelding = Mock.meldingerMedBehovMedLoesning.filter(expectedEventName).first()
 
         val actualEventName = funnetMelding.fromJsonMapOnlyKeys()[Key.EVENT_NAME]?.fromJson(EventName.serializer())
 
         actualEventName shouldBe expectedEventName
     }
 
-    test("feiler når ikke finner melding for event") {
-        val e = shouldThrowExactly<AssertionError> {
-            Mock.meldingerMedBehovMedLoesning.find(
-                event = EventName.FORESPØRSEL_MOTTATT,
-                behovType = null,
-                dataFelt = null,
-                maaHaLoesning = false
-            )
-        }
-
-        e.message shouldBe UNEXPECTED_NULL_ERROR_MSG
+    test("finner ikke manglende melding for event") {
+        Mock.meldingerMedBehovMedLoesning.filter(EventName.FORESPØRSEL_MOTTATT)
+            .all()
+            .shouldBeEmpty()
     }
 
-    context("finner korrekt melding for event og behov") {
+    context("finner korrekt melding for behov uten løsning") {
         withData(
             BehovType.TILGANGSKONTROLL,
             BehovType.FULLT_NAVN
         ) { expectedBehovType ->
-            val expectedEventName = EventName.HENT_PREUTFYLT
-
-            val funnetMelding = Mock.meldingerMedBehovMedLoesning.find(
-                event = expectedEventName,
-                behovType = expectedBehovType,
-                dataFelt = null,
-                maaHaLoesning = false
-            )
+            val funnetMelding = Mock.meldingerMedBehovMedLoesning.filter(expectedBehovType, loesningPaakrevd = false).first()
 
             funnetMelding.fromJsonMapOnlyKeys().let {
-                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe expectedEventName
-
                 val behovJson = it[Key.BEHOV].shouldNotBeNull()
 
                 behovJson.fromJson(BehovType.serializer().list()) shouldContain expectedBehovType
@@ -82,94 +60,62 @@ class MessagesTest : FunSpec({
         }
     }
 
-    test("feiler når ikke finner melding for event og behov") {
-        val e = shouldThrowExactly<AssertionError> {
-            Mock.meldingerMedBehovMedLoesning.find(
-                event = EventName.HENT_PREUTFYLT,
-                behovType = BehovType.HENT_IM_ORGNR,
-                dataFelt = null,
-                maaHaLoesning = false
-            )
-        }
-
-        e.message shouldBe UNEXPECTED_NULL_ERROR_MSG
+    test("finner ikke manglende melding for behov uten løsning") {
+        Mock.meldingerMedBehovMedLoesning.filter(BehovType.HENT_IM_ORGNR, loesningPaakrevd = false)
+            .all()
+            .shouldBeEmpty()
     }
 
-    test("finner korrekt melding for event og behov, med løsning") {
-        val expectedEventName = EventName.HENT_PREUTFYLT
-        val expectedBehovType = BehovType.TILGANGSKONTROLL
+    context("finner korrekt melding for behov med løsning") {
+        withData(
+            nameFn = { (behovType, _, _) -> behovType.name },
+            row(BehovType.TILGANGSKONTROLL, Tilgang.HAR_TILGANG, TilgangskontrollLøsning.serializer()),
+            row(BehovType.FULLT_NAVN, Mock.personDato, NavnLøsning.serializer())
+        ) { (expectedBehovType, expectedLoesning, loesningSerializer) ->
+            val funnetMelding = Mock.meldingerMedBehovMedLoesning.filter(expectedBehovType, loesningPaakrevd = true).first()
 
-        val funnetMelding = Mock.meldingerMedBehovMedLoesning.find(
-            event = expectedEventName,
-            behovType = expectedBehovType,
-            dataFelt = null,
-            maaHaLoesning = true
-        )
+            funnetMelding.fromJsonMapOnlyKeys().let {
+                val behovJson = it[Key.BEHOV].shouldNotBeNull()
 
-        funnetMelding.fromJsonMapOnlyKeys().let {
-            it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe expectedEventName
+                behovJson.fromJson(BehovType.serializer().list()) shouldContain expectedBehovType
 
-            val behovJson = it[Key.BEHOV].shouldNotBeNull()
+                val loesning = it.lesLoesning(expectedBehovType, loesningSerializer)
 
-            behovJson.fromJson(BehovType.serializer().list()) shouldContain expectedBehovType
-
-            val loesning = it.lesLoesning(expectedBehovType, TilgangskontrollLøsning.serializer())
-
-            loesning?.error.shouldBeNull()
-            loesning?.value shouldBe Tilgang.HAR_TILGANG
+                loesning?.error.shouldBeNull()
+                loesning?.value shouldBe expectedLoesning
+            }
         }
     }
 
-    test("feiler når ikke finner melding for event og behov, med løsning") {
-        val e = shouldThrowExactly<AssertionError> {
-            Mock.meldingerMedBehovUtenLoesning.find(
-                event = EventName.HENT_PREUTFYLT,
-                behovType = BehovType.TILGANGSKONTROLL,
-                dataFelt = null,
-                maaHaLoesning = true
-            )
-        }
-
-        e.message shouldBe UNEXPECTED_NULL_ERROR_MSG
+    test("finner ikke manglende melding for behov med løsning") {
+        Mock.meldingerMedBehovUtenLoesning.filter(BehovType.TILGANGSKONTROLL, loesningPaakrevd = true)
+            .all()
+            .shouldBeEmpty()
     }
 
-    test("finner korrekt melding for event og datafelt") {
-        val expectedEventName = EventName.HENT_PREUTFYLT
+    test("finner korrekt melding for datafelt") {
+        val funnetMelding = Mock.meldingerMedDatafelt.filter(DataFelt.VIRKSOMHET).first()
 
-        val funnetMelding = Mock.meldingerMedDatafelt.find(
-            event = expectedEventName,
-            behovType = null,
-            dataFelt = DataFelt.VIRKSOMHET,
-            maaHaLoesning = false
-        )
-
-        funnetMelding.fromJsonMapOnlyKeys().let {
-            it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe expectedEventName
-
-            it shouldContainKey Key.DATA
-        }
+        funnetMelding.fromJsonMapOnlyKeys() shouldContainKey Key.DATA
 
         funnetMelding.fromJsonMapFiltered(DataFelt.serializer()).let {
             it[DataFelt.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
         }
     }
 
-    test("feiler når ikke finner melding for event og datafelt") {
-        val e = shouldThrowExactly<AssertionError> {
-            Mock.meldingerMedDatafelt.find(
-                event = EventName.HENT_PREUTFYLT,
-                behovType = null,
-                dataFelt = DataFelt.ARBEIDSFORHOLD,
-                maaHaLoesning = true
-            )
-        }
-
-        e.message shouldBe UNEXPECTED_NULL_ERROR_MSG
+    test("finner ikke manglende melding for datafelt") {
+        Mock.meldingerMedDatafelt.filter(DataFelt.ARBEIDSFORHOLD)
+            .all()
+            .shouldBeEmpty()
     }
 })
 
 private object Mock {
     const val ORGNR = "orgnr-pai"
+    val personDato = PersonDato(
+        navn = "Thomas Toget",
+        fødselsdato = 11.juli
+    )
 
     val meldingerMedBehovUtenLoesning = basisfelt().toJson().toMessages()
     val meldingerMedBehovMedLoesning = basisfelt().plus(loesninger()).toJson().toMessages()
@@ -191,12 +137,7 @@ private object Mock {
             Key.LØSNING.str,
             mapOf(
                 BehovType.TILGANGSKONTROLL to TilgangskontrollLøsning(Tilgang.HAR_TILGANG).toJson(TilgangskontrollLøsning.serializer()),
-                BehovType.FULLT_NAVN to NavnLøsning(
-                    PersonDato(
-                        navn = "Thomas Toget",
-                        fødselsdato = 11.juli
-                    )
-                ).toJson(NavnLøsning.serializer())
+                BehovType.FULLT_NAVN to NavnLøsning(personDato).toJson(NavnLøsning.serializer())
             ).toJson()
         )
 

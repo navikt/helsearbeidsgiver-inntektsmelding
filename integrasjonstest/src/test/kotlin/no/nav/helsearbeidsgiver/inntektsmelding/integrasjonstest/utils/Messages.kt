@@ -19,6 +19,9 @@ import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 value class Messages(
     private val value: MutableList<JsonElement> = mutableListOf()
 ) {
+    fun first(): JsonElement =
+        value.firstOrNull().shouldNotBeNull()
+
     fun all(): List<JsonElement> =
         value
 
@@ -31,32 +34,47 @@ value class Messages(
         value.clear()
     }
 
-    fun find(
-        event: EventName,
-        behovType: BehovType? = null,
-        dataFelt: DataFelt? = null,
-        maaHaLoesning: Boolean = false
-    ): JsonElement =
-        value.firstOrNull { jsonMsg ->
-            val msg = jsonMsg.fromJsonMapOnlyKeys()
-
-            val matchesEvent = event == msg[Key.EVENT_NAME]?.fromJson(EventName.serializer())
-
-            val matchesBehovType = behovType == null ||
-                msg[Key.BEHOV]?.fromJsonToBehovTypeListe()
-                    ?.contains(behovType)
-                    .orDefault(false)
-
-            val matchesDataFelt = dataFelt == null ||
-                (msg.contains(Key.DATA) && jsonMsg.fromJsonMapFiltered(DataFelt.serializer()).contains(dataFelt))
-
-            val containsLoesning = !maaHaLoesning ||
-                (behovType == null && msg.contains(Key.LØSNING)) ||
-                (behovType != null && msg[Key.LØSNING]?.fromJsonMapFiltered(BehovType.serializer())?.contains(behovType).orDefault(false))
-
-            matchesEvent && matchesBehovType && matchesDataFelt && containsLoesning
+    fun filter(eventName: EventName): Messages =
+        filter { msg ->
+            msg.fromJsonMapOnlyKeys()[Key.EVENT_NAME]
+                ?.runCatching { fromJson(EventName.serializer()) }
+                ?.map { it == eventName }
+                ?.getOrElse { false }
+                .orDefault(false)
         }
-            .shouldNotBeNull()
+
+    fun filter(behovType: BehovType, loesningPaakrevd: Boolean): Messages =
+        filter { msg ->
+            val msgMap = msg.fromJsonMapOnlyKeys()
+
+            val behovTypeFunnet = msgMap[Key.BEHOV]
+                ?.runCatching { fromJsonToBehovTypeListe() }
+                ?.getOrElse { emptyList() }
+                ?.contains(behovType)
+                .orDefault(false)
+
+            val loesningFunnet = msgMap[Key.LØSNING]
+                ?.runCatching { fromJsonMapFiltered(BehovType.serializer()) }
+                ?.getOrElse { emptyMap() }
+                ?.contains(behovType)
+                .orDefault(false)
+
+            behovTypeFunnet && (!loesningPaakrevd || loesningFunnet)
+        }
+
+    fun filter(dataFelt: DataFelt): Messages =
+        filter { msg ->
+            val dataFunnet = msg.fromJsonMapOnlyKeys().contains(Key.DATA)
+
+            val datafeltFunnet = msg.fromJsonMapFiltered(DataFelt.serializer()).contains(dataFelt)
+
+            dataFunnet && datafeltFunnet
+        }
+
+    private fun filter(predicate: (JsonElement) -> Boolean): Messages =
+        value.filter(predicate)
+            .toMutableList()
+            .let(::Messages)
 }
 
 private fun JsonElement.fromJsonToBehovTypeListe(): List<BehovType> =

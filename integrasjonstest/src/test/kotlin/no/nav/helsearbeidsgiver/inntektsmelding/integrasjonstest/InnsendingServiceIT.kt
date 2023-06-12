@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -54,5 +55,8 @@ class InnsendingServiceIT : EndToEndTest() {
         assertEquals(getMessageCount(), 9) {
             "Message count was " + getMessageCount()
         }
+        val innsendingStr = redisStore.get(clientID)
+        assertTrue(innsendingStr?.length!! > 2)
+
     }
 }

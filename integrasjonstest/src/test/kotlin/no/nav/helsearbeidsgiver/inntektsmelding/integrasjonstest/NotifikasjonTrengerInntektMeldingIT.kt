@@ -2,38 +2,27 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import com.fasterxml.jackson.module.kotlin.contains
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockPerson
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import no.nav.helsearbeidsgiver.pdl.PdlHentPersonNavn
-import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
-    val FNR = "fnr-123"
-    val ORGNR = "orgnr-456"
-    val FORESPOERSEL = UUID.randomUUID().toString()
-    val SAK_ID = "sak_id_123"
-    val OPPGAVE_ID = "oppgave_id_456"
-    val FORNAVN = "Ola"
-    val ETTERNAVN = "Normann"
-    val MELLOMNAVN = ""
-    val FØDSELSDATO = LocalDate.of(2012, 1, 15)
-    val TRANSAKSJONS_ID = UUID.randomUUID().toString()
+    private val FNR = "fnr-123"
+    private val ORGNR = "orgnr-456"
+    private val FORESPOERSEL = UUID.randomUUID().toString()
+    private val SAK_ID = "sak_id_123"
+    private val OPPGAVE_ID = "oppgave_id_456"
 
     @BeforeEach
     fun beforeEach() {
@@ -42,31 +31,10 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
     @Test
     fun `Oppretter og lagrer sak etter at forespørselen er mottatt`() {
-        val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
-
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
         } answers {
             SAK_ID
-        }
-
-        val pdlClient = this.pdlClient
-        coEvery {
-            pdlClient.personNavn(any())
-        } answers {
-            PdlHentPersonNavn.PdlPersonNavneliste(
-                listOf(PdlHentPersonNavn.PdlPersonNavneliste.PdlPersonNavn(FORNAVN, MELLOMNAVN, ETTERNAVN, PdlPersonNavnMetadata("")))
-            )
-        }
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
-        } answers {
-            OPPGAVE_ID
-        }
-        coEvery {
-            pdlClient.fullPerson(any())
-        } answers {
-            mockPerson(FORNAVN, MELLOMNAVN, ETTERNAVN, FØDSELSDATO)
         }
 
         publish(
@@ -103,31 +71,10 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
     @Test
     fun `Oppretter og lagrer oppgave etter at forespørselen er mottatt`() {
-        val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
-
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
         } answers {
             OPPGAVE_ID
-        }
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
-        } answers {
-            SAK_ID
-        }
-
-        val pdlClient = this.pdlClient
-        coEvery {
-            pdlClient.personNavn(any())
-        } answers {
-            PdlHentPersonNavn.PdlPersonNavneliste(
-                listOf(PdlHentPersonNavn.PdlPersonNavneliste.PdlPersonNavn(FORNAVN, MELLOMNAVN, ETTERNAVN, PdlPersonNavnMetadata("")))
-            )
-        }
-        coEvery {
-            pdlClient.fullPerson(any())
-        } answers {
-            mockPerson(FORNAVN, MELLOMNAVN, ETTERNAVN, FØDSELSDATO)
         }
 
         publish(

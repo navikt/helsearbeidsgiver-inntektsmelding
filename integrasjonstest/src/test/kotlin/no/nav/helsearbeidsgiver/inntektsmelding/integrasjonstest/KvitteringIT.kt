@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.MockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -13,12 +13,12 @@ import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class KvitteringIT : EndToEndTest() {
+class KvitteringIT : EndToEndTest() {
 
     private val UGYLDIG_FORESPPØRSEL_ID = "ugyldig-forespørsel"
     private val GYLDIG_FORESPØRSEL_ID = "gyldig-forespørsel"
     private val ORGNR = "987"
-    private val INNTEKTSMELDING_DOKUMENT = MockInntektsmeldingDokument()
+    private val INNTEKTSMELDING_DOKUMENT = mockInntektsmeldingDokument()
     private val INNTEKTSMELDING_NOT_FOUND = "{}"
 
     @Test
@@ -45,7 +45,7 @@ internal class KvitteringIT : EndToEndTest() {
         val transactionId = UUID.randomUUID().toString()
         meldinger.clear()
         forespoerselRepository.lagreForespørsel(GYLDIG_FORESPØRSEL_ID, ORGNR)
-        imoRepository.lagreInntektsmeldng(GYLDIG_FORESPØRSEL_ID, INNTEKTSMELDING_DOKUMENT)
+        imRepository.lagreInntektsmeldng(GYLDIG_FORESPØRSEL_ID, INNTEKTSMELDING_DOKUMENT)
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,

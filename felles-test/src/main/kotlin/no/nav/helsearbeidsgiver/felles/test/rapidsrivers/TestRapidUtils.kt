@@ -12,7 +12,7 @@ fun TestRapid.sendJson(vararg keyValuePairs: Pair<Key, JsonElement>) {
         .let(this::sendJson)
 }
 
-internal fun TestRapid.sendJson(keyValuePairs: Map<String, JsonElement>) {
+fun TestRapid.sendJson(keyValuePairs: Map<String, JsonElement>) {
     keyValuePairs.toJson()
         .toString()
         .let(this::sendTestMessage)

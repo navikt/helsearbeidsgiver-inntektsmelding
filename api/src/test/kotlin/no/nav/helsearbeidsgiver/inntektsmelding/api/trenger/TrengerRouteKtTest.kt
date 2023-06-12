@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.test.date.april
+import no.nav.helsearbeidsgiver.felles.test.date.desember
 import no.nav.helsearbeidsgiver.felles.test.date.februar
 import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.test.date.mai
@@ -144,14 +145,18 @@ private object Mock {
                 1.april til 20.april,
                 25.april til 30.april
             ),
+            egenmeldingsperioder = listOf(
+                29.mars til 29.mars,
+                31.mars til 31.mars
+            ),
             forespurtData = listOf(
                 ForespurtData.ArbeidsgiverPeriode,
                 ForespurtData.Inntekt(
                     forslag = ForslagInntekt(
                         beregningsmåneder = listOf(
-                            mars(2022),
                             februar(2022),
-                            januar(2022)
+                            januar(2022),
+                            desember(2022)
                         )
                     )
                 ),
@@ -171,16 +176,16 @@ private object Mock {
         Inntekt(
             listOf(
                 MottattHistoriskInntekt(
-                    maaned = mars(2022),
-                    inntekt = 3.0
-                ),
-                MottattHistoriskInntekt(
                     maaned = februar(2022),
                     inntekt = 2.0
                 ),
                 MottattHistoriskInntekt(
                     maaned = januar(2022),
                     inntekt = 1.0
+                ),
+                MottattHistoriskInntekt(
+                    maaned = desember(2022),
+                    inntekt = 3.0
                 )
             )
         )

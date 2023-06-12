@@ -1,11 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.nyStatusSak
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.nyStatusSakByGrupperingsid
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.oppgaveUtfoert
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNyOppgave
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.opprettNySak
 import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -22,7 +17,6 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytel
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockPerson
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -33,52 +27,26 @@ import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Innsending av skjema fra frontend")
-internal class InnsendingIT : EndToEndTest() {
+class InnsendingIT : EndToEndTest() {
 
-    val FNR = "fnr-123"
-    val ORGNR = "orgnr-456"
-    val SAK_ID = "sak_id_123"
-    val OPPGAVE_ID = "oppgave_id_456"
-    val FORESPØRSEL_ID = UUID.randomUUID().toString()
-    val TRANSAKSJONS_ID_INSENDING_STARTED = UUID.randomUUID().toString()
-    val REQUEST = mockRequest()
-    val JOURNALPOST_ID = "jp-789"
+    private val FNR = "fnr-123"
+    private val ORGNR = "orgnr-456"
+    private val SAK_ID = "sak_id_123"
+    private val OPPGAVE_ID = "oppgave_id_456"
+    private val FORESPØRSEL_ID = UUID.randomUUID().toString()
+    private val TRANSAKSJONS_ID_INSENDING_STARTED = UUID.randomUUID().toString()
+    private val REQUEST = mockRequest()
+    private val JOURNALPOST_ID = "jp-789"
 
-    fun setup() {
+    private fun setup() {
         forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
         forespoerselRepository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
         forespoerselRepository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
 
-        val pdlClient = this.pdlClient
-        coEvery {
-            pdlClient.fullPerson(any(), any())
-        } returns mockPerson("Ola", "", "Normann", LocalDate.now())
-
         // Mocking
-        val arbeidsgiverNotifikasjonKlient = this.arbeidsgiverNotifikasjonKlient
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.nyStatusSak(any(), any(), any(), any())
-        } answers {
-            "?"
-        }
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.nyStatusSakByGrupperingsid(any(), any(), any())
-        } answers {
-            "?"
-        }
-
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.oppgaveUtfoert(any())
-        } answers {
-            "?"
-        }
-
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
         } answers {
@@ -90,18 +58,10 @@ internal class InnsendingIT : EndToEndTest() {
             OPPGAVE_ID
         }
         coEvery {
-            aaregClient.hentArbeidsforhold(any(), any())
-        } answers {
-            emptyList()
-        }
-        coEvery {
             dokarkivClient.opprettJournalpost(any(), any(), any())
         } answers {
             OpprettJournalpostResponse(JOURNALPOST_ID, journalpostFerdigstilt = true, "FERDIGSTILT", "", emptyList())
         }
-        coEvery {
-            distribusjonKafkaProducer.send(any())
-        } returns CompletableFuture()
     }
 
     @Test

@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-internal class FulltNavnLøserTest {
+class FulltNavnLøserTest {
 
     private val rapid = TestRapid()
     private var løser: FulltNavnLøser
@@ -71,7 +71,7 @@ internal class FulltNavnLøserTest {
         assertNotNull(løsning.error)
     }
 
-    fun sendMessage(packet: Map<String, Any>): NavnLøsning {
+    private fun sendMessage(packet: Map<String, Any>): NavnLøsning {
         rapid.reset()
         rapid.sendTestMessage(
             objectMapper.writeValueAsString(
@@ -82,7 +82,7 @@ internal class FulltNavnLøserTest {
         return objectMapper.readValue<NavnLøsning>(losning.get(BEHOV.name).toString())
     }
 
-    fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson {
+    private fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson {
         return PdlHentFullPerson(
             hentPerson = PdlHentFullPerson.PdlFullPersonliste(
                 navn = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlNavn(fornavn, mellomNavn, etternavn, PdlPersonNavnMetadata(""))),

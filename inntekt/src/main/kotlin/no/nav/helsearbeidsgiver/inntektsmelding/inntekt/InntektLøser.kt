@@ -56,7 +56,10 @@ fun finnSkjæringstidspunkt(sykmeldinger: List<Periode>): LocalDate =
     }
         .fom
 
-class InntektLøser(rapidsConnection: RapidsConnection, val inntektKlient: InntektKlient) : River.PacketListener {
+class InntektLøser(
+    rapidsConnection: RapidsConnection,
+    private val inntektKlient: InntektKlient
+) : River.PacketListener {
 
     private val logger = logger()
     private val INNTEKT = BehovType.INNTEKT

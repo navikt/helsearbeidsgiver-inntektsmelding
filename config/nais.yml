@@ -1,7 +1,7 @@
 #
 # Templated nais.yml for all apps in all clusters.
 #
-# Run the deploy tool with 'dry run' to see the results:
+# Run the deployment tool with 'dry run' to see the results:
 # docker run --rm -it -v $(PWD)/config:/config \
 #   -e CLUSTER=dev-fss \
 #   -e VAR="app=aareg" \

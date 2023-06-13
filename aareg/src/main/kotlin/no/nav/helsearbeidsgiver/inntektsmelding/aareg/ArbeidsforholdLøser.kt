@@ -67,7 +67,7 @@ class ArbeidsforholdLøser(
         }
     }
 
-    fun publishDatagram(data: Data<Any>, jsonMessage: JsonMessage) {
+    private fun publishDatagram(data: Data<Any>, jsonMessage: JsonMessage) {
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.DATA.str to "",

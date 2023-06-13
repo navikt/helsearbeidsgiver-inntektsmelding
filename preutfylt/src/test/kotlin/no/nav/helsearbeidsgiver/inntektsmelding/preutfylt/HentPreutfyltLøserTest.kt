@@ -18,14 +18,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class HentPreutfyltLøserTest {
+class HentPreutfyltLøserTest {
 
     private val rapid = TestRapid()
-    private var løser: HentPreutfyltLøser
     private val BEHOV = BehovType.PREUTFYLL.toString()
 
     init {
-        løser = HentPreutfyltLøser(rapid)
+        HentPreutfyltLøser(rapid)
     }
 
     @Test

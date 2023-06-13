@@ -60,14 +60,14 @@ class FulltNavnLøser(
         }
     }
 
-    fun publish(løsning: NavnLøsning, packet: JsonMessage) {
+    private fun publish(løsning: NavnLøsning, packet: JsonMessage) {
         packet.setLøsning(BEHOV, løsning)
         val json = packet.toJson()
         super.publishBehov(packet)
         sikkerLogger.info("FulltNavnLøser: publiserte: $json")
     }
 
-    fun publishDatagram(personInformasjon: PersonDato, jsonMessage: JsonMessage) {
+    private fun publishDatagram(personInformasjon: PersonDato, jsonMessage: JsonMessage) {
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
@@ -79,7 +79,7 @@ class FulltNavnLøser(
         super.publishData(message)
     }
 
-    suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
+    private suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
         val liste: PdlHentFullPerson.PdlFullPersonliste?
         measureTimeMillis {
             liste = pdlClient.fullPerson(identitetsnummer)?.hentPerson

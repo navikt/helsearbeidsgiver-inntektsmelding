@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
-class JournalførtListener(val rapidsConnection: RapidsConnection) : River.PacketListener {
+class JournalførtListener(private val rapidsConnection: RapidsConnection) : River.PacketListener {
 
     private val om = customObjectMapper()
     private val logger = logger()

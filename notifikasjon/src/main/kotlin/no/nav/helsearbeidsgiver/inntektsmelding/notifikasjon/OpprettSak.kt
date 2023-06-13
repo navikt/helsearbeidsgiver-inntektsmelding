@@ -115,6 +115,6 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
         return Transaction.TERMINATE
     }
 
-    private fun steg2(transactionId: String) = arrayOf(transactionId + DataFelt.ARBEIDSTAKER_INFORMASJON.str)
-    private fun steg3(transactionId: String) = arrayOf(transactionId + DataFelt.SAK_ID.str)
+    fun steg2(transactionId: String) = arrayOf(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON))
+    fun steg3(transactionId: String) = arrayOf(RedisKey.of(transactionId, DataFelt.SAK_ID))
 }

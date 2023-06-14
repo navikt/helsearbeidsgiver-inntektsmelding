@@ -14,8 +14,8 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
         return findAll().any { it.error != null }
     }
 
-    fun findAll(): List<Løsning> {
-        return listOf(
+    private fun findAll(): List<Løsning> {
+        return listOfNotNull(
             resultat.FULLT_NAVN,
             resultat.VIRKSOMHET,
             resultat.ARBEIDSFORHOLD,
@@ -25,12 +25,12 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
             resultat.NOTIFIKASJON,
             resultat.PERSISTER_IM,
             resultat.TILGANGSKONTROLL
-        ).filterNotNull()
+        )
     }
 
     fun getConstraintViolations(): List<ConstraintViolation> {
         return findAll()
-            .filter { it.error != null && !it.error!!.melding.isBlank() }
+            .filter { !it.error?.melding.isNullOrBlank() }
             .map { mapConstraint(it) }
     }
 

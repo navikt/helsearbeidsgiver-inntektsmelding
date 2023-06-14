@@ -1,9 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -11,9 +9,9 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
@@ -32,21 +30,14 @@ class InnsendingService(
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
         withDataKanal { StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), event, it, rapidsConnection, redisStore) }
-        withEventListener { InnsendingStartedListener(this, rapidsConnection) }
-    }
-
-    class InnsendingStartedListener(mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : DelegatingEventListener(
-        mainListener,
-        rapidsConnection
-    ) {
-
-        override val event: EventName = EventName.INSENDING_STARTED
-        override fun accept(): River.PacketValidation {
-            return River.PacketValidation {
-                it.interestedIn(DataFelt.INNTEKTSMELDING.str)
-                it.requireKey(DataFelt.ORGNRUNDERENHET.str)
-                it.requireKey(Key.IDENTITETSNUMMER.str)
-            }
+        withEventListener {
+            StatefullEventListener(
+                redisStore,
+                event,
+                arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.ORGNRUNDERENHET.str, DataFelt.INNTEKTSMELDING.str, Key.IDENTITETSNUMMER.str),
+                it,
+                rapidsConnection
+            )
         }
     }
 
@@ -61,24 +52,6 @@ class InnsendingService(
             return Transaction.IN_PROGRESS
         }
         return Transaction.TERMINATE
-    }
-
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val uuid = packet[Key.UUID.str]
-        sikkerLogger.info("InnsendingSerice: fikk melding $packet")
-        logger.info("InnsendingService $uuid")
-        // val transaction: Transaction = startStransactionIfAbsent(packet)
-        val transaction: Transaction = determineTransactionState(packet)
-
-        when (transaction) {
-            Transaction.NEW -> {
-                initialTransactionState(packet)
-                dispatchBehov(packet, transaction)
-            }
-            Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
-            Transaction.FINALIZE -> finalize(packet)
-            Transaction.TERMINATE -> terminate(packet)
-        }
     }
 
     override fun terminate(message: JsonMessage) {
@@ -157,6 +130,7 @@ class InnsendingService(
     override fun finalize(message: JsonMessage) {
         val uuid: String = message[Key.UUID.str].asText()
         val clientId = redisStore.get(RedisKey.of(uuid, event))
+        logger.info("publiserer under clientID $clientId")
         redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
         logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
@@ -172,12 +146,6 @@ class InnsendingService(
                 logger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
             }
         )
-    }
-
-    override fun initialTransactionState(message: JsonMessage) {
-        val uuid = message[Key.UUID.str].asText()
-        redisStore.set(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING), message[DataFelt.INNTEKTSMELDING.str])
-        redisStore.set(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID), message[Key.FORESPOERSEL_ID.str].asText())
     }
     private fun step1data(uuid: String): Array<RedisKey> = arrayOf(
         RedisKey.of(uuid, DataFelt.VIRKSOMHET),

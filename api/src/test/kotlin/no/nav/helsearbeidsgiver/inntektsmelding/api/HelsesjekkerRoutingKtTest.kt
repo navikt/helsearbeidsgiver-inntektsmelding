@@ -7,7 +7,7 @@ import io.ktor.server.testing.testApplication
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class HelsesjekkerRoutingKtTest {
+class HelsesjekkerRoutingKtTest {
 
     @Test
     fun is_alive_skal_virke() = testApplication {

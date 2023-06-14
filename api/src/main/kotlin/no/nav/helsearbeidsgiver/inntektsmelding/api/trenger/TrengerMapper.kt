@@ -29,34 +29,34 @@ class TrengerMapper(
         return DefaultConstraintViolation("ukjent", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
     }
 
-    fun mapEgenmeldingsperioder(): List<Periode> {
+    private fun mapEgenmeldingsperioder(): List<Periode> {
         return resultat.HENT_TRENGER_IM?.value?.egenmeldingsperioder ?: emptyList()
     }
 
-    fun mapFraværsperiode(): List<Periode> {
+    private fun mapFraværsperiode(): List<Periode> {
         return resultat.HENT_TRENGER_IM?.value?.sykmeldingsperioder ?: emptyList()
     }
 
-    fun mapForespurtData(): List<ForespurtData> =
+    private fun mapForespurtData(): List<ForespurtData> =
         resultat.HENT_TRENGER_IM?.value?.forespurtData ?: emptyList()
 
-    fun mapFulltNavn(): String {
+    private fun mapFulltNavn(): String {
         return resultat.FULLT_NAVN?.value?.navn ?: "Mangler navn"
     }
 
-    fun mapArbeidsgiver(): String {
+    private fun mapArbeidsgiver(): String {
         return resultat.VIRKSOMHET?.value ?: "Mangler arbeidsgivers navn"
     }
 
-    fun mapInntekt(): Inntekt {
+    private fun mapInntekt(): Inntekt {
         return resultat.INNTEKT?.value ?: Inntekt(emptyList())
     }
 
-    fun mapIdentitetsNummer(): String {
+    private fun mapIdentitetsNummer(): String {
         return resultat.HENT_TRENGER_IM?.value?.fnr ?: ""
     }
 
-    fun mapOrgNummer(): String {
+    private fun mapOrgNummer(): String {
         return resultat.HENT_TRENGER_IM?.value?.orgnr ?: ""
     }
 

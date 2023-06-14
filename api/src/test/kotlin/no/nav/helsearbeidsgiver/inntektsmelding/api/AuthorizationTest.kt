@@ -14,14 +14,16 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.identitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+
 class AuthorizationTest : ApiTest() {
 
     @Test
     fun `stopp uautoriserte kall mot API`() = testApi {
         listOf(
-            Routes.TRENGER to ::postUtenAuth
-            // Auth midlertidig deaktivert for enklere manuell testing
-            // Routes.INNSENDING to ::postUtenAuth
+            Routes.KVITTERING to ::getUtenAuth,
+            Routes.TRENGER to ::postUtenAuth,
+            Routes.INNTEKT to ::postUtenAuth,
+            Routes.INNSENDING + "/0" to ::postUtenAuth
         ).forEach { (path, callFn) ->
             val response = callFn(Routes.PREFIX + path)
 

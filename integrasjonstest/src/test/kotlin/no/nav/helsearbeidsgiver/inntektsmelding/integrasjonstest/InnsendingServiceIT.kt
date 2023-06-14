@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -18,23 +19,32 @@ class InnsendingServiceIT : EndToEndTest() {
     @Test
     fun `Test at innsnending er mottatt`() {
         val forespoerselId = UUID.randomUUID().toString()
-        val transaksjonsId = UUID.randomUUID().toString()
+        val clientID = UUID.randomUUID().toString()
         forespoerselRepository.lagreForespørsel(forespoerselId, TestData.validOrgNr)
+        var transaksjonsID: String? = null
         this.filterMessages = {
             val eventName = it.get(Key.EVENT_NAME.str).asText()
-            val msgUuid = if (it.contains(Key.UUID.str)) it.get(Key.UUID.str).asText() else it.get(Key.TRANSACTION_ORIGIN.str).asText()
-            msgUuid == transaksjonsId && (
-                eventName == EventName.INSENDING_STARTED.name ||
-                    (eventName == EventName.INNTEKTSMELDING_MOTTATT.name && !it.has(Key.BEHOV.str))
-                ) && !it.has(
-                Key.LØSNING.str
-            )
+            if (it.contains(Key.CLIENT_ID.str)) {
+                assertEquals(clientID, it[Key.CLIENT_ID.str].asText())
+                true
+            } else {
+                if (transaksjonsID == null && (eventName == EventName.INSENDING_STARTED.name && it.contains(Key.BEHOV.str))) {
+                    transaksjonsID = it[Key.UUID.str].asText()
+                }
+                val msgUuid = if (it.contains(Key.UUID.str)) it.get(Key.UUID.str).asText() else it.get(Key.TRANSACTION_ORIGIN.str).asText()
+                msgUuid == transaksjonsID && (
+                    eventName == EventName.INSENDING_STARTED.name ||
+                        (eventName == EventName.INNTEKTSMELDING_MOTTATT.name && !it.has(Key.BEHOV.str))
+                    ) && !it.has(
+                    Key.LØSNING.str
+                )
+            }
         }
 
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                Key.UUID.str to transaksjonsId,
+                Key.CLIENT_ID.str to clientID,
                 DataFelt.INNTEKTSMELDING.str to GYLDIG_INNSENDING_REQUEST,
                 DataFelt.ORGNRUNDERENHET.str to TestData.validOrgNr,
                 Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer,
@@ -45,5 +55,7 @@ class InnsendingServiceIT : EndToEndTest() {
         assertEquals(getMessageCount(), 9) {
             "Message count was " + getMessageCount()
         }
+        val innsendingStr = redisStore.get(clientID)
+        assertTrue(innsendingStr?.length!! > 2)
     }
 }

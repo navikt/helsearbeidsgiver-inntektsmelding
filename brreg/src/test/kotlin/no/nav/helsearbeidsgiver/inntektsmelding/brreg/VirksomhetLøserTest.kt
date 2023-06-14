@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class VirksomhetLøserTest {
+class VirksomhetLøserTest {
 
     private val rapid = TestRapid()
     private var løser: VirksomhetLøser
@@ -40,7 +40,7 @@ internal class VirksomhetLøserTest {
         løser = VirksomhetLøser(rapid, brregClient, false)
     }
 
-    fun sendMessage(packet: Map<String, Any>): VirksomhetLøsning {
+    private fun sendMessage(packet: Map<String, Any>): VirksomhetLøsning {
         rapid.reset()
         rapid.sendTestMessage(
             objectMapper.writeValueAsString(

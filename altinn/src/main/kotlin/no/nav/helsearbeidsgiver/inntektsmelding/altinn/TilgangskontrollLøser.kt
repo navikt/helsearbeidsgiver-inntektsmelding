@@ -14,7 +14,10 @@ import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class TilgangskontrollLøser(rapidsConnection: RapidsConnection, val altinnClient: AltinnClient) : River.PacketListener {
+class TilgangskontrollLøser(
+    rapidsConnection: RapidsConnection,
+    private val altinnClient: AltinnClient
+) : River.PacketListener {
 
     private val BEHOV = BehovType.TILGANGSKONTROLL
     private val logger = logger()
@@ -59,7 +62,7 @@ class TilgangskontrollLøser(rapidsConnection: RapidsConnection, val altinnClien
         }
     }
 
-    fun publiserLøsning(løsning: TilgangskontrollLøsning, packet: JsonMessage, context: MessageContext) {
+    private fun publiserLøsning(løsning: TilgangskontrollLøsning, packet: JsonMessage, context: MessageContext) {
         packet[Key.LØSNING.str] = mapOf(
             BEHOV.name to løsning
         )

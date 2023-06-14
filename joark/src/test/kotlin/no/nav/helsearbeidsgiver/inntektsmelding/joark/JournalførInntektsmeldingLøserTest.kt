@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.contains
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.treeToValue
 import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -21,13 +20,13 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.MockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mockInntektsmeldingDokument
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class JournalførInntektsmeldingLøserTest {
+class JournalførInntektsmeldingLøserTest {
 
     private val rapid = TestRapid()
     private var løser: JournalførInntektsmeldingLøser
@@ -42,7 +41,7 @@ internal class JournalførInntektsmeldingLøserTest {
         løser = JournalførInntektsmeldingLøser(rapid, dokArkivClient)
     }
 
-    fun sendMessage(packet: Map<String, Any>) {
+    private fun sendMessage(packet: Map<String, Any>) {
         rapid.reset()
         rapid.sendTestMessage(
             objectMapper.writeValueAsString(
@@ -51,7 +50,7 @@ internal class JournalførInntektsmeldingLøserTest {
         )
     }
 
-    fun retrieveMessage(index: Int): JsonNode {
+    private fun retrieveMessage(index: Int): JsonNode {
         return rapid.inspektør.message(index)
     }
 
@@ -66,7 +65,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 Key.BEHOV.str to BehovType.JOURNALFOER.name,
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",
-                DataFelt.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument()
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
             )
         )
         val message = retrieveMessage(0)
@@ -89,7 +88,7 @@ internal class JournalførInntektsmeldingLøserTest {
                 "@behov" to BehovType.JOURNALFOER.name,
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                DataFelt.INNTEKTSMELDING_DOKUMENT.str to MockInntektsmeldingDokument(),
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument(),
                 "session" to mapOf(
                     "Virksomhet" to mapOf(
                         "value" to "Norge AS"

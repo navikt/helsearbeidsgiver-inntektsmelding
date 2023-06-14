@@ -65,6 +65,7 @@ fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtData> =
 fun mockTrengerInntekt(): TrengerInntekt = TrengerInntekt(
     orgnr = "123",
     fnr = "456",
-    sykmeldingsperioder = listOf(1.januar til 31.januar),
+    sykmeldingsperioder = listOf(2.januar til 31.januar),
+    egenmeldingsperioder = listOf(1.januar til 1.januar),
     forespurtData = mockForespurtDataListe()
 )

@@ -67,6 +67,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
+    lateinit var redisStore: RedisStore
 
     private val om = customObjectMapper()
 
@@ -74,7 +75,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        val redisStore = RedisStore(redisContainer.redisURI)
+        redisStore = RedisStore(redisContainer.redisURI)
 
         rapid.buildApp(
             redisStore,

@@ -37,7 +37,7 @@ class InnsendingIT : EndToEndTest() {
     private val SAK_ID = "sak_id_123"
     private val OPPGAVE_ID = "oppgave_id_456"
     private val FORESPØRSEL_ID = UUID.randomUUID().toString()
-    private val TRANSAKSJONS_ID_INSENDING_STARTED = UUID.randomUUID().toString()
+    private val CLIENT_ID = UUID.randomUUID().toString()
     private val REQUEST = mockRequest()
     private val JOURNALPOST_ID = "jp-789"
 
@@ -71,7 +71,7 @@ class InnsendingIT : EndToEndTest() {
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.UUID.str to TRANSAKSJONS_ID_INSENDING_STARTED,
+                Key.CLIENT_ID to CLIENT_ID,
                 Key.FORESPOERSEL_ID.str to FORESPØRSEL_ID,
                 DataFelt.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to REQUEST.identitetsnummer,

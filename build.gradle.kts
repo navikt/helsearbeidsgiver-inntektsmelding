@@ -220,7 +220,7 @@ fun getDeployMatrixVariables(
             ?.map { it.name.removeSuffix(".yml") }
             ?.let { clusters ->
                 if (includeCluster != null) {
-                    listOf(includeCluster).intersect(clusters)
+                    listOf(includeCluster).intersect(clusters.toSet())
                 } else {
                     clusters
                 }

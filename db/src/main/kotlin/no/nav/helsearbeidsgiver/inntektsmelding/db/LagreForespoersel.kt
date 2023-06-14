@@ -34,7 +34,8 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, private val reposito
                 mapOf(
                     Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
                     Key.IDENTITETSNUMMER.str to fnr,
-                    Key.ORGNRUNDERENHET.str to orgnr
+                    Key.ORGNRUNDERENHET.str to orgnr,
+                    Key.FORESPOERSEL_ID.str to forespørselId
                 )
             )
 

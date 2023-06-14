@@ -74,7 +74,8 @@ class LagreJournalpostIdLøser(
                 DataFelt.OPPGAVE_ID.str to oppgaveId!!, // TODO Lag bedre feilhåndtering dersom oppgaveId ikke ble funnet i db
                 DataFelt.SAK_ID.str to sakId!!, // TODO Lag bedre feilhåndtering dersom oppgaveId ikke ble funnet i db
                 Key.TRANSACTION_ORIGIN.str to uuid,
-                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                Key.FORESPOERSEL_ID.str to forespoerselId
             )
         )
         publishEvent(jsonMessage)
@@ -84,7 +85,8 @@ class LagreJournalpostIdLøser(
         val fail = JsonMessage.newMessage(
             mapOf(
                 Key.FAIL.str to feilmelding,
-                Key.UUID.str to packet[Key.UUID.str]
+                Key.UUID.str to packet[Key.UUID.str],
+                Key.FORESPOERSEL_ID.str to packet[Key.FORESPOERSEL_ID.str]
             )
         )
         publishBehov(fail)

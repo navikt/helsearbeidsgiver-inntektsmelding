@@ -72,7 +72,9 @@ class ArbeidsforholdLøser(
             mapOf(
                 Key.DATA.str to "",
                 Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
-                DataFelt.ARBEIDSFORHOLD.str to data
+                DataFelt.ARBEIDSFORHOLD.str to data,
+                Key.FORESPOERSEL_ID.str to getForesporselId(jsonMessage),
+                Key.EVENT_NAME.str to getEvent(jsonMessage)
             )
         )
         publishData(message)

@@ -45,7 +45,8 @@ class ArbeidsforholdLøserTest : FunSpec({
             Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
             Key.ID to MockUuid.STRING.toJson(),
             Key.UUID to "uuid".toJson(),
-            Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
+            Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson(),
+            Key.FORESPOERSEL_ID to "123456".toJson()
         )
 
         val actual = testRapid.firstMessage().fromJson(Published.serializer())
@@ -65,7 +66,8 @@ class ArbeidsforholdLøserTest : FunSpec({
             Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
             Key.ID to MockUuid.STRING.toJson(),
             Key.UUID to "uuiid".toJson(),
-            Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
+            Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson(),
+            Key.FORESPOERSEL_ID to "123456".toJson()
         )
 
         val actual = testRapid.firstMessage().fromJson(Published.serializer())

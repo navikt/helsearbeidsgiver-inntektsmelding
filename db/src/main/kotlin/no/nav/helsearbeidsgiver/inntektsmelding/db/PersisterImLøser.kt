@@ -7,6 +7,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -36,6 +37,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
     override fun onBehov(packet: JsonMessage) {
         val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val uuid = packet[Key.UUID.str].asText()
+        val event = packet[Key.EVENT_NAME.str].asText()
         logger.info("Løser behov $PERSISTER_IM med id $forespørselId")
         sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
         try {
@@ -49,7 +51,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
             repository.lagreInntektsmeldng(forespørselId, inntektsmeldingDokument)
             sikkerLogger.info("Lagret InntektsmeldingDokument for forespoerselId: $forespørselId")
             packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
-            publiserOK(uuid, inntektsmeldingDokument)
+            publiserOK(uuid, event, forespørselId, inntektsmeldingDokument)
         } catch (ex: Exception) {
             logger.error("Klarte ikke persistere: $forespørselId")
             sikkerLogger.error("Klarte ikke persistere: $forespørselId", ex)
@@ -57,13 +59,14 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
         }
     }
 
-    private fun publiserOK(uuid: String, inntektsmeldingDokument: InntektsmeldingDokument) {
+    private fun publiserOK(uuid: String, event: String, forespoerselId: String, inntektsmeldingDokument: InntektsmeldingDokument) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.DATA.str to "",
-                Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                Key.EVENT_NAME.str to EventName.valueOf(event),
                 DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
-                Key.UUID.str to uuid
+                Key.UUID.str to uuid,
+                Key.FORESPOERSEL_ID.str to forespoerselId
             )
         )
         publishData(packet)
@@ -72,8 +75,10 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
     private fun publiserFail(fail: Feilmelding, jsonMessage: JsonMessage) {
         val message = JsonMessage.newMessage(
             mapOf(
+                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
                 Key.FAIL.str to customObjectMapper().writeValueAsString(fail),
-                Key.UUID.str to jsonMessage[Key.UUID.str].asText()
+                Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
+                Key.FORESPOERSEL_ID.str to jsonMessage[Key.FORESPOERSEL_ID.str].asText()
             )
         )
         super.publishFail(message)

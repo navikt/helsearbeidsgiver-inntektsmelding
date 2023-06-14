@@ -27,6 +27,7 @@ class HentPersistertLøserTest {
     private var løser: HentPersistertLøser
     private val BEHOV = BehovType.HENT_PERSISTERT_IM.toString()
     private val repository = mockk<InntektsmeldingRepository>()
+    private val FORESPOERSEL = "167-761"
 
     init {
         løser = HentPersistertLøser(rapid, repository)
@@ -41,7 +42,8 @@ class HentPersistertLøserTest {
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.INITIATE_ID to UUID.randomUUID().toJson()
+            Key.INITIATE_ID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to FORESPOERSEL.toJson()
         )
         assertNotNull(løsning.value)
     }
@@ -55,7 +57,8 @@ class HentPersistertLøserTest {
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.INITIATE_ID to UUID.randomUUID().toJson()
+            Key.INITIATE_ID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to FORESPOERSEL.toJson()
         )
         assertNotNull(feilmelding.melding)
         assertEquals("Klarte ikke hente persistert inntektsmelding", feilmelding.melding)
@@ -70,7 +73,8 @@ class HentPersistertLøserTest {
             Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.INITIATE_ID to UUID.randomUUID().toJson()
+            Key.INITIATE_ID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to FORESPOERSEL.toJson()
         )
         assertEquals("", løsning.value)
         assertNull(løsning.error)

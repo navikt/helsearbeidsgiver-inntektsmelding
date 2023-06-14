@@ -7,6 +7,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentPersistertLøsning
@@ -34,7 +35,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        eventName = EventName.valueOf(packet[Key.EVENT_NAME.str].asText())
+        // eventName = EventName.valueOf(packet[Key.EVENT_NAME.str].asText())
         onBehov(packet)
     }
 
@@ -59,16 +60,17 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
         } catch (ex: Exception) {
             logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId")
             sikkerLogger.error("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId", ex)
-            publiserFeil(transactionId, event, løsning.error)
+            publiserFeil(transactionId, event, forespoerselId, Feilmelding("Klarte ikke hente persistert inntektsmelding"))
         }
     }
 
-    private fun publiserFeil(transactionId: String, event: String, error: Feilmelding?) {
+    private fun publiserFeil(transactionId: String, event: String, forespoerselId: String, error: Feilmelding?) {
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to event,
                 Key.FAIL.str to customObjectMapper().writeValueAsString(error),
-                Key.UUID.str to transactionId
+                Key.UUID.str to transactionId,
+                Key.FORESPOERSEL_ID.str to forespoerselId
             )
         )
         sikkerLogger.info("sender feil: " + message.toJson())
@@ -83,6 +85,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
 
     private fun publiserData(packet: JsonMessage, inntektsmeldingDokument: InntektsmeldingDokument?) {
         val transaksjonsId = packet[Key.UUID.str].asText()
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val event = packet[Key.EVENT_NAME.str].asText()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
@@ -95,7 +98,8 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
                         inntektsmeldingDokument
                     )
                 },
-                Key.UUID.str to transaksjonsId
+                Key.UUID.str to transaksjonsId,
+                Key.FORESPOERSEL_ID.str to forespoerselId
             )
         )
         sikkerLogger.info("Publiserer data" + packet.toJson())

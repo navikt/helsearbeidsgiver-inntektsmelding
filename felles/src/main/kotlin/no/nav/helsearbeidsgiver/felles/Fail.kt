@@ -20,7 +20,8 @@ data class Fail(
             mapOfNotNull(
                 Key.EVENT_NAME.str to eventName?.name,
                 Key.FAIL.str to this,
-                Key.UUID.str to this.uuid
+                Key.UUID.str to this.uuid,
+                Key.FORESPOERSEL_ID.str to forespørselId
             )
         )
     }

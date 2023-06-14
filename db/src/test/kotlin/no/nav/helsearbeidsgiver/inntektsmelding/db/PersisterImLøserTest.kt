@@ -24,6 +24,7 @@ class PersisterImLøserTest {
     private val rapid = TestRapid()
     private var løser: PersisterImLøser
     private val repository = mockk<InntektsmeldingRepository>()
+    private val FORESPOERSEL = "123"
 
     init {
         løser = PersisterImLøser(rapid, repository)
@@ -69,6 +70,7 @@ class PersisterImLøserTest {
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
+                    Key.FORESPOERSEL_ID.str to FORESPOERSEL,
                     Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
                     DataFelt.VIRKSOMHET.str to "Test Virksomhet",
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test persjon", null),
@@ -80,6 +82,7 @@ class PersisterImLøserTest {
         )
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
+        Assertions.assertNotNull(message.path(Key.FORESPOERSEL_ID.str).asText())
         Assertions.assertNotNull(message.path(Key.INNTEKTSMELDING.str).asText())
     }
 }

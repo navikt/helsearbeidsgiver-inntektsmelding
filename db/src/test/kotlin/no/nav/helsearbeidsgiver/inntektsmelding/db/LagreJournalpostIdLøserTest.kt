@@ -25,6 +25,7 @@ class LagreJournalpostIdLøserTest {
     private val BEHOV = BehovType.LAGRE_JOURNALPOST_ID
     private val inntektsmeldingRepo = mockk<InntektsmeldingRepository>()
     private val forespoerselRepo = mockk<ForespoerselRepository>()
+    private val FORESPOERSEL = "123-321"
 
     init {
         løser = LagreJournalpostIdLøser(rapid, inntektsmeldingRepo, forespoerselRepo)
@@ -48,7 +49,8 @@ class LagreJournalpostIdLøserTest {
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
             Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.JOURNALPOST_ID to "123".toJson()
+            Key.JOURNALPOST_ID to "123".toJson(),
+            Key.FORESPOERSEL_ID to FORESPOERSEL.toJson()
         )
         val message: JsonNode = journalpostLagretFraRapid(0) // Event sendes ut først, deretter løsning
         assertNotNull(message.path(Key.JOURNALPOST_ID.name).asText())
@@ -63,7 +65,8 @@ class LagreJournalpostIdLøserTest {
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
             Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.JOURNALPOST_ID to "".toJson()
+            Key.JOURNALPOST_ID to "".toJson(),
+            Key.FORESPOERSEL_ID to FORESPOERSEL.toJson()
         )
         val feil: Feilmelding = getFeil(0)
         assertNotNull(feil)
@@ -79,7 +82,8 @@ class LagreJournalpostIdLøserTest {
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
             Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
-            Key.JOURNALPOST_ID to "123".toJson()
+            Key.JOURNALPOST_ID to "123".toJson(),
+            Key.FORESPOERSEL_ID to FORESPOERSEL.toJson()
         )
         val feilmelding: Feilmelding = getFeil(0)
         assertNotNull(feilmelding)
@@ -95,6 +99,7 @@ class LagreJournalpostIdLøserTest {
     private fun journalpostLagretFraRapid(index: Int): JsonNode {
         val message = rapid.inspektør.message(index)
         assertEquals(message.path(Key.EVENT_NAME.str).asText(), EventName.INNTEKTSMELDING_JOURNALFOERT.name)
+        assertEquals(FORESPOERSEL, message.path(Key.FORESPOERSEL_ID.str).asText())
         return message
     }
 }

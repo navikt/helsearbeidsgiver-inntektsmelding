@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -61,7 +62,8 @@ class VirksomhetLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                Key.ORGNRUNDERENHET.str to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR,
+                Key.FORESPOERSEL_ID.str to "123".toJson()
             )
         )
         assertEquals("Ugyldig virksomhet $ORGNR", løsning.error?.melding)
@@ -78,7 +80,8 @@ class VirksomhetLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                Key.ORGNRUNDERENHET.str to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR,
+                Key.FORESPOERSEL_ID.str to "123".toJson()
             )
         )
         assertEquals(VIRKSOMHET_NAVN, løsning.value)
@@ -91,7 +94,8 @@ class VirksomhetLøserTest {
                 Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
-                Key.ORGNRUNDERENHET.str to ORGNR
+                Key.ORGNRUNDERENHET.str to ORGNR,
+                Key.FORESPOERSEL_ID.str to "123".toJson()
             )
         )
         assertNotNull(løsning.error)

@@ -58,6 +58,7 @@ class JournalførInntektsmeldingLøser(
 
     override fun onBehov(packet: JsonMessage) {
         val uuid = packet[Key.UUID.str].asText()
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid $uuid")
         sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
         var inntektsmeldingDokument: InntektsmeldingDokument? = null
@@ -67,7 +68,7 @@ class JournalførInntektsmeldingLøser(
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmeldingDokument) }
             sikkerLogger.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
             logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
-            publiserLagring(uuid, journalpostId)
+            publiserLagring(uuid, journalpostId, forespoerselId)
         } catch (ex: DokArkivException) {
             sikkerLogger.error("Klarte ikke journalføre", ex)
             val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
@@ -83,13 +84,14 @@ class JournalførInntektsmeldingLøser(
         }
     }
 
-    private fun publiserLagring(uuid: String, journalpostId: String) {
+    private fun publiserLagring(uuid: String, journalpostId: String, forespoerselId: String) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.BEHOV.str to BehovType.LAGRE_JOURNALPOST_ID.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.JOURNALPOST_ID.str to journalpostId,
-                Key.UUID.str to uuid
+                Key.UUID.str to uuid,
+                Key.FORESPOERSEL_ID.str to forespoerselId
             )
         )
 

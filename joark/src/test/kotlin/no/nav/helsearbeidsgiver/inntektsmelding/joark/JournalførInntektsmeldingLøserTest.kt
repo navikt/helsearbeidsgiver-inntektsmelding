@@ -30,6 +30,7 @@ class JournalførInntektsmeldingLøserTest {
     private val rapid = TestRapid()
     private var løser: JournalførInntektsmeldingLøser
     private val BEHOV = BehovType.JOURNALFOER.name
+    private val F_ID = UUID.randomUUID().toString()
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -64,7 +65,8 @@ class JournalførInntektsmeldingLøserTest {
                 Key.BEHOV.str to BehovType.JOURNALFOER.name,
                 Key.ID.str to UUID.randomUUID(),
                 Key.UUID.str to "uuid",
-                Key.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
+                Key.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument(),
+                Key.FORESPOERSEL_ID.str to F_ID
             )
         )
         val message = retrieveMessage(0)
@@ -84,6 +86,7 @@ class JournalførInntektsmeldingLøserTest {
         val løsning = sendMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
+                Key.FORESPOERSEL_ID.str to F_ID,
                 "@behov" to BehovType.JOURNALFOER.name,
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
@@ -100,6 +103,7 @@ class JournalførInntektsmeldingLøserTest {
         assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, msg2.path(Key.BEHOV.str).asText())
         assertEquals("jp-123", msg2.path(Key.JOURNALPOST_ID.str).asText())
         assertEquals("uuid", msg2.path(Key.UUID.str).asText())
+        assertEquals(F_ID, msg2.path(Key.FORESPOERSEL_ID.str).asText())
     }
 
     @Test
@@ -112,7 +116,8 @@ class JournalførInntektsmeldingLøserTest {
                 Key.UUID.str to "uuid",
                 "identitetsnummer" to "000",
                 Key.ORGNRUNDERENHET.str to "abc",
-                Key.INNTEKTSMELDING_DOKUMENT.str to "xyz"
+                Key.INNTEKTSMELDING_DOKUMENT.str to "xyz",
+                Key.FORESPOERSEL_ID.str to F_ID
             )
         )
         val fail = objectMapper.treeToValue(retrieveMessage(0).get(Key.FAIL.str), Fail::class.java)

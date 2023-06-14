@@ -41,8 +41,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     Key.INITIATE_EVENT.str to EventName.TRENGER_REQUESTED.toJson()
                 ).toJson()
             )
-        }
-        else if (transaction == Transaction.IN_PROGRESS) {
+        } else if (transaction == Transaction.IN_PROGRESS) {
             /*
             BehovType.VIRKSOMHET.name,
             BehovType.FULLT_NAVN.name,

@@ -69,7 +69,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
     lateinit var redisStore: RedisStore
-    val priProducer  = mockk<PriProducer>()
+    val priProducer = mockk<PriProducer>()
 
     private val om = customObjectMapper()
 

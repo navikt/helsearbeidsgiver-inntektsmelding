@@ -37,7 +37,7 @@ class DistribusjonLøserTest {
             Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
             Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
             Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            Key.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
+            Key.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument(),
             Key.FORESPOERSEL_ID.str to F_ID
         )
         sendMelding(mld)
@@ -59,7 +59,7 @@ class DistribusjonLøserTest {
             Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
             Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
             Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            Key.INNTEKTSMELDING_DOKUMENT.str to "dummy"
+            Key.INNTEKTSMELDING_DOKUMENT.str to "dummy",
             Key.FORESPOERSEL_ID.str to F_ID
         )
         sendMelding(mld)
@@ -79,7 +79,7 @@ class DistribusjonLøserTest {
             Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
             Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
             Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            Key.INNTEKTSMELDING_DOKUMENT.str to "dummy"
+            Key.INNTEKTSMELDING_DOKUMENT.str to "dummy",
             Key.FORESPOERSEL_ID.str to F_ID
         )
         sendMelding(mld)

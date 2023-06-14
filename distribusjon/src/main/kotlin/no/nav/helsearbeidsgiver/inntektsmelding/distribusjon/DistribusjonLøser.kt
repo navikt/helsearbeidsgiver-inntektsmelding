@@ -53,6 +53,7 @@ class DistribusjonLøser(
         val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
         logger.info("Skal distribuere inntektsmelding for journalpostId $journalpostId...")
         val eventName = packet[Key.EVENT_NAME.str].asText()
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         try {
             val inntektsmeldingDokument = hentInntektsmeldingDokument(packet)
             val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
@@ -65,7 +66,8 @@ class DistribusjonLøser(
                     mapOf(
                         Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_DISTRIBUERT,
                         Key.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
-                        Key.JOURNALPOST_ID.str to journalpostId
+                        Key.JOURNALPOST_ID.str to journalpostId,
+                        Key.FORESPOERSEL_ID.str to forespoerselId
                     )
                 )
             )
@@ -78,7 +80,8 @@ class DistribusjonLøser(
                     eventName,
                     mapOf(
                         Key.FAIL.str to "Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId",
-                        Key.JOURNALPOST_ID.str to journalpostId
+                        Key.JOURNALPOST_ID.str to journalpostId,
+                        Key.FORESPOERSEL_ID.str to forespoerselId
                     )
                 )
             )
@@ -90,7 +93,8 @@ class DistribusjonLøser(
                     eventName,
                     mapOf(
                         Key.FAIL.str to "Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId",
-                        Key.JOURNALPOST_ID.str to journalpostId
+                        Key.JOURNALPOST_ID.str to journalpostId,
+                        Key.FORESPOERSEL_ID.str to forespoerselId
                     )
                 )
             )

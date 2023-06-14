@@ -29,6 +29,7 @@ class FulltNavnLøserTest {
     private val rapid = TestRapid()
     private var løser: FulltNavnLøser
     private val BEHOV = BehovType.FULLT_NAVN
+    private val F_ID = "forespoerselId"
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -49,7 +50,8 @@ class FulltNavnLøserTest {
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
                 Key.BEHOV.str to listOf(BEHOV.name),
                 Key.ID.str to UUID.randomUUID(),
-                Key.IDENTITETSNUMMER.str to "abc"
+                Key.IDENTITETSNUMMER.str to "abc",
+                Key.FORESPOERSEL_ID.str to F_ID
             )
         )
         assertNotNull(løsning.value)
@@ -64,7 +66,8 @@ class FulltNavnLøserTest {
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
                 Key.BEHOV.str to listOf(BEHOV.name),
                 Key.ID.str to UUID.randomUUID(),
-                Key.IDENTITETSNUMMER.str to "abc"
+                Key.IDENTITETSNUMMER.str to "abc",
+                Key.FORESPOERSEL_ID.str to F_ID
             )
         )
         assertNull(løsning.value)

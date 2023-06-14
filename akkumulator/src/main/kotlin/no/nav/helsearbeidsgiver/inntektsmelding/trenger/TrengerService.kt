@@ -19,12 +19,12 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class TrengerService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
 
-    override val event: EventName = EventName.TRENGER_REQUESTED2
+    override val event: EventName = EventName.TRENGER_REQUESTED
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
-        withDataKanal { StatefullDataKanal(listOf<String>().toTypedArray(), event, it, rapidsConnection, redisStore) }
-        withEventListener { StatefullEventListener(redisStore, event, listOf<String>().toTypedArray(), it, rapidsConnection) }
+        withDataKanal { StatefullDataKanal(listOf(DataFelt.FORESPOERSEL_SVAR.str, "no-finalize").toTypedArray(), event, it, rapidsConnection, redisStore) }
+        withEventListener { StatefullEventListener(redisStore, event, listOf(DataFelt.FORESPOERSEL_ID.str).toTypedArray(), it, rapidsConnection) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -33,6 +33,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.UUID to uuid.toJson(),
                 DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson(),
                 Key.BOOMERANG to mapOf(
                     Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL).toJson(BehovType.serializer()),
@@ -40,6 +41,32 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     Key.INITIATE_EVENT.str to EventName.TRENGER_REQUESTED.toJson()
                 ).toJson()
             )
+        }
+        else if (transaction == Transaction.IN_PROGRESS) {
+            /*
+            BehovType.VIRKSOMHET.name,
+            BehovType.FULLT_NAVN.name,
+            BehovType.INNTEKT.name,
+            BehovType.ARBEIDSFORHOLD.name
+             */
+            rapidsConnection.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.VIRKSOMHET.toJson()
+            )
+            rapidsConnection.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.FULLT_NAVN.toJson()
+            )
+            rapidsConnection.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.INNTEKT.toJson()
+            )
+            rapidsConnection.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson()
+            )
+
+            println("Heeeelllllloooooooooooooo!!!!!")
         }
     }
 

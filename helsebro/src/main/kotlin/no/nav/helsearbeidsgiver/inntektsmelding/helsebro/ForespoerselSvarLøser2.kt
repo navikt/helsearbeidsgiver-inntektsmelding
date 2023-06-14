@@ -7,10 +7,8 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
@@ -87,8 +85,8 @@ class ForespoerselSvarLøser2(rapid: RapidsConnection) : River.PacketListener {
         logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")
     }
 }
-
-fun ForespoerselSvar.toHentTrengerImLøsning(): HentTrengerImLøsning =
+/*
+fun ForespoerselSvar.toHentTrengerImLøsning2(): HentTrengerImLøsning =
     if (resultat != null) {
         HentTrengerImLøsning(
             value = TrengerInntekt(
@@ -103,3 +101,4 @@ fun ForespoerselSvar.toHentTrengerImLøsning(): HentTrengerImLøsning =
     } else {
         HentTrengerImLøsning(error = Feilmelding("Svar fra bro-appen har hverken resultat eller feil."))
     }
+ */

@@ -23,5 +23,6 @@ fun RapidsConnection.createHelsebro(priProducer: PriProducer): RapidsConnection 
     TrengerForespoerselLøser(this, priProducer)
     TrengerForespoerselLøser2(this, priProducer)
     ForespoerselSvarLøser(this)
+    ForespoerselSvarLøser2(this)
     return this
 }

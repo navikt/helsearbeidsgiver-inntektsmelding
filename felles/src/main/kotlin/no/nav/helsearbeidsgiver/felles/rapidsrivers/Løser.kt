@@ -9,9 +9,6 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
-//    lateinit var eventName: EventName
-//    lateinit var forespoerselId: String
-    // look ma, no state!
 
     init {
         configure(
@@ -37,22 +34,14 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     // Alle løser som publiserer Behov vil få kunskap om nedstrøms løserne.
     // i tilleg gjenbruktbarhet av løseren vil vare betydelig redusert
     fun publishBehov(message: JsonMessage) {
-//        message[Key.EVENT_NAME.str] = eventName.name
-//        if (forespoerselId.isNotEmpty()) {
-//            message[Key.FORESPOERSEL_ID.str] = forespoerselId
-//        }
         rapidsConnection.publish(message.toJson())
     }
 
     fun publishEvent(message: JsonMessage) {
-//        if (forespoerselId.isNotEmpty()) {
-//            message[Key.FORESPOERSEL_ID.str] = forespoerselId
-//        }
         rapidsConnection.publish(message.toJson())
     }
 
     fun publishData(message: JsonMessage) {
-//        message[Key.EVENT_NAME.str] = eventName.name
         rapidsConnection.publish(message.toJson())
     }
 
@@ -61,25 +50,14 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     fun publishFail(message: JsonMessage) {
-        // message[Key.EVENT_NAME.str] = eventName.name
         rapidsConnection.publish(message.toJson())
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-//        eventName = EventName.valueOf(packet[Key.EVENT_NAME.str].asText())
-//        forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         onBehov(packet)
     }
 
     abstract fun onBehov(packet: JsonMessage)
-
-    fun setEventAndId(eventName: EventName, forespoerselId: String, message: JsonMessage) {
-        message[Key.EVENT_NAME.str] = eventName.name
-        if (forespoerselId.isNotEmpty()) {
-            message[Key.FORESPOERSEL_ID.str] = forespoerselId
-        }
-        rapidsConnection.publish(message.toJson())
-    }
 
     fun getEvent(packet: JsonMessage): EventName {
         return EventName.valueOf(packet[Key.EVENT_NAME.str].asText())

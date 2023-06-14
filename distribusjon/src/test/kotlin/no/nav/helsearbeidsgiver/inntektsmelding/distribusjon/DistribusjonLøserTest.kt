@@ -4,6 +4,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -35,14 +36,14 @@ class DistribusjonLøserTest {
             Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
             Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
             Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            Key.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
+            DataFelt.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
         )
         sendMelding(mld)
         val melding = rapid.inspektør.message(0)
         assertNotNull(melding, "Skal publisere event at inntektsmelding er distribuert")
         assertEquals(EventName.INNTEKTSMELDING_DISTRIBUERT.name, melding.get(Key.EVENT_NAME.str).asText())
         assertEquals(JOURNALPOST_ID, melding.get(Key.JOURNALPOST_ID.str).asText())
-        assertNotNull(melding.get(Key.INNTEKTSMELDING_DOKUMENT.str))
+        assertNotNull(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         assertNull(melding.get(Key.FAIL.str), "Skal ikke inneholde feil")
     }
 
@@ -55,7 +56,7 @@ class DistribusjonLøserTest {
             Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
             Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
             Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            Key.INNTEKTSMELDING_DOKUMENT.str to "dummy"
+            DataFelt.INNTEKTSMELDING_DOKUMENT.str to "dummy"
         )
         sendMelding(mld)
         val melding = rapid.inspektør.message(0)
@@ -73,7 +74,7 @@ class DistribusjonLøserTest {
             Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
             Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
             Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            Key.INNTEKTSMELDING_DOKUMENT.str to "dummy"
+            DataFelt.INNTEKTSMELDING_DOKUMENT.str to "dummy"
         )
         sendMelding(mld)
         val melding = rapid.inspektør.message(0)

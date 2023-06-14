@@ -50,14 +50,14 @@ class VirksomhetLøser(
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandAll(Key.BEHOV.str, BEHOV)
-            it.requireKey(Key.ORGNRUNDERENHET.str)
+            it.requireKey(DataFelt.ORGNRUNDERENHET.str)
             it.requireKey(Key.ID.str)
         }
     }
 
     override fun onBehov(packet: JsonMessage) {
         logger.info("Løser behov $BEHOV med id ${packet[Key.ID.str].asText()}")
-        val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
+        val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
         try {
             val navn = hentVirksomhet(orgnr)
             logger.info("Fant $navn for $orgnr")

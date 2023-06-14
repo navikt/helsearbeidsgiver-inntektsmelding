@@ -52,7 +52,7 @@ class JournalførInntektsmeldingLøser(
         return River.PacketValidation {
             it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
             it.demandValue(Key.BEHOV.str, JOURNALFOER_BEHOV.name)
-            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+            it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
         }
     }
 
@@ -62,7 +62,7 @@ class JournalførInntektsmeldingLøser(
         sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
         var inntektsmeldingDokument: InntektsmeldingDokument? = null
         try {
-            inntektsmeldingDokument = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING_DOKUMENT.str])
+            inntektsmeldingDokument = mapInntektsmeldingDokument(packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str])
             sikkerLogger.info("Skal journalføre: $inntektsmeldingDokument")
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmeldingDokument) }
             sikkerLogger.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")

@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
@@ -67,6 +67,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
+    lateinit var redisStore: RedisStore
 
     private val om = customObjectMapper()
 
@@ -74,7 +75,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        val redisStore = RedisStore(redisContainer.redisURI)
+        redisStore = RedisStore(redisContainer.redisURI)
 
         rapid.buildApp(
             redisStore,

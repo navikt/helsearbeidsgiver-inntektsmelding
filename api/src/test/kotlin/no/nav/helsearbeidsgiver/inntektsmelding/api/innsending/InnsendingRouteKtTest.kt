@@ -6,8 +6,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
@@ -72,7 +72,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
 
         assertEquals(2, violations.size)
-        assertEquals(Key.ORGNRUNDERENHET.str, violations[0].property)
+        assertEquals(DataFelt.ORGNRUNDERENHET.str, violations[0].property)
         assertEquals("identitetsnummer", violations[1].property)
     }
 

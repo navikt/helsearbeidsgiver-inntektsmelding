@@ -9,8 +9,9 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -41,22 +42,12 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
             sikkerLogger().error("Feilmelding er ${message.toJson()}")
             return onError(message.toFeilMessage())
         }
-        /*
-        if (isEventMelding(message)) {
-            if (message[Key.UUID.str].isNull || message[Key.UUID.str].isEmpty) {
-                transactionId = UUID.randomUUID().toString()
-                sikkerLogger().info("Event transaksjonsID er generert $transactionId")
-            } else {
-                sikkerLogger().info("Event transaksjonsID er ${message[Key.UUID.str].asText()}")
-            }
-        } else {
-            sikkerLogger().info("transaksjonsID er ${message[Key.UUID.str].asText()}")
-        }
-        */
-        val eventKey = "${transactionId}${event.name}"
+
+        val eventKey = RedisKey.of(transactionId, event)
         val value = redisStore.get(eventKey)
         if (value.isNullOrEmpty()) {
-            redisStore.set(eventKey, transactionId)
+            val clientId = if (message[Key.CLIENT_ID.str].isMissingOrNull()) transactionId else message[Key.CLIENT_ID.str].asText()
+            redisStore.set(eventKey, clientId)
             return Transaction.NEW
         } else {
             if (isDataCollected(transactionId)) return Transaction.FINALIZE
@@ -109,6 +100,6 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         return this
     }
 
-    open fun isDataCollected(uuid: String): Boolean = dataKanal.isAllDataCollected(uuid)
-    open fun isDataCollected(vararg keys: String): Boolean = dataKanal.isDataCollected(*keys)
+    open fun isDataCollected(uuid: String): Boolean = dataKanal.isAllDataCollected(RedisKey.of(uuid))
+    open fun isDataCollected(vararg keys: RedisKey): Boolean = dataKanal.isDataCollected(*keys)
 }

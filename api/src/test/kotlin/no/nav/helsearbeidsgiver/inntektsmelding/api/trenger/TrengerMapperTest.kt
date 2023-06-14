@@ -4,10 +4,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
-import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -43,7 +43,7 @@ class TrengerMapperTest {
         }
         val constraints = mapper.getConstraintViolations()
         assertEquals(2, constraints.size)
-        assertEquals(Key.ORGNRUNDERENHET.str, constraints[0].property)
+        assertEquals(DataFelt.ORGNRUNDERENHET.str, constraints[0].property)
         assertEquals("Feil", constraints[0].value)
     }
 

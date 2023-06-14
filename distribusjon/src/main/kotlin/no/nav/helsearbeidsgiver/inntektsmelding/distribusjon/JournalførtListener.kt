@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
@@ -17,7 +18,7 @@ class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(r
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
-            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+            it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
             it.requireKey(Key.JOURNALPOST_ID.str)
         }
     }
@@ -30,7 +31,7 @@ class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(r
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
                 Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
                 Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
-                Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str]
             )
         )
         publishBehov(jsonMessage)

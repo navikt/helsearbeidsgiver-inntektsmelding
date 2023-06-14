@@ -52,7 +52,8 @@ class OpprettSakLøserTest : FunSpec({
                 Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.toJson(EventName.serializer()),
                 Key.BEHOV.str to BehovType.OPPRETT_SAK.toJson(BehovType.serializer()),
                 DataFelt.ARBEIDSTAKER_INFORMASJON.str to mockPersonDato().toJson(PersonDato.serializer()),
-                Key.ORGNRUNDERENHET.str to "org-456".toJson(),
+                DataFelt.ORGNRUNDERENHET.str to "org-456".toJson(),
+                Key.IDENTITETSNUMMER.str to "12345678901".toJson(),
                 Key.FORESPOERSEL_ID.str to "uuid-abc".toJson()
             )
         )

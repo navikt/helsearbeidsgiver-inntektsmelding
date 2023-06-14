@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
@@ -18,21 +19,21 @@ class StatefullEventListener(
     mainListener,
     rapidsConnection
 ) {
-    override fun accept(): River.PacketValidation = River.PacketValidation {
-        it.interestedIn(*dataFelter)
+    override fun accept(): River.PacketValidation {
+        return River.PacketValidation {
+            it.interestedIn(*dataFelter)
+        }
     }
 
     private fun collectData(packet: JsonMessage) {
-        var uuid = packet[Key.UUID.str].asText()
-        if (uuid.isNullOrEmpty()) {
-            uuid = UUID.randomUUID().toString()
-            packet[Key.UUID.str] = uuid
-        }
+        val transactionId = UUID.randomUUID().toString()
+        packet[Key.UUID.str] = transactionId
+
         dataFelter.map { dataFelt ->
             Pair(dataFelt, packet[dataFelt])
         }.forEach { data ->
             val str = if (data.second.isTextual) { data.second.asText() } else data.second.toString()
-            redisStore.set(uuid + data.first, str)
+            redisStore.set(transactionId + data.first, str)
         }
     }
     override fun onEvent(packet: JsonMessage) {

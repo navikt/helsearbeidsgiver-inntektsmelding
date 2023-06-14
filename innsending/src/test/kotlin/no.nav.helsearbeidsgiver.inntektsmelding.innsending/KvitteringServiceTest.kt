@@ -2,8 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -47,7 +48,7 @@ class KvitteringServiceTest {
                 Key.EVENT_NAME.str to service.event.name,
                 Key.UUID.str to foresporselid,
                 Key.INITIATE_ID.str to transactionId,
-                Key.INNTEKTSMELDING_DOKUMENT.str to im
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to im
             )
         )
         testRapid.reset()

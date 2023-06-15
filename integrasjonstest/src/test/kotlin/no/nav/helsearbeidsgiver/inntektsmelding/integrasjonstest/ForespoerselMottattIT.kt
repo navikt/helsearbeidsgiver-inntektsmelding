@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import com.fasterxml.jackson.module.kotlin.contains
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -25,7 +26,6 @@ class ForespoerselMottattIT : EndToEndTest() {
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
         publish(
             mapOf(
-                Key.EVENT_NAME.str to "dummy",
                 Pri.Key.NOTIS.str to Pri.NotisType.FORESPØRSEL_MOTTATT.name,
                 Pri.Key.ORGNR.str to ORGNR,
                 Pri.Key.FNR.str to FNR,
@@ -38,7 +38,7 @@ class ForespoerselMottattIT : EndToEndTest() {
             assertEquals(BehovType.LAGRE_FORESPOERSEL.name, get(Key.BEHOV.str).asText())
 
             assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
+            assertEquals(ORGNR, get(DataFelt.ORGNRUNDERENHET.str).asText())
             assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
             assertEquals(FORESPOERSEL, get(Key.FORESPOERSEL_ID.str).asText())
         }
@@ -46,7 +46,7 @@ class ForespoerselMottattIT : EndToEndTest() {
         with(filter(EventName.FORESPØRSEL_LAGRET).first()) {
             assertFalse(contains(Key.BEHOV.str))
             assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(ORGNR, get(Key.ORGNRUNDERENHET.str).asText())
+            assertEquals(ORGNR, get(DataFelt.ORGNRUNDERENHET.str).asText())
             assertEquals(FORESPOERSEL, get(Key.FORESPOERSEL_ID.str).asText())
         }
     }

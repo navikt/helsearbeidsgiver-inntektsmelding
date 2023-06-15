@@ -25,13 +25,11 @@ enum class Key(val str: String) {
     INITIATE_ID("initiateId"),
     INITIATE_EVENT("initiate_event"),
     UUID("uuid"),
+    CLIENT_ID("client_id"),
     TRANSACTION_ORIGIN("transaction_origin"),
-    ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNR("orgnr"),
     FNR("fnr"),
     FORESPOERSEL_ID("forespoerselId"),
-    INNTEKTSMELDING("inntektsmelding"),
-    INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
     JOURNALPOST_ID("journalpostId"),
     INNTEKT_DATO("inntektDato"),
     DATA("data"),
@@ -56,11 +54,14 @@ enum class Key(val str: String) {
 enum class DataFelt(val str: String) {
     VIRKSOMHET("virksomhet"),
     ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
-    INNTEKTSMELDING_DOKUMENT(Key.INNTEKTSMELDING_DOKUMENT.str),
+    INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),
     PERSISTERT_SAK_ID("persistert_sak_id"),
-    OPPGAVE_ID("oppgave_id");
+    OPPGAVE_ID("oppgave_id"),
+    ORGNRUNDERENHET("orgnrUnderenhet"),
+    FORESPOERSEL_ID("forespoerselId"),
+    INNTEKTSMELDING("inntektsmelding");
 
     override fun toString(): String =
         str

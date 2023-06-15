@@ -12,6 +12,5 @@ data class Resultat(
     val HENT_TRENGER_IM: HentTrengerImLøsning? = null,
     val PREUTFYLL: PreutfyltLøsning? = null,
     val PERSISTER_IM: PersisterImLøsning? = null,
-    val HENT_PERSISTERT_IM: HentPersistertLøsning? = null,
     val TILGANGSKONTROLL: TilgangskontrollLøsning? = null
 )

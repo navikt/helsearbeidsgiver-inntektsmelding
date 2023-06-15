@@ -27,7 +27,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandAll(Key.BEHOV.str, PERSISTER_IM)
-            it.interestedIn(Key.INNTEKTSMELDING.str)
+            it.interestedIn(DataFelt.INNTEKTSMELDING.str)
             it.interestedIn(DataFelt.VIRKSOMHET.str)
             it.interestedIn(DataFelt.ARBEIDSTAKER_INFORMASJON.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
@@ -46,11 +46,11 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
             val arbeidstakerInfo = customObjectMapper().treeToValue(packet[DataFelt.ARBEIDSTAKER_INFORMASJON.str], PersonDato::class.java)
             val fulltNavn = arbeidstakerInfo.navn
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
-            val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(packet[Key.INNTEKTSMELDING.str], InnsendingRequest::class.java)
+            val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(packet[DataFelt.INNTEKTSMELDING.str], InnsendingRequest::class.java)
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
             repository.lagreInntektsmeldng(forespørselId, inntektsmeldingDokument)
             sikkerLogger.info("Lagret InntektsmeldingDokument for forespoerselId: $forespørselId")
-            packet[Key.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
+            packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
             publiserOK(uuid, event, forespørselId, inntektsmeldingDokument)
         } catch (ex: Exception) {
             logger.error("Klarte ikke persistere: $forespørselId")
@@ -63,8 +63,8 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.DATA.str to "",
-                Key.EVENT_NAME.str to EventName.valueOf(event),
                 DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument, //TODO fjerne?
                 Key.UUID.str to uuid,
                 Key.FORESPOERSEL_ID.str to forespoerselId
             )

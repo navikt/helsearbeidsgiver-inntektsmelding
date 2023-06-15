@@ -76,13 +76,13 @@ class PersisterImLøserTest {
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test persjon", null),
                     Key.ID.str to UUID.randomUUID(),
                     Key.UUID.str to "uuid",
-                    Key.INNTEKTSMELDING.str to request
+                    DataFelt.INNTEKTSMELDING.str to request
                 )
             )
         )
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
+        Assertions.assertNotNull(message.path(DataFelt.INNTEKTSMELDING.str).asText())
         Assertions.assertNotNull(message.path(Key.FORESPOERSEL_ID.str).asText())
-        Assertions.assertNotNull(message.path(Key.INNTEKTSMELDING.str).asText())
     }
 }

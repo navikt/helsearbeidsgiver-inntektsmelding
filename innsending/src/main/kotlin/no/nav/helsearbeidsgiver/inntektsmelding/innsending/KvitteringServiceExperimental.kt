@@ -3,11 +3,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.InputFelter
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
@@ -51,7 +52,7 @@ class KvitteringServiceExperimental(
 
     override fun finalize(message: JsonMessage) {
         val transaksjonsId = message[Key.UUID.str].asText()
-        val dok = message[Key.INNTEKTSMELDING_DOKUMENT.str].asText()
+        val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
         redisStore.set(transaksjonsId, dok)
     }

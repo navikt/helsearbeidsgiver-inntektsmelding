@@ -22,13 +22,16 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDateTime
 
-class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val dokarkivClient: DokArkivClient) : Løser(rapidsConnection) {
+class JournalførInntektsmeldingLøser(
+    rapidsConnection: RapidsConnection,
+    private val dokarkivClient: DokArkivClient
+) : Løser(rapidsConnection) {
 
     private val JOURNALFOER_BEHOV = BehovType.JOURNALFOER
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    suspend fun opprettJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument): String {
+    private suspend fun opprettJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument): String {
         sikkerLogger.info("Bruker inntektsinformasjon $inntektsmelding")
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
         logger.info("Skal ferdigstille journalpost for $uuid...")
@@ -37,7 +40,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         return journalpostId
     }
 
-    fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
+    private fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
         try {
             return customObjectMapper().treeToValue(jsonNode, InntektsmeldingDokument::class.java)
         } catch (ex: Exception) {
@@ -49,7 +52,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         return River.PacketValidation {
             it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
             it.demandValue(Key.BEHOV.str, JOURNALFOER_BEHOV.name)
-            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+            it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
         }
     }
 
@@ -59,7 +62,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
         var inntektsmeldingDokument: InntektsmeldingDokument? = null
         try {
-            inntektsmeldingDokument = mapInntektsmeldingDokument(packet[Key.INNTEKTSMELDING_DOKUMENT.str])
+            inntektsmeldingDokument = mapInntektsmeldingDokument(packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str])
             sikkerLogger.info("Skal journalføre: $inntektsmeldingDokument")
             val journalpostId = runBlocking { opprettJournalpost(uuid, inntektsmeldingDokument) }
             sikkerLogger.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
@@ -80,7 +83,7 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         }
     }
 
-    fun publiserLagring(uuid: String, journalpostId: String) {
+    private fun publiserLagring(uuid: String, journalpostId: String) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.BEHOV.str to BehovType.LAGRE_JOURNALPOST_ID.name,
@@ -93,5 +96,5 @@ class JournalførInntektsmeldingLøser(rapidsConnection: RapidsConnection, val d
         publishBehov(packet)
     }
 
-    internal class UgyldigFormatException(ex: Exception) : Exception("Klarte ikke lese ut Inntektsmelding fra Json node!", ex)
+    private class UgyldigFormatException(ex: Exception) : Exception("Klarte ikke lese ut Inntektsmelding fra Json node!", ex)
 }

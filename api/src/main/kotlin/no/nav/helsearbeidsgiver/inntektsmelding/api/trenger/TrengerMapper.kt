@@ -2,9 +2,9 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.Inntekt
-import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Periode
@@ -21,7 +21,7 @@ class TrengerMapper(
 
     override fun mapConstraint(løsning: Løsning): ConstraintViolation {
         if (løsning is VirksomhetLøsning) {
-            return DefaultConstraintViolation(Key.ORGNRUNDERENHET.str, løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
+            return DefaultConstraintViolation(DataFelt.ORGNRUNDERENHET.str, løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
         }
         if (løsning is NavnLøsning) {
             return DefaultConstraintViolation("identitetsnummer", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
@@ -29,34 +29,34 @@ class TrengerMapper(
         return DefaultConstraintViolation("ukjent", løsning.error?.melding ?: "Ukjent feil", FeilmeldingConstraint)
     }
 
-    fun mapEgenmeldingsperioder(): List<Periode> {
+    private fun mapEgenmeldingsperioder(): List<Periode> {
         return resultat.HENT_TRENGER_IM?.value?.egenmeldingsperioder ?: emptyList()
     }
 
-    fun mapFraværsperiode(): List<Periode> {
+    private fun mapFraværsperiode(): List<Periode> {
         return resultat.HENT_TRENGER_IM?.value?.sykmeldingsperioder ?: emptyList()
     }
 
-    fun mapForespurtData(): List<ForespurtData> =
+    private fun mapForespurtData(): List<ForespurtData> =
         resultat.HENT_TRENGER_IM?.value?.forespurtData ?: emptyList()
 
-    fun mapFulltNavn(): String {
+    private fun mapFulltNavn(): String {
         return resultat.FULLT_NAVN?.value?.navn ?: "Mangler navn"
     }
 
-    fun mapArbeidsgiver(): String {
+    private fun mapArbeidsgiver(): String {
         return resultat.VIRKSOMHET?.value ?: "Mangler arbeidsgivers navn"
     }
 
-    fun mapInntekt(): Inntekt {
+    private fun mapInntekt(): Inntekt {
         return resultat.INNTEKT?.value ?: Inntekt(emptyList())
     }
 
-    fun mapIdentitetsNummer(): String {
+    private fun mapIdentitetsNummer(): String {
         return resultat.HENT_TRENGER_IM?.value?.fnr ?: ""
     }
 
-    fun mapOrgNummer(): String {
+    private fun mapOrgNummer(): String {
         return resultat.HENT_TRENGER_IM?.value?.orgnr ?: ""
     }
 

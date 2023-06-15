@@ -6,8 +6,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
@@ -37,16 +37,16 @@ import kotlin.test.assertNotNull
 private const val PATH = Routes.PREFIX + Routes.INNSENDING + "/${MockUuid.STRING}"
 
 class InnsendingRouteKtTest : ApiTest() {
-    val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson)
-    val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(
+    private val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson)
+    private val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(
         identitetsnummer = TestData.notValidIdentitetsnummer,
         orgnrUnderenhet = TestData.notValidOrgNr
     ).let(Jackson::toJson)
 
-    val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
+    private val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
 
-    val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning(PersonDato("verdi", LocalDate.now())))
-    val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
+    private val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning(PersonDato("verdi", LocalDate.now())))
+    private val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
 
     @Test
     fun `skal godta og returnere kvittering`() = testApi {
@@ -72,7 +72,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
 
         assertEquals(2, violations.size)
-        assertEquals(Key.ORGNRUNDERENHET.str, violations[0].property)
+        assertEquals(DataFelt.ORGNRUNDERENHET.str, violations[0].property)
         assertEquals("identitetsnummer", violations[1].property)
     }
 

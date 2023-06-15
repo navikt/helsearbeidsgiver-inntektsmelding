@@ -70,12 +70,6 @@ data class PersisterImLøsning(
 ) : Løsning()
 
 @Serializable
-data class HentPersistertLøsning(
-    override val value: String? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
 data class HentImOrgnrLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null

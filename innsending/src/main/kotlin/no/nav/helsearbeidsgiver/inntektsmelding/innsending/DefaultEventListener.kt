@@ -6,10 +6,10 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 
 open class DefaultEventListener(
     private val dataFelter: Array<String>,

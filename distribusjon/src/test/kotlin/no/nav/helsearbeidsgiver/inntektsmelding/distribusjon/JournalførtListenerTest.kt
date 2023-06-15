@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -25,14 +26,14 @@ class JournalførtListenerTest {
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
                 Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-                Key.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
             )
         )
         val melding = rapid.inspektør.message(0)
         assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, melding.get(Key.EVENT_NAME.str).asText(), "Skal sende riktig event")
         assertEquals(BehovType.DISTRIBUER_IM.name, melding.get(Key.BEHOV.str).asText(), "Skal be om riktig behov")
         assertEquals(JOURNALPOST_ID, melding.get(Key.JOURNALPOST_ID.str).asText(), "Påkrevd felt skal publiseres videre")
-        assertNotNull(melding.get(Key.INNTEKTSMELDING_DOKUMENT.str).asText(), "Påkrevd felt skal publiseres videre")
+        assertNotNull(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText(), "Påkrevd felt skal publiseres videre")
     }
 
     private fun sendMelding(melding: Map<String, Any>) {

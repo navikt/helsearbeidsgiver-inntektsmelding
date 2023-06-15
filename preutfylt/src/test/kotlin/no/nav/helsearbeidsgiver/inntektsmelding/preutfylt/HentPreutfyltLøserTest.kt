@@ -6,6 +6,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
@@ -17,14 +18,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class HentPreutfyltLøserTest {
+class HentPreutfyltLøserTest {
 
     private val rapid = TestRapid()
-    private var løser: HentPreutfyltLøser
     private val BEHOV = BehovType.PREUTFYLL.toString()
 
     init {
-        løser = HentPreutfyltLøser(rapid)
+        HentPreutfyltLøser(rapid)
     }
 
     @Test
@@ -38,6 +38,7 @@ internal class HentPreutfyltLøserTest {
                         orgnr = "123",
                         fnr = "456",
                         sykmeldingsperioder = emptyList(),
+                        egenmeldingsperioder = emptyList(),
                         forespurtData = mockForespurtDataListe()
                     )
                 )
@@ -48,7 +49,7 @@ internal class HentPreutfyltLøserTest {
         assertEquals(4, nesteBehov.size())
         val fnrNode: JsonNode = resultat.path(Key.IDENTITETSNUMMER.str)
         assertEquals("456", fnrNode.asText())
-        val orgnrNode: JsonNode = resultat.path(Key.ORGNRUNDERENHET.str)
+        val orgnrNode: JsonNode = resultat.path(DataFelt.ORGNRUNDERENHET.str)
         assertEquals("123", orgnrNode.asText())
     }
 
@@ -68,7 +69,7 @@ internal class HentPreutfyltLøserTest {
         assertEquals(0, nesteBehov.size())
         val fnrNode: JsonNode = resultat.path(Key.IDENTITETSNUMMER.str)
         assertEquals("", fnrNode.asText())
-        val orgnrNode: JsonNode = resultat.path(Key.ORGNRUNDERENHET.str)
+        val orgnrNode: JsonNode = resultat.path(DataFelt.ORGNRUNDERENHET.str)
         assertEquals("", orgnrNode.asText())
     }
 

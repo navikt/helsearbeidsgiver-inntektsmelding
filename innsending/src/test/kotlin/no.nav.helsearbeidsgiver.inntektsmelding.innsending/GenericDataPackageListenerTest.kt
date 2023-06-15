@@ -9,8 +9,8 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -56,7 +56,7 @@ class GenericDataPackageListenerTest {
             val jsonMessages: JsonMessage = it.invocation.args[0] as JsonMessage
             assert(jsonMessages[TestFelter.FELT1.name].asText() == "Hello")
         }
-        every { redisStore.set(any(), any(), 60L) } returns Unit
+        every { redisStore.set(any<String>(), any(), 60L) } returns Unit
         val uuid: UUID = UUID.randomUUID()
         testRapid.sendTestMessage(
             JsonMessage.newMessage(
@@ -89,7 +89,7 @@ class GenericDataPackageListenerTest {
             ).toJson()
         )
         verify(exactly = 0) {
-            redisStore.set(any(), any())
+            redisStore.set(any<String>(), any())
             mockListener.onPacket(any(), any())
         }
     }

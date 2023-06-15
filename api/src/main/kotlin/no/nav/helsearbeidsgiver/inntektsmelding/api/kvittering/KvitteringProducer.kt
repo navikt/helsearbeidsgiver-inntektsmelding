@@ -15,16 +15,16 @@ class KvitteringProducer(
     }
 
     fun publish(foresporselId: String): String {
-        val transaksjonsId = UUID.randomUUID().toString()
+        val clientId = UUID.randomUUID().toString()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                Key.UUID.str to transaksjonsId,
+                Key.CLIENT_ID.str to clientId,
                 Key.FORESPOERSEL_ID.str to foresporselId
             )
         )
         rapid.publish(packet.toJson())
         logger.info("Publiserte kvittering requested, forespørselid=$foresporselId")
-        return transaksjonsId
+        return clientId
     }
 }

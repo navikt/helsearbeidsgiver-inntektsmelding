@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.pdf
+package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
@@ -8,15 +8,15 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import java.io.ByteArrayOutputStream
 
 class PdfBuilder(
-    val paddingVertical: Int = 100,
-    val paddingHorisontal: Int = 45,
-    val fontName: String = "Source Sans Pro Regular 400.ttf",
-    val fontBold: String = "Source Sans Pro SemiBold 600.ttf",
-    val fontItalic: String = "Source Sans Pro Italic 400.ttf",
+    private val paddingVertical: Int = 100,
+    private val paddingHorisontal: Int = 45,
+    private val fontName: String = "Source Sans Pro Regular 400.ttf",
+    private val fontBold: String = "Source Sans Pro SemiBold 600.ttf",
+    private val fontItalic: String = "Source Sans Pro Italic 400.ttf",
     val titleSize: Int = 30,
     val sectionSize: Int = 24,
     val bodySize: Int = 16,
-    val logo: String = "logo.png"
+    private val logo: String = "logo.png"
 ) {
 
     private val list: MutableList<Text> = mutableListOf()
@@ -27,47 +27,47 @@ class PdfBuilder(
     private val PAGE_WIDTH = 630f
 
     fun addTitle(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(titleSize, title, false, false, x, y))
+        return add(Text(titleSize, title, bold = false, italic = false, x, y))
     }
 
     fun addSection(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(sectionSize, title, false, false, x, y))
+        return add(Text(sectionSize, title, bold = false, italic = false, x, y))
     }
 
     fun addBody(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(bodySize, title, false, false, x, y))
+        return add(Text(bodySize, title, bold = false, italic = false, x, y))
     }
 
     fun addBold(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(bodySize, title, true, false, x, y))
+        return add(Text(bodySize, title, bold = true, italic = false, x, y))
     }
 
     fun addText(title: String, x: Int = 0, y: Int = 0, bold: Boolean = false): PdfBuilder {
-        return add(Text(bodySize, title, bold, false, x, y))
+        return add(Text(bodySize, title, bold, italic = false, x, y))
     }
 
     fun addLine(x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(1, LINETEXT, false, false, x, y))
+        return add(Text(1, LINETEXT, bold = false, italic = false, x, y))
     }
 
     fun addItalics(title: String, x: Int = 0, y: Int = 0): PdfBuilder {
-        return add(Text(bodySize, title, false, true, x, y))
+        return add(Text(bodySize, title, bold = false, italic = true, x, y))
     }
 
-    fun add(text: Text): PdfBuilder {
+    private fun add(text: Text): PdfBuilder {
         list.add(text)
         return this
     }
 
-    fun calculatePageCount(): Int {
+    private fun calculatePageCount(): Int {
         return list.maxOf { it.y } / PAGE_HEIGHT
     }
 
-    fun isPage(y: Int, pageNumber: Int): Boolean {
+    private fun isPage(y: Int, pageNumber: Int): Boolean {
         return y >= pageNumber * PAGE_HEIGHT && y < (pageNumber + 1) * PAGE_HEIGHT
     }
 
-    fun producePage(pageNr: Int, doc: PDDocument, FONT_NORMAL: PDType0Font, FONT_BOLD: PDType0Font, FONT_ITALIC: PDType0Font): PDPage {
+    private fun producePage(pageNr: Int, doc: PDDocument, FONT_NORMAL: PDType0Font, FONT_BOLD: PDType0Font, FONT_ITALIC: PDType0Font): PDPage {
         val page = PDPage()
         val contentStream = PDPageContentStream(doc, page)
 
@@ -84,7 +84,7 @@ class PdfBuilder(
         val filteredList = list.filter { isPage(it.y, pageNr) }
         val firstY = if (pageNr == 0) 0 else filteredList.minOf { it.y }
         filteredList.forEach {
-            if (LINETEXT.equals(it.value)) {
+            if (LINETEXT == it.value) {
                 contentStream.moveTo((paddingHorisontal + it.x.toFloat()) * RATIO, MAX - (paddingVertical + it.y.toFloat() - 20 - firstY) * RATIO)
                 contentStream.lineTo((PAGE_WIDTH - paddingHorisontal), MAX - (paddingVertical + it.y.toFloat() - 20 - firstY) * RATIO)
                 contentStream.stroke()

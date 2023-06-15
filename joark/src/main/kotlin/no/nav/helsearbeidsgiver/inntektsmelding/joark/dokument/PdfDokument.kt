@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permitterin
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
-import no.nav.helsearbeidsgiver.pdf.PdfBuilder
 import java.time.LocalDate
 
 class PdfDokument(val dokument: InntektsmeldingDokument) {
@@ -44,26 +43,26 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         return pdf.export()
     }
 
-    fun moveCursorBy(y: Int) {
+    private fun moveCursorBy(y: Int) {
         this.y += y
     }
 
-    fun moveCursorTo(y: Int) {
+    private fun moveCursorTo(y: Int) {
         this.y = y
     }
 
-    fun addLine() {
+    private fun addLine() {
         moveCursorBy(pdf.bodySize)
         pdf.addLine(0, y)
         moveCursorBy(pdf.bodySize)
     }
 
-    fun addSection(title: String) {
+    private fun addSection(title: String) {
         pdf.addSection(title, KOLONNE_EN, y)
         moveCursorBy(pdf.sectionSize * 2)
     }
 
-    fun addLabel(label: String, text: String? = null, x: Int = KOLONNE_EN, newY: Int = y, linefeed: Boolean = true) {
+    private fun addLabel(label: String, text: String? = null, x: Int = KOLONNE_EN, newY: Int = y, linefeed: Boolean = true) {
         pdf.addText(label, x, newY, BOLD_LABELS)
         if (text != null) {
             pdf.addText(text, x, newY + pdf.bodySize + (pdf.bodySize / 2), !BOLD_LABELS)
@@ -73,14 +72,14 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         }
     }
 
-    fun addText(text: String, x1: Int = KOLONNE_EN, y2: Int = y, linefeed: Boolean = true) {
+    private fun addText(text: String, x1: Int = KOLONNE_EN, y2: Int = y, linefeed: Boolean = true) {
         pdf.addText(text, x1, y2, !BOLD_LABELS)
         if (linefeed) {
             moveCursorBy(pdf.bodySize * 2)
         }
     }
 
-    fun addHeader() {
+    private fun addHeader() {
         pdf.addTitle(
             title = when (dokument.årsakInnsending) {
                 ÅrsakInnsending.ENDRING -> "Inntektsmelding for sykepenger - endring"
@@ -93,19 +92,19 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         moveCursorBy(pdf.titleSize * 2)
     }
 
-    fun addAnsatt() {
+    private fun addAnsatt() {
         addSection("Den ansatte")
         addLabel("Navn", dokument.fulltNavn, linefeed = false)
         addLabel("Personnummer", dokument.identitetsnummer, KOLONNE_TO)
     }
 
-    fun addArbeidsgiver() {
+    private fun addArbeidsgiver() {
         addSection("Arbeidsgiveren")
         addLabel("Virksomhetsnavn", dokument.virksomhetNavn, linefeed = false)
         addLabel("Organisasjonsnummer for underenhet", dokument.orgnrUnderenhet, KOLONNE_TO)
     }
 
-    fun addFraværsperiode() {
+    private fun addFraværsperiode() {
         addSection("Fraværsperiode")
         val seksjonStartY = y // Husk når denne seksjonen starter i y-aksen
 
@@ -133,14 +132,14 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         moveCursorBy(pdf.bodySize * 2)
     }
 
-    fun addPerioder(x: Int, perioder: List<Periode>) {
+    private fun addPerioder(x: Int, perioder: List<Periode>) {
         perioder.forEach {
             addLabel("Fra", it.fom.toNorsk(), x, linefeed = false)
             addLabel("Til", it.tom.toNorsk(), x + 200)
         }
     }
 
-    fun addInntekt() {
+    private fun addInntekt() {
         addSection("Beregnet månedslønn")
         addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
         val endringsårsak = dokument.inntekt?.endringÅrsak
@@ -157,45 +156,45 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         }
     }
 
-    fun addInntektEndringPerioder(endringsårsak: String, perioder: List<Periode>) {
+    private fun addInntektEndringPerioder(endringsårsak: String, perioder: List<Periode>) {
         addLabel("Forklaring for endring", endringsårsak, linefeed = false)
         addPerioder(KOLONNE_TO, perioder)
     }
 
-    fun addPermisjon(permisjon: Permisjon) {
+    private fun addPermisjon(permisjon: Permisjon) {
         addInntektEndringPerioder("Permisjon", permisjon.liste)
     }
 
-    fun addFerie(ferie: Ferie) {
+    private fun addFerie(ferie: Ferie) {
         addInntektEndringPerioder("Ferie", ferie.liste)
     }
 
-    fun addPermittering(permittering: Permittering) {
+    private fun addPermittering(permittering: Permittering) {
         addInntektEndringPerioder("Permittering", permittering.liste)
     }
 
-    fun addTariffendring(tariffendring: Tariffendring) {
+    private fun addTariffendring(tariffendring: Tariffendring) {
         addLabel("Forklaring for endring", "Tariffendring")
         addLabel("Gjelder fra", tariffendring.gjelderFra.toNorsk(), linefeed = false)
         addLabel("Ble kjent", tariffendring.bleKjent.toNorsk(), KOLONNE_TO)
     }
 
-    fun addVarigLonnsendring(varigLonnsendring: VarigLonnsendring) {
+    private fun addVarigLonnsendring(varigLonnsendring: VarigLonnsendring) {
         addLabel("Forklaring for endring", "Varig lønnsendring")
         addLabel("Gjelder fra", varigLonnsendring.gjelderFra.toNorsk())
     }
 
-    fun addNyStilling(nyStilling: NyStilling) {
+    private fun addNyStilling(nyStilling: NyStilling) {
         addLabel("Forklaring for endring", "Ny stilling", linefeed = false)
         addLabel("Gjelder fra", nyStilling.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
-    fun addNyStillingsprosent(nyStillingsprosent: NyStillingsprosent) {
+    private fun addNyStillingsprosent(nyStillingsprosent: NyStillingsprosent) {
         addLabel("Forklaring for endring", "Ny stillingsprosent", linefeed = false)
         addLabel("Gjelder fra", nyStillingsprosent.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
-    fun addBonus(bonus: Bonus) {
+    private fun addBonus(bonus: Bonus) {
         val årligBonus = 0.toBigDecimal() // TODO Må bruke bonus fra datamodell
         val datoBonus = LocalDate.now() // TODO Må bruke dato fra datamodell
         addLabel("Forklaring for endring", "Bonus")
@@ -203,7 +202,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         // addLabel("Dato siste bonus", datoBonus.toNorsk())
     }
 
-    fun addRefusjon() {
+    private fun addRefusjon() {
         addSection("Refusjon")
 
         val lønnArbeidsgiverperioden = dokument.fullLønnIArbeidsgiverPerioden
@@ -230,7 +229,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             }
 
             val endringer = dokument.refusjon.refusjonEndringer ?: emptyList()
-            addLabel("Endringer i refusjon i perioden", (!endringer.isEmpty()).toNorsk())
+            addLabel("Endringer i refusjon i perioden", (endringer.isNotEmpty()).toNorsk())
             if (endringer.isEmpty()) {
                 // Nei - Ingen endringer i perioden
             } else {
@@ -245,7 +244,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         }
     }
 
-    fun addNaturalytelser() {
+    private fun addNaturalytelser() {
         addSection("Bortfall av naturalytelser")
         val antallNaturalytelser = dokument.naturalytelser?.size ?: 0
         if (antallNaturalytelser == 0) {
@@ -263,7 +262,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         }
     }
 
-    fun addTidspunkt() {
+    private fun addTidspunkt() {
         pdf.addItalics("Innsendt: ${dokument.tidspunkt.toNorsk()}", KOLONNE_EN, y)
         moveCursorBy(pdf.bodySize)
     }

@@ -14,6 +14,7 @@ import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class VirksomhetLøserTest {
+class VirksomhetLøserTest {
 
     private val rapid = TestRapid()
     private var løser: VirksomhetLøser
@@ -39,7 +40,7 @@ internal class VirksomhetLøserTest {
         løser = VirksomhetLøser(rapid, brregClient, false)
     }
 
-    fun sendMessage(packet: Map<String, Any>): VirksomhetLøsning {
+    private fun sendMessage(packet: Map<String, Any>): VirksomhetLøsning {
         rapid.reset()
         rapid.sendTestMessage(
             objectMapper.writeValueAsString(
@@ -61,7 +62,7 @@ internal class VirksomhetLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                Key.ORGNRUNDERENHET.str to ORGNR
+                DataFelt.ORGNRUNDERENHET.str to ORGNR
             )
         )
         assertEquals("Ugyldig virksomhet $ORGNR", løsning.error?.melding)
@@ -78,7 +79,7 @@ internal class VirksomhetLøserTest {
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
                 "uuid" to "uuid",
-                Key.ORGNRUNDERENHET.str to ORGNR
+                DataFelt.ORGNRUNDERENHET.str to ORGNR
             )
         )
         assertEquals(VIRKSOMHET_NAVN, løsning.value)
@@ -91,7 +92,7 @@ internal class VirksomhetLøserTest {
                 Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 "@behov" to listOf(BEHOV),
                 "@id" to UUID.randomUUID(),
-                Key.ORGNRUNDERENHET.str to ORGNR
+                DataFelt.ORGNRUNDERENHET.str to ORGNR
             )
         )
         assertNotNull(løsning.error)

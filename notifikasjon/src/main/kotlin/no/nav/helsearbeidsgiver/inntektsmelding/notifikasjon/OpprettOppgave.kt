@@ -11,17 +11,15 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
 class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
     override val event: EventName = EventName.FORESPØRSEL_LAGRET
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
-        it.requireKey(Key.ORGNRUNDERENHET.str)
+        it.requireKey(DataFelt.ORGNRUNDERENHET.str)
     }
     override fun onEvent(packet: JsonMessage) {
         val uuid: String = UUID.randomUUID().toString()
@@ -36,7 +34,7 @@ class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventList
                     Key.BEHOV.str to BehovType.OPPRETT_OPPGAVE,
                     Key.FORESPOERSEL_ID.str to forespørselId,
                     Key.UUID.str to uuid,
-                    Key.ORGNRUNDERENHET.str to packet[Key.ORGNRUNDERENHET.str]
+                    DataFelt.ORGNRUNDERENHET.str to packet[DataFelt.ORGNRUNDERENHET.str]
                 )
             )
         )
@@ -49,11 +47,9 @@ class OpprettOppgaveLøser(
     private val linkUrl: String
 ) : Løser(rapidsConnection) {
 
-    private val om = customObjectMapper()
     private val EVENT = EventName.FORESPØRSEL_LAGRET
-    private val logger = logger()
 
-    fun opprettOppgave(
+    private fun opprettOppgave(
         forespørselId: String,
         orgnr: String
     ): String { // ktlint-disable trailing-comma-on-declaration-site
@@ -77,7 +73,7 @@ class OpprettOppgaveLøser(
         River.PacketValidation {
             it.demandValue(Key.EVENT_NAME.str, EVENT.name)
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
-            it.interestedIn(Key.ORGNRUNDERENHET.str)
+            it.interestedIn(DataFelt.ORGNRUNDERENHET.str)
         }
 
     override fun onBehov(packet: JsonMessage) {
@@ -88,14 +84,14 @@ class OpprettOppgaveLøser(
             return
         }
         val uuid = packet[Key.UUID.str].asText()
-        val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
+        val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
         val oppgaveId = opprettOppgave(forespørselId.asText(), orgnr)
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.BEHOV.str to BehovType.PERSISTER_OPPGAVE_ID.name,
                 Key.FORESPOERSEL_ID.str to forespørselId,
                 Key.UUID.str to uuid,
-                Key.ORGNRUNDERENHET.str to orgnr,
+                DataFelt.ORGNRUNDERENHET.str to orgnr,
                 DataFelt.OPPGAVE_ID.str to oppgaveId
             )
         )

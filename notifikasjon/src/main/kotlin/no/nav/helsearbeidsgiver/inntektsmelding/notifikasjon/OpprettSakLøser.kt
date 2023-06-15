@@ -26,12 +26,12 @@ class OpprettSakLøser(
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_SAK.name)
-            it.requireKey(Key.ORGNRUNDERENHET.str)
+            it.requireKey(DataFelt.ORGNRUNDERENHET.str)
             it.interestedIn(DataFelt.ARBEIDSTAKER_INFORMASJON.str)
         }
     }
 
-    fun opprettSak(
+    private fun opprettSak(
         forespoerselId: String,
         orgnr: String,
         navn: String,
@@ -51,7 +51,7 @@ class OpprettSakLøser(
         }
     }
 
-    fun hentNavn(packet: JsonMessage): PersonDato {
+    private fun hentNavn(packet: JsonMessage): PersonDato {
         if (packet[DataFelt.ARBEIDSTAKER_INFORMASJON.str].isMissingNode) return PersonDato("Ukjent", null)
         return customObjectMapper().treeToValue(packet[DataFelt.ARBEIDSTAKER_INFORMASJON.str], PersonDato::class.java)
     }
@@ -60,7 +60,7 @@ class OpprettSakLøser(
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
         logger.info("Skal opprette sak for forespørselId: $forespoerselId")
-        val orgnr = packet[Key.ORGNRUNDERENHET.str].asText()
+        val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
         val personDato = hentNavn(packet)
         val navn = personDato.navn
         val fødselsdato = personDato.fødselsdato

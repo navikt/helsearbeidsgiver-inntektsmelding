@@ -37,7 +37,7 @@ class InnsendingIT : EndToEndTest() {
     private val SAK_ID = "sak_id_123"
     private val OPPGAVE_ID = "oppgave_id_456"
     private val FORESPØRSEL_ID = UUID.randomUUID().toString()
-    private val TRANSAKSJONS_ID_INSENDING_STARTED = UUID.randomUUID().toString()
+    private val CLIENT_ID = UUID.randomUUID().toString()
     private val REQUEST = mockRequest()
     private val JOURNALPOST_ID = "jp-789"
 
@@ -71,11 +71,11 @@ class InnsendingIT : EndToEndTest() {
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.UUID.str to TRANSAKSJONS_ID_INSENDING_STARTED,
+                Key.CLIENT_ID to CLIENT_ID,
                 Key.FORESPOERSEL_ID.str to FORESPØRSEL_ID,
-                Key.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
+                DataFelt.ORGNRUNDERENHET.str to REQUEST.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to REQUEST.identitetsnummer,
-                Key.INNTEKTSMELDING.str to REQUEST
+                DataFelt.INNTEKTSMELDING.str to REQUEST
             )
         )
         Thread.sleep(10000)
@@ -133,7 +133,7 @@ class InnsendingIT : EndToEndTest() {
         with(filter(EventName.INNTEKTSMELDING_DISTRIBUERT).first()) {
             // Verifiser at inntektsmelding er distribuert på ekstern kafka
             assertEquals(JOURNALPOST_ID, get(Key.JOURNALPOST_ID.str).asText())
-            assertNotNull(get(Key.INNTEKTSMELDING_DOKUMENT.str))
+            assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         }
     }
 

@@ -73,7 +73,7 @@ class PersisterImLøserTest {
                     Key.FORESPOERSEL_ID.str to FORESPOERSEL,
                     Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
                     DataFelt.VIRKSOMHET.str to "Test Virksomhet",
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test persjon", null),
+                    DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null),
                     Key.ID.str to UUID.randomUUID(),
                     Key.UUID.str to "uuid",
                     DataFelt.INNTEKTSMELDING.str to request

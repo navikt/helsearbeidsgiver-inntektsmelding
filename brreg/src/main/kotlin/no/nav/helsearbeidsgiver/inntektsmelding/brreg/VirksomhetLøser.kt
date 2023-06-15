@@ -81,7 +81,8 @@ class VirksomhetLøser(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
                 Key.DATA.str to "",
                 Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
-                DataFelt.VIRKSOMHET.str to navn
+                DataFelt.VIRKSOMHET.str to navn,
+                Key.FORESPOERSEL_ID.str to jsonMessage[Key.FORESPOERSEL_ID.str].asText()
             )
         )
         super.publishData(message)

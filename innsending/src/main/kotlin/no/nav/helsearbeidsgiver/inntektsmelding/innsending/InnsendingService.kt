@@ -44,6 +44,7 @@ class InnsendingService(
                 it.interestedIn(Key.INNTEKTSMELDING.str)
                 it.requireKey(Key.ORGNRUNDERENHET.str)
                 it.requireKey(Key.IDENTITETSNUMMER.str)
+                it.demandKey(Key.FORESPOERSEL_ID.str)
             }
         }
     }
@@ -63,8 +64,8 @@ class InnsendingService(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val uuid = packet[Key.UUID.str]
-        sikkerLogger.info("InnsendingSerice: fikk melding $packet")
-        logger.info("InnsendingService $uuid")
+        sikkerLogger.info("InnsendingService: fikk melding ${packet.toJson()}")
+        logger.info("InnsendingService UUID=$uuid")
         // val transaction: Transaction = startStransactionIfAbsent(packet)
         val transaction: Transaction = determineTransactionState(packet)
 
@@ -85,6 +86,7 @@ class InnsendingService(
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid: String = message[Key.UUID.str].asText()
+        val forespoerselId = message[Key.FORESPOERSEL_ID.str]
         when (transaction) {
             Transaction.NEW -> {
                 logger.info("InnsendingService: emitiing behov Virksomhet")
@@ -94,7 +96,8 @@ class InnsendingService(
                             Key.EVENT_NAME.str to event.name,
                             Key.BEHOV.str to listOf(BehovType.VIRKSOMHET.name),
                             Key.ORGNRUNDERENHET.str to message[Key.ORGNRUNDERENHET.str].asText(),
-                            Key.UUID.str to uuid
+                            Key.UUID.str to uuid,
+                            Key.FORESPOERSEL_ID.str to forespoerselId
                         )
                     ).toJson()
                 )
@@ -105,7 +108,8 @@ class InnsendingService(
                             Key.EVENT_NAME.str to event.name,
                             Key.BEHOV.str to listOf(BehovType.ARBEIDSFORHOLD.name),
                             Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
-                            Key.UUID.str to uuid
+                            Key.UUID.str to uuid,
+                            Key.FORESPOERSEL_ID.str to forespoerselId
                         )
                     ).toJson()
                 )
@@ -116,7 +120,8 @@ class InnsendingService(
                             Key.EVENT_NAME.str to event.name,
                             Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
                             Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
-                            Key.UUID.str to uuid
+                            Key.UUID.str to uuid,
+                            Key.FORESPOERSEL_ID.str to forespoerselId
                         )
                     ).toJson()
                 )
@@ -142,7 +147,7 @@ class InnsendingService(
                                     }
                                     ),
                                 Key.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(uuid + Key.INNTEKTSMELDING.str)!!),
-                                Key.FORESPOERSEL_ID.str to redisStore.get(uuid + Key.FORESPOERSEL_ID.str)!!,
+                                Key.FORESPOERSEL_ID.str to forespoerselId,
                                 Key.UUID.str to uuid
                             )
                         ).toJson()
@@ -167,7 +172,7 @@ class InnsendingService(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                     Key.INNTEKTSMELDING_DOKUMENT.str to message[Key.INNTEKTSMELDING_DOKUMENT.str],
                     Key.TRANSACTION_ORIGIN.str to uuid,
-                    Key.FORESPOERSEL_ID.str to redisStore.get(uuid + Key.FORESPOERSEL_ID.str)!!
+                    Key.FORESPOERSEL_ID.str to message[Key.FORESPOERSEL_ID.str].asText()
                 )
             ).toJson().also {
                 logger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
@@ -178,9 +183,9 @@ class InnsendingService(
     override fun initialTransactionState(message: JsonMessage) {
         val uuid = message[Key.UUID.str].asText()
         val requestKey = "${uuid}${Key.INNTEKTSMELDING.str}"
-        val forespoerselKey = "${uuid}${Key.FORESPOERSEL_ID.str}"
+        val forespoerselKey = message[Key.FORESPOERSEL_ID.str].toString()
         redisStore.set(requestKey, message[Key.INNTEKTSMELDING.str].toString())
-        redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].asText())
+        redisStore.set(forespoerselKey, message[Key.FORESPOERSEL_ID.str].asText()) // ikke nødvendig?!
     }
     private fun step1data(uuid: String): Array<String> = arrayOf(
         uuid + DataFelter.VIRKSOMHET.str,

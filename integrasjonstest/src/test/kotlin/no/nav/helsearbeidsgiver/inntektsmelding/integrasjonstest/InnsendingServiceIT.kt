@@ -41,7 +41,8 @@ class InnsendingServiceIT : EndToEndTest() {
             )
         )
         Thread.sleep(10000)
-        assertEquals(getMessageCount(), 9) {
+        getMessages { true }.map { println(it.toPrettyString()) }
+        assertEquals(9, getMessageCount()) {
             "Message count was " + getMessageCount()
         }
     }

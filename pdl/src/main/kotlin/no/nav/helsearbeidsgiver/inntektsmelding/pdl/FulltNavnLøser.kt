@@ -73,7 +73,8 @@ class FulltNavnLøser(
                 Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
                 Key.DATA.str to "",
                 Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
-                DataFelt.ARBEIDSTAKER_INFORMASJON.str to personInformasjon
+                DataFelt.ARBEIDSTAKER_INFORMASJON.str to personInformasjon,
+                Key.FORESPOERSEL_ID.str to jsonMessage[Key.FORESPOERSEL_ID.str].asText()
             )
         )
         super.publishData(message)

@@ -3,12 +3,13 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helsearbeidsgiver.felles.WrappedKey
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 
 object Pri {
     const val TOPIC = "helsearbeidsgiver.pri"
 
-    enum class Key(val str: String) {
+    enum class Key(override val str: String) : WrappedKey {
         // Predefinerte fra rapids-and-rivers-biblioteket
         BEHOV("@behov"),
         LØSNING("@løsning"),

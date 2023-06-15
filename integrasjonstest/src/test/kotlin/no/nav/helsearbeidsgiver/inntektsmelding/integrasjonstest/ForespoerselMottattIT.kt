@@ -26,7 +26,6 @@ class ForespoerselMottattIT : EndToEndTest() {
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
         publish(
             mapOf(
-                Key.EVENT_NAME.str to "dummy",
                 Pri.Key.NOTIS.str to Pri.NotisType.FORESPØRSEL_MOTTATT.name,
                 Pri.Key.ORGNR.str to ORGNR,
                 Pri.Key.FNR.str to FNR,

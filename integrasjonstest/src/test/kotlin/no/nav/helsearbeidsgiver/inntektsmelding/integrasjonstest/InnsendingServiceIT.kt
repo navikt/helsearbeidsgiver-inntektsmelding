@@ -62,11 +62,11 @@ private fun List<JsonNode>.filter(clientId: UUID): List<JsonNode> {
             assertEquals(clientId.toString(), it[Key.CLIENT_ID.str].asText())
             true
         } else {
-            val eventName = it.get(Key.EVENT_NAME.str).asText()
+            val eventName = it.get(Key.EVENT_NAME.str)?.asText()
             if (transaksjonId == null && (eventName == EventName.INSENDING_STARTED.name && it.contains(Key.BEHOV.str))) {
-                transaksjonId = it[Key.UUID.str].asText()
+                transaksjonId = it[Key.UUID.str]?.asText()
             }
-            val msgUuid = if (it.contains(Key.UUID.str)) it.get(Key.UUID.str).asText() else it.get(Key.TRANSACTION_ORIGIN.str).asText()
+            val msgUuid = if (it.contains(Key.UUID.str)) it.get(Key.UUID.str).asText() else it.get(Key.TRANSACTION_ORIGIN.str)?.asText()
             msgUuid == transaksjonId &&
                 (eventName == EventName.INSENDING_STARTED.name || (eventName == EventName.INNTEKTSMELDING_MOTTATT.name && !it.has(Key.BEHOV.str))) &&
                 !it.has(Key.LØSNING.str)

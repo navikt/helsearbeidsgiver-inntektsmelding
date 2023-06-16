@@ -16,7 +16,7 @@ fun JsonMessage.demandAll(key: WrappedKey, values: List<BehovType>) {
 }
 
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<WrappedKey, String>) {
-    keyAndValuePairs.onEach { (key, value) ->
+    keyAndValuePairs.forEach { (key, value) ->
         demandValue(key.str, value)
     }
 }

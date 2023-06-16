@@ -1,11 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.trenger
 
+import kotlinx.serialization.builtins.ListSerializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
@@ -15,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class TrengerService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
@@ -48,21 +51,32 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             BehovType.INNTEKT.name,
             BehovType.ARBEIDSFORHOLD.name
              */
+            val forespurtData: TrengerInntekt = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
+
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.VIRKSOMHET.toJson()
+                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                Key.UUID to uuid.toJson(),
+                DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
             )
+
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.FULLT_NAVN.toJson()
+                Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(ListSerializer(BehovType.serializer())),
+                Key.UUID to uuid.toJson(),
+                Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
             )
+
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.INNTEKT.toJson()
+                Key.BEHOV to listOf(BehovType.ARBEIDSFORHOLD).toJson(ListSerializer(BehovType.serializer())),
+                Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
             )
+
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson()
+                Key.BEHOV to listOf(BehovType.INNTEKT).toJson(ListSerializer(BehovType.serializer())),
+                DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer())
             )
 
             println("Heeeelllllloooooooooooooo!!!!!")

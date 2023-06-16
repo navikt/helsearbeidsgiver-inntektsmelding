@@ -1,13 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import io.kotest.assertions.any
 import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toHentTrengerImLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarMedSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -62,14 +64,19 @@ class TrengerIT : EndToEndTest() {
                 Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 Key.DATA.str to "",
                 Key.UUID.str to transactionID,
-                DataFelt.FORESPOERSEL_SVAR.str to mockForespoerselSvarMedSuksess()
+                DataFelt.FORESPOERSEL_SVAR.str to mockForespoerselSvarMedSuksess().toHentTrengerImLøsning().value!!.toJsonStr(TrengerInntekt.serializer())
             )
         )
 
         Thread.sleep(10000)
-        with(filter(EventName.TRENGER_REQUESTED).first()) {
+        with(filter(EventName.TRENGER_REQUESTED, behovType = BehovType.VIRKSOMHET).first()) {
             // Ble lagret i databasen
-            Assertions.assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
+            Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
+        }
+
+        with(filter(EventName.TRENGER_REQUESTED, behovType = BehovType.FULLT_NAVN).first()) {
+            // Ble lagret i databasen
+            Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
         }
     }
 }

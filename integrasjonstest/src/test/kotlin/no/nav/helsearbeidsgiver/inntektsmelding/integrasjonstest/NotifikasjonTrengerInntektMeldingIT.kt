@@ -79,6 +79,10 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             )
         )
         Thread.sleep(8000)
+        println("\nAlle meldinger:\n-----------------------")
+        messages.all().forEach { println(it) }
+        println("-----------------------")
+
         var transaksjonsId: String
         with(filter(EventName.FORESPØRSEL_LAGRET, BehovType.OPPRETT_OPPGAVE).first()) {
             assertNotNull(this[Key.UUID.str].asText().also { transaksjonsId = this[Key.UUID.str].asText() })

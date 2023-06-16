@@ -81,6 +81,9 @@ class InnsendingIT : EndToEndTest() {
         Thread.sleep(10000)
 
         assertNotNull(messages)
+        println("\nAlle meldinger:\n-----------------------")
+        messages.all().forEach { println(it) }
+        println("-----------------------")
 
         with(filter(EventName.INSENDING_STARTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
             // Ble lagret i databasen

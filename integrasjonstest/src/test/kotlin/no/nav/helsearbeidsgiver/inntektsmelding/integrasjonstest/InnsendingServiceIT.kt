@@ -38,8 +38,14 @@ class InnsendingServiceIT : EndToEndTest() {
 
         Thread.sleep(10000)
 
+        println("\nAlle meldinger:\n-----------------------")
+        messages.all().forEach { println(it) }
+        println("-----------------------")
+        println("\nAlle filtrerte meldinger for client-ID $clientId:\n-----------------------")
         val filteredMessages = messages.all().map(JsonElement::toJsonNode).filter(clientId)
-        filteredMessages.map { println(it.toPrettyString()) }
+        filteredMessages.forEach { println(it.toPrettyString()) }
+        println("-----------------------")
+
         val messageCount = filteredMessages.size - 1
         assertEquals(9, messageCount) {
             "Message count was $messageCount"

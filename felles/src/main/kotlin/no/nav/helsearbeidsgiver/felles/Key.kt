@@ -68,7 +68,8 @@ enum class DataFelt(val str: String) : IKey {
     FORESPOERSEL_ID("forespoerselId"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     INNTEKTSMELDING("inntektsmelding"),
-    TRENGER_INNTEKT("trenger-inntekt");
+    TRENGER_INNTEKT("trenger-inntekt"),
+    INNTEKT("inntekt");
 
     override fun toString(): String =
         str

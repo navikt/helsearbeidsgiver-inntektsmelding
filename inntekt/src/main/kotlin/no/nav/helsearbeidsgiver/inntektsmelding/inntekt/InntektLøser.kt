@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.valueNullable
@@ -70,7 +71,7 @@ class InntektLøser(
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
         it.demandAll(Key.BEHOV.str, INNTEKT)
-        it.requireKey(Key.ID.str, Key.SESSION.str)
+        it.interestedIn(Key.ID.str, Key.SESSION.str, DataFelt.TRENGER_INNTEKT.str)
         it.interestedIn(Key.BOOMERANG.str) // TODO: forsøk å heller splitte opp i to løsere
         it.rejectKey(Key.LØSNING.str)
     }
@@ -91,14 +92,14 @@ class InntektLøser(
         measureTimeMillis {
             logger.info("Mottar pakke")
             sikkerLogger.info("Mottar pakke: ${packet.toJson()}")
-            val uuid = packet[Key.ID.str].asText()
+            val uuid = packet[Key.UUID.str].asText()
             logger.info("Løser behov $INNTEKT med id $uuid")
             val trengerInntekt: TrengerInntekt
             if (packet[DataFelt.TRENGER_INNTEKT.str].isMissingOrNull()) {
                 val imLøsning = hentSpleisDataFraSession(packet)
                 if (imLøsning.value == null) {
                     // @TODO publish fail
-                    println("FAAAAILLLLLLLLLLLLL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                    publishFail(packet.createFail("Mangler sykmeldingsperiode", behovType = BehovType.INNTEKT))
                     return
                 }
                 trengerInntekt = imLøsning.value!!
@@ -118,6 +119,7 @@ class InntektLøser(
                 logger.error("Sykmeldingsperiode mangler for uuid $uuid")
                 packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
                 rapidsConnection.publish(packet.toJson())
+                publishFail(packet.createFail("Mangler sykmeldingsperiode", behovType = BehovType.INNTEKT))
                 return
             }
             try {
@@ -128,11 +130,21 @@ class InntektLøser(
                 val inntekt = mapInntekt(inntektResponse, orgnr)
                 packet.setLøsning(INNTEKT, InntektLøsning(inntekt))
                 rapidsConnection.publish(packet.toJson())
+                publishData(
+                    JsonMessage.newMessage(
+                        mapOf(
+                            Key.UUID.str to uuid,
+                            Key.DATA.str to "",
+                            DataFelt.INNTEKT.str to inntekt
+                        )
+                    )
+                )
                 sikkerLogger.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
             } catch (ex: Exception) {
                 sikkerLogger.error("Feil ved henting av inntekt for $fnr!", ex)
                 packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
                 rapidsConnection.publish(packet.toJson())
+                publishFail(packet.createFail("Klarte ikke hente inntekt", behovType = BehovType.INNTEKT))
             }
         }.also {
             logger.info("Inntekt Løser took $it")

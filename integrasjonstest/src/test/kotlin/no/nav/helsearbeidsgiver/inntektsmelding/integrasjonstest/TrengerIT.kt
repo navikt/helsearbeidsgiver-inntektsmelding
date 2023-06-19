@@ -68,13 +68,29 @@ class TrengerIT : EndToEndTest() {
             )
         )
 
-        Thread.sleep(10000)
+        Thread.sleep(12000)
+
+        with(filter(EventName.TRENGER_REQUESTED, behovType = BehovType.HENT_TRENGER_IM).first()) {
+            // Ble lagret i databasen
+            Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
+        }
+
         with(filter(EventName.TRENGER_REQUESTED, behovType = BehovType.VIRKSOMHET).first()) {
             // Ble lagret i databasen
             Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
         }
 
         with(filter(EventName.TRENGER_REQUESTED, behovType = BehovType.FULLT_NAVN).first()) {
+            // Ble lagret i databasen
+            Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
+        }
+
+        with(filter(EventName.TRENGER_REQUESTED, behovType = BehovType.ARBEIDSFORHOLD).first()) {
+            // Ble lagret i databasen
+            Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
+        }
+
+        with(filter(EventName.TRENGER_REQUESTED, behovType = BehovType.INNTEKT).first()) {
             // Ble lagret i databasen
             Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
         }

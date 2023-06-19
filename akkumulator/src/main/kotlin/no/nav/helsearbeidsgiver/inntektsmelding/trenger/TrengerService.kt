@@ -26,7 +26,21 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
-        withDataKanal { StatefullDataKanal(listOf(DataFelt.FORESPOERSEL_SVAR.str, "no-finalize").toTypedArray(), event, it, rapidsConnection, redisStore) }
+        withDataKanal {
+            StatefullDataKanal(
+                listOf(
+                    DataFelt.FORESPOERSEL_SVAR.str,
+                    DataFelt.ARBEIDSTAKER_INFORMASJON.str,
+                    DataFelt.VIRKSOMHET.str,
+                    DataFelt.ARBEIDSFORHOLD.str,
+                    DataFelt.INNTEKT.str
+                ).toTypedArray(),
+                event,
+                it,
+                rapidsConnection,
+                redisStore
+            )
+        }
         withEventListener { StatefullEventListener(redisStore, event, listOf(DataFelt.FORESPOERSEL_ID.str).toTypedArray(), it, rapidsConnection) }
     }
 
@@ -45,47 +59,51 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 ).toJson()
             )
         } else if (transaction == Transaction.IN_PROGRESS) {
-            /*
-            BehovType.VIRKSOMHET.name,
-            BehovType.FULLT_NAVN.name,
-            BehovType.INNTEKT.name,
-            BehovType.ARBEIDSFORHOLD.name
-             */
-            val forespurtData: TrengerInntekt = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
+            message.interestedIn(DataFelt.FORESPOERSEL_SVAR.str)
+            if (isDataCollected(*step1data(uuid)) && !message[DataFelt.FORESPOERSEL_SVAR.str].isMissingNode) {
+                val forespurtData: TrengerInntekt = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
 
-            rapidsConnection.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                Key.UUID to uuid.toJson(),
-                DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
-            )
+                rapidsConnection.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(ListSerializer(BehovType.serializer())),
+                    Key.UUID to uuid.toJson(),
+                    DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
+                )
 
-            rapidsConnection.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(ListSerializer(BehovType.serializer())),
-                Key.UUID to uuid.toJson(),
-                Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
-            )
+                rapidsConnection.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(ListSerializer(BehovType.serializer())),
+                    Key.UUID to uuid.toJson(),
+                    Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
+                )
 
-            rapidsConnection.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to listOf(BehovType.ARBEIDSFORHOLD).toJson(ListSerializer(BehovType.serializer())),
-                Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
-            )
+                rapidsConnection.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to listOf(BehovType.ARBEIDSFORHOLD).toJson(ListSerializer(BehovType.serializer())),
+                    Key.UUID to uuid.toJson(),
+                    Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
+                )
 
-            rapidsConnection.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to listOf(BehovType.INNTEKT).toJson(ListSerializer(BehovType.serializer())),
-                DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer())
-            )
-
+                rapidsConnection.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to listOf(BehovType.INNTEKT).toJson(ListSerializer(BehovType.serializer())),
+                    Key.UUID to uuid.toJson(),
+                    DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer())
+                )
+            }
+            println(message.toJson())
             println("Heeeelllllloooooooooooooo!!!!!")
         }
     }
 
     override fun finalize(message: JsonMessage) {
+        println("I am finalizing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     }
 
     override fun terminate(message: JsonMessage) {
     }
+
+    private fun step1data(uuid: String): Array<RedisKey> = arrayOf(
+        RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR)
+    )
 }

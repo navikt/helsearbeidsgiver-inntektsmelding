@@ -88,6 +88,7 @@ class JournalførInntektsmeldingLøser(
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.BEHOV.str to BehovType.LAGRE_JOURNALPOST_ID.name,
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.JOURNALPOST_ID.str to journalpostId,
                 Key.UUID.str to uuid,

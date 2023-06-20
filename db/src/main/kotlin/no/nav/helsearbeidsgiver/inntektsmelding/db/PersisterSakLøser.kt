@@ -34,7 +34,8 @@ class PersisterSakLøser(
                 mapOf(
                     Key.DATA.str to "",
                     DataFelt.PERSISTERT_SAK_ID.str to sakId,
-                    Key.UUID.str to packet[Key.UUID.str]
+                    Key.UUID.str to packet[Key.UUID.str],
+                    Key.EVENT_NAME.str to packet[Key.EVENT_NAME.str]
                 )
             )
         )

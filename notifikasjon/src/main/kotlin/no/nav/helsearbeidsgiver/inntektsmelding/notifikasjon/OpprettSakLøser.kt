@@ -71,6 +71,7 @@ class OpprettSakLøser(
                 mapOf(
                     Key.DATA.str to "",
                     Key.FORESPOERSEL_ID.str to forespoerselId,
+                    Key.EVENT_NAME.str to packet[Key.EVENT_NAME.str],
                     Key.UUID.str to packet[Key.UUID.str],
                     DataFelt.SAK_ID.str to sakId
                 )

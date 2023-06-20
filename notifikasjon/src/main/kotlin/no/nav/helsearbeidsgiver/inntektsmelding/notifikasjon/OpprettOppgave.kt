@@ -89,6 +89,7 @@ class OpprettOppgaveLøser(
         val message = JsonMessage.newMessage(
             mapOf(
                 Key.BEHOV.str to BehovType.PERSISTER_OPPGAVE_ID.name,
+                Key.EVENT_NAME.str to packet[Key.EVENT_NAME.str],
                 Key.FORESPOERSEL_ID.str to forespørselId,
                 Key.UUID.str to uuid,
                 DataFelt.ORGNRUNDERENHET.str to orgnr,

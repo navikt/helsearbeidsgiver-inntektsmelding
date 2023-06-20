@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toHentTrengerImLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarMedSuksess
@@ -44,7 +43,6 @@ class TrengerIT : EndToEndTest() {
         every {
             priProducer.send(any())
         } answers { true }
-
 
         publish(
             mapOf(
@@ -105,6 +103,5 @@ class TrengerIT : EndToEndTest() {
         println("In test $trengerResultatJson")
         val objekt = trengerResultatJson?.fromJson(TrengerData.serializer())
         println(objekt)
-
     }
 }

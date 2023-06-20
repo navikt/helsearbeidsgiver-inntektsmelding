@@ -3,17 +3,14 @@ package no.nav.helsearbeidsgiver.inntektsmelding.trenger
 import kotlinx.serialization.builtins.ListSerializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.TrengerData
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
@@ -106,17 +103,17 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun finalize(message: JsonMessage) {
         val transactionId = message[Key.UUID.str].asText()
         val foresporselSvar = redisStore.get(RedisKey.of(transactionId, DataFelt.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
-        val inntekt = redisStore.get(RedisKey.of(transactionId,DataFelt.INNTEKT))?.fromJson(Inntekt.serializer())
+        val inntekt = redisStore.get(RedisKey.of(transactionId, DataFelt.INNTEKT))?.fromJson(Inntekt.serializer())
         val clientId = redisStore.get(RedisKey.of(transactionId, EventName.valueOf(message[Key.EVENT_NAME.str].asText())))
         val trengerData = TrengerData(
-            personDato = redisStore.get(RedisKey.of(transactionId,DataFelt.ARBEIDSTAKER_INFORMASJON),PersonDato::class.java),
-            virksomhetNavn = redisStore.get(RedisKey.of(transactionId,DataFelt.VIRKSOMHET)),
-            intekt = redisStore.get(RedisKey.of(transactionId,DataFelt.INNTEKT))?.fromJson(Inntekt.serializer()),
+            personDato = redisStore.get(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java),
+            virksomhetNavn = redisStore.get(RedisKey.of(transactionId, DataFelt.VIRKSOMHET)),
+            intekt = redisStore.get(RedisKey.of(transactionId, DataFelt.INNTEKT))?.fromJson(Inntekt.serializer()),
             fravarsPerioder = foresporselSvar?.sykmeldingsperioder,
             egenmeldingsPerioder = foresporselSvar?.egenmeldingsperioder,
             forespurtData = foresporselSvar?.forespurtData,
-            bruttoinntekt =inntekt?.gjennomsnitt(),
-            tidligereinntekter = inntekt?.historisk,
+            bruttoinntekt = inntekt?.gjennomsnitt(),
+            tidligereinntekter = inntekt?.historisk
         )
         val json = trengerData.toJsonStr(TrengerData.serializer())
         println(json)

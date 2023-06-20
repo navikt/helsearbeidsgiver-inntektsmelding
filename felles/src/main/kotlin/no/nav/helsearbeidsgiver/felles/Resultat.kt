@@ -1,8 +1,6 @@
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
-import java.math.BigDecimal
-import java.time.LocalDate
 
 @Serializable
 data class Resultat(
@@ -16,6 +14,7 @@ data class Resultat(
     val PERSISTER_IM: PersisterImLøsning? = null,
     val TILGANGSKONTROLL: TilgangskontrollLøsning? = null
 )
+
 @Serializable
 data class TrengerData(
     val personDato: PersonDato? = null,
@@ -26,6 +25,6 @@ data class TrengerData(
     val egenmeldingsPerioder: List<Periode>?,
     val forespurtData: List<ForespurtData>?,
     val bruttoinntekt: Double?,
-    val tidligereinntekter: List<MottattHistoriskInntekt>?,
+    val tidligereinntekter: List<MottattHistoriskInntekt>?
 
 )

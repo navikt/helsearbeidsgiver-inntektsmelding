@@ -16,18 +16,16 @@ data class Resultat(
     val PERSISTER_IM: PersisterImLøsning? = null,
     val TILGANGSKONTROLL: TilgangskontrollLøsning? = null
 )
-
-data class TrengerResponse(
+@Serializable
+data class TrengerData(
     val personDato: PersonDato? = null,
     val virksomhetNavn: String? = null,
-    val arbeidsforhold: List<Arbeidsforhold> = emptyList(),
+    val arbeidsforhold: List<Arbeidsforhold>? = null,
     val intekt: Inntekt? = null,
-    val fravarsPerioder: List<Periode>,
-    val egenmeldingsPerioder: List<Periode>,
-    val forespurtData: List<ForespurtData>,
-    val bruttoinntekt: BigDecimal?,
+    val fravarsPerioder: List<Periode>?,
+    val egenmeldingsPerioder: List<Periode>?,
+    val forespurtData: List<ForespurtData>?,
+    val bruttoinntekt: Double?,
     val tidligereinntekter: List<MottattHistoriskInntekt>?,
-    val behandlingsperiode: Periode?,
-    val behandlingsdager: List<LocalDate>
 
 )

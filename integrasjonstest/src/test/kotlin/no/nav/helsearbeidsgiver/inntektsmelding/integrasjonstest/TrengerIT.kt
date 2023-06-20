@@ -5,10 +5,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toHentTrengerImLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarMedSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
@@ -26,6 +30,7 @@ class TrengerIT : EndToEndTest() {
     private val OPPGAVE_ID = "oppgave_id_456"
     private val FORESPØRSEL_ID = UUID.randomUUID().toString()
     private val INITIATED_ID = UUID.randomUUID().toString()
+    private val CLIENT_ID = UUID.randomUUID().toString()
 
     private fun setup() {
         forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
@@ -40,10 +45,11 @@ class TrengerIT : EndToEndTest() {
             priProducer.send(any())
         } answers { true }
 
+
         publish(
             mapOf(
                 Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
-                Key.CLIENT_ID.str to UUID.randomUUID().toString(),
+                Key.CLIENT_ID.str to CLIENT_ID,
                 DataFelt.FORESPOERSEL_ID.str to FORESPØRSEL_ID,
                 Key.BOOMERANG to mapOf(
                     Key.INITIATE_ID.str to INITIATED_ID,
@@ -94,5 +100,11 @@ class TrengerIT : EndToEndTest() {
             // Ble lagret i databasen
             Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
         }
+
+        val trengerResultatJson = redisStore.get(RedisKey.of(CLIENT_ID))
+        println("In test $trengerResultatJson")
+        val objekt = trengerResultatJson?.fromJson(TrengerData.serializer())
+        println(objekt)
+
     }
 }

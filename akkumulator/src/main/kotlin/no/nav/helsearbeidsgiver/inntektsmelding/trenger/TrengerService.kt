@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -20,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -106,6 +108,8 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         val inntekt = redisStore.get(RedisKey.of(transactionId, DataFelt.INNTEKT))?.fromJson(Inntekt.serializer())
         val clientId = redisStore.get(RedisKey.of(transactionId, EventName.valueOf(message[Key.EVENT_NAME.str].asText())))
         val trengerData = TrengerData(
+            fnr = foresporselSvar?.fnr,
+            orgnr = foresporselSvar?.orgnr,
             personDato = redisStore.get(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java),
             virksomhetNavn = redisStore.get(RedisKey.of(transactionId, DataFelt.VIRKSOMHET)),
             intekt = redisStore.get(RedisKey.of(transactionId, DataFelt.INNTEKT))?.fromJson(Inntekt.serializer()),
@@ -121,6 +125,13 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     }
 
     override fun terminate(message: JsonMessage) {
+        val transactionId = message[Key.UUID.str].asText()
+        val fail = message.toFeilMessage()
+        val clientId = redisStore.get(RedisKey.of(transactionId, EventName.valueOf(message[Key.EVENT_NAME.str].asText())))!!
+        val trengerData = TrengerData(
+            feilMelding = Feilmelding(fail.feilmelding)
+        )
+        redisStore.set(RedisKey.of(clientId), trengerData.toJsonStr(TrengerData.serializer()))
     }
 
     private fun step1data(uuid: String): Array<RedisKey> = arrayOf(

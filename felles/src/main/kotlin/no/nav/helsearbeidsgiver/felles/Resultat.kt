@@ -17,14 +17,17 @@ data class Resultat(
 
 @Serializable
 data class TrengerData(
+    val fnr: String?,
+    val orgnr: String?,
     val personDato: PersonDato? = null,
     val virksomhetNavn: String? = null,
     val arbeidsforhold: List<Arbeidsforhold>? = null,
     val intekt: Inntekt? = null,
-    val fravarsPerioder: List<Periode>?,
-    val egenmeldingsPerioder: List<Periode>?,
-    val forespurtData: List<ForespurtData>?,
-    val bruttoinntekt: Double?,
-    val tidligereinntekter: List<MottattHistoriskInntekt>?
+    val fravarsPerioder: List<Periode>? = null,
+    val egenmeldingsPerioder: List<Periode>? = null,
+    val forespurtData: List<ForespurtData>? = null,
+    val bruttoinntekt: Double? = null,
+    val tidligereinntekter: List<MottattHistoriskInntekt>? = null,
+    val feilMelding: Feilmelding? = null
 
 )

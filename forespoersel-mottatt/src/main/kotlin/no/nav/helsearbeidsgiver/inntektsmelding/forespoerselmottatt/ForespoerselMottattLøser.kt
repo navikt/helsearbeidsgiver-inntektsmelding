@@ -9,28 +9,30 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.requireKeys
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLøser(
-    private val rapid: RapidsConnection
+    rapid: RapidsConnection
 ) : River.PacketListener {
 
-    private val om = customObjectMapper()
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     init {
         River(rapid).apply {
             validate {
-                it.demandValue(Pri.Key.NOTIS, Pri.NotisType.FORESPØRSEL_MOTTATT)
+                it.demandValues(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.name
+                )
                 it.requireKeys(
                     Pri.Key.ORGNR,
                     Pri.Key.FNR,
@@ -41,24 +43,23 @@ class ForespoerselMottattLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("ForespoerselMottattLøser: Mottok melding på pri-topic om ${Pri.Key.NOTIS.fra(packet).fromJson(Pri.NotisType.serializer())}.")
-        sikkerLogger.info("ForespoerselMottattLøser: Mottok melding på pri-topic:\n${packet.toJson()}")
+        logger.info("[ForespoerselMottattLøser] Mottok melding på pri-topic om ${Pri.Key.NOTIS.fra(packet).fromJson(Pri.NotisType.serializer())}.")
+        sikkerLogger.info("[ForespoerselMottattLøser] Mottok melding på pri-topic:\n${packet.toJson()}")
 
         val orgnr = Pri.Key.ORGNR.fra(packet).fromJson(String.serializer())
         val fnr = Pri.Key.FNR.fra(packet).fromJson(String.serializer())
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.fra(packet).fromJson(UuidSerializer)
 
-        val msg = mapOf(
-            Key.EVENT_NAME.str to EventName.FORESPØRSEL_MOTTATT.name,
-            Key.BEHOV.str to BehovType.LAGRE_FORESPOERSEL,
-            DataFelt.ORGNRUNDERENHET.str to orgnr,
-            Key.IDENTITETSNUMMER.str to fnr,
-            Key.FORESPOERSEL_ID.str to forespoerselId
+        context.publish(
+            Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),
+            Key.BEHOV to BehovType.LAGRE_FORESPOERSEL.toJson(BehovType.serializer()),
+            DataFelt.ORGNRUNDERENHET to orgnr.toJson(),
+            Key.IDENTITETSNUMMER to fnr.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
-
-        val json = om.writeValueAsString(msg)
-        rapid.publish(json)
-        sikkerLogger.info("ForespoerselMottattLøser: publiserte $json")
-        logger.info("ForespoerselMottattLøser: ferdig")
+            .also {
+                logger.info("[ForespoerselMottattLøser] Publiserte melding. Se sikkerlogg for mer info.")
+                sikkerLogger.info("[ForespoerselMottattLøser] Publiserte:\n$it")
+            }
     }
 }

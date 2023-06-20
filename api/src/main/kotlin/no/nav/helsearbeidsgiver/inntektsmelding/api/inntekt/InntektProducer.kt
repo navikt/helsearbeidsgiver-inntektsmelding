@@ -21,6 +21,7 @@ class InntektProducer(
     fun publish(request: InntektRequest): UUID {
         val initiateId = UUID.randomUUID()
         val spleisForesporselId = request.forespoerselId
+
         rapid.publish(
             Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(EventName.serializer()),
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
@@ -31,9 +32,10 @@ class InntektProducer(
                 Key.INITIATE_EVENT.str to EventName.INNTEKT_REQUESTED.toJson(EventName.serializer()),
                 Key.INNTEKT_DATO.str to request.skjaeringstidspunkt.toJson(LocalDateSerializer)
             ).toJson()
-        ) {
-            logger.info("Publiserte Behov: ${BehovType.HENT_TRENGER_IM} for spleisId $spleisForesporselId (oppdater inntekt)")
-        }
+        )
+
+        logger.info("Publiserte Behov: ${BehovType.HENT_TRENGER_IM} for spleisId $spleisForesporselId (oppdater inntekt)")
+
         return initiateId
     }
 }

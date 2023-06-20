@@ -24,10 +24,11 @@ class TilgangProducer(private val rapid: RapidsConnection) {
             Key.UUID to initiateId.toJson(),
             Key.IDENTITETSNUMMER to fnr.toJson(),
             Key.FORESPOERSEL_ID to forespørselId.toJson()
-        ) {
-            logger.info("Publiserte tilgang behov id=$initiateId")
-            sikkerLogger.info("Publiserte tilgang behov id=$initiateId json=${it.toJson()}")
-        }
+        )
+            .also {
+                logger.info("Publiserte tilgang behov id=$initiateId")
+                sikkerLogger.info("Publiserte tilgang behov id=$initiateId json=$it")
+            }
 
         return initiateId
     }

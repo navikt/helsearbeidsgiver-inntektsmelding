@@ -19,7 +19,8 @@ sealed class RedisKey(open val uuid: String) {
         fun of(uuid: String, eventname: EventName): RedisKey {
             return TransactionKey(uuid, eventname)
         }
-        //@TODO ikke bra nok
+
+        // @TODO ikke bra nok
         fun of(uuid: String, feilMelding: Feilmelding): RedisKey {
             return FeilKey(uuid, feilMelding)
         }

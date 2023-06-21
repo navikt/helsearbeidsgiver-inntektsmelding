@@ -48,7 +48,7 @@ fun RouteExtra.trengerRoute() {
                 val resultat = redis.getString(trengerId.toString(), 10, 500)
                 sikkerLogger.info("Fikk resultat: $resultat")
                 val trengerResponse = mapTrengerResponse(resultat.fromJson(TrengerData.serializer()))
-                respond(HttpStatusCode.OK, trengerResponse, TrengerResponse.serializer())
+                respond(HttpStatusCode.Created, trengerResponse, TrengerResponse.serializer())
             } catch (e: ManglerAltinnRettigheterException) {
                 respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
             } catch (e: ConstraintViolationException) {

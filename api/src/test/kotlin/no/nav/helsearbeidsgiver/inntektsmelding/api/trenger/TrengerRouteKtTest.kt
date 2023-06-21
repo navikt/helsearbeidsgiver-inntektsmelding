@@ -60,7 +60,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         val actualJson = response.bodyAsText()
 
-        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.Created, response.status)
         assertEquals(expectedJson, actualJson)
     }
 

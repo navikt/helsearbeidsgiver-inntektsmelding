@@ -16,8 +16,7 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
     private val sikkerLogger = sikkerLogger()
 
     abstract val event: EventName
-    // state! :/
-//    lateinit var forespørselId: String
+    // lateinit var forespørselId: String
 
     init {
         configureAsListener(

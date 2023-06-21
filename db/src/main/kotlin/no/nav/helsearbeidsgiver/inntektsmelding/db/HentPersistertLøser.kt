@@ -33,7 +33,6 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        // eventName = EventName.valueOf(packet[Key.EVENT_NAME.str].asText())
         onBehov(packet)
     }
 

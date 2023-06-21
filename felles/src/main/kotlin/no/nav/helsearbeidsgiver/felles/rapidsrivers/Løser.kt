@@ -7,6 +7,8 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
@@ -24,8 +26,8 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
         return river.validate {
             it.demandKey(Key.EVENT_NAME.str)
             it.demandKey(Key.BEHOV.str)
-            it.demandKey(Key.FORESPOERSEL_ID.str)
             it.rejectKey(Key.LØSNING.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str) // Bør være demand..
             it.interestedIn(Key.UUID.str)
         }
     }
@@ -54,6 +56,15 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        // TODO: Dette må inn i øvrige løsere også
+        if (missingForesporselId(packet)) {
+            logger().warn("Mangler forespørselId!")
+            sikkerLogger().warn("Mangler forespørselId i pakke: ${packet.toJson()}")
+        }
+        if (missingEvent(packet)) {
+            logger().warn("Mangler Event!")
+            sikkerLogger().warn("Mangler event i pakke: ${packet.toJson()}")
+        }
         onBehov(packet)
     }
 
@@ -61,6 +72,13 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
 
     fun getEvent(packet: JsonMessage): EventName {
         return EventName.valueOf(packet[Key.EVENT_NAME.str].asText())
+    }
+    fun missingEvent(packet: JsonMessage): Boolean {
+        return packet[Key.EVENT_NAME.str].asText().isNullOrEmpty()
+    }
+
+    fun missingForesporselId(packet: JsonMessage): Boolean {
+        return packet[Key.FORESPOERSEL_ID.str].asText().isNullOrEmpty()
     }
 
     fun getForesporselId(packet: JsonMessage): String {

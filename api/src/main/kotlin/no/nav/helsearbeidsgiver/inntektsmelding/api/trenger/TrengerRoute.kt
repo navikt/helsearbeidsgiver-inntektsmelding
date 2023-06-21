@@ -29,7 +29,7 @@ fun RouteExtra.trengerRoute() {
         post {
             val request = receive(TrengerRequest.serializer())
 
-            logger.info("Henter data for uuid: ${request.uuid}")
+            logger.info("Henter data for forespørselId: ${request.uuid}")
 
             try {
                 request.validate()

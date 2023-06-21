@@ -24,7 +24,7 @@ class InnsendingService(
     override val redisStore: IRedisStore
 ) : CompositeEventListener(redisStore) {
 
-    override val event: EventName = EventName.INSENDING_STARTED
+    private val event: EventName = EventName.INSENDING_STARTED
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()

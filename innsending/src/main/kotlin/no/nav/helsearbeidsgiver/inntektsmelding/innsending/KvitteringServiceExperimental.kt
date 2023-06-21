@@ -26,7 +26,7 @@ class KvitteringServiceExperimental(
 ) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
-
+    val event = EventName.KVITTERING_REQUESTED
     init {
         start()
     }

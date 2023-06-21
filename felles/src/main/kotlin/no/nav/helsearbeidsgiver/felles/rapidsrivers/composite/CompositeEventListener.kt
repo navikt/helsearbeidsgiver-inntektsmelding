@@ -17,7 +17,6 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
 
-    abstract val event: EventName
     private lateinit var dataKanal: StatefullDataKanal
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
@@ -42,7 +41,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
             sikkerLogger().error("Feilmelding er ${message.toJson()}")
             return onError(message.toFeilMessage())
         }
-
+        val event = EventName.valueOf(message[Key.EVENT_NAME.str].asText())
         val eventKey = RedisKey.of(transactionId, event)
         val value = redisStore.get(eventKey)
         if (value.isNullOrEmpty()) {
@@ -58,17 +57,6 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
     private fun isFailMelding(jsonMessage: JsonMessage): Boolean {
         return try {
             !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
-        } catch (e: NoSuchFieldError) {
-            false
-        } catch (e: IllegalArgumentException) {
-            false
-        }
-    }
-
-    fun isEventMelding(jsonMessage: JsonMessage): Boolean {
-        return try {
-            !(jsonMessage[Key.EVENT_NAME.str].isMissingOrNull()) &&
-                (jsonMessage[Key.DATA.str].isMissingNode && jsonMessage[Key.FAIL.str].isMissingNode && jsonMessage[Key.BEHOV.str].isMissingNode)
         } catch (e: NoSuchFieldError) {
             false
         } catch (e: IllegalArgumentException) {

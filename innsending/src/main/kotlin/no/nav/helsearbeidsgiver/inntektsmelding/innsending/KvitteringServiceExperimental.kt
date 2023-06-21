@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.InputFelter
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -34,7 +33,8 @@ class KvitteringServiceExperimental(
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         if (transaction == Transaction.NEW) {
-            val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
+            val forespørselKey = message[Key.UUID.str].asText() + Key.FORESPOERSEL_ID.str
+            val forespoerselId: String = redisStore.get(forespørselKey)!!
             val transactionId: String = message[Key.UUID.str].asText()
             logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
             sikkerLogger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
@@ -57,10 +57,10 @@ class KvitteringServiceExperimental(
 
     override fun finalize(message: JsonMessage) {
         val transaksjonsId = message[Key.UUID.str].asText()
-        val clientId = redisStore.get(RedisKey.Companion.of(transaksjonsId))
         val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
-        logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId og clientId=$clientId")
-        redisStore.set(clientId!!, dok)
+        logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
+        sikkerLogger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
+        redisStore.set(transaksjonsId, dok)
     }
 
     override fun terminate(message: JsonMessage) {

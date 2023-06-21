@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.InputFelter
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -57,10 +58,10 @@ class KvitteringServiceExperimental(
 
     override fun finalize(message: JsonMessage) {
         val transaksjonsId = message[Key.UUID.str].asText()
+        val clientId = redisStore.get(RedisKey.Companion.of(transaksjonsId))
         val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
-        sikkerLogger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
-        redisStore.set(transaksjonsId, dok)
+        redisStore.set(clientId!!, dok)
     }
 
     override fun terminate(message: JsonMessage) {

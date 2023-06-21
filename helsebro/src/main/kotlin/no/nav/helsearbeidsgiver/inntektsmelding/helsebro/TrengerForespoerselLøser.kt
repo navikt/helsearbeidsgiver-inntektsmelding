@@ -1,19 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValue
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
@@ -22,26 +19,24 @@ import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 class TrengerForespoerselLøser(
     rapid: RapidsConnection,
     private val priProducer: PriProducer
-) : River.PacketListener {
+) : Løser(rapid) {
 
     private val logger = logger()
 
     init {
         sikkerLogger.info("Starting TrengerForespoerselLøser...")
-        River(rapid).apply {
-            validate { msg ->
-                msg.demandAll(Key.BEHOV, listOf(BehovType.HENT_TRENGER_IM))
-                msg.rejectKeys(Key.LØSNING)
-                msg.require(
-                    Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) }
-                )
-                msg.requireKeys(Key.BOOMERANG)
-            }
-        }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok behov om ${Key.BEHOV.fra(packet).fromJson(BehovType.serializer().list())}")
+    override fun accept(): River.PacketValidation = River.PacketValidation {
+        it.demandValue(Key.BEHOV to BehovType.HENT_TRENGER_IM)
+        it.interestedIn(
+            Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) }
+        )
+        it.interestedIn(Key.BOOMERANG)
+    }
+
+    override fun onBehov(packet: JsonMessage) {
+        logger.info("Mottok behov om ${Key.BEHOV.fra(packet).fromJson(BehovType.serializer())}")
         sikkerLogger.info("Mottok behov:\n${packet.toJson()}")
 
         val trengerForespoersel = TrengerForespoersel(

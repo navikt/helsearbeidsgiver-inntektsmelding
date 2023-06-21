@@ -1,13 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 
-class TestCompositeEventListener(
-    override val event: EventName,
+class TestCompositeEventListener( // TODO: slette
+    // private val event: EventName,
     redisStore: RedisStore
 ) :
     CompositeEventListener(redisStore) {

@@ -34,8 +34,7 @@ class KvitteringServiceExperimental(
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         if (transaction == Transaction.NEW) {
-            val forespørselKey = message[Key.UUID.str].asText() + Key.FORESPOERSEL_ID.str
-            val forespoerselId: String = redisStore.get(forespørselKey)!!
+            val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
             val transactionId: String = message[Key.UUID.str].asText()
             logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
             sikkerLogger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
@@ -60,7 +59,7 @@ class KvitteringServiceExperimental(
         val transaksjonsId = message[Key.UUID.str].asText()
         val clientId = redisStore.get(RedisKey.Companion.of(transaksjonsId))
         val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
-        logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
+        logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId og clientId=$clientId")
         redisStore.set(clientId!!, dok)
     }
 

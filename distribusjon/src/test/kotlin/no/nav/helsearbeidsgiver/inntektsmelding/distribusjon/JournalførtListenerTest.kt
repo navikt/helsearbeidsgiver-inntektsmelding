@@ -23,7 +23,6 @@ class JournalførtListenerTest {
 
     @Test
     fun `skal publisere behov om å distribuere dersom inntektsmelding blir journalført`() {
-
         sendMelding(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,

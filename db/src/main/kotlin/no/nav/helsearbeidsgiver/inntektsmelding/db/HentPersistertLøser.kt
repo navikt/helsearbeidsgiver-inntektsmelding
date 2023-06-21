@@ -41,11 +41,13 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
         val transactionId = packet[Key.UUID.str].asText()
         val event = packet[Key.EVENT_NAME.str].asText()
         logger.info("Skal hente persistert inntektsmelding med forespørselId $forespoerselId")
+        sikkerLogger.info("Skal hente persistert inntektsmelding med forespørselId $forespoerselId")
         sikkerLogger.info("Skal hente persistert inntektsmelding for pakke: ${packet.toJson()}")
         try {
             val dokument = repository.hentNyeste(forespoerselId)
             if (dokument == null) {
                 logger.info("Fant IKKE persistert inntektsmelding for forespørselId $forespoerselId")
+                sikkerLogger.info("Fant IKKE persistert inntektsmelding for forespørselId $forespoerselId")
             } else {
                 sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
             }

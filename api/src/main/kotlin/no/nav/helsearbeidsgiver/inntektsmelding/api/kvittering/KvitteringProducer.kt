@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import java.util.UUID
 
 class KvitteringProducer(
@@ -25,6 +26,7 @@ class KvitteringProducer(
         )
         rapid.publish(packet.toJson())
         logger.info("Publiserte kvittering requested, forespørselid=$foresporselId")
+        sikkerLogger.info("Publiserte kvittering requested, forespørselid=$foresporselId")
         return clientId
     }
 }

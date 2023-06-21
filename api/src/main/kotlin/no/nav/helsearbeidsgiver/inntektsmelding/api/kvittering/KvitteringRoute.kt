@@ -44,11 +44,13 @@ fun RouteExtra.kvitteringRoute() {
             if (forespoerselId.isEmpty() || forespoerselId.length != 36) {
                 "Ugyldig parameter: $forespoerselId".let {
                     logger.warn(it)
+                    sikkerLogger.warn(it)
                     respondBadRequest(it, String.serializer())
                 }
             }
 
             logger.info("Henter data for forespørselId: $forespoerselId")
+            sikkerLogger.info("Henter data for forespørselId: $forespoerselId")
 
             try {
                 authorize(
@@ -78,6 +80,7 @@ fun RouteExtra.kvitteringRoute() {
                 respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
+                sikkerLogger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
                 respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
             } catch (e: JsonMappingException) {
                 "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
@@ -87,6 +90,7 @@ fun RouteExtra.kvitteringRoute() {
                 }
             } catch (_: RedisPollerTimeoutException) {
                 logger.error("Fikk timeout for forespørselId: $forespoerselId")
+                sikkerLogger.error("Fikk timeout for forespørselId: $forespoerselId")
                 respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
             }
         }

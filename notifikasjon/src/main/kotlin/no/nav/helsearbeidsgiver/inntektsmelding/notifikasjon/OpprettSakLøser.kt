@@ -66,6 +66,7 @@ class OpprettSakLøser(
         val fødselsdato = personDato.fødselsdato
         val sakId = opprettSak(forespoerselId, orgnr, navn, fødselsdato)
         logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: $forespoerselId")
+        sikkerLogger.info("OpprettSakLøser fikk opprettet sak for forespørselId: $forespoerselId")
         publishData(
             JsonMessage.newMessage(
                 mapOf(

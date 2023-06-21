@@ -33,6 +33,7 @@ class HentOrgnrLøser(rapidsConnection: RapidsConnection, private val repository
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Løser behov $BEHOV med forespørselId $forespørselId")
+        sikkerLogger.info("Løser behov $BEHOV med forespørselId $forespørselId")
         sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
         try {
             val orgnr = repository.hentOrgNr(forespørselId)

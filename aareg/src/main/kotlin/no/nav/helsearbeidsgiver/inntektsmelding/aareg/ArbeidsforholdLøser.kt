@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.system.measureTimeMillis
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
@@ -26,6 +27,7 @@ class ArbeidsforholdLøser(
     private val aaregClient: AaregClient
 ) : Løser(rapidsConnection) {
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     private val behovType = BehovType.ARBEIDSFORHOLD
 
@@ -45,6 +47,7 @@ class ArbeidsforholdLøser(
             val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
 
             logger.info("Løser behov $behovType med id $id")
+            sikkerLogger.info("Løser behov $behovType med id $id")
 
             val arbeidsforhold = hentArbeidsforhold(identitetsnummer, id)
 
@@ -64,6 +67,7 @@ class ArbeidsforholdLøser(
             }
         }.also {
             logger.info("Arbeidsforhold løser took $it")
+            sikkerLogger.info("Arbeidsforhold løser took $it")
         }
     }
 
@@ -88,11 +92,13 @@ class ArbeidsforholdLøser(
                     arbeidsforhold = aaregClient.hentArbeidsforhold(fnr, callId)
                 }.also {
                     logger.info("arbeidsforhold endepunkt tok $it")
+                    sikkerLogger.info("arbeidsforhold endepunkt tok $it")
                 }
                 arbeidsforhold
             }
         }
             .onFailure {
+                logger.error("Det oppstod en feil ved henting av arbeidsforhold")
                 sikkerLogger.error("Det oppstod en feil ved henting av arbeidsforhold for $fnr", it)
             }
             .getOrNull()

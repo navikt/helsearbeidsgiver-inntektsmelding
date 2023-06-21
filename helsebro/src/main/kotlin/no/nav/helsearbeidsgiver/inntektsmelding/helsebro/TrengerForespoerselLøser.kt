@@ -49,6 +49,7 @@ class TrengerForespoerselLøser(
             boomerang = Key.BOOMERANG.fra(packet)
         )
         logger.info("Sending message to helsebro for " + trengerForespoersel.forespoerselId + " current time" + System.currentTimeMillis())
+        sikkerLogger.info("Sending message to helsebro for " + trengerForespoersel.forespoerselId + " current time" + System.currentTimeMillis())
 
         priProducer.send(trengerForespoersel)
             .ifTrue {
@@ -57,6 +58,7 @@ class TrengerForespoerselLøser(
             }
             .ifFalse {
                 logger.warn("Klarte ikke publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
+                sikkerLogger.warn("Klarte ikke publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
             }
     }
 }

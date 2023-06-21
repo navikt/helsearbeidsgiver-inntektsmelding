@@ -51,6 +51,7 @@ fun RouteExtra.innsendingRoute() {
 
                 transaksjonId = producer.publish(forespoerselId, request)
                 logger.info("Publiserte til rapid med forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
+                sikkerLogger.info("Publiserte til rapid med forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
 
                 val resultat = redis.getResultat(transaksjonId, 10, 500) // .getResultat(transaksjonId, 10, 500)
                 sikkerLogger.info("Fikk resultat: $resultat")
@@ -60,6 +61,7 @@ fun RouteExtra.innsendingRoute() {
                 respond(mapper.getStatus(), mapper.getResponse(), InnsendingResponse.serializer())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
+                sikkerLogger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
                 respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
             } catch (e: JsonMappingException) {
                 "Kunne ikke parse json-resultat for $forespoerselId".let {
@@ -69,6 +71,7 @@ fun RouteExtra.innsendingRoute() {
                 }
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for forespørselId: $forespoerselId og transaksjonsID $transaksjonId")
+                sikkerLogger.info("Fikk timeout for forespørselId: $forespoerselId og transaksjonsID $transaksjonId")
                 respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
             }
         }

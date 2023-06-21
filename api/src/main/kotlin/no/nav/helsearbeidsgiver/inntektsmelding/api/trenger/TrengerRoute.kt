@@ -30,6 +30,7 @@ fun RouteExtra.trengerRoute() {
             val request = receive(TrengerRequest.serializer())
 
             logger.info("Henter data for forespørselId: ${request.uuid}")
+            sikkerLogger.info("Henter data for forespørselId: ${request.uuid}")
 
             try {
                 request.validate()
@@ -51,9 +52,11 @@ fun RouteExtra.trengerRoute() {
                 respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for ${request.uuid}")
+                sikkerLogger.info("Fikk valideringsfeil for ${request.uuid}")
                 respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for ${request.uuid}")
+                sikkerLogger.info("Fikk timeout for ${request.uuid}")
                 respondInternalServerError(RedisTimeoutResponse(request.uuid), RedisTimeoutResponse.serializer())
             }
         }

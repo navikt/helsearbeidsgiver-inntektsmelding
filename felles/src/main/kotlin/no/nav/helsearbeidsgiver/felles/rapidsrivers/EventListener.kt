@@ -7,11 +7,17 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class EventListener(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
     abstract val event: EventName
-    lateinit var forespørselId: String
+    // state! :/
+//    lateinit var forespørselId: String
 
     init {
         configureAsListener(
@@ -25,8 +31,8 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
 
     private fun configureAsListener(river: River): River {
         return river.validate {
-            it.demandValue(Key.EVENT_NAME.str, event.name)
             it.rejectKey(Key.BEHOV.str)
+            it.demandValue(Key.EVENT_NAME.str, event.name)
             it.rejectKey(Key.LØSNING.str)
             it.rejectKey(Key.DATA.str)
             it.rejectKey(Key.FAIL.str)
@@ -40,14 +46,15 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
     }
     fun publishBehov(message: JsonMessage) {
         message[Key.EVENT_NAME.str] = event.name
-        if (forespørselId.isNotEmpty()) {
-            message[Key.FORESPOERSEL_ID.str] = forespørselId
-        }
+
         rapidsConnection.publish(message.toJson())
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isNullOrEmpty()) {
+            sikkerLogger.warn("Mangler forespørselId for event: ${event.name} !")
+            sikkerLogger.warn("Packet = ${packet.toJson()}")
+        }
         onEvent(packet)
     }
 

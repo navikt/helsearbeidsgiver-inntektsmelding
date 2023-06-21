@@ -45,6 +45,7 @@ class JournalførtListener(private val rapidsConnection: RapidsConnection) : Riv
             publish(it, uuid, oppgaveId, sakId, packet)
         }
         logger.info("JournalførtListener fikk ferdigbehandlet $uuid.")
+        sikkerLogger.info("JournalførtListener fikk ferdigbehandlet $uuid.")
     }
 
     fun publish(behovType: BehovType, uuid: String, oppgaveId: String, sakId: String, packet: JsonMessage) {

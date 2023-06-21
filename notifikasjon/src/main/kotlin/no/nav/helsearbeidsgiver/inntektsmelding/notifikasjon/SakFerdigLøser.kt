@@ -48,6 +48,7 @@ class SakFerdigLøser(
             }
             publiserLøsning(SakFerdigLøsning(sakId), packet, context)
             logger.info("SakFerdigLøser ferdigstilte sakId $sakId for forespoerselId: $forespoerselId som utført!")
+            sikkerLogger.info("SakFerdigLøser ferdigstilte sakId $sakId for forespoerselId: $forespoerselId som utført!")
         } catch (ex: Exception) {
             logger.error("SakFerdigLøser klarte ikke ferdigstille sakId $sakId, forespoerselId: $forespoerselId!")
             sikkerLogger.error("SakFerdigLøser klarte ikke ferdigstille sakId $sakId, forespoerselId: $forespoerselId!", ex)

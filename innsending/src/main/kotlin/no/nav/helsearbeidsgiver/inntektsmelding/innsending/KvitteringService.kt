@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
 class KvitteringService(
@@ -25,6 +26,7 @@ class KvitteringService(
     override val event: EventName = EventName.KVITTERING_REQUESTED
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         logger.info("Starter kvitteringservice")
@@ -39,6 +41,7 @@ class KvitteringService(
                 val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
                 val transactionId: String = message[Key.UUID.str].asText()
                 logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
+                sikkerLogger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
                 val msg = JsonMessage.newMessage(
                     mapOf(
                         Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
@@ -48,25 +51,30 @@ class KvitteringService(
                     )
                 ).toJson()
                 logger.info("Publiserer melding: $msg")
+                sikkerLogger.info("Publiserer melding: $msg")
                 rapidsConnection.publish(msg)
             }
             Transaction.IN_PROGRESS -> {
                 logger.error("Mottok ${Transaction.IN_PROGRESS}, skal ikke skje")
+                sikkerLogger.error("Mottok ${Transaction.IN_PROGRESS}, skal ikke skje")
             }
             Transaction.FINALIZE -> {
                 logger.error("Mottok ${Transaction.FINALIZE}, skal ikke skje")
+                sikkerLogger.error("Mottok ${Transaction.FINALIZE}, skal ikke skje")
             }
             Transaction.TERMINATE -> {
                 logger.error("Mottok ${Transaction.TERMINATE}, skal ikke skje")
+                sikkerLogger.error("Mottok ${Transaction.TERMINATE}, skal ikke skje")
             }
         }
     }
 
     override fun finalize(message: JsonMessage) {
         val transaksjonsId = message[Key.UUID.str].asText()
-        val clientId = redisStore.get(RedisKey.Companion.of(transaksjonsId))
+        val clientId = redisStore.get(RedisKey.Companion.of(transaksjonsId)) // ????
         val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
+        sikkerLogger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
         redisStore.set(clientId!!, dok)
     }
 
@@ -74,6 +82,7 @@ class KvitteringService(
         val transaksjonsId = message[Key.UUID.str].asText()
         val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
+        sikkerLogger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
         redisStore.set(transaksjonsId, message[Key.FAIL.str].asText())
     }
     class KvitteringStartedListener(private val mainListener: River.PacketListener, rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {

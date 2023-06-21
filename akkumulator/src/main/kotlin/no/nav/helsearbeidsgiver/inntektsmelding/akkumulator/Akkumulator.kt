@@ -40,7 +40,8 @@ class Akkumulator(
                     Key.BOOMERANG.str,
                     Key.INITIATE_ID.str,
                     Key.UUID.str,
-                    Key.NESTE_BEHOV.str
+                    Key.NESTE_BEHOV.str,
+                    Key.FORESPOERSEL_ID.str
                 )
             }
         }.register(this)
@@ -48,6 +49,9 @@ class Akkumulator(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerLogger.debug("Fikk pakke ${packet.toJson()}")
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isNullOrEmpty()) {
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         val boomerang = Key.BOOMERANG.let(packet::valueNullable)
             ?.toJsonElement()
             ?.fromJsonMap(Key.serializer())
@@ -67,6 +71,7 @@ class Akkumulator(
 
         if (uuid == null) {
             logger.error("Mangler UUID.")
+            sikkerLogger.error("Mangler UUID.")
             return
         }
 
@@ -123,16 +128,19 @@ class Akkumulator(
             feil.isNotEmpty() -> {
                 val data = results.toString()
                 logger.info("Behov: $uuid har feil $feil")
+                sikkerLogger.info("Behov: $uuid har feil $feil")
                 sikkerLogger.info("Publiserer løsning: $data")
                 redisStore.set(uuid, data, timeout)
             }
             mangler.isNotEmpty() -> {
                 logger.info("Behov: $uuid er ikke komplett ennå. Mangler $mangler")
+                sikkerLogger.info("Behov: $uuid er ikke komplett ennå. Mangler $mangler")
             }
             else -> {
                 val data = results.toString()
                 if (nesteBehov.isEmpty()) {
                     logger.info("Behov: $uuid er komplett.")
+                    sikkerLogger.info("Behov: $uuid er komplett.")
                     sikkerLogger.info("Publiserer løsning: $data")
                     redisStore.set(uuid, data, timeout)
                 } else {

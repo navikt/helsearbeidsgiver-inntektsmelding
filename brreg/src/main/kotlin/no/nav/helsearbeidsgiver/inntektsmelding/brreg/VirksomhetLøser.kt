@@ -42,6 +42,7 @@ class VirksomhetLøser(
                 virksomhetNav = brregClient.hentVirksomhetNavn(orgnr)
             }.also {
                 logger.info("BREG execution took $it")
+                sikkerLogger.info("BREG execution took $it")
             }
             virksomhetNav
         } ?: throw FantIkkeVirksomhetException(orgnr)
@@ -61,10 +62,12 @@ class VirksomhetLøser(
         try {
             val navn = hentVirksomhet(orgnr)
             logger.info("Fant $navn for $orgnr")
+            sikkerLogger.info("Fant $navn for $orgnr")
             publiserLøsning(VirksomhetLøsning(navn), packet)
             publishDatagram(navn, packet)
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")
+            sikkerLogger.error("Fant ikke virksomhet for $orgnr")
             publiserLøsning(VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")), packet)
             publishFail(packet.createFail("Ugyldig virksomhet $orgnr", behovType = BehovType.VIRKSOMHET))
         } catch (ex: Exception) {

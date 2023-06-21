@@ -36,12 +36,14 @@ class OppgaveFerdigLøser(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val oppgaveId = packet[DataFelt.OPPGAVE_ID.str].asText()
         logger.info("OppgaveFerdigLøser skal markere oppgaveId: $oppgaveId som utført...")
+        sikkerLogger.info("OppgaveFerdigLøser skal markere oppgaveId: $oppgaveId som utført...")
         try {
             runBlocking {
                 arbeidsgiverNotifikasjonKlient.oppgaveUtfoert(oppgaveId)
             }
             publiserLøsning(OppgaveFerdigLøsning(oppgaveId), packet, context)
             logger.info("OppgaveFerdigLøser markerte oppgaveId: $oppgaveId som utført!")
+            sikkerLogger.info("OppgaveFerdigLøser markerte oppgaveId: $oppgaveId som utført!")
         } catch (ex: Exception) {
             logger.error("OppgaveFerdigLøser klarte ikke ferdigstile oppgaveId: $oppgaveId!")
             sikkerLogger.error("OppgaveFerdigLøser klarte ikke ferdigstile oppgaveId: $oppgaveId!", ex)

@@ -35,8 +35,10 @@ class JournalførInntektsmeldingLøser(
         sikkerLogger.info("Bruker inntektsinformasjon $inntektsmelding")
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
         logger.info("Skal ferdigstille journalpost for $uuid...")
+        sikkerLogger.info("Skal ferdigstille journalpost for $uuid...")
         val journalpostId = dokarkivClient.opprettJournalpost(request, true, "callId_$uuid").journalpostId
         logger.info("Fikk opprettet journalpost $journalpostId for $uuid")
+        sikkerLogger.info("Fikk opprettet journalpost $journalpostId for $uuid")
         return journalpostId
     }
 
@@ -60,6 +62,7 @@ class JournalførInntektsmeldingLøser(
         val uuid = packet[Key.UUID.str].asText()
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid $uuid")
+        sikkerLogger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid $uuid")
         sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
         var inntektsmeldingDokument: InntektsmeldingDokument? = null
         try {

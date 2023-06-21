@@ -54,9 +54,11 @@ fun RouteExtra.inntektRoute() {
                 respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
             } catch (e: ConstraintViolationException) {
                 logger.info("Fikk valideringsfeil for forespørselId: ${request.forespoerselId}")
+                sikkerLogger.info("Fikk valideringsfeil for forespørselId: ${request.forespoerselId}")
                 respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for forespørselId: ${request.forespoerselId}")
+                sikkerLogger.info("Fikk timeout for forespørselId: ${request.forespoerselId}")
                 respondInternalServerError(RedisTimeoutResponse(request.forespoerselId.toString()), RedisTimeoutResponse.serializer())
             }
         }

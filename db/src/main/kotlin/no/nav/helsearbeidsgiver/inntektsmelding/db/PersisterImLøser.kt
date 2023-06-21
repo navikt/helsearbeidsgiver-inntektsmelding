@@ -38,6 +38,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
         val uuid = packet[Key.UUID.str].asText()
         val event = packet[Key.EVENT_NAME.str].asText()
         logger.info("Løser behov $PERSISTER_IM med id $forespørselId")
+        sikkerLogger.info("Løser behov $PERSISTER_IM med id $forespørselId")
         sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
         try {
             val arbeidsgiver = packet[DataFelt.VIRKSOMHET.str].asText()

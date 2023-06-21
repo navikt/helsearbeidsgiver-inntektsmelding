@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.security.token.support.core.jwt.JwtToken
@@ -24,6 +25,7 @@ fun PipelineContext<Unit, ApplicationCall>.authorize(
     runBlocking {
         val tilgang = cache.get("$innloggerFnr:$forespørselId") {
             logger.info("Fant ikke forespørsel i cache, ber om tilgangskontroll for $forespørselId")
+            sikkerLogger.info("Fant ikke forespørsel i cache, ber om tilgangskontroll for $forespørselId")
             val tilgangId = tilgangProducer.publish(innloggerFnr, forespørselId)
             val resultatTilgang = redisPoller.getResultat(tilgangId.toString(), 10, 500)
             resultatTilgang.TILGANGSKONTROLL?.value ?: throw ManglerAltinnRettigheterException()

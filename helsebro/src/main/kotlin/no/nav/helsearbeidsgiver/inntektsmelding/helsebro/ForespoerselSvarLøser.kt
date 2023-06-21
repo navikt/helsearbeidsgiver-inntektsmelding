@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -63,6 +64,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
         context.publish(
             Key.EVENT_NAME to initiateEvent,
             Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
+            Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(UuidSerializer),
             Key.LØSNING to mapOf(
                 BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
             )

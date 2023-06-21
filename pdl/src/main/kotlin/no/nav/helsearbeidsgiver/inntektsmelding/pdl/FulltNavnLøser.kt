@@ -40,6 +40,7 @@ class FulltNavnLøser(
                 ?: packet[Key.FORESPOERSEL_ID.str].asText().let { if (it.isNullOrEmpty()) null else "forespoerselId is $it" }
                 ?: " kan ikke finne uuid/forespørselID"
             logger.info("Henter navn for $idtext")
+            sikkerLogger.info("Henter navn for $idtext")
             val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
             try {
                 val info = runBlocking {

@@ -37,6 +37,7 @@ class LagreJournalpostIdLøser(
         val transaksjonsId = packet[Key.UUID.str].asText()
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("LagreJournalpostIdLøser behov ${BehovType.LAGRE_JOURNALPOST_ID.name} med transaksjonsId $transaksjonsId")
+        sikkerLogger.info("LagreJournalpostIdLøser behov ${BehovType.LAGRE_JOURNALPOST_ID.name} med transaksjonsId $transaksjonsId")
         sikkerLogger.info("LagreJournalpostIdLøser fikk pakke: ${packet.toJson()}")
         val journalpostId = packet[Key.JOURNALPOST_ID.str].asText()
         if (journalpostId.isNullOrBlank()) {
@@ -47,6 +48,7 @@ class LagreJournalpostIdLøser(
             try {
                 repository.oppdaterJournapostId(journalpostId, forespoerselId)
                 logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for forespoerselId $forespoerselId")
+                sikkerLogger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for forespoerselId $forespoerselId")
                 val inntektsmeldingDokument = repository.hentNyeste(forespoerselId)
                 publiser(transaksjonsId, forespoerselId, journalpostId, inntektsmeldingDokument!!)
             } catch (ex: Exception) {
@@ -65,8 +67,10 @@ class LagreJournalpostIdLøser(
     ) {
         val oppgaveId = forespoerselRepository.hentOppgaveId(forespoerselId)
         logger.info("Fant oppgaveId $oppgaveId for forespørselId $forespoerselId")
+        sikkerLogger.info("Fant oppgaveId $oppgaveId for forespørselId $forespoerselId")
         val sakId = forespoerselRepository.hentSakId(forespoerselId)
         logger.info("Fant sakId $sakId for forespørselId $forespoerselId")
+        sikkerLogger.info("Fant sakId $sakId for forespørselId $forespoerselId")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT.name,

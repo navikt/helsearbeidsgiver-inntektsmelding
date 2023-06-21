@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -20,6 +21,7 @@ class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(r
         return River.PacketValidation {
             it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
             it.requireKey(Key.JOURNALPOST_ID.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
     }
 
@@ -30,11 +32,13 @@ class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(r
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
                 Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
+                Key.FORESPOERSEL_ID.str to packet[Key.FORESPOERSEL_ID.str].asText(),
                 Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
                 DataFelt.INNTEKTSMELDING_DOKUMENT.str to packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str]
             )
         )
         publishBehov(jsonMessage)
         logger.info("Publiserte behov om å distribuere inntektsmelding")
+        sikkerLogger.info("Publiserte behov om å distribuere inntektsmelding")
     }
 }

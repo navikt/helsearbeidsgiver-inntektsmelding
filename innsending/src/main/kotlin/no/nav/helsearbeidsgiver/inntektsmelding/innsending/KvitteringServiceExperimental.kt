@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.InputFelter
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
 class KvitteringServiceExperimental(
@@ -24,6 +25,7 @@ class KvitteringServiceExperimental(
     rapidsConnection
 ) {
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         start()
@@ -35,6 +37,7 @@ class KvitteringServiceExperimental(
             val forespoerselId: String = redisStore.get(forespørselKey)!!
             val transactionId: String = message[Key.UUID.str].asText()
             logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
+            sikkerLogger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
             val msg = JsonMessage.newMessage(
                 mapOf(
                     Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
@@ -44,9 +47,11 @@ class KvitteringServiceExperimental(
                 )
             ).toJson()
             logger.info("Publiserer melding: $msg")
+            sikkerLogger.info("Publiserer melding: $msg")
             rapidsConnection.publish(msg)
         } else {
             logger.error("Mottok $transaction, skal ikke skje")
+            sikkerLogger.error("Mottok $transaction, skal ikke skje")
         }
     }
 
@@ -54,6 +59,7 @@ class KvitteringServiceExperimental(
         val transaksjonsId = message[Key.UUID.str].asText()
         val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
+        sikkerLogger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
         redisStore.set(transaksjonsId, dok)
     }
 
@@ -61,6 +67,7 @@ class KvitteringServiceExperimental(
         val transaksjonsId = message[Key.UUID.str].asText()
         val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
+        sikkerLogger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
         redisStore.set(transaksjonsId, message[Key.FAIL.str].asText())
     }
 }

@@ -73,6 +73,7 @@ class DistribusjonLøser(
                 )
             )
             logger.info("Distribuerte inntektsmelding for journalpostId: $journalpostId")
+            sikkerLogger.info("Distribuerte inntektsmelding for journalpostId: $journalpostId")
         } catch (e: DeserialiseringException) {
             logger.error("Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId")
             sikkerLogger.error("Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId", e)

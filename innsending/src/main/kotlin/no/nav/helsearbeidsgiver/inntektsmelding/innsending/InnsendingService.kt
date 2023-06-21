@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class InnsendingService(
     private val rapidsConnection: RapidsConnection,
@@ -26,6 +27,7 @@ class InnsendingService(
     override val event: EventName = EventName.INSENDING_STARTED
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
@@ -63,7 +65,8 @@ class InnsendingService(
         val forespoerselId = message[Key.FORESPOERSEL_ID.str]
         when (transaction) {
             Transaction.NEW -> {
-                logger.info("InnsendingService: emitiing behov Virksomhet")
+                logger.info("InnsendingService: emitting behov Virksomhet")
+                sikkerLogger.info("InnsendingService: emitting behov Virksomhet")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -75,7 +78,8 @@ class InnsendingService(
                         )
                     ).toJson()
                 )
-                logger.info("InnsendingService: emitiing behov ARBEIDSFORHOLD")
+                logger.info("InnsendingService: emitting behov ARBEIDSFORHOLD")
+                sikkerLogger.info("InnsendingService: emitting behov ARBEIDSFORHOLD")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -87,7 +91,8 @@ class InnsendingService(
                         )
                     ).toJson()
                 )
-                logger.info("InnsendingService: emitiing behov FULLT_NAVN")
+                logger.info("InnsendingService: emitting behov FULLT_NAVN")
+                sikkerLogger.info("InnsendingService: emitting behov FULLT_NAVN")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -103,7 +108,8 @@ class InnsendingService(
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
                     val arbeidstakerRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java)
-                    logger.info("InnsendingService: emitiing behov PERSISTER_IM")
+                    logger.info("InnsendingService: emitting behov PERSISTER_IM")
+                    sikkerLogger.info("InnsendingService: emitting behov PERSISTER_IM")
                     rapidsConnection.publish(
                         JsonMessage.newMessage(
                             mapOf(
@@ -125,7 +131,8 @@ class InnsendingService(
                 }
             }
             Transaction.FINALIZE -> {
-                println("I was not supposed to be hereeeeeeeeeeeeeeeeeeeeeee")
+                logger.error("Skal ikke havne i Finalize!")
+                sikkerLogger.error("Skal ikke havne i Finalize!")
             }
             Transaction.TERMINATE -> {}
         }
@@ -135,19 +142,24 @@ class InnsendingService(
         val uuid: String = message[Key.UUID.str].asText()
         val clientId = redisStore.get(RedisKey.of(uuid, event))
         logger.info("publiserer under clientID $clientId")
+        sikkerLogger.info("publiserer under clientID $clientId")
         redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
-        logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
+        sikkerLogger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
+        logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
+        sikkerLogger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                     DataFelt.INNTEKTSMELDING_DOKUMENT.str to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str],
                     Key.TRANSACTION_ORIGIN.str to uuid,
-                    Key.FORESPOERSEL_ID.str to message[Key.FORESPOERSEL_ID.str].asText()
+                    Key.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!! // skal egentlig kunne plukke fra pakke:
+                    // message[Key.FORESPOERSEL_ID.str].asText()
                 )
             ).toJson().also {
                 logger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
+                sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
             }
         )
     }

@@ -28,6 +28,7 @@ abstract class DataKanal(val rapidsConnection: RapidsConnection) : River.PacketL
             it.rejectKey(Key.LØSNING.str)
             it.requireKey(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
+            it.interestedIn(Key.CLIENT_ID.str)
         }
     }
 

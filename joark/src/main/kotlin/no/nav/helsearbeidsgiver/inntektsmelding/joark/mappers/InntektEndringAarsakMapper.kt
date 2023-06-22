@@ -26,6 +26,7 @@ fun InntektEndringAarsak.stringValue(): String {
         is Permittering -> "$typpe: ${liste.lesbar()}"
         is Tariffendring -> "$typpe: fra $gjelderFra"
         is VarigLonnsendring -> "Varig lønnsendring: fra $gjelderFra"
+        // TODO: legg til Feilregistrering i Aordningen
         else -> typpe
     }
 }

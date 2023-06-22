@@ -14,8 +14,11 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Sykefravaer
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.FileOutputStream
@@ -114,6 +117,7 @@ class PdfDokumentTest {
         map["bonus"] = Bonus()
         map["permisjon"] = Permisjon(perioder)
         map["permittering"] = Permittering(perioder)
+        map["sykefravaer"] = Sykefravaer(perioder)
 
         map.forEach {
             writePDF(
@@ -125,11 +129,47 @@ class PdfDokumentTest {
         }
     }
 
+    @Test
+    fun `valider inntekt endring årsak - alle varianter `() {
+        val perioder = listOf(Periode(dag, dag.plusDays(12)), Periode(dag.plusDays(13), dag.plusDays(18)))
+        val map = HashMap<String, InntektEndringAarsak>()
+        map["tariffendring"] = Tariffendring(dag, dag.plusDays(2))
+        map["ferie"] = Ferie(perioder)
+        map["variglonnsendring"] = VarigLonnsendring(dag)
+        map["nystilling"] = NyStilling(dag)
+        map["nystillingsprosent"] = NyStillingsprosent(dag)
+        map["bonus"] = Bonus()
+        map["permisjon"] = Permisjon(perioder)
+        map["permittering"] = Permittering(perioder)
+        map["sykefravaer"] = Sykefravaer(perioder)
+        //map["feilregistrert"] = Feilregistrert()
+
+        map.forEach {
+            val pdfText =
+                extractTextFromPdf(
+                    PdfDokument(
+                        im.copy(
+                            inntekt = Inntekt(true, 123.0.toBigDecimal(), it.value, true)
+                        )
+                    ).export()
+                )
+            assert(pdfText!!.contains("Forklaring for endring"))
+        }
+    }
+
     private fun writePDF(title: String, im: InntektsmeldingDokument) {
         // val file = File(System.getProperty("user.home"), "/Desktop/$title.pdf")
         val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
         println("Lagde PDF $title med filnavn ${file.toPath()}")
+    }
+
+    private fun extractTextFromPdf(pdf: ByteArray): String? {
+        val pdfReader = PDDocument.load(pdf)
+        val pdfStripper = PDFTextStripper()
+        val allTextInDocument = pdfStripper.getText(pdfReader)
+        pdfReader.close()
+        return allTextInDocument
     }
 }

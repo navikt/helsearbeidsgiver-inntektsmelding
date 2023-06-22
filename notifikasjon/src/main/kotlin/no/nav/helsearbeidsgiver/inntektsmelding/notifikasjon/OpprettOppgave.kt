@@ -62,9 +62,9 @@ class OpprettOppgaveLøser(
                 "Inntektsmelding",
                 null,
                 forespørselId,
-                "Nav trenger inntektsmelding", // TODO: Legg til bedriftsnavn og orgnummer
+                "Nav trenger inntektsmelding",
                 "En av dine ansatte har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
-                    "søknaden. Logg inn på Min side – arbeidsgiver på nav.no." // TODO: Legg til bedriftsnavn og orgnummer
+                    "søknaden. Logg inn på Min side – arbeidsgiver på nav.no"
             )
         }
     }

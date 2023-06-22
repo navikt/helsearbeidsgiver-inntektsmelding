@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import kotlin.system.measureTimeMillis
 
 private const val EMPTY_PAYLOAD = "{}"
 
@@ -39,23 +40,27 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
     }
 
     override fun onBehov(packet: JsonMessage) {
-        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        val transactionId = packet[Key.UUID.str].asText()
-        val event = packet[Key.EVENT_NAME.str].asText()
-        logger.info("Skal hente persistert inntektsmelding med forespørselId $forespoerselId")
-        sikkerLogger.info("Skal hente persistert inntektsmelding for pakke: ${packet.toJson()}")
-        try {
-            val dokument = repository.hentNyeste(forespoerselId)
-            if (dokument == null) {
-                logger.info("Fant IKKE persistert inntektsmelding for forespørselId $forespoerselId")
-            } else {
-                sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
+        measureTimeMillis {
+            val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
+            val transactionId = packet[Key.UUID.str].asText()
+            val event = packet[Key.EVENT_NAME.str].asText()
+            logger.info("Skal hente persistert inntektsmelding med forespørselId $forespoerselId")
+            sikkerLogger.info("Skal hente persistert inntektsmelding for pakke: ${packet.toJson()}")
+            try {
+                val dokument = repository.hentNyeste(forespoerselId)
+                if (dokument == null) {
+                    logger.info("Fant IKKE persistert inntektsmelding for forespørselId $forespoerselId")
+                } else {
+                    sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
+                }
+                publiserData(packet, dokument)
+            } catch (ex: Exception) {
+                logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId")
+                sikkerLogger.error("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId", ex)
+                publiserFeil(transactionId, event, Feilmelding("Klarte ikke hente persistert inntektsmelding"))
             }
-            publiserData(packet, dokument)
-        } catch (ex: Exception) {
-            logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId")
-            sikkerLogger.error("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId", ex)
-            publiserFeil(transactionId, event, Feilmelding("Klarte ikke hente persistert inntektsmelding"))
+        }.also {
+            logger.info("Hent inntektmelding fra DB took $it")
         }
     }
 

@@ -3,6 +3,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
@@ -156,7 +157,8 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             is NyStillingsprosent -> addNyStillingsprosent(endringsårsak)
             is Bonus -> addBonus(endringsårsak)
             is Sykefravaer -> addSykefravaer(endringsårsak)
-            is Nyansatt -> addNyAnsatt(endringsårsak)
+            is Nyansatt -> addNyAnsatt()
+            is Feilregistrert -> addFeilregistrert()
             else -> throw IllegalArgumentException("Mangler hjelpefunksjon for type: ${endringsårsak?.typpe}")
         }
     }
@@ -180,8 +182,11 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     private fun addSykefravaer(endringsårsak: Sykefravaer) {
         addInntektEndringPerioder("Sykefravær", endringsårsak.liste)
     }
-    private fun addNyAnsatt(endringsårsak: Nyansatt) {
+    private fun addNyAnsatt() {
         addLabel(forklaringEndring, "Nyansatt")
+    }
+    private fun addFeilregistrert() {
+        addLabel(forklaringEndring, "Mangelfull eller uriktig rapportering til A-ordningen")
     }
     private fun addTariffendring(tariffendring: Tariffendring) {
         addLabel(forklaringEndring, "Tariffendring")

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
@@ -121,6 +122,7 @@ class PdfDokumentTest {
         map["permittering"] = Permittering(perioder)
         map["sykefravaer"] = Sykefravaer(perioder)
         map["nyansatt"] = Nyansatt()
+        map["feilregistrert"] = Feilregistrert()
 
         map.forEach {
             writePDF(

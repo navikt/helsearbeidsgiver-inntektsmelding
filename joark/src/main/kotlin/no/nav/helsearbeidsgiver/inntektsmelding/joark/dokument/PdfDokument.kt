@@ -147,6 +147,9 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addSection("Beregnet månedslønn")
         addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
         val endringsårsak = dokument.inntekt?.endringÅrsak
+        if (endringsårsak == null) { //trenger ikke å sendes inn
+            return
+        }
         when (endringsårsak) {
             is Permisjon -> addPermisjon(endringsårsak)
             is Ferie -> addFerie(endringsårsak)

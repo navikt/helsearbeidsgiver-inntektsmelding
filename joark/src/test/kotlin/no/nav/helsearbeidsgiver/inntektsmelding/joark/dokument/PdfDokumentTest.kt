@@ -131,6 +131,12 @@ class PdfDokumentTest {
                 )
             )
         }
+        writePDF(
+            "med_ingen_aarsak_inntekt_endring",
+            im.copy(
+                inntekt = Inntekt(true, 123.0.toBigDecimal(), null, true)
+            )
+        )
     }
     private fun writePDF(title: String, im: InntektsmeldingDokument) {
         // val file = File(System.getProperty("user.home"), "/Desktop/$title.pdf")

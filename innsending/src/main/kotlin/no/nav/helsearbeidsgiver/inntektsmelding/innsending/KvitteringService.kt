@@ -2,20 +2,17 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
@@ -30,7 +27,7 @@ class KvitteringService(
 
     init {
         logger.info("Starter kvitteringservice")
-        withEventListener { StatefullEventListener(redisStore,event, arrayOf(Key.FORESPOERSEL_ID.str),this, rapidsConnection)}
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID.str), this, rapidsConnection) }
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
         withDataKanal { StatefullDataKanal(arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str), event, this, rapidsConnection, redisStore) }
     }
@@ -78,5 +75,4 @@ class KvitteringService(
         logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
         redisStore.set(transaksjonsId, message[Key.FAIL.str].asText())
     }
-
 }

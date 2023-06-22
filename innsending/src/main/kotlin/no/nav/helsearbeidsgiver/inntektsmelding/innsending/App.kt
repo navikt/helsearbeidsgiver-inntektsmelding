@@ -25,15 +25,15 @@ fun createApp(environment: Environment): RapidsConnection {
     val rapidsConnection = RapidApplication.create(environment.raw)
     logger.info("Starting Innsending...")
     InnsendingService(rapidsConnection, redisClient)
-    KvitteringService(rapidsConnection,redisClient)
-    //KvitteringServiceExperimental(rapidsConnection, redisClient)
+    KvitteringService(rapidsConnection, redisClient)
+    // KvitteringServiceExperimental(rapidsConnection, redisClient)
     return rapidsConnection
 }
 
 fun RapidsConnection.createInnsending(redisStore: IRedisStore): RapidsConnection {
     InnsendingService(this, redisStore)
     KvitteringService(this, redisStore)
-    //KvitteringServiceExperimental(, redisStore)
+    // KvitteringServiceExperimental(, redisStore)
     return this
 }
 

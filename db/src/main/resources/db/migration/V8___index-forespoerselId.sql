@@ -1,0 +1,1 @@
+CREATE INDEX index_forespoerselid ON inntektsmelding(forespoersel_id);

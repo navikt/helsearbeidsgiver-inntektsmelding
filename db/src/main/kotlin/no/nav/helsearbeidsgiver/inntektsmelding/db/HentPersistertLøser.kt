@@ -83,7 +83,13 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
             mapOf(
                 Key.EVENT_NAME.str to event,
                 Key.DATA.str to "",
-                DataFelt.INNTEKTSMELDING_DOKUMENT.str to (inntektsmeldingDokument ?: EMPTY_PAYLOAD),
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to if (inntektsmeldingDokument == null) {
+                    EMPTY_PAYLOAD
+                } else {
+                    customObjectMapper().writeValueAsString(
+                        inntektsmeldingDokument
+                    )
+                },
                 Key.UUID.str to transaksjonsId
             )
         )

@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntektsmel
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -48,7 +49,7 @@ class HentPersistertLøserTest {
         assertTrue(melding.contains(Key.DATA.str))
         assertTrue(melding.contains(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         assertTrue(
-            customObjectMapper().treeToValue(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str), InntektsmeldingDokument::class.java) is InntektsmeldingDokument
+            customObjectMapper().readValue(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText(), InntektsmeldingDokument::class.java) is InntektsmeldingDokument
         )
     }
 

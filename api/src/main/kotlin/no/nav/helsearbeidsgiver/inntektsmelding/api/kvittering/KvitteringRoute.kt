@@ -64,7 +64,7 @@ fun RouteExtra.kvitteringRoute() {
                     }
 
                     val clientId = kvitteringProducer.publish(forespoerselId)
-                    var resultat: String? = null
+                    var resultat: String?
                     measureTimeMillis {
                         resultat = redis.getString(clientId, 10, 500)
                     }.also {

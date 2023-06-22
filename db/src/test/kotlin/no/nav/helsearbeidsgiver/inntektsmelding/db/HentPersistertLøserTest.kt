@@ -48,7 +48,8 @@ class HentPersistertLøserTest {
         assertTrue(melding.contains(Key.DATA.str))
         assertTrue(melding.contains(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         assertTrue(
-            customObjectMapper().readValue(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText(), InntektsmeldingDokument::class.java) is InntektsmeldingDokument
+            customObjectMapper().readValue(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText(),
+                InntektsmeldingDokument::class.java) is InntektsmeldingDokument
         )
     }
 

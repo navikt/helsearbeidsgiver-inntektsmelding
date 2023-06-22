@@ -147,10 +147,8 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addSection("Beregnet månedslønn")
         addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
         val endringsårsak = dokument.inntekt?.endringÅrsak
-        if (endringsårsak == null) { // trenger ikke å sendes inn
-            return
-        }
         when (endringsårsak) {
+            null -> return // trenger ikke sende inn årsak...
             is Permisjon -> addPermisjon(endringsårsak)
             is Ferie -> addFerie(endringsårsak)
             is Permittering -> addPermittering(endringsårsak)
@@ -162,7 +160,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             is Sykefravaer -> addSykefravaer(endringsårsak)
             is Nyansatt -> addNyAnsatt()
             is Feilregistrert -> addFeilregistrert()
-            else -> throw IllegalArgumentException("Mangler hjelpefunksjon for type: ${endringsårsak?.typpe}")
+            else -> throw IllegalArgumentException("Type ${endringsårsak.typpe} håndteres ikke. Legg til hjelpefunksjon for å løse feilen.")
         }
     }
 

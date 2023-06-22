@@ -246,6 +246,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Periode'
+    Feilregistrert:
+      allOf:
+        - $ref: '#/components/schemas/InntektEndringAarsak'
 
     InntektsmeldingDokument:
       type: object

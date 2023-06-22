@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
@@ -9,13 +10,17 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektEndr
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Sykefravaer
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.FileOutputStream
@@ -114,6 +119,9 @@ class PdfDokumentTest {
         map["bonus"] = Bonus()
         map["permisjon"] = Permisjon(perioder)
         map["permittering"] = Permittering(perioder)
+        map["sykefravaer"] = Sykefravaer(perioder)
+        map["nyansatt"] = Nyansatt()
+        map["feilregistrert"] = Feilregistrert()
 
         map.forEach {
             writePDF(
@@ -124,12 +132,20 @@ class PdfDokumentTest {
             )
         }
     }
-
     private fun writePDF(title: String, im: InntektsmeldingDokument) {
         // val file = File(System.getProperty("user.home"), "/Desktop/$title.pdf")
         val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)
         writer.write(PdfDokument(im).export())
         println("Lagde PDF $title med filnavn ${file.toPath()}")
+    }
+
+    // Hjelpemetode for å gjøre pdf til tekst for testing
+    private fun extractTextFromPdf(pdf: ByteArray): String? {
+        val pdfReader = PDDocument.load(pdf)
+        val pdfStripper = PDFTextStripper()
+        val allTextInDocument = pdfStripper.getText(pdfReader)
+        pdfReader.close()
+        return allTextInDocument
     }
 }

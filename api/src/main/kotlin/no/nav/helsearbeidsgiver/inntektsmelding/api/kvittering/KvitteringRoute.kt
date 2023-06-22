@@ -64,7 +64,7 @@ fun RouteExtra.kvitteringRoute() {
                     }
 
                     val clientId = kvitteringProducer.publish(forespoerselId)
-                    var resultat: String? = null
+                    var resultat:String? = null
                     measureTimeMillis {
                         resultat = redis.getString(clientId, 10, 500)
                     }.also {
@@ -77,7 +77,7 @@ fun RouteExtra.kvitteringRoute() {
                         respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                     } else {
                         measureTimeMillis {
-                            val innsending = mapInnsending(Jackson.parseInntektsmeldingDokument(resultat!!))
+                            val innsending = mapInnsending(Jackson.parseInntektsmeldingDokument(resultat))
 
                             respondOk(
                                 Jackson.toJson(innsending).parseJson(),

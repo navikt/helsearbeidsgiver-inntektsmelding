@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
@@ -102,14 +103,14 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
 
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(ListSerializer(BehovType.serializer())),
+                    Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer().list()),
                     Key.UUID to uuid.toJson(),
                     DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
                 )
 
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(ListSerializer(BehovType.serializer())),
+                    Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(BehovType.serializer().list()),
                     Key.UUID to uuid.toJson(),
                     Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
                 )
@@ -123,7 +124,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
 */
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to listOf(BehovType.INNTEKT).toJson(ListSerializer(BehovType.serializer())),
+                    Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer().list()),
                     Key.UUID to uuid.toJson(),
                     DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer())
                 )

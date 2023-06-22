@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.trenger
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.ListSerializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType

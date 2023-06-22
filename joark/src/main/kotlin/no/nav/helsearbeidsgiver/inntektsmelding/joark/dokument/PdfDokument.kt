@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
@@ -155,6 +156,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             is NyStillingsprosent -> addNyStillingsprosent(endringsårsak)
             is Bonus -> addBonus(endringsårsak)
             is Sykefravaer -> addSykefravaer(endringsårsak)
+            is Nyansatt -> addNyAnsatt(endringsårsak)
             else -> throw IllegalArgumentException("Mangler hjelpefunksjon for type: ${endringsårsak?.typpe}")
         }
     }
@@ -178,7 +180,9 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     private fun addSykefravaer(endringsårsak: Sykefravaer) {
         addInntektEndringPerioder("Sykefravær", endringsårsak.liste)
     }
-
+    private fun addNyAnsatt(endringsårsak: Nyansatt) {
+        addLabel(forklaringEndring, "Nyansatt")
+    }
     private fun addTariffendring(tariffendring: Tariffendring) {
         addLabel(forklaringEndring, "Tariffendring")
         addLabel("Gjelder fra", tariffendring.gjelderFra.toNorsk(), linefeed = false)

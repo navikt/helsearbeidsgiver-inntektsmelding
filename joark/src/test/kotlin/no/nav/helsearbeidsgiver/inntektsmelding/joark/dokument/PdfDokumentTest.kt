@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektEndr
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
@@ -19,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendri
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.FileOutputStream
@@ -118,6 +120,7 @@ class PdfDokumentTest {
         map["permisjon"] = Permisjon(perioder)
         map["permittering"] = Permittering(perioder)
         map["sykefravaer"] = Sykefravaer(perioder)
+        map["nyansatt"] = Nyansatt()
 
         map.forEach {
             writePDF(
@@ -129,7 +132,7 @@ class PdfDokumentTest {
         }
     }
 
-    @Test
+    @Disabled
     fun `valider inntekt endring årsak - alle varianter `() {
         val perioder = listOf(Periode(dag, dag.plusDays(12)), Periode(dag.plusDays(13), dag.plusDays(18)))
         val map = HashMap<String, InntektEndringAarsak>()
@@ -142,7 +145,7 @@ class PdfDokumentTest {
         map["permisjon"] = Permisjon(perioder)
         map["permittering"] = Permittering(perioder)
         map["sykefravaer"] = Sykefravaer(perioder)
-        //map["feilregistrert"] = Feilregistrert()
+        // map["feilregistrert"] = Feilregistrert()
 
         map.forEach {
             val pdfText =

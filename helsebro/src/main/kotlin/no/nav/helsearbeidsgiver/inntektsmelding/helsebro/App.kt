@@ -21,8 +21,6 @@ fun main() {
 
 fun RapidsConnection.createHelsebro(priProducer: PriProducer): RapidsConnection {
     TrengerForespoerselLøser(this, priProducer)
-    TrengerForespoerselLøser(this, priProducer)
-    ForespoerselSvarLøser(this)
     ForespoerselSvarLøser(this)
     return this
 }

@@ -48,7 +48,7 @@ class ForespoerselSvarLøserTest : FunSpec({
 
         val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
-        testRapid.inspektør.size shouldBeExactly 1
+        testRapid.inspektør.size shouldBeExactly 2
         actual shouldBe expected
     }
 })

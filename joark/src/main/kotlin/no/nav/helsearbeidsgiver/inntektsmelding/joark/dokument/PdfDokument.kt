@@ -227,7 +227,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             // Ja
         } else {
             // Nei - to ekstra spørsmål
-            addLabel("Begrunnelse", lønnArbeidsgiverperioden.begrunnelse?.name ?: "-")
+            addLabel("Begrunnelse", lønnArbeidsgiverperioden.begrunnelse?.tekst() ?: "-")
             addLabel("Utbetalt under arbeidsgiverperiode", (lønnArbeidsgiverperioden.utbetalt?.toNorsk() ?: "-") + " kr")
         }
 

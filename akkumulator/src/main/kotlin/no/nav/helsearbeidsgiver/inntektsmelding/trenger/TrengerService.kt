@@ -43,7 +43,6 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     DataFelt.FORESPOERSEL_SVAR.str,
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str,
                     DataFelt.VIRKSOMHET.str,
-                    DataFelt.ARBEIDSFORHOLD.str,
                     DataFelt.INNTEKT.str
                 ).toTypedArray(),
                 event,

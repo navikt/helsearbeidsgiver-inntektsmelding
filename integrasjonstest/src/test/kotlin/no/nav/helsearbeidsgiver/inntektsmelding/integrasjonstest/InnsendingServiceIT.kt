@@ -1,17 +1,20 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.contains
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.Jackson
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -20,24 +23,22 @@ import java.util.UUID
 class InnsendingServiceIT : EndToEndTest() {
 
     @Test
-    fun `Test at innsnending er mottatt`() {
-        val forespoerselId = UUID.randomUUID().toString()
+    fun `Test at innsending er mottatt`() {
+        val forespoerselId = UUID.randomUUID()
         val clientId = UUID.randomUUID()
-        forespoerselRepository.lagreForespørsel(forespoerselId, TestData.validOrgNr)
 
-        publish(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                Key.CLIENT_ID.str to clientId,
-                DataFelt.INNTEKTSMELDING.str to GYLDIG_INNSENDING_REQUEST,
-                DataFelt.ORGNRUNDERENHET.str to TestData.validOrgNr,
-                Key.IDENTITETSNUMMER.str to TestData.validIdentitetsnummer,
-                Key.FORESPOERSEL_ID.str to forespoerselId
-            )
+        forespoerselRepository.lagreForespørsel(forespoerselId.toString(), TestData.validOrgNr)
+
+        publishMessage(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(EventName.serializer()),
+            Key.CLIENT_ID to clientId.toJson(),
+            DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson),
+            DataFelt.ORGNRUNDERENHET to TestData.validOrgNr.toJson(),
+            Key.IDENTITETSNUMMER to TestData.validIdentitetsnummer.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
         Thread.sleep(10000)
-
         println("\nAlle meldinger:\n-----------------------")
         messages.all().forEach { println(it) }
         println("-----------------------")
@@ -45,31 +46,42 @@ class InnsendingServiceIT : EndToEndTest() {
         val filteredMessages = messages.all().map(JsonElement::toJsonNode).filter(clientId)
         filteredMessages.forEach { println(it.toPrettyString()) }
         println("-----------------------")
+        messages.all().filter(clientId).size shouldBe 10
 
-        val messageCount = filteredMessages.size - 1
-        assertEquals(9, messageCount) {
-            "Message count was $messageCount"
-        }
-        val innsendingStr = redisStore.get(clientId.toString())
-        assertTrue(innsendingStr?.length!! > 2)
+        val innsendingStr = redisStore.get(clientId.toString()).shouldNotBeNull()
+        innsendingStr.length shouldBeGreaterThan 2
     }
 }
 
-private fun List<JsonNode>.filter(clientId: UUID): List<JsonNode> {
-    var transaksjonId: String? = null
+private fun List<JsonElement>.filter(clientId: UUID): List<JsonElement> {
+    var transaksjonId: UUID? = null
     return filter {
-        if (it.contains(Key.CLIENT_ID.str)) {
-            assertEquals(clientId.toString(), it[Key.CLIENT_ID.str].asText())
+        val msg = it.fromJsonMapOnlyKeys()
+
+        val msgClientId = msg[Key.CLIENT_ID]?.fromJson(UuidSerializer)
+        if (msgClientId == clientId) {
             true
         } else {
-            val eventName = it.get(Key.EVENT_NAME.str)?.asText()
-            if (transaksjonId == null && (eventName == EventName.INSENDING_STARTED.name && it.contains(Key.BEHOV.str))) {
-                transaksjonId = it[Key.UUID.str]?.asText()
+            val eventName = msg[Key.EVENT_NAME]?.fromJson(EventName.serializer()).shouldNotBeNull()
+
+            if (transaksjonId == null && (eventName == EventName.INSENDING_STARTED && msg.contains(Key.BEHOV))) {
+                transaksjonId = msg[Key.UUID]?.fromJson(UuidSerializer)
             }
-            val msgUuid = if (it.contains(Key.UUID.str)) it.get(Key.UUID.str).asText() else it.get(Key.TRANSACTION_ORIGIN.str)?.asText()
-            msgUuid == transaksjonId &&
-                (eventName == EventName.INSENDING_STARTED.name || (eventName == EventName.INNTEKTSMELDING_MOTTATT.name && !it.has(Key.BEHOV.str))) &&
-                !it.has(Key.LØSNING.str)
+
+            val uuid = listOfNotNull(
+                msg[Key.UUID],
+                msg[Key.TRANSACTION_ORIGIN]
+            )
+                .firstOrNull()
+                .shouldNotBeNull()
+                .fromJson(UuidSerializer)
+
+            val innsendingStartetEllerImMottatt = eventName == EventName.INSENDING_STARTED ||
+                (eventName == EventName.INNTEKTSMELDING_MOTTATT && !msg.contains(Key.BEHOV))
+
+            uuid == transaksjonId &&
+                innsendingStartetEllerImMottatt &&
+                !msg.contains(Key.LØSNING)
         }
     }
 }

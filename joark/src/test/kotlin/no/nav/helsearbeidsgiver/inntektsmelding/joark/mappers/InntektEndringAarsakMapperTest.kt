@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
@@ -30,5 +31,8 @@ class InntektEndringAarsakMapperTest {
 
         val bonus = Bonus()
         assertEquals("Bonus", mapper.inntektEndringAarsakTilString(bonus))
+
+        val feilregistrert = Feilregistrert()
+        assertEquals("Mangelfull eller uriktig rapportering til A-ordningen", mapper.inntektEndringAarsakTilString(feilregistrert))
     }
 }

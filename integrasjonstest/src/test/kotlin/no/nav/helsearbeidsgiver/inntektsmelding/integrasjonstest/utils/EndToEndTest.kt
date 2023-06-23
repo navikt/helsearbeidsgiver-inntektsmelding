@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -13,8 +14,10 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
@@ -139,5 +142,11 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         val json = om.writeValueAsString(value)
         println("Publiserer melding: $json")
         rapid.publish(json)
+    }
+
+    fun publishMessage(vararg messageFields: Pair<IKey, JsonElement>) {
+        rapid.publish(*messageFields).also {
+            println("Publiserte melding: $it")
+        }
     }
 }

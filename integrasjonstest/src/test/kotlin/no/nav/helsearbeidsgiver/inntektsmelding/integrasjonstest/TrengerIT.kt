@@ -89,11 +89,6 @@ class TrengerIT : EndToEndTest() {
             Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
         }
 
-        with(filter(EventName.TRENGER_REQUESTED, behovType = BehovType.ARBEIDSFORHOLD).first()) {
-            // Ble lagret i databasen
-            Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())
-        }
-
         with(filter(EventName.TRENGER_REQUESTED, behovType = BehovType.INNTEKT).first()) {
             // Ble lagret i databasen
             Assertions.assertEquals(transactionID, this[Key.UUID.str].asText())

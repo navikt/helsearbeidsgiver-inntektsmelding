@@ -64,16 +64,17 @@ fun RouteExtra.trengerRoute() {
 
 fun mapTrengerResponse(trengerData: TrengerData): TrengerResponse {
     return TrengerResponse(
-        navn = trengerData?.personDato?.navn ?: "",
-        orgNavn = trengerData?.virksomhetNavn ?: "",
-        identitetsnummer = trengerData?.fnr ?: "",
-        orgnrUnderenhet = trengerData?.orgnr ?: "",
-        fravaersperioder = trengerData?.fravarsPerioder ?: emptyList(),
-        egenmeldingsperioder = trengerData?.egenmeldingsPerioder ?: emptyList(),
-        bruttoinntekt = trengerData?.bruttoinntekt,
-        tidligereinntekter = trengerData?.tidligereinntekter ?: emptyList(),
+        navn = trengerData.personDato?.navn ?: "",
+        orgNavn = trengerData.virksomhetNavn ?: "",
+        identitetsnummer = trengerData.fnr ?: "",
+        orgnrUnderenhet = trengerData.orgnr ?: "",
+        fravaersperioder = trengerData.fravarsPerioder ?: emptyList(),
+        egenmeldingsperioder = trengerData.egenmeldingsPerioder ?: emptyList(),
+        bruttoinntekt = trengerData.bruttoinntekt,
+        tidligereinntekter = trengerData.tidligereinntekter ?: emptyList(),
         behandlingsperiode = null,
         behandlingsdager = emptyList(),
-        forespurtData = trengerData?.forespurtData ?: emptyList()
+        forespurtData = trengerData.forespurtData ?: emptyList(),
+        feilReport = trengerData.feilReport
     )
 }

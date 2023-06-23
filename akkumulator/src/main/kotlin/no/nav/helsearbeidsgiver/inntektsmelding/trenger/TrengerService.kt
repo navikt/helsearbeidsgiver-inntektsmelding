@@ -68,7 +68,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             redisStore.set(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato("Ukjent navn", null).toJsonStr(PersonDato.serializer()))
         } else if (feil.behov == BehovType.INNTEKT) {
             feilmelding = Feilmelding(
-                "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere."
+                "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.", datafelt =  DataFelt.INNTEKT
             )
             redisStore.set(RedisKey.of(uuid, DataFelt.ARBEIDSFORHOLD), UNDEFINED_FELT)
         }
@@ -88,12 +88,12 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.UUID to uuid.toJson(),
-                DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson(),
                 Key.BOOMERANG to mapOf(
                     Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL).toJson(BehovType.serializer()),
                     Key.INITIATE_ID.str to uuid.toJson(),
                     Key.INITIATE_EVENT.str to EventName.TRENGER_REQUESTED.toJson()
-                ).toJson()
+                ).toJson(),
+                DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson()
             )
         } else if (transaction == Transaction.IN_PROGRESS) {
             message.interestedIn(DataFelt.FORESPOERSEL_SVAR.str)

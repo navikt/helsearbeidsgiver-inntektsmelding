@@ -21,7 +21,7 @@ class KvitteringService(
     override val redisStore: IRedisStore
 ) : CompositeEventListener(redisStore) {
 
-    override val event: EventName = EventName.KVITTERING_REQUESTED
+    private val event: EventName = EventName.KVITTERING_REQUESTED
 
     private val logger = logger()
 

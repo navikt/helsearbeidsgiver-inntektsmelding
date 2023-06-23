@@ -57,7 +57,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
             } catch (ex: Exception) {
                 logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId")
                 sikkerLogger.error("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId", ex)
-                publiserFeil(transactionId, event, Feilmelding("Klarte ikke hente persistert inntektsmelding"))
+                publiserFeil(transactionId, event, forespoerselId, Feilmelding("Klarte ikke hente persistert inntektsmelding"))
             }
         }.also {
             logger.info("Hent inntektmelding fra DB took $it")

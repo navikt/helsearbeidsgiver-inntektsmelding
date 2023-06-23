@@ -56,14 +56,14 @@ fun BegrunnelseIngenEllerRedusertUtbetalingKode.tekst(): String {
 
 private const val MAX_LINJELENGDE = 40
 
-fun delOppLangeNavn(tekst: String): List<String> {
-    if (tekst.length < MAX_LINJELENGDE) {
-        return listOf(tekst)
+fun String.delOppLangeNavn(): List<String> {
+    if (this.length < MAX_LINJELENGDE) {
+        return listOf(this)
     }
-    if (!tekst.contains(" ")) {
-        return tekst.chunked(MAX_LINJELENGDE)
+    if (!this.contains(" ")) {
+        return this.chunked(MAX_LINJELENGDE)
     }
-    return tekst.split(" ")
+    return this.split(" ")
         .fold(listOf<String>()) { result, word ->
             val lastString = result.lastOrNull()
             if (lastString != null && lastString.length + word.length  < MAX_LINJELENGDE) {

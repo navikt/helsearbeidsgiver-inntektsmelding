@@ -108,6 +108,17 @@ class PdfDokumentTest {
     }
 
     @Test
+    fun `med langt virksomhetsnavn over flere linjer`() {
+        val imLangNavn = im.copy(
+            virksomhetNavn = "Blå Rød Grønn Blåbærebærekraftsvennligutendørsbedrift AS"
+        )
+        val forventetInnhold = "Blå Rød Grønn\nBlåbærebærekraftsvennligutendørsbedrift\nAS"
+        // writePDF("lang_navn", imLangNavn)
+        val s = extractTextFromPdf(PdfDokument(imLangNavn).export())
+        assert(s!!.contains(forventetInnhold))
+    }
+
+    @Test
     fun `med begrunnelse`() {
         writePDF(
             "med_begrunnelse",

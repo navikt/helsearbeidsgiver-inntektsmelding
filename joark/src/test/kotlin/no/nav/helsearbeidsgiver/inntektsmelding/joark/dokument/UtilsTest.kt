@@ -21,7 +21,7 @@ class UtilsTest {
     @Test
     fun `del opp lange navn - behold as-is når det er kort tekst`() {
         val tekst = "Hei og hå"
-        val liste = delOppLangeNavn(tekst)
+        val liste = tekst.delOppLangeNavn()
         assertEquals(tekst, liste.first())
     }
 
@@ -32,7 +32,7 @@ class UtilsTest {
         repeat(20) {
             tekstBuilder.append(tekst)
         }
-        val liste = delOppLangeNavn(tekstBuilder.toString() + tekstBuilder.toString() + tekst)
+        val liste = (tekstBuilder.toString() + tekstBuilder.toString() + tekst).delOppLangeNavn()
         assertEquals(tekstBuilder.toString(), liste.first())
         assertEquals(tekstBuilder.toString(), liste.get(1))
         assertEquals(tekst, liste.get(2))
@@ -41,7 +41,7 @@ class UtilsTest {
     @Test
     fun `del opp lange navn med mellomrom`() {
         val tekst = "Albert Fredriksens Saft- og Syltetøykokeri, avdeling Fredrikstad"
-        val liste = delOppLangeNavn(tekst)
+        val liste = tekst.delOppLangeNavn()
         liste.forEach{ println(it)}
         assertEquals("Albert Fredriksens Saft- og", liste.first())
         assertEquals("Syltetøykokeri, avdeling Fredrikstad", liste.get(1))

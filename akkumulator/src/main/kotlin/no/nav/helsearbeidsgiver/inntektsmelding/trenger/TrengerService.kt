@@ -71,7 +71,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
                 datafelt = DataFelt.INNTEKT
             )
-            redisStore.set(RedisKey.of(uuid, DataFelt.ARBEIDSFORHOLD), UNDEFINED_FELT)
+            redisStore.set(RedisKey.of(uuid, DataFelt.INNTEKT), UNDEFINED_FELT)
         }
         if (feilmelding != null) {
             val feilKey = RedisKey.of(uuid, feilmelding)
@@ -85,7 +85,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
         if (transaction == Transaction.NEW) {
-            logger().info("Dispatcher HENT_TRENGER_IM for $uuid")
+            logger().info("${this.javaClass.simpleName} Dispatcher HENT_TRENGER_IM for $uuid")
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer().list()),
@@ -101,14 +101,14 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             message.interestedIn(DataFelt.FORESPOERSEL_SVAR.str)
             if (isDataCollected(*step1data(uuid)) && !message[DataFelt.FORESPOERSEL_SVAR.str].isMissingNode) {
                 val forespurtData: TrengerInntekt = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
-                logger().info("Dispatcher VIRKSOMHET for $uuid")
+                logger().info("${this.javaClass.simpleName} Dispatcher VIRKSOMHET for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer().list()),
                     Key.UUID to uuid.toJson(),
                     DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
                 )
-                logger().info("Dispatcher FULLT_NAVN for $uuid")
+                logger().info("${this.javaClass.simpleName} dispatcher FULLT_NAVN for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(BehovType.serializer().list()),
@@ -123,7 +123,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
                 )
 */
-                logger().info("Dispatcher INNTEKT for $uuid")
+                logger().info("${this.javaClass.simpleName} Dispatcher INNTEKT for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer().list()),
@@ -131,8 +131,6 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer())
                 )
             }
-            println(message.toJson())
-            println("Heeeelllllloooooooooooooo!!!!!")
         }
     }
 

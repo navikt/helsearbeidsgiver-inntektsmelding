@@ -1,9 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import com.fasterxml.jackson.databind.JsonNode
+import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -13,8 +14,10 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
@@ -22,11 +25,11 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.buildApp
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.filter.findMessage
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mapHikariConfigByContainer
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import kotlin.concurrent.thread
 
@@ -58,8 +61,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             .also(Database::migrate)
     }
 
-    val meldinger = mutableListOf<JsonNode>()
-    val results = mutableListOf<String>()
+    val messages = Messages()
 
     val tilgangProducer by lazy { TilgangProducer(rapid) }
     val imRepository by lazy { InntektsmeldingRepository(database.db) }
@@ -73,7 +75,11 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     private val om = customObjectMapper()
 
-    var filterMessages: (JsonNode) -> Boolean = { true }
+    @BeforeEach
+    fun beforeEachEndToEnd() {
+        messages.reset()
+        clearAllMocks()
+    }
 
     @BeforeAll
     fun beforeAllEndToEnd() {
@@ -102,22 +108,29 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         Thread.sleep(2000)
     }
 
-    fun resetMessages() {
-        meldinger.clear()
-        results.clear()
-    }
-
     override fun onMessage(message: String, context: MessageContext) {
         logger.info("onMessage: $message")
-        if (filterMessages.invoke(customObjectMapper().readTree(message))) {
-            results.add(message)
-        }
-        meldinger.add(Json.parseToJsonElement(message).toJsonNode())
+        messages.add(message)
     }
 
-    fun filter(event: EventName, behovType: BehovType? = null, datafelt: DataFelt? = null, løsning: Boolean? = false): List<JsonNode> {
-        return findMessage(meldinger, event, behovType, datafelt, løsning)
-    }
+    fun filter(event: EventName, behovType: BehovType? = null, datafelt: DataFelt? = null, løsning: Boolean = false): List<JsonNode> =
+        messages.filter(event)
+            .let {
+                if (behovType != null) {
+                    it.filter(behovType, løsning)
+                } else {
+                    it
+                }
+            }.let {
+                if (datafelt != null) {
+                    it.filter(datafelt)
+                } else {
+                    it
+                }
+            }
+            .first()
+            .toJsonNode()
+            .let(::listOf)
 
     @AfterAll
     fun afterAllEndToEnd() {
@@ -133,15 +146,9 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         rapid.publish(json)
     }
 
-    fun getMessages(t: (JsonNode) -> Boolean): List<JsonNode> {
-        return results.map { Json.parseToJsonElement(it).toJsonNode() }.filter(t).toList()
-    }
-
-    fun getMessage(index: Int): JsonNode {
-        return Json.parseToJsonElement(results[index + 1]).toJsonNode()
-    }
-
-    fun getMessageCount(): Int {
-        return results.size - 1
+    fun publishMessage(vararg messageFields: Pair<IKey, JsonElement>) {
+        rapid.publish(*messageFields).also {
+            println("Publiserte melding: $it")
+        }
     }
 }

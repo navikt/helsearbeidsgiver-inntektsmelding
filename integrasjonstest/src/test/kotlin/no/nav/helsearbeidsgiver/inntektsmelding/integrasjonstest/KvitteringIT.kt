@@ -32,7 +32,7 @@ class KvitteringIT : EndToEndTest() {
             )
         )
         Thread.sleep(5000)
-        assertNotNull(meldinger)
+        assertNotNull(messages)
         with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
             // Skal ikke finne inntektsmeldingdokument - men en dummy payload
             assertEquals(INNTEKTSMELDING_NOT_FOUND, get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText())
@@ -43,7 +43,6 @@ class KvitteringIT : EndToEndTest() {
     @Test
     fun `skal hente data til kvittering`() {
         val clientId = UUID.randomUUID().toString()
-        meldinger.clear()
         forespoerselRepository.lagreForespørsel(GYLDIG_FORESPØRSEL_ID, ORGNR)
         imRepository.lagreInntektsmeldng(GYLDIG_FORESPØRSEL_ID, INNTEKTSMELDING_DOKUMENT)
         publish(
@@ -53,13 +52,14 @@ class KvitteringIT : EndToEndTest() {
                 Key.FORESPOERSEL_ID.str to GYLDIG_FORESPØRSEL_ID
             )
         )
-        Thread.sleep(5000)
-        assertNotNull(meldinger)
+        Thread.sleep(10000)
+        assertNotNull(messages)
         with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
             assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
             // Skal finne inntektsmeldingdokumentet
             assertNotEquals(INNTEKTSMELDING_NOT_FOUND, get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
             // assertEquals(transactionId, get(Key.UUID.str).asText())
         }
+        assertNotNull(redisStore.get(clientId))
     }
 }

@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import org.valiktor.ConstraintViolationException
+import kotlin.system.measureTimeMillis
 
 private const val EMPTY_PAYLOAD = "{}"
 
@@ -49,45 +50,60 @@ fun RouteExtra.kvitteringRoute() {
             }
 
             logger.info("Henter data for forespørselId: $forespoerselId")
+            measureTimeMillis {
+                try {
+                    measureTimeMillis {
+                        authorize(
+                            forespørselId = forespoerselId,
+                            tilgangProducer = tilgangProducer,
+                            redisPoller = redis,
+                            cache = tilgangCache
+                        )
+                    }.also {
+                        logger.info("Authorize took $it")
+                    }
 
-            try {
-                authorize(
-                    forespørselId = forespoerselId,
-                    tilgangProducer = tilgangProducer,
-                    redisPoller = redis,
-                    cache = tilgangCache
-                )
+                    val clientId = kvitteringProducer.publish(forespoerselId)
+                    var resultat: String?
+                    measureTimeMillis {
+                        resultat = redis.getString(clientId, 10, 500)
+                    }.also {
+                        logger.info("redis polling took $it")
+                    }
+                    sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
 
-                val clientId = kvitteringProducer.publish(forespoerselId)
+                    if (resultat == EMPTY_PAYLOAD) {
+                        // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
+                        respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
+                    } else {
+                        measureTimeMillis {
+                            val innsending = mapInnsending(Jackson.parseInntektsmeldingDokument(resultat!!))
 
-                val resultat = redis.getString(clientId, 10, 500)
-                sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
-
-                if (resultat == EMPTY_PAYLOAD) {
-                    // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
-                    respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
-                } else {
-                    val innsending = mapInnsending(Jackson.parseInntektsmeldingDokument(resultat))
-
-                    respondOk(
-                        Jackson.toJson(innsending).parseJson(),
-                        JsonElement.serializer()
-                    )
+                            respondOk(
+                                Jackson.toJson(innsending).parseJson(),
+                                JsonElement.serializer()
+                            )
+                        }.also {
+                            logger.info("Mapping og respond took $it")
+                        }
+                    }
+                } catch (e: ManglerAltinnRettigheterException) {
+                    respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
+                } catch (e: ConstraintViolationException) {
+                    logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
+                    respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
+                } catch (e: JsonMappingException) {
+                    "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
+                        logger.error(it)
+                        sikkerLogger.error(it, e)
+                        respondInternalServerError(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
+                    }
+                } catch (_: RedisPollerTimeoutException) {
+                    logger.error("Fikk timeout for forespørselId: $forespoerselId")
+                    respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
                 }
-            } catch (e: ManglerAltinnRettigheterException) {
-                respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-            } catch (e: ConstraintViolationException) {
-                logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
-                respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
-            } catch (e: JsonMappingException) {
-                "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
-                    logger.error(it)
-                    sikkerLogger.error(it, e)
-                    respondInternalServerError(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
-                }
-            } catch (_: RedisPollerTimeoutException) {
-                logger.error("Fikk timeout for forespørselId: $forespoerselId")
-                respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
+            }.also {
+                logger.info("api call took $it")
             }
         }
     }

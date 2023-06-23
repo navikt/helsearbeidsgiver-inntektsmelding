@@ -27,10 +27,11 @@ class TrengerProducer(
                 Key.INITIATE_ID.str to initiateId.toJson(),
                 Key.INITIATE_EVENT.str to EventName.TRENGER_REQUESTED.toJson(EventName.serializer())
             ).toJson()
-        ) {
-            logger.info("Publiserte trenger behov id=$initiateId")
-            sikkerLogger.info("Publiserte trenger behov id=$initiateId json=${it.toJson()}")
-        }
+        )
+            .also {
+                logger.info("Publiserte trenger behov id=$initiateId")
+                sikkerLogger.info("Publiserte trenger behov id=$initiateId json=$it")
+            }
 
         return clientID
     }

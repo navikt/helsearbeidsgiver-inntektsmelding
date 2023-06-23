@@ -8,13 +8,12 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 
-sealed interface IKey {
-
-    override fun toString(): String
+interface IKey {
+    val str: String
 }
 
 @Serializable(KeySerializer::class)
-enum class Key(val str: String) : IKey {
+enum class Key(override val str: String) : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
     ID("@id"),
     EVENT_NAME("@event_name"),
@@ -33,11 +32,11 @@ enum class Key(val str: String) : IKey {
     CLIENT_ID("client_id"),
     TRANSACTION_ORIGIN("transaction_origin"),
     ORGNR("orgnr"),
+    FNR("fnr"),
     FORESPOERSEL_ID("forespoerselId"),
     JOURNALPOST_ID("journalpostId"),
     INNTEKT_DATO("inntektDato"),
     DATA("data"),
-    FNR("fnr"),
     FAIL("fail");
 
     override fun toString(): String =
@@ -56,7 +55,7 @@ enum class Key(val str: String) : IKey {
 }
 
 @Serializable(DataFeltSerializer::class)
-enum class DataFelt(val str: String) : IKey {
+enum class DataFelt(override val str: String) : IKey {
     VIRKSOMHET("virksomhet"),
     ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
@@ -66,8 +65,8 @@ enum class DataFelt(val str: String) : IKey {
     OPPGAVE_ID("oppgave_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     FORESPOERSEL_ID("forespoerselId"),
-    FORESPOERSEL_SVAR("forespoersel-svar"),
     INNTEKTSMELDING("inntektsmelding"),
+    FORESPOERSEL_SVAR("forespoersel-svar"),
     TRENGER_INNTEKT("trenger-inntekt"),
     INNTEKT("inntekt");
 

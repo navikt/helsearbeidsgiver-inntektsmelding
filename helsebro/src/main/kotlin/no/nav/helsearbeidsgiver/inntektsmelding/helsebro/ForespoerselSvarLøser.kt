@@ -14,13 +14,11 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.demandValue
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.require
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.value
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
@@ -33,9 +31,11 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
     init {
         sikkerLogger.info("Starting ForespoerselSvarLøser...")
         River(rapid).apply {
-            validate { jsonMessage ->
-                jsonMessage.demandValue(Pri.Key.BEHOV, ForespoerselSvar.behovType)
-                jsonMessage.require(
+            validate { msg ->
+                msg.demandValues(
+                    Pri.Key.BEHOV to ForespoerselSvar.behovType.name
+                )
+                msg.require(
                     Pri.Key.LØSNING to { it.fromJson(ForespoerselSvar.serializer()) }
                 )
             }
@@ -58,9 +58,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
         logger.info("Mottok løsning på pri-topic om ${Pri.Key.BEHOV.fra(this).fromJson(Pri.BehovType.serializer())}.")
         sikkerLogger.info("Mottok løsning på pri-topic:\n${toJson()}")
 
-        val forespoerselSvar = Pri.Key.LØSNING.let(::value)
-            .toJsonElement()
-            .fromJson(ForespoerselSvar.serializer())
+        val forespoerselSvar = Pri.Key.LØSNING.fra(this).fromJson(ForespoerselSvar.serializer())
 
         sikkerLogger.info("Oversatte melding:\n$forespoerselSvar")
 

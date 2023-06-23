@@ -3,18 +3,22 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Sykefravaer
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import java.time.LocalDate
 
+private const val FORKLARING_ENDRING = "Forklaring for endring"
 class PdfDokument(val dokument: InntektsmeldingDokument) {
 
     private val pdf = PdfBuilder(bodySize = 20) // Setter skriftstørrelsen på labels og text
@@ -144,6 +148,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
         val endringsårsak = dokument.inntekt?.endringÅrsak
         when (endringsårsak) {
+            null -> return // trenger ikke sende inn årsak...
             is Permisjon -> addPermisjon(endringsårsak)
             is Ferie -> addFerie(endringsårsak)
             is Permittering -> addPermittering(endringsårsak)
@@ -152,12 +157,15 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             is NyStilling -> addNyStilling(endringsårsak)
             is NyStillingsprosent -> addNyStillingsprosent(endringsårsak)
             is Bonus -> addBonus(endringsårsak)
-            else -> {}
+            is Sykefravaer -> addSykefravaer(endringsårsak)
+            is Nyansatt -> addNyAnsatt()
+            is Feilregistrert -> addFeilregistrert()
+            else -> throw IllegalArgumentException("Type ${endringsårsak.typpe} håndteres ikke. Legg til hjelpefunksjon for å løse feilen.")
         }
     }
 
     private fun addInntektEndringPerioder(endringsårsak: String, perioder: List<Periode>) {
-        addLabel("Forklaring for endring", endringsårsak, linefeed = false)
+        addLabel(FORKLARING_ENDRING, endringsårsak, linefeed = false)
         addPerioder(KOLONNE_TO, perioder)
     }
 
@@ -172,32 +180,40 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     private fun addPermittering(permittering: Permittering) {
         addInntektEndringPerioder("Permittering", permittering.liste)
     }
-
+    private fun addSykefravaer(endringsårsak: Sykefravaer) {
+        addInntektEndringPerioder("Sykefravær", endringsårsak.liste)
+    }
+    private fun addNyAnsatt() {
+        addLabel(FORKLARING_ENDRING, "Nyansatt")
+    }
+    private fun addFeilregistrert() {
+        addLabel(FORKLARING_ENDRING, "Mangelfull eller uriktig rapportering til A-ordningen")
+    }
     private fun addTariffendring(tariffendring: Tariffendring) {
-        addLabel("Forklaring for endring", "Tariffendring")
+        addLabel(FORKLARING_ENDRING, "Tariffendring")
         addLabel("Gjelder fra", tariffendring.gjelderFra.toNorsk(), linefeed = false)
         addLabel("Ble kjent", tariffendring.bleKjent.toNorsk(), KOLONNE_TO)
     }
 
     private fun addVarigLonnsendring(varigLonnsendring: VarigLonnsendring) {
-        addLabel("Forklaring for endring", "Varig lønnsendring")
+        addLabel(FORKLARING_ENDRING, "Varig lønnsendring")
         addLabel("Gjelder fra", varigLonnsendring.gjelderFra.toNorsk())
     }
 
     private fun addNyStilling(nyStilling: NyStilling) {
-        addLabel("Forklaring for endring", "Ny stilling", linefeed = false)
+        addLabel(FORKLARING_ENDRING, "Ny stilling", linefeed = false)
         addLabel("Gjelder fra", nyStilling.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
     private fun addNyStillingsprosent(nyStillingsprosent: NyStillingsprosent) {
-        addLabel("Forklaring for endring", "Ny stillingsprosent", linefeed = false)
+        addLabel(FORKLARING_ENDRING, "Ny stillingsprosent", linefeed = false)
         addLabel("Gjelder fra", nyStillingsprosent.gjelderFra.toNorsk(), KOLONNE_TO)
     }
 
     private fun addBonus(bonus: Bonus) {
         val årligBonus = 0.toBigDecimal() // TODO Må bruke bonus fra datamodell
         val datoBonus = LocalDate.now() // TODO Må bruke dato fra datamodell
-        addLabel("Forklaring for endring", "Bonus")
+        addLabel(FORKLARING_ENDRING, "Bonus")
         // addLabel("Estimert årlig bonus", årligBonus.toNorsk())
         // addLabel("Dato siste bonus", datoBonus.toNorsk())
     }

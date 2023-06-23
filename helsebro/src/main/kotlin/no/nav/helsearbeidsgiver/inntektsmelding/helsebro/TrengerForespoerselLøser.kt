@@ -30,9 +30,7 @@ class TrengerForespoerselLøser(
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
         it.demandAll(Key.BEHOV, listOf(BehovType.HENT_TRENGER_IM))
-        it.interestedIn(
-            Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) }
-        )
+        it.interestedIn(Key.FORESPOERSEL_ID.str)
         it.interestedIn(Key.BOOMERANG)
     }
 

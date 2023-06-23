@@ -68,20 +68,22 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             ?: throw IllegalArgumentException("Mangler ${Key.INITIATE_ID} i ${Key.BOOMERANG}.")
         val løsning: HentTrengerImLøsning = forespoerselSvar.toHentTrengerImLøsning()
 
-        context.publish(
-            Key.EVENT_NAME to initiateEvent,
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
-            Key.LØSNING to mapOf(
-                BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
+        if (initiateEvent.fromJson(EventName.serializer()) != EventName.TRENGER_REQUESTED) {
+            context.publish(
+                Key.EVENT_NAME to initiateEvent,
+                Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
+                Key.LØSNING to mapOf(
+                    BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
+                )
+                    .toJson(
+                        MapSerializer(
+                            BehovType.serializer(),
+                            HentTrengerImLøsning.serializer()
+                        )
+                    ),
+                Key.BOOMERANG to forespoerselSvar.boomerang
             )
-                .toJson(
-                    MapSerializer(
-                        BehovType.serializer(),
-                        HentTrengerImLøsning.serializer()
-                    )
-                ),
-            Key.BOOMERANG to forespoerselSvar.boomerang
-        )
+        }
         if (løsning.error != null) {
             context.publish(
                 Fail(

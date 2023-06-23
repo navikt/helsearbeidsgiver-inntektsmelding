@@ -38,6 +38,7 @@ class TrengerForespoerselLøser(
 
     override fun onBehov(packet: JsonMessage) {
         logger.info("Mottok behov om ${Key.BEHOV.fra(packet).fromJson(BehovType.serializer().list())}")
+        logger.info("test")
         sikkerLogger.info("Mottok behov:\n${packet.toJson()}")
 
         val trengerForespoersel = TrengerForespoersel(

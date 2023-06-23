@@ -28,6 +28,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 const val UNDEFINED_FELT: String = "{}"
 class TrengerService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
@@ -85,6 +86,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
         if (transaction == Transaction.NEW) {
+            logger().info("Dispatcher HENT_TRENGER_IM for $uuid")
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
@@ -100,14 +102,14 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             message.interestedIn(DataFelt.FORESPOERSEL_SVAR.str)
             if (isDataCollected(*step1data(uuid)) && !message[DataFelt.FORESPOERSEL_SVAR.str].isMissingNode) {
                 val forespurtData: TrengerInntekt = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
-
+                logger().info("Dispatcher VIRKSOMHET for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer().list()),
                     Key.UUID to uuid.toJson(),
                     DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
                 )
-
+                logger().info("Dispatcher FULLT_NAVN for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(BehovType.serializer().list()),
@@ -122,6 +124,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
                 )
 */
+                logger().info("Dispatcher INNTEKT for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer().list()),

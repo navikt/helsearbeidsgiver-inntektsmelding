@@ -89,7 +89,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             logger().info("Dispatcher HENT_TRENGER_IM for $uuid")
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer().list()),
                 Key.UUID to uuid.toJson(),
                 Key.BOOMERANG to mapOf(
                     Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL).toJson(BehovType.serializer()),

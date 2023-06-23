@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -30,7 +31,7 @@ class TrengerForespoerselLøser(
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
         it.demandAll(Key.BEHOV, listOf(BehovType.HENT_TRENGER_IM))
-        it.interestedIn(
+        it.require(
             Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) }
         )
         it.interestedIn(Key.BOOMERANG)

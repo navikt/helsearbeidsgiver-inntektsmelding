@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -88,6 +89,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             context.publish(
                 Fail(
                     eventName = EventName.valueOf(initiateEvent.toJsonNode().asText()),
+                    behov = BehovType.HENT_TRENGER_IM,
                     feilmelding = "Test fail",
                     forespørselId = forespoerselSvar.forespoerselId.toString(),
                     uuid = transactionID.toJsonNode().asText()

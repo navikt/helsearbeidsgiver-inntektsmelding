@@ -172,7 +172,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR)
     )
 
-    fun<T> String.fromJsonWithUndefined(serializer: KSerializer<T>): T? {
+    fun <T> String.fromJsonWithUndefined(serializer: KSerializer<T>): T? {
         if (this == UNDEFINED_FELT) return null
         return this.fromJson(serializer)
     }

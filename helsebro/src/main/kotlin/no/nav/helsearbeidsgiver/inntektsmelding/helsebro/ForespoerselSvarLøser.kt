@@ -88,7 +88,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             context.publish(
                 Fail(
                     eventName = EventName.valueOf(initiateEvent.toJsonNode().asText()),
-                    feilmelding = løsning.error!!.melding,
+                    feilmelding = "Test fail",
                     forespørselId = forespoerselSvar.forespoerselId.toString(),
                     uuid = transactionID.toJsonNode().asText()
                 ).toJsonMessage().toJson()

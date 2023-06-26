@@ -89,6 +89,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
+        sikkerLogger().info("Dispatcher for $uuid with trans state $transaction")
         if (transaction == Transaction.NEW) {
             sikkerLogger().info("Dispatcher HENT_TRENGER_IM for $uuid")
             sikkerLogger().info("${this.javaClass.simpleName} Dispatcher HENT_TRENGER_IM for $uuid")

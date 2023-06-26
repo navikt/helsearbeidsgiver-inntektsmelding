@@ -84,7 +84,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                 Key.BOOMERANG to forespoerselSvar.boomerang
             )
         }
-        if (løsning.error != null) {
+        if (true) {
             context.publish(
                 Fail(
                     eventName = EventName.valueOf(initiateEvent.toJsonNode().asText()),

@@ -48,7 +48,9 @@ fun RouteExtra.trengerRoute() {
                 val resultat = redis.getString(trengerId.toString(), 10, 500)
                 sikkerLogger.info("Fikk resultat: $resultat")
                 val trengerResponse = mapTrengerResponse(resultat.fromJson(TrengerData.serializer()))
-                val status =  if (trengerResponse.feilReport == null) HttpStatusCode.Created else if (trengerResponse.feilReport.status()<0) HttpStatusCode.ServiceUnavailable else HttpStatusCode.Created
+                val status = if (trengerResponse.feilReport == null) {
+                    HttpStatusCode.Created
+                } else if (trengerResponse.feilReport.status() < 0) HttpStatusCode.ServiceUnavailable else HttpStatusCode.Created
                 respond(status, trengerResponse, TrengerResponse.serializer())
             } catch (e: ManglerAltinnRettigheterException) {
                 respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())

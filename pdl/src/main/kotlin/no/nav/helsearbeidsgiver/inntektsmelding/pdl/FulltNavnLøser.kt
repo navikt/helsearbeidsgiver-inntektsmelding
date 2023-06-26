@@ -42,6 +42,7 @@ class FulltNavnLøser(
             logger.info("Henter navn for $idtext")
             val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
             try {
+                throw Exception("my test")
                 val info = runBlocking {
                     hentPersonInfo(identitetsnummer)
                 }

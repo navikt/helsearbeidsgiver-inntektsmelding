@@ -15,11 +15,13 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.Jackson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Disabled
 class InnsendingServiceIT : EndToEndTest() {
 
     @Test

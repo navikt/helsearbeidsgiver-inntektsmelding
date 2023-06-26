@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndT
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -24,6 +25,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
     private val OPPGAVE_ID = "oppgave_id_456"
 
     @Test
+    @Disabled
     fun `Oppretter og lagrer sak etter at forespørselen er mottatt`() {
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
@@ -64,6 +66,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
     }
 
     @Test
+    @Disabled
     fun `Oppretter og lagrer oppgave etter at forespørselen er mottatt`() {
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())

@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndT
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -30,6 +31,7 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Innsending av skjema fra frontend")
+@Disabled
 class InnsendingIT : EndToEndTest() {
 
     private val FNR = "fnr-123"

@@ -28,6 +28,7 @@ private val begrunnelseRefusjonTilTekst = mapOf(
     BegrunnelseIngenEllerRedusertUtbetalingKode.TIDLIGERE_VIRKSOMHET to
         "Arbeidsgiverperioden er helt eller delvis gjennomført hos tidligere virksomhet"
 )
+
 fun LocalDate.toNorsk(): String {
     return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 }

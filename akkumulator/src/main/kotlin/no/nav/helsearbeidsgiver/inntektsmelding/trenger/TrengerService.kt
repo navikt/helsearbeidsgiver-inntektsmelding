@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.trenger
 import kotlinx.serialization.KSerializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -143,6 +144,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     }
 
     override fun finalize(message: JsonMessage) {
+        if (message[Key.FAIL.str].isMissingOrNull()) return
         val transactionId = message[Key.UUID.str].asText()
         val foresporselSvar = redisStore.get(RedisKey.of(transactionId, DataFelt.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
         val inntekt = redisStore.get(RedisKey.of(transactionId, DataFelt.INNTEKT))?.fromJson(Inntekt.serializer())

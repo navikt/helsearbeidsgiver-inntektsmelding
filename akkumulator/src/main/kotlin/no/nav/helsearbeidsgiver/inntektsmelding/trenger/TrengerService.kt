@@ -139,6 +139,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         val foresporselSvar = redisStore.get(RedisKey.of(transactionId, DataFelt.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
         val inntekt = redisStore.get(RedisKey.of(transactionId, DataFelt.INNTEKT))?.fromJson(Inntekt.serializer())
         val clientId = redisStore.get(RedisKey.of(transactionId, EventName.valueOf(message[Key.EVENT_NAME.str].asText())))
+        val feilReport: FeilReport? = redisStore.get(RedisKey.of(uuid = transactionId, Feilmelding("")))?.fromJson(FeilReport.serializer())
         val trengerData = TrengerData(
             fnr = foresporselSvar?.fnr,
             orgnr = foresporselSvar?.orgnr,
@@ -149,7 +150,8 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             egenmeldingsPerioder = foresporselSvar?.egenmeldingsperioder,
             forespurtData = foresporselSvar?.forespurtData,
             bruttoinntekt = inntekt?.gjennomsnitt(),
-            tidligereinntekter = inntekt?.historisk
+            tidligereinntekter = inntekt?.historisk,
+            feilReport = feilReport
         )
         val json = trengerData.toJsonStr(TrengerData.serializer())
         println(json)

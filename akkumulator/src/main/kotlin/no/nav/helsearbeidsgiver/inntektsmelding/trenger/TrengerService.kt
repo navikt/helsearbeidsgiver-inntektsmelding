@@ -144,7 +144,6 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     }
 
     override fun finalize(message: JsonMessage) {
-        if (message[Key.FAIL.str].isMissingOrNull()) return
         val transactionId = message[Key.UUID.str].asText()
         val foresporselSvar = redisStore.get(RedisKey.of(transactionId, DataFelt.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
         val inntekt = redisStore.get(RedisKey.of(transactionId, DataFelt.INNTEKT))?.fromJson(Inntekt.serializer())
@@ -169,6 +168,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     }
 
     override fun terminate(message: JsonMessage) {
+        if (message[Key.FAIL.str].isMissingOrNull()) return
         val transactionId = message[Key.UUID.str].asText()
         val fail = message.toFeilMessage()
         sikkerLogger().info("terminate transaction id $transactionId with evenname ${message[Key.EVENT_NAME.str].asText()}")

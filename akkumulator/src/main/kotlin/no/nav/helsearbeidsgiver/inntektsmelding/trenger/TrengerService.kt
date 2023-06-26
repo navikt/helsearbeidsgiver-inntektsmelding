@@ -29,6 +29,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 const val UNDEFINED_FELT: String = "{}"
 class TrengerService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
@@ -89,7 +90,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
         if (transaction == Transaction.NEW) {
-            no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.logger.info("${this.javaClass.simpleName} Dispatcher HENT_TRENGER_IM for $uuid")
+            sikkerLogger().info("${this.javaClass.simpleName} Dispatcher HENT_TRENGER_IM for $uuid")
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer().list()),
@@ -165,6 +166,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun terminate(message: JsonMessage) {
         val transactionId = message[Key.UUID.str].asText()
         val fail = message.toFeilMessage()
+        sikkerLogger().info("terminate transaction id $transactionId with evenname ${message[Key.EVENT_NAME.str].asText()}")
         val clientId = redisStore.get(RedisKey.of(transactionId, EventName.valueOf(message[Key.EVENT_NAME.str].asText())))!!
         // @TODO kan vare smartere her. Kan definere feilmeldingen i Feil message istedenfor å hardkode det i TrengerService. Vi også ikke trenger å sende alle andre ikke kritiske feilmeldinger hvis vi har noe kritisk
         val feilReport: FeilReport = redisStore.get(RedisKey.of(uuid = transactionId, Feilmelding("")))!!.fromJson(FeilReport.serializer())

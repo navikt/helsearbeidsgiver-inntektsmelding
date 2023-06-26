@@ -53,3 +53,28 @@ fun Boolean.toNorsk(): String {
 fun BegrunnelseIngenEllerRedusertUtbetalingKode.tekst(): String {
     return begrunnelseRefusjonTilTekst.getOrDefault(this, this.value)
 }
+
+private const val MAX_LINJELENGDE = 40
+
+fun delOppLangeNavn(tekst: String): List<String> {
+    if (tekst.length < MAX_LINJELENGDE) {
+        return listOf(tekst)
+    }
+    if (!tekst.contains(" ")) {
+        return tekst.chunked(MAX_LINJELENGDE)
+    }
+    return tekst.split(" ")
+        .fold(listOf<String>()) { result, word ->
+            val lastString = result.lastOrNull()
+            if (lastString != null && lastString.length + word.length  < MAX_LINJELENGDE) {
+                result.dropLastIfNotEmpty() + "$lastString $word"
+            } else {
+                result.plus(word)
+            }
+        }
+}
+
+fun <T> List<T>.dropLastIfNotEmpty(): List<T> {
+    return if (isNotEmpty()) dropLast(1) else this
+}
+

@@ -124,6 +124,7 @@ class InnsendingService(
                 println("I was not supposed to be hereeeeeeeeeeeeeeeeeeeeeee")
             }
             Transaction.TERMINATE -> {}
+            Transaction.KILL -> {}
         }
     }
 

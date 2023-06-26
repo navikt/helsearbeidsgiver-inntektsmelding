@@ -58,6 +58,9 @@ class KvitteringService(
             Transaction.TERMINATE -> {
                 logger.error("Mottok ${Transaction.TERMINATE}, skal ikke skje")
             }
+            Transaction.KILL -> {
+                logger.error("Mottok ${Transaction.KILL}, skal ikke skje")
+            }
         }
     }
 

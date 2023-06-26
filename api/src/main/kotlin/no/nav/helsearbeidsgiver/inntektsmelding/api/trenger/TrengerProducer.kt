@@ -22,11 +22,7 @@ class TrengerProducer(
         rapid.publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.FORESPOERSEL_ID to request.uuid.toJson(),
-            Key.CLIENT_ID to clientID.toString().toJson(),
-            Key.BOOMERANG to mapOf(
-                Key.INITIATE_ID.str to initiateId.toJson(),
-                Key.INITIATE_EVENT.str to EventName.TRENGER_REQUESTED.toJson(EventName.serializer())
-            ).toJson()
+            Key.CLIENT_ID to clientID.toString().toJson()
         )
             .also {
                 logger.info("Publiserte trenger behov id=$initiateId")

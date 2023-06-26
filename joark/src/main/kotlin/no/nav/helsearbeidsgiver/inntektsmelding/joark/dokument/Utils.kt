@@ -66,7 +66,7 @@ fun String.delOppLangeNavn(): List<String> {
     return this.split(" ")
         .fold(listOf<String>()) { result, word ->
             val lastString = result.lastOrNull()
-            if (lastString != null && lastString.length + word.length  < MAX_LINJELENGDE) {
+            if (lastString != null && lastString.length + word.length < MAX_LINJELENGDE) {
                 result.dropLastIfNotEmpty() + "$lastString $word"
             } else {
                 result.plus(word)
@@ -77,4 +77,3 @@ fun String.delOppLangeNavn(): List<String> {
 fun <T> List<T>.dropLastIfNotEmpty(): List<T> {
     return if (isNotEmpty()) dropLast(1) else this
 }
-

@@ -59,6 +59,10 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         var feilmelding: Feilmelding? = null
         if (feil.behov == BehovType.HENT_TRENGER_IM) {
             feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, datafelt = DataFelt.FORESPOERSEL_SVAR)
+            val feilKey = RedisKey.of(uuid, feilmelding)
+            val feilReport: FeilReport = redisStore.get(feilKey)?.fromJson(FeilReport.serializer()) ?: FeilReport()
+            feilReport.feil.add(feilmelding)
+            redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
             return Transaction.TERMINATE
         } else if (feil.behov == BehovType.VIRKSOMHET) {
             feilmelding = Feilmelding("Vi klarte ikke å hente virksomhet navn.", datafelt = DataFelt.VIRKSOMHET)
@@ -85,7 +89,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
         if (transaction == Transaction.NEW) {
-            logger().info("${this.javaClass.simpleName} Dispatcher HENT_TRENGER_IM for $uuid")
+            no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.logger.info("${this.javaClass.simpleName} Dispatcher HENT_TRENGER_IM for $uuid")
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer().list()),

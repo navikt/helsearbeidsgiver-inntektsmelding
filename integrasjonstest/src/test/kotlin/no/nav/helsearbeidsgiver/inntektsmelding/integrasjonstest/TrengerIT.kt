@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndT
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -39,7 +38,6 @@ class TrengerIT : EndToEndTest() {
     }
 
     @Test
-    @Disabled
     fun `Test trengerIM meldingsflyt`() {
         var transactionID = ""
         every {

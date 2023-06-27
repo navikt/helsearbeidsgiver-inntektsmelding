@@ -93,7 +93,7 @@ class InntektLøser(
             logger.info("Mottar pakke")
             sikkerLogger.info("Mottar pakke: ${packet.toJson()}")
             val uuid = packet[Key.UUID.str].asText()
-            logger.info("Løser behov $INNTEKT med id $uuid")
+            logger.info("Løser behov $INNTEKT med uuid $uuid")
             val trengerInntekt: TrengerInntekt
             if (packet[DataFelt.TRENGER_INNTEKT.str].isMissingOrNull()) {
                 val imLøsning = hentSpleisDataFraSession(packet)

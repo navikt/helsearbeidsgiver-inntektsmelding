@@ -86,7 +86,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
             )
         }
         if (løsning.error != null) {
-            val feilmelding = løsning.error!!.melding?:"Feil som kommer fra spleis , mangler feilmelding."
+            val feilmelding = løsning.error!!.melding ?: "Feil som kommer fra spleis , mangler feilmelding."
             context.publish(
                 Fail(
                     eventName = EventName.valueOf(initiateEvent.toJsonNode().asText()),

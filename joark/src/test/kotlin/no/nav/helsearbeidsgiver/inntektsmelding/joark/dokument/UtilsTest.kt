@@ -42,7 +42,6 @@ class UtilsTest {
     fun `del opp lange navn med mellomrom`() {
         val tekst = "Albert Fredriksens Saft- og Syltetøykokeri, avdeling Fredrikstad"
         val liste = tekst.delOppLangeNavn()
-        // liste.forEach { println(it) }
         assertEquals("Albert Fredriksens Saft- og", liste.first())
         assertEquals("Syltetøykokeri, avdeling Fredrikstad", liste.get(1))
     }

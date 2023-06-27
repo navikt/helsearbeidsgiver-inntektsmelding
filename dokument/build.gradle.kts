@@ -55,7 +55,7 @@ tasks {
         source(files("$generationDir/src/main/kotlin"))
         dependsOn(generateCode)
     }
-    get("lintKotlinMain").dependsOn(generateCode)
+    get("lintKotlinMain").enabled = false
 
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"

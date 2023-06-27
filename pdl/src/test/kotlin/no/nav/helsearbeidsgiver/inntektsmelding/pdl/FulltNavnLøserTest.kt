@@ -41,7 +41,6 @@ class FulltNavnLøserTest {
     }
 
     @Test
-    @Disabled
     fun `skal finne navn`() {
         coEvery {
             pdlClient.fullPerson(any(), any())
@@ -60,7 +59,6 @@ class FulltNavnLøserTest {
     }
 
     @Test
-    @Disabled
     fun `skal håndtere ukjente feil`() {
         val løsning = sendMessage(
             mapOf(

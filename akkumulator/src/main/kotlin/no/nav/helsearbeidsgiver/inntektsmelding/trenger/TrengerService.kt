@@ -140,8 +140,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer())
                 )
             }
-        }
-        else {
+        } else {
             logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
         }
     }

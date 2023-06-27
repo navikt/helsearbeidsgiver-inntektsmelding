@@ -123,7 +123,6 @@ class InnsendingService(
             else -> {
                 logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
             }
-
         }
     }
 

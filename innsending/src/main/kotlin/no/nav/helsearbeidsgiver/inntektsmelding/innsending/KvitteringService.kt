@@ -35,20 +35,19 @@ class KvitteringService(
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transactionId: String = message[Key.UUID.str].asText()
         if (transaction == Transaction.NEW) {
-                val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
-                logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
-                val msg = JsonMessage.newMessage(
-                    mapOf(
-                        Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
-                        Key.EVENT_NAME.str to event.name,
-                        Key.UUID.str to transactionId,
-                        Key.FORESPOERSEL_ID.str to forespoerselId
-                    )
-                ).toJson()
-                logger.info("Publiserer melding: $msg")
-                rapidsConnection.publish(msg)
-        }
-        else {
+            val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
+            logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
+            val msg = JsonMessage.newMessage(
+                mapOf(
+                    Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
+                    Key.EVENT_NAME.str to event.name,
+                    Key.UUID.str to transactionId,
+                    Key.FORESPOERSEL_ID.str to forespoerselId
+                )
+            ).toJson()
+            logger.info("Publiserer melding: $msg")
+            rapidsConnection.publish(msg)
+        } else {
             logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $transactionId")
         }
     }

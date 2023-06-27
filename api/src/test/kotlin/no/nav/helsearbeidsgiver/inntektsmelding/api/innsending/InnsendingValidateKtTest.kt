@@ -32,6 +32,7 @@ class InnsendingValidateKtTest {
     private val MAX_REFUSJON: BigDecimal = 1_000_001.0.toBigDecimal()
     private val NEGATIVT_BELØP: BigDecimal = (-0.1).toBigDecimal()
     private val MAX_NATURAL_BELØP: BigDecimal = 1_000_000.0.toBigDecimal()
+    private val ZERO: BigDecimal = 0.toBigDecimal()
 
     @Test
     fun `skal akseptere gyldig`() {
@@ -130,6 +131,12 @@ class InnsendingValidateKtTest {
             val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = NEGATIVT_BELØP)
             GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
         }
+    }
+
+    @Test
+    fun `skal tillate inntekt på 0 kroner`() {
+        val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = ZERO)
+        GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
     }
 
     @Test

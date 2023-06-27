@@ -85,12 +85,13 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                 Key.BOOMERANG to forespoerselSvar.boomerang
             )
         }
-        if (true) {
+        if (løsning.error != null) {
+            val feilmelding = løsning.error!!.melding?:"Feil som kommer fra spleis , mangler feilmelding."
             context.publish(
                 Fail(
                     eventName = EventName.valueOf(initiateEvent.toJsonNode().asText()),
                     behov = BehovType.HENT_TRENGER_IM,
-                    feilmelding = "Test fail",
+                    feilmelding = feilmelding,
                     forespørselId = forespoerselSvar.forespoerselId.toString(),
                     uuid = transactionID.toJsonNode().asText()
                 ).toJsonMessage().toJson()

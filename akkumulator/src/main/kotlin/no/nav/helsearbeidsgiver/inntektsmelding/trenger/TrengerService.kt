@@ -169,7 +169,6 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     }
 
     override fun terminate(message: JsonMessage) {
-        if (message[Key.FAIL.str].isMissingOrNull()) return
         val transactionId = message[Key.UUID.str].asText()
         val fail = message.toFeilMessage()
         sikkerLogger().info("terminate transaction id $transactionId with evenname ${message[Key.EVENT_NAME.str].asText()}")

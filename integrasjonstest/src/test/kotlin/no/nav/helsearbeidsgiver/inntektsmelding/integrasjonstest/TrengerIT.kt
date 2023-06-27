@@ -48,11 +48,7 @@ class TrengerIT : EndToEndTest() {
             mapOf(
                 Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 Key.CLIENT_ID.str to CLIENT_ID,
-                DataFelt.FORESPOERSEL_ID.str to FORESPØRSEL_ID,
-                Key.BOOMERANG to mapOf(
-                    Key.INITIATE_ID.str to INITIATED_ID,
-                    Key.INITIATE_EVENT.str to EventName.TRENGER_REQUESTED.name
-                )
+                DataFelt.FORESPOERSEL_ID.str to FORESPØRSEL_ID
             )
         )
 
@@ -99,4 +95,5 @@ class TrengerIT : EndToEndTest() {
         val objekt = trengerResultatJson?.fromJson(TrengerData.serializer())
         println(objekt)
     }
+    
 }

@@ -1,5 +1,6 @@
 
 import org.jmailen.gradle.kotlinter.tasks.FormatTask
+import org.jmailen.gradle.kotlinter.tasks.LintTask
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -54,6 +55,7 @@ tasks {
         source(files("$generationDir/src/main/kotlin"))
         dependsOn(generateCode)
     }
+    get("lintKotlinMain").dependsOn(generateCode)
 
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"

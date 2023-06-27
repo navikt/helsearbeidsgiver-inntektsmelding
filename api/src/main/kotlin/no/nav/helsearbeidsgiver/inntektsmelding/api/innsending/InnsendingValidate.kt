@@ -48,7 +48,7 @@ fun InnsendingRequest.validate() {
         // Brutto inntekt
         validate(InnsendingRequest::inntekt).validate {
             validate(Inntekt::bekreftet).isTrue()
-            validate(Inntekt::beregnetInntekt).isGreaterThan(0.0.toBigDecimal())
+            validate(Inntekt::beregnetInntekt).isGreaterThanOrEqualTo(0.0.toBigDecimal())
             validate(Inntekt::beregnetInntekt).isLessThan(1_000_000.0.toBigDecimal())
             if (it.manueltKorrigert) {
                 validate(Inntekt::endringÅrsak).isNotNull()

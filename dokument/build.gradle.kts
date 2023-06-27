@@ -40,7 +40,6 @@ tasks {
         outputs.dir(generationDir)
         outputs.cacheIf { true }
         classpath(fabrikt)
-        main = "com.cjbooms.fabrikt.cli.CodeGen"
         args = listOf(
             "--output-directory", generationDir,
             "--base-package", "no.nav.helsearbeidsgiver.felles.inntektsmelding.felles",

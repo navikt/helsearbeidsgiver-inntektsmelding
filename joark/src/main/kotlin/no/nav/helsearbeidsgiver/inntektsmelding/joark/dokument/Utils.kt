@@ -57,21 +57,20 @@ fun BegrunnelseIngenEllerRedusertUtbetalingKode.tekst(): String {
 private const val MAX_LINJELENGDE = 40
 
 fun String.delOppLangeNavn(): List<String> {
-    if (this.length < MAX_LINJELENGDE) {
-        return listOf(this)
+    return when {
+        this.length < MAX_LINJELENGDE -> listOf(this)
+        !this.contains(" ") -> this.chunked(MAX_LINJELENGDE)
+        else ->
+            this.split(" ")
+                .fold(listOf<String>()) { result, word ->
+                    val lastString = result.lastOrNull()
+                    if (lastString != null && lastString.length + word.length < MAX_LINJELENGDE) {
+                        result.dropLastIfNotEmpty() + "$lastString $word"
+                    } else {
+                        result.plus(word)
+                    }
+                }
     }
-    if (!this.contains(" ")) {
-        return this.chunked(MAX_LINJELENGDE)
-    }
-    return this.split(" ")
-        .fold(listOf<String>()) { result, word ->
-            val lastString = result.lastOrNull()
-            if (lastString != null && lastString.length + word.length < MAX_LINJELENGDE) {
-                result.dropLastIfNotEmpty() + "$lastString $word"
-            } else {
-                result.plus(word)
-            }
-        }
 }
 
 fun <T> List<T>.dropLastIfNotEmpty(): List<T> {

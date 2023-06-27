@@ -23,6 +23,7 @@ class UtilsTest {
         val tekst = "Hei og hå"
         val liste = tekst.delOppLangeNavn()
         assertEquals(tekst, liste.first())
+        assertEquals(1, liste.size)
     }
 
     @Test

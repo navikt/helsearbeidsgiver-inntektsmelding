@@ -66,9 +66,16 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         moveCursorBy(pdf.sectionSize * 2)
     }
 
-    private fun addLabel(label: String, text: String? = null, x: Int = KOLONNE_EN, newY: Int = y, linefeed: Boolean = true, splitLinjer: Boolean = false) {
+    private fun addLabel(
+        label: String,
+        text: String? = null,
+        x: Int = KOLONNE_EN,
+        newY: Int = y,
+        linefeed: Boolean = true,
+        splitLines: Boolean = false
+    ) {
         pdf.addText(label, x, newY, BOLD_LABELS)
-        if (splitLinjer && text != null) {
+        if (splitLines && text != null) {
             text.delOppLangeNavn().forEach {
                 pdf.addText(it, x, y + pdf.bodySize + (pdf.bodySize / 2), !BOLD_LABELS)
                 moveCursorBy(pdf.bodySize * 2)
@@ -111,10 +118,10 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
 
     private fun addArbeidsgiver() {
         addSection("Arbeidsgiveren")
-        val vY = y
-        addLabel("Virksomhetsnavn", dokument.virksomhetNavn, linefeed = false, splitLinjer = true)
+        val topY = y
+        addLabel("Virksomhetsnavn", dokument.virksomhetNavn, linefeed = false, splitLines = true)
         val afterY = y
-        moveCursorTo(vY)
+        moveCursorTo(topY)
         addLabel("Organisasjonsnummer for underenhet", dokument.orgnrUnderenhet, KOLONNE_TO)
         moveCursorTo(afterY)
     }

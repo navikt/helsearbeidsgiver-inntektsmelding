@@ -113,9 +113,8 @@ class PdfDokumentTest {
             virksomhetNavn = "Blå Rød Grønn Blåbærebærekraftsvennligutendørsbedrift AS"
         )
         val forventetInnhold = "Blå Rød Grønn\nBlåbærebærekraftsvennligutendørsbedrift\nAS"
-        // writePDF("lang_navn", imLangNavn)
-        val s = extractTextFromPdf(PdfDokument(imLangNavn).export())
-        assert(s!!.contains(forventetInnhold))
+        val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
+        assert(pdfTekst!!.contains(forventetInnhold))
     }
 
     @Test

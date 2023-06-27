@@ -98,8 +98,7 @@ class InntektLøser(
             if (packet[DataFelt.TRENGER_INNTEKT.str].isMissingOrNull()) {
                 val imLøsning = hentSpleisDataFraSession(packet)
                 if (imLøsning.value == null) {
-                    // @TODO publish fail
-                    publishFail(packet.createFail("Mangler sykmeldingsperiode", behovType = BehovType.INNTEKT))
+                    publishFail(packet.createFail("Mangler data fra Spleis", behovType = BehovType.INNTEKT))
                     return
                 }
                 trengerInntekt = imLøsning.value!!

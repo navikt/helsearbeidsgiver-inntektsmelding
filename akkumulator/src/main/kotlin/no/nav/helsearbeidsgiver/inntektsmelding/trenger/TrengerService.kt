@@ -25,11 +25,11 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
+import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.logger
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
-import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 const val UNDEFINED_FELT: String = "{}"
@@ -110,14 +110,14 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             message.interestedIn(DataFelt.FORESPOERSEL_SVAR.str)
             if (isDataCollected(*step1data(uuid)) && !message[DataFelt.FORESPOERSEL_SVAR.str].isMissingNode) {
                 val forespurtData: TrengerInntekt = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
-                logger().info("${this.javaClass.simpleName} Dispatcher VIRKSOMHET for $uuid")
+                logger.info("${this.javaClass.simpleName} Dispatcher VIRKSOMHET for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer().list()),
                     Key.UUID to uuid.toJson(),
                     DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
                 )
-                logger().info("${this.javaClass.simpleName} dispatcher FULLT_NAVN for $uuid")
+                logger.info("${this.javaClass.simpleName} dispatcher FULLT_NAVN for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(BehovType.serializer().list()),
@@ -132,7 +132,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
                 )
 */
-                logger().info("${this.javaClass.simpleName} Dispatcher INNTEKT for $uuid")
+                logger.info("${this.javaClass.simpleName} Dispatcher INNTEKT for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer().list()),
@@ -140,6 +140,9 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer())
                 )
             }
+        }
+        else {
+            logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
         }
     }
 
@@ -163,7 +166,6 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             feilReport = feilReport
         )
         val json = trengerData.toJsonStr(TrengerData.serializer())
-        println(json)
         redisStore.set(RedisKey.of(clientId!!), json)
     }
 

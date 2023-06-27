@@ -31,7 +31,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
             Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
             Transaction.FINALIZE -> finalize(packet)
             Transaction.TERMINATE -> terminate(packet)
-            Transaction.KILL -> return
+            Transaction.NOT_ACTIVE -> return
         }
     }
 
@@ -47,7 +47,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         val eventKey = RedisKey.of(transactionId, event)
         val value = redisStore.get(eventKey)
         if (value.isNullOrEmpty()) {
-            if (!isEventMelding(message)) return Transaction.KILL
+            if (!isEventMelding(message)) return Transaction.NOT_ACTIVE
 
             val clientId = if (message[Key.CLIENT_ID.str].isMissingOrNull()) transactionId else message[Key.CLIENT_ID.str].asText()
             redisStore.set(eventKey, clientId)

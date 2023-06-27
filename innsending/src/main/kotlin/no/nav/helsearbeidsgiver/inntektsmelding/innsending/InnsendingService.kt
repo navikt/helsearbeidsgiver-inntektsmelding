@@ -120,11 +120,10 @@ class InnsendingService(
                     )
                 }
             }
-            Transaction.FINALIZE -> {
-                println("I was not supposed to be hereeeeeeeeeeeeeeeeeeeeeee")
+            else -> {
+                logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
             }
-            Transaction.TERMINATE -> {}
-            Transaction.KILL -> {}
+
         }
     }
 

@@ -95,5 +95,4 @@ class TrengerIT : EndToEndTest() {
         val objekt = trengerResultatJson?.fromJson(TrengerData.serializer())
         println(objekt)
     }
-    
 }

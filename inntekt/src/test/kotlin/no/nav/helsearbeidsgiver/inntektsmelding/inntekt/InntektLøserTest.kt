@@ -11,11 +11,13 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.test.date.april
 import no.nav.helsearbeidsgiver.felles.test.date.februar
@@ -110,6 +112,7 @@ class InntektLøserTest {
         } returns response
 
         rapid.sendJson(
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.BEHOV to listOf(BehovType.FULLT_NAVN, BehovType.INNTEKT).toJson(BehovType.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.UUID to "uuid".toJson(),
@@ -193,6 +196,7 @@ class InntektLøserTest {
 
     private fun sendBehovTilLøser() {
         rapid.sendJson(
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.BEHOV to listOf(BehovType.FULLT_NAVN, BehovType.INNTEKT).toJson(BehovType.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.UUID to "uuid".toJson(),
@@ -204,6 +208,7 @@ class InntektLøserTest {
     //  samt mangler både inntekt_dato og sykmeldingperiode
     private fun sendBehovForOppdatertInntektTilLøser() {
         rapid.sendJson(
+            Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
             Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
             Key.ID to UUID.randomUUID().toJson(),
             Key.UUID to "uuid".toJson(),

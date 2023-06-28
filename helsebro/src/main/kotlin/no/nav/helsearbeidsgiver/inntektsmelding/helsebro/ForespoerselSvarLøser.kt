@@ -7,10 +7,15 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -60,20 +65,45 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
 
         val initiateEvent = forespoerselSvar.boomerang.fromJsonMap(String.serializer())[Key.INITIATE_EVENT.str]
             ?: throw IllegalArgumentException("Mangler ${Key.INITIATE_EVENT} i ${Key.BOOMERANG}.")
+        val transactionID = forespoerselSvar.boomerang.fromJsonMap(String.serializer())[Key.INITIATE_ID.str]
+            ?: throw IllegalArgumentException("Mangler ${Key.INITIATE_ID} i ${Key.BOOMERANG}.")
+        val løsning: HentTrengerImLøsning = forespoerselSvar.toHentTrengerImLøsning()
+
+        if (initiateEvent.fromJson(EventName.serializer()) != EventName.TRENGER_REQUESTED) {
+            context.publish(
+                Key.EVENT_NAME to initiateEvent,
+                Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
+                Key.LØSNING to mapOf(
+                    BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
+                )
+                    .toJson(
+                        MapSerializer(
+                            BehovType.serializer(),
+                            HentTrengerImLøsning.serializer()
+                        )
+                    ),
+                Key.BOOMERANG to forespoerselSvar.boomerang
+            )
+        }
+        if (løsning.error != null) {
+            val feilmelding = løsning.error!!.melding ?: "Feil som kommer fra spleis , mangler feilmelding."
+            context.publish(
+                Fail(
+                    eventName = EventName.valueOf(initiateEvent.toJsonNode().asText()),
+                    behov = BehovType.HENT_TRENGER_IM,
+                    feilmelding = feilmelding,
+                    forespørselId = forespoerselSvar.forespoerselId.toString(),
+                    uuid = transactionID.toJsonNode().asText()
+                ).toJsonMessage().toJson()
+            )
+        }
         context.publish(
             Key.EVENT_NAME to initiateEvent,
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
-            Key.LØSNING to mapOf(
-                BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
-            )
-                .toJson(
-                    MapSerializer(
-                        BehovType.serializer(),
-                        HentTrengerImLøsning.serializer()
-                    )
-                ),
-            Key.BOOMERANG to forespoerselSvar.boomerang
+            Key.DATA to "".toJson(),
+            Key.UUID to transactionID,
+            DataFelt.FORESPOERSEL_SVAR to løsning.value!!.toJson(TrengerInntekt.serializer()!!)
         )
+
         logger.info("Recieve answer from helsebro for " + forespoerselSvar.forespoerselId + " current time" + System.currentTimeMillis())
         logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")
     }

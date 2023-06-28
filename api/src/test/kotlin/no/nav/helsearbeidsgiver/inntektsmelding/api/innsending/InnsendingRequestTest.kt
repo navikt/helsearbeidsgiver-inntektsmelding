@@ -118,9 +118,13 @@ class InnsendingRequestTest {
 
     @Test
     fun `skal gi feil dersom bruttoInntekt er negativ`() {
-        assertThrows<ConstraintViolationException> {
+        try {
             val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = NEGATIVT_BELØP)
             GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
+        } catch (ex: ConstraintViolationException) {
+            val response = validationResponseMapper(ex.constraintViolations)
+            assertEquals("inntekt.beregnetInntekt", response.errors[0].property)
+            assertEquals("Må være større eller lik 0", response.errors[0].error)
         }
     }
 

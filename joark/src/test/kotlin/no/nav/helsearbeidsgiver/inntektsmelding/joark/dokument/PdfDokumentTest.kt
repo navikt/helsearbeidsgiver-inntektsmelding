@@ -108,6 +108,29 @@ class PdfDokumentTest {
     }
 
     @Test
+    fun `med langt virksomhetsnavn over flere linjer`() {
+        val imLangNavn = im.copy(
+            virksomhetNavn = "Blå Rød Grønn Blåbærebærekraftsvennligutendørsbedrift AS"
+        )
+        val forventetInnhold = "Blå Rød Grønn\nBlåbærebærekraftsvennligutendørsbedrift\nAS"
+        val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
+        assert(pdfTekst!!.contains(forventetInnhold))
+    }
+
+    @Test
+    fun `med begrunnelse`() {
+        writePDF(
+            "med_begrunnelse",
+            im.copy(
+                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                    false,
+                    begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FERIE_ELLER_AVSPASERING
+                )
+            )
+        )
+    }
+
+    @Test
     fun `med inntekt endring årsak - alle varianter`() {
         val perioder = listOf(Periode(dag, dag.plusDays(12)), Periode(dag.plusDays(13), dag.plusDays(18)))
         val map = HashMap<String, InntektEndringAarsak>()

@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.felles.json
 
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -19,7 +18,9 @@ fun <T : Any> KSerializer<T>.løsning(): KSerializer<Løsning<T>> =
 
 fun EventName.toJson(): JsonElement =
     toJson(EventName.serializer())
+
 fun BehovType.toJson(): JsonElement =
     toJson(BehovType.serializer())
+
 fun DataFelt.toJson(): JsonElement =
     toJson(DataFelt.serializer())

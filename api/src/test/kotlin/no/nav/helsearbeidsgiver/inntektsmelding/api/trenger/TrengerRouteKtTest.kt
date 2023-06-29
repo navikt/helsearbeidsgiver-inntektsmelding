@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
+import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.test.date.april
@@ -34,6 +35,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
@@ -46,7 +48,11 @@ class TrengerRouteKtTest : ApiTest() {
     fun `skal returnere resultat og status CREATED når trenger virker`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns Mock.RESULTAT_HAR_TILGANG andThen Mock.RESULTAT_OK
+        } returns Mock.RESULTAT_HAR_TILGANG
+
+        coEvery {
+            anyConstructed<RedisPoller>().getString(any(), any(), any())
+        } returns Mock.TRENGER_DATA_OK.toJsonStr(TrengerData.serializer())
 
         val expectedJson = Mock.trengerResponseJson()
 
@@ -116,6 +122,19 @@ private object Mock {
     val RESULTAT_IKKE_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.IKKE_TILGANG))
     val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
     val RESULTAT_TILGANG_FEIL = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(error = Feilmelding("feil", 500)))
+
+    val TRENGER_DATA_OK = TrengerData(
+        fnr = trengerInntekt().fnr,
+        orgnr = trengerInntekt().orgnr,
+        personDato = PersonDato("Ola Normann", 1.mai),
+        virksomhetNavn = "Norge AS",
+        inntekt = inntekt(),
+        fravarsPerioder = trengerInntekt().sykmeldingsperioder,
+        egenmeldingsPerioder = trengerInntekt().egenmeldingsperioder,
+        forespurtData = trengerInntekt().forespurtData,
+        bruttoinntekt = inntekt().gjennomsnitt(),
+        tidligereinntekter = inntekt().historisk
+    )
 
     fun trengerResponseJson(): String {
         val mockTrengerInntekt = trengerInntekt()

@@ -17,8 +17,18 @@ data class Data<T>(
 @Serializable
 data class Feilmelding(
     val melding: String,
-    val status: Int? = null
+    val status: Int? = null,
+    val datafelt: DataFelt? = null
 )
+
+@Serializable
+data class FeilReport(
+    val feil: MutableList<Feilmelding> = mutableListOf()
+) {
+    fun status(): Int {
+        return feil.find { it.status ?: 0 < 0 }?.status ?: 0
+    }
+}
 
 @Serializable
 data class NavnLøsning(

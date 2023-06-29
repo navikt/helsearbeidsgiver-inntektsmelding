@@ -1,8 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
@@ -19,6 +21,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.valiktor.ConstraintViolationException
 
 fun RouteExtra.trengerRoute() {
@@ -42,11 +45,13 @@ fun RouteExtra.trengerRoute() {
                 )
 
                 val trengerId = trengerProducer.publish(request)
-                val resultat = redis.getResultat(trengerId.toString(), 10, 500)
+                val resultat = redis.getString(trengerId.toString(), 10, 500)
                 sikkerLogger.info("Fikk resultat: $resultat")
-
-                val mapper = TrengerMapper(resultat)
-                respond(mapper.getStatus(), mapper.getResponse(), TrengerResponse.serializer())
+                val trengerResponse = mapTrengerResponse(resultat.fromJson(TrengerData.serializer()))
+                val status = if (trengerResponse.feilReport == null) {
+                    HttpStatusCode.Created
+                } else if (trengerResponse.feilReport.status() < 0) HttpStatusCode.ServiceUnavailable else HttpStatusCode.Created
+                respond(status, trengerResponse, TrengerResponse.serializer())
             } catch (e: ManglerAltinnRettigheterException) {
                 respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
             } catch (e: ConstraintViolationException) {
@@ -58,4 +63,21 @@ fun RouteExtra.trengerRoute() {
             }
         }
     }
+}
+
+fun mapTrengerResponse(trengerData: TrengerData): TrengerResponse {
+    return TrengerResponse(
+        navn = trengerData.personDato?.navn ?: "",
+        orgNavn = trengerData.virksomhetNavn ?: "",
+        identitetsnummer = trengerData.fnr ?: "",
+        orgnrUnderenhet = trengerData.orgnr ?: "",
+        fravaersperioder = trengerData.fravarsPerioder ?: emptyList(),
+        egenmeldingsperioder = trengerData.egenmeldingsPerioder ?: emptyList(),
+        bruttoinntekt = trengerData.bruttoinntekt,
+        tidligereinntekter = trengerData.tidligereinntekter ?: emptyList(),
+        behandlingsperiode = null,
+        behandlingsdager = emptyList(),
+        forespurtData = trengerData.forespurtData ?: emptyList(),
+        feilReport = trengerData.feilReport
+    )
 }

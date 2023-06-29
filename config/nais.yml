@@ -98,5 +98,5 @@ spec:
           {{#if app.namespace}}
           namespace: {{ app.namespace }}
           {{/if}}
-        {{/each}}{{/if}}        
+        {{/each}}{{/if}}
         

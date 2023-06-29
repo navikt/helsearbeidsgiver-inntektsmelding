@@ -24,7 +24,7 @@ class MockRedisStore : IRedisStore {
     }
 
     override fun get(key: RedisKey): String? {
-        TODO("Not yet implemented")
+        return store.get(key.toString())
     }
 
     override fun <T : Any> get(key: RedisKey, clazz: Class<T>): T? {

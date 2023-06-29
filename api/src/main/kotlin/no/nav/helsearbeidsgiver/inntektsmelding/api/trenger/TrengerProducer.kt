@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -19,21 +18,17 @@ class TrengerProducer(
 
     fun publish(request: TrengerRequest, initiateId: UUID = UUID.randomUUID()): UUID {
         sikkerLogger.info("trenger request is $request")
+        val clientID = UUID.randomUUID()
         rapid.publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-            Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
             Key.FORESPOERSEL_ID to request.uuid.toJson(),
-            Key.BOOMERANG to mapOf(
-                Key.NESTE_BEHOV.str to listOf(BehovType.PREUTFYLL).toJson(BehovType.serializer()),
-                Key.INITIATE_ID.str to initiateId.toJson(),
-                Key.INITIATE_EVENT.str to EventName.TRENGER_REQUESTED.toJson(EventName.serializer())
-            ).toJson()
+            Key.CLIENT_ID to clientID.toString().toJson()
         )
             .also {
                 logger.info("Publiserte trenger behov id=$initiateId")
                 sikkerLogger.info("Publiserte trenger behov id=$initiateId json=$it")
             }
 
-        return initiateId
+        return clientID
     }
 }

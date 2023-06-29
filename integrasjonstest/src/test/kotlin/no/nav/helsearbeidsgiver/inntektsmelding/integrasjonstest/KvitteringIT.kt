@@ -52,7 +52,7 @@ class KvitteringIT : EndToEndTest() {
                 Key.FORESPOERSEL_ID.str to GYLDIG_FORESPØRSEL_ID
             )
         )
-        Thread.sleep(5000)
+        Thread.sleep(10000)
         assertNotNull(messages)
         with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
             assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
@@ -60,5 +60,6 @@ class KvitteringIT : EndToEndTest() {
             assertNotEquals(INNTEKTSMELDING_NOT_FOUND, get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
             // assertEquals(transactionId, get(Key.UUID.str).asText())
         }
+        assertNotNull(redisStore.get(clientId))
     }
 }

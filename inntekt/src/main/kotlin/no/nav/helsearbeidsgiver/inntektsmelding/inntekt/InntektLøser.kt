@@ -10,13 +10,18 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
@@ -59,20 +64,16 @@ fun finnSkjæringstidspunkt(sykmeldinger: List<Periode>): LocalDate =
 class InntektLøser(
     rapidsConnection: RapidsConnection,
     private val inntektKlient: InntektKlient
-) : River.PacketListener {
+) : Løser(rapidsConnection) {
 
     private val logger = logger()
     private val INNTEKT = BehovType.INNTEKT
 
-    init {
-        River(rapidsConnection).apply {
-            validate {
-                it.demandAll(Key.BEHOV.str, INNTEKT)
-                it.requireKey(Key.ID.str, Key.SESSION.str)
-                it.interestedIn(Key.BOOMERANG.str) // TODO: forsøk å heller splitte opp i to løsere
-                it.rejectKey(Key.LØSNING.str)
-            }
-        }.register(this)
+    override fun accept(): River.PacketValidation = River.PacketValidation {
+        it.demandAll(Key.BEHOV.str, INNTEKT)
+        it.interestedIn(Key.ID.str, Key.SESSION.str, DataFelt.TRENGER_INNTEKT.str)
+        it.interestedIn(Key.BOOMERANG.str) // TODO: forsøk å heller splitte opp i to løsere
+        it.rejectKey(Key.LØSNING.str)
     }
 
     private fun hentInntekt(fnr: String, periode: Periode, callId: String): InntektskomponentResponse =
@@ -87,25 +88,37 @@ class InntektLøser(
             response
         }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onBehov(packet: JsonMessage) {
         measureTimeMillis {
             logger.info("Mottar pakke")
             sikkerLogger.info("Mottar pakke: ${packet.toJson()}")
-            val uuid = packet[Key.ID.str].asText()
-            logger.info("Løser behov $INNTEKT med id $uuid")
-            val imLøsning = hentSpleisDataFraSession(packet)
-            val fnr = imLøsning.value!!.fnr
-            val orgnr = imLøsning.value!!.orgnr
+            val uuid = packet[Key.UUID.str].asText()
+            logger.info("Løser behov $INNTEKT med uuid $uuid")
+            val trengerInntekt: TrengerInntekt
+            if (packet[DataFelt.TRENGER_INNTEKT.str].isMissingOrNull()) {
+                val imLøsning = hentSpleisDataFraSession(packet)
+                if (imLøsning.value == null) {
+                    publishFail(packet.createFail("Mangler data fra Spleis", behovType = BehovType.INNTEKT))
+                    return
+                }
+                trengerInntekt = imLøsning.value!!
+            } else {
+                trengerInntekt = packet[DataFelt.TRENGER_INNTEKT.str].toJsonElement().fromJson(TrengerInntekt.serializer())
+            }
+
+            val fnr = trengerInntekt.fnr
+            val orgnr = trengerInntekt.orgnr
             val nyInntektDato = packet.valueNullable(Key.BOOMERANG)
                 ?.toJsonElement()
                 ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
                 ?.get(Key.INNTEKT_DATO)
                 ?.fromJson(LocalDateSerializer)
-            val sykPeriode = bestemPeriode(nyInntektDato, imLøsning.value?.sykmeldingsperioder, imLøsning.value?.egenmeldingsperioder)
+            val sykPeriode = bestemPeriode(nyInntektDato, trengerInntekt.sykmeldingsperioder, trengerInntekt.egenmeldingsperioder)
             if (sykPeriode.isEmpty()) {
                 logger.error("Sykmeldingsperiode mangler for uuid $uuid")
                 packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Mangler sykmeldingsperiode")))
-                context.publish(packet.toJson())
+                rapidsConnection.publish(packet.toJson())
+                publishFail(packet.createFail("Mangler sykmeldingsperiode", behovType = BehovType.INNTEKT))
                 return
             }
             try {
@@ -115,12 +128,22 @@ class InntektLøser(
                 sikkerLogger.info("Fant inntektResponse: $inntektResponse")
                 val inntekt = mapInntekt(inntektResponse, orgnr)
                 packet.setLøsning(INNTEKT, InntektLøsning(inntekt))
-                context.publish(packet.toJson())
+                rapidsConnection.publish(packet.toJson())
+                publishData(
+                    JsonMessage.newMessage(
+                        mapOf(
+                            Key.UUID.str to uuid,
+                            Key.DATA.str to "",
+                            DataFelt.INNTEKT.str to inntekt
+                        )
+                    )
+                )
                 sikkerLogger.info("Fant inntekt $inntekt for $fnr og orgnr $orgnr")
             } catch (ex: Exception) {
                 sikkerLogger.error("Feil ved henting av inntekt for $fnr!", ex)
                 packet.setLøsning(INNTEKT, InntektLøsning(error = Feilmelding("Klarte ikke hente inntekt")))
-                context.publish(packet.toJson())
+                rapidsConnection.publish(packet.toJson())
+                publishFail(packet.createFail("Klarte ikke hente inntekt", behovType = BehovType.INNTEKT))
             }
         }.also {
             logger.info("Inntekt Løser took $it")

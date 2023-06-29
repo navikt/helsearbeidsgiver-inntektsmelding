@@ -34,7 +34,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 const val UNDEFINED_FELT: String = "{}"
 class TrengerService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
 
-    override val event: EventName = EventName.TRENGER_REQUESTED
+    val event: EventName = EventName.TRENGER_REQUESTED
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
@@ -90,10 +90,10 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
         sikkerLogger().info("Dispatcher for $uuid with trans state $transaction")
-        println("Dispatcher for $uuid with trans state $transaction")
+        logger.info("Dispatcher for $uuid with trans state $transaction")
         if (transaction == Transaction.NEW) {
-            sikkerLogger().info("Dispatcher HENT_TRENGER_IM for $uuid")
             sikkerLogger().info("${this.javaClass.simpleName} Dispatcher HENT_TRENGER_IM for $uuid")
+            logger.info("${this.javaClass.simpleName} Dispatcher HENT_TRENGER_IM for $uuid")
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer().list()),
@@ -109,6 +109,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             if (isDataCollected(*step1data(uuid)) && !message[DataFelt.FORESPOERSEL_SVAR.str].isMissingNode) {
                 val forespurtData: TrengerInntekt = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
                 logger.info("${this.javaClass.simpleName} Dispatcher VIRKSOMHET for $uuid")
+                sikkerLogger().info("${this.javaClass.simpleName} Dispatcher VIRKSOMHET for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer().list()),
@@ -116,6 +117,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
                 )
                 logger.info("${this.javaClass.simpleName} dispatcher FULLT_NAVN for $uuid")
+                sikkerLogger().info("${this.javaClass.simpleName} dispatcher FULLT_NAVN for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(BehovType.serializer().list()),
@@ -131,6 +133,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 )
 */
                 logger.info("${this.javaClass.simpleName} Dispatcher INNTEKT for $uuid")
+                sikkerLogger().info("${this.javaClass.simpleName} Dispatcher INNTEKT for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer().list()),
@@ -140,6 +143,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             }
         } else {
             logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
+            sikkerLogger().error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
         }
     }
 
@@ -169,7 +173,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun terminate(message: JsonMessage) {
         val transactionId = message[Key.UUID.str].asText()
         val fail = message.toFeilMessage()
-        sikkerLogger().info("terminate transaction id $transactionId with evenname ${message[Key.EVENT_NAME.str].asText()}")
+        sikkerLogger().info("terminate transaction id $transactionId with eventname ${message[Key.EVENT_NAME.str].asText()}")
         val clientId: String? = redisStore.get(RedisKey.of(transactionId, EventName.valueOf(message[Key.EVENT_NAME.str].asText())))
         // @TODO kan vare smartere her. Kan definere feilmeldingen i Feil message istedenfor å hardkode det i TrengerService. Vi også ikke trenger å sende alle andre ikke kritiske feilmeldinger hvis vi har noe kritisk
         val feilReport: FeilReport = redisStore.get(RedisKey.of(uuid = transactionId, Feilmelding("")))!!.fromJson(FeilReport.serializer())

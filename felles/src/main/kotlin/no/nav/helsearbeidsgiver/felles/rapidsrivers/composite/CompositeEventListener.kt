@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
 
-    private lateinit var dataKanal: StatefullDataKanal
+    private lateinit var dataKanal: StatefullDataKanal // state! :/
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val transaction: Transaction = determineTransactionState(packet)
@@ -67,6 +67,16 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         }
     }
 
+    fun isEventMelding(jsonMessage: JsonMessage): Boolean {
+        return try {
+            !(jsonMessage[Key.EVENT_NAME.str].isMissingOrNull()) &&
+                (jsonMessage[Key.DATA.str].isMissingNode && jsonMessage[Key.FAIL.str].isMissingNode && jsonMessage[Key.BEHOV.str].isMissingNode)
+        } catch (e: NoSuchFieldError) {
+            false
+        } catch (e: IllegalArgumentException) {
+            false
+        }
+    }
     abstract fun dispatchBehov(message: JsonMessage, transaction: Transaction)
     abstract fun finalize(message: JsonMessage)
     abstract fun terminate(message: JsonMessage)

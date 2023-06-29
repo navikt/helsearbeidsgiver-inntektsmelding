@@ -14,3 +14,20 @@ data class Resultat(
     val PERSISTER_IM: PersisterImLøsning? = null,
     val TILGANGSKONTROLL: TilgangskontrollLøsning? = null
 )
+
+@Serializable
+data class TrengerData(
+    val fnr: String? = null,
+    val orgnr: String? = null,
+    val personDato: PersonDato? = null,
+    val virksomhetNavn: String? = null,
+    val arbeidsforhold: List<Arbeidsforhold>? = null,
+    val inntekt: Inntekt? = null,
+    val fravarsPerioder: List<Periode>? = null,
+    val egenmeldingsPerioder: List<Periode>? = null,
+    val forespurtData: List<ForespurtData>? = null,
+    val bruttoinntekt: Double? = null,
+    val tidligereinntekter: List<MottattHistoriskInntekt>? = null,
+    val feilReport: FeilReport? = null
+
+)

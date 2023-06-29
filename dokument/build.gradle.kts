@@ -40,6 +40,7 @@ tasks {
         outputs.dir(generationDir)
         outputs.cacheIf { true }
         classpath(fabrikt)
+        mainClass.set("com.cjbooms.fabrikt.cli.CodeGen")
         args = listOf(
             "--output-directory", generationDir,
             "--base-package", "no.nav.helsearbeidsgiver.felles.inntektsmelding.felles",
@@ -53,6 +54,7 @@ tasks {
         source(files("$generationDir/src/main/kotlin"))
         dependsOn(generateCode)
     }
+    get("lintKotlinMain").enabled = false
 
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"

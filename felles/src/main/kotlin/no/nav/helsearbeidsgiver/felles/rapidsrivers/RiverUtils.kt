@@ -41,6 +41,11 @@ fun JsonMessage.require(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> An
     validate(JsonMessage::require, keyStringAndParserPairs)
 }
 
+fun JsonMessage.interestedIn(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> Any>) {
+    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(IKey::str) }
+    validate(JsonMessage::interestedIn, keyStringAndParserPairs)
+}
+
 fun JsonMessage.interestedIn(vararg keys: IKey) {
     val keysAsStr = keys.map(IKey::str).toTypedArray()
     interestedIn(*keysAsStr)

@@ -33,31 +33,22 @@ class KvitteringService(
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
-        when (transaction) {
-            Transaction.NEW -> {
-                val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
-                val transactionId: String = message[Key.UUID.str].asText()
-                logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
-                val msg = JsonMessage.newMessage(
-                    mapOf(
-                        Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
-                        Key.EVENT_NAME.str to event.name,
-                        Key.UUID.str to transactionId,
-                        Key.FORESPOERSEL_ID.str to forespoerselId
-                    )
-                ).toJson()
-                logger.info("Publiserer melding: $msg")
-                rapidsConnection.publish(msg)
-            }
-            Transaction.IN_PROGRESS -> {
-                logger.error("Mottok ${Transaction.IN_PROGRESS}, skal ikke skje")
-            }
-            Transaction.FINALIZE -> {
-                logger.error("Mottok ${Transaction.FINALIZE}, skal ikke skje")
-            }
-            Transaction.TERMINATE -> {
-                logger.error("Mottok ${Transaction.TERMINATE}, skal ikke skje")
-            }
+        val transactionId: String = message[Key.UUID.str].asText()
+        if (transaction == Transaction.NEW) {
+            val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
+            logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
+            val msg = JsonMessage.newMessage(
+                mapOf(
+                    Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
+                    Key.EVENT_NAME.str to event.name,
+                    Key.UUID.str to transactionId,
+                    Key.FORESPOERSEL_ID.str to forespoerselId
+                )
+            ).toJson()
+            logger.info("Publiserer melding: $msg")
+            rapidsConnection.publish(msg)
+        } else {
+            logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $transactionId")
         }
     }
 

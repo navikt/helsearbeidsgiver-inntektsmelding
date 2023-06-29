@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.buildApp
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mapHikariConfigByContainer
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -70,6 +71,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
     lateinit var redisStore: RedisStore
+    val priProducer = mockk<PriProducer>()
 
     private val om = customObjectMapper()
 
@@ -95,7 +97,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             mockk(relaxed = true),
             arbeidsgiverNotifikasjonKlient,
             NOTIFIKASJON_LINK,
-            mockk(),
+            priProducer,
             altinnClient,
             mockk(relaxed = true)
         )

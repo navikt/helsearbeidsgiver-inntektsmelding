@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class StatefullDataKanal(
@@ -62,7 +63,9 @@ class StatefullDataKanal(
     }
 
     fun isAllDataCollected(key: RedisKey): Boolean {
-        return redisStore.exist(*dataFelter.map { key.toString() + it }.toTypedArray()) == dataFelter.size.toLong()
+        val numKeysInRedis = redisStore.exist(*dataFelter.map { key.toString() + it }.toTypedArray())
+        logger().info("found " + numKeysInRedis)
+        return numKeysInRedis == dataFelter.size.toLong()
     }
     fun isDataCollected(vararg keys: RedisKey): Boolean {
         return redisStore.exist(*keys) == keys.size.toLong()

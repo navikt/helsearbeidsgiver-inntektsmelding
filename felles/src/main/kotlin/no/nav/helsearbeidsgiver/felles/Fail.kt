@@ -9,9 +9,9 @@ import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 data class Fail(
     @JsonIgnore
     val eventName: EventName?,
-    val behov: BehovType?,
+    val behov: BehovType? = null,
     val feilmelding: String,
-    val data: Map<DataFelt, Any?>?,
+    val data: Map<DataFelt, Any?>? = null,
     val uuid: String?,
     val forespørselId: String?
 ) {

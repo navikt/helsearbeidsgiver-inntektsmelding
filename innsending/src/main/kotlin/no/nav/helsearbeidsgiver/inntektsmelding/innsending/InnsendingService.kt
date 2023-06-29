@@ -130,11 +130,10 @@ class InnsendingService(
                     )
                 }
             }
-            Transaction.FINALIZE -> {
-                logger.error("Skal ikke havne i Finalize!")
-                sikkerLogger.error("Skal ikke havne i Finalize!")
+            else -> {
+                logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
+                sikkerLogger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
             }
-            Transaction.TERMINATE -> {}
         }
     }
 
@@ -154,7 +153,7 @@ class InnsendingService(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                     DataFelt.INNTEKTSMELDING_DOKUMENT.str to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str],
                     Key.TRANSACTION_ORIGIN.str to uuid,
-                    Key.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!! // skal egentlig kunne plukke fra pakke:
+                    DataFelt.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!! // skal egentlig kunne plukke fra pakke:
                     // message[Key.FORESPOERSEL_ID.str].asText()
                 )
             ).toJson().also {

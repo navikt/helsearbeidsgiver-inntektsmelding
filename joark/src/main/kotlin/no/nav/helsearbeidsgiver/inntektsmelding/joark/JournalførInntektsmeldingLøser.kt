@@ -36,7 +36,8 @@ class JournalførInntektsmeldingLøser(
         val request = mapOpprettJournalpostRequest(uuid, inntektsmelding, inntektsmelding.virksomhetNavn)
         logger.info("Skal ferdigstille journalpost for $uuid...")
         sikkerLogger.info("Skal ferdigstille journalpost for $uuid...")
-        val journalpostId = dokarkivClient.opprettJournalpost(request, true, "callId_$uuid").journalpostId
+        val response = dokarkivClient.opprettJournalpost(request, true, "callId_$uuid")
+        val journalpostId = response.journalpostId
         logger.info("Fikk opprettet journalpost $journalpostId for $uuid")
         sikkerLogger.info("Fikk opprettet journalpost $journalpostId for $uuid")
         return journalpostId

@@ -12,6 +12,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -86,7 +87,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     @BeforeAll
     fun beforeAllEndToEnd() {
         redisStore = RedisStore(redisContainer.redisURI)
-        coEvery { dokarkivClient.opprettJournalpost(any(), any(), any()).journalpostId } returns "123"
+        coEvery { dokarkivClient.opprettJournalpost(any(), any(), any()) } returns OpprettJournalpostResponse("123", true, "statusOK", "OK", emptyList())
         rapid.buildApp(
             redisStore,
             database,

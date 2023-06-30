@@ -28,6 +28,9 @@ class InnsendingServiceIT : EndToEndTest() {
         val clientId = UUID.randomUUID()
 
         forespoerselRepository.lagreForespørsel(forespoerselId.toString(), TestData.validOrgNr)
+        forespoerselRepository.oppdaterSakId("123", forespoerselId.toString())
+        forespoerselRepository.oppdaterOppgaveId(forespoerselId.toString(), "123") // Dette skal egentlig skje i lagreForesporsel-Løser,
+        // men denne testen starter etter at forespørsel er lagret !!
 
         publishMessage(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(EventName.serializer()),

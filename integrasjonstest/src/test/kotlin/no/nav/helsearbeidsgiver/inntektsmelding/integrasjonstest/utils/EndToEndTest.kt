@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import com.fasterxml.jackson.databind.JsonNode
-import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
@@ -71,7 +70,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
-    val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
+    val dokarkivClient = mockk<DokArkivClient>()
 
     lateinit var redisStore: RedisStore
     val priProducer = mockk<PriProducer>()
@@ -81,13 +80,18 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     @BeforeEach
     fun beforeEachEndToEnd() {
         messages.reset()
-        clearAllMocks()
+        // clearAllMocks() // TODO - litt usikker på denne
     }
 
     @BeforeAll
     fun beforeAllEndToEnd() {
         redisStore = RedisStore(redisContainer.redisURI)
-        coEvery { dokarkivClient.opprettJournalpost(any(), any(), any()) } returns OpprettJournalpostResponse("123", true, "statusOK", "OK", emptyList())
+        coEvery { dokarkivClient.opprettJournalpost(any(), any(), any()) } returns OpprettJournalpostResponse("123", true, "FERDIGSTILT", "OK", emptyList())
+        coEvery {
+            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
+        } answers {
+            "123"
+        }
         rapid.buildApp(
             redisStore,
             database,

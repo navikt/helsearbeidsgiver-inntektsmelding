@@ -35,6 +35,7 @@ class DistribusjonLøser(
             it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)
             it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
             it.requireKey(Key.JOURNALPOST_ID.str)
+            it.interestedIn(Key.TRANSACTION_ORIGIN.str)
         }
     }
 
@@ -52,6 +53,8 @@ class DistribusjonLøser(
     override fun onBehov(packet: JsonMessage) {
         sikkerLogger.info("Skal distribuere pakken: ${packet.toJson()}")
         val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
+        val transactionOrigin = packet[Key.TRANSACTION_ORIGIN.str].asText() // TODO: gjør dette pga integrasjonstester foreløpig...
+        // Usikker på hvorfor vi *må* ha dette eller uuid videresendt, se filter() i InnsendingIT
         logger.info("Skal distribuere inntektsmelding for journalpostId $journalpostId...")
         val eventName = packet[Key.EVENT_NAME.str].asText()
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
@@ -68,7 +71,8 @@ class DistribusjonLøser(
                         Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_DISTRIBUERT,
                         Key.FORESPOERSEL_ID.str to forespoerselId,
                         DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
-                        Key.JOURNALPOST_ID.str to journalpostId
+                        Key.JOURNALPOST_ID.str to journalpostId,
+                        Key.TRANSACTION_ORIGIN.str to transactionOrigin
                     )
                 )
             )

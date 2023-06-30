@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -29,12 +28,14 @@ class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(r
         logger.info("Fikk event om journalføre inntektsmelding...")
         sikkerLogger.info("Fikk event om journalføre inntektsmelding med pakke ${packet.toJson()}")
         val jsonMessage = JsonMessage.newMessage(
-            mapOf(
+            mapOf( // TODO: Måtte legge på transaction_origin eller UUID pga InnsendingServiceIT test!!!!
+                // Er vel egentlig ikke strengt nødvendig å kreve dette feltet i integrasjonstest?
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
                 Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
                 Key.FORESPOERSEL_ID.str to packet[Key.FORESPOERSEL_ID.str].asText(),
                 Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
-                DataFelt.INNTEKTSMELDING_DOKUMENT.str to packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str]
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str],
+                Key.TRANSACTION_ORIGIN.str to packet[Key.TRANSACTION_ORIGIN.str].asText()
             )
         )
         publishBehov(jsonMessage)

@@ -41,8 +41,8 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         withDataKanal {
             StatefullDataKanal(
                 listOf(
-                    DataFelt.FORESPOERSEL_SVAR.str,
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str,
+                    DataFelt.FORESPOERSEL_SVAR.str,
                     DataFelt.VIRKSOMHET.str,
                     DataFelt.INNTEKT.str
                 ).toTypedArray(),

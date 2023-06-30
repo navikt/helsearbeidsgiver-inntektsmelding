@@ -37,14 +37,9 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.IDENTITETSNUMMER to TestData.validIdentitetsnummer.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
-
         Thread.sleep(10000)
         println("\nAlle meldinger:\n-----------------------")
         messages.all().forEach { println(it) }
-        println("-----------------------")
-        println("\nAlle filtrerte meldinger for client-ID $clientId:\n-----------------------")
-        val filteredMessages = messages.all().map(JsonElement::toJsonNode).filter(clientId)
-        filteredMessages.forEach { println(it.toPrettyString()) }
         println("-----------------------")
         messages.all().filter(clientId).size shouldBe 10
 

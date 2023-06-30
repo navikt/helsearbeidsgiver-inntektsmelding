@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
 
-    private lateinit var dataKanal: StatefullDataKanal // state! :/
+    private lateinit var dataKanal: StatefullDataKanal // TODO: Kan denne settes i init?
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val transaction: Transaction = determineTransactionState(packet)

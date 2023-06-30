@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
@@ -70,6 +71,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
+
     lateinit var redisStore: RedisStore
     val priProducer = mockk<PriProducer>()
 
@@ -84,7 +86,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     @BeforeAll
     fun beforeAllEndToEnd() {
         redisStore = RedisStore(redisContainer.redisURI)
-
+        coEvery { dokarkivClient.opprettJournalpost(any(), any(), any()).journalpostId } returns "123"
         rapid.buildApp(
             redisStore,
             database,
@@ -105,7 +107,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         thread = thread {
             rapid.start()
         }
-        Thread.sleep(2000)
+        Thread.sleep(20000)
     }
 
     override fun onMessage(message: String, context: MessageContext) {

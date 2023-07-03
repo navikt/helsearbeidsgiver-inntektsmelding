@@ -34,6 +34,7 @@ jobs:
             ${{ runner.os }}-gradle-cache-
 
       - name: Integrasjonstest
+        timeout-minutes: 20
         uses: gradle/gradle-build-action@v2
         with:
           arguments: test -P integrasjonstest

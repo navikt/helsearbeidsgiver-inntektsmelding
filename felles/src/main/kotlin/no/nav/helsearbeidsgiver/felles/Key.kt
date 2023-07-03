@@ -37,7 +37,8 @@ enum class Key(override val str: String) : IKey {
     JOURNALPOST_ID("journalpostId"),
     INNTEKT_DATO("inntektDato"),
     DATA("data"),
-    FAIL("fail");
+    FAIL("fail"),
+    FAILED_BEHOV("failed-behov");
 
     override fun toString(): String =
         str

@@ -124,11 +124,9 @@ subprojects {
             if (!erFellesTestModul()) {
                 testImplementation(project(":felles-test"))
             }
-
-            // dokument har inkompatibel java-versjon
-            implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         }
 
+        implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
 
@@ -138,6 +136,8 @@ subprojects {
         testImplementation("io.mockk:mockk:$mockkVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+
+        testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }

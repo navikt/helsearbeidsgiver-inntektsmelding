@@ -9,11 +9,11 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 
-class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message,TxMessage  {
+class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message, TxMessage {
 
     init {
         packetValidator.validate(jsonMessage)
-        jsonMessage.demandValue(Key.EVENT_NAME.str,event.name)
+        jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
     }
     companion object {
         val packetValidator = River.PacketValidation {
@@ -24,17 +24,16 @@ class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message
             it.interestedIn(Key.UUID.str)
         }
 
-        fun create(event: EventName, map: Map<DataFelt, Any> = emptyMap() ) : Data {
+        fun create(event: EventName, map: Map<DataFelt, Any> = emptyMap()): Data {
             return Data(event, JsonMessage.newMessage(event.name, mapOf(Key.DATA.str to "") + map.mapKeys { it.key.str }))
         }
 
-        fun create(jsonMessage: JsonMessage) : Data {
+        fun create(jsonMessage: JsonMessage): Data {
             return Data(EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText()), jsonMessage)
         }
-
     }
 
-    override operator fun get(key: IKey): JsonNode =  jsonMessage[key.str]
+    override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 
     override operator fun set(key: IKey, value: Any) { jsonMessage[key.str] = value }
 
@@ -43,5 +42,4 @@ class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message
     override fun toJsonMessage(): JsonMessage {
         return jsonMessage
     }
-
 }

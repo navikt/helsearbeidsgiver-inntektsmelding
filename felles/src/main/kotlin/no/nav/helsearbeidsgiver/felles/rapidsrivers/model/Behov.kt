@@ -10,14 +10,16 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 
-class Behov(private val event: EventName,
-            private val behov: BehovType,
-            private val jsonMessage: JsonMessage) : Message,TxMessage {
+class Behov(
+    private val event: EventName,
+    private val behov: BehovType,
+    private val jsonMessage: JsonMessage
+) : Message, TxMessage {
 
     init {
         packetValidator.validate(jsonMessage)
-        jsonMessage.demandValue(Key.EVENT_NAME.str,event.name)
-        jsonMessage.demandValue(Key.BEHOV.str,behov.name)
+        jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
+        jsonMessage.demandValue(Key.BEHOV.str, behov.name)
     }
     companion object {
         val packetValidator = River.PacketValidation {
@@ -28,17 +30,16 @@ class Behov(private val event: EventName,
             it.interestedIn(Key.UUID.str)
         }
 
-        fun create(event: EventName, behov: BehovType ,map: Map<IKey, Any> = emptyMap() ) : Behov {
-            return Behov(event, behov ,JsonMessage.newMessage(event.name, mapOf(Key.BEHOV.str to behov.name) + map.mapKeys { it.key.str }))
+        fun create(event: EventName, behov: BehovType, map: Map<IKey, Any> = emptyMap()): Behov {
+            return Behov(event, behov, JsonMessage.newMessage(event.name, mapOf(Key.BEHOV.str to behov.name) + map.mapKeys { it.key.str }))
         }
 
-        fun create(jsonMessage: JsonMessage) : Behov {
+        fun create(jsonMessage: JsonMessage): Behov {
             return Behov(EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText()), BehovType.valueOf(jsonMessage[Key.BEHOV.str].asText()), jsonMessage)
         }
-
     }
 
-    override operator fun get(key: IKey): JsonNode =  jsonMessage[key.str]
+    override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 
     override operator fun set(key: IKey, value: Any) { jsonMessage[key.str] = value }
 
@@ -46,12 +47,12 @@ class Behov(private val event: EventName,
         return Data(event, JsonMessage.newMessage(event.name, mapOf(Key.DATA.str to "") + map.mapKeys { it.key.str }))
     }
 
-    fun createFail(feilmelding:String, data: Map<IKey,Any> = emptyMap()) : Fail {
-        return Fail.create(event, behov,feilmelding ,data.mapKeys { it.key as IKey })
+    fun createFail(feilmelding: String, data: Map<IKey, Any> = emptyMap()): Fail {
+        return Fail.create(event, behov, feilmelding, data.mapKeys { it.key as IKey })
     }
 
-    fun createBehov(behov: BehovType,data: Map<IKey, Any>) : Behov {
-        return Behov(this.event,behov, JsonMessage.newMessage(event.name, mapOf(Key.BEHOV.str to behov.name) + data.mapKeys { it.key.str }))
+    fun createBehov(behov: BehovType, data: Map<IKey, Any>): Behov {
+        return Behov(this.event, behov, JsonMessage.newMessage(event.name, mapOf(Key.BEHOV.str to behov.name) + data.mapKeys { it.key.str }))
     }
 
     override fun uuid() = jsonMessage[Key.UUID.str].asText()
@@ -59,6 +60,4 @@ class Behov(private val event: EventName,
     override fun toJsonMessage(): JsonMessage {
         return jsonMessage
     }
-
-
 }

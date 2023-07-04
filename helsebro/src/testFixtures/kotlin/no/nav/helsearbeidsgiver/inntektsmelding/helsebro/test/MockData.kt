@@ -1,7 +1,9 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock
+package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.test
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntektListe
@@ -65,6 +67,6 @@ fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
 private fun mockBoomerang(): JsonElement =
     mapOf(
         Key.INITIATE_ID.str to UUID.randomUUID().toJson(),
-        Key.INITIATE_EVENT.str to "dummy-event".toJson()
+        Key.INITIATE_EVENT.str to EventName.INNTEKT_REQUESTED.toJson()
     )
         .toJson()

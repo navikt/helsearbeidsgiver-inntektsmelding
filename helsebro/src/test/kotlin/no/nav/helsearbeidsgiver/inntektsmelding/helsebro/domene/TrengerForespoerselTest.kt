@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.mockTrengerForespoersel
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.test.mockTrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.json.toJson
 

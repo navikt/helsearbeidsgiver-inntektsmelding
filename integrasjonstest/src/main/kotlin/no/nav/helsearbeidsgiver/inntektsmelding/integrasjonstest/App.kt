@@ -42,6 +42,7 @@ fun main() {
         put("KAFKA_BOOTSTRAP_SERVERS", "PLAINTEXT://localhost:9092")
         put("KAFKA_CONSUMER_GROUP_ID", "HAG")
     }
+
     RapidApplication
         .create(env)
         .buildLocalApp()

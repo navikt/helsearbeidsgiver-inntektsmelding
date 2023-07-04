@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.test.mockTrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class TrengerForespoerselLøserTest : FunSpec({

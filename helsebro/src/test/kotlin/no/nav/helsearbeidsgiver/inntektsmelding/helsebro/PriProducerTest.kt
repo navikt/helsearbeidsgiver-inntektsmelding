@@ -9,6 +9,7 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.test.mockTrengerForespoersel
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata

@@ -56,7 +56,6 @@ class Fail(
                 .takeUnless { it.isMissingOrNull() }
                 ?.asText()
 
-
             return Fail(
                 EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText()),
                 behov,
@@ -70,7 +69,7 @@ class Fail(
     override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 
     override operator fun set(key: IKey, value: Any) {
-        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID ) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
+        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
         jsonMessage[key.str] = value
     }
 

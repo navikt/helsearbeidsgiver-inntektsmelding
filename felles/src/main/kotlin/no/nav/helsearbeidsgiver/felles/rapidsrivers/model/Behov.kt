@@ -45,29 +45,50 @@ class Behov(
     override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 
     override operator fun set(key: IKey, value: Any) {
-        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID ) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
+        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
         jsonMessage[key.str] = value
     }
 
     fun createData(map: Map<DataFelt, Any>): Data {
         val forespoerselID = this[Key.FORESPOERSEL_ID]
-        return Data(event, JsonMessage.newMessage(event.name, mapOfNotNull(Key.DATA.str to "",
-                                                                                      Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
-                                                                                      Key.FORESPOERSEL_ID.str to forespoerselID) + map.mapKeys { it.key.str }))
+        return Data(
+            event,
+            JsonMessage.newMessage(
+                event.name,
+                mapOfNotNull(
+                    Key.DATA.str to "",
+                    Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
+                    Key.FORESPOERSEL_ID.str to forespoerselID
+                ) + map.mapKeys { it.key.str }
+            )
+        )
     }
 
     fun createFail(feilmelding: String, data: Map<IKey, Any> = emptyMap()): Fail {
         val forespoerselID = this[Key.FORESPOERSEL_ID]
 
-        return Fail.create(event, behov, feilmelding,mapOfNotNull( Key.UUID to this.uuid().takeUnless { it.isBlank() },
-                                                                              Key.FORESPOERSEL_ID to forespoerselID) +  data.mapKeys { it.key })
+        return Fail.create(
+            event, behov, feilmelding,
+            mapOfNotNull(
+                Key.UUID to this.uuid().takeUnless { it.isBlank() },
+                Key.FORESPOERSEL_ID to forespoerselID
+            ) + data.mapKeys { it.key }
+        )
     }
 
     fun createBehov(behov: BehovType, data: Map<IKey, Any>): Behov {
         val forespoerselID = this[Key.FORESPOERSEL_ID]
-        return Behov(this.event, behov, JsonMessage.newMessage(event.name, mapOfNotNull(Key.BEHOV.str to behov.name,
-                                                                                              Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
-                                                                                              Key.FORESPOERSEL_ID.str to forespoerselID) + data.mapKeys { it.key.str }))
+        return Behov(
+            this.event, behov,
+            JsonMessage.newMessage(
+                event.name,
+                mapOfNotNull(
+                    Key.BEHOV.str to behov.name,
+                    Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
+                    Key.FORESPOERSEL_ID.str to forespoerselID
+                ) + data.mapKeys { it.key.str }
+            )
+        )
     }
 
     override fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()

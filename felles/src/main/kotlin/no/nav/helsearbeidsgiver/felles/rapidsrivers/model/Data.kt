@@ -38,13 +38,11 @@ class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message
     override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 
     override operator fun set(key: IKey, value: Any) {
-        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID ) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
+        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
         jsonMessage[key.str] = value
     }
 
-    override fun uuid() : String = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
-
-
+    override fun uuid(): String = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
 
     override fun toJsonMessage(): JsonMessage {
         return jsonMessage

@@ -48,22 +48,28 @@ class Event(val event: EventName, private val jsonMessage: JsonMessage, val clie
     override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 
     override operator fun set(key: IKey, value: Any) {
-        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID ) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
+        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
         jsonMessage[key.str] = value
-
     }
 
-
-    fun createBehov(behov: BehovType,map: Map<DataFelt, Any>): Behov {
+    fun createBehov(behov: BehovType, map: Map<DataFelt, Any>): Behov {
         val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str]
-        return Behov(event, behov, JsonMessage.newMessage(event.name, mapOfNotNull(Key.BEHOV.str to behov.name,
-                                                                                Key.UUID.str to this.uuid,
-                                                                                Key.FORESPOERSEL_ID.str to forespoerselID) + map.mapKeys { it.key.str }))
+        return Behov(
+            event, behov,
+            JsonMessage.newMessage(
+                event.name,
+                mapOfNotNull(
+                    Key.BEHOV.str to behov.name,
+                    Key.UUID.str to this.uuid,
+                    Key.FORESPOERSEL_ID.str to forespoerselID
+                ) + map.mapKeys { it.key.str }
+            )
+        )
     }
 
     override fun uuid() = this.uuid.orEmpty()
 
     override fun toJsonMessage(): JsonMessage {
-        return JsonMessage(this.jsonMessage.toJson(), MessageProblems(this.jsonMessage.toJson())) //jsonMessage
+        return JsonMessage(this.jsonMessage.toJson(), MessageProblems(this.jsonMessage.toJson())) // jsonMessage
     }
 }

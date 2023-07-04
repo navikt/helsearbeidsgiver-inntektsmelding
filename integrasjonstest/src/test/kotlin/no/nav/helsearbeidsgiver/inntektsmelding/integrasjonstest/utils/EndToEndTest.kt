@@ -61,6 +61,10 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             .also(Database::migrate)
     }
 
+    val redisStore by lazy {
+        RedisStore(redisContainer.redisURI)
+    }
+
     val messages = Messages()
 
     val tilgangProducer by lazy { TilgangProducer(rapid) }
@@ -70,7 +74,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
-    lateinit var redisStore: RedisStore
     val priProducer = mockk<PriProducer>()
 
     private val om = customObjectMapper()
@@ -83,8 +86,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        redisStore = RedisStore(redisContainer.redisURI)
-
         rapid.buildApp(
             redisStore,
             database,

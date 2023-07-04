@@ -1,13 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -15,51 +19,66 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KvitteringIT : EndToEndTest() {
 
-    private val UGYLDIG_FORESPPØRSEL_ID = "ugyldig-forespørsel"
-    private val GYLDIG_FORESPØRSEL_ID = "gyldig-forespørsel"
-    private val ORGNR = "987"
-    private val INNTEKTSMELDING_DOKUMENT = mockInntektsmeldingDokument()
-    private val INNTEKTSMELDING_NOT_FOUND = "{}"
-
     @Test
-    fun `skal gi feilmelding når forespørsel ikke finnes`() {
-        val clientId = UUID.randomUUID().toString()
-        publish(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                Key.CLIENT_ID.str to clientId,
-                Key.FORESPOERSEL_ID.str to UGYLDIG_FORESPPØRSEL_ID
-            )
+    fun `skal hente data til kvittering`() {
+        val clientId = UUID.randomUUID()
+
+        forespoerselRepository.lagreForespørsel(Mock.FORESPOERSEL_ID_GYLDIG, Mock.ORGNR)
+        imRepository.lagreInntektsmeldng(Mock.FORESPOERSEL_ID_GYLDIG, Mock.inntektsmeldingDokument)
+
+        publishMessage(
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.CLIENT_ID to clientId.toJson(),
+            Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_GYLDIG.toJson()
         )
-        Thread.sleep(5000)
-        assertNotNull(messages)
-        with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
-            // Skal ikke finne inntektsmeldingdokument - men en dummy payload
-            assertEquals(INNTEKTSMELDING_NOT_FOUND, get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText())
-            // assertEquals(transactionId, get(Key.UUID.str).asText())
-        }
+
+        Thread.sleep(1000)
+
+        messages.filter(EventName.KVITTERING_REQUESTED)
+            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .first()
+            .fromJsonMapOnlyDatafelter()
+            .also {
+                // Skal finne inntektsmeldingdokumentet
+                val imDokument = it[DataFelt.INNTEKTSMELDING_DOKUMENT]
+
+                imDokument.shouldNotBeNull()
+                imDokument shouldNotBe Mock.tomObjektStreng
+            }
+
+        redisStore.get(clientId.toString()).shouldNotBeNull()
     }
 
     @Test
-    fun `skal hente data til kvittering`() {
-        val clientId = UUID.randomUUID().toString()
-        forespoerselRepository.lagreForespørsel(GYLDIG_FORESPØRSEL_ID, ORGNR)
-        imRepository.lagreInntektsmeldng(GYLDIG_FORESPØRSEL_ID, INNTEKTSMELDING_DOKUMENT)
-        publish(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                Key.CLIENT_ID.str to clientId,
-                Key.FORESPOERSEL_ID.str to GYLDIG_FORESPØRSEL_ID
-            )
+    fun `skal gi feilmelding når forespørsel ikke finnes`() {
+        val clientId = UUID.randomUUID()
+
+        publishMessage(
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.CLIENT_ID to clientId.toJson(),
+            Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_UGYLDIG.toJson()
         )
-        Thread.sleep(10000)
-        assertNotNull(messages)
-        with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
-            assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
-            // Skal finne inntektsmeldingdokumentet
-            assertNotEquals(INNTEKTSMELDING_NOT_FOUND, get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
-            // assertEquals(transactionId, get(Key.UUID.str).asText())
-        }
-        assertNotNull(redisStore.get(clientId))
+
+        Thread.sleep(5000)
+
+        messages.filter(EventName.KVITTERING_REQUESTED)
+            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .first()
+            .fromJsonMapOnlyDatafelter()
+            .also {
+                // Skal ikke finne inntektsmeldingdokument - men en dummy payload
+                it[DataFelt.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng
+            }
+    }
+
+    private object Mock {
+        const val ORGNR = "987"
+        const val FORESPOERSEL_ID_GYLDIG = "gyldig-forespørsel"
+        const val FORESPOERSEL_ID_UGYLDIG = "ugyldig-forespørsel"
+
+        val inntektsmeldingDokument = mockInntektsmeldingDokument()
+
+        /** Rar verdi. Tror denne bør fikses i prodkoden. */
+        val tomObjektStreng = JsonPrimitive("{}")
     }
 }

@@ -2,11 +2,16 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
+import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
+import java.lang.IllegalArgumentException
 
 class Event(val event: EventName, private val jsonMessage: JsonMessage, val clientId: String? = null) : Message, TxMessage {
 
@@ -42,16 +47,23 @@ class Event(val event: EventName, private val jsonMessage: JsonMessage, val clie
 
     override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 
-    override operator fun set(key: IKey, value: Any) { jsonMessage[key.str] = value }
+    override operator fun set(key: IKey, value: Any) {
+        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID ) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
+        jsonMessage[key.str] = value
 
-/*
-    fun createBehov(behov: BehovType,map: Map<DataFelt, Any>): Behov {
-        return Behov(event, behov, JsonMessage.newMessage(event.value,mapOf(Key.BEHOV.str() to behov.value) + map.mapKeys { it.key.str }))
     }
-*/
-    override fun uuid() = this.uuid ?: ""
+
+
+    fun createBehov(behov: BehovType,map: Map<DataFelt, Any>): Behov {
+        val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str]
+        return Behov(event, behov, JsonMessage.newMessage(event.name, mapOfNotNull(Key.BEHOV.str to behov.name,
+                                                                                Key.UUID.str to this.uuid,
+                                                                                Key.FORESPOERSEL_ID.str to forespoerselID) + map.mapKeys { it.key.str }))
+    }
+
+    override fun uuid() = this.uuid.orEmpty()
 
     override fun toJsonMessage(): JsonMessage {
-        return jsonMessage
+        return JsonMessage(this.jsonMessage.toJson(), MessageProblems(this.jsonMessage.toJson())) //jsonMessage
     }
 }

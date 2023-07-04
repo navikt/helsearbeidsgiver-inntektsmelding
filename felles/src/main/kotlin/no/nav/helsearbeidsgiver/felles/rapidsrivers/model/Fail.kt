@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
+import java.lang.IllegalArgumentException
 
 class Fail(
     val event: EventName,
@@ -53,15 +54,14 @@ class Fail(
 
             val uuid = jsonMessage[Key.UUID.str]
                 .takeUnless { it.isMissingOrNull() }
-                ?.let {
-                    it.asText()
-                }
+                ?.asText()
+
 
             return Fail(
                 EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText()),
                 behov,
                 jsonMessage[Key.FAIL.str].asText(),
-                jsonMessage[Key.UUID.str].asText(),
+                uuid,
                 jsonMessage
             )
         }
@@ -69,10 +69,13 @@ class Fail(
 
     override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 
-    override operator fun set(key: IKey, value: Any) { jsonMessage[key.str] = value }
+    override operator fun set(key: IKey, value: Any) {
+        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID ) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
+        jsonMessage[key.str] = value
+    }
 
     override fun uuid(): String {
-        return uuid!!
+        return uuid.orEmpty()
     }
 
     override fun toJsonMessage(): JsonMessage {

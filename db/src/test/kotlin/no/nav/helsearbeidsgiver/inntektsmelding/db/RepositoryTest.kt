@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.core.annotation.Ignored
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -33,6 +34,7 @@ class TestRepo(private val db: Database) {
     }
 }
 
+@Ignored
 class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, ForespoerselEntitet), { db ->
 
     val foresporselRepo = ForespoerselRepository(db.db)

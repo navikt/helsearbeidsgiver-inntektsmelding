@@ -55,7 +55,8 @@ class Event(val event: EventName, private val jsonMessage: JsonMessage, val clie
     fun createBehov(behov: BehovType, map: Map<DataFelt, Any>): Behov {
         val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str]
         return Behov(
-            event, behov,
+            event,
+            behov,
             JsonMessage.newMessage(
                 event.name,
                 mapOfNotNull(

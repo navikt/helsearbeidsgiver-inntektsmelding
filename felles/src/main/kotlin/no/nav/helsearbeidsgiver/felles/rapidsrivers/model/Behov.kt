@@ -68,7 +68,9 @@ class Behov(
         val forespoerselID = this[Key.FORESPOERSEL_ID]
 
         return Fail.create(
-            event, behov, feilmelding,
+            event,
+            behov,
+            feilmelding,
             mapOfNotNull(
                 Key.UUID to this.uuid().takeUnless { it.isBlank() },
                 Key.FORESPOERSEL_ID to forespoerselID
@@ -79,7 +81,8 @@ class Behov(
     fun createBehov(behov: BehovType, data: Map<IKey, Any>): Behov {
         val forespoerselID = this[Key.FORESPOERSEL_ID]
         return Behov(
-            this.event, behov,
+            this.event,
+            behov,
             JsonMessage.newMessage(
                 event.name,
                 mapOfNotNull(

@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -25,16 +26,21 @@ class VirksomhetLøser(
 
     private val logger = logger()
     private val BEHOV = BehovType.VIRKSOMHET
+    private val delayMs = 2500L
 
     private fun hentVirksomhet(orgnr: String): String {
         if (isPreProd) {
-            when (orgnr) {
-                "810007702" -> return "ANSTENDIG PIGGSVIN BYDEL"
-                "810007842" -> return "ANSTENDIG PIGGSVIN BARNEHAGE"
-                "810008032" -> return "ANSTENDIG PIGGSVIN BRANNVESEN"
-                "810007982" -> return "ANSTENDIG PIGGSVIN SYKEHJEM"
+            return runBlocking {
+                logger.warn("Simulerer tregt kall mot brreg!")
+                delay(delayMs)
+                when (orgnr) {
+                    "810007702" -> "ANSTENDIG PIGGSVIN BYDEL"
+                    "810007842" -> "ANSTENDIG PIGGSVIN BARNEHAGE"
+                    "810008032" -> "ANSTENDIG PIGGSVIN BRANNVESEN"
+                    "810007982" -> "ANSTENDIG PIGGSVIN SYKEHJEM"
+                }
+                "Ukjent arbeidsgiver"
             }
-            return "Ukjent arbeidsgiver"
         }
         return runBlocking {
             val virksomhetNav: String?

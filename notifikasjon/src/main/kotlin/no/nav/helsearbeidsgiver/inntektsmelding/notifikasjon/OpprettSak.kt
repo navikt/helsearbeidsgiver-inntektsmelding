@@ -50,7 +50,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
                     mapOf(
                         Key.EVENT_NAME.str to event.name,
                         Key.UUID.str to transaksjonsId,
-                        Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
+                        Key.BEHOV.str to BehovType.FULLT_NAVN.name,
                         Key.IDENTITETSNUMMER.str to redisStore.get(transaksjonsId + Key.IDENTITETSNUMMER.str)!!,
                         Key.FORESPOERSEL_ID.str to forespørselId
 

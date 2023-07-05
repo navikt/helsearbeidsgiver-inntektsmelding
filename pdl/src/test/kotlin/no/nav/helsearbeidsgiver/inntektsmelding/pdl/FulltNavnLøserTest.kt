@@ -5,21 +5,28 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.contains
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Message
+import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
 import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -44,42 +51,46 @@ class FulltNavnLøserTest {
         coEvery {
             pdlClient.fullPerson(any(), any())
         } returns mockPerson("Ola", "", "Normann", LocalDate.now())
-        val løsning = sendMessage(
+        val data = sendMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
-                Key.BEHOV.str to listOf(BEHOV.name),
+                Key.BEHOV.str to BEHOV.name,
                 Key.ID.str to UUID.randomUUID(),
                 Key.IDENTITETSNUMMER.str to "abc"
             )
+        ) as Data
+        val personData = customObjectMapper().readValue(
+            customObjectMapper().writeValueAsString(data[DataFelt.ARBEIDSTAKER_INFORMASJON]),
+            PersonDato::class.java
         )
-        assertNotNull(løsning.value)
-        assertEquals("Ola Normann", løsning.value!!.navn)
-        assertNull(løsning.error)
+        assertNotNull(data[DataFelt.ARBEIDSTAKER_INFORMASJON])
+        assertEquals("Ola Normann", personData!!.navn)
     }
 
     @Test
     fun `skal håndtere ukjente feil`() {
-        val løsning = sendMessage(
+        val feil = sendMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
-                Key.BEHOV.str to listOf(BEHOV.name),
+                Key.BEHOV.str to BEHOV.name,
                 Key.ID.str to UUID.randomUUID(),
                 Key.IDENTITETSNUMMER.str to "abc"
             )
-        )
-        assertNull(løsning.value)
-        assertNotNull(løsning.error)
+        ) as Fail
+        assertNotNull(feil.feilmelding)
     }
 
-    private fun sendMessage(packet: Map<String, Any>): NavnLøsning {
+    private fun sendMessage(packet: Map<String, Any>): Message {
         rapid.reset()
         rapid.sendTestMessage(
             objectMapper.writeValueAsString(
                 packet
             )
         )
-        val losning: JsonNode = rapid.inspektør.message(0).path(Key.LØSNING.str)
-        return objectMapper.readValue<NavnLøsning>(losning.get(BEHOV.name).toString())
+        val response: JsonNode = rapid.inspektør.message(0)
+        return response.toDomeneMessage {
+            it.interestedIn(DataFelt.ARBEIDSTAKER_INFORMASJON)
+        }
     }
 
     private fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson {

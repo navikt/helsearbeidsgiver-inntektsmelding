@@ -30,16 +30,16 @@ class VirksomhetLøser(
 
     private fun hentVirksomhet(orgnr: String): String {
         if (isPreProd) {
-            return runBlocking {
+            runBlocking {
                 logger.warn("Simulerer tregt kall mot brreg!")
                 delay(delayMs)
-                when (orgnr) {
-                    "810007702" -> "ANSTENDIG PIGGSVIN BYDEL"
-                    "810007842" -> "ANSTENDIG PIGGSVIN BARNEHAGE"
-                    "810008032" -> "ANSTENDIG PIGGSVIN BRANNVESEN"
-                    "810007982" -> "ANSTENDIG PIGGSVIN SYKEHJEM"
-                }
-                "Ukjent arbeidsgiver"
+            }
+            return when (orgnr) {
+                "810007702" -> "ANSTENDIG PIGGSVIN BYDEL"
+                "810007842" -> "ANSTENDIG PIGGSVIN BARNEHAGE"
+                "810008032" -> "ANSTENDIG PIGGSVIN BRANNVESEN"
+                "810007982" -> "ANSTENDIG PIGGSVIN SYKEHJEM"
+                else -> {"Ukjent arbeidsgiver"}
             }
         }
         return runBlocking {

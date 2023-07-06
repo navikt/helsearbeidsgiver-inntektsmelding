@@ -36,13 +36,13 @@ class IkkeBlokkerendeVirksomhetLøser(
                 logger.warn("Kjører i testmodus, forsinker kallet med $delayMs millisekunder")
             }
             delay(delayMs)
-            when (orgnr) {
+            return when (orgnr) {
                 "810007702" -> "ANSTENDIG PIGGSVIN BYDEL"
                 "810007842" -> "ANSTENDIG PIGGSVIN BARNEHAGE"
                 "810008032" -> "ANSTENDIG PIGGSVIN BRANNVESEN"
                 "810007982" -> "ANSTENDIG PIGGSVIN SYKEHJEM"
+                else -> {"Ukjent arbeidsgiver"}
             }
-            "Ukjent arbeidsgiver"
         }
         val virksomhetNav: String?
         measureTimeMillis {

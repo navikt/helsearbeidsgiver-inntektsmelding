@@ -23,14 +23,16 @@ class ForespoerselMottattIT : EndToEndTest() {
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        publishMessage(
+        publish(
             Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
             Pri.Key.ORGNR to Mock.ORGNR.toJson(),
             Pri.Key.FNR to Mock.FNR.toJson(),
             Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        waitForMessages(8000)
+        waitForNonEmpty(8000) {
+            messages.filter(EventName.FORESPØRSEL_LAGRET)
+        }
 
         messages.filter(EventName.FORESPØRSEL_MOTTATT)
             .filter(BehovType.LAGRE_FORESPOERSEL, loesningPaakrevd = false)

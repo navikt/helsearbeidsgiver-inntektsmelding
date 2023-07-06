@@ -30,14 +30,16 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
         } returns Mock.SAK_ID
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        Thread.sleep(10000)
+        waitForNonEmpty(10000) {
+            messages.filter(EventName.SAK_OPPRETTET)
+        }
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
             .filter(BehovType.FULLT_NAVN, loesningPaakrevd = false)
@@ -93,13 +95,15 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns Mock.OPPGAVE_ID
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        Thread.sleep(8000)
+        waitForNonEmpty(8000) {
+            messages.filter(EventName.OPPGAVE_LAGRET)
+        }
 
         var transaksjonsId: String
 

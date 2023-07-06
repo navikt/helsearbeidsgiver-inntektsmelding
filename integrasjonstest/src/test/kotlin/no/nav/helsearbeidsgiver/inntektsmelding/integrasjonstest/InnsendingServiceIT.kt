@@ -30,7 +30,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         forespoerselRepository.lagreForespørsel(forespoerselId.toString(), TestData.validOrgNr)
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
             DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson),
@@ -39,7 +39,9 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
-        Thread.sleep(10000)
+        waitForNonEmpty(10000) {
+            messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
+        }
 
         messages.all().filter(clientId).size shouldBe 10
 

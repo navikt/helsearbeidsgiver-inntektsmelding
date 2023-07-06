@@ -26,13 +26,16 @@ class KvitteringIT : EndToEndTest() {
         forespoerselRepository.lagreForespørsel(Mock.FORESPOERSEL_ID_GYLDIG, Mock.ORGNR)
         imRepository.lagreInntektsmeldng(Mock.FORESPOERSEL_ID_GYLDIG, Mock.inntektsmeldingDokument)
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
             Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_GYLDIG.toJson()
         )
 
-        Thread.sleep(1000)
+        waitForNonEmpty(1000) {
+            messages.filter(EventName.KVITTERING_REQUESTED)
+                .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+        }
 
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
@@ -53,13 +56,16 @@ class KvitteringIT : EndToEndTest() {
     fun `skal gi feilmelding når forespørsel ikke finnes`() {
         val clientId = UUID.randomUUID()
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
             Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_UGYLDIG.toJson()
         )
 
-        Thread.sleep(5000)
+        waitForNonEmpty(5000) {
+            messages.filter(EventName.KVITTERING_REQUESTED)
+                .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+        }
 
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)

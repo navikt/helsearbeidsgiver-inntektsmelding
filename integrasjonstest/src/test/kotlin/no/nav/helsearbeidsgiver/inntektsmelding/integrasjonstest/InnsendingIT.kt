@@ -47,7 +47,7 @@ class InnsendingIT : EndToEndTest() {
             dokumenter = emptyList()
         )
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to UUID.randomUUID().toJson(),
@@ -57,7 +57,9 @@ class InnsendingIT : EndToEndTest() {
             DataFelt.INNTEKTSMELDING to Mock.innsendingRequest.let(Jackson::toJson)
         )
 
-        Thread.sleep(10000)
+        waitForNonEmpty(10000) {
+            messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
+        }
 
         messages.filter(EventName.INSENDING_STARTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)

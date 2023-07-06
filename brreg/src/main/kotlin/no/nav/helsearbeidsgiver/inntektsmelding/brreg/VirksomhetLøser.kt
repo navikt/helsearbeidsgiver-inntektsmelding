@@ -26,7 +26,7 @@ class VirksomhetLøser(
 
     private val logger = logger()
     private val BEHOV = BehovType.VIRKSOMHET
-    private val delayMs = 2500L
+    private val delayMs = 3000L
 
     private fun hentVirksomhet(orgnr: String): String {
         if (isPreProd) {

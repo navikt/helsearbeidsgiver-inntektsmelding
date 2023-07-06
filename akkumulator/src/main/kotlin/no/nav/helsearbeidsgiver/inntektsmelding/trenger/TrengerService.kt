@@ -113,14 +113,16 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer().list()),
                     Key.UUID to uuid.toJson(),
-                    DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
+                    DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson(),
+                    DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson()
                 )
                 logger.info("${this.javaClass.simpleName} dispatcher FULLT_NAVN for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(BehovType.serializer().list()),
                     Key.UUID to uuid.toJson(),
-                    Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
+                    Key.IDENTITETSNUMMER to forespurtData.fnr.toJson(),
+                    DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson()
                 )
                 /*
                 rapidsConnection.publish(
@@ -135,7 +137,8 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer().list()),
                     Key.UUID to uuid.toJson(),
-                    DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer())
+                    DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer()),
+                    DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson()
                 )
             }
         } else {

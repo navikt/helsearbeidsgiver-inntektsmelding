@@ -9,11 +9,11 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
 
@@ -49,42 +49,30 @@ class VirksomhetLøser(
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
-            it.demandAll(Key.BEHOV.str, BEHOV)
+            it.demandValue(Key.BEHOV.str, BEHOV.name)
             it.requireKey(DataFelt.ORGNRUNDERENHET.str)
             it.requireKey(Key.ID.str)
         }
     }
 
-    override fun onBehov(packet: JsonMessage) {
-        logger.info("Løser behov $BEHOV med id ${packet[Key.ID.str].asText()}")
-        val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
+    override fun onBehov(behov: Behov) {
+        logger.info("Løser behov $BEHOV med uuid ${behov.uuid()}")
+        val orgnr = behov[DataFelt.ORGNRUNDERENHET].asText()
         try {
             val navn = hentVirksomhet(orgnr)
             logger.info("Fant $navn for $orgnr")
-            publiserLøsning(VirksomhetLøsning(navn), packet)
-            publishDatagram(navn, packet)
+            publishData(behov.createData(mapOf(DataFelt.VIRKSOMHET to navn)))
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")
-            publiserLøsning(VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")), packet)
-            publishFail(packet.createFail("Ugyldig virksomhet $orgnr", behovType = BehovType.VIRKSOMHET))
+            publishFail(behov.createFail("Ugyldig virksomhet $orgnr"))
         } catch (ex: Exception) {
             logger.error("Det oppstod en feil ved henting for $orgnr")
             sikkerLogger.error("Det oppstod en feil ved henting for orgnr $orgnr: ", ex)
-            publiserLøsning(VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")), packet)
-            publishFail(packet.createFail("Klarte ikke hente virksomhet", behovType = BehovType.VIRKSOMHET))
+            publishFail(behov.createFail("Klarte ikke hente virksomhet"))
         }
     }
 
-    private fun publishDatagram(navn: String, jsonMessage: JsonMessage) {
-        val message = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to jsonMessage[Key.EVENT_NAME.str].asText(),
-                Key.DATA.str to "",
-                Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
-                DataFelt.VIRKSOMHET.str to navn
-            )
-        )
-        super.publishData(message)
+    override fun onBehov(packet: JsonMessage) {
     }
 
     private fun publiserLøsning(virksomhetLøsning: VirksomhetLøsning, packet: JsonMessage) {

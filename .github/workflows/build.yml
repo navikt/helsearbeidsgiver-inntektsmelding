@@ -81,6 +81,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     needs: generate_vars
     if: needs.generate_vars.outputs.is_matrix_empty == 'false'
     strategy:

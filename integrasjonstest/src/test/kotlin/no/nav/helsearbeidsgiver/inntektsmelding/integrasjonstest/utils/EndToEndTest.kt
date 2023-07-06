@@ -135,6 +135,19 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             Thread.sleep(1500)
         }
     }
+
+    fun waitForNonEmpty(millis: Long, messagesWaitingFor: () -> Messages) {
+        val startTime = System.nanoTime()
+
+        while (messagesWaitingFor().all().isEmpty()) {
+            val elapsedTime = (System.nanoTime() - startTime) / 1_000_000
+            if (elapsedTime > millis) {
+                throw MessagesWaitLimitException(millis)
+            }
+
+            Thread.sleep(500)
+        }
+    }
 }
 
 private class MessagesWaitLimitException(millis: Long) : RuntimeException(

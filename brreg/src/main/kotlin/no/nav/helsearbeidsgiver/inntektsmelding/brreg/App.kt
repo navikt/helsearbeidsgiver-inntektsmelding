@@ -18,6 +18,6 @@ fun main() {
 
 fun RapidsConnection.createBrreg(brregClient: BrregClient, isDevelopmentMode: Boolean): RapidsConnection {
     sikkerLogger.info("Starting VirksomhetLøser... developmentMode: $isDevelopmentMode")
-    VirksomhetLøser(this, brregClient, isDevelopmentMode)
+    IkkeBlokkerendeVirksomhetLøser(this, brregClient, isDevelopmentMode)
     return this
 }

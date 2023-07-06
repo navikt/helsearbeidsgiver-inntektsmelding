@@ -24,7 +24,7 @@ class IkkeBlokkerendeVirksomhetLøser(
     rapidsConnection: RapidsConnection,
     private val brregClient: BrregClient,
     private val isPreProd: Boolean,
-    val delayMs: Long = 0
+    val delayMs: Long = 2000
 ) : StatelessLøser(rapidsConnection) {
 
     private val logger = logger()

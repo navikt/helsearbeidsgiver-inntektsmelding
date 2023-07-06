@@ -36,20 +36,20 @@ class IkkeBlokkerendeVirksomhetLøser(
                 logger.warn("Kjører i testmodus, forsinker kallet med $delayMs millisekunder")
             }
             delay(delayMs)
-                when (orgnr) {
-                    "810007702" -> "ANSTENDIG PIGGSVIN BYDEL"
-                    "810007842" -> "ANSTENDIG PIGGSVIN BARNEHAGE"
-                    "810008032" -> "ANSTENDIG PIGGSVIN BRANNVESEN"
-                    "810007982" -> "ANSTENDIG PIGGSVIN SYKEHJEM"
-                }
-                "Ukjent arbeidsgiver"
+            when (orgnr) {
+                "810007702" -> "ANSTENDIG PIGGSVIN BYDEL"
+                "810007842" -> "ANSTENDIG PIGGSVIN BARNEHAGE"
+                "810008032" -> "ANSTENDIG PIGGSVIN BRANNVESEN"
+                "810007982" -> "ANSTENDIG PIGGSVIN SYKEHJEM"
+            }
+            "Ukjent arbeidsgiver"
         }
         val virksomhetNav: String?
-            measureTimeMillis {
-                virksomhetNav = brregClient.hentVirksomhetNavn(orgnr)
-            }.also {
-                logger.info("BREG execution took $it")
-            }
+        measureTimeMillis {
+            virksomhetNav = brregClient.hentVirksomhetNavn(orgnr)
+        }.also {
+            logger.info("BREG execution took $it")
+        }
         return virksomhetNav ?: throw FantIkkeVirksomhetException(orgnr)
     }
 
@@ -87,7 +87,7 @@ class IkkeBlokkerendeVirksomhetLøser(
                 publiserLøsning(VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")), packet)
                 publishFail(packet.createFail("Klarte ikke hente virksomhet", behovType = BehovType.VIRKSOMHET))
             }
-           }
+        }
     }
     private fun publishDatagram(navn: String, jsonMessage: JsonMessage) {
         val message = JsonMessage.newMessage(

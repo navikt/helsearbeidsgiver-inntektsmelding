@@ -74,19 +74,19 @@ class IkkeBlokkerendeVirksomhetLøserTest {
         coEvery {
             brregClient.hentVirksomhetNavn(any())
         } returns null
-            launch {
-                val løsning = sendMessage(
-                    mapOf(
-                        Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
-                        Key.FORESPOERSEL_ID.str to UUID.randomUUID(),
-                        "@behov" to listOf(BEHOV),
-                        "@id" to UUID.randomUUID(),
-                        "uuid" to "uuid",
-                        DataFelt.ORGNRUNDERENHET.str to ORGNR
-                    )
+        launch {
+            val løsning = sendMessage(
+                mapOf(
+                    Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
+                    Key.FORESPOERSEL_ID.str to UUID.randomUUID(),
+                    "@behov" to listOf(BEHOV),
+                    "@id" to UUID.randomUUID(),
+                    "uuid" to "uuid",
+                    DataFelt.ORGNRUNDERENHET.str to ORGNR
                 )
-                assertEquals("Ugyldig virksomhet $ORGNR", løsning.error?.melding)
-            }
+            )
+            assertEquals("Ugyldig virksomhet $ORGNR", løsning.error?.melding)
+        }
     }
 
     @Test

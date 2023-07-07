@@ -5,9 +5,15 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.FeilReport
+import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Inntekt
+import no.nav.helsearbeidsgiver.felles.InntektData
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
@@ -18,6 +24,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.logger
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class InntektService(
@@ -39,6 +46,19 @@ class InntektService(
                 rapidsConnection
             )
         }
+        withDataKanal {
+            StatefullDataKanal(
+                listOf(
+                    DataFelt.FORESPOERSEL_SVAR.str,
+                    DataFelt.INNTEKT.str
+                ).toTypedArray(),
+                event,
+                it,
+                rapidsConnection,
+                redisStore
+            )
+        }
+        withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
     }
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
@@ -77,7 +97,16 @@ class InntektService(
     }
 
     override fun finalize(message: JsonMessage) {
-        TODO("Not yet implemented")
+        val uuid = message[Key.UUID.str].asText()
+        val feilReport: FeilReport? = redisStore.get(RedisKey.of(uuid = uuid, Feilmelding("")))?.fromJson(
+            FeilReport.serializer()
+        )
+        val clientID = redisStore.get(RedisKey.of(uuid, EventName.INNTEKT_REQUESTED))
+        val inntekt = redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKT))?.fromJson(Inntekt.serializer())
+
+        val inntektData = InntektData(inntekt!!.gjennomsnitt(), inntekt!!.historisk, feilReport)
+
+        redisStore.set(RedisKey.of(clientID!!), inntektData.toJsonStr(InntektData.serializer()))
     }
 
     override fun terminate(message: JsonMessage) {

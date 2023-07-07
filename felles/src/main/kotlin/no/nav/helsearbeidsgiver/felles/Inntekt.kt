@@ -10,6 +10,13 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.YearMonth
 
 @Serializable
+data class InntektData(
+    val bruttoinntekt: Double,
+    val tidligereInntekter: List<MottattHistoriskInntekt>,
+    val feilReport: FeilReport? = null
+)
+
+@Serializable
 data class MottattHistoriskInntekt(
     val maaned: YearMonth,
     val inntekt: Double

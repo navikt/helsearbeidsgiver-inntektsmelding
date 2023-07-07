@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
@@ -13,9 +14,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Message
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -56,13 +54,12 @@ class InnsendingService(
         return Transaction.TERMINATE
     }
 
-    override fun terminate(message: Message) {
-        redisStore.set(message[Key.UUID].asText(), message[Key.FAIL].asText())
+    override fun terminate(message: JsonMessage) {
+        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
     }
 
-    override fun dispatchBehov(message: Message, transaction: Transaction) {
-        message as TxMessage
-        val uuid: String = message.uuid()
+    override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
+        val uuid: String = message[Key.UUID.str].asText()
         when (transaction) {
             Transaction.NEW -> {
                 logger.info("InnsendingService: emitiing behov Virksomhet")
@@ -70,8 +67,8 @@ class InnsendingService(
                     JsonMessage.newMessage(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to BehovType.VIRKSOMHET.name,
-                            DataFelt.ORGNRUNDERENHET.str to message[DataFelt.ORGNRUNDERENHET].asText(),
+                            Key.BEHOV.str to listOf(BehovType.VIRKSOMHET.name),
+                            DataFelt.ORGNRUNDERENHET.str to message[DataFelt.ORGNRUNDERENHET.str].asText(),
                             Key.UUID.str to uuid
                         )
                     ).toJson()
@@ -82,7 +79,7 @@ class InnsendingService(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
                             Key.BEHOV.str to listOf(BehovType.ARBEIDSFORHOLD.name),
-                            Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER].asText(),
+                            Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
                             Key.UUID.str to uuid
                         )
                     ).toJson()
@@ -92,15 +89,15 @@ class InnsendingService(
                     JsonMessage.newMessage(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to BehovType.FULLT_NAVN.name,
-                            Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER].asText(),
+                            Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
+                            Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
                             Key.UUID.str to uuid
                         )
                     ).toJson()
                 )
             }
             Transaction.IN_PROGRESS -> {
-                if (isDataCollected(*step1data(message[Key.UUID].asText()))) {
+                if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
                     val arbeidstakerRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java)
                     logger.info("InnsendingService: emitiing behov PERSISTER_IM")
                     rapidsConnection.publish(
@@ -110,11 +107,11 @@ class InnsendingService(
                                 Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
                                 DataFelt.VIRKSOMHET.str to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet"),
                                 DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
-                                    arbeidstakerRedis ?: PersonDato(
-                                        "Ukjent navn",
-                                        null
-                                    )
-                                    ),
+                                        arbeidstakerRedis ?: PersonDato(
+                                            "Ukjent navn",
+                                            null
+                                        )
+                                        ),
                                 DataFelt.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING)))!!,
                                 Key.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!,
                                 Key.UUID.str to uuid
@@ -129,9 +126,8 @@ class InnsendingService(
         }
     }
 
-    override fun finalize(message: Message) {
-        message as TxMessage
-        val uuid: String = message.uuid()
+    override fun finalize(message: JsonMessage) {
+        val uuid: String = message[Key.UUID.str].asText()
         val clientId = redisStore.get(RedisKey.of(uuid, event))
         logger.info("publiserer under clientID $clientId")
         redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
@@ -141,7 +137,7 @@ class InnsendingService(
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                    DataFelt.INNTEKTSMELDING_DOKUMENT.str to message[DataFelt.INNTEKTSMELDING_DOKUMENT],
+                    DataFelt.INNTEKTSMELDING_DOKUMENT.str to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str],
                     Key.TRANSACTION_ORIGIN.str to uuid,
                     DataFelt.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!
                 )

@@ -3,16 +3,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import io.kotest.core.spec.style.FunSpec
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+
+// @TODO vi trenger ny test
 
 class ForespoerselSvarLøserTest : FunSpec({
     val testRapid = TestRapid()
@@ -45,7 +40,7 @@ class ForespoerselSvarLøserTest : FunSpec({
     }
  */
 })
-
+/*
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 private data class Published(
@@ -66,3 +61,4 @@ private data class Published(
             )
     }
 }
+*/

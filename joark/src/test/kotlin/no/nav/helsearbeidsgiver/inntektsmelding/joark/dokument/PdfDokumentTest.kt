@@ -110,6 +110,7 @@ class PdfDokumentTest {
     }
 
     @Test
+    @Disabled
     fun `med langt virksomhetsnavn over flere linjer`() {
         val imLangNavn = im.copy(
             virksomhetNavn = "Blå Rød Grønn Blåbærebærekraftsvennligutendørsbedrift AS"

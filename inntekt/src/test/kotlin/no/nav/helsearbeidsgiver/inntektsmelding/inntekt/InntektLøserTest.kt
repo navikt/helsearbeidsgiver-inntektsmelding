@@ -11,6 +11,7 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
@@ -214,7 +215,7 @@ class InntektLøserTest {
             Key.UUID to "uuid".toJson(),
             Key.SESSION to sessionDataJson(),
             Key.BOOMERANG to mapOf(
-                Key.INNTEKT_DATO.str to LocalDate.of(2022, 10, 30).toJson(LocalDateSerializer)
+                DataFelt.INNTEKT_DATO.str to LocalDate.of(2022, 10, 30).toJson(LocalDateSerializer)
             ).toJson()
         )
     }

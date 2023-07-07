@@ -5,9 +5,12 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.IKey
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
@@ -69,3 +72,13 @@ private fun JsonMessage.validate(
         }
     }
 }
+
+fun JsonElement.fromJsonMapOnlyKeys(): Map<Key, JsonElement> =
+    fromJsonMapFiltered(Key.serializer())
+
+fun JsonElement.fromJsonMapOnlyDatafelter(): Map<DataFelt, JsonElement> =
+    fromJsonMapFiltered(DataFelt.serializer())
+
+fun JsonElement.fromJsonMapAllKeys(): Map<IKey, JsonElement> = fromJsonMapFiltered(Key.serializer()) + fromJsonMapFiltered(
+    DataFelt.serializer()
+)

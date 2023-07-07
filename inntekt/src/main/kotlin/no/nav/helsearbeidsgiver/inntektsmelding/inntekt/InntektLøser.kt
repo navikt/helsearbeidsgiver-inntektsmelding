@@ -110,8 +110,8 @@ class InntektLøser(
             val orgnr = trengerInntekt.orgnr
             val nyInntektDato = packet.valueNullable(Key.BOOMERANG)
                 ?.toJsonElement()
-                ?.fromJson(MapSerializer(Key.serializer(), JsonElement.serializer()))
-                ?.get(Key.INNTEKT_DATO)
+                ?.fromJson(MapSerializer(DataFelt.serializer(), JsonElement.serializer()))
+                ?.get(DataFelt.INNTEKT_DATO)
                 ?.fromJson(LocalDateSerializer)
             val sykPeriode = bestemPeriode(nyInntektDato, trengerInntekt.sykmeldingsperioder, trengerInntekt.egenmeldingsperioder)
             if (sykPeriode.isEmpty()) {

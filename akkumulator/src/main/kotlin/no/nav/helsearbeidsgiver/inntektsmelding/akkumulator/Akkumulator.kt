@@ -14,11 +14,11 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.fromJsonMapAllKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 
 class Akkumulator(
@@ -50,7 +50,7 @@ class Akkumulator(
         sikkerLogger.debug("Fikk pakke ${packet.toJson()}")
         val boomerang = Key.BOOMERANG.let(packet::valueNullable)
             ?.toJsonElement()
-            ?.fromJsonMap(Key.serializer())
+            ?.fromJsonMapAllKeys()
             .orEmpty()
 
         val uuid = boomerang[Key.INITIATE_ID]?.fromJson(String.serializer())

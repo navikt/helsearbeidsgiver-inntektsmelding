@@ -1,54 +1,55 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.composite
 
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.MessageListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Message
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-abstract class CompositeEventListener(open val redisStore: IRedisStore) : MessageListener {
+abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
 
     abstract val event: EventName
     private lateinit var dataKanal: StatefullDataKanal
 
-    override fun onMessage(message: Message) {
-        val transaction: Transaction = determineTransactionState(message as TxMessage)
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val transaction: Transaction = determineTransactionState(packet)
 
         when (transaction) {
             Transaction.NEW -> {
-                initialTransactionState(message)
-                dispatchBehov(message, transaction)
+                initialTransactionState(packet)
+                dispatchBehov(packet, transaction)
             }
-            Transaction.IN_PROGRESS -> dispatchBehov(message, transaction)
-            Transaction.FINALIZE -> finalize(message)
-            Transaction.TERMINATE -> terminate(message)
+            Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
+            Transaction.FINALIZE -> finalize(packet)
+            Transaction.TERMINATE -> terminate(packet)
             Transaction.NOT_ACTIVE -> return
         }
     }
 
-    fun determineTransactionState(message: TxMessage): Transaction {
+    fun determineTransactionState(message: JsonMessage): Transaction {
         // event bør ikke ha UUID men dette er ikke konsistent akkuratt nå så midlertidig blir det sånn til vi får det konsistent.
         // vi trenger også clientID for correlation
-        val transactionId = message.uuid()
-        if (message is no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail) { // Returnerer INPROGRESS eller TERMINATE
-            sikkerLogger().error("Feilmelding er ${message.toJsonMessage().toJson()}")
-            return onError(message)
+        val transactionId = message[Key.UUID.str].asText()
+        if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
+            sikkerLogger().error("Feilmelding er ${message.toJson()}")
+            return onError(message.toFeilMessage())
         }
 
         val eventKey = RedisKey.of(transactionId, event)
         val value = redisStore.get(eventKey)
         if (value.isNullOrEmpty()) {
-            if (message !is Event) return Transaction.NOT_ACTIVE
+            if (!isEventMelding(message)) return Transaction.NOT_ACTIVE
 
-            val clientId = if (message.clientId.isNullOrBlank()) transactionId else message.clientId
+            val clientId = if (message[Key.CLIENT_ID.str].isMissingOrNull()) transactionId else message[Key.CLIENT_ID.str].asText()
             redisStore.set(eventKey, clientId)
             return Transaction.NEW
         } else {
@@ -70,7 +71,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : Messag
     fun isEventMelding(jsonMessage: JsonMessage): Boolean {
         return try {
             !(jsonMessage[Key.EVENT_NAME.str].isMissingOrNull()) &&
-                (jsonMessage[Key.DATA.str].isMissingNode && jsonMessage[Key.FAIL.str].isMissingNode && jsonMessage[Key.BEHOV.str].isMissingNode)
+                    (jsonMessage[Key.DATA.str].isMissingNode && jsonMessage[Key.FAIL.str].isMissingNode && jsonMessage[Key.BEHOV.str].isMissingNode)
         } catch (e: NoSuchFieldError) {
             false
         } catch (e: IllegalArgumentException) {
@@ -78,12 +79,12 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : Messag
         }
     }
 
-    abstract fun dispatchBehov(message: Message, transaction: Transaction)
-    abstract fun finalize(message: Message)
-    abstract fun terminate(message: Message)
-    open fun initialTransactionState(message: Message) {}
+    abstract fun dispatchBehov(message: JsonMessage, transaction: Transaction)
+    abstract fun finalize(message: JsonMessage)
+    abstract fun terminate(message: JsonMessage)
+    open fun initialTransactionState(message: JsonMessage) {}
 
-    open fun onError(feil: no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail): Transaction {
+    open fun onError(feil: Fail): Transaction {
         return Transaction.TERMINATE
     }
 

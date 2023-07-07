@@ -107,11 +107,11 @@ class InnsendingService(
                                 Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
                                 DataFelt.VIRKSOMHET.str to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet"),
                                 DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
-                                        arbeidstakerRedis ?: PersonDato(
-                                            "Ukjent navn",
-                                            null
-                                        )
-                                        ),
+                                    arbeidstakerRedis ?: PersonDato(
+                                        "Ukjent navn",
+                                        null
+                                    )
+                                    ),
                                 DataFelt.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING)))!!,
                                 Key.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!,
                                 Key.UUID.str to uuid

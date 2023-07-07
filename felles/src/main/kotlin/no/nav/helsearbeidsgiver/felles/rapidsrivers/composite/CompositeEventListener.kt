@@ -71,7 +71,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
     fun isEventMelding(jsonMessage: JsonMessage): Boolean {
         return try {
             !(jsonMessage[Key.EVENT_NAME.str].isMissingOrNull()) &&
-                    (jsonMessage[Key.DATA.str].isMissingNode && jsonMessage[Key.FAIL.str].isMissingNode && jsonMessage[Key.BEHOV.str].isMissingNode)
+                (jsonMessage[Key.DATA.str].isMissingNode && jsonMessage[Key.FAIL.str].isMissingNode && jsonMessage[Key.BEHOV.str].isMissingNode)
         } catch (e: NoSuchFieldError) {
             false
         } catch (e: IllegalArgumentException) {

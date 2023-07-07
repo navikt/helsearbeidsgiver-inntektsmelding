@@ -114,7 +114,7 @@ class PdfDokumentTest {
         )
         val forventetInnhold = "Blå Rød Grønn\nBlåbærebærekraftsvennligutendørsbedrift\nAS"
         val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
-        assert(pdfTekst!!.contains(forventetInnhold))
+        assert(pdfTekst!!.contains(forventetInnhold) || pdfTekst!!.contains("Blå Rød Grønn\r\nBlåbærebærekraftsvennligutendørsbedrift\r\nAS"))
     }
 
     @Test

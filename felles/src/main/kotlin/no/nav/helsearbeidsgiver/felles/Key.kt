@@ -35,7 +35,6 @@ enum class Key(override val str: String) : IKey {
     FNR("fnr"),
     FORESPOERSEL_ID("forespoerselId"),
     JOURNALPOST_ID("journalpostId"),
-    INNTEKT_DATO("inntektDato"),
     DATA("data"),
     FAIL("fail");
 
@@ -68,7 +67,8 @@ enum class DataFelt(override val str: String) : IKey {
     INNTEKTSMELDING("inntektsmelding"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     TRENGER_INNTEKT("trenger-inntekt"),
-    INNTEKT("inntekt");
+    INNTEKT("inntekt"),
+    INNTEKT_DATO("inntektDato");
 
     override fun toString(): String =
         str

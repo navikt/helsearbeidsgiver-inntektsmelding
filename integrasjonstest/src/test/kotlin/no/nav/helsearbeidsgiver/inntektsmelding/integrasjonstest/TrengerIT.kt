@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toHentTrengerImLøsning
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toTrengerInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarMedSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -64,7 +64,7 @@ class TrengerIT : EndToEndTest() {
                 Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
                 Key.DATA.str to "",
                 Key.UUID.str to transactionID,
-                DataFelt.FORESPOERSEL_SVAR.str to mockForespoerselSvarMedSuksess().toHentTrengerImLøsning().value!!.toJsonStr(TrengerInntekt.serializer())
+                DataFelt.FORESPOERSEL_SVAR.str to mockForespoerselSvarMedSuksess().toTrengerInntekt()!!.toJsonStr(TrengerInntekt.serializer())
             )
         )
 

@@ -3,9 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.fromJsonMapAllKeys
 import no.nav.helsearbeidsgiver.felles.test.date.januar
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
@@ -22,12 +22,9 @@ class InntektProducerTest : FunSpec({
             InntektRequest(UUID.randomUUID(), expectedDate)
         )
 
-        val publisert = testRapid.firstMessage().fromJsonMapOnlyKeys()
+        val publisert = testRapid.firstMessage().fromJsonMapAllKeys()
 
-        val forwardedDate = publisert[Key.BOOMERANG]
-            ?.fromJsonMapOnlyKeys()
-            ?.get(Key.INNTEKT_DATO)
-            ?.fromJson(LocalDateSerializer)
+        val forwardedDate = publisert[DataFelt.INNTEKT_DATO]?.fromJson(LocalDateSerializer)
 
         forwardedDate shouldBe expectedDate
     }

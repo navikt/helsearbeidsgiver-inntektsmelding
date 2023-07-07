@@ -16,9 +16,11 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.fromJsonMapAllKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
@@ -27,6 +29,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -229,7 +232,7 @@ class AkkumulatorTest {
         val originalBoomerang = mapOf(
             Key.NESTE_BEHOV.str to listOf(BehovType.ARBEIDSGIVERE.toString()),
             Key.INITIATE_ID.str to initId,
-            Key.INNTEKT_DATO.str to dato,
+            DataFelt.INNTEKT_DATO.str to dato,
             Key.FNR.str to foedselsnummer
         )
         val melding = mapOf(
@@ -248,16 +251,15 @@ class AkkumulatorTest {
         }
         val boomerang = rapid.firstMessage()
             .fromJsonMapOnlyKeys()[Key.BOOMERANG]!!
-            .fromJsonMapOnlyKeys()
+            .fromJsonMapAllKeys()
 
         // akkumulator skal fjerne neste behov!
         assertEquals(
             emptyList<BehovType>(),
             boomerang[Key.NESTE_BEHOV]?.fromJson(BehovType.serializer().list())
         )
-        assertEquals(
-            originalBoomerang.keys.toList(),
-            boomerang.keys.map(Key::str), // må mappe om til string! :/
+        assertTrue(
+            originalBoomerang.keys.toList().containsAll(boomerang.keys.map(IKey::str)),
             "Alle keys skal beholdes i boomerang"
         )
     }

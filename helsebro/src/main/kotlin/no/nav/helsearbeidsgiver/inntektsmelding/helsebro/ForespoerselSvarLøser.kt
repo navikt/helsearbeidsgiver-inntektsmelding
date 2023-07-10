@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -26,9 +27,12 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 
+private const val FEIL_TOMT_SVAR = "Svar fra bro-appen har hverken resultat eller feil."
+
 class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
 
     private val logger = logger()
+
     init {
         sikkerLogger.info("Starting ForespoerselSvarLøser...")
         River(rapid).apply {
@@ -64,64 +68,82 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
         sikkerLogger.info("Oversatte melding:\n$forespoerselSvar")
 
         val initiateEvent = forespoerselSvar.boomerang.fromJsonMap(String.serializer())[Key.INITIATE_EVENT.str]
+            ?.fromJson(EventName.serializer())
             ?: throw IllegalArgumentException("Mangler ${Key.INITIATE_EVENT} i ${Key.BOOMERANG}.")
+
         val transactionID = forespoerselSvar.boomerang.fromJsonMap(String.serializer())[Key.INITIATE_ID.str]
             ?: throw IllegalArgumentException("Mangler ${Key.INITIATE_ID} i ${Key.BOOMERANG}.")
-        val løsning: HentTrengerImLøsning = forespoerselSvar.toHentTrengerImLøsning()
 
-        if (initiateEvent.fromJson(EventName.serializer()) != EventName.TRENGER_REQUESTED) {
-            context.publish(
-                Key.EVENT_NAME to initiateEvent,
-                Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
-                Key.LØSNING to mapOf(
-                    BehovType.HENT_TRENGER_IM to forespoerselSvar.toHentTrengerImLøsning()
+        val loesning = forespoerselSvar.toHentTrengerImLøsning()
+        val resultat = loesning.value
+
+        when {
+            initiateEvent != EventName.TRENGER_REQUESTED -> {
+                context.publish(
+                    Key.EVENT_NAME to initiateEvent.toJson(),
+                    Key.BEHOV to listOf(BehovType.HENT_TRENGER_IM).toJson(BehovType.serializer()),
+                    Key.LØSNING to mapOf(
+                        BehovType.HENT_TRENGER_IM to loesning
+                    ).toJson(),
+                    Key.BOOMERANG to forespoerselSvar.boomerang
                 )
-                    .toJson(
-                        MapSerializer(
-                            BehovType.serializer(),
-                            HentTrengerImLøsning.serializer()
-                        )
-                    ),
-                Key.BOOMERANG to forespoerselSvar.boomerang
-            )
-        }
-        if (løsning.error != null) {
-            val feilmelding = løsning.error!!.melding ?: "Feil som kommer fra spleis , mangler feilmelding."
-            context.publish(
-                Fail(
-                    eventName = EventName.valueOf(initiateEvent.toJsonNode().asText()),
-                    behov = BehovType.HENT_TRENGER_IM,
-                    feilmelding = feilmelding,
-                    forespørselId = forespoerselSvar.forespoerselId.toString(),
-                    uuid = transactionID.toJsonNode().asText()
-                ).toJsonMessage().toJson()
-            )
-        }
-        context.publish(
-            Key.EVENT_NAME to initiateEvent,
-            Key.DATA to "".toJson(),
-            Key.UUID to transactionID,
-            DataFelt.FORESPOERSEL_SVAR to løsning.value!!.toJson(TrengerInntekt.serializer()!!)
-        )
+                logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")
+            }
 
-        logger.info("Recieve answer from helsebro for " + forespoerselSvar.forespoerselId + " current time" + System.currentTimeMillis())
-        logger.info("Publiserte løsning for [${BehovType.HENT_TRENGER_IM}].")
+            resultat != null -> {
+                context.publish(
+                    Key.EVENT_NAME to initiateEvent.toJson(),
+                    Key.DATA to "".toJson(),
+                    Key.UUID to transactionID,
+                    DataFelt.FORESPOERSEL_SVAR to resultat.toJson(TrengerInntekt.serializer())
+                )
+
+                logger.info("Recieve answer from helsebro for " + forespoerselSvar.forespoerselId + " current time" + System.currentTimeMillis())
+                logger.info("Publiserte data for [${BehovType.HENT_TRENGER_IM}].")
+            }
+
+            else -> {
+                val feil = loesning.error?.melding ?: FEIL_TOMT_SVAR
+
+                context.publish(
+                    Fail(
+                        eventName = initiateEvent,
+                        behov = BehovType.HENT_TRENGER_IM,
+                        feilmelding = feil,
+                        forespørselId = forespoerselSvar.forespoerselId.toString(),
+                        uuid = transactionID.toJsonNode().asText()
+                    ).toJsonMessage().toJson()
+                )
+            }
+        }
     }
 }
 
 fun ForespoerselSvar.toHentTrengerImLøsning(): HentTrengerImLøsning =
-    if (resultat != null) {
-        HentTrengerImLøsning(
-            value = TrengerInntekt(
-                orgnr = resultat.orgnr,
-                fnr = resultat.fnr,
-                sykmeldingsperioder = resultat.sykmeldingsperioder,
-                egenmeldingsperioder = resultat.egenmeldingsperioder,
-                forespurtData = resultat.forespurtData
+    when {
+        resultat != null -> {
+            HentTrengerImLøsning(
+                value = TrengerInntekt(
+                    orgnr = resultat.orgnr,
+                    fnr = resultat.fnr,
+                    sykmeldingsperioder = resultat.sykmeldingsperioder,
+                    egenmeldingsperioder = resultat.egenmeldingsperioder,
+                    forespurtData = resultat.forespurtData
+                )
             )
-        )
-    } else if (feil != null) {
-        HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente forespørsel. Feilet med kode '$feil'."))
-    } else {
-        HentTrengerImLøsning(error = Feilmelding("Svar fra bro-appen har hverken resultat eller feil."))
+        }
+        feil != null -> {
+            HentTrengerImLøsning(error = Feilmelding("Klarte ikke hente forespørsel. Feilet med kode '$feil'."))
+        }
+        else -> {
+            HentTrengerImLøsning(error = Feilmelding(FEIL_TOMT_SVAR))
+        }
     }
+
+private fun Map<BehovType, HentTrengerImLøsning>.toJson(): JsonElement =
+    toJson(
+        MapSerializer(
+            BehovType.serializer(),
+            HentTrengerImLøsning.serializer()
+        )
+    )

@@ -30,7 +30,7 @@ class ForespoerselMottattIT : EndToEndTest() {
             Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        Thread.sleep(8000)
+        waitForMessages(8000)
 
         messages.filter(EventName.FORESPØRSEL_MOTTATT)
             .filter(BehovType.LAGRE_FORESPOERSEL, loesningPaakrevd = false)

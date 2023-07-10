@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.TestData
@@ -30,7 +31,7 @@ class InnsendingServiceIT : EndToEndTest() {
         forespoerselRepository.lagreForespørsel(forespoerselId.toString(), TestData.validOrgNr)
 
         publishMessage(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(EventName.serializer()),
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
             DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson),
             DataFelt.ORGNRUNDERENHET to TestData.validOrgNr.toJson(),

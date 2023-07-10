@@ -24,11 +24,11 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
-import no.nav.helsearbeidsgiver.felles.test.date.januar
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLøser
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.time.LocalDate
 import java.time.LocalDateTime
 

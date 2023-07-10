@@ -19,9 +19,9 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendri
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
-import no.nav.helsearbeidsgiver.felles.test.resource.readResource
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
+import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException

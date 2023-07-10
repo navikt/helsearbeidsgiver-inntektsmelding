@@ -7,9 +7,9 @@ import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.test.date.januar
-import no.nav.helsearbeidsgiver.felles.test.date.kl
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.kl
 
 fun mockLøsningSuccess(): ArbeidsforholdLøsning =
     ArbeidsforholdLøsning(

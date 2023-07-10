@@ -5,7 +5,7 @@ import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helsearbeidsgiver.felles.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
 fun mockRedisPoller(answers: String, attemptsBeforeSuccess: Int): RedisPoller {
     val command = mockk<RedisCommands<String, String>> {

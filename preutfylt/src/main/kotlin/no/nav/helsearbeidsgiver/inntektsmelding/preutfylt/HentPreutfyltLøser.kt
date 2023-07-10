@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonLink
 import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -43,7 +44,7 @@ class HentPreutfyltLøser(rapidsConnection: RapidsConnection) : River.PacketList
         }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerLogger.info("Fikk preutfylt pakke ${packet.toJson()}")
+        sikkerLogger.info("Fikk preutfylt pakke\n${packet.toPretty()}")
         val hentTrengerImLøsning = hentLøsning(packet)
         logger.info("Fikk preutfylt pakke")
         sikkerLogger.info("Fikk trenger løsning: ${hentTrengerImLøsning.error}")

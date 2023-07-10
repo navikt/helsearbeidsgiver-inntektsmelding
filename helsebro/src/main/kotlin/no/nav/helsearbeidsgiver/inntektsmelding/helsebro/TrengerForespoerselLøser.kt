@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -39,7 +40,7 @@ class TrengerForespoerselLøser(
 
     override fun onBehov(packet: JsonMessage) {
         logger.info("Mottok behov om ${Key.BEHOV.fra(packet).fromJson(BehovType.serializer().list())}")
-        sikkerLogger.info("Mottok behov:\n${packet.toJson()}")
+        sikkerLogger.info("Mottok behov:\n${packet.toPretty()}")
 
         val trengerForespoersel = TrengerForespoersel(
             forespoerselId = Key.FORESPOERSEL_ID.fra(packet).fromJson(UuidSerializer),

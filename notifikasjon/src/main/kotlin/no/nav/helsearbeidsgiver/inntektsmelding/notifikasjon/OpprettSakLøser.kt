@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -58,7 +59,7 @@ class OpprettSakLøser(
 
     override fun onBehov(packet: JsonMessage) {
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
+        sikkerLogger.info("OpprettSakLøser: fikk pakke:\n${packet.toPretty()}")
         logger.info("Skal opprette sak for forespørselId: $forespoerselId")
         val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
         val personDato = hentNavn(packet)

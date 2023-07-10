@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
@@ -40,7 +41,7 @@ class JournalførtListener(private val rapidsConnection: RapidsConnection) : Riv
         val oppgaveId = packet[DataFelt.OPPGAVE_ID.str].asText()
         val sakId = packet[DataFelt.SAK_ID.str].asText()
         logger.info("JournalførtListener fikk pakke for $uuid")
-        sikkerLogger.info("JournalførtListener fikk pakke ${EventName.INNTEKTSMELDING_JOURNALFOERT} med pakke ${packet.toJson()}")
+        sikkerLogger.info("JournalførtListener fikk pakke ${EventName.INNTEKTSMELDING_JOURNALFOERT} med pakke\n${packet.toPretty()}")
         listOf(BehovType.DISTRIBUER_IM, BehovType.ENDRE_SAK_STATUS, BehovType.ENDRE_OPPGAVE_STATUS).forEach {
             publish(it, uuid, oppgaveId, sakId, packet)
         }

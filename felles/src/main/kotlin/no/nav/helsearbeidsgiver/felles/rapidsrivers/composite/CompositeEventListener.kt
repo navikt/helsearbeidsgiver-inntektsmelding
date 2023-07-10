@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -40,7 +41,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         // vi trenger også clientID for correlation
         val transactionId = message[Key.UUID.str].asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
-            sikkerLogger().error("Feilmelding er ${message.toJson()}")
+            sikkerLogger().error("Feilmelding er\n${message.toPretty()}")
             return onError(message.toFeilMessage())
         }
 

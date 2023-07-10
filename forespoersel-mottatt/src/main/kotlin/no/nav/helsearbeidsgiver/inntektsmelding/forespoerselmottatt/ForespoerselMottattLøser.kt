@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -44,7 +45,7 @@ class ForespoerselMottattLøser(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("[ForespoerselMottattLøser] Mottok melding på pri-topic om ${Pri.Key.NOTIS.fra(packet).fromJson(Pri.NotisType.serializer())}.")
-        sikkerLogger.info("[ForespoerselMottattLøser] Mottok melding på pri-topic:\n${packet.toJson()}")
+        sikkerLogger.info("[ForespoerselMottattLøser] Mottok melding på pri-topic:\n${packet.toPretty()}")
 
         val orgnr = Pri.Key.ORGNR.fra(packet).fromJson(String.serializer())
         val fnr = Pri.Key.FNR.fra(packet).fromJson(String.serializer())

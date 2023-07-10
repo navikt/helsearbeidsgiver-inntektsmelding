@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
@@ -61,7 +62,7 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
 
     private fun JsonMessage.loesBehov(context: MessageContext) {
         logger.info("Mottok løsning på pri-topic om ${Pri.Key.BEHOV.fra(this).fromJson(Pri.BehovType.serializer())}.")
-        sikkerLogger.info("Mottok løsning på pri-topic:\n${toJson()}")
+        sikkerLogger.info("Mottok løsning på pri-topic:\n${toPretty()}")
 
         val forespoerselSvar = Pri.Key.LØSNING.fra(this).fromJson(ForespoerselSvar.serializer())
 

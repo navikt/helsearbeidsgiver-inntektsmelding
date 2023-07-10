@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentImOrgnrLøsning
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -33,7 +34,7 @@ class HentOrgnrLøser(rapidsConnection: RapidsConnection, private val repository
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Løser behov $BEHOV med forespørselId $forespørselId")
-        sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
+        sikkerLogger.info("Fikk pakke:\n${packet.toPretty()}")
         try {
             val orgnr = repository.hentOrgNr(forespørselId)
             sikkerLogger.info("Fant orgnr: $orgnr for $forespørselId")

@@ -33,14 +33,14 @@ class StatefullDataKanal(
 
     override fun onData(packet: JsonMessage) {
         if (packet[Key.UUID.str].asText().isNullOrEmpty()) {
-            sikkerLogger().error("TransaksjonsID er ikke initialisert for ${packet.toJson()}")
+            sikkerLogger().error("TransaksjonsID er ikke initialisert for\n${packet.toPretty()}")
             rapidsConnection.publish(
                 packet.createFail(
                     "TransaksjonsID / UUID kan ikke vare tom da man bruker Composite Service"
                 ).toJsonMessage().toJson()
             )
         } else if (collectData(packet)) {
-            sikkerLogger().info("data collected for event ${eventName.name} med packet ${packet.toJson()}")
+            sikkerLogger().info("data collected for event ${eventName.name} med packet\n${packet.toPretty()}")
             mainListener.onPacket(packet, rapidsConnection)
         } else {
             sikkerLogger().warn("Mangler data for $packet")

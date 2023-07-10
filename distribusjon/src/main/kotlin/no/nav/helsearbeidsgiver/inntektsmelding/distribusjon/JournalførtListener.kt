@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -25,7 +26,7 @@ class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(r
 
     override fun onEvent(packet: JsonMessage) {
         logger.info("Fikk event om journalføre inntektsmelding...")
-        sikkerLogger.info("Fikk event om journalføre inntektsmelding med pakke ${packet.toJson()}")
+        sikkerLogger.info("Fikk event om journalføre inntektsmelding med pakke\n${packet.toPretty()}")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,

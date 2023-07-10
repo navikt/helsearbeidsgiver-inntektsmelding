@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.system.measureTimeMillis
@@ -45,7 +46,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
             val transactionId = packet[Key.UUID.str].asText()
             val event = packet[Key.EVENT_NAME.str].asText()
             logger.info("Skal hente persistert inntektsmelding med forespørselId $forespoerselId")
-            sikkerLogger.info("Skal hente persistert inntektsmelding for pakke: ${packet.toJson()}")
+            sikkerLogger.info("Skal hente persistert inntektsmelding for pakke:\n${packet.toPretty()}")
             try {
                 val dokument = repository.hentNyeste(forespoerselId)
                 if (dokument == null) {
@@ -93,7 +94,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
                 Key.UUID.str to transaksjonsId
             )
         )
-        sikkerLogger.info("Publiserer data" + packet.toJson())
+        sikkerLogger.info("Publiserer data:\n${packet.toPretty()}")
         rapidsConnection.publish(packet.toJson())
     }
 }

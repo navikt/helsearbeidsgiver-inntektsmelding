@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class PersisterOppgaveLøser(
@@ -22,7 +23,7 @@ class PersisterOppgaveLøser(
         it.requireKey(DataFelt.OPPGAVE_ID.str)
     }
     override fun onBehov(packet: JsonMessage) {
-        sikkerLogger.info("PersisterOppgaveLøser mottok pakke: ${packet.toJson()}")
+        sikkerLogger.info("PersisterOppgaveLøser mottok pakke:\n${packet.toPretty()}")
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val oppgaveId = packet[DataFelt.OPPGAVE_ID.str].asText()
         repository.oppdaterOppgaveId(forespoerselId, oppgaveId)

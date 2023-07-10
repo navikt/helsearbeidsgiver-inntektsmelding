@@ -211,7 +211,7 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
 
 fun getDeployMatrixVariables(
     includeCluster: String? = null,
-    deployAll: Boolean = false,
+    deployAll: Boolean = false
 ): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
     val clustersByProject = getBuildableProjects(deployAll).associateWith { project ->
         File("config", project)
@@ -287,7 +287,7 @@ fun Task.deployMatrix(includeCluster: String? = null, deployAll: Boolean = false
         val (
             deployableProjects,
             clusters,
-            exclusions,
+            exclusions
         ) = getDeployMatrixVariables(includeCluster, deployAll)
 
         taskOutputJson(

@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -59,7 +60,7 @@ class JournalførInntektsmeldingLøser(
     override fun onBehov(packet: JsonMessage) {
         val uuid = packet[Key.UUID.str].asText()
         logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid $uuid")
-        sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
+        sikkerLogger.info("Fikk pakke:\n${packet.toPretty()}")
         var inntektsmeldingDokument: InntektsmeldingDokument? = null
         try {
             inntektsmeldingDokument = mapInntektsmeldingDokument(packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str])

@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class PersisterSakLøser(
@@ -24,7 +25,7 @@ class PersisterSakLøser(
     }
 
     override fun onBehov(packet: JsonMessage) {
-        sikkerLogger.info("PersisterSakLøser mottok pakke: ${packet.toJson()}")
+        sikkerLogger.info("PersisterSakLøser mottok pakke:\n${packet.toPretty()}")
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val sakId = packet[DataFelt.SAK_ID.str].asText()
         repository.oppdaterSakId(sakId, forespoerselId)

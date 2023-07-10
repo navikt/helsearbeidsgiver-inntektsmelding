@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLøser
@@ -75,11 +76,11 @@ class DummyLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Fikk pakke: ${packet.toJson()}")
+        logger.info("Fikk pakke:\n${packet.toPretty()}")
         packet.setLøsning(behov, getLøsning())
         packet.nesteBehov(nesteBehov)
         JsonMessage.newMessage()
-        logger.info("Publiserer løsning: ${packet.toJson()}")
+        logger.info("Publiserer løsning:\n${packet.toPretty()}")
         this.rapid.publish(packet.toJson())
     }
 

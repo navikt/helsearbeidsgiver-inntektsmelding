@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import java.util.UUID
 
 class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -77,7 +78,7 @@ class OpprettOppgaveLøser(
         }
 
     override fun onBehov(packet: JsonMessage) {
-        sikkerLogger.info("OpprettOppgaveLøser mottok pakke: ${packet.toJson()}")
+        sikkerLogger.info("OpprettOppgaveLøser mottok pakke:\n${packet.toPretty()}")
         val forespørselId = packet[Key.FORESPOERSEL_ID.str]
         if (forespørselId.isMissingOrNull() || forespørselId.asText().isEmpty()) {
             publishFail(packet.createFail("Mangler forespørselId"))

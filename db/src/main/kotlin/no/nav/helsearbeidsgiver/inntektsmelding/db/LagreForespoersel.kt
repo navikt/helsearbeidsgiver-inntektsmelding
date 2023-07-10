@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class LagreForespoersel(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) : Løser(rapidsConnection) {
@@ -25,7 +26,7 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, private val reposito
 
     override fun onBehov(packet: JsonMessage) {
         val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        sikkerLogger.info("LagreForespoersel mottok: ${packet.toJson()}")
+        sikkerLogger.info("LagreForespoersel mottok:\n${packet.toPretty()}")
         val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
         repository.lagreForespørsel(forespørselId, orgnr)
@@ -40,6 +41,6 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, private val reposito
             )
 
         publishEvent(msg)
-        sikkerLogger.info("LagreForespoersel publiserte: ${msg.toJson()}")
+        sikkerLogger.info("LagreForespoersel publiserte:\n${msg.toPretty()}")
     }
 }

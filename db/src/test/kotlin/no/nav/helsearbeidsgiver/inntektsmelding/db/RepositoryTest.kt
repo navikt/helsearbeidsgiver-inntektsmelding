@@ -4,6 +4,8 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.nulls.shouldNotBeNull
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.ForespoerselEntitet
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.Op

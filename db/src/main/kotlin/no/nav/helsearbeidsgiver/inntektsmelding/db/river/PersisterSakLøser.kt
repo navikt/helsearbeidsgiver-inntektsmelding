@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class PersisterSakLøser(

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.ForespoerselEntitet
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert

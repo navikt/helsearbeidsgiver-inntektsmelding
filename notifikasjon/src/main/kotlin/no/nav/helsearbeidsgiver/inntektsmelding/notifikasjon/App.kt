@@ -25,7 +25,7 @@ fun RapidsConnection.createNotifikasjon(
     OpprettSakLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
     ForespørselLagretListener(this)
     OpprettOppgaveLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-    SakFerdigLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+    SakFerdigLøser(this, arbeidsgiverNotifikasjonKlient)
     OppgaveFerdigLøser(this, arbeidsgiverNotifikasjonKlient)
     JournalførtListener(this)
     OpprettSak(this, redisStore)

@@ -15,8 +15,8 @@ fun main() {
     logger.info("Hasta la vista, baby!")
 }
 
-fun RapidsConnection.createForespoerselMottatt(): RapidsConnection {
-    logger.info("Starting ForespoerselMottattLøser...")
-    ForespoerselMottattLøser(this)
-    return this
-}
+fun RapidsConnection.createForespoerselMottatt(): RapidsConnection =
+    apply {
+        logger.info("Starting ${ForespoerselMottattLøser::class.simpleName}...")
+        ForespoerselMottattLøser(this)
+    }

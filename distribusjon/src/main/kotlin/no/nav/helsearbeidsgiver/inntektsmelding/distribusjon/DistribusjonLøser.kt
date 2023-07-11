@@ -27,10 +27,6 @@ class DistribusjonLøser(
 
     private val logger = logger()
 
-    init {
-        logger.info("Starting DistribuerIMLøser...")
-    }
-
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)

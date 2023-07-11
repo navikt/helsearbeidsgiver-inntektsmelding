@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -60,7 +61,7 @@ class ForespoerselMottattLøser(
         )
             .also {
                 logger.info("[ForespoerselMottattLøser] Publiserte melding. Se sikkerlogg for mer info.")
-                sikkerLogger.info("[ForespoerselMottattLøser] Publiserte:\n$it")
+                sikkerLogger.info("[ForespoerselMottattLøser] Publiserte:\n${it.toPretty()}")
             }
     }
 }

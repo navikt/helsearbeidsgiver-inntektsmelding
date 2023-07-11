@@ -32,7 +32,7 @@ class TrengerIT : EndToEndTest() {
     private val CLIENT_ID = UUID.randomUUID().toString()
 
     private fun setup() {
-        forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID, ORGNR)
+        forespoerselRepository.lagreForespoersel(FORESPØRSEL_ID, ORGNR)
         forespoerselRepository.oppdaterSakId(SAK_ID, FORESPØRSEL_ID)
         forespoerselRepository.oppdaterOppgaveId(FORESPØRSEL_ID, OPPGAVE_ID)
     }

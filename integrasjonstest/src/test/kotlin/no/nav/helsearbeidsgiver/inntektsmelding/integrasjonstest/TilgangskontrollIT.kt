@@ -26,8 +26,8 @@ class TilgangskontrollIT : EndToEndTest() {
 
     @BeforeAll
     fun beforeAll() {
-        forespoerselRepository.lagreForespørsel(Mock.FORESPOERSEL_ID_MED_TILGANG, Mock.ORGNR_MED_TILGANG)
-        forespoerselRepository.lagreForespørsel(Mock.FORESPOERSEL_ID_UTEN_TILGANG, Mock.ORGNR_UTEN_TILGANG)
+        forespoerselRepository.lagreForespoersel(Mock.FORESPOERSEL_ID_MED_TILGANG, Mock.ORGNR_MED_TILGANG)
+        forespoerselRepository.lagreForespoersel(Mock.FORESPOERSEL_ID_UTEN_TILGANG, Mock.ORGNR_UTEN_TILGANG)
     }
 
     @BeforeEach

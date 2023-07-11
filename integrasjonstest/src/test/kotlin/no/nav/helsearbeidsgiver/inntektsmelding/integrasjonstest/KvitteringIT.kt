@@ -23,7 +23,7 @@ class KvitteringIT : EndToEndTest() {
     fun `skal hente data til kvittering`() {
         val clientId = UUID.randomUUID()
 
-        forespoerselRepository.lagreForespørsel(Mock.FORESPOERSEL_ID_GYLDIG, Mock.ORGNR)
+        forespoerselRepository.lagreForespoersel(Mock.FORESPOERSEL_ID_GYLDIG, Mock.ORGNR)
         imRepository.lagreInntektsmeldng(Mock.FORESPOERSEL_ID_GYLDIG, Mock.inntektsmeldingDokument)
 
         publishMessage(

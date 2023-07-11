@@ -26,11 +26,11 @@ class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val re
     }
 
     override fun onBehov(packet: JsonMessage) {
-        val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        sikkerLogger.info("LagreForespoersel mottok:\n${packet.toPretty()}")
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
+        sikkerLogger.info("LagreForespoerselLoeser mottok:\n${packet.toPretty()}")
         val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
-        repository.lagreForespørsel(forespørselId, orgnr)
+        repository.lagreForespoersel(forespoerselId, orgnr)
 
         val msg =
             JsonMessage.newMessage(
@@ -42,6 +42,6 @@ class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val re
             )
 
         publishEvent(msg)
-        sikkerLogger.info("LagreForespoersel publiserte:\n${msg.toPretty()}")
+        sikkerLogger.info("LagreForespoerselLoeser publiserte:\n${msg.toPretty()}")
     }
 }

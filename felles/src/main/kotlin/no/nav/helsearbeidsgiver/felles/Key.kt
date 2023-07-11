@@ -45,7 +45,7 @@ enum class Key(override val str: String) : IKey {
 
     companion object {
         internal fun fromJson(json: String): Key =
-            Key.values().firstOrNull {
+            Key.entries.firstOrNull {
                 json == it.str
             }
                 ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$json'.")
@@ -76,7 +76,7 @@ enum class DataFelt(override val str: String) : IKey {
 
     companion object {
         internal fun fromJson(json: String): DataFelt =
-            DataFelt.values().firstOrNull {
+            DataFelt.entries.firstOrNull {
                 json == it.str
             }
                 ?: throw IllegalArgumentException("Fant ingen DataFelt med verdi som matchet '$json'.")

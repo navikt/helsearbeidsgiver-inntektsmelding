@@ -1,6 +1,4 @@
-@file:Suppress("NonAsciiCharacters")
-
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -15,6 +13,8 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntektsmel
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 

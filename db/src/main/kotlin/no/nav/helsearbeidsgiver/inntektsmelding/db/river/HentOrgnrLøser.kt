@@ -1,6 +1,4 @@
-@file:Suppress("NonAsciiCharacters")
-
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -11,10 +9,12 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.HentImOrgnrLøsning
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class HentOrgnrLøser(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) : River.PacketListener {
+class HentOrgnrLøser(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) :
+    River.PacketListener {
 
     private val BEHOV = BehovType.HENT_IM_ORGNR
     private val logger = logger()

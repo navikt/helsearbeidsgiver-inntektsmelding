@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.db.config
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper

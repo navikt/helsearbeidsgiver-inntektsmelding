@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import com.zaxxer.hikari.HikariConfig
 import io.kotest.core.spec.style.FunSpec
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll

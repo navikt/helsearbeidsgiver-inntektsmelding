@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIAr
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
+import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

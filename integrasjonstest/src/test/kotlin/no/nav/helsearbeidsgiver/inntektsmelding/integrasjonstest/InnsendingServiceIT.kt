@@ -28,7 +28,7 @@ class InnsendingServiceIT : EndToEndTest() {
         val forespoerselId = UUID.randomUUID()
         val clientId = UUID.randomUUID()
 
-        forespoerselRepository.lagreForespørsel(forespoerselId.toString(), TestData.validOrgNr)
+        forespoerselRepository.lagreForespoersel(forespoerselId.toString(), TestData.validOrgNr)
 
         publishMessage(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),

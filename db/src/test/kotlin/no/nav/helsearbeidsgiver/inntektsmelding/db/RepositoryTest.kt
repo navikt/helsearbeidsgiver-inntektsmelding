@@ -49,7 +49,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
 
         val UUID = "abc-123"
 
-        foresporselRepo.lagreForespørsel(UUID, ORGNR)
+        foresporselRepo.lagreForespoersel(UUID, ORGNR)
 
         shouldNotThrowAny {
             transaction {
@@ -74,7 +74,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val UUID = "abc-123"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
 
-        foresporselRepo.lagreForespørsel(UUID, ORGNR)
+        foresporselRepo.lagreForespoersel(UUID, ORGNR)
         inntektsmeldingRepo.lagreInntektsmeldng(UUID, DOK_1)
 
         transaction {
@@ -98,7 +98,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val UUID = "abc-1234"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT
 
-        foresporselRepo.lagreForespørsel(UUID, ORGNR)
+        foresporselRepo.lagreForespoersel(UUID, ORGNR)
         inntektsmeldingRepo.lagreInntektsmeldng(UUID, DOK_1)
 
         transaction {
@@ -120,7 +120,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
         val JOURNALPOST_1 = "jp-1"
 
-        foresporselRepo.lagreForespørsel(UUID, ORGNR)
+        foresporselRepo.lagreForespoersel(UUID, ORGNR)
         inntektsmeldingRepo.lagreInntektsmeldng(UUID, DOK_1)
         inntektsmeldingRepo.oppdaterJournapostId(JOURNALPOST_1, UUID)
         val record = testRepo.hentRecordFraInntektsmelding(UUID)
@@ -137,7 +137,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val UUID = "abc-456"
         val SAK_ID_1 = "sak1-1"
 
-        foresporselRepo.lagreForespørsel(UUID, ORGNR)
+        foresporselRepo.lagreForespoersel(UUID, ORGNR)
         foresporselRepo.oppdaterSakId(SAK_ID_1, UUID)
         val record = testRepo.hentRecordFraForespoersel(UUID)
         record.shouldNotBeNull()
@@ -154,7 +154,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val UUID = "abc-456"
         val OPPGAVE_ID_1 = "oppg-1"
 
-        foresporselRepo.lagreForespørsel(UUID, ORGNR)
+        foresporselRepo.lagreForespoersel(UUID, ORGNR)
         foresporselRepo.oppdaterOppgaveId(UUID, OPPGAVE_ID_1)
         val rad = testRepo.hentRecordFraForespoersel(UUID)
         rad.shouldNotBeNull()

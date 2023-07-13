@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
 fun JsonMessage.toPretty(): String =
-    toString().parseJson().toPretty()
+    toJson().parseJson().toPretty()
 
 fun JsonMessage.demandAll(key: IKey, values: List<BehovType>) {
     demandAll(key.str, values.map(BehovType::name))

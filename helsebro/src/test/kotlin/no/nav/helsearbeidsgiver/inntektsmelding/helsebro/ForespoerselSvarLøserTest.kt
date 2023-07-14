@@ -1,18 +1,22 @@
-@file:UseSerializers(UuidSerializer::class)
-
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.datatest.withData
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class ForespoerselSvarLøserTest : FunSpec({
     val testRapid = TestRapid()
@@ -22,7 +26,7 @@ class ForespoerselSvarLøserTest : FunSpec({
     beforeTest {
         testRapid.reset()
     }
-/*
+
     withData(
         mapOf(
             "Ved suksessfull løsning på behov så publiseres løsning på simba-rapid" to mockForespoerselSvarMedSuksess(),
@@ -40,10 +44,9 @@ class ForespoerselSvarLøserTest : FunSpec({
 
         val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
-        testRapid.inspektør.size shouldBeExactly 2
+        testRapid.inspektør.size shouldBeExactly 1
         actual shouldBe expected
     }
- */
 })
 
 @Serializable
@@ -52,7 +55,7 @@ private data class Published(
     @JsonNames("@behov")
     val behov: List<BehovType>,
     @JsonNames("@løsning")
-    val løsning: Map<BehovType, HentTrengerImLøsning>,
+    val loesning: Map<BehovType, HentTrengerImLøsning>,
     val boomerang: JsonElement
 ) {
     companion object {
@@ -61,7 +64,7 @@ private data class Published(
         fun mock(forespoerselSvar: ForespoerselSvar): Published =
             Published(
                 behov = behovType.let(::listOf),
-                løsning = mapOf(behovType to forespoerselSvar.toHentTrengerImLøsning()),
+                loesning = mapOf(behovType to forespoerselSvar.toHentTrengerImLøsning()),
                 boomerang = forespoerselSvar.boomerang
             )
     }

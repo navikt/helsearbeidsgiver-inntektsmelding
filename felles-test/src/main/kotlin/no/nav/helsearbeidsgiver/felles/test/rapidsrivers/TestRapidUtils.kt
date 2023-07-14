@@ -8,12 +8,8 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 
 fun TestRapid.sendJson(vararg keyValuePairs: Pair<IKey, JsonElement>) {
     keyValuePairs.toMap()
-        .mapKeys { (key, _) -> key.str }
-        .let(this::sendJson)
-}
-
-fun TestRapid.sendJson(keyValuePairs: Map<String, JsonElement>) {
-    keyValuePairs.toJson()
+        .mapKeys { (key, _) -> key.toString() }
+        .toJson()
         .toString()
         .let(this::sendTestMessage)
 }

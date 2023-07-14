@@ -1,16 +1,13 @@
-@file:Suppress("NonAsciiCharacters")
-
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.contains
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.maps.shouldNotContainKey
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
@@ -20,103 +17,118 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
+import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class JournalførInntektsmeldingLøserTest {
 
-    private val rapid = TestRapid()
-    private var løser: JournalførInntektsmeldingLøser
-    private val BEHOV = BehovType.JOURNALFOER.name
-    private val objectMapper: ObjectMapper = jacksonObjectMapper()
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .registerModule(JavaTimeModule())
-    private val dokArkivClient = mockk<DokArkivClient>()
+    private val testRapid = TestRapid()
+    private val mockDokArkivClient = mockk<DokArkivClient>()
 
     init {
-        løser = JournalførInntektsmeldingLøser(rapid, dokArkivClient)
+        JournalførInntektsmeldingLøser(testRapid, mockDokArkivClient)
     }
 
-    private fun sendMessage(packet: Map<String, Any>) {
-        rapid.reset()
-        rapid.sendTestMessage(
-            objectMapper.writeValueAsString(
-                packet
-            )
-        )
-    }
-
-    private fun retrieveMessage(index: Int): JsonNode {
-        return rapid.inspektør.message(index)
+    @BeforeEach
+    fun setup() {
+        testRapid.reset()
     }
 
     @Test
     fun `skal håndtere at dokarkiv feiler`() {
         coEvery {
-            dokArkivClient.opprettJournalpost(any(), any(), any())
+            mockDokArkivClient.opprettJournalpost(any(), any(), any())
         } throws DokArkivException(Exception(""))
-        sendMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                Key.BEHOV.str to BehovType.JOURNALFOER.name,
-                Key.ID.str to UUID.randomUUID(),
-                Key.UUID.str to "uuid",
-                DataFelt.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
-            )
+
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+            Key.BEHOV to BehovType.JOURNALFOER.toJson(),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmeldingDokument().let(Jackson::toJson),
+            Key.UUID to "uuid-557".toJson()
         )
-        val message = retrieveMessage(0)
-        assert(message.contains(Key.FAIL.str).and(!message.contains(DataFelt.INNTEKTSMELDING_DOKUMENT.str)))
-        val fail = objectMapper.treeToValue(message.path(Key.FAIL.str), Fail::class.java)
+
+        val publisert = testRapid.firstMessage().let {
+            it.fromJsonMapOnlyKeys() + it.fromJsonMapOnlyDatafelter()
+        }
+
+        publisert shouldContainKey Key.FAIL
+        publisert shouldNotContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
+
+        val fail = publisert[Key.FAIL]
+            .shouldNotBeNull()
+            .toJsonNode()
+            .let(Jackson::readFail)
+
         assertEquals("Kall mot dokarkiv feilet", fail.feilmelding)
     }
 
     @Test
     fun `skal journalføre når gyldige data`() {
         coEvery {
-            dokArkivClient.ferdigstillJournalpost(any(), any())
-        } returns "jp-123"
-        coEvery {
-            dokArkivClient.opprettJournalpost(any(), any(), any())
-        } returns OpprettJournalpostResponse("jp-123", journalpostFerdigstilt = false, "FERDIGSTILT", "", emptyList())
-        val løsning = sendMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                "@behov" to BehovType.JOURNALFOER.name,
-                "@id" to UUID.randomUUID(),
-                "uuid" to "uuid",
-                DataFelt.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument(),
-                "session" to mapOf(
-                    "Virksomhet" to mapOf(
-                        "value" to "Norge AS"
-                    )
-                )
-            )
+            mockDokArkivClient.opprettJournalpost(any(), any(), any())
+        } returns OpprettJournalpostResponse(
+            journalpostId = "jid-ulende-koala",
+            journalpostFerdigstilt = true,
+            journalStatus = "FERDIGSTILT",
+            melding = "Ha en fin dag!",
+            dokumenter = emptyList()
         )
 
-        val msg2 = rapid.inspektør.message(0)
-        assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, msg2.path(Key.BEHOV.str).asText())
-        assertEquals("jp-123", msg2.path(Key.JOURNALPOST_ID.str).asText())
-        assertEquals("uuid", msg2.path(Key.UUID.str).asText())
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+            Key.BEHOV to BehovType.JOURNALFOER.toJson(),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmeldingDokument().let(Jackson::toJson),
+            Key.UUID to "uuid-979".toJson()
+        )
+
+        val publisert = testRapid.firstMessage()
+            .fromJsonMapOnlyKeys()
+            .mapValues { (_, value) -> value.fromJson(String.serializer()) }
+
+        assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, publisert[Key.BEHOV])
+        assertEquals("jid-ulende-koala", publisert[Key.JOURNALPOST_ID])
+        assertEquals("uuid-979", publisert[Key.UUID])
     }
 
     @Test
     fun `skal håndtere ukjente feil`() {
-        sendMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
-                Key.BEHOV.str to BEHOV,
-                Key.ID.str to UUID.randomUUID(),
-                Key.UUID.str to "uuid",
-                "identitetsnummer" to "000",
-                DataFelt.ORGNRUNDERENHET.str to "abc",
-                DataFelt.INNTEKTSMELDING_DOKUMENT.str to "xyz"
-            )
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+            Key.BEHOV to BehovType.JOURNALFOER.name.toJson(),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to "xyz".toJson(),
+            Key.UUID to "uuid-549".toJson()
         )
-        val fail = objectMapper.treeToValue(retrieveMessage(0).get(Key.FAIL.str), Fail::class.java)
+
+        val fail = testRapid.firstMessage()
+            .fromJsonMapOnlyKeys()[Key.FAIL]
+            .shouldNotBeNull()
+            .toJsonNode()
+            .let(Jackson::readFail)
+
         assertTrue(fail.feilmelding.isNotEmpty())
     }
+}
+
+private object Jackson {
+    private val objectMapper = customObjectMapper()
+
+    fun toJson(inntektsmelding: InntektsmeldingDokument): JsonElement =
+        objectMapper.writeValueAsString(inntektsmelding).parseJson()
+
+    fun readFail(json: JsonNode): Fail =
+        objectMapper.treeToValue(json, Fail::class.java)
 }

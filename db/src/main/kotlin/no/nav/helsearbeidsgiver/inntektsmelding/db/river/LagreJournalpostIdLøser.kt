@@ -1,6 +1,4 @@
-@file:Suppress("NonAsciiCharacters")
-
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -12,6 +10,9 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -37,7 +38,7 @@ class LagreJournalpostIdLøser(
         val transaksjonsId = packet[Key.UUID.str].asText()
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("LagreJournalpostIdLøser behov ${BehovType.LAGRE_JOURNALPOST_ID.name} med transaksjonsId $transaksjonsId")
-        sikkerLogger.info("LagreJournalpostIdLøser fikk pakke: ${packet.toJson()}")
+        sikkerLogger.info("LagreJournalpostIdLøser fikk pakke:\n${packet.toPretty()}")
         val journalpostId = packet[Key.JOURNALPOST_ID.str].asText()
         if (journalpostId.isNullOrBlank()) {
             logger.error("LagreJournalpostIdLøser fant ingen journalpostId for transaksjonsId $transaksjonsId")

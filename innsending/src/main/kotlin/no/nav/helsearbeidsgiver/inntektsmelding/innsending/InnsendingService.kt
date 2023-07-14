@@ -29,7 +29,7 @@ class InnsendingService(
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
-        withDataKanal { StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), event, it, rapidsConnection, redisStore) }
+        withDataKanal { StatefullDataKanal(DataFelter.entries.map { it.str }.toTypedArray(), event, it, rapidsConnection, redisStore) }
         withEventListener {
             StatefullEventListener(
                 redisStore,

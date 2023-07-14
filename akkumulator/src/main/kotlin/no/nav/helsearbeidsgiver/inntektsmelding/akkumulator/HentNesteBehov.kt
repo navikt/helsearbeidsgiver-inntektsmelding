@@ -16,26 +16,28 @@ import no.nav.helsearbeidsgiver.felles.Key
  * @param løsninger En Json node med akkumulerte løsninger så langt
  */
 fun hentNesteBehov(løsninger: ObjectNode, packet: JsonMessage, objectMapper: ObjectMapper): JsonNode {
-    val jsonNode: JsonNode = objectMapper.readTree(packet.toJson())
-    (jsonNode as ObjectNode).apply {
-        val nodeBehov = jsonNode.get(Key.BEHOV.str) as ArrayNode
-        val nodeNesteBehov = jsonNode.let {
-            it.get(Key.BOOMERANG.str)
-                ?.takeUnless(JsonNode::isMissingOrNull)
-                ?.get(Key.NESTE_BEHOV.str)
-                ?.takeUnless(JsonNode::isEmpty)
-                ?: it.get(Key.NESTE_BEHOV.str)
-        }
-            .let { it as ArrayNode }
-        nodeBehov.flyttBehov(nodeNesteBehov)
-        jsonNode.remove(Key.LØSNING.str)
-        if (!løsninger.isEmpty) {
-            jsonNode.set(Key.SESSION.str, løsninger)
-        } else {
-            jsonNode.set(Key.SESSION.str, objectMapper.createObjectNode())
-        }
+    val node = objectMapper.readTree(packet.toJson()) as ObjectNode
+
+    val nodeBehov = node.get(Key.BEHOV.str) as ArrayNode
+    val nodeNesteBehov = (
+        node.get(Key.BOOMERANG.str)
+            ?.takeUnless(JsonNode::isMissingOrNull)
+            ?.get(Key.NESTE_BEHOV.str)
+            ?.takeUnless(JsonNode::isEmpty)
+            ?: node.get(Key.NESTE_BEHOV.str)
+        )
+        .let { it as ArrayNode }
+
+    nodeBehov.flyttBehov(nodeNesteBehov)
+
+    node.remove(Key.LØSNING.str)
+    if (!løsninger.isEmpty) {
+        node.replace(Key.SESSION.str, løsninger)
+    } else {
+        node.replace(Key.SESSION.str, objectMapper.createObjectNode())
     }
-    return jsonNode
+
+    return node
 }
 
 fun ArrayNode.flyttBehov(node: ArrayNode) {

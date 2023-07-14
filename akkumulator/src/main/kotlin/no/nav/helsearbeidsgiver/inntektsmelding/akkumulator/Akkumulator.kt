@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -47,7 +48,7 @@ class Akkumulator(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerLogger.debug("Fikk pakke ${packet.toJson()}")
+        sikkerLogger.debug("Fikk pakke\n${packet.toPretty()}")
         val boomerang = Key.BOOMERANG.let(packet::valueNullable)
             ?.toJsonElement()
             ?.fromJsonMap(Key.serializer())
@@ -78,7 +79,7 @@ class Akkumulator(
 
         "Behov: $behovListe Neste: $nesteBehov Uuid: $uuid".let {
             logger.info(it)
-            sikkerLogger.info("$it Pakke: ${packet.toJson()}")
+            sikkerLogger.info("$it Pakke:\n${packet.toPretty()}")
         }
 
         val mangler = mutableListOf<String>()

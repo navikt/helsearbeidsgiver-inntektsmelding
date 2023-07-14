@@ -3,6 +3,16 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import com.zaxxer.hikari.HikariConfig
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.DatabaseConfig
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.mapHikariConfig
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterImLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterOppgaveLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterSakLøser
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -26,27 +36,28 @@ fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
         .createDb(database, imRepo, forespoerselRepo)
 }
 
-fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingRepository, forespoerselRepo: ForespoerselRepository): RapidsConnection {
-    logger.info("Starter ForespørselMottattListener...")
-    LagreForespoersel(this, forespoerselRepo)
-    logger.info("Starter PersisterImLøser...")
-    PersisterImLøser(this, imRepo)
-    logger.info("Starter HentPersistertLøser...")
-    HentPersistertLøser(this, imRepo)
-    logger.info("Starter LagreJournalpostIdLøser...")
-    LagreJournalpostIdLøser(this, imRepo, forespoerselRepo)
-    logger.info("Starter PersisterSakLøser...")
-    PersisterSakLøser(this, forespoerselRepo)
-    logger.info("Starter PersisterOppgaveLøser...")
-    PersisterOppgaveLøser(this, forespoerselRepo)
-    HentOrgnrLøser(this, forespoerselRepo)
-    this.registerDbLifecycle(database)
-    return this
-}
+fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingRepository, forespoerselRepo: ForespoerselRepository): RapidsConnection =
+    apply {
+        logger.info("Starter LagreForespoerselLoeser...")
+        LagreForespoerselLoeser(this, forespoerselRepo)
+        logger.info("Starter PersisterImLøser...")
+        PersisterImLøser(this, imRepo)
+        logger.info("Starter HentPersistertLøser...")
+        HentPersistertLøser(this, imRepo)
+        logger.info("Starter LagreJournalpostIdLøser...")
+        LagreJournalpostIdLøser(this, imRepo, forespoerselRepo)
+        logger.info("Starter PersisterSakLøser...")
+        PersisterSakLøser(this, forespoerselRepo)
+        logger.info("Starter PersisterOppgaveLøser...")
+        PersisterOppgaveLøser(this, forespoerselRepo)
+        logger.info("Starter HentOrgnrLøser...")
+        HentOrgnrLøser(this, forespoerselRepo)
+
+        registerDbLifecycle(database)
+    }
 
 private fun RapidsConnection.registerDbLifecycle(db: Database) {
     register(object : RapidsConnection.StatusListener {
-
         override fun onShutdown(rapidsConnection: RapidsConnection) {
             logger.info("Mottatt stoppsignal, lukker databasetilkobling")
             db.dataSource.close()

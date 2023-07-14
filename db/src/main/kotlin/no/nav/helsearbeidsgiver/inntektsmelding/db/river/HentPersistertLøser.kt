@@ -1,6 +1,4 @@
-@file:Suppress("NonAsciiCharacters")
-
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -14,6 +12,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.system.measureTimeMillis
@@ -45,7 +45,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
             val transactionId = packet[Key.UUID.str].asText()
             val event = packet[Key.EVENT_NAME.str].asText()
             logger.info("Skal hente persistert inntektsmelding med forespørselId $forespoerselId")
-            sikkerLogger.info("Skal hente persistert inntektsmelding for pakke: ${packet.toJson()}")
+            sikkerLogger.info("Skal hente persistert inntektsmelding for pakke:\n${packet.toPretty()}")
             try {
                 val dokument = repository.hentNyeste(forespoerselId)
                 if (dokument == null) {
@@ -56,7 +56,10 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
                 publiserData(packet, dokument)
             } catch (ex: Exception) {
                 logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId")
-                sikkerLogger.error("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId", ex)
+                sikkerLogger.error(
+                    "Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId",
+                    ex
+                )
                 publiserFeil(transactionId, event, Feilmelding("Klarte ikke hente persistert inntektsmelding"))
             }
         }.also {
@@ -93,7 +96,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
                 Key.UUID.str to transaksjonsId
             )
         )
-        sikkerLogger.info("Publiserer data" + packet.toJson())
+        sikkerLogger.info("Publiserer data:\n${packet.toPretty()}")
         rapidsConnection.publish(packet.toJson())
     }
 }

@@ -42,7 +42,7 @@ class GenericDataPackageListenerTest {
     @BeforeEach
     fun beforeAll() {
         dataListener = StatefullDataKanal(
-            TestFelter.values().map { it.toString() }.toTypedArray(),
+            TestFelter.entries.map { it.toString() }.toTypedArray(),
             EventName.INSENDING_STARTED,
             mockListener,
             testRapid,

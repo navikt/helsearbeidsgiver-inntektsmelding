@@ -124,11 +124,9 @@ subprojects {
             if (!erFellesTestModul()) {
                 testImplementation(project(":felles-test"))
             }
-
-            // dokument har inkompatibel java-versjon
-            implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         }
 
+        implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
 
@@ -138,6 +136,8 @@ subprojects {
         testImplementation("io.mockk:mockk:$mockkVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+
+        testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
@@ -211,7 +211,7 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
 
 fun getDeployMatrixVariables(
     includeCluster: String? = null,
-    deployAll: Boolean = false,
+    deployAll: Boolean = false
 ): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
     val clustersByProject = getBuildableProjects(deployAll).associateWith { project ->
         File("config", project)
@@ -287,7 +287,7 @@ fun Task.deployMatrix(includeCluster: String? = null, deployAll: Boolean = false
         val (
             deployableProjects,
             clusters,
-            exclusions,
+            exclusions
         ) = getDeployMatrixVariables(includeCluster, deployAll)
 
         taskOutputJson(

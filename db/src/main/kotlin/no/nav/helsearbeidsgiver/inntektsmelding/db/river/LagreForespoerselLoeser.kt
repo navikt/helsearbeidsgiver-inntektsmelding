@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -8,9 +8,11 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class LagreForespoersel(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) : Løser(rapidsConnection) {
+class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) : Løser(rapidsConnection) {
 
     private val sikkerLogger = sikkerLogger()
 
@@ -24,11 +26,11 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, private val reposito
     }
 
     override fun onBehov(packet: JsonMessage) {
-        val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        sikkerLogger.info("LagreForespoersel mottok: ${packet.toJson()}")
+        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
+        sikkerLogger.info("LagreForespoerselLoeser mottok:\n${packet.toPretty()}")
         val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
         val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
-        repository.lagreForespørsel(forespørselId, orgnr)
+        repository.lagreForespoersel(forespoerselId, orgnr)
 
         val msg =
             JsonMessage.newMessage(
@@ -40,6 +42,6 @@ class LagreForespoersel(rapidsConnection: RapidsConnection, private val reposito
             )
 
         publishEvent(msg)
-        sikkerLogger.info("LagreForespoersel publiserte: ${msg.toJson()}")
+        sikkerLogger.info("LagreForespoerselLoeser publiserte:\n${msg.toPretty()}")
     }
 }

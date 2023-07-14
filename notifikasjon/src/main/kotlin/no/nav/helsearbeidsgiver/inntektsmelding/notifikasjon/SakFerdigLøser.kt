@@ -12,12 +12,12 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.SakFerdigLøsning
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 class SakFerdigLøser(
     rapidsConnection: RapidsConnection,
-    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-    private val linkUrl: String
+    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
 ) : River.PacketListener {
 
     private val logger = logger()
@@ -37,14 +37,17 @@ class SakFerdigLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerLogger.info("SakFerdigLøser fikk pakke: ${packet.toJson()}")
+        sikkerLogger.info("SakFerdigLøser fikk pakke:\n${packet.toPretty()}")
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val sakId = packet[DataFelt.SAK_ID.str].asText()
         logger.info("SakFerdigLøser skal ferdigstille sakId $sakId for forespoerselId: $forespoerselId som utført...")
-        val lenke = "$linkUrl/im-dialog/$forespoerselId"
         try {
             runBlocking {
-                arbeidsgiverNotifikasjonKlient.nyStatusSak(sakId, lenke, SaksStatus.FERDIG, "Mottatt")
+                arbeidsgiverNotifikasjonKlient.nyStatusSak(
+                    id = sakId,
+                    status = SaksStatus.FERDIG,
+                    statusTekst = "Mottatt"
+                )
             }
             publiserLøsning(SakFerdigLøsning(sakId), packet, context)
             logger.info("SakFerdigLøser ferdigstilte sakId $sakId for forespoerselId: $forespoerselId som utført!")

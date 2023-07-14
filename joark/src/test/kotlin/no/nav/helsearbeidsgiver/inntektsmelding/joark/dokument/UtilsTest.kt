@@ -10,8 +10,7 @@ class UtilsTest {
 
     @Test
     fun `ingen eller redusert refusjon begrunnelsetekst`() {
-        val begrunnelser = BegrunnelseIngenEllerRedusertUtbetalingKode.values()
-        begrunnelser.forEach {
+        BegrunnelseIngenEllerRedusertUtbetalingKode.entries.forEach {
             // sjekk at vi har lagt inn en fin tekst for alle koder:
             assertNotEquals(it.value, it.tekst(), "Mangler verdi i tekst()-funksjon!")
         }

@@ -1,6 +1,4 @@
-@file:Suppress("NonAsciiCharacters")
-
-package no.nav.helsearbeidsgiver.inntektsmelding.db
+package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -14,6 +12,9 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingR
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -37,7 +38,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
         val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val uuid = packet[Key.UUID.str].asText()
         logger.info("Løser behov $PERSISTER_IM med id $forespørselId")
-        sikkerLogger.info("Fikk pakke: ${packet.toJson()}")
+        sikkerLogger.info("Fikk pakke:\n${packet.toPretty()}")
         try {
             val arbeidsgiver = packet[DataFelt.VIRKSOMHET.str].asText()
             sikkerLogger.info("Fant arbeidsgiver: $arbeidsgiver")

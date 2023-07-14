@@ -31,7 +31,7 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        forespoerselRepository.lagreForespørsel(Mock.forespoerselId.toString(), Mock.innsendingRequest.orgnrUnderenhet)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.innsendingRequest.orgnrUnderenhet)
         forespoerselRepository.oppdaterSakId(Mock.SAK_ID, Mock.forespoerselId.toString())
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 

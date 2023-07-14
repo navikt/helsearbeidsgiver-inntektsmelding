@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
@@ -91,7 +92,7 @@ class InntektLøser(
     override fun onBehov(packet: JsonMessage) {
         measureTimeMillis {
             logger.info("Mottar pakke")
-            sikkerLogger.info("Mottar pakke: ${packet.toJson()}")
+            sikkerLogger.info("Mottar pakke:\n${packet.toPretty()}")
             val uuid = packet[Key.UUID.str].asText()
             logger.info("Løser behov $INNTEKT med uuid $uuid")
             val trengerInntekt: TrengerInntekt

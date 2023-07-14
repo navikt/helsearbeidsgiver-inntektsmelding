@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntektsmel
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.JournalførtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -25,10 +26,6 @@ class DistribusjonLøser(
 ) : Løser(rapidsConnection) {
 
     private val logger = logger()
-
-    init {
-        logger.info("Starting DistribuerIMLøser...")
-    }
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
@@ -50,7 +47,7 @@ class DistribusjonLøser(
     }
 
     override fun onBehov(packet: JsonMessage) {
-        sikkerLogger.info("Skal distribuere pakken: ${packet.toJson()}")
+        sikkerLogger.info("Skal distribuere pakken:\n${packet.toPretty()}")
         val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
         logger.info("Skal distribuere inntektsmelding for journalpostId $journalpostId...")
         val eventName = packet[Key.EVENT_NAME.str].asText()

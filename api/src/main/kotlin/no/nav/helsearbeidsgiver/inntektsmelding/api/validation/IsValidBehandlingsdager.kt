@@ -16,7 +16,7 @@ fun isValidBehandlingsdager(behandlingsdager: List<LocalDate>): Boolean {
         return false
     }
     val dager = behandlingsdager.sorted()
-    for (i in 1 until dager.size) {
+    for (i in 1 ..< dager.size) {
         val forrige = dager[i - 1]
         val forrigePlus15 = forrige.plusDays(15)
         val neste = dager[i]

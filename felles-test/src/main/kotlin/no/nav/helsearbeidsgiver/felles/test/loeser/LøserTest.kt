@@ -13,11 +13,11 @@ import no.nav.helsearbeidsgiver.felles.json.løsning
 import no.nav.helsearbeidsgiver.felles.loeser.Løser
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
-import no.nav.helsearbeidsgiver.felles.test.mock.mockObject
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.test.mock.mockObject
 import java.util.UUID
 
 abstract class LøserTest {

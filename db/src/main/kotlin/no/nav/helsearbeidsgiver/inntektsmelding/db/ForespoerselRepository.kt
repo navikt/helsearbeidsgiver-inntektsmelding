@@ -1,6 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.ForespoerselEntitet
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Expression
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -10,48 +13,51 @@ import java.time.LocalDateTime
 
 class ForespoerselRepository(private val db: Database) {
 
-    fun oppdaterOppgaveId(forespørselId: String, oppgaveId: String) {
+    fun oppdaterOppgaveId(forespoerselId: String, oppgaveId: String) {
         transaction(db) {
-            ForespoerselEntitet.update({ (ForespoerselEntitet.forespoerselId eq forespørselId) and (ForespoerselEntitet.oppgaveId eq null) }) {
+            ForespoerselEntitet.update({ (ForespoerselEntitet.forespoerselId eq forespoerselId) and (ForespoerselEntitet.oppgaveId eq null) }) {
                 it[ForespoerselEntitet.oppgaveId] = oppgaveId
             }
         }
     }
 
-    fun oppdaterSakId(sakId: String, forespørselId: String) {
+    fun oppdaterSakId(sakId: String, forespoerselId: String) {
         transaction(db) {
-            ForespoerselEntitet.update({ (ForespoerselEntitet.forespoerselId eq forespørselId) and (ForespoerselEntitet.sakId eq null) }) {
+            ForespoerselEntitet.update({ (ForespoerselEntitet.forespoerselId eq forespoerselId) and (ForespoerselEntitet.sakId eq null) }) {
                 it[ForespoerselEntitet.sakId] = sakId
             }
         }
     }
 
-    fun hentOppgaveId(forespørselId: String): String? =
+    fun hentOppgaveId(forespoerselId: String): String? =
         transaction(db) {
-            ForespoerselEntitet.run {
-                select { (forespoerselId eq forespørselId) }
-            }.firstOrNull()?.getOrNull(ForespoerselEntitet.oppgaveId)
+            ForespoerselEntitet.let {
+                it.select { (it.forespoerselId eq forespoerselId) }
+            }
+                .firstOrNull(ForespoerselEntitet.oppgaveId)
         }
 
-    fun hentSakId(forespørselId: String): String? =
+    fun hentSakId(forespoerselId: String): String? =
         transaction(db) {
-            ForespoerselEntitet.run {
-                select { (forespoerselId eq forespørselId) }
-            }.firstOrNull()?.getOrNull(ForespoerselEntitet.sakId)
+            ForespoerselEntitet.let {
+                it.select { (it.forespoerselId eq forespoerselId) }
+            }
+                .firstOrNull(ForespoerselEntitet.sakId)
         }
 
-    fun hentOrgNr(forespørselId: String): String? =
+    fun hentOrgNr(forespoerselId: String): String? =
         transaction(db) {
-            ForespoerselEntitet.run {
-                select { (forespoerselId eq forespørselId) }.firstOrNull()?.getOrNull(orgnr)
+            ForespoerselEntitet.let {
+                it.select { (it.forespoerselId eq forespoerselId) }
+                    .firstOrNull(it.orgnr)
             }
         }
 
-    fun lagreForespørsel(forespørselId: String, organisasjonsnummer: String) {
+    fun lagreForespoersel(forespoerselId: String, organisasjonsnummer: String) {
         transaction(db) {
             ForespoerselEntitet.run {
                 insert {
-                    it[forespoerselId] = forespørselId
+                    it[this.forespoerselId] = forespoerselId
                     it[orgnr] = organisasjonsnummer
                     it[opprettet] = LocalDateTime.now()
                 }
@@ -59,3 +65,6 @@ class ForespoerselRepository(private val db: Database) {
         }
     }
 }
+
+private fun <T> Query.firstOrNull(c: Expression<T>): T? =
+    firstOrNull()?.getOrNull(c)

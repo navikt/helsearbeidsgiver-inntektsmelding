@@ -145,7 +145,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                 throw MessagesWaitLimitException(millis)
             }
 
-            Thread.sleep(500)
+            Thread.sleep(1000)
         }
     }
 }

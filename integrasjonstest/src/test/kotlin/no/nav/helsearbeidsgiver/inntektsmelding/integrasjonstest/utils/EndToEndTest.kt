@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
@@ -11,19 +10,13 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.buildApp
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mapHikariConfigByContainer
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -74,9 +67,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
-    val priProducer = mockk<PriProducer>()
-
-    private val om = customObjectMapper()
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -98,7 +88,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             mockk(relaxed = true),
             arbeidsgiverNotifikasjonKlient,
             NOTIFIKASJON_LINK,
-            priProducer,
+            mockk(relaxed = true),
             altinnClient,
             mockk(relaxed = true)
         )
@@ -114,25 +104,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         messages.add(message)
     }
 
-    fun filter(event: EventName, behovType: BehovType? = null, datafelt: DataFelt? = null, løsning: Boolean = false): List<JsonNode> =
-        messages.filter(event)
-            .let {
-                if (behovType != null) {
-                    it.filter(behovType, løsning)
-                } else {
-                    it
-                }
-            }.let {
-                if (datafelt != null) {
-                    it.filter(datafelt)
-                } else {
-                    it
-                }
-            }
-            .first()
-            .toJsonNode()
-            .let(::listOf)
-
     @AfterAll
     fun afterAllEndToEnd() {
         CollectorRegistry.defaultRegistry.clear()
@@ -141,13 +112,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         logger.info("Stopped")
     }
 
-    fun publish(value: Any) {
-        val json = om.writeValueAsString(value)
-        println("Publiserer melding: $json")
-        rapid.publish(json)
-    }
-
-    fun publishMessage(vararg messageFields: Pair<IKey, JsonElement>) {
+    fun publish(vararg messageFields: Pair<IKey, JsonElement>) {
         rapid.publish(*messageFields).also {
             println("Publiserte melding: $it")
         }
@@ -162,7 +127,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         while (messageAmount == 0 || messageAmount != messages.all().size) {
             val elapsedTime = (System.nanoTime() - startTime) / 1_000_000
             if (elapsedTime > millis) {
-                throw RuntimeException("Tid brukt på å vente på meldinger overskred grensen på $millis ms.")
+                throw MessagesWaitLimitException(millis)
             }
 
             messageAmount = messages.all().size
@@ -171,3 +136,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         }
     }
 }
+
+private class MessagesWaitLimitException(millis: Long) : RuntimeException(
+    "Tid brukt på å vente på meldinger overskred grensen på $millis ms."
+)

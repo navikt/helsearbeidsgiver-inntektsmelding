@@ -1,6 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import io.kotest.matchers.nulls.shouldNotBeNull
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -15,23 +18,31 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
-@JvmInline
-value class Messages(
+data class Messages(
     private val value: MutableList<JsonElement> = mutableListOf()
 ) {
+    private val mutex = Mutex()
+
     fun first(): JsonElement =
-        value.firstOrNull().shouldNotBeNull()
+        withLock {
+            value.firstOrNull()
+        }
+            .shouldNotBeNull()
 
     fun all(): List<JsonElement> =
         value
 
     fun add(json: String) {
-        json.parseJson()
-            .let(value::add)
+        val parsed = json.parseJson()
+        withLock {
+            value.add(parsed)
+        }
     }
 
     fun reset() {
-        value.clear()
+        withLock {
+            value.clear()
+        }
     }
 
     fun filter(eventName: EventName): Messages =
@@ -72,9 +83,18 @@ value class Messages(
         }
 
     private fun filter(predicate: (JsonElement) -> Boolean): Messages =
-        value.filter(predicate)
+        withLock {
+            value.filter(predicate)
+        }
             .toMutableList()
             .let(::Messages)
+
+    private fun <T> withLock(block: () -> T): T =
+        runBlocking {
+            mutex.withLock {
+                block()
+            }
+        }
 }
 
 private fun JsonElement.fromJsonToBehovTypeListe(): List<BehovType> =

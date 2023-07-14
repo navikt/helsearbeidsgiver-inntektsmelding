@@ -30,7 +30,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         forespoerselRepository.lagreForespoersel(forespoerselId.toString(), TestData.validOrgNr)
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
             DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson),

@@ -23,7 +23,7 @@ class ForespoerselMottattIT : EndToEndTest() {
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        publishMessage(
+        publish(
             Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
             Pri.Key.ORGNR to Mock.ORGNR.toJson(),
             Pri.Key.FNR to Mock.FNR.toJson(),

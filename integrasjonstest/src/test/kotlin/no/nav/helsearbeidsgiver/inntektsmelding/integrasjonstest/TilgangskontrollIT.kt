@@ -45,10 +45,7 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `skal få tilgang`() {
         tilgangProducer.publish(Mock.INNLOGGET_FNR, Mock.FORESPOERSEL_ID_MED_TILGANG)
 
-        waitForNonEmpty(6000) {
-            messages.filter(EventName.HENT_PREUTFYLT)
-                .filter(BehovType.TILGANGSKONTROLL, loesningPaakrevd = true)
-        }
+        Thread.sleep(6000)
 
         val result = messages.filter(EventName.HENT_PREUTFYLT)
             .filter(BehovType.TILGANGSKONTROLL, loesningPaakrevd = true)
@@ -68,10 +65,7 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `skal bli nektet tilgang`() {
         tilgangProducer.publish(Mock.INNLOGGET_FNR, Mock.FORESPOERSEL_ID_UTEN_TILGANG)
 
-        waitForNonEmpty(4000) {
-            messages.filter(EventName.HENT_PREUTFYLT)
-                .filter(BehovType.TILGANGSKONTROLL, loesningPaakrevd = true)
-        }
+        Thread.sleep(4000)
 
         val result = messages.filter(EventName.HENT_PREUTFYLT)
             .filter(BehovType.TILGANGSKONTROLL, loesningPaakrevd = true)
@@ -91,10 +85,7 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `skal få melding om at forespørsel ikke finnes`() {
         tilgangProducer.publish(Mock.INNLOGGET_FNR, Mock.FORESPOERSEL_ID_FINNES_IKKE)
 
-        waitForNonEmpty(4000) {
-            messages.filter(EventName.HENT_PREUTFYLT)
-                .filter(BehovType.HENT_IM_ORGNR, loesningPaakrevd = true)
-        }
+        Thread.sleep(4000)
 
         val result = messages.filter(EventName.HENT_PREUTFYLT)
             .filter(BehovType.HENT_IM_ORGNR, loesningPaakrevd = true)

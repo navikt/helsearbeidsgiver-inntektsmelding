@@ -39,9 +39,7 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
-        waitForNonEmpty(10000) {
-            messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
-        }
+        Thread.sleep(10000)
 
         messages.all().filter(clientId).size shouldBe 10
 

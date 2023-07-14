@@ -57,9 +57,7 @@ class InnsendingIT : EndToEndTest() {
             DataFelt.INNTEKTSMELDING to Mock.innsendingRequest.let(Jackson::toJson)
         )
 
-        waitForNonEmpty(10000) {
-            messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
-        }
+        Thread.sleep(10000)
 
         messages.filter(EventName.INSENDING_STARTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)

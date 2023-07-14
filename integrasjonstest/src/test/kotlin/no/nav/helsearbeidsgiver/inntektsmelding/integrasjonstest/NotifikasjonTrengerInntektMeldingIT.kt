@@ -37,9 +37,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        waitForNonEmpty(10000) {
-            messages.filter(EventName.SAK_OPPRETTET)
-        }
+        Thread.sleep(10000)
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
             .filter(BehovType.FULLT_NAVN, loesningPaakrevd = false)
@@ -101,9 +99,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        waitForNonEmpty(8000) {
-            messages.filter(EventName.OPPGAVE_LAGRET)
-        }
+        Thread.sleep(8000)
 
         var transaksjonsId: String
 

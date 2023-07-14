@@ -47,7 +47,7 @@ class InnsendingIT : EndToEndTest() {
             dokumenter = emptyList()
         )
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to UUID.randomUUID().toJson(),

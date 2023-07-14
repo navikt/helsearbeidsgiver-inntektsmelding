@@ -30,7 +30,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
         } returns Mock.SAK_ID
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
@@ -93,7 +93,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns Mock.OPPGAVE_ID
 
-        publishMessage(
+        publish(
             Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()

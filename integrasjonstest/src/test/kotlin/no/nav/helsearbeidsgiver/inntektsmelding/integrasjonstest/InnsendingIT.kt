@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
+import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -39,11 +39,12 @@ class InnsendingIT : EndToEndTest() {
 
         coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns Mock.OPPGAVE_ID
 
-        coEvery { dokarkivClient.opprettJournalpost(any(), any(), any()) } returns OpprettJournalpostResponse(
+        coEvery {
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+        } returns OpprettOgFerdigstillResponse(
             journalpostId = Mock.JOURNALPOST_ID,
             journalpostFerdigstilt = true,
-            journalStatus = "FERDIGSTILT",
-            melding = "",
+            melding = "Ha en fin dag!",
             dokumenter = emptyList()
         )
 

@@ -10,8 +10,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.dokarkiv.DokArkivException
-import no.nav.helsearbeidsgiver.dokarkiv.OpprettJournalpostResponse
+import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -34,13 +33,13 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class JournalførInntektsmeldingLøserTest {
+class JournalfoerInntektsmeldingLoeserTest {
 
     private val testRapid = TestRapid()
     private val mockDokArkivClient = mockk<DokArkivClient>()
 
     init {
-        JournalførInntektsmeldingLøser(testRapid, mockDokArkivClient)
+        JournalfoerInntektsmeldingLoeser(testRapid, mockDokArkivClient)
     }
 
     @BeforeEach
@@ -50,9 +49,11 @@ class JournalførInntektsmeldingLøserTest {
 
     @Test
     fun `skal håndtere at dokarkiv feiler`() {
+        val forventetFeilmelding = "Klarte ikke journalføre"
+
         coEvery {
-            mockDokArkivClient.opprettJournalpost(any(), any(), any())
-        } throws DokArkivException(Exception(""))
+            mockDokArkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+        } throws RuntimeException(forventetFeilmelding)
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
@@ -73,17 +74,16 @@ class JournalførInntektsmeldingLøserTest {
             .toJsonNode()
             .let(Jackson::readFail)
 
-        assertEquals("Kall mot dokarkiv feilet", fail.feilmelding)
+        assertEquals(forventetFeilmelding, fail.feilmelding)
     }
 
     @Test
     fun `skal journalføre når gyldige data`() {
         coEvery {
-            mockDokArkivClient.opprettJournalpost(any(), any(), any())
-        } returns OpprettJournalpostResponse(
+            mockDokArkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+        } returns OpprettOgFerdigstillResponse(
             journalpostId = "jid-ulende-koala",
             journalpostFerdigstilt = true,
-            journalStatus = "FERDIGSTILT",
             melding = "Ha en fin dag!",
             dokumenter = emptyList()
         )

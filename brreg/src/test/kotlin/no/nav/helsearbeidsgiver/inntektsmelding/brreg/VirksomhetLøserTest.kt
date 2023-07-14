@@ -2,15 +2,10 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -18,83 +13,88 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class VirksomhetLøserTest {
 
-    private val rapid = TestRapid()
-    private var løser: VirksomhetLøser
-    private val BEHOV = BehovType.VIRKSOMHET.name
-    private val objectMapper: ObjectMapper = jacksonObjectMapper()
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .registerModule(JavaTimeModule())
-    private val brregClient = mockk<BrregClient>()
+    private val testRapid = TestRapid()
+    private val mockBrregClient = mockk<BrregClient>()
+
     private val ORGNR = "orgnr-1"
     private val VIRKSOMHET_NAVN = "Norge AS"
 
     init {
-        løser = VirksomhetLøser(rapid, brregClient, false)
+        VirksomhetLøser(testRapid, mockBrregClient, false)
     }
 
-    private fun sendMessage(packet: Map<String, Any>): VirksomhetLøsning {
-        rapid.reset()
-        rapid.sendTestMessage(
-            objectMapper.writeValueAsString(
-                packet
-            )
-        )
-        val losning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        return objectMapper.readValue<VirksomhetLøsning>(losning.get(BEHOV).toString())
+    @BeforeEach
+    fun setup() {
+        testRapid.reset()
     }
 
     @Test
     fun `skal håndtere at klient feiler`() {
-        coEvery {
-            brregClient.hentVirksomhetNavn(any())
-        } returns null
-        val løsning = sendMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
-                "@behov" to listOf(BEHOV),
-                "@id" to UUID.randomUUID(),
-                "uuid" to "uuid",
-                DataFelt.ORGNRUNDERENHET.str to ORGNR
-            )
+        coEvery { mockBrregClient.hentVirksomhetNavn(any()) } returns null
+
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer()),
+            DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
+            Key.ID to UUID.randomUUID().toJson()
         )
-        assertEquals("Ugyldig virksomhet $ORGNR", løsning.error?.melding)
+
+        val loesning = testRapid.firstMessage().lesLoesning()
+
+        assertEquals("Ugyldig virksomhet $ORGNR", loesning.error?.melding)
     }
 
     @Test
     fun `skal returnere løsning når gyldige data`() {
-        coEvery {
-            brregClient.hentVirksomhetNavn(any())
-        } returns VIRKSOMHET_NAVN
-        val løsning = sendMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
-                "@behov" to listOf(BEHOV),
-                "@id" to UUID.randomUUID(),
-                "uuid" to "uuid",
-                DataFelt.ORGNRUNDERENHET.str to ORGNR
-            )
+        coEvery { mockBrregClient.hentVirksomhetNavn(any()) } returns VIRKSOMHET_NAVN
+
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer()),
+            DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
+            Key.ID to UUID.randomUUID().toJson()
         )
-        assertEquals(VIRKSOMHET_NAVN, løsning.value)
+
+        val loesning = testRapid.firstMessage().lesLoesning()
+
+        assertEquals(VIRKSOMHET_NAVN, loesning.value)
     }
 
     @Test
     fun `skal håndtere ukjente feil`() {
-        val løsning = sendMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.name,
-                "@behov" to listOf(BEHOV),
-                "@id" to UUID.randomUUID(),
-                DataFelt.ORGNRUNDERENHET.str to ORGNR
-            )
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer()),
+            DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
+            Key.ID to UUID.randomUUID().toJson()
         )
-        assertNotNull(løsning.error)
+
+        val loesning = testRapid.firstMessage().lesLoesning()
+
+        assertNotNull(loesning.error)
     }
 }
+
+private fun JsonElement.lesLoesning(): VirksomhetLøsning =
+    fromJsonMapOnlyKeys()
+        .get(Key.LØSNING)
+        .shouldNotBeNull()
+        .fromJsonMapFiltered(BehovType.serializer())
+        .get(BehovType.VIRKSOMHET)
+        .shouldNotBeNull()
+        .fromJson(VirksomhetLøsning.serializer())

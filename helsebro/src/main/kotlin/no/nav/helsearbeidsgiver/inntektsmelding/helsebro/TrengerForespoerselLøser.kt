@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
@@ -21,7 +22,7 @@ import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
 class TrengerForespoerselLøser(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer
+    private val priProducer: PriProducer<TrengerForespoersel>
 ) : Løser(rapid) {
 
     private val logger = logger()

@@ -54,10 +54,12 @@ private fun kafkaProperties(env: PriProducer.Env): Properties =
                 CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
 
                 SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "",
+
                 SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "jks",
-                SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
                 SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to env.truststorePath,
                 SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to env.credstorePassword,
+
+                SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to env.keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to env.credstorePassword,
 

@@ -8,12 +8,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class TrengerForespoerselLøserTest : FunSpec({
     val testRapid = TestRapid()
-    val mockPriProducer = mockk<PriProducer>(relaxed = true)
+    val mockPriProducer = mockk<PriProducer<TrengerForespoersel>>(relaxed = true)
 
     TrengerForespoerselLøser(testRapid, mockPriProducer)
 

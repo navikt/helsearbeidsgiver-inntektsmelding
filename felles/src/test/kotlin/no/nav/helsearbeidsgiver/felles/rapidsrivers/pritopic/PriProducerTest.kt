@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
+package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -7,15 +7,13 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
 
 class PriProducerTest : FunSpec({
-    val mockProducer = mockk<KafkaProducer<String, TrengerForespoersel>>()
+    val mockProducer = mockk<KafkaProducer<String, Food>>()
 
     val priProducer = PriProducer(
         producer = mockProducer
@@ -28,15 +26,15 @@ class PriProducerTest : FunSpec({
     test("gir true ved sendt melding til kafka stream") {
         every { mockProducer.send(any()).get() } returns mockRecordMetadata()
 
-        val trengerForespoersel = mockTrengerForespoersel()
+        val food = mockFood()
 
-        val bleMeldingSendt = priProducer.send(trengerForespoersel)
+        val bleMeldingSendt = priProducer.send(food)
 
         bleMeldingSendt.shouldBeTrue()
 
-        val expected = ProducerRecord<String, TrengerForespoersel>(
+        val expected = ProducerRecord<String, Food>(
             Pri.TOPIC,
-            trengerForespoersel
+            food
         )
 
         verifySequence { mockProducer.send(expected) }
@@ -45,9 +43,9 @@ class PriProducerTest : FunSpec({
     test("gir false ved feilet sending til kafka stream") {
         every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
 
-        val trengerForespoersel = mockTrengerForespoersel()
+        val food = mockFood()
 
-        val bleMeldingSendt = priProducer.send(trengerForespoersel)
+        val bleMeldingSendt = priProducer.send(food)
 
         bleMeldingSendt.shouldBeFalse()
 
@@ -57,3 +55,16 @@ class PriProducerTest : FunSpec({
 
 private fun mockRecordMetadata(): RecordMetadata =
     RecordMetadata(null, 0, 0, 0, 0, 0)
+
+private class Food(
+    val name: String,
+    val deliciousness: Double,
+    val dailyRecommendedIntake: Int
+)
+
+private fun mockFood(): Food =
+    Food(
+        name = "Taco",
+        deliciousness = 9.8,
+        dailyRecommendedIntake = 100
+    )

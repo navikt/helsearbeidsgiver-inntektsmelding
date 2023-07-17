@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
@@ -21,8 +22,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.config.mapHikariConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
@@ -71,7 +72,7 @@ fun RapidsConnection.buildApp(
     pdlClient: PdlClient,
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     notifikasjonLink: String,
-    priProducer: PriProducer,
+    priProducer: PriProducer<TrengerForespoersel>,
     altinnClient: AltinnClient,
     distribusjonKafkaProducer: KafkaProducer<String, String>
 ): RapidsConnection {

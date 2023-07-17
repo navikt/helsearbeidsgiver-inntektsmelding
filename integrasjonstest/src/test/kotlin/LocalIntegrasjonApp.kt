@@ -1,5 +1,5 @@
 import io.mockk.coEvery
-import io.mockk.mockkClass
+import io.mockk.mockk
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -24,10 +24,11 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.til
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.time.LocalDate
@@ -50,8 +51,8 @@ fun main() {
 //    DummyLøser(rapid, BehovType.VIRKSOMHET)
     DummyLøser(rapid, BehovType.FULLT_NAVN)
     // Hvis ønskelig kan man kjøre opp "ekte" løsere med eller uten mocking parallellt, sammen med DummyLøser:
-    val priProducer = mockkClass(PriProducer::class)
-    coEvery { priProducer.send(any()) }.returns(true)
+    val priProducer = mockk<PriProducer<TrengerForespoersel>>()
+    coEvery { priProducer.send(any()) } returns true
     TrengerForespoerselLøser(rapid, priProducer)
 
     rapid.start()

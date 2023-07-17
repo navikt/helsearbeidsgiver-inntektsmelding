@@ -13,6 +13,7 @@ fun tilDokumenter(uuid: String, inntektsmelding: InntektsmeldingDokument): List<
     listOf(
         Dokument(
             tittel = "Inntektsmelding",
+            // TODO Denne må vi undersøke om vi vil bruke videre. Dette er koden til Altinn-service, som trolig brukes til å filtrere journalposter et sted.
             brevkode = "4936",
             dokumentVarianter = listOf(
                 DokumentVariant(

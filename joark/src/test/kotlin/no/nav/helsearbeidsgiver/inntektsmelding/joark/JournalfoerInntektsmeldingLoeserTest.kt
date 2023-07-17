@@ -52,7 +52,7 @@ class JournalfoerInntektsmeldingLoeserTest {
         val forventetFeilmelding = "Klarte ikke journalføre"
 
         coEvery {
-            mockDokArkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+            mockDokArkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
         } throws RuntimeException(forventetFeilmelding)
 
         testRapid.sendJson(
@@ -80,7 +80,7 @@ class JournalfoerInntektsmeldingLoeserTest {
     @Test
     fun `skal journalføre når gyldige data`() {
         coEvery {
-            mockDokArkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+            mockDokArkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
         } returns OpprettOgFerdigstillResponse(
             journalpostId = "jid-ulende-koala",
             journalpostFerdigstilt = true,

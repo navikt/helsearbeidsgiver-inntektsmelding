@@ -78,7 +78,6 @@ class JournalfoerInntektsmeldingLoeser(
 
         val response = runBlocking {
             dokarkivClient.opprettOgFerdigstillJournalpost(
-                behandlingsTema = "ab0326",
                 tittel = "Inntektsmelding",
                 gjelderPerson = GjelderPerson(inntektsmelding.identitetsnummer),
                 avsender = Avsender.Organisasjon(

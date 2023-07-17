@@ -40,7 +40,7 @@ class InnsendingIT : EndToEndTest() {
         coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns Mock.OPPGAVE_ID
 
         coEvery {
-            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any(), any())
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
         } returns OpprettOgFerdigstillResponse(
             journalpostId = Mock.JOURNALPOST_ID,
             journalpostFerdigstilt = true,

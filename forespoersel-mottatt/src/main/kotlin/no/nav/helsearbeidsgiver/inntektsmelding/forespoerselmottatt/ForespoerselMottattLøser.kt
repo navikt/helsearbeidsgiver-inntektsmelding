@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
+// TODO
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLøser(
     rapid: RapidsConnection
@@ -61,7 +62,7 @@ class ForespoerselMottattLøser(
         )
             .also {
                 logger.info("[ForespoerselMottattLøser] Publiserte melding. Se sikkerlogg for mer info.")
-                sikkerLogger.info("[ForespoerselMottattLøser] Publiserte:\n${it.toPretty()}")
+                sikkerLogger.info("[ForespoerselMottattLøser] Publiserte melding:\n${it.toPretty()}")
             }
     }
 }

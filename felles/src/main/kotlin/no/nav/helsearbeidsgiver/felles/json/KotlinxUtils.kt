@@ -6,7 +6,9 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
@@ -24,3 +26,7 @@ fun BehovType.toJson(): JsonElement =
 
 fun DataFelt.toJson(): JsonElement =
     toJson(DataFelt.serializer())
+
+fun <K : IKey, T : Any> K.les(serializer: KSerializer<T>, melding: Map<K, JsonElement>): T =
+    melding[this]?.fromJson(serializer)
+        ?: throw IllegalArgumentException("Felt '$this' mangler i JSON-map.")

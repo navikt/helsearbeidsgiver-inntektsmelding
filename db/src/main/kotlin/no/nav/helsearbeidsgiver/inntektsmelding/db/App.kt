@@ -46,7 +46,7 @@ fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingReposit
         logger.info("Starter HentPersistertLøser...")
         HentPersistertLøser(this, imRepo)
         logger.info("Starter LagreJournalpostIdLøser...")
-        LagreJournalpostIdLøser(this, imRepo, forespoerselRepo)
+        LagreJournalpostIdLøser(this, imRepo)
         logger.info("Starter PersisterSakLøser...")
         PersisterSakLøser(this, forespoerselRepo)
         logger.info("Starter PersisterOppgaveLøser...")

@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class LagreJournalpostIdLøser(
     rapidsConnection: RapidsConnection,
-    private val repository: InntektsmeldingRepository,
+    private val repository: InntektsmeldingRepository
 ) : Løser(rapidsConnection) {
 
     private val logger = logger()

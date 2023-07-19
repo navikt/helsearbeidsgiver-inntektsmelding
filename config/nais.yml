@@ -1,4 +1,3 @@
-#
 # Templated nais.yml for all apps in all clusters.
 #
 # Run the deployment tool with 'dry run' to see the results:

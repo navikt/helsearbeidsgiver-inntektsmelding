@@ -87,7 +87,7 @@ class ForespoerselBesvartLoeser(
         )
             .also {
                 logger.info("Publiserte melding. Se sikkerlogg for mer info.")
-                sikkerLogger.info("Publiserte melding:\n${toPretty()}")
+                sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
             }
     }
 

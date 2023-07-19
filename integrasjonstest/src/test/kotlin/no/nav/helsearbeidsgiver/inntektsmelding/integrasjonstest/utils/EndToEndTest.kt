@@ -89,6 +89,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             arbeidsgiverNotifikasjonKlient,
             NOTIFIKASJON_LINK,
             mockk(relaxed = true),
+            mockk(relaxed = true),
             altinnClient,
             mockk(relaxed = true)
         )

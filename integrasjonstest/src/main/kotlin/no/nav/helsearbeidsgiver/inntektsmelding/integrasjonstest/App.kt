@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.aareg.AaregClient
@@ -21,6 +22,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.config.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.mapHikariConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
@@ -73,6 +75,7 @@ fun RapidsConnection.buildApp(
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     notifikasjonLink: String,
     priProducer: PriProducer<TrengerForespoersel>,
+    priProducerGenerisk: PriProducer<JsonElement>,
     altinnClient: AltinnClient,
     distribusjonKafkaProducer: KafkaProducer<String, String>
 ): RapidsConnection {
@@ -83,6 +86,7 @@ fun RapidsConnection.buildApp(
     this.createInnsending(redisStore)
     this.createDb(database, imoRepository, forespoerselRepository)
     this.createDistribusjon(distribusjonKafkaProducer)
+    this.createForespoerselBesvart(priProducerGenerisk)
     this.createForespoerselMottatt()
     this.createAltinn(altinnClient)
     this.createHelsebro(priProducer)

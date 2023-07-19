@@ -21,7 +21,7 @@ class ForespoerselRepository(private val db: Database) {
         }
     }
 
-    fun oppdaterSakId(sakId: String, forespoerselId: String) {
+    fun oppdaterSakId(forespoerselId: String, sakId: String) {
         transaction(db) {
             ForespoerselEntitet.update({ (ForespoerselEntitet.forespoerselId eq forespoerselId) and (ForespoerselEntitet.sakId eq null) }) {
                 it[ForespoerselEntitet.sakId] = sakId

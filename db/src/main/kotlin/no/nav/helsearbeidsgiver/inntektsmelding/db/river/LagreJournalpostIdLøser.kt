@@ -11,17 +11,14 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
-import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class LagreJournalpostIdLøser(
     rapidsConnection: RapidsConnection,
-    private val repository: InntektsmeldingRepository,
-    private val forespoerselRepository: ForespoerselRepository
-) :
-    Løser(rapidsConnection) {
+    private val repository: InntektsmeldingRepository
+) : Løser(rapidsConnection) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -49,7 +46,7 @@ class LagreJournalpostIdLøser(
                 repository.oppdaterJournapostId(journalpostId, forespoerselId)
                 logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for forespoerselId $forespoerselId")
                 val inntektsmeldingDokument = repository.hentNyeste(forespoerselId)
-                publiser(transaksjonsId, forespoerselId, journalpostId, inntektsmeldingDokument!!)
+                publiser(transaksjonsId, journalpostId, inntektsmeldingDokument!!)
             } catch (ex: Exception) {
                 publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonsId"), packet)
                 logger.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for transaksjonsId $transaksjonsId")
@@ -60,22 +57,15 @@ class LagreJournalpostIdLøser(
 
     private fun publiser(
         uuid: String,
-        forespoerselId: String,
         journalpostId: String,
         inntektsmeldingDokument: InntektsmeldingDokument
     ) {
-        val oppgaveId = forespoerselRepository.hentOppgaveId(forespoerselId)
-        logger.info("Fant oppgaveId $oppgaveId for forespørselId $forespoerselId")
-        val sakId = forespoerselRepository.hentSakId(forespoerselId)
-        logger.info("Fant sakId $sakId for forespørselId $forespoerselId")
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT.name,
                 Key.JOURNALPOST_ID.str to journalpostId,
-                DataFelt.OPPGAVE_ID.str to oppgaveId!!, // TODO Lag bedre feilhåndtering dersom oppgaveId ikke ble funnet i db
-                DataFelt.SAK_ID.str to sakId!!, // TODO Lag bedre feilhåndtering dersom oppgaveId ikke ble funnet i db
-                Key.TRANSACTION_ORIGIN.str to uuid,
-                DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument
+                DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
+                Key.TRANSACTION_ORIGIN.str to uuid
             )
         )
         publishEvent(jsonMessage)

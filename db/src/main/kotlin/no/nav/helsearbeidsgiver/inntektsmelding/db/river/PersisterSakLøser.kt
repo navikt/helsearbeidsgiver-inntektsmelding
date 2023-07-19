@@ -29,7 +29,7 @@ class PersisterSakLøser(
         sikkerLogger.info("PersisterSakLøser mottok pakke:\n${packet.toPretty()}")
         val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val sakId = packet[DataFelt.SAK_ID.str].asText()
-        repository.oppdaterSakId(sakId, forespoerselId)
+        repository.oppdaterSakId(forespoerselId, sakId)
         sikkerLogger.info("PersisterSakLøser lagred sakId: $sakId for forespoerselId: $forespoerselId")
         publishData(
             JsonMessage.newMessage(

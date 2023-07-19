@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLøser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLøser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.NotifikasjonHentIdLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterImLøser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterOppgaveLøser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterSakLøser
@@ -45,13 +46,15 @@ fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingReposit
         logger.info("Starter HentPersistertLøser...")
         HentPersistertLøser(this, imRepo)
         logger.info("Starter LagreJournalpostIdLøser...")
-        LagreJournalpostIdLøser(this, imRepo, forespoerselRepo)
+        LagreJournalpostIdLøser(this, imRepo)
         logger.info("Starter PersisterSakLøser...")
         PersisterSakLøser(this, forespoerselRepo)
         logger.info("Starter PersisterOppgaveLøser...")
         PersisterOppgaveLøser(this, forespoerselRepo)
         logger.info("Starter HentOrgnrLøser...")
         HentOrgnrLøser(this, forespoerselRepo)
+        logger.info("Starter NotifikasjonHentIdLoeser...")
+        NotifikasjonHentIdLoeser(this, forespoerselRepo)
 
         registerDbLifecycle(database)
     }

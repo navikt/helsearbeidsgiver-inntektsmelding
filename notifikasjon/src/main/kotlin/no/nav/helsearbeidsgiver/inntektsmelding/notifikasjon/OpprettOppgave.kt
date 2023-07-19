@@ -53,18 +53,18 @@ class OpprettOppgaveLøser(
     private fun opprettOppgave(
         forespørselId: String,
         orgnr: String
-    ): String { // ktlint-disable trailing-comma-on-declaration-site
+    ): String {
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
-                forespørselId,
-                "$linkUrl/im-dialog/$forespørselId",
-                "Send inn inntektsmelding",
-                orgnr,
-                "Inntektsmelding",
-                null,
-                forespørselId,
-                "Nav trenger inntektsmelding",
-                "En av dine ansatte har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
+                eksternId = forespørselId,
+                lenke = "$linkUrl/im-dialog/$forespørselId",
+                tekst = "Send inn inntektsmelding",
+                virksomhetsnummer = orgnr,
+                merkelapp = "Inntektsmelding",
+                tidspunkt = null,
+                grupperingsid = forespørselId,
+                varslingTittel = "Nav trenger inntektsmelding",
+                varslingInnhold = "En av dine ansatte har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
                     "søknaden. Logg inn på Min side – arbeidsgiver på nav.no"
             )
         }

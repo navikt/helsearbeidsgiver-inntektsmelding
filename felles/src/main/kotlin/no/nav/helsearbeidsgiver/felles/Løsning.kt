@@ -60,12 +60,6 @@ data class HentTrengerImLøsning(
 ) : Løsning()
 
 @Serializable
-data class PreutfyltLøsning(
-    override val value: PersonLink? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
 data class HentImOrgnrLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null

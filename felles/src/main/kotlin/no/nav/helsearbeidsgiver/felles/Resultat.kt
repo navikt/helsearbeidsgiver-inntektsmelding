@@ -9,7 +9,6 @@ data class Resultat(
     val ARBEIDSFORHOLD: ArbeidsforholdLøsning? = null,
     val INNTEKT: InntektLøsning? = null,
     val HENT_TRENGER_IM: HentTrengerImLøsning? = null,
-    val PREUTFYLL: PreutfyltLøsning? = null,
     val TILGANGSKONTROLL: TilgangskontrollLøsning? = null
 )
 

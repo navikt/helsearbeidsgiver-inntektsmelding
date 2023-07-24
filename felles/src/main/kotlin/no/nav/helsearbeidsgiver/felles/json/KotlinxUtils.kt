@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.felles.json
 
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -28,5 +29,5 @@ fun DataFelt.toJson(): JsonElement =
     toJson(DataFelt.serializer())
 
 fun <K : IKey, T : Any> K.les(serializer: KSerializer<T>, melding: Map<K, JsonElement>): T =
-    melding[this]?.fromJson(serializer)
+    melding[this]?.fromJson(serializer.nullable)
         ?: throw IllegalArgumentException("Felt '$this' mangler i JSON-map.")

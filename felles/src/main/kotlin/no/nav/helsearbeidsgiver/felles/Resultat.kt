@@ -8,10 +8,8 @@ data class Resultat(
     val VIRKSOMHET: VirksomhetLøsning? = null,
     val ARBEIDSFORHOLD: ArbeidsforholdLøsning? = null,
     val INNTEKT: InntektLøsning? = null,
-    val NOTIFIKASJON: NotifikasjonLøsning? = null,
     val HENT_TRENGER_IM: HentTrengerImLøsning? = null,
     val PREUTFYLL: PreutfyltLøsning? = null,
-    val PERSISTER_IM: PersisterImLøsning? = null,
     val TILGANGSKONTROLL: TilgangskontrollLøsning? = null
 )
 

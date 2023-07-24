@@ -3,7 +3,6 @@
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
-import no.nav.helsearbeidsgiver.felles.json.serializer.JsonAsStringSerializer
 
 sealed class Løsning {
     abstract val value: Any?
@@ -55,12 +54,6 @@ data class ArbeidsforholdLøsning(
 ) : Løsning()
 
 @Serializable
-data class NotifikasjonLøsning(
-    override val value: String? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
 data class HentTrengerImLøsning(
     override val value: TrengerInntekt? = null,
     override val error: Feilmelding? = null
@@ -73,13 +66,6 @@ data class PreutfyltLøsning(
 ) : Løsning()
 
 @Serializable
-data class PersisterImLøsning(
-    @Serializable(with = JsonAsStringSerializer::class)
-    override val value: String? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
 data class HentImOrgnrLøsning(
     override val value: String? = null,
     override val error: Feilmelding? = null
@@ -88,35 +74,5 @@ data class HentImOrgnrLøsning(
 @Serializable
 data class TilgangskontrollLøsning(
     override val value: Tilgang? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
-data class LagreJournalpostLøsning(
-    override val value: String? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
-data class PersisterSakIdLøsning(
-    override val value: String? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
-data class PersisterOppgaveIdLøsning(
-    override val value: String? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
-data class SakFerdigLøsning(
-    override val value: String? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
-data class OppgaveFerdigLøsning(
-    override val value: String? = null,
     override val error: Feilmelding? = null
 ) : Løsning()

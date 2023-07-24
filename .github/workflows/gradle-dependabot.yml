@@ -44,7 +44,6 @@ jobs:
             :joark
             :notifikasjon
             :pdl
-            :preutfylt
           sub-module-mode: INDIVIDUAL
           fail-on-error: false
           include-build-environment: true

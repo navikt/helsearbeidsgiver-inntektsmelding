@@ -18,8 +18,6 @@ import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.PersonLink
-import no.nav.helsearbeidsgiver.felles.PreutfyltLøsning
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
@@ -43,7 +41,7 @@ fun main() {
     // Dummyløser lar deg teste flyten, så du slipper å mocke hvert enkelt endepunkt
     DummyLøser(rapid, BehovType.HENT_TRENGER_IM)
     // enten::
-    DummyLøser(rapid, BehovType.PREUTFYLL, listOf(BehovType.FULLT_NAVN))
+//    DummyLøser(rapid, BehovType.PREUTFYLL, listOf(BehovType.FULLT_NAVN))
     // eller: start opp faktisk løser med LocalPreutfyltApp og lag dummy av resten:
     // HentPreutfyltLøser(rapid)
 //    DummyLøser(rapid, BehovType.INNTEKT)
@@ -99,11 +97,6 @@ class DummyLøser(
                         egenmeldingsperioder = listOf(1.januar til 1.januar),
                         forespurtData = emptyList()
                     )
-                )
-            }
-            BehovType.PREUTFYLL -> {
-                PreutfyltLøsning(
-                    PersonLink(fnr, orgnr)
                 )
             }
             BehovType.VIRKSOMHET -> {

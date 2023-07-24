@@ -31,7 +31,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
-import no.nav.helsearbeidsgiver.inntektsmelding.preutfylt.createPreutfylt
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -93,7 +92,6 @@ fun RapidsConnection.buildApp(
     this.createInntekt(inntektKlient)
     this.createJoark(dokarkivClient)
     this.createPdl(pdlClient)
-    this.createPreutfylt()
     this.createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, notifikasjonLink)
     return this
 }

@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEnd
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Sykefravaer
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.jupiter.api.Test

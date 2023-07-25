@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

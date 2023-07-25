@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.app.LocalApp
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLøser
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
@@ -95,7 +96,7 @@ class DummyLøser(
                         fnr = fnr,
                         sykmeldingsperioder = listOf(2.januar til 3.januar),
                         egenmeldingsperioder = listOf(1.januar til 1.januar),
-                        forespurtData = emptyList()
+                        forespurtData = mockForespurtData()
                     )
                 )
             }

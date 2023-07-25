@@ -37,8 +37,8 @@ class TrengerMapper(
         return resultat.HENT_TRENGER_IM?.value?.sykmeldingsperioder ?: emptyList()
     }
 
-    private fun mapForespurtData(): List<ForespurtData> =
-        resultat.HENT_TRENGER_IM?.value?.forespurtData ?: emptyList()
+    private fun mapForespurtData(): ForespurtData? =
+        resultat.HENT_TRENGER_IM?.value?.forespurtData
 
     private fun mapFulltNavn(): String {
         return resultat.FULLT_NAVN?.value?.navn ?: "Mangler navn"

@@ -68,7 +68,7 @@ class RedisPollerTest {
                         "fnr": "${expectedTrengerInntekt.fnr}",
                         "sykmeldingsperioder": ${expectedTrengerInntekt.sykmeldingsperioder.toJsonStr(Periode.serializer().list())},
                         "egenmeldingsperioder": ${expectedTrengerInntekt.egenmeldingsperioder.toJsonStr(Periode.serializer().list())},
-                        "forespurtData": ${expectedTrengerInntekt.forespurtData.toJsonStr(ForespurtData.serializer().list())}
+                        "forespurtData": ${expectedTrengerInntekt.forespurtData.toJsonStr(ForespurtData.serializer())}
                     }
                 }
             }

@@ -4,8 +4,8 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntektListe
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
@@ -49,7 +49,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         fnr = "deputize-snowy-quirk",
         sykmeldingsperioder = listOf(2.januar til 16.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
-        forespurtData = mockForespurtDataListe()
+        forespurtData = mockForespurtData()
     )
 
 fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
@@ -61,7 +61,7 @@ fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
             15.januar til 31.januar
         ),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
-        forespurtData = mockForespurtDataMedFastsattInntektListe()
+        forespurtData = mockForespurtDataMedFastsattInntekt()
     )
 
 private fun mockBoomerang(): JsonElement =

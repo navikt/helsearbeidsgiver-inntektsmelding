@@ -23,6 +23,6 @@ data class TrengerResponse(
     val tidligereinntekter: List<MottattHistoriskInntekt>,
     val behandlingsperiode: Periode?,
     val behandlingsdager: List<LocalDate>,
-    val forespurtData: List<ForespurtData>,
+    val forespurtData: ForespurtData?,
     val feilReport: FeilReport? = null
 )

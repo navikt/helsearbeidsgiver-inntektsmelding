@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers.InntektDokumentTilSkjemainnholdMapper
 import org.junit.jupiter.api.Test
 import org.mapstruct.factory.Mappers
@@ -18,7 +19,7 @@ class XMLMapperTest {
 
     @Test
     fun `tom arbeidsgviverPeriodelister i dokument skal bli null`() {
-        mapToXML(mockInntektMeldingDokMedTommeLister())
+        mapToXML(mockInntektsmeldingDokumentMedTommeLister())
     }
     private fun mapToXML(mockInntektsmeldingDokument: InntektsmeldingDokument) {
         val mapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)

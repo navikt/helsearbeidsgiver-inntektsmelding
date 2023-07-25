@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test

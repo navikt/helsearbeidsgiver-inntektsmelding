@@ -29,7 +29,7 @@ data class ForespoerselSvar(
         val fnr: String,
         val sykmeldingsperioder: List<Periode>,
         val egenmeldingsperioder: List<Periode>,
-        val forespurtData: List<ForespurtData>
+        val forespurtData: ForespurtData
     )
 
     enum class Feil {

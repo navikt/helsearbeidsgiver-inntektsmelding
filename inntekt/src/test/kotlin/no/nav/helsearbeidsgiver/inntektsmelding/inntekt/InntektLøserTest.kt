@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsInntektInformasjon
@@ -230,7 +231,7 @@ class InntektLøserTest {
                 orgnr = orgnr,
                 sykmeldingsperioder = sykmeldingsperioder,
                 egenmeldingsperioder = egenmeldingsperioder,
-                forespurtData = emptyList()
+                forespurtData = mockForespurtData()
             )
         )
     ).toJson(

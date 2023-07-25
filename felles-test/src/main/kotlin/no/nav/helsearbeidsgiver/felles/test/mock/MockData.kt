@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.utils.test.date.desember
+import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
@@ -26,47 +27,73 @@ object MockUuid {
         }
 }
 
-fun mockForespurtDataListe(): List<ForespurtData> =
-    listOf(
-        ForespurtData.ArbeidsgiverPeriode,
-        ForespurtData.Inntekt(
-            forslag = ForslagInntekt(
-                beregningsmåneder = listOf(
+fun mockForespurtData(): ForespurtData =
+    ForespurtData(
+        arbeidsgiverperiode = ForespurtData.Arbeidsgiverperiode(
+            paakrevd = true
+        ),
+        inntekt = ForespurtData.Inntekt(
+            paakrevd = true,
+            forslag = ForslagInntekt.Grunnlag(
+                beregningsmaaneder = listOf(
                     oktober(2017),
                     november(2017),
                     desember(2017)
                 )
             )
         ),
-        ForespurtData.Refusjon(forslag = emptyList())
-    )
-
-fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtData> =
-    listOf(
-        ForespurtData.ArbeidsgiverPeriode,
-        ForespurtData.FastsattInntekt(
-            fastsattInntekt = 31415.92
-        ),
-        ForespurtData.Refusjon(
-            forslag = listOf(
-                ForslagRefusjon(
-                    1.januar,
-                    14.januar,
-                    31415.92
+        refusjon = ForespurtData.Refusjon(
+            paakrevd = true,
+            forslag = ForslagRefusjon(
+                perioder = listOf(
+                    ForslagRefusjon.Periode(
+                        fom = 10.januar(2017),
+                        beloep = 10.48
+                    ),
+                    ForslagRefusjon.Periode(
+                        fom = 2.februar(2017),
+                        beloep = 98.26
+                    )
                 ),
-                ForslagRefusjon(
-                    15.januar,
-                    null,
-                    0.0
-                )
+                opphoersdato = 26.februar(2017)
             )
         )
     )
 
-fun mockTrengerInntekt(): TrengerInntekt = TrengerInntekt(
-    orgnr = "123",
-    fnr = "456",
-    sykmeldingsperioder = listOf(2.januar til 31.januar),
-    egenmeldingsperioder = listOf(1.januar til 1.januar),
-    forespurtData = mockForespurtDataListe()
-)
+fun mockForespurtDataMedFastsattInntekt(): ForespurtData =
+    ForespurtData(
+        arbeidsgiverperiode = ForespurtData.Arbeidsgiverperiode(
+            paakrevd = true
+        ),
+        inntekt = ForespurtData.Inntekt(
+            paakrevd = false,
+            forslag = ForslagInntekt.Fastsatt(
+                fastsattInntekt = 31415.92
+            )
+        ),
+        refusjon = ForespurtData.Refusjon(
+            paakrevd = true,
+            forslag = ForslagRefusjon(
+                perioder = listOf(
+                    ForslagRefusjon.Periode(
+                        fom = 1.januar,
+                        beloep = 31415.92
+                    ),
+                    ForslagRefusjon.Periode(
+                        fom = 15.januar,
+                        beloep = 3.14
+                    )
+                ),
+                opphoersdato = null
+            )
+        )
+    )
+
+fun mockTrengerInntekt(): TrengerInntekt =
+    TrengerInntekt(
+        orgnr = "123",
+        fnr = "456",
+        sykmeldingsperioder = listOf(2.januar til 31.januar),
+        egenmeldingsperioder = listOf(1.januar til 1.januar),
+        forespurtData = mockForespurtData()
+    )

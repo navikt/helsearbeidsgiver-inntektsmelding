@@ -77,7 +77,7 @@ fun mapTrengerResponse(trengerData: TrengerData): TrengerResponse {
         tidligereinntekter = trengerData.tidligereinntekter ?: emptyList(),
         behandlingsperiode = null,
         behandlingsdager = emptyList(),
-        forespurtData = trengerData.forespurtData ?: emptyList(),
+        forespurtData = trengerData.forespurtData,
         feilReport = trengerData.feilReport
     )
 }

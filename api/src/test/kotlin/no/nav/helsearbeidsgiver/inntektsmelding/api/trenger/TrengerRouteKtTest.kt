@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -151,7 +152,7 @@ private object Mock {
                 "tidligereinntekter": [${mockInntekt.historisk.joinToString(transform = MottattHistoriskInntekt::hardcodedJson)}],
                 "behandlingsperiode": null,
                 "behandlingsdager": [],
-                "forespurtData": [${mockTrengerInntekt.forespurtData.joinToString(transform = ForespurtData::hardcodedJson)}]
+                "forespurtData": ${mockTrengerInntekt.forespurtData.hardcodedJson()}
             }
         """.removeJsonWhitespace()
     }
@@ -168,27 +169,7 @@ private object Mock {
                 29.mars til 29.mars,
                 31.mars til 31.mars
             ),
-            forespurtData = listOf(
-                ForespurtData.ArbeidsgiverPeriode,
-                ForespurtData.Inntekt(
-                    forslag = ForslagInntekt(
-                        beregningsmåneder = listOf(
-                            februar(2022),
-                            januar(2022),
-                            desember(2022)
-                        )
-                    )
-                ),
-                ForespurtData.Refusjon(
-                    forslag = listOf(
-                        ForslagRefusjon(
-                            fom = 1.april,
-                            tom = null,
-                            beløp = 2.0
-                        )
-                    )
-                )
-            )
+            forespurtData = mockForespurtData()
         )
 
     private fun inntekt(): Inntekt =
@@ -219,33 +200,56 @@ private fun MottattHistoriskInntekt.hardcodedJson(): String =
     """
 
 private fun ForespurtData.hardcodedJson(): String =
+    """
+    {
+        "arbeidsgiverperiode": {
+            "paakrevd": ${arbeidsgiverperiode.paakrevd}
+        },
+        "inntekt": {
+            "paakrevd": ${inntekt.paakrevd},
+            "forslag": ${inntekt.forslag.hardcodedJson()}
+        },
+        "refusjon": {
+            "paakrevd": ${refusjon.paakrevd},
+            "forslag": ${refusjon.forslag.hardcodedJson()}
+        }
+    }
+    """
+
+private fun ForslagInntekt.hardcodedJson(): String =
     when (this) {
-        is ForespurtData.ArbeidsgiverPeriode ->
-            """{ "opplysningstype": "Arbeidsgiverperiode" }"""
-        is ForespurtData.Inntekt ->
+        is ForslagInntekt.Grunnlag ->
             """
             {
-                "opplysningstype": "Inntekt",
-                "forslag": {
-                    "beregningsmåneder": [${forslag.beregningsmåneder.joinToString { yearMonth -> "\"$yearMonth\"" }}]
-                }
+                "type": "ForslagInntektGrunnlag",
+                "beregningsmaaneder": [${beregningsmaaneder.joinToString { yearMonth -> "\"$yearMonth\"" }}]
             }
             """
-        is ForespurtData.FastsattInntekt ->
+
+        is ForslagInntekt.Fastsatt ->
             """
             {
-                "opplysningstype": "FastsattInntekt",
+                "type": "ForslagInntektFastsatt",
                 "fastsattInntekt": $fastsattInntekt
             }
             """
-        is ForespurtData.Refusjon ->
-            """
-            {
-                "opplysningstype": "Refusjon",
-                "forslag": [${forslag.joinToString(transform = ForslagRefusjon::hardcodedJson)}]
-            }
-            """
     }
+
+private fun ForslagRefusjon.hardcodedJson(): String =
+    """
+    {
+        "perioder": [${perioder.joinToString(transform = ForslagRefusjon.Periode::hardcodedJson)}],
+        "opphoersdato": ${opphoersdato.jsonStrOrNull()}
+    }
+    """
+
+private fun ForslagRefusjon.Periode.hardcodedJson(): String =
+    """
+    {
+        "fom": "$fom",
+        "beloep": $beloep
+    }
+    """
 
 private fun Periode.hardcodedJson(): String =
     """
@@ -255,11 +259,5 @@ private fun Periode.hardcodedJson(): String =
     }
     """
 
-private fun ForslagRefusjon.hardcodedJson(): String =
-    """
-    {
-        "fom": "$fom",
-        "tom": ${tom?.let { "\"$it\"" }},
-        "beløp": $beløp
-    }
-    """
+private fun <T : Any> T?.jsonStrOrNull(): String? =
+    this?.let { "\"$it\"" }

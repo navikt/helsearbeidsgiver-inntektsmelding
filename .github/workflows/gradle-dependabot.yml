@@ -37,6 +37,7 @@ jobs:
             :distribusjon
             :dokument
             :felles
+            :forespoersel-besvart
             :forespoersel-mottatt
             :helsebro
             :innsending

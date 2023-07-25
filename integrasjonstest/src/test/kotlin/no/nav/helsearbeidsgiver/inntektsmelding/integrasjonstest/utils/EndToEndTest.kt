@@ -13,12 +13,24 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
+import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
+import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.buildApp
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mapHikariConfigByContainer
+import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
+import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvart
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
+import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
+import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -38,8 +50,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     private val rapid by lazy {
         RapidApplication.create(
             mapOf(
-                "KAFKA_RAPID_TOPIC" to TOPIC,
-                "KAFKA_CREATE_TOPICS" to TOPIC,
+                "KAFKA_RAPID_TOPIC" to topic,
+                "KAFKA_CREATE_TOPICS" to topic,
                 "RAPID_APP_NAME" to "HAG",
                 "KAFKA_BOOTSTRAP_SERVERS" to kafkaContainer.bootstrapServers,
                 "KAFKA_CONSUMER_GROUP_ID" to "HAG"
@@ -49,7 +61,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     private val database by lazy {
         println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
-        postgreSQLContainer.let(::mapHikariConfigByContainer)
+        postgreSQLContainer.toHikariConfig()
             .let(::Database)
             .also(Database::migrate)
     }
@@ -76,24 +88,26 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        rapid.buildApp(
-            redisStore,
-            database,
-            imRepository,
-            forespoerselRepository,
-            mockk(relaxed = true),
-            mockk(relaxed = true),
-            mockk(relaxed = true),
-            dokarkivClient,
-            mockk(relaxed = true),
-            arbeidsgiverNotifikasjonKlient,
-            NOTIFIKASJON_LINK,
-            mockk(relaxed = true),
-            mockk(relaxed = true),
-            altinnClient,
-            mockk(relaxed = true)
-        )
-        rapid.register(this)
+        // Start løsere
+        logger.info("Starter løsere...")
+        rapid.apply {
+            createAareg(mockk(relaxed = true))
+            createAkkumulator(redisStore)
+            createAltinn(altinnClient)
+            createBrreg(mockk(relaxed = true), true)
+            createDb(database, imRepository, forespoerselRepository)
+            createDistribusjon(mockk(relaxed = true))
+            createForespoerselBesvart(mockk(relaxed = true))
+            createForespoerselMottatt()
+            createHelsebro(mockk(relaxed = true))
+            createInnsending(redisStore)
+            createInntekt(mockk(relaxed = true))
+            createJoark(dokarkivClient)
+            createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)
+            createPdl(mockk(relaxed = true))
+        }
+            .register(this)
+
         thread = thread {
             rapid.start()
         }
@@ -107,6 +121,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     @AfterAll
     fun afterAllEndToEnd() {
+        // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
         rapid.stop()
         thread.interrupt()

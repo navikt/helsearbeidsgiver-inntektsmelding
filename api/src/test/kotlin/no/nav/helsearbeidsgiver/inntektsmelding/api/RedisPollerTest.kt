@@ -64,8 +64,11 @@ class RedisPollerTest {
             {
                 "HENT_TRENGER_IM": {
                     "value": {
+                        "type": "${expectedTrengerInntekt.type}",
+                        "status": "${expectedTrengerInntekt.status}",
                         "orgnr": "${expectedTrengerInntekt.orgnr}",
                         "fnr": "${expectedTrengerInntekt.fnr}",
+                        "skjaeringstidspunkt": "${expectedTrengerInntekt.skjaeringstidspunkt}",
                         "sykmeldingsperioder": ${expectedTrengerInntekt.sykmeldingsperioder.toJsonStr(Periode.serializer().list())},
                         "egenmeldingsperioder": ${expectedTrengerInntekt.egenmeldingsperioder.toJsonStr(Periode.serializer().list())},
                         "forespurtData": ${expectedTrengerInntekt.forespurtData.toJsonStr(ForespurtData.serializer())}

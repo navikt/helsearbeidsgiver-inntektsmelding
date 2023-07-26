@@ -2,6 +2,8 @@ package no.nav.helsearbeidsgiver.felles.test.mock
 
 import io.ktor.client.statement.HttpResponse
 import io.mockk.every
+import no.nav.helsearbeidsgiver.felles.ForespoerselStatus
+import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
@@ -91,8 +93,11 @@ fun mockForespurtDataMedFastsattInntekt(): ForespurtData =
 
 fun mockTrengerInntekt(): TrengerInntekt =
     TrengerInntekt(
+        type = ForespoerselType.KOMPLETT,
+        status = ForespoerselStatus.AKTIV,
         orgnr = "123",
         fnr = "456",
+        skjaeringstidspunkt = 11.januar(2018),
         sykmeldingsperioder = listOf(2.januar til 31.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         forespurtData = mockForespurtData()

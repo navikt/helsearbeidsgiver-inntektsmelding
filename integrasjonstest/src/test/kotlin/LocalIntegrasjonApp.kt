@@ -10,6 +10,8 @@ import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.ForespoerselStatus
+import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
@@ -92,8 +94,11 @@ class DummyLøser(
             BehovType.HENT_TRENGER_IM -> {
                 HentTrengerImLøsning(
                     value = TrengerInntekt(
+                        type = ForespoerselType.KOMPLETT,
+                        status = ForespoerselStatus.AKTIV,
                         orgnr = orgnr,
                         fnr = fnr,
+                        skjaeringstidspunkt = 11.januar(2018),
                         sykmeldingsperioder = listOf(2.januar til 3.januar),
                         egenmeldingsperioder = listOf(1.januar til 1.januar),
                         forespurtData = mockForespurtData()

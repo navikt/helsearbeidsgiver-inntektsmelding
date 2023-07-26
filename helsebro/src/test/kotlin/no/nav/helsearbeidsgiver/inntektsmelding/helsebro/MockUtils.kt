@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespoerselStatus
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -48,19 +47,18 @@ fun mockForespoerselSvarMedFeil(): ForespoerselSvar =
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
         type = ForespoerselType.KOMPLETT,
-        status = ForespoerselStatus.AKTIV,
         orgnr = "hungry-traitor-chaplain",
         fnr = "deputize-snowy-quirk",
         skjaeringstidspunkt = 11.januar(2018),
         sykmeldingsperioder = listOf(2.januar til 16.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
-        forespurtData = mockForespurtData()
+        forespurtData = mockForespurtData(),
+        erBesvart = false
     )
 
 fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
         type = ForespoerselType.KOMPLETT,
-        status = ForespoerselStatus.AKTIV,
         orgnr = "full-traitor-chaplain",
         fnr = "captain-snowy-quirk",
         skjaeringstidspunkt = null,
@@ -69,7 +67,8 @@ fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
             15.januar til 31.januar
         ),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
-        forespurtData = mockForespurtDataMedFastsattInntekt()
+        forespurtData = mockForespurtDataMedFastsattInntekt(),
+        erBesvart = false
     )
 
 private fun mockBoomerang(): JsonElement =

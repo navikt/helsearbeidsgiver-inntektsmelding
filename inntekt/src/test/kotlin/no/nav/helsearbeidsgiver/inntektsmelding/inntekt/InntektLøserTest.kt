@@ -12,7 +12,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespoerselStatus
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.InntektLøsning
@@ -230,13 +229,13 @@ class InntektLøserTest {
         BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
             TrengerInntekt(
                 type = ForespoerselType.KOMPLETT,
-                status = ForespoerselStatus.AKTIV,
                 orgnr = orgnr,
                 fnr = "fnr",
                 skjaeringstidspunkt = 11.januar(2018),
                 sykmeldingsperioder = sykmeldingsperioder,
                 egenmeldingsperioder = egenmeldingsperioder,
-                forespurtData = mockForespurtData()
+                forespurtData = mockForespurtData(),
+                erBesvart = false
             )
         )
     ).toJson(

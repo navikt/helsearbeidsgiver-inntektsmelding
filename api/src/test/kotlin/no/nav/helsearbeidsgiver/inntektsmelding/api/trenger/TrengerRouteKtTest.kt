@@ -4,7 +4,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.ForespoerselStatus
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
@@ -162,9 +161,8 @@ private object Mock {
     private fun trengerInntekt(): TrengerInntekt =
         TrengerInntekt(
             type = ForespoerselType.KOMPLETT,
-            status = ForespoerselStatus.AKTIV,
-            fnr = "abc",
             orgnr = "123",
+            fnr = "abc",
             skjaeringstidspunkt = 11.januar(2018),
             sykmeldingsperioder = listOf(
                 1.april til 20.april,
@@ -174,7 +172,8 @@ private object Mock {
                 29.mars til 29.mars,
                 31.mars til 31.mars
             ),
-            forespurtData = mockForespurtData()
+            forespurtData = mockForespurtData(),
+            erBesvart = false
         )
 
     private fun inntekt(): Inntekt =

@@ -126,13 +126,13 @@ fun ForespoerselSvar.toHentTrengerImLøsning(): HentTrengerImLøsning =
             HentTrengerImLøsning(
                 value = TrengerInntekt(
                     type = resultat.type,
-                    status = resultat.status,
                     orgnr = resultat.orgnr,
                     fnr = resultat.fnr,
                     skjaeringstidspunkt = resultat.skjaeringstidspunkt,
                     sykmeldingsperioder = resultat.sykmeldingsperioder,
                     egenmeldingsperioder = resultat.egenmeldingsperioder,
-                    forespurtData = resultat.forespurtData
+                    forespurtData = resultat.forespurtData,
+                    erBesvart = resultat.erBesvart
                 )
             )
         }

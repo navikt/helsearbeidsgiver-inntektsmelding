@@ -125,11 +125,14 @@ fun ForespoerselSvar.toHentTrengerImLøsning(): HentTrengerImLøsning =
         resultat != null -> {
             HentTrengerImLøsning(
                 value = TrengerInntekt(
+                    type = resultat.type,
                     orgnr = resultat.orgnr,
                     fnr = resultat.fnr,
+                    skjaeringstidspunkt = resultat.skjaeringstidspunkt,
                     sykmeldingsperioder = resultat.sykmeldingsperioder,
                     egenmeldingsperioder = resultat.egenmeldingsperioder,
-                    forespurtData = resultat.forespurtData
+                    forespurtData = resultat.forespurtData,
+                    erBesvart = resultat.erBesvart
                 )
             )
         }

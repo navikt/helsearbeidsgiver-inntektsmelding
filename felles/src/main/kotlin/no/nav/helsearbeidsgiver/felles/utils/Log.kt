@@ -15,5 +15,5 @@ object Log {
 
     fun clientId(value: UUID) = "client_id" to value.toString()
 
-    fun forespoerselId(value: UUID) = "forespersel_id" to value.toString()
+    fun forespoerselId(value: UUID) = "forespoersel_id" to value.toString()
 }

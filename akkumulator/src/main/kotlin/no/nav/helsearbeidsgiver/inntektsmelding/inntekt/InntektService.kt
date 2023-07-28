@@ -66,18 +66,19 @@ class InntektService(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
+        val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
+            .readOrIllegalState("Fant ikke forespørsel-ID.")
+
         MdcUtils.withLogFields(
             "class" to simpleName(),
             "event_name" to event.name,
-            "transaksjon_id" to transaksjonId.toString()
+            "transaksjon_id" to transaksjonId.toString(),
+            "forespoersel_id" to forespoerselId
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
             when (transaction) {
                 Transaction.NEW -> {
-                    val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
-                        .readOrIllegalState("Fant ikke forespørsel-ID.")
-
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
@@ -86,7 +87,7 @@ class InntektService(
                     )
                         .also {
                             MdcUtils.withLogFields(
-                                "forespoersel_id" to forespoerselId
+                                "behov" to BehovType.HENT_TRENGER_IM.name
                             ) {
                                 sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                             }
@@ -111,7 +112,11 @@ class InntektService(
                             Key.UUID to transaksjonId.toJson()
                         )
                             .also {
-                                sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                                MdcUtils.withLogFields(
+                                    "behov" to BehovType.INNTEKT.name
+                                ) {
+                                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                                }
                             }
                     } else {
                         logger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")

@@ -38,7 +38,7 @@ class InntektProducer(
                 .also { json ->
                     "Publiserte request om inntekt.".let {
                         logger.info(it)
-                        sikkerLogger.info("it\n${json.toPretty()}")
+                        sikkerLogger.info("$it\n${json.toPretty()}")
                     }
                 }
         }

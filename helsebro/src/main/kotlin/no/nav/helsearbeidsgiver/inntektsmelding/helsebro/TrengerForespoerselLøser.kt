@@ -27,6 +27,7 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
+import java.util.UUID
 
 class TrengerForespoerselLøser(
     rapid: RapidsConnection,
@@ -53,37 +54,44 @@ class TrengerForespoerselLøser(
     override fun onBehov(packet: JsonMessage) {
         val json = packet.toJsonMap()
 
-        logger.info("Mottok behov om ${BehovType.HENT_TRENGER_IM}.")
-        sikkerLogger.info("Mottok behov:\n${packet.toPretty()}")
-
-        val event = Key.EVENT_NAME.les(EventName.serializer(), json)
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
-
         MdcUtils.withLogFields(
             "class" to simpleName(),
-            "event_name" to event.name,
-            "behov" to BehovType.HENT_TRENGER_IM.name,
-            "transaksjon_id" to transaksjonId.toString(),
-            "forespoersel_id" to forespoerselId.toString()
+            "behov" to BehovType.HENT_TRENGER_IM.name
         ) {
-            val trengerForespoersel = TrengerForespoersel(
-                forespoerselId = forespoerselId,
-                boomerang = mapOf(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.UUID to transaksjonId.toJson()
-                ).toJson()
-            )
+            logger.info("Mottok behov om ${BehovType.HENT_TRENGER_IM}.")
+            sikkerLogger.info("Mottok behov:\n${packet.toPretty()}")
 
-            priProducer.send(trengerForespoersel)
-                .ifTrue {
-                    logger.info("Publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
-                    sikkerLogger.info("Publiserte melding på pri-topic:\n${trengerForespoersel.toJson(TrengerForespoersel.serializer()).toPretty()}")
-                }
-                .ifFalse {
-                    logger.warn("Klarte ikke publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
-                }
+            val event = Key.EVENT_NAME.les(EventName.serializer(), json)
+            val transaksjonId = Key.UUID.les(UuidSerializer, json)
+            val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
+
+            MdcUtils.withLogFields(
+                "event_name" to event.name,
+                "transaksjon_id" to transaksjonId.toString(),
+                "forespoersel_id" to forespoerselId.toString()
+            ) {
+                spoerrEtterForespoersel(event, transaksjonId, forespoerselId)
+            }
         }
+    }
+
+    private fun spoerrEtterForespoersel(event: EventName, transaksjonId: UUID, forespoerselId: UUID) {
+        val trengerForespoersel = TrengerForespoersel(
+            forespoerselId = forespoerselId,
+            boomerang = mapOf(
+                Key.EVENT_NAME to event.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            ).toJson()
+        )
+
+        priProducer.send(trengerForespoersel)
+            .ifTrue {
+                logger.info("Publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
+                sikkerLogger.info("Publiserte melding på pri-topic:\n${trengerForespoersel.toJson(TrengerForespoersel.serializer()).toPretty()}")
+            }
+            .ifFalse {
+                logger.warn("Klarte ikke publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
+            }
     }
 }
 

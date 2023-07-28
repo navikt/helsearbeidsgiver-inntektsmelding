@@ -2,17 +2,20 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.shouldBe
+import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -22,14 +25,18 @@ class ForespoerselMottattIT : EndToEndTest() {
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        publish(
-            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
-            Pri.Key.ORGNR to Mock.ORGNR.toJson(),
-            Pri.Key.FNR to Mock.FNR.toJson(),
-            Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
-        )
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns Mock.transaksjonId
 
-        waitForMessages(8000)
+            publish(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+                Pri.Key.ORGNR to Mock.ORGNR.toJson(),
+                Pri.Key.FNR to Mock.FNR.toJson(),
+                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+            )
+
+            waitForMessages(8000)
+        }
 
         messages.filter(EventName.FORESPØRSEL_MOTTATT)
             .filter(BehovType.LAGRE_FORESPOERSEL, loesningPaakrevd = false)

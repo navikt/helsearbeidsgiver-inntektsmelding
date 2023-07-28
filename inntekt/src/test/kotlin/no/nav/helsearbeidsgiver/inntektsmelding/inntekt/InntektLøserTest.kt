@@ -2,25 +2,21 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import io.mockk.slot
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.json.JsonElement
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
-import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
-import no.nav.helsearbeidsgiver.felles.InntektLøsning
+import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntekt.ArbeidsInntektInformasjon
@@ -28,25 +24,26 @@ import no.nav.helsearbeidsgiver.inntekt.ArbeidsinntektMaaned
 import no.nav.helsearbeidsgiver.inntekt.Ident
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntekt.InntektskomponentResponse
-import no.nav.helsearbeidsgiver.inntekt.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.date.november
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.YearMonth
-import java.util.UUID
 import no.nav.helsearbeidsgiver.inntekt.Inntekt as Arbeidsinntekt
 
 private const val ORGNR = "123456789"
@@ -72,11 +69,11 @@ class InntektLøserTest {
         } throws RuntimeException()
 
         sendBehovTilLøser()
-        val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
-        assertNull(inntektLøsning?.value)
-        assertNotNull(inntektLøsning?.error)
-        assertEquals("Klarte ikke hente inntekt", inntektLøsning?.error?.melding)
+        assertTrue(rapid.inspektør.message(0).path(DataFelt.INNTEKT.str).isMissingOrNull())
+
+        val feil = rapid.inspektør.message(0).path(Key.FAIL.str)
+        assertFalse(feil.isMissingOrNull())
+        assertEquals("Klarte ikke hente inntekt", feil?.get("feilmelding")?.asText())
     }
 
     @Test
@@ -86,10 +83,9 @@ class InntektLøserTest {
             inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
         } returns response
         sendBehovTilLøser()
-        val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
-        assertNull(inntektLøsning?.error)
-        assertNotNull(inntektLøsning?.value)
+        val inntekt = rapid.inspektør.message(0).path(DataFelt.INNTEKT.str)?.toJsonElement()?.fromJson(Inntekt.serializer())
+        assertTrue(rapid.inspektør.message(0).path(Key.FAIL.str).isMissingOrNull())
+        assertNotNull(inntekt)
     }
 
     @Test
@@ -99,10 +95,9 @@ class InntektLøserTest {
             inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
         } returns response
         sendBehovForOppdatertInntektTilLøser()
-        val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
-        assertNull(inntektLøsning?.error)
-        assertNotNull(inntektLøsning?.value)
+        val inntekt = rapid.inspektør.message(0).path(DataFelt.INNTEKT.str)?.toJsonElement()?.fromJson(Inntekt.serializer())
+        assertTrue(rapid.inspektør.message(0).path(Key.FAIL.str).isMissingOrNull())
+        assertNotNull(inntekt)
     }
 
     @Test
@@ -113,16 +108,17 @@ class InntektLøserTest {
             inntektKlient.hentInntektListe(any(), any(), any(), any(), any(), any(), any())
         } returns response
 
+        val trengerInntekt = mockTrengerInntekt().copy(
+            orgnr = "123456785",
+            sykmeldingsperioder = listOf(1.juli(2020) til 31.juli(2020)),
+            egenmeldingsperioder = listOf(30.juni(2020) til 30.juni(2020))
+        )
+
         rapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to listOf(BehovType.FULLT_NAVN, BehovType.INNTEKT).toJson(BehovType.serializer()),
-            Key.ID to UUID.randomUUID().toJson(),
-            Key.UUID to "uuid".toJson(),
-            Key.SESSION to sessionDataJson(
-                orgnr = "123456785",
-                sykmeldingsperioder = listOf(1.juli(2020) til 31.juli(2020)),
-                egenmeldingsperioder = listOf(30.juni(2020) til 30.juni(2020))
-            )
+            Key.BEHOV to BehovType.INNTEKT.toJson(),
+            DataFelt.TRENGER_INNTEKT to trengerInntekt.toJson(TrengerInntekt.serializer()),
+            Key.UUID to "uuid".toJson()
         )
 
         coVerifySequence {
@@ -158,7 +154,7 @@ class InntektLøserTest {
     fun `skal finne riktig inntekt basert på sykmeldingsperioden som kommer i BEHOV`() {
         // Denne testen er litt grisete og tester mest egen mocke-logikk, men beholder foreløpig
         val inntektSvar = List(12) {
-            lagInntektMaaned(YearMonth.of(2022, 12).minusMonths(it.toLong()))
+            lagInntektMaaned(YearMonth.of(2017, 12).minusMonths(it.toLong()))
         }
         val fom = slot<LocalDate>()
         val tom = slot<LocalDate>()
@@ -184,25 +180,23 @@ class InntektLøserTest {
         }
         sendBehovTilLøser()
 
-        val løsning: JsonNode = rapid.inspektør.message(0).path("@løsning")
-        val inntektLøsning = løsning.get(BehovType.INNTEKT.name)?.toJsonElement()?.fromJson(InntektLøsning.serializer())
-        assertNull(inntektLøsning?.error)
-        assertEquals(3, inntektLøsning?.value!!.historisk.size)
+        val inntekt = rapid.inspektør.message(0).path(DataFelt.INNTEKT.str)?.toJsonElement()?.fromJson(Inntekt.serializer())
+        assertTrue(rapid.inspektør.message(0).path(Key.FAIL.str).isMissingOrNull())
+        assertEquals(3, inntekt!!.historisk.size)
 
-        val maaneder = inntektLøsning.value!!.historisk.map { it.maaned }
+        val maaneder = inntekt.historisk.map { it.maaned }
 
-        assertEquals(april(2022), maaneder[0])
-        assertEquals(mars(2022), maaneder[1])
-        assertEquals(februar(2022), maaneder[2])
+        assertEquals(desember(2017), maaneder[0])
+        assertEquals(november(2017), maaneder[1])
+        assertEquals(oktober(2017), maaneder[2])
     }
 
     private fun sendBehovTilLøser() {
         rapid.sendJson(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-            Key.BEHOV to listOf(BehovType.FULLT_NAVN, BehovType.INNTEKT).toJson(BehovType.serializer()),
-            Key.ID to UUID.randomUUID().toJson(),
-            Key.UUID to "uuid".toJson(),
-            Key.SESSION to sessionDataJson()
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.BEHOV to BehovType.INNTEKT.toJson(),
+            DataFelt.TRENGER_INNTEKT to mockTrengerInntekt().toJson(TrengerInntekt.serializer()),
+            Key.UUID to "uuid".toJson()
         )
     }
 
@@ -211,39 +205,12 @@ class InntektLøserTest {
     private fun sendBehovForOppdatertInntektTilLøser() {
         rapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
-            Key.BEHOV to listOf(BehovType.INNTEKT).toJson(BehovType.serializer()),
-            Key.ID to UUID.randomUUID().toJson(),
-            Key.UUID to "uuid".toJson(),
-            Key.SESSION to sessionDataJson(),
-            Key.BOOMERANG to mapOf(
-                Key.INNTEKT_DATO.str to LocalDate.of(2022, 10, 30).toJson(LocalDateSerializer)
-            ).toJson()
+            Key.BEHOV to BehovType.INNTEKT.toJson(),
+            DataFelt.TRENGER_INNTEKT to mockTrengerInntekt().toJson(TrengerInntekt.serializer()),
+            DataFelt.SKJAERINGSTIDSPUNKT to 30.oktober(2022).toJson(),
+            Key.UUID to "uuid".toJson()
         )
     }
-
-    private fun sessionDataJson(
-        orgnr: String = ORGNR,
-        sykmeldingsperioder: List<Periode> = listOf(2.mai(2022) til 16.mai(2022)),
-        egenmeldingsperioder: List<Periode> = listOf(1.mai(2022) til 1.mai(2022))
-    ): JsonElement = mapOf(
-        BehovType.HENT_TRENGER_IM to HentTrengerImLøsning(
-            TrengerInntekt(
-                type = ForespoerselType.KOMPLETT,
-                orgnr = orgnr,
-                fnr = "fnr",
-                skjaeringstidspunkt = 11.januar(2018),
-                sykmeldingsperioder = sykmeldingsperioder,
-                egenmeldingsperioder = egenmeldingsperioder,
-                forespurtData = mockForespurtData(),
-                erBesvart = false
-            )
-        )
-    ).toJson(
-        MapSerializer(
-            BehovType.serializer(),
-            HentTrengerImLøsning.serializer()
-        )
-    )
 
     private fun lagInntektMaaned(mnd: YearMonth): ArbeidsinntektMaaned {
         return ArbeidsinntektMaaned(

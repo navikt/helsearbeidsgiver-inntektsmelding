@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -54,7 +55,7 @@ class ForespoerselBesvartLoeser(
         val transaksjonId = randomUuid()
 
         MdcUtils.withLogFields(
-            "class" to this::class.simpleName.orEmpty(),
+            "class" to simpleName(),
             "transaksjon_id" to transaksjonId.toString()
         ) {
             runCatching {

@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstr
 import org.valiktor.ConstraintViolation
 import org.valiktor.DefaultConstraintViolation
 
+// TODO slett
 class TrengerMapper(
     resultat: Resultat
 ) : ResultatMapper<TrengerResponse>(resultat) {

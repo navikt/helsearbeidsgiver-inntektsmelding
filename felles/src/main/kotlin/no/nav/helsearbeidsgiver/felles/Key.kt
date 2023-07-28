@@ -27,7 +27,6 @@ enum class Key(override val str: String) : IKey {
     NESTE_BEHOV("neste_behov"),
     IDENTITETSNUMMER("identitetsnummer"),
     INITIATE_ID("initiateId"),
-    INITIATE_EVENT("initiate_event"),
     UUID("uuid"),
     CLIENT_ID("client_id"),
     TRANSACTION_ORIGIN("transaction_origin"),
@@ -35,7 +34,6 @@ enum class Key(override val str: String) : IKey {
     FNR("fnr"),
     FORESPOERSEL_ID("forespoerselId"),
     JOURNALPOST_ID("journalpostId"),
-    INNTEKT_DATO("inntektDato"),
     DATA("data"),
     FAIL("fail"),
     FAILED_BEHOV("failed-behov");
@@ -69,7 +67,8 @@ enum class DataFelt(override val str: String) : IKey {
     INNTEKTSMELDING("inntektsmelding"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     TRENGER_INNTEKT("trenger-inntekt"),
-    INNTEKT("inntekt");
+    INNTEKT("inntekt"),
+    SKJAERINGSTIDSPUNKT("skjaeringstidspunkt");
 
     override fun toString(): String =
         str
@@ -83,13 +82,13 @@ enum class DataFelt(override val str: String) : IKey {
     }
 }
 
-fun JsonMessage.value(key: Key): JsonNode =
+fun JsonMessage.value(key: IKey): JsonNode =
     this[key.str]
 
-fun JsonMessage.valueNullable(key: Key): JsonNode? =
+fun JsonMessage.valueNullable(key: IKey): JsonNode? =
     value(key).takeUnless(JsonNode::isMissingOrNull)
 
-fun JsonMessage.valueNullableOrUndefined(key: Key): JsonNode? =
+fun JsonMessage.valueNullableOrUndefined(key: IKey): JsonNode? =
     try { value(key).takeUnless(JsonNode::isMissingOrNull) } catch (e: IllegalArgumentException) { null }
 
 internal object KeySerializer : AsStringSerializer<Key>(

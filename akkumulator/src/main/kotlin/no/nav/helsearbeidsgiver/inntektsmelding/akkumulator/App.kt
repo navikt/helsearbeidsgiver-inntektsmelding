@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.InntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.trenger.TrengerService
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -18,13 +19,15 @@ fun main() {
         .start()
 }
 
-fun RapidsConnection.createAkkumulator(redisStore: IRedisStore): RapidsConnection {
-    logger.info("Starting Akkumulator...")
-    Akkumulator(this, redisStore)
-    TrengerService(this, redisStore)
-    return this
-}
+fun RapidsConnection.createAkkumulator(redisStore: IRedisStore): RapidsConnection =
+    also {
+        logger.info("Starting Akkumulator...")
+        Akkumulator(this, redisStore)
+        logger.info("Starting TrengerService...")
+        TrengerService(this, redisStore)
+        logger.info("Starting InntektService...")
+        InntektService(this, redisStore)
+    }
 
-fun buildRedisStore(environment: Environment): IRedisStore {
-    return RedisStore(environment.redisUrl)
-}
+fun buildRedisStore(environment: Environment): IRedisStore =
+    RedisStore(environment.redisUrl)

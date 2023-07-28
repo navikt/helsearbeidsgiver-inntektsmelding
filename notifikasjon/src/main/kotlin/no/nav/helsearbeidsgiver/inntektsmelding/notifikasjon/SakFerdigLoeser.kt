@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -53,7 +54,7 @@ class SakFerdigLoeser(
         val json = packet.toJson().parseJson()
 
         MdcUtils.withLogFields(
-            "class" to this::class.simpleName.orEmpty(),
+            "class" to simpleName(),
             "event_name" to EventName.FORESPOERSEL_BESVART.name
         ) {
             runCatching {

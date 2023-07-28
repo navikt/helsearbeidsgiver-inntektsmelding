@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.composite
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
@@ -15,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
 abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
 
@@ -47,16 +49,25 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
 
         val eventKey = RedisKey.of(transactionId, event)
         val value = redisStore.get(eventKey)
-        if (value.isNullOrEmpty()) {
-            if (!isEventMelding(message)) return Transaction.NOT_ACTIVE
 
-            val clientId = if (message[Key.CLIENT_ID.str].isMissingOrNull()) transactionId else message[Key.CLIENT_ID.str].asText()
-            redisStore.set(eventKey, clientId)
-            return Transaction.NEW
-        } else {
-            if (isDataCollected(transactionId)) return Transaction.FINALIZE
+        return when {
+            value.isNullOrEmpty() -> {
+                if (!isEventMelding(message)) {
+                    Transaction.NOT_ACTIVE
+                } else {
+                    val clientId = message[Key.CLIENT_ID.str]
+                        .takeUnless(JsonNode::isMissingOrNull)
+                        ?.asText()
+                        .orDefault(transactionId)
+
+                    redisStore.set(eventKey, clientId)
+
+                    Transaction.NEW
+                }
+            }
+            isDataCollected(transactionId) -> Transaction.FINALIZE
+            else -> Transaction.IN_PROGRESS
         }
-        return Transaction.IN_PROGRESS
     }
 
     private fun isFailMelding(jsonMessage: JsonMessage): Boolean {

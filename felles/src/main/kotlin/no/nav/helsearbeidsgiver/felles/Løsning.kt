@@ -24,9 +24,8 @@ data class Feilmelding(
 data class FeilReport(
     val feil: MutableList<Feilmelding> = mutableListOf()
 ) {
-    fun status(): Int {
-        return feil.find { it.status ?: 0 < 0 }?.status ?: 0
-    }
+    fun status(): Int =
+        feil.mapNotNull { it.status }.find { it < 0 } ?: 0
 }
 
 @Serializable

@@ -229,7 +229,6 @@ class AkkumulatorTest {
         val originalBoomerang = mapOf(
             Key.NESTE_BEHOV.str to listOf(BehovType.ARBEIDSGIVERE.toString()),
             Key.INITIATE_ID.str to initId,
-            Key.INNTEKT_DATO.str to dato,
             Key.FNR.str to foedselsnummer
         )
         val melding = mapOf(

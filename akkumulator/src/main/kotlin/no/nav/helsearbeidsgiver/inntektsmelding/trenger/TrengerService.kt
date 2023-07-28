@@ -25,7 +25,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
-import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.logger
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -34,6 +33,8 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 const val UNDEFINED_FELT: String = "{}"
 class TrengerService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
+
+    private val logger = sikkerLogger()
 
     override val event: EventName = EventName.TRENGER_REQUESTED
 

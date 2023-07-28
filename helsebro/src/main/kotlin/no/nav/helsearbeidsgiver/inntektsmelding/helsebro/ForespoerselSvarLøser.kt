@@ -99,9 +99,13 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                         sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
                     }
             } else {
-                val feilmelding = forespoerselSvar.feil
-                    ?.let { "Klarte ikke hente forespørsel. Feilet med kode '$it'." }
-                    ?: "Svar fra bro-appen har hverken resultat eller feil."
+                val feilmelding = if (forespoerselSvar.feil != null) {
+                    "Klarte ikke hente forespørsel. Feilet med kode '${forespoerselSvar.feil}'."
+                } else {
+                    "Svar fra bro-appen har hverken resultat eller feil.".also {
+                        sikkerLogger.error(it)
+                    }
+                }
 
                 Fail(
                     eventName = initiateEvent,
@@ -114,8 +118,8 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
                     .toJson()
                     .also(context::publish)
                     .also {
-                        logger.info("Publiserte feil for ${BehovType.HENT_TRENGER_IM}.")
-                        sikkerLogger.info("Publiserte feil:\n${it.parseJson().toPretty()}")
+                        logger.warn("Publiserte feil for ${BehovType.HENT_TRENGER_IM}.")
+                        sikkerLogger.warn("Publiserte feil:\n${it.parseJson().toPretty()}")
                     }
             }
         }

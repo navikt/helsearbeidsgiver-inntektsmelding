@@ -7,10 +7,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.InntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.trenger.TrengerService
 import no.nav.helsearbeidsgiver.utils.log.logger
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-val logger = "helsearbeidsgiver-im-akkumulator".logger()
-val sikkerLogger = sikkerLogger()
+private val logger = "helsearbeidsgiver-im-akkumulator".logger()
 
 fun main() {
     RapidApplication

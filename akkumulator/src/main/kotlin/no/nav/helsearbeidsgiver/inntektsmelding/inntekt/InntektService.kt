@@ -26,7 +26,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.logger
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -121,11 +120,11 @@ class InntektService(
                                 }
                             }
                     } else {
-                        logger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")
+                        sikkerLogger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")
                     }
                 }
                 else -> {
-                    logger.error("Støtte på forutsett transaksjonstype: $transaction")
+                    sikkerLogger.error("Støtte på forutsett transaksjonstype: $transaction")
                 }
             }
         }
@@ -185,7 +184,7 @@ class InntektService(
             Log.transaksjonId(transaksjonId),
             Log.clientId(clientId)
         ) {
-            sikkerLogger.info("$event terminert.")
+            sikkerLogger.error("$event terminert.")
         }
     }
 
@@ -212,6 +211,8 @@ class InntektService(
         }
 
         if (feilmelding != null) {
+            sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
+
             val feilKey = RedisKey.of(transaksjonId, feilmelding)
 
             val feilReport = feilKey.read()

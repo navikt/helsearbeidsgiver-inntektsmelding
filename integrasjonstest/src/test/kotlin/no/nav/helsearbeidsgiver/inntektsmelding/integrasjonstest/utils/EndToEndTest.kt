@@ -98,7 +98,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createDb(database, imRepository, forespoerselRepository)
             createDistribusjon(mockk(relaxed = true))
             createForespoerselBesvart(mockk(relaxed = true))
-            createForespoerselMottatt()
+            createForespoerselMottatt(mockk(relaxed = true))
             createHelsebro(mockk(relaxed = true))
             createInnsending(redisStore)
             createInntekt(mockk(relaxed = true))

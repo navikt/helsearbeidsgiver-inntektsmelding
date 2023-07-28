@@ -6,9 +6,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -35,32 +34,25 @@ class ForespoerselMottattIT : EndToEndTest() {
         messages.filter(EventName.FORESPØRSEL_MOTTATT)
             .filter(BehovType.LAGRE_FORESPOERSEL, loesningPaakrevd = false)
             .first()
-            .also { msg ->
-                msg.fromJsonMapOnlyKeys().also {
-                    it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_MOTTATT
-                    it[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.LAGRE_FORESPOERSEL
-                    it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
-                    it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                }
-
-                msg.fromJsonMapOnlyDatafelter().also {
-                    it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
-                }
+            .toMap()
+            .also {
+                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_MOTTATT
+                it[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.LAGRE_FORESPOERSEL
+                it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
+                it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
+                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                it[Key.TRANSACTION_ORIGIN]?.fromJson(UuidSerializer) shouldBe Mock.transaksjonId
             }
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
             .first()
-            .also { msg ->
-                msg.fromJsonMapOnlyKeys().also {
-                    it shouldNotContainKey Key.BEHOV
-                    it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_LAGRET
-                    it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
-                    it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                }
-
-                msg.fromJsonMapOnlyDatafelter().also {
-                    it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
-                }
+            .toMap()
+            .also {
+                it shouldNotContainKey Key.BEHOV
+                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_LAGRET
+                it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
+                it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
+                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
     }
 
@@ -69,5 +61,6 @@ class ForespoerselMottattIT : EndToEndTest() {
         const val ORGNR = "orgnr-gås"
 
         val forespoerselId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
     }
 }

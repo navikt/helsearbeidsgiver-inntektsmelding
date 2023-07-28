@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
@@ -25,9 +26,10 @@ class InntektProducer(
         val clientId = randomUuid()
 
         MdcUtils.withLogFields(
-            "event_name" to EventName.INNTEKT_REQUESTED.name,
-            "client_id" to clientId.toString(),
-            "forespoersel_id" to request.forespoerselId.toString()
+            Log.klasse(this),
+            Log.event(EventName.INNTEKT_REQUESTED),
+            Log.clientId(clientId),
+            Log.forespoerselId(request.forespoerselId)
         ) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),

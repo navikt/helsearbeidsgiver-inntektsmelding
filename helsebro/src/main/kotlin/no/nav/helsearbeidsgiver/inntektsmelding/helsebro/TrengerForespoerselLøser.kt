@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
-import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -55,8 +55,8 @@ class TrengerForespoerselLøser(
         val json = packet.toJsonMap()
 
         MdcUtils.withLogFields(
-            "class" to simpleName(),
-            "behov" to BehovType.HENT_TRENGER_IM.name
+            Log.klasse(this),
+            Log.behov(BehovType.HENT_TRENGER_IM)
         ) {
             logger.info("Mottok behov om ${BehovType.HENT_TRENGER_IM}.")
             sikkerLogger.info("Mottok behov:\n${packet.toPretty()}")
@@ -66,9 +66,9 @@ class TrengerForespoerselLøser(
             val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
 
             MdcUtils.withLogFields(
-                "event_name" to event.name,
-                "transaksjon_id" to transaksjonId.toString(),
-                "forespoersel_id" to forespoerselId.toString()
+                Log.event(event),
+                Log.transaksjonId(transaksjonId),
+                Log.forespoerselId(forespoerselId)
             ) {
                 spoerrEtterForespoersel(event, transaksjonId, forespoerselId)
             }

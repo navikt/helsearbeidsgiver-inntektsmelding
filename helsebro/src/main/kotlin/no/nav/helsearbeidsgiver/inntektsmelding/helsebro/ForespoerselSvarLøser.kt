@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
-import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -50,8 +50,8 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
         val json = packet.toJson().parseJson()
 
         MdcUtils.withLogFields(
-            "class" to simpleName(),
-            "behov" to BehovType.HENT_TRENGER_IM.name
+            Log.klasse(this),
+            Log.behov(BehovType.HENT_TRENGER_IM)
         ) {
             runCatching {
                 json.sendSvar(context)
@@ -81,9 +81,9 @@ class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
         val transaksjonId = Key.UUID.les(UuidSerializer, boomerangMap)
 
         MdcUtils.withLogFields(
-            "event_name" to initiateEvent.name,
-            "transaksjon_id" to transaksjonId.toString(),
-            "forespoersel_id" to forespoerselSvar.forespoerselId.toString()
+            Log.event(initiateEvent),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselSvar.forespoerselId)
         ) {
             if (forespoerselSvar.resultat != null) {
                 val trengerInntekt = forespoerselSvar.resultat.toTrengerInntekt()

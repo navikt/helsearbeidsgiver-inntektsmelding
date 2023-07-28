@@ -25,7 +25,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
-import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.logger
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -34,6 +34,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.util.UUID
 
 class InntektService(
     private val rapid: RapidsConnection,
@@ -68,12 +69,13 @@ class InntektService(
 
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
             .readOrIllegalState("Fant ikke forespørsel-ID.")
+            .let(UUID::fromString)
 
         MdcUtils.withLogFields(
-            "class" to simpleName(),
-            "event_name" to event.name,
-            "transaksjon_id" to transaksjonId.toString(),
-            "forespoersel_id" to forespoerselId
+            Log.klasse(this),
+            Log.event(event),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId)
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
@@ -87,7 +89,7 @@ class InntektService(
                     )
                         .also {
                             MdcUtils.withLogFields(
-                                "behov" to BehovType.HENT_TRENGER_IM.name
+                                Log.behov(BehovType.HENT_TRENGER_IM)
                             ) {
                                 sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                             }
@@ -113,7 +115,7 @@ class InntektService(
                         )
                             .also {
                                 MdcUtils.withLogFields(
-                                    "behov" to BehovType.INNTEKT.name
+                                    Log.behov(BehovType.INNTEKT)
                                 ) {
                                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                                 }
@@ -132,11 +134,14 @@ class InntektService(
     override fun finalize(message: JsonMessage) {
         val json = message.toJsonMap()
 
-        val transaksjonId = Key.UUID.les(UuidSerializer, json).toString()
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val clientId = RedisKey.of(transaksjonId, event).readOrIllegalState("Fant ikke client-ID.")
-        val inntekt = RedisKey.of(transaksjonId, DataFelt.INNTEKT).read()
-        val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
+        val clientId = RedisKey.of(transaksjonId.toString(), event)
+            .readOrIllegalState("Fant ikke client-ID.")
+            .let(UUID::fromString)
+
+        val inntekt = RedisKey.of(transaksjonId.toString(), DataFelt.INNTEKT).read()
+        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding("")).read()
 
         val inntektJson = InntektData(
             inntekt = inntekt?.fromJson(Inntekt.serializer()),
@@ -144,13 +149,13 @@ class InntektService(
         )
             .toJson(InntektData.serializer())
 
-        RedisKey.of(clientId).write(inntektJson)
+        RedisKey.of(clientId.toString()).write(inntektJson)
 
         MdcUtils.withLogFields(
-            "class" to simpleName(),
-            "event_name" to event.name,
-            "transaksjon_id" to transaksjonId,
-            "client_id" to clientId
+            Log.klasse(this),
+            Log.event(event),
+            Log.transaksjonId(transaksjonId),
+            Log.clientId(clientId)
         ) {
             sikkerLogger.info("$event fullført.")
         }
@@ -159,23 +164,26 @@ class InntektService(
     override fun terminate(message: JsonMessage) {
         val json = message.toJsonMap()
 
-        val transaksjonId = Key.UUID.les(UuidSerializer, json).toString()
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val clientId = RedisKey.of(transaksjonId, event).readOrIllegalState("Fant ikke client-ID.")
-        val feil = RedisKey.of(transaksjonId, Feilmelding("")).readOrIllegalState("Fant ikke feil.")
+        val clientId = RedisKey.of(transaksjonId.toString(), event)
+            .readOrIllegalState("Fant ikke client-ID.")
+            .let(UUID::fromString)
+
+        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding("")).readOrIllegalState("Fant ikke feil.")
 
         val feilResponse = InntektData(
             feil = feil.fromJson(FeilReport.serializer())
         )
             .toJson(InntektData.serializer())
 
-        RedisKey.of(clientId).write(feilResponse)
+        RedisKey.of(clientId.toString()).write(feilResponse)
 
         MdcUtils.withLogFields(
-            "class" to simpleName(),
-            "event_name" to event.name,
-            "transaksjon_id" to transaksjonId,
-            "client_id" to clientId
+            Log.klasse(this),
+            Log.event(event),
+            Log.transaksjonId(transaksjonId),
+            Log.clientId(clientId)
         ) {
             sikkerLogger.info("$event terminert.")
         }

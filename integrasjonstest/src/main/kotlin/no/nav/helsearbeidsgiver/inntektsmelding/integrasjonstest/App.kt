@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.mapHikariConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 
 fun main() {
     val env = mapOf(
@@ -44,5 +43,5 @@ fun RapidsConnection.buildLocalApp(): RapidsConnection =
 
         createAkkumulator(redisStore)
         createDb(database, imRepository, forespoerselRepository)
-        createForespoerselMottatt()
+//        createForespoerselMottatt()
     }

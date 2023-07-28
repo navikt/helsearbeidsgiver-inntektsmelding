@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -49,7 +50,7 @@ class NotifikasjonHentIdLoeser(
         val json = packet.toJson().parseJson()
 
         MdcUtils.withLogFields(
-            "class" to this::class.simpleName.orEmpty(),
+            "class" to simpleName(),
             "event_name" to EventName.FORESPOERSEL_BESVART.name
         ) {
             runCatching {

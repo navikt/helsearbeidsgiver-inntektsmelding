@@ -21,12 +21,15 @@ import no.nav.helsearbeidsgiver.felles.valueNullable
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class Akkumulator(
     private val rapidsConnection: RapidsConnection,
     private val redisStore: IRedisStore,
     private val timeout: Long = 600
 ) : River.PacketListener {
+    private val logger = sikkerLogger()
+    private val sikkerLogger = sikkerLogger()
 
     private val objectMapper = ObjectMapper()
 

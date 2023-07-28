@@ -27,3 +27,9 @@ data class TrengerData(
     val tidligereinntekter: List<MottattHistoriskInntekt>? = null,
     val feilReport: FeilReport? = null
 )
+
+@Serializable
+data class InntektData(
+    val inntekt: Inntekt? = null,
+    val feil: FeilReport? = null
+)

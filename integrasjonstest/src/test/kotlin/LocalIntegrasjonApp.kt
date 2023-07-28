@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandAll
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
@@ -69,7 +69,7 @@ class DummyLøser(
         logger.info("Starter dummyløser for Behov $behov")
         River(rapidsConnection).apply {
             validate { msg ->
-                msg.demandAll(Key.BEHOV, listOf(behov))
+                msg.demandValues(Key.BEHOV to behov.name)
                 msg.rejectKey(Key.LØSNING.str)
                 msg.interestedIn(Key.FORESPOERSEL_ID.str, Key.INITIATE_ID.str, Key.BOOMERANG.str)
             }

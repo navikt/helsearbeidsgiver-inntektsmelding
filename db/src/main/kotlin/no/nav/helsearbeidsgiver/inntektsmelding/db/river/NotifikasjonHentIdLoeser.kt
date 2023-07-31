@@ -51,7 +51,8 @@ class NotifikasjonHentIdLoeser(
 
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(EventName.FORESPOERSEL_BESVART)
+            Log.event(EventName.FORESPOERSEL_BESVART),
+            Log.behov(BehovType.NOTIFIKASJON_HENT_ID)
         ) {
             runCatching {
                 json.loesBehov()

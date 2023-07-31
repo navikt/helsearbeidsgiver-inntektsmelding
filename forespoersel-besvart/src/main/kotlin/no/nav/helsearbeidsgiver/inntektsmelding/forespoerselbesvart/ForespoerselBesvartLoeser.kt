@@ -15,8 +15,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -55,8 +55,9 @@ class ForespoerselBesvartLoeser(
         val transaksjonId = randomUuid()
 
         MdcUtils.withLogFields(
-            "class" to simpleName(),
-            "transaksjon_id" to transaksjonId.toString()
+            Log.klasse(this),
+            Log.priNotis(Pri.NotisType.FORESPOERSEL_BESVART),
+            Log.transaksjonId(transaksjonId)
         ) {
             runCatching {
                 json.opprettEvent(transaksjonId, context)
@@ -80,16 +81,22 @@ class ForespoerselBesvartLoeser(
 
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
-        context.publish(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
-        )
-            .also {
-                logger.info("Publiserte melding. Se sikkerlogg for mer info.")
-                sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
-            }
+        MdcUtils.withLogFields(
+            Log.event(EventName.FORESPOERSEL_BESVART),
+            Log.behov(BehovType.NOTIFIKASJON_HENT_ID),
+            Log.forespoerselId(forespoerselId)
+        ) {
+            context.publish(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+            )
+                .also {
+                    logger.info("Publiserte melding. Se sikkerlogg for mer info.")
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                }
+        }
     }
 
     private fun JsonElement.republiser() {

@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
-import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -50,8 +50,9 @@ class NotifikasjonHentIdLoeser(
         val json = packet.toJson().parseJson()
 
         MdcUtils.withLogFields(
-            "class" to simpleName(),
-            "event_name" to EventName.FORESPOERSEL_BESVART.name
+            Log.klasse(this),
+            Log.event(EventName.FORESPOERSEL_BESVART),
+            Log.behov(BehovType.NOTIFIKASJON_HENT_ID)
         ) {
             runCatching {
                 json.loesBehov()
@@ -77,8 +78,8 @@ class NotifikasjonHentIdLoeser(
         val transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
-            "forespoersel_id" to forespoerselId.toString(),
-            "transaksjon_id" to transaksjonId.toString()
+            Log.forespoerselId(forespoerselId),
+            Log.transaksjonId(transaksjonId)
         ) {
             hentNotifikasjonId(
                 forespoerselId = forespoerselId,

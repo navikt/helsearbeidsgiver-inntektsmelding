@@ -49,7 +49,7 @@ class FulltNavnLøserTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(BehovType.serializer()),
+            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
             Key.ID to UUID.randomUUID().toJson(),
             Key.IDENTITETSNUMMER to "abc".toJson()
         )
@@ -65,7 +65,7 @@ class FulltNavnLøserTest {
     fun `skal håndtere ukjente feil`() {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(BehovType.serializer()),
+            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
             Key.ID to UUID.randomUUID().toJson(),
             Key.IDENTITETSNUMMER to "abc".toJson()
         )

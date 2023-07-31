@@ -12,6 +12,8 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingR
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmeldingDokument
@@ -24,15 +26,18 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.demandAll(Key.BEHOV.str, PERSISTER_IM)
-            it.interestedIn(DataFelt.INNTEKTSMELDING.str)
-            it.interestedIn(DataFelt.VIRKSOMHET.str)
-            it.interestedIn(DataFelt.ARBEIDSTAKER_INFORMASJON.str)
-            it.interestedIn(Key.FORESPOERSEL_ID.str)
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValues(
+                Key.BEHOV to PERSISTER_IM.name
+            )
+            it.interestedIn(
+                DataFelt.INNTEKTSMELDING,
+                DataFelt.VIRKSOMHET,
+                DataFelt.ARBEIDSTAKER_INFORMASJON,
+                Key.FORESPOERSEL_ID
+            )
         }
-    }
 
     override fun onBehov(packet: JsonMessage) {
         val forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()

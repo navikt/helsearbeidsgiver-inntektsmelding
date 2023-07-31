@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
@@ -29,15 +30,16 @@ class ArbeidsforholdLøser(
 
     private val behovType = BehovType.ARBEIDSFORHOLD
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.demandAll(Key.BEHOV.str, behovType)
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValues(
+                Key.BEHOV to behovType.name
+            )
             it.requireKey(
                 Key.ID.str,
                 Key.IDENTITETSNUMMER.str
             )
         }
-    }
 
     override fun onBehov(packet: JsonMessage) {
         measureTimeMillis {

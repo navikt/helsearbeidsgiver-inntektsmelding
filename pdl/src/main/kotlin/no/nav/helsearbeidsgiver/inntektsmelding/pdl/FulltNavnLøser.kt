@@ -14,6 +14,8 @@ import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -27,12 +29,14 @@ class FulltNavnLøser(
 
     private val logger = logger()
     private val BEHOV = BehovType.FULLT_NAVN
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.demandAll(Key.BEHOV.str, BEHOV)
-            it.requireKey(Key.IDENTITETSNUMMER.str)
+
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValues(
+                Key.BEHOV to BEHOV.name
+            )
+            it.requireKeys(Key.IDENTITETSNUMMER)
         }
-    }
 
     override fun onBehov(packet: JsonMessage) {
         measureTimeMillis {

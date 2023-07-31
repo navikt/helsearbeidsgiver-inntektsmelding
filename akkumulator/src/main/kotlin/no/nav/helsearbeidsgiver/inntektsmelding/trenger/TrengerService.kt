@@ -26,7 +26,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -109,25 +108,25 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 logger.info("${simpleName()} Dispatcher VIRKSOMHET for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer().list()),
+                    Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                     Key.UUID to uuid.toJson(),
                     DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
                 )
                 logger.info("${simpleName()} dispatcher FULLT_NAVN for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to listOf(BehovType.FULLT_NAVN).toJson(BehovType.serializer().list()),
+                    Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
                     Key.UUID to uuid.toJson(),
                     Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
                 )
                 /*
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to listOf(BehovType.ARBEIDSFORHOLD).toJson(ListSerializer(BehovType.serializer())),
+                    Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
                     Key.UUID to uuid.toJson(),
                     Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
                 )
-*/
+                */
                 logger.info("${simpleName()} Dispatcher INNTEKT for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),

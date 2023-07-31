@@ -19,4 +19,8 @@ object Log {
     fun clientId(value: UUID) = "client_id" to value.toString()
 
     fun forespoerselId(value: UUID) = "forespoersel_id" to value.toString()
+
+    fun sakId(value: String) = "sak_id" to value
+
+    fun oppgaveId(value: String) = "oppgave_id" to value
 }

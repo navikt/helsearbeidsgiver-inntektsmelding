@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
-import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -53,8 +53,8 @@ class OppgaveFerdigLoeser(
         val json = packet.toJson().parseJson()
 
         MdcUtils.withLogFields(
-            "class" to simpleName(),
-            "event_name" to EventName.FORESPOERSEL_BESVART.name
+            Log.klasse(this),
+            Log.event(EventName.FORESPOERSEL_BESVART)
         ) {
             runCatching {
                 json.haandterMelding(context)
@@ -81,9 +81,9 @@ class OppgaveFerdigLoeser(
         val transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
-            "oppgave_id" to oppgaveId,
-            "forespoersel_id" to forespoerselId.toString(),
-            "transaksjon_id" to transaksjonId.toString()
+            Log.oppgaveId(oppgaveId),
+            Log.forespoerselId(forespoerselId),
+            Log.transaksjonId(transaksjonId)
         ) {
             ferdigstillOppgave(oppgaveId, forespoerselId, transaksjonId, context)
         }

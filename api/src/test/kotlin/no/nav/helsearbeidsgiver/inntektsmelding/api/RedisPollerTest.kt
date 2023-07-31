@@ -6,12 +6,12 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Periode
-import no.nav.helsearbeidsgiver.felles.Resultat
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.løsning
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -57,31 +57,28 @@ class RedisPollerTest {
     }
 
     @Test
-    fun `skal parse liste med forespurt data korrekt`() {
-        val expectedTrengerInntekt = mockTrengerInntekt()
-        val expected = Resultat(HENT_TRENGER_IM = HentTrengerImLøsning(value = expectedTrengerInntekt))
+    fun `skal parse forespurt data korrekt`() {
+        val expected = mockTrengerInntekt()
         val expectedJson = """
             {
-                "HENT_TRENGER_IM": {
-                    "value": {
-                        "type": "${expectedTrengerInntekt.type}",
-                        "orgnr": "${expectedTrengerInntekt.orgnr}",
-                        "fnr": "${expectedTrengerInntekt.fnr}",
-                        "skjaeringstidspunkt": "${expectedTrengerInntekt.skjaeringstidspunkt}",
-                        "sykmeldingsperioder": ${expectedTrengerInntekt.sykmeldingsperioder.toJsonStr(Periode.serializer().list())},
-                        "egenmeldingsperioder": ${expectedTrengerInntekt.egenmeldingsperioder.toJsonStr(Periode.serializer().list())},
-                        "forespurtData": ${expectedTrengerInntekt.forespurtData.toJsonStr(ForespurtData.serializer())},
-                        "erBesvart": ${expectedTrengerInntekt.erBesvart}
-                    }
-                }
+                "type": "${expected.type}",
+                "orgnr": "${expected.orgnr}",
+                "fnr": "${expected.fnr}",
+                "skjaeringstidspunkt": "${expected.skjaeringstidspunkt}",
+                "sykmeldingsperioder": ${expected.sykmeldingsperioder.toJsonStr(Periode.serializer().list())},
+                "egenmeldingsperioder": ${expected.egenmeldingsperioder.toJsonStr(Periode.serializer().list())},
+                "forespurtData": ${expected.forespurtData.toJsonStr(ForespurtData.serializer())},
+                "erBesvart": ${expected.erBesvart}
             }
         """
 
         val redisPoller = mockRedisPoller(expectedJson, 0)
 
-        runBlocking {
-            val resultat = redisPoller.getResultat(id, 5, 0)
-            resultat shouldBe expected
+        val resultat = runBlocking {
+            redisPoller.hent(id, 5, 0)
         }
+            .fromJson(TrengerInntekt.serializer())
+
+        resultat shouldBe expected
     }
 }

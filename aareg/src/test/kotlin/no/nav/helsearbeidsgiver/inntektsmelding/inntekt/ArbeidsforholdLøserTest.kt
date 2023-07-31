@@ -1,3 +1,5 @@
+@file:UseSerializers(UuidSerializer::class)
+
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
 import io.kotest.core.spec.style.FunSpec
@@ -7,8 +9,10 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import io.mockk.mockk
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.aareg.AaregClient
@@ -17,12 +21,13 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.ArbeidsforholdLøser
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
 
 class ArbeidsforholdLøserTest : FunSpec({
     val testRapid = TestRapid()
@@ -42,16 +47,15 @@ class ArbeidsforholdLøserTest : FunSpec({
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.EVENT_NAME to expected.eventName.toJson(),
             Key.BEHOV to expected.behov.toJson(),
-            Key.ID to MockUuid.STRING.toJson(),
-            Key.UUID to "uuid".toJson(),
-            Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
+            Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson(),
+            Key.UUID to expected.uuid.toJson()
         )
 
         val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
-        coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, MockUuid.STRING) }
+        coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, expected.uuid.toString()) }
         testRapid.inspektør.size shouldBeExactly 2
         actual shouldBe expected
     }
@@ -62,16 +66,15 @@ class ArbeidsforholdLøserTest : FunSpec({
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.EVENT_NAME to expected.eventName.toJson(),
             Key.BEHOV to expected.behov.toJson(),
-            Key.ID to MockUuid.STRING.toJson(),
-            Key.UUID to "uuiid".toJson(),
-            Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
+            Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson(),
+            Key.UUID to expected.uuid.toJson()
         )
 
         val actual = testRapid.firstMessage().fromJson(Published.serializer())
 
-        coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, MockUuid.STRING) }
+        coVerifySequence { mockAaregClient.hentArbeidsforhold(expected.identitetsnummer, expected.uuid.toString()) }
         testRapid.inspektør.size shouldBeExactly 2
         actual shouldBe expected
     }
@@ -80,31 +83,36 @@ class ArbeidsforholdLøserTest : FunSpec({
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 private data class Published(
-    @JsonNames("@behov")
-    val behov: BehovType,
     @JsonNames("@løsning")
-    val løsning: Map<BehovType, ArbeidsforholdLøsning>,
-    val identitetsnummer: String
+    val loesning: Map<BehovType, ArbeidsforholdLøsning>,
+    val identitetsnummer: String,
+    val uuid: UUID
 ) {
-    companion object {
-        private val behovType = BehovType.ARBEIDSFORHOLD
+    @EncodeDefault
+    @JsonNames("@event_name")
+    val eventName = EventName.INSENDING_STARTED
 
+    @EncodeDefault
+    @JsonNames("@behov")
+    val behov = BehovType.ARBEIDSFORHOLD
+
+    companion object {
         fun mockSuccess(): Published =
             Published(
-                behov = behovType,
-                løsning = mapOf(
-                    behovType to mockLøsningSuccess()
+                loesning = mapOf(
+                    BehovType.ARBEIDSFORHOLD to mockLøsningSuccess()
                 ),
-                identitetsnummer = "collide-levitator-modify"
+                identitetsnummer = "collide-levitator-modify",
+                uuid = UUID.randomUUID()
             )
 
         fun mockFailure(): Published =
             Published(
-                behov = behovType,
-                løsning = mapOf(
-                    behovType to mockLøsningFailure()
+                loesning = mapOf(
+                    BehovType.ARBEIDSFORHOLD to mockLøsningFailure()
                 ),
-                identitetsnummer = "oil-probably-stack"
+                identitetsnummer = "oil-probably-stack",
+                uuid = UUID.randomUUID()
             )
     }
 }

@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
@@ -35,20 +36,20 @@ class ArbeidsforholdLøser(
             it.demandValues(
                 Key.BEHOV to behovType.name
             )
-            it.requireKey(
-                Key.ID.str,
-                Key.IDENTITETSNUMMER.str
+            it.requireKeys(
+                Key.IDENTITETSNUMMER,
+                Key.UUID
             )
         }
 
     override fun onBehov(packet: JsonMessage) {
         measureTimeMillis {
-            val id = packet.value(Key.ID).asText()
+            val transaksjonId = packet.value(Key.UUID).asText()
             val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
 
-            logger.info("Løser behov $behovType med id $id")
+            logger.info("Løser behov $behovType med transaksjon-ID $transaksjonId")
 
-            val arbeidsforhold = hentArbeidsforhold(identitetsnummer, id)
+            val arbeidsforhold = hentArbeidsforhold(identitetsnummer, transaksjonId)
 
             val løsning = if (arbeidsforhold != null) {
                 ArbeidsforholdLøsning(arbeidsforhold)

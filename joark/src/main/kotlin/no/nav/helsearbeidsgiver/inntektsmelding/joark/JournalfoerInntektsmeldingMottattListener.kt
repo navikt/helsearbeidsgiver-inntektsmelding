@@ -21,7 +21,6 @@ class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnecti
         return River.PacketValidation {
             it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
             it.interestedIn(Key.UUID.str)
-            it.interestedIn(Key.ID.str)
         }
     }
 

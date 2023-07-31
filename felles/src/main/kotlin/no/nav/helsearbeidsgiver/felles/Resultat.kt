@@ -6,9 +6,6 @@ import kotlinx.serialization.Serializable
 data class Resultat(
     val FULLT_NAVN: NavnLøsning? = null,
     val VIRKSOMHET: VirksomhetLøsning? = null,
-    val ARBEIDSFORHOLD: ArbeidsforholdLøsning? = null,
-    val INNTEKT: InntektLøsning? = null,
-    val HENT_TRENGER_IM: HentTrengerImLøsning? = null,
     val TILGANGSKONTROLL: TilgangskontrollLøsning? = null
 )
 

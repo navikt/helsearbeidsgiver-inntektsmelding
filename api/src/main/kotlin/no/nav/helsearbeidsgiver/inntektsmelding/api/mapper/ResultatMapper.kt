@@ -18,9 +18,6 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
         return listOfNotNull(
             resultat.FULLT_NAVN,
             resultat.VIRKSOMHET,
-            resultat.ARBEIDSFORHOLD,
-            resultat.INNTEKT,
-            resultat.HENT_TRENGER_IM,
             resultat.TILGANGSKONTROLL
         )
     }

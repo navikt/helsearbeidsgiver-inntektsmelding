@@ -41,20 +41,8 @@ data class VirksomhetLøsning(
 ) : Løsning()
 
 @Serializable
-data class InntektLøsning(
-    override val value: Inntekt? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
 data class ArbeidsforholdLøsning(
     override val value: List<Arbeidsforhold> = emptyList(),
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
-data class HentTrengerImLøsning(
-    override val value: TrengerInntekt? = null,
     override val error: Feilmelding? = null
 ) : Løsning()
 

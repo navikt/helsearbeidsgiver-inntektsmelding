@@ -8,9 +8,7 @@ import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
-import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Inntekt
-import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Periode
@@ -112,14 +110,8 @@ private object Mock {
     val UGYLDIG_REQUEST = TrengerRequest(" ")
 
     val RESULTAT_OK = Resultat(
-        HENT_TRENGER_IM = HentTrengerImLøsning(
-            value = trengerInntekt()
-        ),
         FULLT_NAVN = NavnLøsning(PersonDato("Ola Normann", 1.mai)),
-        VIRKSOMHET = VirksomhetLøsning("Norge AS"),
-        INNTEKT = InntektLøsning(
-            value = inntekt()
-        )
+        VIRKSOMHET = VirksomhetLøsning("Norge AS")
     )
     val RESULTAT_IKKE_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.IKKE_TILGANG))
     val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))

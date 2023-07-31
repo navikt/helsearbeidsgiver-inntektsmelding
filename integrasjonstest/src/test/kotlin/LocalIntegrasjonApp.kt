@@ -1,3 +1,5 @@
+import Jackson.toJsonNode
+import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -11,17 +13,15 @@ import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
-import no.nav.helsearbeidsgiver.felles.HentTrengerImLøsning
 import no.nav.helsearbeidsgiver.felles.Inntekt
-import no.nav.helsearbeidsgiver.felles.InntektLøsning
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Løsning
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
+import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
@@ -85,33 +85,31 @@ class DummyLøser(
         this.rapid.publish(packet.toJson())
     }
 
-    private fun getLøsning(): Løsning {
+    private fun getLøsning(): JsonNode {
         val fnr = "123"
         val orgnr = "123"
 
         return when (behov) {
             BehovType.HENT_TRENGER_IM -> {
-                HentTrengerImLøsning(
-                    value = TrengerInntekt(
-                        type = ForespoerselType.KOMPLETT,
-                        orgnr = orgnr,
-                        fnr = fnr,
-                        skjaeringstidspunkt = 11.januar(2018),
-                        sykmeldingsperioder = listOf(2.januar til 3.januar),
-                        egenmeldingsperioder = listOf(1.januar til 1.januar),
-                        forespurtData = mockForespurtData(),
-                        erBesvart = false
-                    )
-                )
+                TrengerInntekt(
+                    type = ForespoerselType.KOMPLETT,
+                    orgnr = orgnr,
+                    fnr = fnr,
+                    skjaeringstidspunkt = 11.januar(2018),
+                    sykmeldingsperioder = listOf(2.januar til 3.januar),
+                    egenmeldingsperioder = listOf(1.januar til 1.januar),
+                    forespurtData = mockForespurtData(),
+                    erBesvart = false
+                ).toJsonNode()
             }
             BehovType.VIRKSOMHET -> {
-                VirksomhetLøsning("Din Bedrift A/S")
+                VirksomhetLøsning("Din Bedrift A/S").toJsonNode()
             }
             BehovType.FULLT_NAVN -> {
-                NavnLøsning(PersonDato("Navn navnesen", LocalDate.now()))
+                NavnLøsning(PersonDato("Navn navnesen", LocalDate.now())).toJsonNode()
             }
             BehovType.INNTEKT -> {
-                InntektLøsning(Inntekt(emptyList()))
+                Inntekt(emptyList()).toJsonNode()
             }
             BehovType.ARBEIDSFORHOLD -> {
                 ArbeidsforholdLøsning(
@@ -122,16 +120,16 @@ class DummyLøser(
                             LocalDateTime.now()
                         )
                     )
-                )
+                ).toJsonNode()
             }
             else -> {
-                NavnLøsning(error("Ukjent behov, ingen dummy-løsning!"))
+                error("Ukjent behov, ingen dummy-løsning!")
             }
         }
     }
 }
 
-private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
+private fun JsonMessage.setLøsning(nøkkel: BehovType, data: JsonNode) {
     this[Key.LØSNING.str] = mapOf(
         nøkkel.name to data
     )
@@ -141,4 +139,11 @@ private fun JsonMessage.nesteBehov(behov: List<BehovType>) {
         return
     }
     this[Key.NESTE_BEHOV.str] = behov
+}
+
+private object Jackson {
+    val objectMapper = customObjectMapper()
+
+    fun <T : Any> T.toJsonNode(): JsonNode =
+        objectMapper.valueToTree(this)
 }

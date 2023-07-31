@@ -2,12 +2,15 @@ package no.nav.helsearbeidsgiver.felles.utils
 
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import java.util.UUID
 
 object Log {
     fun <T : Any> klasse(value: T) = "class" to value.simpleName()
 
     fun event(value: EventName) = "event" to value.name
+
+    fun priNotis(value: Pri.NotisType) = "pri_notis" to value.name
 
     fun behov(value: BehovType) = "behov" to value.name
 

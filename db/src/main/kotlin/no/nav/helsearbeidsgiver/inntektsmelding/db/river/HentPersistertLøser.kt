@@ -12,6 +12,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -26,13 +28,16 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.demandAll(Key.BEHOV.str, BEHOV)
-            it.interestedIn(Key.EVENT_NAME.str)
-            it.interestedIn(Key.FORESPOERSEL_ID.str)
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValues(
+                Key.BEHOV to BEHOV.name
+            )
+            it.interestedIn(
+                Key.EVENT_NAME,
+                Key.FORESPOERSEL_ID
+            )
         }
-    }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         eventName = EventName.valueOf(packet[Key.EVENT_NAME.str].asText())

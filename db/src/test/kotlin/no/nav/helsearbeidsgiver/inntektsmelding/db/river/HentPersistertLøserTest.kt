@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.contains
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -14,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
@@ -41,8 +41,8 @@ class HentPersistertLøserTest {
             repository.hentNyeste(any())
         } returns INNTEKTSMELDING_DOKUMENT
         sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
-            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
+            Key.BEHOV to BEHOV.toJson(),
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
@@ -63,8 +63,8 @@ class HentPersistertLøserTest {
             repository.hentNyeste(any())
         } throws Exception()
         val feilmelding = sendMeldingMedFeil(
-            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
-            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
+            Key.BEHOV to BEHOV.toJson(),
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
@@ -78,8 +78,8 @@ class HentPersistertLøserTest {
             repository.hentNyeste(any())
         } returns null
         sendMelding(
-            Key.BEHOV to listOf(BEHOV).toJson(String.serializer()),
-            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(EventName.serializer()),
+            Key.BEHOV to BEHOV.toJson(),
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.INITIATE_ID to UUID.randomUUID().toJson()
         )

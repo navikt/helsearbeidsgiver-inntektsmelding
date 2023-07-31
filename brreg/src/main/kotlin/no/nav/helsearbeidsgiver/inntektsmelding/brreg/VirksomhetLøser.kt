@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
 
@@ -47,13 +48,14 @@ class VirksomhetLøser(
         } ?: throw FantIkkeVirksomhetException(orgnr)
     }
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.demandAll(Key.BEHOV.str, BEHOV)
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValues(
+                Key.BEHOV to BEHOV.name
+            )
             it.requireKey(DataFelt.ORGNRUNDERENHET.str)
             it.requireKey(Key.ID.str)
         }
-    }
 
     override fun onBehov(packet: JsonMessage) {
         logger.info("Løser behov $BEHOV med id ${packet[Key.ID.str].asText()}")

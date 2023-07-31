@@ -70,7 +70,7 @@ class PersisterImLøserTest {
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                    Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
+                    Key.BEHOV.str to BehovType.PERSISTER_IM.name,
                     DataFelt.VIRKSOMHET.str to "Test Virksomhet",
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test persjon", null),
                     Key.ID.str to UUID.randomUUID(),

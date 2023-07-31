@@ -67,7 +67,7 @@ class InnsendingService(
                     JsonMessage.newMessage(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to listOf(BehovType.VIRKSOMHET.name),
+                            Key.BEHOV.str to BehovType.VIRKSOMHET.name,
                             DataFelt.ORGNRUNDERENHET.str to message[DataFelt.ORGNRUNDERENHET.str].asText(),
                             Key.UUID.str to uuid
                         )
@@ -78,7 +78,7 @@ class InnsendingService(
                     JsonMessage.newMessage(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to listOf(BehovType.ARBEIDSFORHOLD.name),
+                            Key.BEHOV.str to BehovType.ARBEIDSFORHOLD.name,
                             Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
                             Key.UUID.str to uuid
                         )
@@ -89,7 +89,7 @@ class InnsendingService(
                     JsonMessage.newMessage(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
+                            Key.BEHOV.str to BehovType.FULLT_NAVN.name,
                             Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
                             Key.UUID.str to uuid
                         )
@@ -104,7 +104,7 @@ class InnsendingService(
                         JsonMessage.newMessage(
                             mapOf(
                                 Key.EVENT_NAME.str to event.name,
-                                Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
+                                Key.BEHOV.str to BehovType.PERSISTER_IM.name,
                                 DataFelt.VIRKSOMHET.str to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet"),
                                 DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
                                     arbeidstakerRedis ?: PersonDato(

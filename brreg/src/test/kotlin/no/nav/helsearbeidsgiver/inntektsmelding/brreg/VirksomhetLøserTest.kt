@@ -49,7 +49,7 @@ class VirksomhetLøserTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer()),
+            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
             DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
             Key.ID to UUID.randomUUID().toJson()
         )
@@ -65,7 +65,7 @@ class VirksomhetLøserTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer()),
+            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
             DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
             Key.ID to UUID.randomUUID().toJson()
         )
@@ -79,7 +79,7 @@ class VirksomhetLøserTest {
     fun `skal håndtere ukjente feil`() {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to listOf(BehovType.VIRKSOMHET).toJson(BehovType.serializer()),
+            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
             DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
             Key.ID to UUID.randomUUID().toJson()
         )

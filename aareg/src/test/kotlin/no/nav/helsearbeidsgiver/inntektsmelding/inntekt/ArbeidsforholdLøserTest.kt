@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -41,8 +42,8 @@ class ArbeidsforholdLøserTest : FunSpec({
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-            Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.BEHOV to expected.behov.toJson(),
             Key.ID to MockUuid.STRING.toJson(),
             Key.UUID to "uuid".toJson(),
             Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
@@ -61,8 +62,8 @@ class ArbeidsforholdLøserTest : FunSpec({
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-            Key.BEHOV to expected.behov.toJson(BehovType.serializer()),
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.BEHOV to expected.behov.toJson(),
             Key.ID to MockUuid.STRING.toJson(),
             Key.UUID to "uuiid".toJson(),
             Key.IDENTITETSNUMMER to expected.identitetsnummer.toJson()
@@ -80,7 +81,7 @@ class ArbeidsforholdLøserTest : FunSpec({
 @OptIn(ExperimentalSerializationApi::class)
 private data class Published(
     @JsonNames("@behov")
-    val behov: List<BehovType>,
+    val behov: BehovType,
     @JsonNames("@løsning")
     val løsning: Map<BehovType, ArbeidsforholdLøsning>,
     val identitetsnummer: String
@@ -90,7 +91,7 @@ private data class Published(
 
         fun mockSuccess(): Published =
             Published(
-                behov = behovType.let(::listOf),
+                behov = behovType,
                 løsning = mapOf(
                     behovType to mockLøsningSuccess()
                 ),
@@ -99,7 +100,7 @@ private data class Published(
 
         fun mockFailure(): Published =
             Published(
-                behov = behovType.let(::listOf),
+                behov = behovType,
                 løsning = mapOf(
                     behovType to mockLøsningFailure()
                 ),

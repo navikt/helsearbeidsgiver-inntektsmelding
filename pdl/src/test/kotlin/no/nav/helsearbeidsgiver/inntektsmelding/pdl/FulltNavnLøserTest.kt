@@ -50,8 +50,8 @@ class FulltNavnLøserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-            Key.ID to UUID.randomUUID().toJson(),
-            Key.IDENTITETSNUMMER to "abc".toJson()
+            Key.IDENTITETSNUMMER to "abc".toJson(),
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
         val loesning = testRapid.firstMessage().lesLoesning()
@@ -66,8 +66,8 @@ class FulltNavnLøserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-            Key.ID to UUID.randomUUID().toJson(),
-            Key.IDENTITETSNUMMER to "abc".toJson()
+            Key.IDENTITETSNUMMER to "abc".toJson(),
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
         val loesning = testRapid.firstMessage().lesLoesning()

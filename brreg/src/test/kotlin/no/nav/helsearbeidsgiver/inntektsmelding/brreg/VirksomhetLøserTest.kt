@@ -51,7 +51,7 @@ class VirksomhetLøserTest {
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
             DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
-            Key.ID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
         val loesning = testRapid.firstMessage().lesLoesning()
@@ -67,7 +67,7 @@ class VirksomhetLøserTest {
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
             DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
-            Key.ID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
         val loesning = testRapid.firstMessage().lesLoesning()
@@ -81,7 +81,7 @@ class VirksomhetLøserTest {
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
             DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
-            Key.ID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
         val loesning = testRapid.firstMessage().lesLoesning()

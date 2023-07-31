@@ -15,7 +15,6 @@ interface IKey {
 @Serializable(KeySerializer::class)
 enum class Key(override val str: String) : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
-    ID("@id"),
     EVENT_NAME("@event_name"),
     BEHOV("@behov"),
     LØSNING("@løsning"),

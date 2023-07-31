@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
 
@@ -53,12 +54,14 @@ class VirksomhetLøser(
             it.demandValues(
                 Key.BEHOV to BEHOV.name
             )
-            it.requireKey(DataFelt.ORGNRUNDERENHET.str)
-            it.requireKey(Key.ID.str)
+            it.requireKeys(
+                DataFelt.ORGNRUNDERENHET,
+                Key.UUID
+            )
         }
 
     override fun onBehov(packet: JsonMessage) {
-        logger.info("Løser behov $BEHOV med id ${packet[Key.ID.str].asText()}")
+        logger.info("Løser behov $BEHOV med id ${packet[Key.UUID.str].asText()}")
         val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
         try {
             val navn = hentVirksomhet(orgnr)

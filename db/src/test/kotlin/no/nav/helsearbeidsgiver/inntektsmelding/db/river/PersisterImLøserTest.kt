@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIAr
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -62,7 +63,7 @@ class PersisterImLøserTest {
                 true
             ),
             emptyList(),
-            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.NY,
+            ÅrsakInnsending.NY,
             true
         )
 
@@ -73,7 +74,6 @@ class PersisterImLøserTest {
                     Key.BEHOV.str to BehovType.PERSISTER_IM.name,
                     DataFelt.VIRKSOMHET.str to "Test Virksomhet",
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test persjon", null),
-                    Key.ID.str to UUID.randomUUID(),
                     Key.UUID.str to "uuid",
                     DataFelt.INNTEKTSMELDING.str to request
                 )

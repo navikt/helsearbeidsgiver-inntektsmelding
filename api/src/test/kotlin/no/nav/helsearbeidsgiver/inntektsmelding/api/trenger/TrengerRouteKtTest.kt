@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.Inntekt
-import no.nav.helsearbeidsgiver.felles.MottattHistoriskInntekt
+import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -127,7 +127,7 @@ private object Mock {
         egenmeldingsPerioder = trengerInntekt().egenmeldingsperioder,
         forespurtData = trengerInntekt().forespurtData,
         bruttoinntekt = inntekt().gjennomsnitt(),
-        tidligereinntekter = inntekt().historisk
+        tidligereinntekter = inntekt().maanedOversikt
     )
 
     fun trengerResponseJson(): String {
@@ -142,7 +142,7 @@ private object Mock {
                 "fravaersperioder": [${mockTrengerInntekt.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
                 "egenmeldingsperioder": [${mockTrengerInntekt.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
                 "bruttoinntekt": ${mockInntekt.gjennomsnitt()},
-                "tidligereinntekter": [${mockInntekt.historisk.joinToString(transform = MottattHistoriskInntekt::hardcodedJson)}],
+                "tidligereinntekter": [${mockInntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
                 "behandlingsperiode": null,
                 "behandlingsdager": [],
                 "forespurtData": ${mockTrengerInntekt.forespurtData.hardcodedJson()}
@@ -171,15 +171,15 @@ private object Mock {
     private fun inntekt(): Inntekt =
         Inntekt(
             listOf(
-                MottattHistoriskInntekt(
+                InntektPerMaaned(
                     maaned = februar(2022),
                     inntekt = 2.0
                 ),
-                MottattHistoriskInntekt(
+                InntektPerMaaned(
                     maaned = januar(2022),
                     inntekt = 1.0
                 ),
-                MottattHistoriskInntekt(
+                InntektPerMaaned(
                     maaned = desember(2022),
                     inntekt = 3.0
                 )
@@ -187,7 +187,7 @@ private object Mock {
         )
 }
 
-private fun MottattHistoriskInntekt.hardcodedJson(): String =
+private fun InntektPerMaaned.hardcodedJson(): String =
     """
     {
         "maaned": "$maaned",

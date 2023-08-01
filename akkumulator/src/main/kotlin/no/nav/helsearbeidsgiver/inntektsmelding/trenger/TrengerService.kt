@@ -33,7 +33,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 const val UNDEFINED_FELT: String = "{}"
 class TrengerService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
 
-    private val logger = sikkerLogger()
+    private val sikkerLogger = sikkerLogger()
 
     override val event: EventName = EventName.TRENGER_REQUESTED
 
@@ -90,11 +90,11 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
-        sikkerLogger().info("Dispatcher for $uuid with trans state $transaction")
+        sikkerLogger.info("Dispatcher for $uuid with trans state $transaction")
         println("Dispatcher for $uuid with trans state $transaction")
         if (transaction == Transaction.NEW) {
-            sikkerLogger().info("Dispatcher HENT_TRENGER_IM for $uuid")
-            sikkerLogger().info("${simpleName()} Dispatcher HENT_TRENGER_IM for $uuid")
+            sikkerLogger.info("Dispatcher HENT_TRENGER_IM for $uuid")
+            sikkerLogger.info("${simpleName()} Dispatcher HENT_TRENGER_IM for $uuid")
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
@@ -104,20 +104,21 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         } else if (transaction == Transaction.IN_PROGRESS) {
             message.interestedIn(DataFelt.FORESPOERSEL_SVAR.str)
             if (isDataCollected(*step1data(uuid)) && !message[DataFelt.FORESPOERSEL_SVAR.str].isMissingNode) {
-                val forespurtData: TrengerInntekt = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
-                logger.info("${simpleName()} Dispatcher VIRKSOMHET for $uuid")
+                val forespoersel = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
+
+                sikkerLogger.info("${simpleName()} Dispatcher VIRKSOMHET for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                     Key.UUID to uuid.toJson(),
-                    DataFelt.ORGNRUNDERENHET to forespurtData.orgnr.toJson()
+                    DataFelt.ORGNRUNDERENHET to forespoersel.orgnr.toJson()
                 )
-                logger.info("${simpleName()} dispatcher FULLT_NAVN for $uuid")
+                sikkerLogger.info("${simpleName()} dispatcher FULLT_NAVN for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
                     Key.UUID to uuid.toJson(),
-                    Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
+                    Key.IDENTITETSNUMMER to forespoersel.fnr.toJson()
                 )
                 /*
                 rapidsConnection.publish(
@@ -127,16 +128,32 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
                 )
                 */
-                logger.info("${simpleName()} Dispatcher INNTEKT for $uuid")
-                rapidsConnection.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.INNTEKT.toJson(),
-                    Key.UUID to uuid.toJson(),
-                    DataFelt.TRENGER_INNTEKT to forespurtData.toJson(TrengerInntekt.serializer())
-                )
+
+                val skjaeringstidspunkt = forespoersel.skjaeringstidspunkt
+                    ?: finnSkjaeringstidspunkt(forespoersel.egenmeldingsperioder + forespoersel.sykmeldingsperioder)
+
+                if (skjaeringstidspunkt != null) {
+                    sikkerLogger.info("${simpleName()} Dispatcher INNTEKT for $uuid")
+                    rapidsConnection.publish(
+                        Key.EVENT_NAME to event.toJson(),
+                        Key.BEHOV to BehovType.INNTEKT.toJson(),
+                        Key.UUID to uuid.toJson(),
+                        DataFelt.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                        DataFelt.FNR to forespoersel.fnr.toJson(),
+                        DataFelt.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson()
+                    )
+                } else {
+                    val forespoerselId = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))
+
+                    "Fant ikke skjaeringstidspunkt å hente inntekt for.".also {
+                        sikkerLogger.error("$it forespoersel=$forespoersel")
+                        val feil = Fail(event, BehovType.INNTEKT, it, null, uuid, forespoerselId)
+                        onError(feil)
+                    }
+                }
             }
         } else {
-            logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
+            sikkerLogger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
         }
     }
 
@@ -156,7 +173,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             egenmeldingsPerioder = foresporselSvar?.egenmeldingsperioder,
             forespurtData = foresporselSvar?.forespurtData,
             bruttoinntekt = inntekt?.gjennomsnitt(),
-            tidligereinntekter = inntekt?.historisk,
+            tidligereinntekter = inntekt?.maanedOversikt,
             feilReport = feilReport
         )
         val json = trengerData.toJsonStr(TrengerData.serializer())
@@ -166,7 +183,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun terminate(message: JsonMessage) {
         val transactionId = message[Key.UUID.str].asText()
         val fail = message.toFeilMessage()
-        sikkerLogger().info("terminate transaction id $transactionId with evenname ${message[Key.EVENT_NAME.str].asText()}")
+        sikkerLogger.info("terminate transaction id $transactionId with evenname ${message[Key.EVENT_NAME.str].asText()}")
         val clientId: String? = redisStore.get(RedisKey.of(transactionId, EventName.valueOf(message[Key.EVENT_NAME.str].asText())))
         // @TODO kan vare smartere her. Kan definere feilmeldingen i Feil message istedenfor å hardkode det i TrengerService. Vi også ikke trenger å sende alle andre ikke kritiske feilmeldinger hvis vi har noe kritisk
         val feilReport: FeilReport = redisStore.get(RedisKey.of(uuid = transactionId, Feilmelding("")))!!.fromJson(FeilReport.serializer())

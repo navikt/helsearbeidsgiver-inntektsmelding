@@ -108,7 +108,8 @@ class InntektService(
                         rapid.publish(
                             Key.EVENT_NAME to event.toJson(),
                             Key.BEHOV to BehovType.INNTEKT.toJson(),
-                            DataFelt.TRENGER_INNTEKT to forespoersel.toJson(TrengerInntekt.serializer()),
+                            DataFelt.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                            DataFelt.FNR to forespoersel.fnr.toJson(),
                             DataFelt.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
                             Key.UUID to transaksjonId.toJson()
                         )

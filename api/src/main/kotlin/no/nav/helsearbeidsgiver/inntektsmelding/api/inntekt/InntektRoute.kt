@@ -79,7 +79,7 @@ private fun InntektData.toResponse(): InntektResponse =
         resultat = inntekt?.let {
             InntektResultat(
                 bruttoinntekt = it.gjennomsnitt(),
-                tidligereInntekter = it.historisk
+                tidligereInntekter = it.maanedOversikt
             )
         },
         feilReport = feil

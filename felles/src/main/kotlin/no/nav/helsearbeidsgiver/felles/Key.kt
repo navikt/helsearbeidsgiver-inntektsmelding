@@ -2,10 +2,8 @@ package no.nav.helsearbeidsgiver.felles
 
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.isMissingOrNull
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 
 interface IKey {
@@ -47,9 +45,6 @@ enum class Key(override val str: String) : IKey {
             }
                 ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$json'.")
     }
-
-    fun fra(message: JsonMessage): JsonElement =
-        message[str].toJsonElement()
 }
 
 @Serializable(DataFeltSerializer::class)
@@ -67,6 +62,7 @@ enum class DataFelt(override val str: String) : IKey {
     FORESPOERSEL_SVAR("forespoersel-svar"),
     TRENGER_INNTEKT("trenger-inntekt"),
     INNTEKT("inntekt"),
+    FNR("fnr"),
     SKJAERINGSTIDSPUNKT("skjaeringstidspunkt");
 
     override fun toString(): String =

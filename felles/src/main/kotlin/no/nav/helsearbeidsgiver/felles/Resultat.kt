@@ -21,7 +21,7 @@ data class TrengerData(
     val egenmeldingsPerioder: List<Periode>? = null,
     val forespurtData: ForespurtData? = null,
     val bruttoinntekt: Double? = null,
-    val tidligereinntekter: List<MottattHistoriskInntekt>? = null,
+    val tidligereinntekter: List<InntektPerMaaned>? = null,
     val feilReport: FeilReport? = null
 )
 

@@ -10,23 +10,23 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.YearMonth
 
 @Serializable
-data class MottattHistoriskInntekt(
+data class InntektPerMaaned(
     val maaned: YearMonth,
     val inntekt: Double
 )
 
 @Serializable
 data class Inntekt(
-    val historisk: List<MottattHistoriskInntekt>
+    val maanedOversikt: List<InntektPerMaaned>
 ) {
     fun total(): Double =
-        historisk.map { it.inntekt }
+        maanedOversikt.map { it.inntekt }
             .sumMoney()
 
     fun gjennomsnitt(): Double =
-        if (historisk.isEmpty()) {
+        if (maanedOversikt.isEmpty()) {
             0.0
         } else {
-            total().divideMoney(historisk.size)
+            total().divideMoney(maanedOversikt.size)
         }
 }

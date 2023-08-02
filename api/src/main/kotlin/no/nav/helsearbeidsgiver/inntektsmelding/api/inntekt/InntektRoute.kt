@@ -38,7 +38,7 @@ fun RouteExtra.inntektRoute() {
             val request = call.receive<InntektRequest>()
 
             authorize(
-                forespørselId = request.forespoerselId.toString(),
+                forespoerselId = request.forespoerselId,
                 tilgangProducer = tilgangProducer,
                 redisPoller = redis,
                 cache = tilgangCache
@@ -52,7 +52,7 @@ fun RouteExtra.inntektRoute() {
             try {
                 val clientId = inntektProducer.publish(request)
 
-                val resultat = redis.hent(clientId.toString())
+                val resultat = redis.hent(clientId)
                 sikkerLogger.info("Fikk resultat:\n${resultat.toPretty()}")
 
                 val inntektResponse = resultat.fromJson(InntektData.serializer()).toResponse()

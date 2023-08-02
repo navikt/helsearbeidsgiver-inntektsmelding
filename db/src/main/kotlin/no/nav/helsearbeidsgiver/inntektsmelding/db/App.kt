@@ -6,7 +6,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.mapHikariConfig
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLøser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdLøser
@@ -51,8 +51,8 @@ fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingReposit
         PersisterSakLøser(this, forespoerselRepo)
         logger.info("Starter PersisterOppgaveLøser...")
         PersisterOppgaveLøser(this, forespoerselRepo)
-        logger.info("Starter HentOrgnrLøser...")
-        HentOrgnrLøser(this, forespoerselRepo)
+        logger.info("Starter HentOrgnrLoeser...")
+        HentOrgnrLoeser(this, forespoerselRepo)
         logger.info("Starter NotifikasjonHentIdLoeser...")
         NotifikasjonHentIdLoeser(this, forespoerselRepo)
 

@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
@@ -27,8 +28,8 @@ class RedisPoller {
         return syncCommands
     }
 
-    suspend fun hent(key: String, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
-        val json = getString(key, maxRetries, waitMillis)
+    suspend fun hent(key: UUID, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
+        val json = getString(key.toString(), maxRetries, waitMillis)
 
         sikkerLogger.info("Hentet verdi for: $key = $json")
 
@@ -42,7 +43,7 @@ class RedisPoller {
         }
     }
 
-    suspend fun getResultat(key: String, maxRetries: Int = 10, waitMillis: Long = 500): Resultat {
+    suspend fun getResultat(key: UUID, maxRetries: Int = 10, waitMillis: Long = 500): Resultat {
         val json = hent(key, maxRetries, waitMillis)
         return try {
             json.fromJson(Resultat.serializer())
@@ -71,7 +72,7 @@ sealed class RedisPollerException(
 
 class RedisPollerJsonParseException(message: String, cause: Throwable) : RedisPollerException(message, cause)
 
-class RedisPollerJsonException(uuid: String, json: String) : RedisPollerException(
+class RedisPollerJsonException(uuid: UUID, json: String) : RedisPollerException(
     "Klarte ikke å parse ($uuid) med json: $json"
 )
 

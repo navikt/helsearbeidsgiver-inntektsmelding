@@ -19,8 +19,8 @@ class InnsendingProducer(
         logger.info("Starter InnsendingProducer...")
     }
 
-    fun publish(forespørselId: String, request: InnsendingRequest): String {
-        val clientId = UUID.randomUUID().toString()
+    fun publish(forespørselId: String, request: InnsendingRequest): UUID {
+        val clientId = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,

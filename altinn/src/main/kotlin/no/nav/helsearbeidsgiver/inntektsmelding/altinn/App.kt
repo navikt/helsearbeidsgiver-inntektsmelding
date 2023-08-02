@@ -4,27 +4,30 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.CacheConfig
+import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.Duration
 import kotlin.time.toKotlinDuration
+
+private val logger = "helsearbeidsgiver-im-altinn".logger()
 
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createAltinn(buildAltinnClient())
+        .createAltinn(createAltinnClient())
         .start()
 }
 
-fun buildAltinnClient(): AltinnClient {
-    return AltinnClient(
+fun RapidsConnection.createAltinn(altinnClient: AltinnClient): RapidsConnection =
+    also {
+        logger.info("Starter TilgangLoeser...")
+        TilgangLoeser(this, altinnClient)
+    }
+
+private fun createAltinnClient(): AltinnClient =
+    AltinnClient(
         url = Env.url,
         serviceCode = Env.serviceCode,
         apiGwApiKey = Env.apiGwApiKey,
         altinnApiKey = Env.altinnApiKey,
         cacheConfig = CacheConfig(Duration.ofMinutes(60).toKotlinDuration(), 100)
     )
-}
-
-fun RapidsConnection.createAltinn(altinnClient: AltinnClient): RapidsConnection {
-    TilgangskontrollLøser(this, altinnClient)
-    return this
-}

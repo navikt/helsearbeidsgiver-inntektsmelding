@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstr
 import org.valiktor.ConstraintViolation
 import org.valiktor.DefaultConstraintViolation
 
+// TODO slett
 class InnsendingMapper(val uuid: String, resultat: Resultat) : ResultatMapper<InnsendingResponse>(resultat) {
 
     override fun mapConstraint(løsning: Løsning): ConstraintViolation {

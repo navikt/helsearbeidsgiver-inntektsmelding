@@ -3,6 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import io.mockk.every
+import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
@@ -15,20 +17,21 @@ import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
+import no.nav.helsearbeidsgiver.felles.TilgangData
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
-import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
+import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
@@ -38,6 +41,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.UUID
 import kotlin.test.assertNotNull
 
 private const val PATH = Routes.PREFIX + Routes.TRENGER
@@ -46,9 +50,7 @@ class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker`() = testApi {
-        coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns Mock.RESULTAT_HAR_TILGANG
+        mockTilgang(Tilgang.HAR_TILGANG)
 
         coEvery {
             anyConstructed<RedisPoller>().getString(any(), any(), any())
@@ -78,18 +80,26 @@ class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere Forbidden hvis feil ikke tilgang`() = testApi {
-        coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns Mock.RESULTAT_IKKE_TILGANG
+        mockTilgang(Tilgang.IKKE_TILGANG)
+
         val response = post(PATH, Mock.GYLDIG_REQUEST, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
     @Test
     fun `skal returnere Forbidden hvis feil i Tilgangsresultet`() = testApi {
-        coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns Mock.RESULTAT_TILGANG_FEIL
+        val mockTilgangClientId = UUID.randomUUID()
+
+        every { anyConstructed<TilgangProducer>().publish(any(), any()) } returns mockTilgangClientId
+
+        coEvery { anyConstructed<RedisPoller>().hent(mockTilgangClientId) } returns TilgangData(
+            feil = FeilReport(
+                feil = mutableListOf(
+                    Feilmelding("Noe er riv ruskende galt!")
+                )
+            )
+        ).toJson(TilgangData.serializer())
+
         val response = post(PATH, Mock.GYLDIG_REQUEST, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
@@ -98,24 +108,20 @@ class TrengerRouteKtTest : ApiTest() {
     fun `skal returnere Internal server error hvis Redis timer ut`() = testApi {
         coEvery {
             anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } throws RedisPollerTimeoutException(MockUuid.STRING)
+        } throws RedisPollerTimeoutException(UUID.randomUUID().toString())
         val response = post(PATH, Mock.GYLDIG_REQUEST, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.InternalServerError, response.status)
     }
 }
 
 private object Mock {
-    const val UUID = "abc-123"
-    val GYLDIG_REQUEST = TrengerRequest(UUID)
+    val GYLDIG_REQUEST = TrengerRequest(UUID.randomUUID().toString())
     val UGYLDIG_REQUEST = TrengerRequest(" ")
 
     val RESULTAT_OK = Resultat(
         FULLT_NAVN = NavnLøsning(PersonDato("Ola Normann", 1.mai)),
         VIRKSOMHET = VirksomhetLøsning("Norge AS")
     )
-    val RESULTAT_IKKE_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.IKKE_TILGANG))
-    val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
-    val RESULTAT_TILGANG_FEIL = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(error = Feilmelding("feil", 500)))
 
     val TRENGER_DATA_OK = TrengerData(
         fnr = trengerInntekt().fnr,

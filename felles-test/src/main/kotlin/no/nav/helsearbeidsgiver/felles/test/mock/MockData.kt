@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
-import io.ktor.client.statement.HttpResponse
-import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
@@ -13,20 +11,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
-import java.util.UUID
-
-object MockUuid {
-    const val STRING = "01234567-abcd-0123-abcd-012345678901"
-    val uuid: UUID = STRING.let(UUID::fromString)
-
-    fun with(callFn: suspend () -> HttpResponse): HttpResponse =
-        mockStatic(UUID::class) {
-            every { UUID.randomUUID() } returns uuid
-
-            callFn()
-        }
-}
 
 fun mockForespurtData(): ForespurtData =
     ForespurtData(

@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
+import java.util.UUID
 
 class ForespoerselRepository(private val db: Database) {
 
@@ -45,10 +46,10 @@ class ForespoerselRepository(private val db: Database) {
                 .firstOrNull(ForespoerselEntitet.sakId)
         }
 
-    fun hentOrgNr(forespoerselId: String): String? =
+    fun hentOrgnr(forespoerselId: UUID): String? =
         transaction(db) {
             ForespoerselEntitet.let {
-                it.select { (it.forespoerselId eq forespoerselId) }
+                it.select { (it.forespoerselId eq forespoerselId.toString()) }
                     .firstOrNull(it.orgnr)
             }
         }

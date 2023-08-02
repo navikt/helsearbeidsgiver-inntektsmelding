@@ -18,8 +18,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
+import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
@@ -30,7 +29,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.juli
 class MessagesTest : FunSpec({
 
     test("finner korrekt melding for event") {
-        val expectedEventName = EventName.HENT_PREUTFYLT
+        val expectedEventName = EventName.TRENGER_REQUESTED
 
         val funnetMelding = Mock.meldingerMedBehovMedLoesning.filter(expectedEventName).first()
 
@@ -47,8 +46,8 @@ class MessagesTest : FunSpec({
 
     context("finner korrekt melding for behov uten løsning") {
         withData(
-            BehovType.TILGANGSKONTROLL,
-            BehovType.FULLT_NAVN
+            BehovType.FULLT_NAVN,
+            BehovType.VIRKSOMHET
         ) { expectedBehovType ->
             val funnetMelding = Mock.meldingerMedBehovMedLoesning.filter(expectedBehovType, loesningPaakrevd = false).first()
 
@@ -69,8 +68,8 @@ class MessagesTest : FunSpec({
     context("finner korrekt melding for behov med løsning") {
         withData(
             nameFn = { (behovType, _, _) -> behovType.name },
-            row(BehovType.TILGANGSKONTROLL, Tilgang.HAR_TILGANG, TilgangskontrollLøsning.serializer()),
-            row(BehovType.FULLT_NAVN, Mock.personDato, NavnLøsning.serializer())
+            row(BehovType.FULLT_NAVN, Mock.personDato, NavnLøsning.serializer()),
+            row(BehovType.VIRKSOMHET, Mock.ORGNR, VirksomhetLøsning.serializer())
         ) { (expectedBehovType, expectedLoesning, loesningSerializer) ->
             val funnetMelding = Mock.meldingerMedBehovMedLoesning.filter(expectedBehovType, loesningPaakrevd = true).first()
 
@@ -88,7 +87,7 @@ class MessagesTest : FunSpec({
     }
 
     test("finner ikke manglende melding for behov med løsning") {
-        Mock.meldingerMedBehovUtenLoesning.filter(BehovType.TILGANGSKONTROLL, loesningPaakrevd = true)
+        Mock.meldingerMedBehovUtenLoesning.filter(BehovType.VIRKSOMHET, loesningPaakrevd = true)
             .all()
             .shouldBeEmpty()
     }
@@ -123,11 +122,11 @@ private object Mock {
 
     private fun basisfelt(): Map<String, JsonElement> =
         mapOf(
-            Key.EVENT_NAME.str to EventName.HENT_PREUTFYLT.toJson(EventName.serializer()),
+            Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.BEHOV.str to listOf(
-                BehovType.TILGANGSKONTROLL,
                 BehovType.FULLT_NAVN,
-                BehovType.VIRKSOMHET
+                BehovType.VIRKSOMHET,
+                BehovType.ARBEIDSFORHOLD
             ).toJson(BehovType.serializer()),
             Key.DATA.str to "".toJson()
         )
@@ -136,8 +135,8 @@ private object Mock {
         Pair(
             Key.LØSNING.str,
             mapOf(
-                BehovType.TILGANGSKONTROLL to TilgangskontrollLøsning(Tilgang.HAR_TILGANG).toJson(TilgangskontrollLøsning.serializer()),
-                BehovType.FULLT_NAVN to NavnLøsning(personDato).toJson(NavnLøsning.serializer())
+                BehovType.FULLT_NAVN to NavnLøsning(personDato).toJson(NavnLøsning.serializer()),
+                BehovType.VIRKSOMHET to VirksomhetLøsning(ORGNR).toJson(VirksomhetLøsning.serializer())
             ).toJson()
         )
 

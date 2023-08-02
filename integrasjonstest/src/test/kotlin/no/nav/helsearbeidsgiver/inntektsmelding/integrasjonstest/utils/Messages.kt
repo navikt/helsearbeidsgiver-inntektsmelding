@@ -71,6 +71,11 @@ value class Messages(
             dataFunnet && datafeltFunnet
         }
 
+    fun filterFeil(): Messages =
+        filter { msg ->
+            msg.fromJsonMapOnlyKeys().contains(Key.FAIL)
+        }
+
     private fun filter(predicate: (JsonElement) -> Boolean): Messages =
         value.filter(predicate)
             .toMutableList()

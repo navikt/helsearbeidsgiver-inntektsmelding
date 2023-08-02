@@ -17,8 +17,7 @@ abstract class ResultatMapper<T>(val resultat: Resultat) {
     private fun findAll(): List<Løsning> {
         return listOfNotNull(
             resultat.FULLT_NAVN,
-            resultat.VIRKSOMHET,
-            resultat.TILGANGSKONTROLL
+            resultat.VIRKSOMHET
         )
     }
 

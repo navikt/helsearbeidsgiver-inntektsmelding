@@ -17,9 +17,10 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.util.UUID
 
 class RedisPollerTest {
-    private val id = "123"
+    private val key = UUID.randomUUID()
     private val løsningSuccess = "noe data".toLøsningSuccess().toJson(String.serializer().løsning())
     private val gyldigRedisInnhold = løsningSuccess.toString()
 
@@ -28,7 +29,7 @@ class RedisPollerTest {
         val redisPoller = mockRedisPoller(gyldigRedisInnhold, 4)
 
         val json = runBlocking {
-            redisPoller.hent(id, 5, 0)
+            redisPoller.hent(key, 5, 0)
         }
 
         json shouldBe løsningSuccess
@@ -40,7 +41,7 @@ class RedisPollerTest {
 
         assertThrows<RedisPollerTimeoutException> {
             runBlocking {
-                redisPoller.hent(id, 2, 0)
+                redisPoller.hent(key, 2, 0)
             }
         }
     }
@@ -51,7 +52,7 @@ class RedisPollerTest {
 
         assertThrows<RedisPollerTimeoutException> {
             runBlocking {
-                redisPoller.hent(id, 1, 0)
+                redisPoller.hent(key, 1, 0)
             }
         }
     }
@@ -75,7 +76,7 @@ class RedisPollerTest {
         val redisPoller = mockRedisPoller(expectedJson, 0)
 
         val resultat = runBlocking {
-            redisPoller.hent(id, 5, 0)
+            redisPoller.hent(key, 5, 0)
         }
             .fromJson(TrengerInntekt.serializer())
 

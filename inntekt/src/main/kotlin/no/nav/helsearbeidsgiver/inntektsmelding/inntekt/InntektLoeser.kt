@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Fnr
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
@@ -69,61 +68,45 @@ class InntektLoeser(
         logger.info("Mottok melding med behov '${BehovType.INNTEKT}'.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
-        val melding = json.toMap()
-
-        val event = Key.EVENT_NAME.les(EventName.serializer(), melding)
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(event),
-            Log.behov(BehovType.INNTEKT),
-            Log.transaksjonId(transaksjonId)
+            Log.behov(BehovType.INNTEKT)
         ) {
-            runCatching {
-                melding.hentInntekt(event, transaksjonId)
+            val melding = runCatching {
+                Melding.fra(json)
             }
-                .onFailure { feil ->
-                    val feilmelding = "Ukjent feil."
-
-                    logger.error("$feilmelding Se sikker logg for mer info.")
-                    sikkerLogger.error(feilmelding, feil)
-
-                    publishFeil(event, transaksjonId, feilmelding)
+                .onFailure {
+                    publishFeil("Klarte ikke lese påkrevde felt fra innkommende melding.", it, null)
                 }
+                .getOrNull()
+
+            melding?.withLogFields {
+                runCatching {
+                    hentInntekt(it)
+                }
+                    .onFailure { feil ->
+                        publishFeil("Ukjent feil.", feil, it)
+                    }
+            }
         }
     }
 
-    private fun Map<IKey, JsonElement>.hentInntekt(event: EventName, transaksjonId: UUID) {
-        val orgnr = DataFelt.ORGNRUNDERENHET.les(String.serializer(), this).let(::Orgnr)
-        val fnr = DataFelt.FNR.les(String.serializer(), this).let(::Fnr)
-        val skjaeringstidspunkt = DataFelt.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, this)
-
-        val inntekt = hentInntektPerOrgnrOgMaaned(fnr, skjaeringstidspunkt, transaksjonId)
-            ?.let {
-                it[orgnr.verdi]
+    private fun hentInntekt(melding: Melding) {
+        hentInntektPerOrgnrOgMaaned(melding.fnr, melding.skjaeringstidspunkt, melding.transaksjonId)
+            .onSuccess {
+                val inntekt = it[melding.orgnr.verdi]
                     .orEmpty()
                     .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }
                     .let(::Inntekt)
-            }
 
-        if (inntekt != null) {
-            rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.DATA to "".toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                DataFelt.INNTEKT to inntekt.toJson(Inntekt.serializer())
-            )
-                .also {
-                    logger.info("Publiserte data for '${BehovType.INNTEKT}'.")
-                    sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
-                }
-        } else {
-            publishFeil(event, transaksjonId, "Klarte ikke hente inntekt.")
-        }
+                publishSuksess(inntekt, melding)
+            }
+            .onFailure {
+                publishFeil("Klarte ikke hente inntekt.", it, melding)
+            }
     }
 
-    private fun hentInntektPerOrgnrOgMaaned(fnr: Fnr, skjaeringstidspunkt: LocalDate, id: UUID): Map<String, Map<YearMonth, Double>>? {
+    private fun hentInntektPerOrgnrOgMaaned(fnr: Fnr, skjaeringstidspunkt: LocalDate, id: UUID): Result<Map<String, Map<YearMonth, Double>>> {
         val fom = skjaeringstidspunkt.minusMaaneder(3)
         val tom = skjaeringstidspunkt.minusMaaneder(1)
 
@@ -142,18 +125,33 @@ class InntektLoeser(
                 )
             }
         }
-            .onSuccess { sikkerLogger.info("Hentet inntekt for $fnr:\n$it") }
-            .onFailure { sikkerLogger.error("Feil ved henting av inntekt for $fnr.", it) }
-            .getOrNull()
     }
 
-    private fun publishFeil(event: EventName, transaksjonId: UUID, feilmelding: String) {
+    private fun publishSuksess(inntekt: Inntekt, melding: Melding) {
+        sikkerLogger.info("Hentet inntekt for ${melding.fnr}:\n$inntekt")
+
+        rapid.publish(
+            Key.EVENT_NAME to melding.event.toJson(),
+            Key.DATA to "".toJson(),
+            Key.UUID to melding.transaksjonId.toJson(),
+            DataFelt.INNTEKT to inntekt.toJson(Inntekt.serializer())
+        )
+            .also {
+                logger.info("Publiserte data for '${BehovType.INNTEKT}'.")
+                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+            }
+    }
+
+    private fun publishFeil(feilmelding: String, feil: Throwable, melding: Melding?) {
+        logger.error("$feilmelding Se sikker logg for mer info.")
+        sikkerLogger.error(feilmelding, feil)
+
         Fail(
-            eventName = event,
+            eventName = melding?.event,
             behov = BehovType.INNTEKT,
             feilmelding = feilmelding,
             forespørselId = null,
-            uuid = transaksjonId.toString()
+            uuid = melding?.transaksjonId?.toString()
         )
             .toJsonMessage()
             .toJson()
@@ -174,3 +172,33 @@ class InntektLoeser(
 
 private fun LocalDate.minusMaaneder(maanederTilbake: Long): YearMonth =
     toYearMonth().minusMonths(maanederTilbake)
+
+private data class Melding(
+    val event: EventName,
+    val transaksjonId: UUID,
+    val orgnr: Orgnr,
+    val fnr: Fnr,
+    val skjaeringstidspunkt: LocalDate
+) {
+    companion object {
+        fun fra(json: JsonElement): Melding =
+            json.toMap().let {
+                Melding(
+                    event = Key.EVENT_NAME.les(EventName.serializer(), it),
+                    transaksjonId = Key.UUID.les(UuidSerializer, it),
+                    orgnr = DataFelt.ORGNRUNDERENHET.les(String.serializer(), it).let(::Orgnr),
+                    fnr = DataFelt.FNR.les(String.serializer(), it).let(::Fnr),
+                    skjaeringstidspunkt = DataFelt.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, it)
+                )
+            }
+    }
+
+    fun withLogFields(block: (Melding) -> Unit) {
+        MdcUtils.withLogFields(
+            Log.event(event),
+            Log.transaksjonId(transaksjonId)
+        ) {
+            block(this)
+        }
+    }
+}

@@ -9,6 +9,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
@@ -36,6 +37,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import java.time.YearMonth
 import java.util.UUID
 
 class InntektLoeserTest : FunSpec({
@@ -147,7 +149,7 @@ class InntektLoeserTest : FunSpec({
         }
     }
 
-    test("Feil fra klienten gir feilmelding for klient") {
+    test("Feil fra klienten gir feilmelding på rapid") {
         coEvery {
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         } throws RuntimeException()
@@ -165,12 +167,34 @@ class InntektLoeserTest : FunSpec({
         publisert.lesFeilmelding() shouldBe "Klarte ikke hente inntekt."
     }
 
-    test("Ukjent feil gir generell feilmelding") {
+    test("Feil i innkommende melding gir feilmelding på rapid") {
         mockInnkommendeMelding()
             .plus(DataFelt.FNR to "ikke et fnr".toJson())
             .let(testRapid::sendJson)
 
         coVerify(exactly = 0) {
+            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+        }
+
+        val publisert = testRapid.firstMessage().toMap()
+
+        publisert shouldNotContainKey DataFelt.INNTEKT
+
+        publisert.lesFeilmelding() shouldBe "Klarte ikke lese påkrevde felt fra innkommende melding."
+    }
+
+    test("Ukjent feil gir feilmelding på rapid") {
+        val mockInntektPerOgnrOgMaaned = mockk<Map<String, Map<YearMonth, Double>>>()
+
+        coEvery {
+            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+        } returns mockInntektPerOgnrOgMaaned
+
+        every { mockInntektPerOgnrOgMaaned[any()] } throws RuntimeException()
+
+        testRapid.sendJson(*mockInnkommendeMelding())
+
+        coVerifySequence {
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         }
 

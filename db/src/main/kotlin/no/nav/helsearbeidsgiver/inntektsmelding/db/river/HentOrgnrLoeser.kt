@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -45,8 +44,8 @@ class HentOrgnrLoeser(
                     Key.BEHOV to BehovType.HENT_IM_ORGNR.name
                 )
                 it.requireKeys(
-                    DataFelt.FORESPOERSEL_ID,
-                    Key.UUID
+                    Key.UUID,
+                    DataFelt.FORESPOERSEL_ID
                 )
             }
         }.register(this)
@@ -58,79 +57,73 @@ class HentOrgnrLoeser(
         logger.info("Mottok melding med behov '${BehovType.HENT_IM_ORGNR}'.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
-        val melding = json.toMap()
-
-        val event = Key.EVENT_NAME.les(EventName.serializer(), melding)
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(event),
-            Log.behov(BehovType.HENT_IM_ORGNR),
-            Log.transaksjonId(transaksjonId)
+            Log.behov(BehovType.HENT_IM_ORGNR)
         ) {
-            runCatching {
-                melding.hentOrgnr(event, transaksjonId, context)
+            val melding = runCatching {
+                Melding.fra(json)
             }
-                .onFailure { feil ->
-                    val feilmelding = "Ukjent feil."
-
-                    logger.error("$feilmelding Se sikker logg for mer info.")
-                    sikkerLogger.error(feilmelding, feil)
-
-                    context.publishFeil(event, transaksjonId, feilmelding)
+                .onFailure {
+                    context.publishFeil("Klarte ikke lese påkrevde felt fra innkommende melding.", it, null)
                 }
-        }
-    }
+                .getOrNull()
 
-    private fun Map<IKey, JsonElement>.hentOrgnr(event: EventName, transaksjonId: UUID, context: MessageContext) {
-        val forespoerselId = DataFelt.FORESPOERSEL_ID.les(UuidSerializer, this)
-
-        MdcUtils.withLogFields(
-            Log.forespoerselId(forespoerselId)
-        ) {
-            runCatching { forespoerselRepo.hentOrgnr(forespoerselId) }
-                .onSuccess { orgnr ->
-                    if (orgnr != null) {
-                        sikkerLogger.info("Fant orgnr '$orgnr'.")
-
-                        context.publish(
-                            Key.EVENT_NAME to event.toJson(),
-                            Key.DATA to "".toJson(),
-                            Key.UUID to transaksjonId.toJson(),
-                            DataFelt.ORGNRUNDERENHET to orgnr.toJson()
-                        )
-                            .also {
-                                logger.info("Publiserte data for '${BehovType.HENT_IM_ORGNR}'.")
-                                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
-                            }
-                    } else {
-                        val feilmelding = "Fant ingen orgnr for forespørsel-ID '$forespoerselId'."
-
-                        logger.error(feilmelding)
-                        sikkerLogger.error(feilmelding)
-
-                        context.publishFeil(event, transaksjonId, feilmelding)
+            melding?.withLogFields {
+                runCatching {
+                    hentOrgnr(it, context)
+                }
+                    .onFailure { feil ->
+                        context.publishFeil("Ukjent feil.", feil, it)
                     }
-                }
-                .onFailure { feil ->
-                    val feilmelding = "Klarte ikke hente lagret orgnr for forespørsel-ID '$forespoerselId'."
-
-                    logger.error(feilmelding)
-                    sikkerLogger.error(feilmelding, feil)
-
-                    context.publishFeil(event, transaksjonId, feilmelding)
-                }
+            }
         }
     }
 
-    private fun MessageContext.publishFeil(event: EventName, transaksjonId: UUID, feilmelding: String) {
+    private fun hentOrgnr(melding: Melding, context: MessageContext) {
+        runCatching {
+            forespoerselRepo.hentOrgnr(melding.forespoerselId)
+        }
+            .onSuccess { orgnr ->
+                if (orgnr != null) {
+                    context.publishSuksess(orgnr, melding)
+                } else {
+                    context.publishFeil("Fant ingen orgnr for forespørsel-ID '${melding.forespoerselId}'.", null, melding)
+                }
+            }
+            .onFailure { feil ->
+                context.publishFeil("Klarte ikke hente lagret orgnr for forespørsel-ID '${melding.forespoerselId}'.", feil, melding)
+            }
+    }
+
+    private fun MessageContext.publishSuksess(orgnr: String, melding: Melding) {
+        "Fant orgnr.".also {
+            logger.info(it)
+            sikkerLogger.info("$it orgnr='$orgnr'")
+        }
+
+        publish(
+            Key.EVENT_NAME to melding.event.toJson(),
+            Key.DATA to "".toJson(),
+            Key.UUID to melding.transaksjonId.toJson(),
+            DataFelt.ORGNRUNDERENHET to orgnr.toJson()
+        )
+            .also {
+                logger.info("Publiserte data for '${BehovType.HENT_IM_ORGNR}'.")
+                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+            }
+    }
+
+    private fun MessageContext.publishFeil(feilmelding: String, feil: Throwable?, melding: Melding?) {
+        logger.error("$feilmelding Se sikker logg for mer info.")
+        sikkerLogger.error(feilmelding, feil)
+
         Fail(
-            eventName = event,
+            eventName = melding?.event,
             behov = BehovType.HENT_IM_ORGNR,
             feilmelding = feilmelding,
             forespørselId = null,
-            uuid = transaksjonId.toString()
+            uuid = melding?.transaksjonId?.toString()
         )
             .toJsonMessage()
             .toJson()
@@ -145,6 +138,33 @@ class HentOrgnrLoeser(
         "Innkommende melding har feil.".let {
             logger.error("$it Se sikker logg for mer info.")
             sikkerLogger.error("$it Detaljer:\n${problems.toExtendedReport()}")
+        }
+    }
+}
+
+private data class Melding(
+    val event: EventName,
+    val transaksjonId: UUID,
+    val forespoerselId: UUID
+) {
+    companion object {
+        fun fra(json: JsonElement): Melding =
+            json.toMap().let {
+                Melding(
+                    event = Key.EVENT_NAME.les(EventName.serializer(), it),
+                    transaksjonId = Key.UUID.les(UuidSerializer, it),
+                    forespoerselId = DataFelt.FORESPOERSEL_ID.les(UuidSerializer, it)
+                )
+            }
+    }
+
+    fun withLogFields(block: (Melding) -> Unit) {
+        MdcUtils.withLogFields(
+            Log.event(event),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId)
+        ) {
+            block(this)
         }
     }
 }

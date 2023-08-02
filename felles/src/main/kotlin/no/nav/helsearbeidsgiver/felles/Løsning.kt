@@ -45,15 +45,3 @@ data class ArbeidsforholdLøsning(
     override val value: List<Arbeidsforhold> = emptyList(),
     override val error: Feilmelding? = null
 ) : Løsning()
-
-@Serializable
-data class HentImOrgnrLøsning(
-    override val value: String? = null,
-    override val error: Feilmelding? = null
-) : Løsning()
-
-@Serializable
-data class TilgangskontrollLøsning(
-    override val value: Tilgang? = null,
-    override val error: Feilmelding? = null
-) : Løsning()

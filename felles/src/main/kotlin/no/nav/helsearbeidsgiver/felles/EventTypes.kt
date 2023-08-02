@@ -28,8 +28,7 @@ enum class BehovType {
 
 @Serializable
 enum class EventName {
-    // @TODO trenger bedre navn.
-    HENT_PREUTFYLT,
+    TILGANG_REQUESTED,
     KVITTERING_REQUESTED,
     TRENGER_REQUESTED,
     INNTEKT_REQUESTED,

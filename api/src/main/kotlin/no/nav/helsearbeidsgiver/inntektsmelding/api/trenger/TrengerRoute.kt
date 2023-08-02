@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.valiktor.ConstraintViolationException
+import java.util.UUID
 
 fun RouteExtra.trengerRoute() {
     val trengerProducer = TrengerProducer(connection)
@@ -38,7 +39,7 @@ fun RouteExtra.trengerRoute() {
                 request.validate()
 
                 authorize(
-                    forespørselId = request.uuid,
+                    forespoerselId = request.uuid.let(UUID::fromString),
                     tilgangProducer = tilgangProducer,
                     redisPoller = redis,
                     cache = tilgangCache

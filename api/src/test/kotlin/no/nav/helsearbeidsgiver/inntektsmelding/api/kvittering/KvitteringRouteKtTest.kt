@@ -2,9 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
@@ -18,7 +16,6 @@ class KvitteringRouteKtTest : ApiTest() {
 
     private val PATH = Routes.PREFIX + Routes.KVITTERING
 
-    private val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
     private val RESULTAT_OK =
         """{"orgnrUnderenhet":"123456789","identitetsnummer":"12345678901",
         "fulltNavn":"Ukjent","virksomhetNavn":"Ukjent","behandlingsdager":[],"egenmeldingsperioder":[],
@@ -44,9 +41,8 @@ class KvitteringRouteKtTest : ApiTest() {
 
     @Test
     fun `skal godta gyldig uuid`() = testApi {
-        coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_HAR_TILGANG
+        mockTilgang(Tilgang.HAR_TILGANG)
+
         coEvery {
             anyConstructed<RedisPoller>().getString(any(), any(), any())
         } returns RESULTAT_OK

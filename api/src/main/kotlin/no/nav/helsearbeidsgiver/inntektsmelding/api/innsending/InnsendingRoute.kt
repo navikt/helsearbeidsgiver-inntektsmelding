@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
+import java.util.UUID
 
 fun RouteExtra.innsendingRoute() {
     val producer = InnsendingProducer(connection)
@@ -31,7 +32,6 @@ fun RouteExtra.innsendingRoute() {
     route.route(Routes.INNSENDING + "/{forespørselId}") {
         post {
             val forespoerselId = call.parameters["forespørselId"] ?: ""
-            var transaksjonId = ""
             try {
                 val request = Jackson.receiveInnsendingRequest(call)
 
@@ -41,7 +41,7 @@ fun RouteExtra.innsendingRoute() {
                 }
 
                 authorize(
-                    forespørselId = forespoerselId,
+                    forespoerselId = forespoerselId.let(UUID::fromString),
                     tilgangProducer = tilgangProducer,
                     redisPoller = redis,
                     cache = tilgangCache
@@ -49,10 +49,10 @@ fun RouteExtra.innsendingRoute() {
 
                 request.validate()
 
-                transaksjonId = producer.publish(forespoerselId, request)
-                logger.info("Publiserte til rapid med forespørselId: $forespoerselId og transaksjonId=$transaksjonId")
+                val clientId = producer.publish(forespoerselId, request)
+                logger.info("Publiserte til rapid med forespørselId: $forespoerselId og clientId=$clientId")
 
-                val resultat = redis.getResultat(transaksjonId, 10, 500) // .getResultat(transaksjonId, 10, 500)
+                val resultat = redis.getResultat(clientId)
                 sikkerLogger.info("Fikk resultat: $resultat")
 
                 //    val mapper = InnsendingMapper(forespoerselId, resultat)
@@ -67,8 +67,8 @@ fun RouteExtra.innsendingRoute() {
                     sikkerLogger.error(it, e)
                     respondBadRequest(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
                 }
-            } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout for forespørselId: $forespoerselId og transaksjonsID $transaksjonId")
+            } catch (e: RedisPollerTimeoutException) {
+                logger.info("Fikk timeout for forespørselId: $forespoerselId", e)
                 respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
             }
         }

@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import org.valiktor.ConstraintViolationException
+import java.util.UUID
 import kotlin.system.measureTimeMillis
 
 private const val EMPTY_PAYLOAD = "{}"
@@ -54,7 +55,7 @@ fun RouteExtra.kvitteringRoute() {
                 try {
                     measureTimeMillis {
                         authorize(
-                            forespørselId = forespoerselId,
+                            forespoerselId = forespoerselId.let(UUID::fromString),
                             tilgangProducer = tilgangProducer,
                             redisPoller = redis,
                             cache = tilgangCache

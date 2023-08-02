@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import java.util.UUID
@@ -35,6 +36,7 @@ class TrengerForespoerselLøser(
 ) : Løser(rapid) {
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         sikkerLogger.info("Starting TrengerForespoerselLøser...")

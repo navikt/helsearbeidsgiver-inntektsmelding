@@ -96,10 +96,10 @@ class TilgangskontrollIT : EndToEndTest() {
     }
 
     private object Mock {
-        const val INNLOGGET_FNR = "fnr-456"
+        const val INNLOGGET_FNR = "10436700000"
 
-        const val ORGNR_MED_TILGANG = "org-456"
-        const val ORGNR_UTEN_TILGANG = "org-789"
+        const val ORGNR_MED_TILGANG = "654654654"
+        const val ORGNR_UTEN_TILGANG = "789789789"
 
         val forespoerselIdMedTilgang: UUID = UUID.randomUUID()
         val forespoerselIdUtenTilgang: UUID = UUID.randomUUID()

@@ -13,8 +13,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
-import no.nav.helsearbeidsgiver.felles.IKey
+import no.nav.helsearbeidsgiver.felles.Fnr
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.Orgnr
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -48,9 +49,9 @@ class TilgangLoeser(
                     Key.BEHOV to BehovType.TILGANGSKONTROLL.name
                 )
                 it.requireKeys(
+                    Key.UUID,
                     DataFelt.ORGNRUNDERENHET,
-                    DataFelt.FNR,
-                    Key.UUID
+                    DataFelt.FNR
                 )
             }
         }.register(this)
@@ -62,76 +63,72 @@ class TilgangLoeser(
         logger.info("Mottok melding med behov '${BehovType.TILGANGSKONTROLL}'.")
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
-        val melding = json.toMap()
-
-        val event = Key.EVENT_NAME.les(EventName.serializer(), melding)
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(event),
-            Log.behov(BehovType.TILGANGSKONTROLL),
-            Log.transaksjonId(transaksjonId)
+            Log.behov(BehovType.TILGANGSKONTROLL)
         ) {
-            runCatching {
-                melding.hentTilgang(event, transaksjonId, context)
+            val melding = runCatching {
+                Melding.fra(json)
             }
-                .onFailure { feil ->
-                    val feilmelding = "Ukjent feil."
-
-                    logger.error("$feilmelding Se sikker logg for mer info.")
-                    sikkerLogger.error(feilmelding, feil)
-
-                    context.publishFeil(event, transaksjonId, feilmelding)
+                .onFailure {
+                    context.publishFeil("Klarte ikke lese påkrevde felt fra innkommende melding.", it, null)
                 }
+                .getOrNull()
+
+            melding?.withLogFields {
+                runCatching {
+                    hentTilgang(it, context)
+                }
+                    .onFailure { feil ->
+                        context.publishFeil("Ukjent feil.", feil, it)
+                    }
+            }
         }
     }
 
-    private fun Map<IKey, JsonElement>.hentTilgang(event: EventName, transaksjonId: UUID, context: MessageContext) {
-        val orgnr = DataFelt.ORGNRUNDERENHET.les(String.serializer(), this)
-        val fnr = DataFelt.FNR.les(String.serializer(), this)
-
+    private fun hentTilgang(melding: Melding, context: MessageContext) {
         runCatching {
             runBlocking {
-                altinnClient.harRettighetForOrganisasjon(fnr, orgnr)
+                altinnClient.harRettighetForOrganisasjon(melding.fnr.verdi, melding.orgnr.verdi)
             }
         }
             .onSuccess { harTilgang ->
                 val tilgang = if (harTilgang) Tilgang.HAR_TILGANG else Tilgang.IKKE_TILGANG
-
-                "Tilgang hentet: '$tilgang'.".also {
-                    logger.info(it)
-                    sikkerLogger.info("$it orgnr='$orgnr' fnr='$fnr'")
-                }
-
-                context.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    DataFelt.TILGANG to tilgang.toJson(Tilgang.serializer())
-                )
-                    .also {
-                        logger.info("Publiserte data for '${BehovType.TILGANGSKONTROLL}'.")
-                        sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
-                    }
+                context.publishSuksess(tilgang, melding)
             }
             .onFailure {
-                val feilmelding = "Feil ved henting av rettigheter fra Altinn."
-
-                logger.error("$feilmelding Se sikker logg for mer info.")
-                sikkerLogger.error(feilmelding, it)
-
-                context.publishFeil(event, transaksjonId, feilmelding)
+                context.publishFeil("Feil ved henting av rettigheter fra Altinn.", it, melding)
             }
     }
 
-    private fun MessageContext.publishFeil(event: EventName, transaksjonId: UUID, feilmelding: String) {
+    private fun MessageContext.publishSuksess(tilgang: Tilgang, melding: Melding) {
+        "Tilgang hentet: '$tilgang'.".also {
+            logger.info(it)
+            sikkerLogger.info("$it orgnr='${melding.orgnr}' fnr='${melding.fnr}'")
+        }
+
+        publish(
+            Key.EVENT_NAME to melding.event.toJson(),
+            Key.DATA to "".toJson(),
+            Key.UUID to melding.transaksjonId.toJson(),
+            DataFelt.TILGANG to tilgang.toJson(Tilgang.serializer())
+        )
+            .also {
+                logger.info("Publiserte data for '${BehovType.TILGANGSKONTROLL}'.")
+                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+            }
+    }
+
+    private fun MessageContext.publishFeil(feilmelding: String, feil: Throwable, melding: Melding?) {
+        logger.error("$feilmelding Se sikker logg for mer info.")
+        sikkerLogger.error(feilmelding, feil)
+
         Fail(
-            eventName = event,
+            eventName = melding?.event,
             behov = BehovType.TILGANGSKONTROLL,
             feilmelding = feilmelding,
             forespørselId = null,
-            uuid = transaksjonId.toString()
+            uuid = melding?.transaksjonId?.toString()
         )
             .toJsonMessage()
             .toJson()
@@ -146,6 +143,34 @@ class TilgangLoeser(
         "Innkommende melding har feil.".let {
             logger.error("$it Se sikker logg for mer info.")
             sikkerLogger.error("$it Detaljer:\n${problems.toExtendedReport()}")
+        }
+    }
+}
+
+private data class Melding(
+    val event: EventName,
+    val transaksjonId: UUID,
+    val orgnr: Orgnr,
+    val fnr: Fnr
+) {
+    companion object {
+        fun fra(json: JsonElement): Melding =
+            json.toMap().let {
+                Melding(
+                    event = Key.EVENT_NAME.les(EventName.serializer(), it),
+                    transaksjonId = Key.UUID.les(UuidSerializer, it),
+                    orgnr = DataFelt.ORGNRUNDERENHET.les(String.serializer(), it).let(::Orgnr),
+                    fnr = DataFelt.FNR.les(String.serializer(), it).let(::Fnr)
+                )
+            }
+    }
+
+    fun withLogFields(block: (Melding) -> Unit) {
+        MdcUtils.withLogFields(
+            Log.event(event),
+            Log.transaksjonId(transaksjonId)
+        ) {
+            block(this)
         }
     }
 }

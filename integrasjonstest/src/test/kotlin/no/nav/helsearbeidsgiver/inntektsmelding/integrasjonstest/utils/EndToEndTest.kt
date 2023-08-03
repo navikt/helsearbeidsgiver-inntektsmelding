@@ -28,6 +28,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForesp
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
@@ -92,6 +93,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         // Start løsere
         logger.info("Starter løsere...")
         rapid.apply {
+            createInntektService(redisStore)
             createTilgangService(redisStore)
 
             createAareg(mockk(relaxed = true))

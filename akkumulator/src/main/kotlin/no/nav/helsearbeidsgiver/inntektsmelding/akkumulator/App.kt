@@ -20,8 +20,6 @@ fun main() {
 
 fun RapidsConnection.createAkkumulator(redisStore: IRedisStore): RapidsConnection =
     also {
-        logger.info("Starting Akkumulator...")
-        Akkumulator(this, redisStore)
         logger.info("Starting TilgangService...")
         TilgangService(this, redisStore)
         logger.info("Starting TrengerService...")

@@ -4,30 +4,29 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingR
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import java.time.ZonedDateTime
 
-fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument {
+fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument =
     try {
-        return InntektsmeldingDokument(
-            request.orgnrUnderenhet,
-            request.identitetsnummer,
-            fulltNavn,
-            arbeidsgiver,
-            request.behandlingsdager,
-            request.egenmeldingsperioder,
-            request.bestemmendeFraværsdag,
-            request.fraværsperioder,
-            request.arbeidsgiverperioder,
-            request.inntekt.beregnetInntekt,
-            request.inntekt,
-            request.fullLønnIArbeidsgiverPerioden,
-            request.refusjon,
-            request.naturalytelser,
-            ZonedDateTime.now().toOffsetDateTime(),
-            request.årsakInnsending,
-            "" // TODO Mangler innsenders fødselsnr
+        InntektsmeldingDokument(
+            orgnrUnderenhet = request.orgnrUnderenhet,
+            identitetsnummer = request.identitetsnummer,
+            fulltNavn = fulltNavn,
+            virksomhetNavn = arbeidsgiver,
+            behandlingsdager = request.behandlingsdager,
+            egenmeldingsperioder = request.egenmeldingsperioder,
+            bestemmendeFraværsdag = request.bestemmendeFraværsdag,
+            fraværsperioder = request.fraværsperioder,
+            arbeidsgiverperioder = request.arbeidsgiverperioder,
+            beregnetInntekt = request.inntekt.beregnetInntekt,
+            inntekt = request.inntekt,
+            fullLønnIArbeidsgiverPerioden = request.fullLønnIArbeidsgiverPerioden,
+            refusjon = request.refusjon,
+            naturalytelser = request.naturalytelser,
+            tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
+            årsakInnsending = request.årsakInnsending,
+            identitetsnummerInnsender = "" // TODO Mangler innsenders fødselsnr
         )
     } catch (ex: Exception) {
         throw UgyldigFormatException(ex)
     }
-}
 
 class UgyldigFormatException(ex: Exception) : Exception(ex)

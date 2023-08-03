@@ -29,7 +29,7 @@ class KvitteringService(
         logger.info("Starter kvitteringservice")
         withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID.str), this, rapidsConnection) }
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
-        withDataKanal { StatefullDataKanal(arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str), event, this, rapidsConnection, redisStore) }
+        withDataKanal { StatefullDataKanal(arrayOf(DataFelt.INNTEKTSMELDING_DOKUMENT.str), event, this, rapidsConnection, redisStore) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {

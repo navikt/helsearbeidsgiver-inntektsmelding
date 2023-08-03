@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.trenger
+package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault

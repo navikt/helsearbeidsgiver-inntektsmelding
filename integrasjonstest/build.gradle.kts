@@ -15,7 +15,6 @@ val testcontainersVersion: String by project
 
 dependencies {
     implementation(project(":aareg"))
-    implementation(project(":akkumulator"))
     implementation(project(":altinn"))
     implementation(project(":api"))
     implementation(project(":brreg"))
@@ -33,6 +32,7 @@ dependencies {
     implementation(project(":notifikasjon"))
     implementation(project(":pdl"))
     implementation(project(":tilgangservice"))
+    implementation(project(":trengerservice"))
 
     implementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")

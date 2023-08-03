@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.trenger
+package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
 import kotlinx.serialization.KSerializer
 import no.nav.helse.rapids_rivers.JsonMessage

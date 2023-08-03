@@ -3,13 +3,16 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.mapHikariConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
+import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
+import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
+import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerService
 
 fun main() {
     val env = mapOf(
@@ -41,7 +44,11 @@ fun RapidsConnection.buildLocalApp(): RapidsConnection =
         val imRepository = InntektsmeldingRepository(database.db)
         val forespoerselRepository = ForespoerselRepository(database.db)
 
-        createAkkumulator(redisStore)
+        createInnsending(redisStore)
+        createInntektService(redisStore)
+        createTilgangService(redisStore)
+        createTrengerService(redisStore)
+
         createDb(database, imRepository, forespoerselRepository)
 //        createForespoerselMottatt()
     }

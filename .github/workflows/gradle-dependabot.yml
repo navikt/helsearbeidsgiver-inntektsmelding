@@ -29,7 +29,6 @@ jobs:
         with:
           gradle-build-module: |-
             :aareg
-            :akkumulator
             :altinn
             :api
             :brreg
@@ -42,9 +41,12 @@ jobs:
             :helsebro
             :innsending
             :inntekt
+            :inntektservice
             :joark
             :notifikasjon
             :pdl
+            :tilgangservice
+            :trengerservice
           sub-module-mode: INDIVIDUAL
           fail-on-error: false
           include-build-environment: true

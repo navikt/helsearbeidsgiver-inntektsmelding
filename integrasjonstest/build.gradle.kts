@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":helsebro"))
     implementation(project(":innsending"))
     implementation(project(":inntekt"))
+    implementation(project(":inntektservice"))
     implementation(project(":joark"))
     implementation(project(":notifikasjon"))
     implementation(project(":pdl"))

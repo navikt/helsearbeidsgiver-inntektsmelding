@@ -9,14 +9,15 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsendingRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.Jackson
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
@@ -47,7 +48,7 @@ class InnsendingIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.innsendingRequest.orgnrUnderenhet.toJson(),
             Key.IDENTITETSNUMMER to Mock.innsendingRequest.identitetsnummer.toJson(),
-            DataFelt.INNTEKTSMELDING to Mock.innsendingRequest.let(Jackson::toJson)
+            DataFelt.INNTEKTSMELDING to Mock.innsendingRequest.let(Jackson::toJson).parseJson()
         )
 
         Thread.sleep(10000)

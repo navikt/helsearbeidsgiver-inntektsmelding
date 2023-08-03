@@ -7,8 +7,7 @@ import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringResponse
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
@@ -78,7 +77,7 @@ fun RouteExtra.kvitteringRoute() {
                         respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                     } else {
                         measureTimeMillis {
-                            val innsending = mapInnsending(Jackson.parseInntektsmeldingDokument(resultat!!))
+                            val innsending = mapInnsending(Jackson.fromJson<InntektsmeldingDokument>(resultat!!))
 
                             respondOk(
                                 Jackson.toJson(innsending).parseJson(),
@@ -108,14 +107,4 @@ fun RouteExtra.kvitteringRoute() {
             }
         }
     }
-}
-
-private object Jackson {
-    private val objectMapper = customObjectMapper()
-
-    fun parseInntektsmeldingDokument(json: String): InntektsmeldingDokument =
-        objectMapper.readValue(json, InntektsmeldingDokument::class.java)
-
-    fun toJson(kvitteringResponse: KvitteringResponse): String =
-        objectMapper.writeValueAsString(kvitteringResponse)
 }

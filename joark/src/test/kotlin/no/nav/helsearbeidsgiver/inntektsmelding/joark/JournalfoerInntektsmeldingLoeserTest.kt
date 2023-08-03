@@ -1,13 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
@@ -16,10 +14,8 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
@@ -58,7 +54,7 @@ class JournalfoerInntektsmeldingLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmeldingDokument().let(Jackson::toJson),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmeldingDokument().let(Jackson::toJson).parseJson(),
             Key.UUID to "uuid-557".toJson()
         )
 
@@ -71,8 +67,8 @@ class JournalfoerInntektsmeldingLoeserTest {
 
         val fail = publisert[Key.FAIL]
             .shouldNotBeNull()
-            .toJsonNode()
-            .let(Jackson::readFail)
+            .toString()
+            .let<_, Fail>(Jackson::fromJson)
 
         assertEquals(forventetFeilmelding, fail.feilmelding)
     }
@@ -91,7 +87,7 @@ class JournalfoerInntektsmeldingLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmeldingDokument().let(Jackson::toJson),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmeldingDokument().let(Jackson::toJson).parseJson(),
             Key.UUID to "uuid-979".toJson()
         )
 
@@ -116,19 +112,9 @@ class JournalfoerInntektsmeldingLoeserTest {
         val fail = testRapid.firstMessage()
             .fromJsonMapOnlyKeys()[Key.FAIL]
             .shouldNotBeNull()
-            .toJsonNode()
-            .let(Jackson::readFail)
+            .toString()
+            .let<_, Fail>(Jackson::fromJson)
 
         assertTrue(fail.feilmelding.isNotEmpty())
     }
-}
-
-private object Jackson {
-    private val objectMapper = customObjectMapper()
-
-    fun toJson(inntektsmelding: InntektsmeldingDokument): JsonElement =
-        objectMapper.writeValueAsString(inntektsmelding).parseJson()
-
-    fun readFail(json: JsonNode): Fail =
-        objectMapper.treeToValue(json, Fail::class.java)
 }

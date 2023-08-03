@@ -6,15 +6,13 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -38,11 +36,11 @@ import kotlin.test.assertNotNull
 class InnsendingRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.INNSENDING + "/${Mock.forespoerselId}"
 
-    private val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson)
+    private val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson).parseJson()
     private val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(
         identitetsnummer = TestData.notValidIdentitetsnummer,
         orgnrUnderenhet = TestData.notValidOrgNr
-    ).let(Jackson::toJson)
+    ).let(Jackson::toJson).parseJson()
 
     private val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning(PersonDato("verdi", LocalDate.now())))
     private val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
@@ -130,12 +128,5 @@ class InnsendingRouteKtTest : ApiTest() {
 
     private object Mock {
         val forespoerselId: UUID = UUID.randomUUID()
-    }
-
-    private object Jackson {
-        private val objectMapper = customObjectMapper()
-
-        fun toJson(innsendingRequest: InnsendingRequest): JsonElement =
-            objectMapper.writeValueAsString(innsendingRequest).parseJson()
     }
 }

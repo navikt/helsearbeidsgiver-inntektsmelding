@@ -39,7 +39,7 @@ class ForespoerselMottattIT : EndToEndTest() {
         }
 
         messages.filter(EventName.FORESPØRSEL_MOTTATT)
-            .filter(BehovType.LAGRE_FORESPOERSEL, loesningPaakrevd = false)
+            .filter(BehovType.LAGRE_FORESPOERSEL)
             .first()
             .toMap()
             .also {

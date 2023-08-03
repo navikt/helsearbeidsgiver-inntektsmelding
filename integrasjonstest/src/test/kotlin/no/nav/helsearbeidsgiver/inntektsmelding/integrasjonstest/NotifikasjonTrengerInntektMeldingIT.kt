@@ -40,7 +40,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         Thread.sleep(10000)
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
-            .filter(BehovType.FULLT_NAVN, loesningPaakrevd = false)
+            .filter(BehovType.FULLT_NAVN)
             .first()
             .fromJsonMapOnlyKeys()
             .also {
@@ -59,7 +59,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
-            .filter(BehovType.OPPRETT_SAK, loesningPaakrevd = false)
+            .filter(BehovType.OPPRETT_SAK)
             .first()
             .fromJsonMapOnlyKeys()
             .also {
@@ -104,7 +104,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         var transaksjonsId: String
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
-            .filter(BehovType.OPPRETT_OPPGAVE, loesningPaakrevd = false)
+            .filter(BehovType.OPPRETT_OPPGAVE)
             .first()
             .also { msg ->
                 val msgOnlyKeys = msg.fromJsonMapOnlyKeys()
@@ -122,7 +122,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
-            .filter(BehovType.PERSISTER_OPPGAVE_ID, loesningPaakrevd = false)
+            .filter(BehovType.PERSISTER_OPPGAVE_ID)
             .first()
             .also {
                 val oppgaveId = it.fromJsonMapOnlyDatafelter()

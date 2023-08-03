@@ -41,7 +41,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
         }
 
         messages.filter(EventName.FORESPOERSEL_BESVART)
-            .filter(BehovType.NOTIFIKASJON_HENT_ID, loesningPaakrevd = false)
+            .filter(BehovType.NOTIFIKASJON_HENT_ID)
             .first()
             .fromJsonMapOnlyKeys()
             .also {

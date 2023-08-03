@@ -68,7 +68,6 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
             mapOf(
                 Key.DATA.str to "",
                 DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
-                DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
                 Key.UUID.str to uuid
             )
         )

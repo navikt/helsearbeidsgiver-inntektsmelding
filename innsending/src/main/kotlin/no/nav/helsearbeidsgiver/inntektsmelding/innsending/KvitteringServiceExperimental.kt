@@ -18,7 +18,7 @@ class KvitteringServiceExperimental(
 ) : DefaultEventListenerWithUserInput(
     InputFelter()
         .IN(listOf(Key.FORESPOERSEL_ID.str))
-        .OUT(listOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str)),
+        .OUT(listOf(DataFelt.INNTEKTSMELDING_DOKUMENT.str)),
     redisStore,
     EventName.KVITTERING_REQUESTED,
     rapidsConnection

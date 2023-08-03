@@ -19,22 +19,22 @@ class InnsendingProducer(
         logger.info("Starter InnsendingProducer...")
     }
 
-    fun publish(forespørselId: String, request: InnsendingRequest): UUID {
+    fun publish(forespoerselId: UUID, request: InnsendingRequest): UUID {
         val clientId = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                 Key.OPPRETTET.str to LocalDateTime.now(),
                 Key.CLIENT_ID.str to clientId,
-                Key.FORESPOERSEL_ID.str to forespørselId,
+                Key.FORESPOERSEL_ID.str to forespoerselId,
                 DataFelt.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to request.identitetsnummer,
                 DataFelt.INNTEKTSMELDING.str to request
             )
         )
         rapidsConnection.publish(request.identitetsnummer, packet.toJson())
-        logger.info("Publiserte til kafka forespørselId: $forespørselId og clientId=$clientId")
-        sikkerLogger.info("Publiserte til kafka forespørselId: $forespørselId json=${packet.toPretty()}")
+        logger.info("Publiserte til kafka forespørselId: $forespoerselId og clientId=$clientId")
+        sikkerLogger.info("Publiserte til kafka forespørselId: $forespoerselId json=${packet.toPretty()}")
         return clientId
     }
 }

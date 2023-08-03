@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException
 import java.time.LocalDate
+import java.util.UUID
 
 class InnsendingMapperTest {
 
@@ -78,7 +79,7 @@ class InnsendingMapperTest {
         løsninger.add(if (en) { løsningOk } else { løsningFeil })
         løsninger.add(if (to) { løsningOk } else { løsningFeil })
         return InnsendingMapper(
-            "uuid",
+            UUID.randomUUID(),
             Resultat(
                 FULLT_NAVN = if (en) { løsningOk } else { løsningFeil },
                 VIRKSOMHET = if (to) { løsningVirksomhet } else { løsningVirksomhetFeil }

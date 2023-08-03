@@ -4,6 +4,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
@@ -68,7 +70,7 @@ class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere valideringsfeil ved ugyldig request`() = testApi {
-        val response = post(PATH, Mock.UGYLDIG_REQUEST, TrengerRequest.serializer())
+        val response = post(PATH, Mock.UGYLDIG_REQUEST, JsonElement.serializer())
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
 
@@ -107,16 +109,20 @@ class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere Internal server error hvis Redis timer ut`() = testApi {
         coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } throws RedisPollerTimeoutException(UUID.randomUUID().toString())
+            anyConstructed<RedisPoller>().getString(any(), any(), any())
+        } throws RedisPollerTimeoutException(UUID.randomUUID())
         val response = post(PATH, Mock.GYLDIG_REQUEST, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.InternalServerError, response.status)
     }
 }
 
 private object Mock {
-    val GYLDIG_REQUEST = TrengerRequest(UUID.randomUUID().toString())
-    val UGYLDIG_REQUEST = TrengerRequest(" ")
+    val GYLDIG_REQUEST = TrengerRequest(UUID.randomUUID())
+    val UGYLDIG_REQUEST = JsonObject(
+        mapOf(
+            TrengerRequest::uuid.name to " ".toJson()
+        )
+    )
 
     val RESULTAT_OK = Resultat(
         FULLT_NAVN = NavnLøsning(PersonDato("Ola Normann", 1.mai)),

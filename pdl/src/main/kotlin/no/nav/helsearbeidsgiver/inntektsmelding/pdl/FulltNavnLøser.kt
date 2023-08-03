@@ -8,9 +8,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
@@ -51,24 +49,15 @@ class FulltNavnLøser(
                 }
                 sikkerLogger.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for $idtext")
                 logger.info("Fant navn for id: $idtext")
-                publish(NavnLøsning(info), packet)
                 publishDatagram(info, packet)
             } catch (ex: Exception) {
                 logger.error("Klarte ikke hente navn for $idtext")
                 sikkerLogger.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for $idtext", ex)
-                publish(NavnLøsning(error = Feilmelding("Klarte ikke hente navn")), packet)
                 publishFail(packet.createFail("Klarte ikke hente navn", behovType = BehovType.FULLT_NAVN))
             }
         }.also {
             logger.info("FullNavn løser took $it")
         }
-    }
-
-    private fun publish(løsning: NavnLøsning, packet: JsonMessage) {
-        packet.setLøsning(BEHOV, løsning)
-        val json = packet.toJson()
-        super.publishBehov(packet)
-        sikkerLogger.info("FulltNavnLøser: publiserte: $json")
     }
 
     private fun publishDatagram(personInformasjon: PersonDato, jsonMessage: JsonMessage) {
@@ -93,11 +82,5 @@ class FulltNavnLøser(
         val fødselsdato: LocalDate? = liste?.foedsel?.firstOrNull()?.foedselsdato
         val fulltNavn = liste?.trekkUtFulltNavn() ?: "Ukjent"
         return PersonDato(fulltNavn, fødselsdato)
-    }
-
-    private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this[Key.LØSNING.str] = mapOf(
-            nøkkel.name to data
-        )
     }
 }

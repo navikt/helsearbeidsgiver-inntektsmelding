@@ -1,27 +1,25 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
 import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -54,11 +52,15 @@ class FulltNavnLøserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val loesning = testRapid.firstMessage().lesLoesning()
+        val publisert = testRapid.firstMessage().toMap()
 
-        assertNotNull(loesning.value)
-        assertEquals("Ola Normann", loesning.value!!.navn)
-        assertNull(loesning.error)
+        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON]
+            .shouldNotBeNull()
+            .fromJson(PersonDato.serializer())
+            .navn
+            .shouldBe("Ola Normann")
+
+        publisert[Key.FAIL].shouldBeNull()
     }
 
     @Test
@@ -70,21 +72,13 @@ class FulltNavnLøserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val loesning = testRapid.firstMessage().lesLoesning()
+        val publisert = testRapid.firstMessage().toMap()
 
-        assertNull(loesning.value)
-        assertNotNull(loesning.error)
+        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON].shouldBeNull()
+
+        publisert[Key.FAIL].shouldNotBeNull()
     }
 }
-
-private fun JsonElement.lesLoesning(): NavnLøsning =
-    fromJsonMapOnlyKeys()
-        .get(Key.LØSNING)
-        .shouldNotBeNull()
-        .fromJsonMapFiltered(BehovType.serializer())
-        .get(BehovType.FULLT_NAVN)
-        .shouldNotBeNull()
-        .fromJson(NavnLøsning.serializer())
 
 private fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson =
     PdlHentFullPerson(

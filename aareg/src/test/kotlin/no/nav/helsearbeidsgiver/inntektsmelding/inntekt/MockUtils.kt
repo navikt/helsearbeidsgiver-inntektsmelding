@@ -5,23 +5,8 @@ import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
-import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
-import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.kl
-
-fun mockLøsningSuccess(): ArbeidsforholdLøsning =
-    ArbeidsforholdLøsning(
-        value = mockKlientArbeidsforhold()
-            .tilArbeidsforhold()
-            .let(::listOf)
-    )
-
-fun mockLøsningFailure(): ArbeidsforholdLøsning =
-    ArbeidsforholdLøsning(
-        error = Feilmelding("Klarte ikke hente arbeidsforhold")
-    )
 
 fun mockKlientArbeidsforhold(): Arbeidsforhold =
     Arbeidsforhold(

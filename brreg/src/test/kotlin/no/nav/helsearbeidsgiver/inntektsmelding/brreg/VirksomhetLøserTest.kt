@@ -3,25 +3,24 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.jsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -54,9 +53,14 @@ class VirksomhetLøserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val loesning = testRapid.firstMessage().lesLoesning()
+        val publisert = testRapid.firstMessage().toMap()
 
-        assertEquals("Ugyldig virksomhet $ORGNR", loesning.error?.melding)
+        publisert[Key.FAIL]
+            .shouldNotBeNull()
+            .jsonObject[Fail::feilmelding.name]
+            .shouldNotBeNull()
+            .fromJson(String.serializer())
+            .shouldBe("Ugyldig virksomhet $ORGNR")
     }
 
     @Test
@@ -70,9 +74,12 @@ class VirksomhetLøserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val loesning = testRapid.firstMessage().lesLoesning()
+        val publisert = testRapid.firstMessage().toMap()
 
-        assertEquals(VIRKSOMHET_NAVN, loesning.value)
+        publisert[DataFelt.VIRKSOMHET]
+            .shouldNotBeNull()
+            .fromJson(String.serializer())
+            .shouldBe(VIRKSOMHET_NAVN)
     }
 
     @Test
@@ -84,17 +91,8 @@ class VirksomhetLøserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val loesning = testRapid.firstMessage().lesLoesning()
+        val publisert = testRapid.firstMessage().toMap()
 
-        assertNotNull(loesning.error)
+        publisert[Key.FAIL].shouldNotBeNull()
     }
 }
-
-private fun JsonElement.lesLoesning(): VirksomhetLøsning =
-    fromJsonMapOnlyKeys()
-        .get(Key.LØSNING)
-        .shouldNotBeNull()
-        .fromJsonMapFiltered(BehovType.serializer())
-        .get(BehovType.VIRKSOMHET)
-        .shouldNotBeNull()
-        .fromJson(VirksomhetLøsning.serializer())

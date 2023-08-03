@@ -8,11 +8,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Data
 import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
@@ -50,15 +48,6 @@ class ArbeidsforholdLøser(
             logger.info("Løser behov $behovType med transaksjon-ID $transaksjonId")
 
             val arbeidsforhold = hentArbeidsforhold(identitetsnummer, transaksjonId)
-
-            val løsning = if (arbeidsforhold != null) {
-                ArbeidsforholdLøsning(arbeidsforhold)
-            } else {
-                ArbeidsforholdLøsning(error = Feilmelding("Klarte ikke hente arbeidsforhold"))
-            }
-
-            packet.setLøsning(behovType, løsning)
-            super.publishBehov(packet)
 
             if (arbeidsforhold != null) {
                 publishDatagram(Data(arbeidsforhold), packet)
@@ -101,10 +90,4 @@ class ArbeidsforholdLøser(
             ?.also {
                 sikkerLogger.info("Fant arbeidsforhold $it for $fnr")
             }
-}
-
-private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-    this[Key.LØSNING.str] = mapOf(
-        nøkkel.name to data
-    )
 }

@@ -9,9 +9,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -66,16 +64,13 @@ class VirksomhetLøser(
         try {
             val navn = hentVirksomhet(orgnr)
             logger.info("Fant $navn for $orgnr")
-            publiserLøsning(VirksomhetLøsning(navn), packet)
             publishDatagram(navn, packet)
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")
-            publiserLøsning(VirksomhetLøsning(error = Feilmelding("Ugyldig virksomhet $orgnr")), packet)
             publishFail(packet.createFail("Ugyldig virksomhet $orgnr", behovType = BehovType.VIRKSOMHET))
         } catch (ex: Exception) {
             logger.error("Det oppstod en feil ved henting for $orgnr")
             sikkerLogger.error("Det oppstod en feil ved henting for orgnr $orgnr: ", ex)
-            publiserLøsning(VirksomhetLøsning(error = Feilmelding("Klarte ikke hente virksomhet")), packet)
             publishFail(packet.createFail("Klarte ikke hente virksomhet", behovType = BehovType.VIRKSOMHET))
         }
     }
@@ -90,16 +85,5 @@ class VirksomhetLøser(
             )
         )
         super.publishData(message)
-    }
-
-    private fun publiserLøsning(virksomhetLøsning: VirksomhetLøsning, packet: JsonMessage) {
-        packet.setLøsning(BEHOV, virksomhetLøsning)
-        super.publishBehov(packet)
-    }
-
-    private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this[Key.LØSNING.str] = mapOf(
-            nøkkel.name to data
-        )
     }
 }

@@ -32,10 +32,10 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class ForespoerselSvarLøserTest : FunSpec({
+class ForespoerselSvarLoeserTest : FunSpec({
     val testRapid = TestRapid()
 
-    ForespoerselSvarLøser(testRapid)
+    ForespoerselSvarLoeser(testRapid)
 
     beforeTest {
         testRapid.reset()

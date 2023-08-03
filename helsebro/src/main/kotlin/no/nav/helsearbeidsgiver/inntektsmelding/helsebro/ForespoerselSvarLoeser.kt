@@ -15,10 +15,10 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demand
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -31,19 +31,18 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class ForespoerselSvarLøser(rapid: RapidsConnection) : River.PacketListener {
+class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     init {
-        sikkerLogger.info("Starting ForespoerselSvarLøser...")
         River(rapid).apply {
             validate { msg ->
                 msg.demandValues(
                     Pri.Key.BEHOV to ForespoerselSvar.behovType.name
                 )
-                msg.require(
+                msg.demand(
                     Pri.Key.LØSNING to { it.fromJson(ForespoerselSvar.serializer()) }
                 )
             }

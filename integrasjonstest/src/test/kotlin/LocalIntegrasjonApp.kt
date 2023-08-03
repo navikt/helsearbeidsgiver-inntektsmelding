@@ -27,7 +27,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -53,7 +53,7 @@ fun main() {
     // Hvis ønskelig kan man kjøre opp "ekte" løsere med eller uten mocking parallellt, sammen med DummyLøser:
     val priProducer = mockk<PriProducer<TrengerForespoersel>>()
     coEvery { priProducer.send(any()) } returns true
-    TrengerForespoerselLøser(rapid, priProducer)
+    TrengerForespoerselLoeser(rapid, priProducer)
 
     rapid.start()
 }

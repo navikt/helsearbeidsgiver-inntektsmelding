@@ -14,11 +14,11 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class TrengerForespoerselLøserTest : FunSpec({
+class TrengerForespoerselLoeserTest : FunSpec({
     val testRapid = TestRapid()
     val mockPriProducer = mockk<PriProducer<TrengerForespoersel>>(relaxed = true)
 
-    TrengerForespoerselLøser(testRapid, mockPriProducer)
+    TrengerForespoerselLoeser(testRapid, mockPriProducer)
 
     test("Ved behov om forespørsel på rapid-topic publiseres behov om forespørsel på pri-topic") {
         val expectedPublished = mockTrengerForespoersel()

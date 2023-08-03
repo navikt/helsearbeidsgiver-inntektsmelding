@@ -30,17 +30,13 @@ import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import java.util.UUID
 
-class TrengerForespoerselLøser(
+class TrengerForespoerselLoeser(
     rapid: RapidsConnection,
     private val priProducer: PriProducer<TrengerForespoersel>
 ) : Løser(rapid) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
-
-    init {
-        sikkerLogger.info("Starting TrengerForespoerselLøser...")
-    }
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation { msg ->

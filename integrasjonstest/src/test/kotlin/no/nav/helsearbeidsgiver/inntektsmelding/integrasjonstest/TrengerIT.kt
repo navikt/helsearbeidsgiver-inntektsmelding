@@ -36,7 +36,7 @@ class TrengerIT : EndToEndTest() {
         waitForMessages(10000)
 
         messages.filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.HENT_TRENGER_IM, loesningPaakrevd = false)
+            .filter(BehovType.HENT_TRENGER_IM)
             .first()
             .fromJsonMapOnlyKeys()
             .let {
@@ -54,7 +54,7 @@ class TrengerIT : EndToEndTest() {
         waitForMessages(12000)
 
         messages.filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.HENT_TRENGER_IM, loesningPaakrevd = false)
+            .filter(BehovType.HENT_TRENGER_IM)
             .first()
             .fromJsonMapOnlyKeys()
             .let {
@@ -63,7 +63,7 @@ class TrengerIT : EndToEndTest() {
             }
 
         messages.filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.VIRKSOMHET, loesningPaakrevd = false)
+            .filter(BehovType.VIRKSOMHET)
             .first()
             .fromJsonMapOnlyKeys()
             .let {
@@ -72,7 +72,7 @@ class TrengerIT : EndToEndTest() {
             }
 
         messages.filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.FULLT_NAVN, loesningPaakrevd = false)
+            .filter(BehovType.FULLT_NAVN)
             .first()
             .fromJsonMapOnlyKeys()
             .let {
@@ -81,7 +81,7 @@ class TrengerIT : EndToEndTest() {
             }
 
         messages.filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.INNTEKT, loesningPaakrevd = false)
+            .filter(BehovType.INNTEKT)
             .first()
             .fromJsonMapOnlyKeys()
             .let {

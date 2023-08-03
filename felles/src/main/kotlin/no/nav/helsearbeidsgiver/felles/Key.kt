@@ -19,16 +19,11 @@ enum class Key(override val str: String) : IKey {
     OPPRETTET("@opprettet"),
 
     // Egendefinerte
-    BOOMERANG("boomerang"),
-    SESSION("session"),
-    NESTE_BEHOV("neste_behov"),
     IDENTITETSNUMMER("identitetsnummer"),
     INITIATE_ID("initiateId"),
     UUID("uuid"),
     CLIENT_ID("client_id"),
     TRANSACTION_ORIGIN("transaction_origin"),
-    ORGNR("orgnr"),
-    FNR("fnr"),
     FORESPOERSEL_ID("forespoerselId"),
     JOURNALPOST_ID("journalpostId"),
     DATA("data"),

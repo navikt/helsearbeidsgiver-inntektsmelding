@@ -14,15 +14,12 @@ import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.Resultat
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -124,11 +121,6 @@ private object Mock {
         )
     )
 
-    val RESULTAT_OK = Resultat(
-        FULLT_NAVN = NavnLøsning(PersonDato("Ola Normann", 1.mai)),
-        VIRKSOMHET = VirksomhetLøsning("Norge AS")
-    )
-
     val TRENGER_DATA_OK = TrengerData(
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
@@ -147,8 +139,8 @@ private object Mock {
         val mockInntekt = inntekt()
         return """
             {
-                "navn": "${RESULTAT_OK.FULLT_NAVN?.value?.navn}",
-                "orgNavn": "${RESULTAT_OK.VIRKSOMHET?.value}",
+                "navn": "Ola Normann",
+                "orgNavn": "Norge AS",
                 "identitetsnummer": "${mockTrengerInntekt.fnr}",
                 "orgnrUnderenhet": "${mockTrengerInntekt.orgnr}",
                 "fravaersperioder": [${mockTrengerInntekt.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],

@@ -71,7 +71,7 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
-            .filter(BehovType.JOURNALFOER, loesningPaakrevd = false)
+            .filter(BehovType.JOURNALFOER)
             .first()
             .fromJsonMapOnlyKeys()
             .also {
@@ -80,7 +80,7 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
-            .filter(BehovType.LAGRE_JOURNALPOST_ID, loesningPaakrevd = false)
+            .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .first()
             .fromJsonMapOnlyKeys()
             .also {
@@ -103,7 +103,7 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
-            .filter(BehovType.DISTRIBUER_IM, loesningPaakrevd = false)
+            .filter(BehovType.DISTRIBUER_IM)
             .first()
             .also { msg ->
                 // Be om å distribuere

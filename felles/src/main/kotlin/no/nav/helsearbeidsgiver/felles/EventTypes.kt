@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class BehovType {
-    PAUSE,
     FULLT_NAVN,
     VIRKSOMHET,
     INNTEKT,

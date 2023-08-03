@@ -1,7 +1,7 @@
-import Jackson.toJsonNode
-import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -9,26 +9,28 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Data
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.time.LocalDate
@@ -59,39 +61,39 @@ fun main() {
 }
 
 class DummyLøser(
-    rapidsConnection: RapidsConnection,
-    private val behov: BehovType,
-    private val nesteBehov: List<BehovType> = emptyList()
+    private val rapid: RapidsConnection,
+    private val behov: BehovType
 ) : River.PacketListener {
-    private val rapid = rapidsConnection
 
     init {
         logger.info("Starter dummyløser for Behov $behov")
-        River(rapidsConnection).apply {
+        River(rapid).apply {
             validate { msg ->
                 msg.demandValues(Key.BEHOV to behov.name)
                 msg.rejectKey(Key.LØSNING.str)
-                msg.interestedIn(Key.FORESPOERSEL_ID.str, Key.INITIATE_ID.str, Key.BOOMERANG.str)
+                msg.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Fikk pakke:\n${packet.toPretty()}")
-        packet.setLøsning(behov, getLøsning())
-        packet.nesteBehov(nesteBehov)
-        JsonMessage.newMessage()
-        logger.info("Publiserer løsning:\n${packet.toPretty()}")
-        this.rapid.publish(packet.toJson())
+
+        rapid.publish(
+            *getData().toList().toTypedArray()
+        )
+            .also {
+                logger.info("Publiserte data:\n${it.toPretty()}")
+            }
     }
 
-    private fun getLøsning(): JsonNode {
+    private fun getData(): Map<IKey, JsonElement> {
         val fnr = "123"
         val orgnr = "123"
 
         return when (behov) {
-            BehovType.HENT_TRENGER_IM -> {
-                TrengerInntekt(
+            BehovType.HENT_TRENGER_IM -> mapOf(
+                DataFelt.FORESPOERSEL_SVAR to TrengerInntekt(
                     type = ForespoerselType.KOMPLETT,
                     orgnr = orgnr,
                     fnr = fnr,
@@ -100,50 +102,31 @@ class DummyLøser(
                     egenmeldingsperioder = listOf(1.januar til 1.januar),
                     forespurtData = mockForespurtData(),
                     erBesvart = false
-                ).toJsonNode()
-            }
-            BehovType.VIRKSOMHET -> {
-                VirksomhetLøsning("Din Bedrift A/S").toJsonNode()
-            }
-            BehovType.FULLT_NAVN -> {
-                NavnLøsning(PersonDato("Navn navnesen", LocalDate.now())).toJsonNode()
-            }
-            BehovType.INNTEKT -> {
-                Inntekt(emptyList()).toJsonNode()
-            }
-            BehovType.ARBEIDSFORHOLD -> {
-                ArbeidsforholdLøsning(
-                    listOf(
-                        Arbeidsforhold(
-                            Arbeidsgiver("A/S", orgnr),
-                            Ansettelsesperiode(PeriodeNullable(1.januar, 31.januar)),
-                            LocalDateTime.now()
-                        )
+                ).toJson(TrengerInntekt.serializer())
+            )
+            BehovType.VIRKSOMHET -> mapOf(
+                DataFelt.VIRKSOMHET to "Din Bedrift A/S".toJson()
+            )
+            BehovType.FULLT_NAVN -> mapOf(
+                DataFelt.ARBEIDSTAKER_INFORMASJON to PersonDato("Navn navnesen", LocalDate.now()).toJson(PersonDato.serializer())
+            )
+            BehovType.INNTEKT -> mapOf(
+                DataFelt.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer())
+            )
+            BehovType.ARBEIDSFORHOLD -> mapOf(
+                DataFelt.ARBEIDSFORHOLD to JsonObject(
+                    mapOf(
+                        Data<Unit>::t.name to listOf(
+                            Arbeidsforhold(
+                                Arbeidsgiver("A/S", orgnr),
+                                Ansettelsesperiode(PeriodeNullable(1.januar, 31.januar)),
+                                LocalDateTime.now()
+                            )
+                        ).toJson(Arbeidsforhold.serializer())
                     )
-                ).toJsonNode()
-            }
-            else -> {
-                error("Ukjent behov, ingen dummy-løsning!")
-            }
+                )
+            )
+            else -> error("Ukjent behov, ingen dummy-løsning!")
         }
     }
-}
-
-private fun JsonMessage.setLøsning(nøkkel: BehovType, data: JsonNode) {
-    this[Key.LØSNING.str] = mapOf(
-        nøkkel.name to data
-    )
-}
-private fun JsonMessage.nesteBehov(behov: List<BehovType>) {
-    if (behov.isEmpty()) {
-        return
-    }
-    this[Key.NESTE_BEHOV.str] = behov
-}
-
-private object Jackson {
-    val objectMapper = customObjectMapper()
-
-    fun <T : Any> T.toJsonNode(): JsonNode =
-        objectMapper.valueToTree(this)
 }

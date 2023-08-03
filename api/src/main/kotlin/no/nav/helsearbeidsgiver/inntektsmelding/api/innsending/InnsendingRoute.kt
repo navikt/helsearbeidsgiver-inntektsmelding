@@ -1,13 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import com.fasterxml.jackson.databind.JsonMappingException
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
@@ -33,7 +32,7 @@ fun RouteExtra.innsendingRoute() {
         post {
             val forespoerselId = call.parameters["forespørselId"] ?: ""
             try {
-                val request = Jackson.receiveInnsendingRequest(call)
+                val request = Jackson.fromJson<InnsendingRequest>(call.receiveText())
 
                 "Mottok innsending med forespørselId: $forespoerselId".let {
                     logger.info(it)
@@ -73,11 +72,4 @@ fun RouteExtra.innsendingRoute() {
             }
         }
     }
-}
-
-private object Jackson {
-    private val objectMapper = customObjectMapper()
-
-    suspend fun receiveInnsendingRequest(call: ApplicationCall): InnsendingRequest =
-        objectMapper.readValue(call.receiveText(), InnsendingRequest::class.java)
 }

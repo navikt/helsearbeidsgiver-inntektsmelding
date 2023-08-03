@@ -68,7 +68,7 @@ fun RouteExtra.inntektRoute() {
                 respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for forespørselId: ${request.forespoerselId}")
-                respondInternalServerError(RedisTimeoutResponse(request.forespoerselId.toString()), RedisTimeoutResponse.serializer())
+                respondInternalServerError(RedisTimeoutResponse(request.forespoerselId), RedisTimeoutResponse.serializer())
             }
         }
     }

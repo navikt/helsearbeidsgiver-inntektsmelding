@@ -14,9 +14,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.mapper.ResultatMapper
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.FeilmeldingConstraint
 import org.valiktor.ConstraintViolation
 import org.valiktor.DefaultConstraintViolation
+import java.util.UUID
 
 // TODO slett
-class InnsendingMapper(val uuid: String, resultat: Resultat) : ResultatMapper<InnsendingResponse>(resultat) {
+class InnsendingMapper(val uuid: UUID, resultat: Resultat) : ResultatMapper<InnsendingResponse>(resultat) {
 
     override fun mapConstraint(løsning: Løsning): ConstraintViolation {
         if (løsning is VirksomhetLøsning) {

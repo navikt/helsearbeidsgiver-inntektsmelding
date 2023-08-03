@@ -40,70 +40,73 @@ fun RouteExtra.kvitteringRoute() {
 
     route.route(Routes.KVITTERING) {
         get {
-            val forespoerselId = fjernLedendeSlash(call.parameters["uuid"].orEmpty())
+            val forespoerselId = call.parameters["uuid"]
+                ?.let(::fjernLedendeSlash)
+                ?.runCatching(UUID::fromString)
+                ?.getOrNull()
 
-            if (forespoerselId.isEmpty() || forespoerselId.length != 36) {
-                "Ugyldig parameter: $forespoerselId".let {
+            if (forespoerselId == null) {
+                "Ugyldig parameter: ${call.parameters["uuid"]}".let {
                     logger.warn(it)
                     respondBadRequest(it, String.serializer())
                 }
-            }
-
-            logger.info("Henter data for forespørselId: $forespoerselId")
-            measureTimeMillis {
-                try {
-                    measureTimeMillis {
-                        authorize(
-                            forespoerselId = forespoerselId.let(UUID::fromString),
-                            tilgangProducer = tilgangProducer,
-                            redisPoller = redis,
-                            cache = tilgangCache
-                        )
-                    }.also {
-                        logger.info("Authorize took $it")
-                    }
-
-                    val clientId = kvitteringProducer.publish(forespoerselId)
-                    var resultat: String?
-                    measureTimeMillis {
-                        resultat = redis.getString(clientId, 10, 500)
-                    }.also {
-                        logger.info("redis polling took $it")
-                    }
-                    sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
-
-                    if (resultat == EMPTY_PAYLOAD) {
-                        // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
-                        respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
-                    } else {
+            } else {
+                logger.info("Henter data for forespørselId: $forespoerselId")
+                measureTimeMillis {
+                    try {
                         measureTimeMillis {
-                            val innsending = mapInnsending(Jackson.fromJson<InntektsmeldingDokument>(resultat!!))
-
-                            respondOk(
-                                Jackson.toJson(innsending).parseJson(),
-                                JsonElement.serializer()
+                            authorize(
+                                forespoerselId = forespoerselId,
+                                tilgangProducer = tilgangProducer,
+                                redisPoller = redis,
+                                cache = tilgangCache
                             )
                         }.also {
-                            logger.info("Mapping og respond took $it")
+                            logger.info("Authorize took $it")
                         }
+
+                        val clientId = kvitteringProducer.publish(forespoerselId)
+                        var resultat: String?
+                        measureTimeMillis {
+                            resultat = redis.getString(clientId, 10, 500)
+                        }.also {
+                            logger.info("redis polling took $it")
+                        }
+                        sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
+
+                        if (resultat == EMPTY_PAYLOAD) {
+                            // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
+                            respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
+                        } else {
+                            measureTimeMillis {
+                                val innsending = mapInnsending(Jackson.fromJson<InntektsmeldingDokument>(resultat!!))
+
+                                respondOk(
+                                    Jackson.toJson(innsending).parseJson(),
+                                    JsonElement.serializer()
+                                )
+                            }.also {
+                                logger.info("Mapping og respond took $it")
+                            }
+                        }
+                    } catch (e: ManglerAltinnRettigheterException) {
+                        respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
+                    } catch (e: ConstraintViolationException) {
+                        logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
+                        respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
+                    } catch (e: JsonMappingException) {
+                        "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
+                            logger.error(it)
+                            sikkerLogger.error(it, e)
+                            respondInternalServerError(JacksonErrorResponse(forespoerselId.toString()), JacksonErrorResponse.serializer())
+                        }
+                    } catch (_: RedisPollerTimeoutException) {
+                        logger.error("Fikk timeout for forespørselId: $forespoerselId")
+                        respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
                     }
-                } catch (e: ManglerAltinnRettigheterException) {
-                    respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-                } catch (e: ConstraintViolationException) {
-                    logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
-                    respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
-                } catch (e: JsonMappingException) {
-                    "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
-                        logger.error(it)
-                        sikkerLogger.error(it, e)
-                        respondInternalServerError(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
-                    }
-                } catch (_: RedisPollerTimeoutException) {
-                    logger.error("Fikk timeout for forespørselId: $forespoerselId")
-                    respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
+                }.also {
+                    logger.info("api call took $it")
                 }
-            }.also {
-                logger.info("api call took $it")
             }
         }
     }

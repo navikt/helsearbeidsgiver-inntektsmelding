@@ -14,8 +14,8 @@ class KvitteringProducer(
         logger.info("Starter KvitteringProducer...")
     }
 
-    fun publish(foresporselId: String): String {
-        val clientId = UUID.randomUUID().toString()
+    fun publish(foresporselId: UUID): UUID {
+        val clientId = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,

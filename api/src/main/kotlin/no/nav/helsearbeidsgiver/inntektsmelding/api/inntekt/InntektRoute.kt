@@ -18,15 +18,11 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import org.valiktor.ConstraintViolationException
 
 // TODO Mangler tester
 fun RouteExtra.inntektRoute() {
@@ -63,9 +59,6 @@ fun RouteExtra.inntektRoute() {
                 call.respond(inntektResponse.status(), inntektResultatJson)
             } catch (e: ManglerAltinnRettigheterException) {
                 respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-            } catch (e: ConstraintViolationException) {
-                logger.info("Fikk valideringsfeil for forespørselId: ${request.forespoerselId}")
-                respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout for forespørselId: ${request.forespoerselId}")
                 respondInternalServerError(RedisTimeoutResponse(request.forespoerselId), RedisTimeoutResponse.serializer())

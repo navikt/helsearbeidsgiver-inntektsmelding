@@ -6,13 +6,14 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringResponse
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.mapInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
@@ -25,10 +26,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import org.valiktor.ConstraintViolationException
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 import kotlin.system.measureTimeMillis
 
@@ -79,7 +78,7 @@ fun RouteExtra.kvitteringRoute() {
                             respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                         } else {
                             measureTimeMillis {
-                                val innsending = mapInnsending(Jackson.fromJson<InntektsmeldingDokument>(resultat!!))
+                                val innsending = tilKvitteringResponse(Jackson.fromJson<InntektsmeldingDokument>(resultat!!))
 
                                 respondOk(
                                     Jackson.toJson(innsending).parseJson(),
@@ -91,9 +90,6 @@ fun RouteExtra.kvitteringRoute() {
                         }
                     } catch (e: ManglerAltinnRettigheterException) {
                         respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-                    } catch (e: ConstraintViolationException) {
-                        logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
-                        respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
                     } catch (e: JsonMappingException) {
                         "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
                             logger.error(it)
@@ -111,3 +107,29 @@ fun RouteExtra.kvitteringRoute() {
         }
     }
 }
+
+private fun tilKvitteringResponse(inntektsmeldingDokument: InntektsmeldingDokument): KvitteringResponse =
+    KvitteringResponse(
+        orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
+        identitetsnummer = inntektsmeldingDokument.identitetsnummer,
+        fulltNavn = inntektsmeldingDokument.fulltNavn,
+        virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
+        behandlingsdager = inntektsmeldingDokument.behandlingsdager,
+        egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
+        arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
+        bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
+        fraværsperioder = inntektsmeldingDokument.fraværsperioder,
+        inntekt = Inntekt(
+            bekreftet = true,
+            // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
+            beregnetInntekt = inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
+            endringÅrsak = inntektsmeldingDokument.inntekt?.endringÅrsak,
+            manueltKorrigert = inntektsmeldingDokument.inntekt?.manueltKorrigert.orDefault(false)
+        ),
+        fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
+        refusjon = inntektsmeldingDokument.refusjon,
+        naturalytelser = inntektsmeldingDokument.naturalytelser,
+        årsakInnsending = inntektsmeldingDokument.årsakInnsending,
+        bekreftOpplysninger = true,
+        tidspunkt = inntektsmeldingDokument.tidspunkt
+    )

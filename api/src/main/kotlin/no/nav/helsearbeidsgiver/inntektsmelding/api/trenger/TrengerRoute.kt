@@ -21,9 +21,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import org.valiktor.ConstraintViolationException
 
 fun RouteExtra.trengerRoute() {
     val trengerProducer = TrengerProducer(connection)
@@ -54,9 +52,6 @@ fun RouteExtra.trengerRoute() {
                         respond(status, trengerResponse, TrengerResponse.serializer())
                     } catch (e: ManglerAltinnRettigheterException) {
                         respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-                    } catch (e: ConstraintViolationException) {
-                        logger.info("Fikk valideringsfeil for ${request.uuid}")
-                        respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
                     } catch (_: RedisPollerTimeoutException) {
                         logger.info("Fikk timeout for ${request.uuid}")
                         respondInternalServerError(RedisTimeoutResponse(request.uuid), RedisTimeoutResponse.serializer())

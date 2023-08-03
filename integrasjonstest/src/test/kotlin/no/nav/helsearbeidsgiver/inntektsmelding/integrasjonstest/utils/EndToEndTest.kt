@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
-import no.nav.helsearbeidsgiver.inntektsmelding.akkumulator.createAkkumulator
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
@@ -33,6 +32,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
+import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerService
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -93,11 +93,12 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         // Start løsere
         logger.info("Starter løsere...")
         rapid.apply {
+            createInnsending(redisStore)
             createInntektService(redisStore)
             createTilgangService(redisStore)
+            createTrengerService(redisStore)
 
             createAareg(mockk(relaxed = true))
-            createAkkumulator(redisStore)
             createAltinn(altinnClient)
             createBrreg(mockk(relaxed = true), true)
             createDb(database, imRepository, forespoerselRepository)
@@ -105,7 +106,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createForespoerselBesvart(mockk(relaxed = true))
             createForespoerselMottatt(mockk(relaxed = true))
             createHelsebro(mockk(relaxed = true))
-            createInnsending(redisStore)
             createInntekt(mockk(relaxed = true))
             createJoark(dokarkivClient)
             createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)

@@ -1,11 +1,10 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.akkumulator
+package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.til
-import no.nav.helsearbeidsgiver.inntektsmelding.trenger.finnSkjaeringstidspunkt
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.februar

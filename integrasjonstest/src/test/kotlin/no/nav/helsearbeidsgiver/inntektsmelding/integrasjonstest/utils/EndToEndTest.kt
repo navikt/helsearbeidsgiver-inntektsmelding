@@ -31,6 +31,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
+import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -91,6 +92,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         // Start løsere
         logger.info("Starter løsere...")
         rapid.apply {
+            createTilgangService(redisStore)
+
             createAareg(mockk(relaxed = true))
             createAkkumulator(redisStore)
             createAltinn(altinnClient)

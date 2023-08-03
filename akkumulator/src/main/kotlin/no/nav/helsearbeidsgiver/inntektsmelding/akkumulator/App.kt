@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.InntektService
-import no.nav.helsearbeidsgiver.inntektsmelding.tilgang.TilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trenger.TrengerService
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -20,8 +19,6 @@ fun main() {
 
 fun RapidsConnection.createAkkumulator(redisStore: IRedisStore): RapidsConnection =
     also {
-        logger.info("Starting TilgangService...")
-        TilgangService(this, redisStore)
         logger.info("Starting TrengerService...")
         TrengerService(this, redisStore)
         logger.info("Starting InntektService...")

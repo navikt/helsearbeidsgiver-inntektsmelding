@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":joark"))
     implementation(project(":notifikasjon"))
     implementation(project(":pdl"))
+    implementation(project(":tilgangservice"))
 
     implementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")

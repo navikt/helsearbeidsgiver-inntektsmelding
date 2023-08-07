@@ -119,6 +119,17 @@ class PdfDokumentTest {
     }
 
     @Test
+    fun `med langt fulltnavn over flere linjer`() {
+        val imLangNavn = im.copy(
+            fulltNavn = "Blå Rød Grønn BlåbærebærekraftsvennligutendørsNavn"
+        )
+        val forventetInnhold = "Blå Rød Grønn${System.lineSeparator()}BlåbærebærekraftsvennligutendørsNavn"
+        val pdfDok = PdfDokument(imLangNavn).export()
+        val pdfTekst = extractTextFromPdf(pdfDok)
+        assert(pdfTekst!!.contains(forventetInnhold))
+    }
+
+    @Test
     fun `med begrunnelse`() {
         writePDF(
             "med_begrunnelse",

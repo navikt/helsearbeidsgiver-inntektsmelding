@@ -112,8 +112,14 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
 
     private fun addAnsatt() {
         addSection("Den ansatte")
-        addLabel("Navn", dokument.fulltNavn, linefeed = false)
+        val topY = y
+        addLabel("Navn", dokument.fulltNavn, linefeed = false, splitLines = true)
+        val afterY = y
+        moveCursorTo(topY)
         addLabel("Personnummer", dokument.identitetsnummer, KOLONNE_TO)
+        moveCursorTo(afterY)
+        moveCursorBy(pdf.bodySize * 2)
+
     }
 
     private fun addArbeidsgiver() {

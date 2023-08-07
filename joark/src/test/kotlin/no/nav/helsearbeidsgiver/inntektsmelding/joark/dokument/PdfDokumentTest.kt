@@ -117,6 +117,7 @@ class PdfDokumentTest {
         val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
         assert(pdfTekst!!.contains(forventetInnhold))
     }
+
     @Test
     fun `med langt fulltnavn over flere linjer`() {
         val imLangNavn = im.copy(

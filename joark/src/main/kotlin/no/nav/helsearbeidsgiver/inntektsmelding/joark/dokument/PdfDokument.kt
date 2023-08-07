@@ -119,7 +119,6 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addLabel("Personnummer", dokument.identitetsnummer, KOLONNE_TO)
         moveCursorTo(afterY)
         moveCursorBy(pdf.bodySize * 2)
-
     }
 
     private fun addArbeidsgiver() {

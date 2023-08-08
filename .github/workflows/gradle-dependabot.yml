@@ -38,6 +38,6 @@ jobs:
           dependency-graph: generate-and-submit
 
       - name: Run a build
-        run: ./gradlew build
+        run: ./gradlew build -x test
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

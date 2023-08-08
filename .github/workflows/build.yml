@@ -96,13 +96,6 @@ jobs:
           distribution: temurin
           cache: gradle
 
-#      - uses: gradle/gradle-build-action@v2.6.1
-#        id: gradle-build
-#        with:
-#            dependency-graph: generate-and-submit
-#            #arguments: --configuration-cache build
-#            arguments: build
-
       - name: Cache gradle wrapper
         uses: actions/cache@v3
         with:

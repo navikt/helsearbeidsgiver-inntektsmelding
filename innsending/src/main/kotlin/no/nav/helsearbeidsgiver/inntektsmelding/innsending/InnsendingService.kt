@@ -75,7 +75,7 @@ class InnsendingService(
         val uuid: String = message[Key.UUID.str].asText()
         when (transaction) {
             Transaction.NEW -> {
-                logger.info("InnsendingService: emitiing behov Virksomhet")
+                logger.info("InnsendingService: emitting behov Virksomhet")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -86,7 +86,7 @@ class InnsendingService(
                         )
                     ).toJson()
                 )
-                logger.info("InnsendingService: emitiing behov ARBEIDSFORHOLD")
+                logger.info("InnsendingService: emitting behov ARBEIDSFORHOLD")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -97,7 +97,7 @@ class InnsendingService(
                         )
                     ).toJson()
                 )
-                logger.info("InnsendingService: emitiing behov FULLT_NAVN")
+                logger.info("InnsendingService: emitting behov FULLT_NAVN")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -113,7 +113,7 @@ class InnsendingService(
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
                     val arbeidstakerRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java)
-                    logger.info("InnsendingService: emitiing behov PERSISTER_IM")
+                    logger.info("InnsendingService: emitting behov PERSISTER_IM")
                     rapidsConnection.publish(
                         JsonMessage.newMessage(
                             mapOf(
@@ -147,7 +147,7 @@ class InnsendingService(
         logger.info("publiserer under clientID $clientId")
         redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
-        logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
+        logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(
@@ -157,7 +157,8 @@ class InnsendingService(
                     DataFelt.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!
                 )
             ).toJson().also {
-                logger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
+                sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
+                logger.info("Submitting INNTEKTSMELDING_MOTTATT")
             }
         )
     }

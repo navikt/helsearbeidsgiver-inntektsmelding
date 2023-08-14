@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -26,9 +27,11 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 fun RouteExtra.trengerRoute() {
     val trengerProducer = TrengerProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
+    val requestLatency = Summary.build().name("trenger_latency_seconds").help("trenger endpoint latency in seconds").register()
 
     route.route(Routes.TRENGER) {
         post {
+            val requestTimer = requestLatency.startTimer()
             runCatching {
                 receive(TrengerRequest.serializer())
             }
@@ -56,6 +59,8 @@ fun RouteExtra.trengerRoute() {
                         logger.info("Fikk timeout for ${request.uuid}")
                         respondInternalServerError(RedisTimeoutResponse(request.uuid), RedisTimeoutResponse.serializer())
                     }
+                }.also {
+                    requestTimer.observeDuration()
                 }
                 .onFailure {
                     logger.error("Klarte ikke lese request.", it)

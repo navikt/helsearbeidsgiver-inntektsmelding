@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
+import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
@@ -16,6 +17,9 @@ class AltinnLøser(
     override val behovType = BehovType.ARBEIDSGIVERE
 
     lateinit var identitetsnummer: Behov.() -> String
+    private val requestLatency = Summary.build().name("altinn_hent_rettighet_organisasjoner_latency_seconds").help(
+        "altinn hentrettighetOrganisasjoner latency in seconds"
+    ).register()
 
     init {
         start()
@@ -25,10 +29,15 @@ class AltinnLøser(
         identitetsnummer = readFn(Key.IDENTITETSNUMMER)
     }
 
-    override fun Behov.løs(): Set<AltinnOrganisasjon> =
+    override fun Behov.løs(): Set<AltinnOrganisasjon> {
+        val requestTimer = requestLatency.startTimer()
         runBlocking {
             altinnClient.hentRettighetOrganisasjoner(identitetsnummer())
+        }.also {
+            requestTimer.observeDuration()
+            return it
         }
+    }
 
     override fun Set<AltinnOrganisasjon>.toJson(): JsonElement =
         toJson(AltinnOrganisasjon.serializer().set())

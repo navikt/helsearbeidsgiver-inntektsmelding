@@ -17,9 +17,10 @@ class AltinnLøser(
     override val behovType = BehovType.ARBEIDSGIVERE
 
     lateinit var identitetsnummer: Behov.() -> String
-    private val requestLatency = Summary.build().name("simba_altinn_hent_rettighet_organisasjoner_latency_seconds").help(
-        "altinn hentrettighetOrganisasjoner latency in seconds"
-    ).register()
+    private val requestLatency = Summary.build()
+        .name("simba_altinn_hent_rettighet_organisasjoner_latency_seconds")
+        .help("altinn hentrettighetOrganisasjoner latency in seconds")
+        .register()
 
     init {
         start()

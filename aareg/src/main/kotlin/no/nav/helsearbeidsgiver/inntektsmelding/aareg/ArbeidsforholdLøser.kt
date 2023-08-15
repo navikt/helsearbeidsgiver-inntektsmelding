@@ -29,7 +29,10 @@ class ArbeidsforholdLøser(
     private val logger = logger()
 
     private val behovType = BehovType.ARBEIDSFORHOLD
-    private val requestLatency = Summary.build().name("simba_aareg_hent_arbeidsforhold_latency_seconds").help("aareg hent arbeidsforhold latency in seconds").register()
+    private val requestLatency = Summary.build()
+        .name("simba_aareg_hent_arbeidsforhold_latency_seconds")
+        .help("aareg hent arbeidsforhold latency in seconds")
+        .register()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {

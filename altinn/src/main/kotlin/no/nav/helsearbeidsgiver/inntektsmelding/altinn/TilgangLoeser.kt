@@ -41,7 +41,10 @@ class TilgangLoeser(
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
-    private val requestLatency = Summary.build().name("simba_altinn_tilgangskontroll_latency_seconds").help("altinn tilgangskontroll latency in seconds").register()
+    private val requestLatency = Summary.build()
+        .name("simba_altinn_tilgangskontroll_latency_seconds")
+        .help("altinn tilgangskontroll latency in seconds")
+        .register()
 
     init {
         River(rapidsConnection).apply {

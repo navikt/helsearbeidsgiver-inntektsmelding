@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.prometheus.client.CollectorRegistry
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -10,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -84,6 +86,10 @@ class DistribusjonLøserTest {
         assertNotNull(melding.get(Key.FAIL.str).asText(), "Skal inneholde feil")
     }
 
+    @AfterEach
+    fun cleanPrometheusMetrics() {
+        CollectorRegistry.defaultRegistry.clear()
+    }
     private fun sendMelding(melding: Map<String, Any>) {
         rapid.reset()
         rapid.sendTestMessage(om.writeValueAsString(melding))

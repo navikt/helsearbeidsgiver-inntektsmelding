@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
+import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -25,6 +26,10 @@ class VirksomhetLøser(
 
     private val logger = logger()
     private val BEHOV = BehovType.VIRKSOMHET
+    private val requestLatency = Summary.build()
+        .name("simba_brreg_hent_virksomhet_latency_seconds")
+        .help("brreg hent virksomhet latency in seconds")
+        .register()
 
     private fun hentVirksomhet(orgnr: String): String {
         if (isPreProd) {
@@ -38,10 +43,12 @@ class VirksomhetLøser(
         }
         return runBlocking {
             val virksomhetNav: String?
+            val requestTimer = requestLatency.startTimer()
             measureTimeMillis {
                 virksomhetNav = brregClient.hentVirksomhetNavn(orgnr)
             }.also {
                 logger.info("BREG execution took $it")
+                requestTimer.observeDuration()
             }
             virksomhetNav
         } ?: throw FantIkkeVirksomhetException(orgnr)

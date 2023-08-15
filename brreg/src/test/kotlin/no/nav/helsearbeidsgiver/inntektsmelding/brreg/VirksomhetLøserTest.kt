@@ -6,6 +6,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.jsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -40,6 +41,7 @@ class VirksomhetLøserTest {
     @BeforeEach
     fun setup() {
         testRapid.reset()
+        CollectorRegistry.defaultRegistry.clear() // prometheus metrics
     }
 
     @Test

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
-import com.fasterxml.jackson.module.kotlin.contains
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe

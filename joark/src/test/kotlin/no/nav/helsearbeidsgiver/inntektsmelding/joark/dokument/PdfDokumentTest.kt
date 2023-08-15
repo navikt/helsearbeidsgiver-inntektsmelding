@@ -22,13 +22,11 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnse
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
 
-@Disabled
 class PdfDokumentTest {
 
     private val dag = LocalDate.of(2022, 12, 24)

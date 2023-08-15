@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class InnsendingProducerTest {
 
@@ -17,6 +18,6 @@ class InnsendingProducerTest {
         every {
             rapidsConnection.publish(TestData.validIdentitetsnummer, any())
         } returns Unit
-        assertNotNull(producer.publish("", GYLDIG_INNSENDING_REQUEST))
+        assertNotNull(producer.publish(UUID.randomUUID(), GYLDIG_INNSENDING_REQUEST))
     }
 }

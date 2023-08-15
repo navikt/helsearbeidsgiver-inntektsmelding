@@ -9,11 +9,12 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -27,12 +28,14 @@ class FulltNavnLøser(
 
     private val logger = logger()
     private val BEHOV = BehovType.FULLT_NAVN
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.demandValue(Key.BEHOV.str, BEHOV.name)
-            it.requireKey(Key.IDENTITETSNUMMER.str)
+
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValues(
+                Key.BEHOV to BEHOV.name
+            )
+            it.requireKeys(Key.IDENTITETSNUMMER)
         }
-    }
 
     override fun onBehov(behov: Behov) {
         measureTimeMillis {
@@ -61,13 +64,6 @@ class FulltNavnLøser(
     override fun onBehov(packet: JsonMessage) {
     }
 
-    private fun publish(løsning: NavnLøsning, packet: JsonMessage) {
-        packet.setLøsning(BEHOV, løsning)
-        val json = packet.toJson()
-        super.publishBehov(packet)
-        sikkerLogger.info("FulltNavnLøser: publiserte: $json")
-    }
-
     private fun publishDatagram(personInformasjon: PersonDato, behov: Behov) {
         val message = JsonMessage.newMessage(
             mapOf(
@@ -90,11 +86,5 @@ class FulltNavnLøser(
         val fødselsdato: LocalDate? = liste?.foedsel?.firstOrNull()?.foedselsdato
         val fulltNavn = liste?.trekkUtFulltNavn() ?: "Ukjent"
         return PersonDato(fulltNavn, fødselsdato)
-    }
-
-    private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this[Key.LØSNING.str] = mapOf(
-            nøkkel.name to data
-        )
     }
 }

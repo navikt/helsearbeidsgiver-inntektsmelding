@@ -7,12 +7,14 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.Jackson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
@@ -27,12 +29,12 @@ class InnsendingServiceIT : EndToEndTest() {
         val forespoerselId = UUID.randomUUID()
         val clientId = UUID.randomUUID()
 
-        forespoerselRepository.lagreForespørsel(forespoerselId.toString(), TestData.validOrgNr)
+        forespoerselRepository.lagreForespoersel(forespoerselId.toString(), TestData.validOrgNr)
 
-        publishMessage(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(EventName.serializer()),
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
-            DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson),
+            DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson).parseJson(),
             DataFelt.ORGNRUNDERENHET to TestData.validOrgNr.toJson(),
             Key.IDENTITETSNUMMER to TestData.validIdentitetsnummer.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson()

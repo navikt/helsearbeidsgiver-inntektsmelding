@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEnd
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Sykefravaer
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.jupiter.api.Disabled
@@ -114,8 +115,19 @@ class PdfDokumentTest {
         val imLangNavn = im.copy(
             virksomhetNavn = "Blå Rød Grønn Blåbærebærekraftsvennligutendørsbedrift AS"
         )
-        val forventetInnhold = "Blå Rød Grønn\nBlåbærebærekraftsvennligutendørsbedrift\nAS"
+        val forventetInnhold = "Blå Rød Grønn${System.lineSeparator()}Blåbærebærekraftsvennligutendørsbedrift${System.lineSeparator()}AS"
         val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
+        assert(pdfTekst!!.contains(forventetInnhold))
+    }
+
+    @Test
+    fun `med langt fulltnavn over flere linjer`() {
+        val imLangNavn = im.copy(
+            fulltNavn = "Blå Rød Grønn BlåbærebærekraftsvennligutendørsNavn"
+        )
+        val forventetInnhold = "Blå Rød Grønn${System.lineSeparator()}BlåbærebærekraftsvennligutendørsNavn"
+        val pdfDok = PdfDokument(imLangNavn).export()
+        val pdfTekst = extractTextFromPdf(pdfDok)
         assert(pdfTekst!!.contains(forventetInnhold))
     }
 

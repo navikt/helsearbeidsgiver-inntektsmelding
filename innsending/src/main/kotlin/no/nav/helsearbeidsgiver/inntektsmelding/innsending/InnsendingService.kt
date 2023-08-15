@@ -29,7 +29,20 @@ class InnsendingService(
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
-        withDataKanal { StatefullDataKanal(DataFelter.values().map { it.str }.toTypedArray(), event, it, rapidsConnection, redisStore) }
+        withDataKanal {
+            StatefullDataKanal(
+                arrayOf(
+                    DataFelt.VIRKSOMHET.str,
+                    DataFelt.ARBEIDSFORHOLD.str,
+                    DataFelt.INNTEKTSMELDING_DOKUMENT.str,
+                    DataFelt.ARBEIDSTAKER_INFORMASJON.str
+                ),
+                event,
+                it,
+                rapidsConnection,
+                redisStore
+            )
+        }
         withEventListener {
             StatefullEventListener(
                 redisStore,
@@ -43,11 +56,11 @@ class InnsendingService(
 
     override fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = "${feil.uuid}${DataFelter.VIRKSOMHET}"
+            val virksomhetKey = "${feil.uuid}${DataFelt.VIRKSOMHET}"
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
             return Transaction.IN_PROGRESS
         } else if (feil.behov == BehovType.FULLT_NAVN) {
-            val fulltNavnKey = "${feil.uuid}${DataFelter.ARBEIDSTAKER_INFORMASJON.str}"
+            val fulltNavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
             redisStore.set(fulltNavnKey, customObjectMapper().writeValueAsString(PersonDato("Ukjent person", null)))
             return Transaction.IN_PROGRESS
         }
@@ -62,7 +75,7 @@ class InnsendingService(
         val uuid: String = message[Key.UUID.str].asText()
         when (transaction) {
             Transaction.NEW -> {
-                logger.info("InnsendingService: emitiing behov Virksomhet")
+                logger.info("InnsendingService: emitting behov Virksomhet")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -73,18 +86,18 @@ class InnsendingService(
                         )
                     ).toJson()
                 )
-                logger.info("InnsendingService: emitiing behov ARBEIDSFORHOLD")
+                logger.info("InnsendingService: emitting behov ARBEIDSFORHOLD")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
                             Key.EVENT_NAME.str to event.name,
-                            Key.BEHOV.str to listOf(BehovType.ARBEIDSFORHOLD.name),
+                            Key.BEHOV.str to BehovType.ARBEIDSFORHOLD.name,
                             Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
                             Key.UUID.str to uuid
                         )
                     ).toJson()
                 )
-                logger.info("InnsendingService: emitiing behov FULLT_NAVN")
+                logger.info("InnsendingService: emitting behov FULLT_NAVN")
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -96,15 +109,16 @@ class InnsendingService(
                     ).toJson()
                 )
             }
+
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
                     val arbeidstakerRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java)
-                    logger.info("InnsendingService: emitiing behov PERSISTER_IM")
+                    logger.info("InnsendingService: emitting behov PERSISTER_IM")
                     rapidsConnection.publish(
                         JsonMessage.newMessage(
                             mapOf(
                                 Key.EVENT_NAME.str to event.name,
-                                Key.BEHOV.str to listOf(BehovType.PERSISTER_IM.name),
+                                Key.BEHOV.str to BehovType.PERSISTER_IM.name,
                                 DataFelt.VIRKSOMHET.str to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet"),
                                 DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
                                     arbeidstakerRedis ?: PersonDato(
@@ -120,6 +134,7 @@ class InnsendingService(
                     )
                 }
             }
+
             else -> {
                 logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $uuid")
             }
@@ -132,7 +147,7 @@ class InnsendingService(
         logger.info("publiserer under clientID $clientId")
         redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
-        logger.info("InnsendingService: emitiing event INNTEKTSMELDING_MOTTATT")
+        logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(
@@ -142,10 +157,12 @@ class InnsendingService(
                     DataFelt.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!
                 )
             ).toJson().also {
-                logger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
+                sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT $it")
+                logger.info("Submitting INNTEKTSMELDING_MOTTATT")
             }
         )
     }
+
     private fun step1data(uuid: String): Array<RedisKey> = arrayOf(
         RedisKey.of(uuid, DataFelt.VIRKSOMHET),
         RedisKey.of(uuid, DataFelt.ARBEIDSFORHOLD),

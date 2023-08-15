@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
@@ -11,21 +10,29 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
+import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.db.Database
+import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.PriProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.buildApp
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mapHikariConfigByContainer
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
+import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
+import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvart
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
+import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
+import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
+import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
+import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerService
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -45,8 +52,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     private val rapid by lazy {
         RapidApplication.create(
             mapOf(
-                "KAFKA_RAPID_TOPIC" to TOPIC,
-                "KAFKA_CREATE_TOPICS" to TOPIC,
+                "KAFKA_RAPID_TOPIC" to topic,
+                "KAFKA_CREATE_TOPICS" to topic,
                 "RAPID_APP_NAME" to "HAG",
                 "KAFKA_BOOTSTRAP_SERVERS" to kafkaContainer.bootstrapServers,
                 "KAFKA_CONSUMER_GROUP_ID" to "HAG"
@@ -56,9 +63,13 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     private val database by lazy {
         println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
-        postgreSQLContainer.let(::mapHikariConfigByContainer)
+        postgreSQLContainer.toHikariConfig()
             .let(::Database)
             .also(Database::migrate)
+    }
+
+    val redisStore by lazy {
+        RedisStore(redisContainer.redisURI)
     }
 
     val messages = Messages()
@@ -70,10 +81,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
-    lateinit var redisStore: RedisStore
-    val priProducer = mockk<PriProducer>()
-
-    private val om = customObjectMapper()
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -83,25 +90,29 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        redisStore = RedisStore(redisContainer.redisURI)
+        // Start løsere
+        logger.info("Starter løsere...")
+        rapid.apply {
+            createInnsending(redisStore)
+            createInntektService(redisStore)
+            createTilgangService(redisStore)
+            createTrengerService(redisStore)
 
-        rapid.buildApp(
-            redisStore,
-            database,
-            imRepository,
-            forespoerselRepository,
-            mockk(relaxed = true),
-            mockk(relaxed = true),
-            mockk(relaxed = true),
-            dokarkivClient,
-            mockk(relaxed = true),
-            arbeidsgiverNotifikasjonKlient,
-            NOTIFIKASJON_LINK,
-            priProducer,
-            altinnClient,
-            mockk(relaxed = true)
-        )
-        rapid.register(this)
+            createAareg(mockk(relaxed = true))
+            createAltinn(altinnClient)
+            createBrreg(mockk(relaxed = true), true)
+            createDb(database, imRepository, forespoerselRepository)
+            createDistribusjon(mockk(relaxed = true))
+            createForespoerselBesvart(mockk(relaxed = true))
+            createForespoerselMottatt(mockk(relaxed = true))
+            createHelsebro(mockk(relaxed = true))
+            createInntekt(mockk(relaxed = true))
+            createJoark(dokarkivClient)
+            createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)
+            createPdl(mockk(relaxed = true))
+        }
+            .register(this)
+
         thread = thread {
             rapid.start()
         }
@@ -113,42 +124,40 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         messages.add(message)
     }
 
-    fun filter(event: EventName, behovType: BehovType? = null, datafelt: DataFelt? = null, løsning: Boolean = false): List<JsonNode> =
-        messages.filter(event)
-            .let {
-                if (behovType != null) {
-                    it.filter(behovType, løsning)
-                } else {
-                    it
-                }
-            }.let {
-                if (datafelt != null) {
-                    it.filter(datafelt)
-                } else {
-                    it
-                }
-            }
-            .first()
-            .toJsonNode()
-            .let(::listOf)
-
     @AfterAll
     fun afterAllEndToEnd() {
+        // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
         rapid.stop()
         thread.interrupt()
         logger.info("Stopped")
     }
 
-    fun publish(value: Any) {
-        val json = om.writeValueAsString(value)
-        println("Publiserer melding: $json")
-        rapid.publish(json)
-    }
-
-    fun publishMessage(vararg messageFields: Pair<IKey, JsonElement>) {
+    fun publish(vararg messageFields: Pair<IKey, JsonElement>) {
         rapid.publish(*messageFields).also {
             println("Publiserte melding: $it")
         }
     }
+
+    /** Avslutter venting dersom meldinger finnes og ingen nye ankommer i løpet av 1500 ms. */
+    fun waitForMessages(millis: Long) {
+        val startTime = System.nanoTime()
+
+        var messageAmount = 0
+
+        while (messageAmount == 0 || messageAmount != messages.all().size) {
+            val elapsedTime = (System.nanoTime() - startTime) / 1_000_000
+            if (elapsedTime > millis) {
+                throw MessagesWaitLimitException(millis)
+            }
+
+            messageAmount = messages.all().size
+
+            Thread.sleep(1500)
+        }
+    }
 }
+
+private class MessagesWaitLimitException(millis: Long) : RuntimeException(
+    "Tid brukt på å vente på meldinger overskred grensen på $millis ms."
+)

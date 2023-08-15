@@ -8,14 +8,14 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
-import no.nav.helsearbeidsgiver.felles.ArbeidsforholdLøsning
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Data
 import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
@@ -29,33 +29,25 @@ class ArbeidsforholdLøser(
 
     private val behovType = BehovType.ARBEIDSFORHOLD
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.demandAll(Key.BEHOV.str, behovType)
-            it.requireKey(
-                Key.ID.str,
-                Key.IDENTITETSNUMMER.str
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValues(
+                Key.BEHOV to behovType.name
+            )
+            it.requireKeys(
+                Key.IDENTITETSNUMMER,
+                Key.UUID
             )
         }
-    }
 
     override fun onBehov(packet: JsonMessage) {
         measureTimeMillis {
-            val id = packet.value(Key.ID).asText()
+            val transaksjonId = packet.value(Key.UUID).asText()
             val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
 
-            logger.info("Løser behov $behovType med id $id")
+            logger.info("Løser behov $behovType med transaksjon-ID $transaksjonId")
 
-            val arbeidsforhold = hentArbeidsforhold(identitetsnummer, id)
-
-            val løsning = if (arbeidsforhold != null) {
-                ArbeidsforholdLøsning(arbeidsforhold)
-            } else {
-                ArbeidsforholdLøsning(error = Feilmelding("Klarte ikke hente arbeidsforhold"))
-            }
-
-            packet.setLøsning(behovType, løsning)
-            super.publishBehov(packet)
+            val arbeidsforhold = hentArbeidsforhold(identitetsnummer, transaksjonId)
 
             if (arbeidsforhold != null) {
                 publishDatagram(Data(arbeidsforhold), packet)
@@ -98,10 +90,4 @@ class ArbeidsforholdLøser(
             ?.also {
                 sikkerLogger.info("Fant arbeidsforhold $it for $fnr")
             }
-}
-
-private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-    this[Key.LØSNING.str] = mapOf(
-        nøkkel.name to data
-    )
 }

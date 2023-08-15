@@ -29,7 +29,7 @@ class KvitteringService(
         logger.info("Starter kvitteringservice")
         withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID.str), this, rapidsConnection) }
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
-        withDataKanal { StatefullDataKanal(arrayOf(DataFelter.INNTEKTSMELDING_DOKUMENT.str), event, this, rapidsConnection, redisStore) }
+        withDataKanal { StatefullDataKanal(arrayOf(DataFelt.INNTEKTSMELDING_DOKUMENT.str), event, this, rapidsConnection, redisStore) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -39,7 +39,7 @@ class KvitteringService(
             logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
             val msg = JsonMessage.newMessage(
                 mapOf(
-                    Key.BEHOV.str to listOf(BehovType.HENT_PERSISTERT_IM.name),
+                    Key.BEHOV.str to BehovType.HENT_PERSISTERT_IM.name,
                     Key.EVENT_NAME.str to event.name,
                     Key.UUID.str to transactionId,
                     Key.FORESPOERSEL_ID.str to forespoerselId

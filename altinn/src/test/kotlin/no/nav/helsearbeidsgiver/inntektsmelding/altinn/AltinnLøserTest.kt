@@ -11,12 +11,12 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest
 import no.nav.helsearbeidsgiver.felles.test.loeser.LøserTest.LøserAnswer.Companion.toLøserAnswer
-import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class AltinnLøserTest : LøserTest() {
     private val mockAltinnClient = mockk<AltinnClient> {
@@ -31,13 +31,13 @@ class AltinnLøserTest : LøserTest() {
 
         val expectedAnswer = LøserAnswer(
             behovType = altinnLøser.behovType,
-            initiateId = MockUuid.uuid,
+            initiateId = UUID.randomUUID(),
             løsning = mockAltinnOrganisasjonSet().toLøsningSuccess()
         )
 
         testRapid.sendJson(
             Key.BEHOV to expectedAnswer.behovType.let(::listOf).toJson(BehovType.serializer()),
-            Key.ID to expectedAnswer.initiateId.toJson(),
+            Key.INITIATE_ID to expectedAnswer.initiateId.toJson(),
             Key.IDENTITETSNUMMER to mockId.toJson()
         )
 

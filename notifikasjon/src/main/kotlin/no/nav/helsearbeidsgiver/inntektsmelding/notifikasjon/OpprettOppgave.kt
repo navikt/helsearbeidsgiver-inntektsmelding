@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import java.util.UUID
 
 class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
@@ -52,18 +53,18 @@ class OpprettOppgaveLøser(
     private fun opprettOppgave(
         forespørselId: String,
         orgnr: String
-    ): String { // ktlint-disable trailing-comma-on-declaration-site
+    ): String {
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
-                forespørselId,
-                "$linkUrl/im-dialog/$forespørselId",
-                "Send inn inntektsmelding",
-                orgnr,
-                "Inntektsmelding",
-                null,
-                forespørselId,
-                "Nav trenger inntektsmelding",
-                "En av dine ansatte har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
+                eksternId = forespørselId,
+                lenke = "$linkUrl/im-dialog/$forespørselId",
+                tekst = "Send inn inntektsmelding",
+                virksomhetsnummer = orgnr,
+                merkelapp = "Inntektsmelding",
+                tidspunkt = null,
+                grupperingsid = forespørselId,
+                varslingTittel = "Nav trenger inntektsmelding",
+                varslingInnhold = "En av dine ansatte har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
                     "søknaden. Logg inn på Min side – arbeidsgiver på nav.no"
             )
         }
@@ -77,7 +78,7 @@ class OpprettOppgaveLøser(
         }
 
     override fun onBehov(packet: JsonMessage) {
-        sikkerLogger.info("OpprettOppgaveLøser mottok pakke: ${packet.toJson()}")
+        sikkerLogger.info("OpprettOppgaveLøser mottok pakke:\n${packet.toPretty()}")
         val forespørselId = packet[Key.FORESPOERSEL_ID.str]
         if (forespørselId.isMissingOrNull() || forespørselId.asText().isEmpty()) {
             publishFail(packet.createFail("Mangler forespørselId"))
@@ -96,6 +97,6 @@ class OpprettOppgaveLøser(
             )
         )
         publishBehov(message)
-        sikkerLogger.info("OpprettOppgaveLøser publiserte med json: $message")
+        sikkerLogger.info("OpprettOppgaveLøser publiserte med json: ${message.toPretty()}")
     }
 }

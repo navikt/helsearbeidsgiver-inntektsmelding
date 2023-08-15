@@ -20,3 +20,13 @@ private val objectMapper = customObjectMapper()
 
 fun JsonElement.toJsonNode(): JsonNode =
     toString().let(objectMapper::readTree)
+
+object Jackson {
+    val objectMapper = customObjectMapper()
+
+    inline fun <reified T : Any> fromJson(json: String): T =
+        objectMapper.readValue(json, T::class.java)
+
+    fun <T : Any> toJson(value: T): String =
+        objectMapper.writeValueAsString(value)
+}

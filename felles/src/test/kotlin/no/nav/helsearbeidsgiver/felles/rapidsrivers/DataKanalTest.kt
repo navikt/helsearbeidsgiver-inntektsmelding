@@ -106,7 +106,7 @@ class DataKanalTest {
         val uuid = UUID.randomUUID().toString()
         testRapid.sendTestMessage(
             JsonMessage.newMessage(
-                mapOf(
+                mapOf<String, Any>(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
                     Key.UUID.str to uuid,
                     Key.DATA.str to "",

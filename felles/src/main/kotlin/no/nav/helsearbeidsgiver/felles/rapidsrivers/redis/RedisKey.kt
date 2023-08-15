@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.utils.simpleName
 
 sealed class RedisKey(open val uuid: String) {
     abstract override fun toString(): String
@@ -47,6 +48,6 @@ private data class ClientKey(override val uuid: String) : RedisKey(uuid) {
 
 private data class FeilKey(override val uuid: String, val feilMeldingClass: Feilmelding) : RedisKey(uuid) {
     override fun toString(): String {
-        return uuid + feilMeldingClass.javaClass.simpleName
+        return uuid + feilMeldingClass.simpleName()
     }
 }

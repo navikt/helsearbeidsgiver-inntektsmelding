@@ -5,11 +5,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import java.time.LocalDate
 import java.util.UUID
 
 @Serializable
@@ -25,11 +27,14 @@ data class ForespoerselSvar(
 
     @Serializable
     data class Suksess(
+        val type: ForespoerselType,
         val orgnr: String,
         val fnr: String,
+        val skjaeringstidspunkt: LocalDate?,
         val sykmeldingsperioder: List<Periode>,
         val egenmeldingsperioder: List<Periode>,
-        val forespurtData: List<ForespurtData>
+        val forespurtData: ForespurtData,
+        val erBesvart: Boolean
     )
 
     enum class Feil {

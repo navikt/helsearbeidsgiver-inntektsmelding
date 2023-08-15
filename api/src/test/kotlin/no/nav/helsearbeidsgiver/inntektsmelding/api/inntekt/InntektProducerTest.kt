@@ -1,34 +1,42 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.maps.shouldContainAll
+import io.mockk.every
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.test.date.januar
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
-import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import java.util.UUID
 
 class InntektProducerTest : FunSpec({
     val testRapid = TestRapid()
     val inntektProducer = InntektProducer(testRapid)
 
-    test("skal sende dato for inntekt i neste behov") {
-        val expectedDate = 1.januar
+    test("Publiserer melding på forventet format") {
+        val expectedClientId = UUID.randomUUID()
+        val request = InntektRequest(UUID.randomUUID(), 18.januar)
 
-        inntektProducer.publish(
-            InntektRequest(UUID.randomUUID(), expectedDate)
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns expectedClientId
+
+            inntektProducer.publish(request)
+        }
+
+        val publisert = testRapid.firstMessage().toMap()
+
+        publisert shouldContainAll mapOf(
+            Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
+            Key.CLIENT_ID to expectedClientId.toJson(),
+            DataFelt.FORESPOERSEL_ID to request.forespoerselId.toJson(),
+            DataFelt.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson()
         )
-
-        val publisert = testRapid.firstMessage().fromJsonMapOnlyKeys()
-
-        val forwardedDate = publisert[Key.BOOMERANG]
-            ?.fromJsonMapOnlyKeys()
-            ?.get(Key.INNTEKT_DATO)
-            ?.fromJson(LocalDateSerializer)
-
-        forwardedDate shouldBe expectedDate
     }
 })

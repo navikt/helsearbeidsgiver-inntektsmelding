@@ -10,10 +10,10 @@ import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.VirksomhetLøsning
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
 
@@ -47,13 +47,16 @@ class VirksomhetLøser(
         } ?: throw FantIkkeVirksomhetException(orgnr)
     }
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.demandValue(Key.BEHOV.str, BEHOV.name)
-            it.requireKey(DataFelt.ORGNRUNDERENHET.str)
-            it.requireKey(Key.ID.str)
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValues(
+                Key.BEHOV to BEHOV.name
+            )
+            it.requireKeys(
+                DataFelt.ORGNRUNDERENHET,
+                Key.UUID
+            )
         }
-    }
 
     override fun onBehov(behov: Behov) {
         logger.info("Løser behov $BEHOV med uuid ${behov.uuid()}")
@@ -73,16 +76,5 @@ class VirksomhetLøser(
     }
 
     override fun onBehov(packet: JsonMessage) {
-    }
-
-    private fun publiserLøsning(virksomhetLøsning: VirksomhetLøsning, packet: JsonMessage) {
-        packet.setLøsning(BEHOV, virksomhetLøsning)
-        super.publishBehov(packet)
-    }
-
-    private fun JsonMessage.setLøsning(nøkkel: BehovType, data: Any) {
-        this[Key.LØSNING.str] = mapOf(
-            nøkkel.name to data
-        )
     }
 }

@@ -75,7 +75,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
 
         foresporselRepo.lagreForespoersel(UUID, ORGNR)
-        inntektsmeldingRepo.lagreInntektsmeldng(UUID, DOK_1)
+        inntektsmeldingRepo.lagreInntektsmelding(UUID, DOK_1)
 
         transaction {
             InntektsmeldingEntitet.select {
@@ -99,7 +99,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val DOK_1 = INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT
 
         foresporselRepo.lagreForespoersel(UUID, ORGNR)
-        inntektsmeldingRepo.lagreInntektsmeldng(UUID, DOK_1)
+        inntektsmeldingRepo.lagreInntektsmelding(UUID, DOK_1)
 
         transaction {
             InntektsmeldingEntitet.select {
@@ -121,8 +121,8 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val JOURNALPOST_1 = "jp-1"
 
         foresporselRepo.lagreForespoersel(UUID, ORGNR)
-        inntektsmeldingRepo.lagreInntektsmeldng(UUID, DOK_1)
-        inntektsmeldingRepo.oppdaterJournapostId(JOURNALPOST_1, UUID)
+        inntektsmeldingRepo.lagreInntektsmelding(UUID, DOK_1)
+        inntektsmeldingRepo.oppdaterJournalpostId(JOURNALPOST_1, UUID)
         val record = testRepo.hentRecordFraInntektsmelding(UUID)
         record.shouldNotBeNull()
         val journalPostId = record.getOrNull(InntektsmeldingEntitet.journalpostId)

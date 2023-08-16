@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
-import io.kotest.matchers.be
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForrigeInntekt

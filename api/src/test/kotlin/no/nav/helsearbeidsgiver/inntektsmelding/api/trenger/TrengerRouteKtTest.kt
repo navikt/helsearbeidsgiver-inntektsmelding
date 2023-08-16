@@ -276,7 +276,7 @@ private fun ForslagInntekt.hardcodedJson(): String =
             {
                 "type": "ForslagInntektGrunnlag",
                 "beregningsmaaneder": [${beregningsmaaneder.joinToString { yearMonth -> "\"$yearMonth\"" }}]
-                ${forrigeInntekt?.let {  ",\"forrigeInntekt\": ${it.hardcodedJson()}"} ?: ""}
+                ${forrigeInntekt?.let { ",\"forrigeInntekt\": ${it.hardcodedJson()}"} ?: ""}
             }
             """
 

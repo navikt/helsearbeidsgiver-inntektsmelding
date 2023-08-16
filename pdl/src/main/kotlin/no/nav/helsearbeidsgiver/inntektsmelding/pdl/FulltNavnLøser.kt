@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
+import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -27,6 +28,10 @@ class FulltNavnLøser(
 
     private val logger = logger()
     private val BEHOV = BehovType.FULLT_NAVN
+    private val requestLatency = Summary.build()
+        .name("simba_pdl_latency_seconds")
+        .help("pdl kall latency in seconds")
+        .register()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
@@ -43,6 +48,7 @@ class FulltNavnLøser(
                 ?: " kan ikke finne uuid/forespørselID"
             logger.info("Henter navn for $idtext")
             val identitetsnummer = packet[Key.IDENTITETSNUMMER.str].asText()
+            val requestTimer = requestLatency.startTimer()
             try {
                 val info = runBlocking {
                     hentPersonInfo(identitetsnummer)
@@ -54,6 +60,8 @@ class FulltNavnLøser(
                 logger.error("Klarte ikke hente navn for $idtext")
                 sikkerLogger.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for $idtext", ex)
                 publishFail(packet.createFail("Klarte ikke hente navn", behovType = BehovType.FULLT_NAVN))
+            } finally {
+                requestTimer.observeDuration()
             }
         }.also {
             logger.info("FullNavn løser took $it")

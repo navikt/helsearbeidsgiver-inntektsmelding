@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import com.fasterxml.jackson.databind.JsonNode
+import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -31,6 +32,10 @@ class JournalfoerInntektsmeldingLoeser(
     private val JOURNALFOER_BEHOV = BehovType.JOURNALFOER
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
+    private val requestLatency = Summary.build()
+        .name("simba_joark_journalfoer_im_latency_seconds")
+        .help("journaloer inntektsmelding latency in seconds")
+        .register()
 
     private fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
         try {
@@ -75,7 +80,7 @@ class JournalfoerInntektsmeldingLoeser(
         sikkerLogger.info("Bruker inntektsinformasjon $inntektsmelding")
 
         logger.info("Prøver å opprette og ferdigstille journalpost for $uuid...")
-
+        val requestTimer = requestLatency.startTimer()
         val response = runBlocking {
             dokarkivClient.opprettOgFerdigstillJournalpost(
                 tittel = "Inntektsmelding",
@@ -89,6 +94,8 @@ class JournalfoerInntektsmeldingLoeser(
                 eksternReferanseId = "ARI-$uuid",
                 callId = "callId_$uuid"
             )
+        }.also {
+            requestTimer.observeDuration()
         }
 
         if (response.journalpostFerdigstilt) {

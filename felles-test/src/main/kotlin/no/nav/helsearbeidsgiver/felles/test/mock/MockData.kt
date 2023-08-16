@@ -1,7 +1,9 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
+import io.kotest.matchers.be
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
+import no.nav.helsearbeidsgiver.felles.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
@@ -24,6 +26,43 @@ fun mockForespurtData(): ForespurtData =
                     oktober(2017),
                     november(2017),
                     desember(2017)
+                )
+            )
+        ),
+        refusjon = ForespurtData.Refusjon(
+            paakrevd = true,
+            forslag = ForslagRefusjon(
+                perioder = listOf(
+                    ForslagRefusjon.Periode(
+                        fom = 10.januar(2017),
+                        beloep = 10.48
+                    ),
+                    ForslagRefusjon.Periode(
+                        fom = 2.februar(2017),
+                        beloep = 98.26
+                    )
+                ),
+                opphoersdato = 26.februar(2017)
+            )
+        )
+    )
+fun mockForespurtDataMedForrigeInntekt(): ForespurtData =
+    ForespurtData(
+        arbeidsgiverperiode = ForespurtData.Arbeidsgiverperiode(
+            paakrevd = false
+        ),
+        inntekt = ForespurtData.Inntekt(
+            paakrevd = true,
+            forslag = ForslagInntekt.Grunnlag(
+                beregningsmaaneder = listOf(
+                    oktober(2017),
+                    november(2017),
+                    desember(2017)
+                ),
+                forrigeInntekt = ForrigeInntekt(
+                    skjæringstidspunkt = 1.januar.minusYears(1),
+                    kilde = "INNTEKTSMELDING",
+                    beløp = 10000.0
                 )
             )
         ),

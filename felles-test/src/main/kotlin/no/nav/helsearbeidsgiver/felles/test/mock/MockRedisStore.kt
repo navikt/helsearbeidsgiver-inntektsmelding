@@ -12,7 +12,7 @@ class MockRedisStore : IRedisStore {
     }
 
     override fun set(key: RedisKey, value: String, ttl: Long) {
-        TODO("Not yet implemented")
+        store.put(key.toString(), value)
     }
 
     override fun set(key: RedisKey, value: JsonNode, ttl: Long) {

@@ -2,19 +2,18 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
+import com.fasterxml.jackson.module.kotlin.contains
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.jsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -58,8 +57,6 @@ class VirksomhetLøserTest {
         val publisert = testRapid.firstMessage().toMap()
 
         publisert[Key.FAIL]
-            .shouldNotBeNull()
-            .jsonObject[Fail::feilmelding.name]
             .shouldNotBeNull()
             .fromJson(String.serializer())
             .shouldBe("Ugyldig virksomhet $ORGNR")

@@ -14,8 +14,9 @@ import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import java.lang.IllegalArgumentException
 
 class Behov(
-    private val event: EventName,
-    private val behov: BehovType,
+    val event: EventName,
+    val behov: BehovType,
+    val forespoerselId: String?,
     private val jsonMessage: JsonMessage
 ) : Message, TxMessage {
 
@@ -31,14 +32,31 @@ class Behov(
             it.rejectKey(Key.DATA.str)
             it.rejectKey(Key.FAIL.str)
             it.interestedIn(Key.UUID.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
 
-        fun create(event: EventName, behov: BehovType, map: Map<IKey, Any> = emptyMap()): Behov {
-            return Behov(event, behov, JsonMessage.newMessage(event.name, mapOf(Key.BEHOV.str to behov.name) + map.mapKeys { it.key.str }))
+        fun create(event: EventName, behov: BehovType, forespoerselId: String, map: Map<IKey, Any> = emptyMap()): Behov {
+            return Behov(
+                event,
+                behov,
+                forespoerselId,
+                JsonMessage.newMessage(
+                    event.name,
+                    mapOf(
+                        Key.BEHOV.str to behov.name,
+                        Key.FORESPOERSEL_ID.str to forespoerselId
+                    ) + map.mapKeys { it.key.str }
+                )
+            )
         }
 
         fun create(jsonMessage: JsonMessage): Behov {
-            return Behov(EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText()), BehovType.valueOf(jsonMessage[Key.BEHOV.str].asText()), jsonMessage)
+            return Behov(
+                EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText()),
+                BehovType.valueOf(jsonMessage[Key.BEHOV.str].asText()),
+                jsonMessage[Key.FORESPOERSEL_ID.str].asText(),
+                jsonMessage
+            )
         }
     }
 
@@ -79,16 +97,16 @@ class Behov(
     }
 
     fun createBehov(behov: BehovType, data: Map<IKey, Any>): Behov {
-        val forespoerselID = this[Key.FORESPOERSEL_ID]
         return Behov(
             this.event,
             behov,
+            forespoerselId,
             JsonMessage.newMessage(
                 event.name,
                 mapOfNotNull(
                     Key.BEHOV.str to behov.name,
                     Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
-                    Key.FORESPOERSEL_ID.str to forespoerselID
+                    Key.FORESPOERSEL_ID.str to this.forespoerselId
                 ) + data.mapKeys { it.key.str }
             )
         )
@@ -97,6 +115,6 @@ class Behov(
     override fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
 
     override fun toJsonMessage(): JsonMessage {
-        return jsonMessage
+        return this.jsonMessage
     }
 }

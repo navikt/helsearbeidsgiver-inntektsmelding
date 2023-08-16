@@ -2,8 +2,8 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import java.lang.IllegalArgumentException
 
-class Event(val event: EventName, private val jsonMessage: JsonMessage, val clientId: String? = null) : Message, TxMessage {
+class Event(val event: EventName, val forespoerselId: String? = null, private val jsonMessage: JsonMessage, val clientId: String? = null) : Message, TxMessage {
 
     @Transient var uuid: String? = null
 
@@ -35,13 +35,14 @@ class Event(val event: EventName, private val jsonMessage: JsonMessage, val clie
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
 
-        fun create(event: EventName, map: Map<IKey, Any> = emptyMap()): Event {
-            return Event(event, JsonMessage.newMessage(event.name, map.mapKeys { it.key.str }))
+        fun create(event: EventName, forespoerselId: String, map: Map<IKey, Any> = emptyMap()): Event {
+            return Event(event, forespoerselId, JsonMessage.newMessage(event.name, map.mapKeys { it.key.str }))
         }
         fun create(jsonMessage: JsonMessage): Event {
-            val event = EventName.valueOf(jsonMessage[Key.EVENT_NAME.name].asText())
-            val clientID = jsonMessage[Key.CLIENT_ID.str]?.asText()
-            return Event(event, jsonMessage, clientID)
+            val event = EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText())
+            val clientID = jsonMessage[Key.CLIENT_ID.str].takeUnless { it.isMissingOrNull() }?.asText()
+            val forespoerselId = jsonMessage[Key.FORESPOERSEL_ID.str].takeUnless { it.isMissingOrNull() }?.asText()
+            return Event(event, forespoerselId, jsonMessage, clientID)
         }
     }
 
@@ -53,10 +54,11 @@ class Event(val event: EventName, private val jsonMessage: JsonMessage, val clie
     }
 
     fun createBehov(behov: BehovType, map: Map<DataFelt, Any>): Behov {
-        val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str]
+        val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str].takeUnless { it.isMissingOrNull() }
         return Behov(
             event,
             behov,
+            this.forespoerselId,
             JsonMessage.newMessage(
                 event.name,
                 mapOfNotNull(
@@ -71,6 +73,6 @@ class Event(val event: EventName, private val jsonMessage: JsonMessage, val clie
     override fun uuid() = this.uuid.orEmpty()
 
     override fun toJsonMessage(): JsonMessage {
-        return JsonMessage(this.jsonMessage.toJson(), MessageProblems(this.jsonMessage.toJson())) // jsonMessage
+        return this.jsonMessage
     }
 }

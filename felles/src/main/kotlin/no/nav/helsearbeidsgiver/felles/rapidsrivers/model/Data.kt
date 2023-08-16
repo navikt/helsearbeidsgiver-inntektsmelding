@@ -45,6 +45,6 @@ class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message
     override fun uuid(): String = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
 
     override fun toJsonMessage(): JsonMessage {
-        return jsonMessage
+        return this.jsonMessage
     }
 }

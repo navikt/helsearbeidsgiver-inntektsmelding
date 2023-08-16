@@ -78,6 +78,6 @@ class Fail(
     }
 
     override fun toJsonMessage(): JsonMessage {
-        return jsonMessage
+        return this.jsonMessage
     }
 }

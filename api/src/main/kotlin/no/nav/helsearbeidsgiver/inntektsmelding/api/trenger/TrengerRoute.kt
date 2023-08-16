@@ -27,7 +27,10 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 fun RouteExtra.trengerRoute() {
     val trengerProducer = TrengerProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
-    val requestLatency = Summary.build().name("trenger_latency_seconds").help("trenger endpoint latency in seconds").register()
+    val requestLatency = Summary.build()
+        .name("simba_trenger_latency_seconds")
+        .help("trenger endpoint latency in seconds")
+        .register()
 
     route.route(Routes.TRENGER) {
         post {

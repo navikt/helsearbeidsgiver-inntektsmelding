@@ -37,7 +37,10 @@ private const val EMPTY_PAYLOAD = "{}"
 fun RouteExtra.kvitteringRoute() {
     val kvitteringProducer = KvitteringProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
-    val requestLatency = Summary.build().name("kvittering_latency_seconds").help("kvittering endpoint latency in seconds").register()
+    val requestLatency = Summary.build()
+        .name("simba_kvittering_latency_seconds")
+        .help("kvittering endpoint latency in seconds")
+        .register()
 
     route.route(Routes.KVITTERING) {
         get {

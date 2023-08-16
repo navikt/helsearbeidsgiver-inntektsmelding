@@ -26,11 +26,7 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
 
     private fun configure(river: River): River {
         return river.validate {
-            it.demandKey(Key.EVENT_NAME.str)
-            it.demandKey(Key.BEHOV.str)
-            it.rejectKey(Key.LØSNING.str)
-            it.interestedIn(Key.UUID.str)
-            it.interestedIn(Key.FORESPOERSEL_ID.str)
+            Behov.packetValidator.validate(it)
         }
     }
 

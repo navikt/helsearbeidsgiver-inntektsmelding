@@ -38,7 +38,10 @@ data class ForespurtData(
 sealed class ForslagInntekt {
     @Serializable
     @SerialName("ForslagInntektGrunnlag")
-    data class Grunnlag(val beregningsmaaneder: List<YearMonth>) : ForslagInntekt()
+    data class Grunnlag(
+        val beregningsmaaneder: List<YearMonth>,
+        val forrigeInntekt: ForrigeInntekt? = null
+    ) : ForslagInntekt()
 
     @Serializable
     @SerialName("ForslagInntektFastsatt")
@@ -56,3 +59,10 @@ data class ForslagRefusjon(
         val beloep: Double
     )
 }
+
+@Serializable
+data class ForrigeInntekt(
+    val skjæringstidspunkt: LocalDate,
+    val kilde: String,
+    val beløp: Double
+)

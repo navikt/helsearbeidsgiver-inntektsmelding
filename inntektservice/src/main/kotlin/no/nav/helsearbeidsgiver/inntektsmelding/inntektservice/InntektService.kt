@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektData
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
@@ -67,8 +68,11 @@ class InntektService(
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
-            .readOrIllegalState("Fant ikke forespørsel-ID.")
+            .read()
             .let(UUID::fromString)
+        if (forespoerselId == null) {
+            onError(message.createFail("Manglende eller ugyldig forespørselId"))
+        }
 
         MdcUtils.withLogFields(
             Log.klasse(this),

@@ -10,15 +10,11 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -47,10 +43,6 @@ class TilgangLoeser(
     }
 
     override fun onBehov(behov: Behov) {
-/*  @TODO implement logging in Løser
-        logger.info("Mottok melding med behov '${BehovType.TILGANGSKONTROLL}'.")
-        sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
-*/
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.behov(BehovType.TILGANGSKONTROLL)
@@ -66,8 +58,6 @@ class TilgangLoeser(
             }
         }
     }
-
-    // @TODO log incoming and outgoing message
 
     private fun hentTilgang(behov: Behov) {
         runCatching {
@@ -88,12 +78,6 @@ class TilgangLoeser(
             .onFailure {
                 behov.createFail("Feil ved henting av rettigheter fra Altinn.")
                     .also(this::publishFail)
-                    .toJsonMessage()
-                    .toJson()
-                    .also {
-                        logger.error("Publiserte feil for ${BehovType.TILGANGSKONTROLL}.")
-                        sikkerLogger.error("Publiserte feil:\n${it.parseJson().toPretty()}")
-                    }
             }
     }
 }

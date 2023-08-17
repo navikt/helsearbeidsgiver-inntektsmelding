@@ -9,10 +9,15 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
     lateinit var eventName: EventName
     lateinit var forespoerselId: String
+
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         configure(
@@ -49,7 +54,12 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     fun publishData(data: Data) {
-        rapidsConnection.publish(data.toJsonMessage().toJson())
+        data.toJsonMessage()
+            .also { rapidsConnection.publish(it.toJson()) }
+            .also {
+                logger.info("Publiserte data for eventname ${data.event.name} and uuid ${data.uuid()}'.")
+                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+            }
     }
 
     fun publishData(message: JsonMessage) {
@@ -66,12 +76,19 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
         rapidsConnection.publish(message.toJson())
     }
     fun publishFail(fail: no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail) {
-        rapidsConnection.publish(fail.toJsonMessage().toJson())
+        fail.toJsonMessage()
+            .also { rapidsConnection.publish(it.toJson()) }
+            .also {
+                logger.info("Publiserte feil for eventname ${fail.event.name} and'${fail.behov?.name}'.")
+                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+            }
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         eventName = EventName.valueOf(packet[Key.EVENT_NAME.str].asText())
         forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
+        logger.info("Mottok melding med behov '${packet[Key.BEHOV.str].asText()}'.")
+        sikkerLogger.info("Mottok melding:\n${packet.toPretty()}")
         onBehov(packet)
         if (!packet[Key.BEHOV.str].isArray) {
             val behov = Behov.create(packet)

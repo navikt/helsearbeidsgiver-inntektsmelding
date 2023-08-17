@@ -31,6 +31,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
@@ -41,6 +42,7 @@ class InntektService(
 ) : CompositeEventListener(redisStore) {
 
     private val sikkerLogger = sikkerLogger()
+    private val logger = logger()
 
     override val event: EventName = EventName.INNTEKT_REQUESTED
 
@@ -67,14 +69,18 @@ class InntektService(
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
-            .readOrIllegalState("Fant ikke forespørsel-ID.")
-            .let(UUID::fromString)
-
+            .read()
+            ?.let(UUID::fromString)
+        if (forespoerselId == null) {
+            sikkerLogger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
+            logger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
+            return
+        }
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(transaksjonId)
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
@@ -99,27 +105,31 @@ class InntektService(
                     val forspoerselKey = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_SVAR)
 
                     if (isDataCollected(forspoerselKey)) {
-                        val forespoersel = forspoerselKey.readOrIllegalState("Fant ikke svar med forespørsel.")
-                            .fromJson(TrengerInntekt.serializer())
+                        try {
+                            val forespoersel = forspoerselKey.readOrIllegalState("Fant ikke svar med forespørsel.")
+                                .fromJson(TrengerInntekt.serializer())
 
-                        val skjaeringstidspunkt = RedisKey.of(transaksjonId.toString(), DataFelt.SKJAERINGSTIDSPUNKT)
-                            .readOrIllegalState("Fant ikke skjæringstidspunkt.")
+                            val skjaeringstidspunkt = RedisKey.of(transaksjonId.toString(), DataFelt.SKJAERINGSTIDSPUNKT)
+                                .readOrIllegalState("Fant ikke skjæringstidspunkt.")
 
-                        rapid.publish(
-                            Key.EVENT_NAME to event.toJson(),
-                            Key.BEHOV to BehovType.INNTEKT.toJson(),
-                            DataFelt.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                            DataFelt.FNR to forespoersel.fnr.toJson(),
-                            DataFelt.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
-                            Key.UUID to transaksjonId.toJson()
-                        )
-                            .also {
-                                MdcUtils.withLogFields(
-                                    Log.behov(BehovType.INNTEKT)
-                                ) {
-                                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                            rapid.publish(
+                                Key.EVENT_NAME to event.toJson(),
+                                Key.BEHOV to BehovType.INNTEKT.toJson(),
+                                DataFelt.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                                DataFelt.FNR to forespoersel.fnr.toJson(),
+                                DataFelt.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
+                                Key.UUID to transaksjonId.toJson()
+                            )
+                                .also {
+                                    MdcUtils.withLogFields(
+                                        Log.behov(BehovType.INNTEKT)
+                                    ) {
+                                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                                    }
                                 }
-                            }
+                        } catch (e: IllegalStateException) {
+                            sikkerLogger.error("Feil i redis på transaksjon $transaksjonId")
+                        }
                     } else {
                         sikkerLogger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")
                     }
@@ -137,9 +147,13 @@ class InntektService(
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
         val clientId = RedisKey.of(transaksjonId.toString(), event)
-            .readOrIllegalState("Fant ikke client-ID.")
-            .let(UUID::fromString)
+            .read()
+            ?.let(UUID::fromString)
 
+        if (clientId == null) {
+            sikkerLogger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
+            logger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
+        }
         val inntekt = RedisKey.of(transaksjonId.toString(), DataFelt.INNTEKT).read()
         val feil = RedisKey.of(transaksjonId.toString(), Feilmelding("")).read()
 
@@ -155,7 +169,7 @@ class InntektService(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.clientId(clientId)
+            Log.clientId(clientId.orDefault(transaksjonId))
         ) {
             sikkerLogger.info("$event fullført.")
         }
@@ -167,13 +181,16 @@ class InntektService(
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
         val clientId = RedisKey.of(transaksjonId.toString(), event)
-            .readOrIllegalState("Fant ikke client-ID.")
-            .let(UUID::fromString)
-
-        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding("")).readOrIllegalState("Fant ikke feil.")
+            .read()
+            ?.let(UUID::fromString)
+        if (clientId == null) {
+            sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
+            logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
+        }
+        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding("")).read()
 
         val feilResponse = InntektData(
-            feil = feil.fromJson(FeilReport.serializer())
+            feil = feil?.fromJson(FeilReport.serializer())
         )
             .toJson(InntektData.serializer())
 
@@ -183,7 +200,7 @@ class InntektService(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.clientId(clientId)
+            Log.clientId(clientId.orDefault(transaksjonId))
         ) {
             sikkerLogger.error("$event terminert.")
         }

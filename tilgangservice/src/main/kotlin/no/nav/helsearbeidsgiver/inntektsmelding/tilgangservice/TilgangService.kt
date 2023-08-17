@@ -163,23 +163,26 @@ class TilgangService(
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
         val clientId = RedisKey.of(transaksjonId.toString(), event)
-            .readOrIllegalState("Fant ikke client-ID.")
-            .let(UUID::fromString)
+            .read()
+            ?.let(UUID::fromString)
 
-        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding("")).readOrIllegalState("Fant ikke feil.")
+        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding(""))
+            .read()
 
         val feilResponse = TilgangData(
-            feil = feil.fromJson(FeilReport.serializer())
+            feil = feil?.fromJson(FeilReport.serializer())
         )
             .toJson(TilgangData.serializer())
-
+        if (clientId == null) {
+            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne $transaksjonId i redis!")
+        }
         RedisKey.of(clientId.toString()).write(feilResponse)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.clientId(clientId)
+            Log.clientId(clientId.orDefault(transaksjonId))
         ) {
             sikkerLogger.error("$event terminert.")
         }

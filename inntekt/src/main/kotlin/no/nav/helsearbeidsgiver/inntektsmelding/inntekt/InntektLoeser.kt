@@ -97,6 +97,7 @@ class InntektLoeser(
     }
 
     private fun hentInntekt(melding: Melding) {
+        val requestTimer = requestLatency.startTimer()
         hentInntektPerOrgnrOgMaaned(melding.fnr, melding.skjaeringstidspunkt, melding.transaksjonId)
             .onSuccess {
                 val inntekt = it[melding.orgnr.verdi]
@@ -109,6 +110,7 @@ class InntektLoeser(
             .onFailure {
                 publishFeil("Klarte ikke hente inntekt.", it, melding)
             }
+        requestTimer.observeDuration()
     }
 
     private fun hentInntektPerOrgnrOgMaaned(fnr: Fnr, skjaeringstidspunkt: LocalDate, id: UUID): Result<Map<String, Map<YearMonth, Double>>> {
@@ -118,7 +120,7 @@ class InntektLoeser(
         val callId = "helsearbeidsgiver-im-inntekt-$id"
 
         sikkerLogger.info("Henter inntekt for $fnr i perioden $fom til $tom (callId: $callId).")
-        val requestTimer = requestLatency.startTimer()
+
         return runCatching {
             runBlocking {
                 inntektKlient.hentInntektPerOrgnrOgMaaned(
@@ -128,8 +130,6 @@ class InntektLoeser(
                     navConsumerId = "helsearbeidsgiver-im-inntekt",
                     callId = callId
                 )
-            }.also {
-                requestTimer.observeDuration()
             }
         }
     }

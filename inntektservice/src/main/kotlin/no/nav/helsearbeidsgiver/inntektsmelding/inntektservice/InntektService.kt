@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektData
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
@@ -74,13 +75,14 @@ class InntektService(
         if (forespoerselId == null) {
             sikkerLogger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
             logger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
+            publishFail(message.createFail("Mangler forespørselId"))
             return
         }
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(transaksjonId)
+            Log.forespoerselId(forespoerselId)
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
@@ -105,31 +107,29 @@ class InntektService(
                     val forspoerselKey = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_SVAR)
 
                     if (isDataCollected(forspoerselKey)) {
-                        try {
-                            val forespoersel = forspoerselKey.readOrIllegalState("Fant ikke svar med forespørsel.")
-                                .fromJson(TrengerInntekt.serializer())
-
-                            val skjaeringstidspunkt = RedisKey.of(transaksjonId.toString(), DataFelt.SKJAERINGSTIDSPUNKT)
-                                .readOrIllegalState("Fant ikke skjæringstidspunkt.")
-
-                            rapid.publish(
-                                Key.EVENT_NAME to event.toJson(),
-                                Key.BEHOV to BehovType.INNTEKT.toJson(),
-                                DataFelt.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                                DataFelt.FNR to forespoersel.fnr.toJson(),
-                                DataFelt.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
-                                Key.UUID to transaksjonId.toJson()
-                            )
-                                .also {
-                                    MdcUtils.withLogFields(
-                                        Log.behov(BehovType.INNTEKT)
-                                    ) {
-                                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                                    }
-                                }
-                        } catch (e: IllegalStateException) {
-                            sikkerLogger.error("Feil i redis på transaksjon $transaksjonId")
+                        val forespoersel = forspoerselKey.read()?.fromJson(TrengerInntekt.serializer())
+                        val skjaeringstidspunkt = RedisKey.of(transaksjonId.toString(), DataFelt.SKJAERINGSTIDSPUNKT).read()
+                        if (forespoersel == null || skjaeringstidspunkt == null) {
+                            sikkerLogger.error("Klarte ikke å finne data i Redis - forespørsel: $forespoersel og skjæringstidspunkt $skjaeringstidspunkt")
+                            publishFail(message.createFail("Klarte ikke å finne forespørsel eller skjæringstidspunkt i Redis!"))
+                            return
                         }
+
+                        rapid.publish(
+                            Key.EVENT_NAME to event.toJson(),
+                            Key.BEHOV to BehovType.INNTEKT.toJson(),
+                            DataFelt.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                            DataFelt.FNR to forespoersel.fnr.toJson(),
+                            DataFelt.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
+                            Key.UUID to transaksjonId.toJson()
+                        )
+                            .also {
+                                MdcUtils.withLogFields(
+                                    Log.behov(BehovType.INNTEKT)
+                                ) {
+                                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                                }
+                            }
                     } else {
                         sikkerLogger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")
                     }
@@ -164,12 +164,10 @@ class InntektService(
             .toJson(InntektData.serializer())
 
         RedisKey.of(clientId.toString()).write(inntektJson)
+        val logFields = loggFelterNotNull(transaksjonId, clientId)
 
         MdcUtils.withLogFields(
-            Log.klasse(this),
-            Log.event(event),
-            Log.transaksjonId(transaksjonId),
-            Log.clientId(clientId.orDefault(transaksjonId))
+            *logFields
         ) {
             sikkerLogger.info("$event fullført.")
         }
@@ -195,12 +193,9 @@ class InntektService(
             .toJson(InntektData.serializer())
 
         RedisKey.of(clientId.toString()).write(feilResponse)
-
+        val logFields = loggFelterNotNull(transaksjonId, clientId)
         MdcUtils.withLogFields(
-            Log.klasse(this),
-            Log.event(event),
-            Log.transaksjonId(transaksjonId),
-            Log.clientId(clientId.orDefault(transaksjonId))
+            *logFields
         ) {
             sikkerLogger.error("$event terminert.")
         }
@@ -247,6 +242,9 @@ class InntektService(
         return transaction ?: Transaction.IN_PROGRESS
     }
 
+    private fun publishFail(fail: Fail) {
+        rapid.publish(fail.toJsonMessage().toJson())
+    }
     private fun RedisKey.write(json: JsonElement) {
         redisStore.set(this, json.toString())
     }
@@ -254,6 +252,23 @@ class InntektService(
     private fun RedisKey.read(): String? =
         redisStore.get(this)
 
-    private fun RedisKey.readOrIllegalState(feilmelding: String): String =
-        read() ?: throw IllegalStateException(feilmelding)
+    // Veldig stygt, ta med clientId i loggfelter når den eksisterer
+    // TODO: skriv heller om MDCUtils.log
+    private fun loggFelterNotNull(
+        transaksjonId: UUID,
+        clientId: UUID?
+    ): Array<Pair<String, String>> {
+        val logs = arrayOf(
+            Log.klasse(this),
+            Log.event(event),
+            Log.transaksjonId(transaksjonId)
+        )
+        val logFields = clientId?.let {
+            logs +
+                arrayOf(
+                    Log.clientId(clientId)
+                )
+        } ?: logs
+        return logFields
+    }
 }

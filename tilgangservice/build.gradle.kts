@@ -1,3 +1,4 @@
+val junitJupiterVersion: String by project
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }

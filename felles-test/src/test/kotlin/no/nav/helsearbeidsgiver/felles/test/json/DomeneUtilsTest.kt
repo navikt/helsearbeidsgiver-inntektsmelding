@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Message
 import org.junit.jupiter.api.Test
 import java.lang.RuntimeException
+import java.util.UUID
 
 class DomeneUtilsTest {
 
@@ -42,7 +43,7 @@ class DomeneUtilsTest {
 
     @Test
     fun `Test JsonNode is Data`() {
-        val event = Data.create(EventName.TRENGER_REQUESTED, mapOf(DataFelt.VIRKSOMHET to "My virksomhet"))
+        val event = Data.create(EventName.TRENGER_REQUESTED, UUID.randomUUID(), mapOf(DataFelt.VIRKSOMHET to "My virksomhet"))
         val jsonNode: JsonNode = customObjectMapper().readTree(event.toJsonMessage().toJson())
         val message: Message = jsonNode.toDomeneMessage {
             it.interestedIn(DataFelt.VIRKSOMHET)

@@ -89,7 +89,7 @@ class Behov(
             event,
             behov,
             feilmelding,
-            mapOfNotNull(
+            data = mapOfNotNull(
                 Key.UUID to this.uuid().takeUnless { it.isBlank() },
                 Key.FORESPOERSEL_ID to forespoerselID
             ) + data.mapKeys { it.key }

@@ -68,10 +68,10 @@ class InntektService(
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
-            .read()?.let(UUID::fromString)
+            .read()
+            .let(UUID::fromString)
         if (forespoerselId == null) {
             onError(message.createFail("Manglende eller ugyldig forespørselId"))
-            return
         }
 
         MdcUtils.withLogFields(

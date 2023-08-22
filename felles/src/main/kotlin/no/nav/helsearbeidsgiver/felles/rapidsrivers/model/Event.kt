@@ -35,8 +35,12 @@ class Event(val event: EventName, val forespoerselId: String? = null, private va
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
 
-        fun create(event: EventName, forespoerselId: String, map: Map<IKey, Any> = emptyMap()): Event {
-            return Event(event, forespoerselId, JsonMessage.newMessage(event.name, map.mapKeys { it.key.str }))
+        fun create(event: EventName, forespoerselId: String?, map: Map<IKey, Any> = emptyMap()): Event {
+            return Event(
+                event,
+                forespoerselId,
+                JsonMessage.newMessage(event.name, mapOfNotNull(Key.FORESPOERSEL_ID.str to forespoerselId) + map.mapKeys { it.key.str })
+            )
         }
         fun create(jsonMessage: JsonMessage): Event {
             val event = EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText())

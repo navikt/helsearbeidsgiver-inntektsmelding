@@ -113,6 +113,10 @@ class Behov(
         )
     }
 
+    fun createEvent(event: EventName, data: Map<IKey, Any>): Event {
+        return Event.create(event, forespoerselId, data)
+    }
+
     override fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
 
     override fun toJsonMessage(): JsonMessage {

@@ -64,18 +64,6 @@ class FulltNavnLøser(
     override fun onBehov(packet: JsonMessage) {
     }
 
-    private fun publishDatagram(personInformasjon: PersonDato, behov: Behov) {
-        val message = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to behov.event.name,
-                Key.DATA.str to "",
-                Key.UUID.str to behov.uuid(),
-                DataFelt.ARBEIDSTAKER_INFORMASJON.str to personInformasjon
-            )
-        )
-        super.publishData(message)
-    }
-
     private suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
         val liste: PdlHentFullPerson.PdlFullPersonliste?
         measureTimeMillis {

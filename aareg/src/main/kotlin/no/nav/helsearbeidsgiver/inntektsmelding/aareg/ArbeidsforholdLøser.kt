@@ -15,8 +15,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
-import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.utils.log.logger
 import kotlin.system.measureTimeMillis
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
@@ -41,33 +41,33 @@ class ArbeidsforholdLøser(
         }
 
     override fun onBehov(packet: JsonMessage) {
+    }
+
+    override fun onBehov(behov: Behov) {
         measureTimeMillis {
-            val transaksjonId = packet.value(Key.UUID).asText()
-            val identitetsnummer = packet.value(Key.IDENTITETSNUMMER).asText()
+            val transaksjonId = behov.uuid()
+            val identitetsnummer = behov[Key.IDENTITETSNUMMER].asText()
 
             logger.info("Løser behov $behovType med transaksjon-ID $transaksjonId")
 
             val arbeidsforhold = hentArbeidsforhold(identitetsnummer, transaksjonId)
 
             if (arbeidsforhold != null) {
-                publishDatagram(Data(arbeidsforhold), packet)
+                publishData(
+                    behov.createData(
+                        mapOf(
+                            DataFelt.ARBEIDSFORHOLD to (
+                                Data(arbeidsforhold)
+                                )
+                        )
+                    )
+                )
             } else {
-                publishFail(packet.createFail("Klarte ikke hente arbeidsforhold", behovType = BehovType.ARBEIDSFORHOLD))
+                publishFail(behov.createFail("Klarte ikke hente arbeidsforhold"))
             }
         }.also {
             logger.info("Arbeidsforhold løser took $it")
         }
-    }
-
-    private fun publishDatagram(data: Data<Any>, jsonMessage: JsonMessage) {
-        val message = JsonMessage.newMessage(
-            mapOf(
-                Key.DATA.str to "",
-                Key.UUID.str to jsonMessage[Key.UUID.str].asText(),
-                DataFelt.ARBEIDSFORHOLD.str to data
-            )
-        )
-        publishData(message)
     }
 
     private fun hentArbeidsforhold(fnr: String, callId: String): List<Arbeidsforhold>? =

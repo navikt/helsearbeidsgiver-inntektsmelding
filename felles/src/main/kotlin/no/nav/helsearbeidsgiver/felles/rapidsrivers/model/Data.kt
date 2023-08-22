@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 import java.lang.IllegalArgumentException
+import java.util.UUID
 
 class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message, TxMessage {
 
@@ -26,8 +27,8 @@ class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message
             it.interestedIn(Key.UUID.str)
         }
 
-        fun create(event: EventName, map: Map<DataFelt, Any> = emptyMap()): Data {
-            return Data(event, JsonMessage.newMessage(event.name, mapOf(Key.DATA.str to "") + map.mapKeys { it.key.str }))
+        fun create(event: EventName, uuid: UUID, map: Map<DataFelt, Any> = emptyMap()): Data {
+            return Data(event, JsonMessage.newMessage(event.name, mapOf(Key.DATA.str to "", Key.UUID.str to uuid.toString()) + map.mapKeys { it.key.str }))
         }
 
         fun create(jsonMessage: JsonMessage): Data {

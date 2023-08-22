@@ -34,7 +34,7 @@ fun InnsendingRequest.validate() {
         }
         // Er tillatt å unngå arbeidsgiverperioder når:
         // - arbeidsgiver ikke betaler lønn i arbeidsgiverperioden
-        if (it.fullLønnIArbeidsgiverPerioden.utbetalerFullLønn) {
+        if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
             validate(InnsendingRequest::arbeidsgiverperioder).isNotEmpty()
         }
         // Fraværsperiode

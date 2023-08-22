@@ -245,13 +245,15 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addSection("Refusjon")
 
         val lønnArbeidsgiverperioden = dokument.fullLønnIArbeidsgiverPerioden
-        addLabel("Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", lønnArbeidsgiverperioden.utbetalerFullLønn.toNorsk())
-        if (lønnArbeidsgiverperioden.utbetalerFullLønn) {
-            // Ja
-        } else {
-            // Nei - to ekstra spørsmål
-            addLabel("Begrunnelse", lønnArbeidsgiverperioden.begrunnelse?.tekst() ?: "-")
-            addLabel("Utbetalt under arbeidsgiverperiode", (lønnArbeidsgiverperioden.utbetalt?.toNorsk() ?: "-") + " kr")
+        if (lønnArbeidsgiverperioden != null) {
+            addLabel("Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", lønnArbeidsgiverperioden.utbetalerFullLønn.toNorsk())
+            if (lønnArbeidsgiverperioden.utbetalerFullLønn) {
+                // Ja
+            } else {
+                // Nei - to ekstra spørsmål
+                addLabel("Begrunnelse", lønnArbeidsgiverperioden.begrunnelse?.tekst() ?: "-")
+                addLabel("Utbetalt under arbeidsgiverperiode", (lønnArbeidsgiverperioden.utbetalt?.toNorsk() ?: "-") + " kr")
+            }
         }
 
         val refusjon = dokument.refusjon

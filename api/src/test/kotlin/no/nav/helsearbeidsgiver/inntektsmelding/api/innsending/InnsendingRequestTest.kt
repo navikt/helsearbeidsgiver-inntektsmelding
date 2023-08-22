@@ -148,6 +148,15 @@ class InnsendingRequestTest {
     }
 
     @Test
+    fun `skal tillate at refusjon i arbeidsgiverperioden ikke settes (ved delvis innsending)`() {
+        // TODO: bør være satt i de fleste tilfeller, bør helst ikke tillate null-verdi ved komplett innsending
+        GYLDIG_INNSENDING_REQUEST.copy(
+            fullLønnIArbeidsgiverPerioden = null
+            // delvisInnsending = true
+        ).validate()
+    }
+
+    @Test
     fun `skal gi feil dersom refusjonsbeløp er for høyt`() {
         assertThrows<ConstraintViolationException> {
             GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, MAX_REFUSJON)).validate()

@@ -23,7 +23,6 @@ components:
         - bestemmendeFraværsdag
         - fraværsperioder
         - inntekt
-        - fullLønnIArbeidsgiverPerioden
         - refusjon
         - årsakInnsending
         - bekreftOpplysninger
@@ -86,7 +85,6 @@ components:
         - bestemmendeFraværsdag
         - fraværsperioder
         - inntekt
-        - fullLønnIArbeidsgiverPerioden
         - refusjon
         - årsakInnsending
         - bekreftOpplysninger
@@ -255,7 +253,6 @@ components:
       required:
         - arbeidsgiverperioder
         - refusjon
-        - fullLønnIArbeidsgiverPerioden
         - virksomhetNavn
         - identitetsnummer
         - behandlingsdager

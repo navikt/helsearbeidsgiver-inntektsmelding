@@ -131,5 +131,6 @@ private fun tilKvitteringResponse(inntektsmeldingDokument: InntektsmeldingDokume
         naturalytelser = inntektsmeldingDokument.naturalytelser,
         årsakInnsending = inntektsmeldingDokument.årsakInnsending,
         bekreftOpplysninger = true,
-        tidspunkt = inntektsmeldingDokument.tidspunkt
+        tidspunkt = inntektsmeldingDokument.tidspunkt,
+        forespurtData = inntektsmeldingDokument.forespurtData
     )

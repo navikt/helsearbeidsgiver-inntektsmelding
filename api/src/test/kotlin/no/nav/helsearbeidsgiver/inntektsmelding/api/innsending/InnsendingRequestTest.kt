@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
@@ -149,13 +150,17 @@ class InnsendingRequestTest {
 
     @Test
     fun `skal tillate at refusjon i arbeidsgiverperioden ikke settes (ved delvis innsending)`() {
-        // TODO: bør være satt i de fleste tilfeller, bør helst ikke tillate null-verdi ved komplett innsending
-        GYLDIG_INNSENDING_REQUEST.copy(
-            fullLønnIArbeidsgiverPerioden = null
-            // delvisInnsending = true
-        ).validate()
+        DELVIS_INNSENDING_REQUEST.validate()
     }
 
+    @Test
+    fun `skal gi feil om refusjonIarbeidsgiverperioden ikke settes (ved komplett innsending)`() {
+        assertThrows<ConstraintViolationException> {
+            GYLDIG_INNSENDING_REQUEST.copy(
+                fullLønnIArbeidsgiverPerioden = null
+            ).validate()
+        }
+    }
     @Test
     fun `skal gi feil dersom refusjonsbeløp er for høyt`() {
         assertThrows<ConstraintViolationException> {

@@ -74,6 +74,10 @@ components:
           type: string
           format: date-time
           pattern: yyyy-MM-dd'T'HH:mm:ss.SSSxx
+        forespurtData:
+          type: array
+          items:
+            type: string
     InnsendingRequest:
       type: object
       required:
@@ -127,6 +131,10 @@ components:
           $ref: '#/components/schemas/ÅrsakInnsending'
         bekreftOpplysninger:
           type: boolean
+        forespurtData:
+          type: array
+          items:
+            type: string
     Inntekt:
       type: object
       required:
@@ -314,6 +322,10 @@ components:
           $ref: '#/components/schemas/ÅrsakInnsending'
         identitetsnummerInnsender:
           type: string
+        forespurtData:
+          type: array
+          items:
+            type: string
     FullLonnIArbeidsgiverPerioden:
       type: object
       required:

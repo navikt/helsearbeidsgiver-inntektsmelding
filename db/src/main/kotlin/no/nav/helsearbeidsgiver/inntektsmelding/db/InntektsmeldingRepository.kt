@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 
 class InntektsmeldingRepository(private val db: Database) {
 
-    fun lagreInntektsmeldng(forespørselId: String, inntektsmeldingDokument: InntektsmeldingDokument) {
+    fun lagreInntektsmelding(forespørselId: String, inntektsmeldingDokument: InntektsmeldingDokument) {
         transaction(db) {
             InntektsmeldingEntitet.run {
                 insert {

@@ -14,12 +14,26 @@ import org.valiktor.functions.isGreaterThanOrEqualTo
 import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isNotEmpty
 import org.valiktor.functions.isNotNull
+import org.valiktor.functions.isNull
 import org.valiktor.functions.isTrue
 import org.valiktor.functions.validate
 import org.valiktor.functions.validateForEach
 
 fun InnsendingRequest.validate() {
     org.valiktor.validate(this) {
+        //sjekk om delvis eller komplett innsending:
+        if (it.forespurtData.isNullOrEmpty()) { //komplett innsending, her kan validering komme til å divergere mer i fremtiden
+            // Betaler arbeidsgiver full lønn til arbeidstaker
+            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).isNotNull() // må gjøre dette eksplisitt siden kontrakten tillater nullable
+            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {
+                if (!it.utbetalerFullLønn) {
+                    validate(FullLonnIArbeidsgiverPerioden::begrunnelse).isNotNull()
+                }
+            }
+        } else {
+            // skal ikke komme i delvis im - gir ikke mening - og da bør vi heller ikke ta det imot og lagre det!!
+            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).isNull()
+        }
         // Den ansatte
         validate(InnsendingRequest::orgnrUnderenhet).isNotNull()
         validate(InnsendingRequest::orgnrUnderenhet).isOrganisasjonsnummer()
@@ -52,12 +66,6 @@ fun InnsendingRequest.validate() {
             validate(Inntekt::beregnetInntekt).isLessThan(1_000_000.0.toBigDecimal())
             if (it.manueltKorrigert) {
                 validate(Inntekt::endringÅrsak).isNotNull()
-            }
-        }
-        // Betaler arbeidsgiver full lønn til arbeidstaker
-        validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {
-            if (!it.utbetalerFullLønn) {
-                validate(FullLonnIArbeidsgiverPerioden::begrunnelse).isNotNull()
             }
         }
         // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet

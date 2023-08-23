@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.utils
+package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
 

@@ -8,7 +8,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
-import no.nav.helsearbeidsgiver.felles.utils.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
 import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 
 class SpinnKlient(

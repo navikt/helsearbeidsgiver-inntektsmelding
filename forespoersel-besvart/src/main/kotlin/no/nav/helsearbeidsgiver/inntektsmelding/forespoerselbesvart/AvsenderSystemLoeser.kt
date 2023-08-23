@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
@@ -10,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.felles.utils.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnApiException
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -38,9 +39,13 @@ class AvsenderSystemLoeser(
 
     override fun onBehov(behov: Behov) {
         logger.info("Løser behov $BEHOV med uuid ${behov.uuid()}")
-        val inntektsmeldingId = behov[DataFelt.SPINN_INNTEKTSMELDING_ID].asText()
+        val inntektsmeldingId = behov[DataFelt.SPINN_INNTEKTSMELDING_ID]
+        if (inntektsmeldingId.isMissingOrNull() || inntektsmeldingId.asText().isEmpty()) {
+            publishFail(behov.createFail("Mangler inntektsmeldingId"))
+            return
+        }
         try {
-            val avsenderSystem = spinnKlient.hentAvsenderSystemData(inntektsmeldingId)
+            val avsenderSystem = spinnKlient.hentAvsenderSystemData(inntektsmeldingId.asText())
             publishData(behov.createData(mapOf(DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystem.toJson(AvsenderSystemData.serializer()))))
         } catch (e: SpinnApiException) {
             "Feil ved kall mot spinn api: ${e.message}".also {

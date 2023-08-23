@@ -39,7 +39,7 @@ class ForespoerselMottattLoeser(
     private val sikkerLogger = sikkerLogger()
     private val forespoerselMottattCounter = Counter.build()
         .name("simba_forespoersel_mottatt_total")
-        .help("Antall foresporsler mottatt fra Spleis")
+        .help("Antall foresporsler mottatt fra Helsebro")
         .register()
 
     init {

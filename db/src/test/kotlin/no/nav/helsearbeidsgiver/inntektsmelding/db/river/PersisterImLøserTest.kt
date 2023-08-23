@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.UUID
 
 class PersisterImLøserTest {
 
@@ -39,7 +38,7 @@ class PersisterImLøserTest {
     @Test
     fun `skal publisere event for Inntektsmelding Mottatt`() {
         coEvery {
-            repository.lagreInntektsmeldng(any(), any())
+            repository.lagreInntektsmelding(any(), any())
         } returns Unit
 
         val request = InnsendingRequest(

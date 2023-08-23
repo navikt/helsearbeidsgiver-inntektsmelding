@@ -43,7 +43,7 @@ class LagreJournalpostIdLøser(
             publiserFeil(Feilmelding("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonsId. Tom journalpostID!!"), packet)
         } else {
             try {
-                repository.oppdaterJournapostId(journalpostId, forespoerselId)
+                repository.oppdaterJournalpostId(journalpostId, forespoerselId)
                 logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for forespoerselId $forespoerselId")
                 val inntektsmeldingDokument = repository.hentNyeste(forespoerselId)
                 publiser(transaksjonsId, journalpostId, inntektsmeldingDokument!!)

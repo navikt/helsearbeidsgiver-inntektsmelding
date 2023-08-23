@@ -54,6 +54,7 @@ class OpprettOppgaveLøser(
         forespørselId: String,
         orgnr: String
     ): String {
+        val requestTimer = Metrics.requestLatency.labels("opprettOppgave").startTimer()
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
                 eksternId = forespørselId,
@@ -67,6 +68,8 @@ class OpprettOppgaveLøser(
                 varslingInnhold = "En av dine ansatte har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
                     "søknaden. Logg inn på Min side – arbeidsgiver på nav.no"
             )
+        }.also {
+            requestTimer.observeDuration()
         }
     }
 

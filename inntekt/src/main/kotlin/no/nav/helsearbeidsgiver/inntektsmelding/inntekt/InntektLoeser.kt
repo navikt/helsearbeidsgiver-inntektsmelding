@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
+import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
@@ -41,6 +42,10 @@ class InntektLoeser(
 ) : Løser(rapid) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
+    private val requestLatency = Summary.build()
+        .name("simba_inntekt_latency_seconds")
+        .help("hentInntekt latency in seconds")
+        .register()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
@@ -86,6 +91,7 @@ class InntektLoeser(
     }
 
     private fun hentInntekt(behov: Behov) {
+        val requestTimer = requestLatency.startTimer()
         hentInntektPerOrgnrOgMaaned(behov.fnr(), behov.skjaeringstidspunkt(), UUID.fromString(behov.uuid()))
             .onSuccess {
                 val inntekt = it[behov.orgnr().verdi]
@@ -104,6 +110,7 @@ class InntektLoeser(
             .onFailure {
                 publishFail(behov.createFail("Klarte ikke hente inntekt."))
             }
+        requestTimer.observeDuration()
     }
 
     private fun hentInntektPerOrgnrOgMaaned(fnr: Fnr, skjaeringstidspunkt: LocalDate, id: UUID): Result<Map<String, Map<YearMonth, Double>>> {

@@ -114,7 +114,7 @@ class Behov(
     }
 
     fun createEvent(event: EventName, data: Map<IKey, Any>): Event {
-        return Event.create(event, forespoerselId, data)
+        return Event.create(event, forespoerselId, data + mapOfNotNull(Key.TRANSACTION_ORIGIN to this.uuid().ifEmpty { null }))
     }
 
     override fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()

@@ -9,13 +9,14 @@ import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -64,7 +65,7 @@ class LagreJournalpostIdLøserTest {
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "".toJson()
         )
-        val feil: Feilmelding = getFeil(0)
+        val feil = getFeil(0)
         assertNotNull(feil)
     }
 
@@ -80,11 +81,11 @@ class LagreJournalpostIdLøserTest {
             Key.UUID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
-        val feilmelding: Feilmelding = getFeil(0)
+        val feilmelding = getFeil(0)
         assertNotNull(feilmelding)
     }
 
-    private fun getFeil(index: Int) = testRapid.inspektør.message(index).path(Key.FAIL.str).toJsonElement().fromJson(Feilmelding.serializer())
+    private fun getFeil(index: Int) = testRapid.inspektør.message(index).toJsonElement().toJsonNode().toDomeneMessage<Fail>().feilmelding
 
     private fun journalpostLagretFraRapid(index: Int): JsonNode {
         val message = testRapid.inspektør.message(index)

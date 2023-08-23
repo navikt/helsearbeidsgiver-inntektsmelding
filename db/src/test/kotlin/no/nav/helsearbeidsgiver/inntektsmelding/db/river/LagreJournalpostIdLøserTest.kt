@@ -42,7 +42,7 @@ class LagreJournalpostIdLøserTest {
 
     @Test
     fun `skal lagre journalpostId i databasen`() {
-        coEvery { inntektsmeldingRepo.oppdaterJournapostId(any(), any()) } just Runs
+        coEvery { inntektsmeldingRepo.oppdaterJournalpostId(any(), any()) } just Runs
         coEvery { inntektsmeldingRepo.hentNyeste(any()) } returns INNTEKTSMELDING_DOKUMENT
 
         testRapid.sendJson(
@@ -57,7 +57,7 @@ class LagreJournalpostIdLøserTest {
 
     @Test
     fun `skal håndtere at journalpostId er null eller blank`() {
-        coEvery { inntektsmeldingRepo.oppdaterJournapostId(any(), any()) } just Runs
+        coEvery { inntektsmeldingRepo.oppdaterJournalpostId(any(), any()) } just Runs
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
@@ -72,7 +72,7 @@ class LagreJournalpostIdLøserTest {
     @Test
     fun `skal håndtere feil ved lagring`() {
         coEvery {
-            inntektsmeldingRepo.oppdaterJournapostId(any(), any())
+            inntektsmeldingRepo.oppdaterJournalpostId(any(), any())
         } throws Exception()
 
         testRapid.sendJson(

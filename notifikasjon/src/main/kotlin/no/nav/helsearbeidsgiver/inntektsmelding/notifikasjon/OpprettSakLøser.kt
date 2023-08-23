@@ -39,6 +39,7 @@ class OpprettSakLøser(
         fødselsdato: LocalDate?
     ): String {
         val datoString = fødselsdato?.format(DateTimeFormatter.ofPattern("ddMMyy")) ?: "Ukjent"
+        val requestTimer = Metrics.requestLatency.labels("opprettSak").startTimer()
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNySak(
                 grupperingsid = forespoerselId,
@@ -49,6 +50,8 @@ class OpprettSakLøser(
                 statusTekst = "NAV trenger inntektsmelding",
                 harddeleteOm = "P5M"
             )
+        }.also {
+            requestTimer.observeDuration()
         }
     }
 

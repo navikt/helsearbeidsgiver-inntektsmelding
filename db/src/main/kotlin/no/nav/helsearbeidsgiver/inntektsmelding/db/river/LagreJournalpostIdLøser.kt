@@ -40,7 +40,7 @@ class LagreJournalpostIdLøser(
                 .also { publishFail(it) }
         } else {
             try {
-                repository.oppdaterJournapostId(journalpostId, forespoerselId)
+                repository.oppdaterJournalpostId(journalpostId, forespoerselId)
                 logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for forespoerselId $forespoerselId")
                 val inntektsmeldingDokument = repository.hentNyeste(forespoerselId)
                 behov.createEvent(

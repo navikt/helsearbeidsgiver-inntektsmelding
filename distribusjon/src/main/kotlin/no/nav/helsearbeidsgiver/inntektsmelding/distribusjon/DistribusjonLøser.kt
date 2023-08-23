@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
+import io.prometheus.client.Summary
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -26,6 +27,10 @@ class DistribusjonLøser(
 ) : Løser(rapidsConnection) {
 
     private val logger = logger()
+    private val requestLatency = Summary.build()
+        .name("simba_distribusjon_inntektsmelding_latency_seconds")
+        .help("distribusjon inntektsmelding latency in seconds")
+        .register()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
@@ -51,6 +56,7 @@ class DistribusjonLøser(
         val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
         logger.info("Skal distribuere inntektsmelding for journalpostId $journalpostId...")
         val eventName = packet[Key.EVENT_NAME.str].asText()
+        val requestTimer = requestLatency.startTimer()
         try {
             val inntektsmeldingDokument = hentInntektsmeldingDokument(packet)
             val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
@@ -92,6 +98,8 @@ class DistribusjonLøser(
                     )
                 )
             )
+        } finally {
+            requestTimer.observeDuration()
         }
     }
 }

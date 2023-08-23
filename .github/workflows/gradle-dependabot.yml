@@ -1,7 +1,8 @@
 name: Submit dependency graph
 on:
   push:
-
+    branches:
+      - main
 permissions:
   contents: write
 

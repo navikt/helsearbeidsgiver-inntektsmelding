@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 
+import io.prometheus.client.Counter
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -35,6 +36,10 @@ class ForespoerselBesvartLoeser(
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
+    private val forespoerselBesvartCounter = Counter.build()
+        .name("simba_forespoersel_besvart_total")
+        .help("Antall foresporsler besvart fra Spleis (pri-topic)")
+        .register()
 
     init {
         River(rapid).apply {
@@ -95,6 +100,7 @@ class ForespoerselBesvartLoeser(
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")
                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                    forespoerselBesvartCounter.inc()
                 }
         }
     }

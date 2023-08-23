@@ -15,6 +15,7 @@ import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
@@ -26,6 +27,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
+import org.junit.jupiter.api.AfterEach
 import java.util.UUID
 
 abstract class ApiTest : MockAuthToken() {
@@ -41,6 +43,11 @@ abstract class ApiTest : MockAuthToken() {
                 testClient.block()
             }
         }
+    }
+
+    @AfterEach
+    fun cleanupPrometheus() {
+        CollectorRegistry.defaultRegistry.clear()
     }
 }
 

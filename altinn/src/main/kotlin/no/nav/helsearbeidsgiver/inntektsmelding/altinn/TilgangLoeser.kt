@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
+import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -27,6 +28,10 @@ class TilgangLoeser(
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
+    private val requestLatency = Summary.build()
+        .name("simba_altinn_tilgangskontroll_latency_seconds")
+        .help("altinn tilgangskontroll latency in seconds")
+        .register()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
@@ -60,10 +65,13 @@ class TilgangLoeser(
     }
 
     private fun hentTilgang(behov: Behov) {
+        val requestTimer = requestLatency.startTimer()
         runCatching {
             runBlocking {
                 altinnClient.harRettighetForOrganisasjon(behov[DataFelt.FNR].asText(), behov[DataFelt.ORGNRUNDERENHET].asText())
             }
+        }.also {
+            requestTimer.observeDuration()
         }
             .onSuccess { harTilgang ->
                 val tilgang = if (harTilgang) Tilgang.HAR_TILGANG else Tilgang.IKKE_TILGANG

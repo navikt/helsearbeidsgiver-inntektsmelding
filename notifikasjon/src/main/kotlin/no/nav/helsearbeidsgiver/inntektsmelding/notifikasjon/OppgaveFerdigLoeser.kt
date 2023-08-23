@@ -91,11 +91,12 @@ class OppgaveFerdigLoeser(
 
     private fun ferdigstillOppgave(oppgaveId: String, forespoerselId: UUID, transaksjonId: UUID, context: MessageContext) {
         logger.info("Ferdigstiller oppgave...")
-
+        val requestTimer = Metrics.requestLatency.labels("ferdigstillOppgave").startTimer()
         runBlocking {
             agNotifikasjonKlient.oppgaveUtfoert(oppgaveId)
+        }.also {
+            requestTimer.observeDuration()
         }
-
         context.publish(
             Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
             DataFelt.OPPGAVE_ID to oppgaveId.toJson(),

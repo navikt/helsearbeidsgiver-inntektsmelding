@@ -92,13 +92,15 @@ class SakFerdigLoeser(
 
     private fun ferdigstillSak(sakId: String, forespoerselId: UUID, transaksjonId: UUID, context: MessageContext) {
         logger.info("Ferdigstiller sak...")
-
+        val requestTimer = Metrics.requestLatency.labels("ferdigstillSak").startTimer()
         runBlocking {
             agNotifikasjonKlient.nyStatusSak(
                 id = sakId,
                 status = SaksStatus.FERDIG,
                 statusTekst = "Mottatt"
             )
+        }.also {
+            requestTimer.observeDuration()
         }
 
         context.publish(

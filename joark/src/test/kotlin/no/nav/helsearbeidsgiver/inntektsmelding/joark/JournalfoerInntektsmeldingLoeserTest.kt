@@ -5,6 +5,7 @@ import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
@@ -41,6 +42,7 @@ class JournalfoerInntektsmeldingLoeserTest {
     @BeforeEach
     fun setup() {
         testRapid.reset()
+        CollectorRegistry.defaultRegistry.clear()
     }
 
     @Test

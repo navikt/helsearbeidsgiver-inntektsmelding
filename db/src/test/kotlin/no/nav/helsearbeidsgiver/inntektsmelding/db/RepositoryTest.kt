@@ -137,7 +137,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
 
         foresporselRepo.lagreForespoersel(UUID, ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(UUID, DOK_1)
-        inntektsmeldingRepo.oppdaterJournapostId(JOURNALPOST_1, UUID)
+        inntektsmeldingRepo.oppdaterJournalpostId(JOURNALPOST_1, UUID)
         val record = testRepo.hentRecordFraInntektsmelding(UUID)
         record.shouldNotBeNull()
         val journalPostId = record.getOrNull(InntektsmeldingEntitet.journalpostId)

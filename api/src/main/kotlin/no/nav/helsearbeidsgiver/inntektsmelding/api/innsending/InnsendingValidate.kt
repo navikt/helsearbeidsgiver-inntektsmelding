@@ -21,8 +21,8 @@ import org.valiktor.functions.validateForEach
 
 fun InnsendingRequest.validate() {
     org.valiktor.validate(this) {
-        //sjekk om delvis eller komplett innsending:
-        if (it.forespurtData.isNullOrEmpty()) { //komplett innsending, her kan validering komme til å divergere mer i fremtiden
+        // sjekk om delvis eller komplett innsending:
+        if (it.forespurtData.isNullOrEmpty()) { // komplett innsending, her kan validering komme til å divergere mer i fremtiden
             // Betaler arbeidsgiver full lønn til arbeidstaker
             validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).isNotNull() // må gjøre dette eksplisitt siden kontrakten tillater nullable
             validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {

@@ -78,6 +78,7 @@ class InnsendingValidateKtTest {
     fun `skal godta delvis innsending`() {
         DELVIS_INNSENDING_REQUEST.validate()
     }
+
     @Test
     fun `skal gi feilmelding når orgnummer er ugyldig`() {
         assertThrows<ConstraintViolationException> {

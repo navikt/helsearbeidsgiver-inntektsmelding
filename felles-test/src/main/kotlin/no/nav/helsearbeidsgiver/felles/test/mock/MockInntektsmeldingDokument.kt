@@ -79,7 +79,7 @@ fun mockInntektsmeldingDokument(): InntektsmeldingDokument =
     )
 
 fun mockDelvisInntektsmeldingDokument() = mockInntektsmeldingDokument().copy(
-    //Nullstill alle unødige felter, sett inntekt og refusjon
+    // Nullstill alle unødige felter, sett inntekt og refusjon
     behandlingsdager = emptyList(),
     egenmeldingsperioder = emptyList(),
     fraværsperioder = emptyList(),

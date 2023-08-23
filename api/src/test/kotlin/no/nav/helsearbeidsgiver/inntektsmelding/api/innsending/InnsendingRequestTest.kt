@@ -161,6 +161,7 @@ class InnsendingRequestTest {
             ).validate()
         }
     }
+
     @Test
     fun `skal gi feil dersom refusjonsbeløp er for høyt`() {
         assertThrows<ConstraintViolationException> {

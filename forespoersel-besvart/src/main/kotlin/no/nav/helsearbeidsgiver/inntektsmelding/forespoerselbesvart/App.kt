@@ -38,7 +38,8 @@ fun RapidsConnection.createAvsenderSystemLoeser(spinnKlient: SpinnKlient): Rapid
         AvsenderSystemLoeser(this, spinnKlient)
     }
 
-fun createSpinnKlient() : SpinnKlient {
+fun createSpinnKlient(): SpinnKlient {
     val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
 
-    return SpinnKlient(Env.spinnUrl, HttpClient(Apache5), tokenProvider::getToken)}
+    return SpinnKlient(Env.spinnUrl, HttpClient(Apache5), tokenProvider::getToken)
+}

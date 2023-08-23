@@ -8,15 +8,15 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
-import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.utils.AvsenderSystemData
+import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 
 class SpinnKlient(
     val url: String,
     val httpClient: HttpClient,
     private val getAccessToken: () -> String
 ) {
-    fun hentAvsenderSystemData(inntektsmeldingId: String) : AvsenderSystemData {
+    fun hentAvsenderSystemData(inntektsmeldingId: String): AvsenderSystemData {
         val result = runBlocking {
             val response = httpClient.get("$url/$inntektsmeldingId") {
                 contentType(ContentType.Application.Json)
@@ -36,7 +36,6 @@ class SpinnKlient(
             )
         }
         throw SpinnApiException("Mangler avsenderSystemNavn")
-
     }
 }
-class SpinnApiException (message: String, cause: Throwable? = null) : Exception(message, cause)
+class SpinnApiException(message: String, cause: Throwable? = null) : Exception(message, cause)

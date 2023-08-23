@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import java.lang.IllegalArgumentException
+import java.util.UUID
 
 class Event(val event: EventName, val forespoerselId: String? = null, private val jsonMessage: JsonMessage, val clientId: String? = null) : Message, TxMessage {
 
@@ -55,6 +56,7 @@ class Event(val event: EventName, val forespoerselId: String? = null, private va
 
     fun createBehov(behov: BehovType, map: Map<DataFelt, Any>): Behov {
         val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str].takeUnless { it.isMissingOrNull() }
+        uuid = uuid ?: UUID.randomUUID().toString()
         return Behov(
             event,
             behov,
@@ -67,6 +69,19 @@ class Event(val event: EventName, val forespoerselId: String? = null, private va
                     Key.FORESPOERSEL_ID.str to forespoerselID
                 ) + map.mapKeys { it.key.str }
             )
+        )
+    }
+
+    fun createFail(feilmelding: String, data: Map<IKey, Any> = emptyMap()): Fail {
+        val forespoerselID = this[Key.FORESPOERSEL_ID]
+        return Fail.create(
+            event,
+            null,
+            feilmelding,
+            data = mapOfNotNull(
+                Key.UUID to this.uuid().takeUnless { it.isBlank() },
+                Key.FORESPOERSEL_ID to forespoerselID
+            ) + data.mapKeys { it.key }
         )
     }
 

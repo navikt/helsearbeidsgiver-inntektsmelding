@@ -95,7 +95,7 @@ class NotifikasjonHentIdLoeser(
                 DataFelt.SAK_ID to sakId.toJson(),
                 DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.TRANSACTION_ORIGIN to behov.uuid().toJson()
+                Key.TRANSACTION_ORIGIN to behov[Key.TRANSACTION_ORIGIN].asText().toJson()
             )
         } else {
             "Klarte ikke hente notifikasjons-ID-er. Én eller flere er 'null'. Republiserer melding.".also {

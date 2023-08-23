@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -8,19 +7,15 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
-import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -46,56 +41,49 @@ class NotifikasjonHentIdLoeser(
             )
         }
 
-    override fun onBehov(packet: JsonMessage) {
-        val json = packet.toJson().parseJson()
-
+    override fun onBehov(behov: Behov) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.FORESPOERSEL_BESVART),
             Log.behov(BehovType.NOTIFIKASJON_HENT_ID)
         ) {
             runCatching {
-                json.loesBehov()
+                loesBehov(behov)
             }
                 .onFailure { e ->
                     "Ukjent feil. Republiserer melding.".also {
                         logger.error("$it Se sikker logg for mer info.")
                         sikkerLogger.error(it, e)
 
-                        json.republiser()
+                        publishBehov(behov)
                     }
                 }
         }
     }
 
-    private fun JsonElement.loesBehov() {
+    override fun onBehov(packet: JsonMessage) {
+    }
+
+    private fun loesBehov(behov: Behov) {
         logger.info("Mottok melding med behov '${BehovType.NOTIFIKASJON_HENT_ID}'.")
-        sikkerLogger.info("Mottok melding:\n${toPretty()}")
-
-        val melding = fromJsonMapFiltered(Key.serializer())
-
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
-            Log.forespoerselId(forespoerselId),
-            Log.transaksjonId(transaksjonId)
+            Log.forespoerselId(UUID.fromString(behov.forespoerselId))
         ) {
             hentNotifikasjonId(
-                forespoerselId = forespoerselId,
-                transaksjonId = transaksjonId
+                behov
             )
         }
     }
 
-    private fun JsonElement.hentNotifikasjonId(forespoerselId: UUID, transaksjonId: UUID) {
-        val sakId = forespoerselRepo.hentSakId(forespoerselId.toString())
+    private fun hentNotifikasjonId(behov: Behov) {
+        val sakId = forespoerselRepo.hentSakId(behov.forespoerselId!!)
         "Fant sakId '$sakId'.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
 
-        val oppgaveId = forespoerselRepo.hentOppgaveId(forespoerselId.toString())
+        val oppgaveId = forespoerselRepo.hentOppgaveId(forespoerselId!!)
         "Fant oppgaveId '$oppgaveId'.".also {
             logger.info(it)
             sikkerLogger.info(it)
@@ -107,18 +95,14 @@ class NotifikasjonHentIdLoeser(
                 DataFelt.SAK_ID to sakId.toJson(),
                 DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+                Key.TRANSACTION_ORIGIN to behov.uuid().toJson()
             )
         } else {
             "Klarte ikke hente notifikasjons-ID-er. Én eller flere er 'null'. Republiserer melding.".also {
                 logger.error(it)
                 sikkerLogger.error(it)
             }
-            republiser()
+            publishBehov(behov)
         }
-    }
-
-    private fun JsonElement.republiser() {
-        rapid.publish(toString())
     }
 }

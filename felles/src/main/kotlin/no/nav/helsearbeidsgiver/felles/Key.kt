@@ -59,8 +59,9 @@ enum class DataFelt(override val str: String) : IKey {
     INNTEKT("inntekt"),
     FNR("fnr"),
     SKJAERINGSTIDSPUNKT("skjaeringstidspunkt"),
-    TILGANG("tilgang");
-
+    TILGANG("tilgang"),
+    SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
+    AVSENDER_SYSTEM_DATA("avsenderSystemData");
     override fun toString(): String =
         str
 

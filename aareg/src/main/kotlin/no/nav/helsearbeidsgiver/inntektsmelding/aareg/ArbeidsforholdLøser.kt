@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
+import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -28,6 +29,10 @@ class ArbeidsforholdLøser(
     private val logger = logger()
 
     private val behovType = BehovType.ARBEIDSFORHOLD
+    private val requestLatency = Summary.build()
+        .name("simba_aareg_hent_arbeidsforhold_latency_seconds")
+        .help("aareg hent arbeidsforhold latency in seconds")
+        .register()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
@@ -74,10 +79,12 @@ class ArbeidsforholdLøser(
         runCatching {
             runBlocking {
                 val arbeidsforhold: List<no.nav.helsearbeidsgiver.aareg.Arbeidsforhold>
+                val requestTimer = requestLatency.startTimer()
                 measureTimeMillis {
                     arbeidsforhold = aaregClient.hentArbeidsforhold(fnr, callId)
                 }.also {
                     logger.info("arbeidsforhold endepunkt tok $it")
+                    requestTimer.observeDuration()
                 }
                 arbeidsforhold
             }

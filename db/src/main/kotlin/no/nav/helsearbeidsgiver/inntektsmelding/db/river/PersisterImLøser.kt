@@ -52,7 +52,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
             val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(packet[DataFelt.INNTEKTSMELDING.str], InnsendingRequest::class.java)
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
-            repository.lagreInntektsmeldng(forespørselId, inntektsmeldingDokument)
+            repository.lagreInntektsmelding(forespørselId, inntektsmeldingDokument)
             sikkerLogger.info("Lagret InntektsmeldingDokument for forespoerselId: $forespørselId")
             packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str] = inntektsmeldingDokument
             publiserOK(uuid, inntektsmeldingDokument)

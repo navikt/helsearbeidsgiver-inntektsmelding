@@ -9,13 +9,12 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
@@ -49,28 +48,27 @@ class TrengerForespoerselLoeser(
             )
         }
 
-    override fun onBehov(packet: JsonMessage) {
-        val json = packet.toJsonMap()
-
+    override fun onBehov(behov: Behov) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.behov(BehovType.HENT_TRENGER_IM)
         ) {
             logger.info("Mottok behov om ${BehovType.HENT_TRENGER_IM}.")
-            sikkerLogger.info("Mottok behov:\n${packet.toPretty()}")
 
-            val event = Key.EVENT_NAME.les(EventName.serializer(), json)
-            val transaksjonId = Key.UUID.les(UuidSerializer, json)
-            val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
+            val transaksjonId = behov.uuid().let { UUID.fromString(it) }
+            val forespoerselId = behov.forespoerselId.let { UUID.fromString(it) }
 
             MdcUtils.withLogFields(
-                Log.event(event),
+                Log.event(behov.event),
                 Log.transaksjonId(transaksjonId),
                 Log.forespoerselId(forespoerselId)
             ) {
-                spoerrEtterForespoersel(event, transaksjonId, forespoerselId)
+                spoerrEtterForespoersel(behov.event, transaksjonId, forespoerselId)
             }
         }
+    }
+
+    override fun onBehov(packet: JsonMessage) {
     }
 
     private fun spoerrEtterForespoersel(event: EventName, transaksjonId: UUID, forespoerselId: UUID) {

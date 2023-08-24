@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -29,18 +28,10 @@ class PersisterOppgaveLøser(
         sikkerLogger.info("PersisterOppgaveLøser mottok for uuid: ${behov.uuid()}")
         val oppgaveId = behov[DataFelt.OPPGAVE_ID].asText()
         repository.oppdaterOppgaveId(behov.forespoerselId!!, oppgaveId)
-        publishEvent(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.OPPGAVE_LAGRET.name,
-                    DataFelt.OPPGAVE_ID.str to oppgaveId
-                )
-            )
-        )
+        behov.createEvent(EventName.OPPGAVE_LAGRET, mapOf(DataFelt.OPPGAVE_ID to oppgaveId)).also { publishEvent(it) }
         sikkerLogger.info("PersisterOppgaveLøser lagret oppgaveId $oppgaveId for forespoerselID $forespoerselId")
     }
 
     override fun onBehov(packet: JsonMessage) {
-
     }
 }

@@ -47,6 +47,13 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
         }
         rapidsConnection.publish(message.toJson())
     }
+    fun publishBehov(behov: Behov) {
+        behov.toJsonMessage().also { rapidsConnection.publish(it.toJson()) }
+            .also {
+                logger.info("Publiserte behov ${behov.behov} for eventname ${behov.event.name} and uuid ${behov.uuid()}'.")
+                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+            }
+    }
 
     fun publishBehov(behov: Behov) {
         behov.toJsonMessage()
@@ -70,7 +77,7 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
                 logger.info("Publiserte data for eventname ${event.event} and uuid ${event.uuid()}'.")
-                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+                sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
             }
     }
 

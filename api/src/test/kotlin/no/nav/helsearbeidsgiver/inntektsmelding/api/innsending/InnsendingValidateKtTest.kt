@@ -75,6 +75,23 @@ class InnsendingValidateKtTest {
     }
 
     @Test
+    fun `midlertidig - komplett innsending har forespurtData-liste med minst tre elementer`() {
+        GYLDIG_INNSENDING_REQUEST.copy(
+            forespurtData = listOf("eple", "banan", "appelsin")
+        ).validate()
+    }
+
+    @Test
+    fun `midlertidig - komplett innsending kan også ha ingen eller tom forespurtData-liste`() {
+        GYLDIG_INNSENDING_REQUEST.copy(
+            forespurtData = null
+        ).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(
+            forespurtData = emptyList()
+        ).validate()
+    }
+
+    @Test
     fun `skal godta delvis innsending`() {
         DELVIS_INNSENDING_REQUEST.validate()
     }

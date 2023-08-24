@@ -67,4 +67,7 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
     fun publishFail(fail: Fail) {
         rapidsConnection.publish(fail.toJsonMessage().toJson())
     }
+    fun publishFail(fail: no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail) {
+        rapidsConnection.publish(fail.toJsonMessage().toJson())
+    }
 }

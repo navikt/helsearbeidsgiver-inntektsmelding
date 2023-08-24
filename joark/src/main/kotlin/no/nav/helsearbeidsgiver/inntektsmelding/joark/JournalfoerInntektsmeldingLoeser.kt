@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -53,27 +53,33 @@ class JournalfoerInntektsmeldingLoeser(
         }
     }
 
-    override fun onBehov(packet: JsonMessage) {
-        val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid $uuid")
-        sikkerLogger.info("Fikk pakke:\n${packet.toPretty()}")
+    override fun onBehov(behov: Behov) {
+        logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid ${behov.uuid()}")
         var inntektsmeldingDokument: InntektsmeldingDokument? = null
         try {
-            inntektsmeldingDokument = mapInntektsmeldingDokument(packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str])
+            inntektsmeldingDokument = mapInntektsmeldingDokument(behov[DataFelt.INNTEKTSMELDING_DOKUMENT])
             sikkerLogger.info("Skal journalføre: $inntektsmeldingDokument")
-            val journalpostId = opprettOgFerdigstillJournalpost(uuid, inntektsmeldingDokument)
+            val journalpostId = opprettOgFerdigstillJournalpost(behov.uuid(), inntektsmeldingDokument)
             sikkerLogger.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
             logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
-            publiserLagring(uuid, journalpostId)
+            behov.createBehov(
+                BehovType.LAGRE_JOURNALPOST_ID,
+                mapOf(
+                    Key.OPPRETTET to LocalDateTime.now(),
+                    Key.JOURNALPOST_ID to journalpostId
+                )
+            )
+                .also { publishBehov(it) }
         } catch (ex: UgyldigFormatException) {
             sikkerLogger.error("Klarte ikke journalføre: feil format!", ex)
-            val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
-            publishFail(packet.createFail("Feil format i InntektsmeldingDokument", data, behovType = JOURNALFOER_BEHOV))
+            publishFail(behov.createFail("Feil format i InntektsmeldingDokument", mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)))
         } catch (ex: Exception) {
             sikkerLogger.error("Klarte ikke journalføre!", ex)
-            val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
-            publishFail(packet.createFail("Klarte ikke journalføre", data, behovType = JOURNALFOER_BEHOV))
+            publishFail(behov.createFail("Klarte ikke journalføre", mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)))
         }
+    }
+
+    override fun onBehov(packet: JsonMessage) {
     }
 
     private fun opprettOgFerdigstillJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument): String {

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.maps.shouldNotContainKey
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -13,7 +12,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -26,7 +24,11 @@ import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Orgnr
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
+import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.toYearMonth
@@ -70,11 +72,11 @@ class InntektLoeserTest : FunSpec({
 
         testRapid.sendJson(*mockInnkommendeMelding())
 
-        val publisert = testRapid.firstMessage().toMap()
+        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
+            it.interestedIn(DataFelt.INNTEKT)
+        }
 
-        publisert shouldNotContainKey Key.FAIL
-
-        publisert.lesInntekt() shouldBe Inntekt(
+        publisert[DataFelt.INNTEKT].toString().fromJson(Inntekt.serializer()) shouldBe Inntekt(
             maanedOversikt = listOf(
                 InntektPerMaaned(
                     maaned = oktober(1990),
@@ -105,11 +107,11 @@ class InntektLoeserTest : FunSpec({
 
         testRapid.sendJson(*mockInnkommendeMelding())
 
-        val publisert = testRapid.firstMessage().toMap()
+        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
+            it.interestedIn(DataFelt.INNTEKT)
+        }
 
-        publisert shouldNotContainKey Key.FAIL
-
-        publisert.lesInntekt() shouldBe Inntekt(emptyList())
+        publisert[DataFelt.INNTEKT].toString().fromJson(Inntekt.serializer()) shouldBe Inntekt(emptyList())
     }
 
     test("Svarer med påkrevde felt") {
@@ -160,11 +162,9 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         }
 
-        val publisert = testRapid.firstMessage().toMap()
+        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail>()
 
-        publisert shouldNotContainKey DataFelt.INNTEKT
-
-        publisert.lesFeilmelding() shouldBe "Klarte ikke hente inntekt."
+        publisert.feilmelding shouldBe "Klarte ikke hente inntekt."
     }
 
     test("Feil i innkommende melding gir feilmelding på rapid") {
@@ -176,11 +176,9 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         }
 
-        val publisert = testRapid.firstMessage().toMap()
+        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail>()
 
-        publisert shouldNotContainKey DataFelt.INNTEKT
-
-        publisert.lesFeilmelding() shouldBe "Klarte ikke lese påkrevde felt fra innkommende melding."
+        publisert.feilmelding shouldBe "Klarte ikke lese påkrevde felt fra innkommende melding."
     }
 
     test("Ukjent feil gir feilmelding på rapid") {
@@ -198,11 +196,9 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         }
 
-        val publisert = testRapid.firstMessage().toMap()
+        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail>()
 
-        publisert shouldNotContainKey DataFelt.INNTEKT
-
-        publisert.lesFeilmelding() shouldBe "Ukjent feil."
+        publisert.feilmelding shouldBe "Ukjent feil."
     }
 })
 
@@ -222,15 +218,3 @@ private fun mockInnkommendeMelding(): Array<Pair<IKey, JsonElement>> =
         DataFelt.FNR to Mock.fnr.verdi.toJson(),
         DataFelt.SKJAERINGSTIDSPUNKT to Mock.skjaeringstidspunkt.toJson()
     )
-
-private fun Map<IKey, JsonElement>.lesInntekt(): Inntekt =
-    get(DataFelt.INNTEKT)
-        .shouldNotBeNull()
-        .fromJson(Inntekt.serializer())
-
-private fun Map<IKey, JsonElement>.lesFeilmelding(): String =
-    get(Key.FAIL)
-        .shouldNotBeNull()
-        .jsonObject[Fail::feilmelding.name]
-        .shouldNotBeNull()
-        .fromJson(String.serializer())

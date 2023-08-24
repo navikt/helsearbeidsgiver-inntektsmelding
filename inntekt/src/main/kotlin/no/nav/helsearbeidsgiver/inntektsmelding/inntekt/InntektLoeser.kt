@@ -5,34 +5,29 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Fnr
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Orgnr
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.toYearMonth
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -58,7 +53,7 @@ class InntektLoeser(
             it.demandValues(
                 Key.BEHOV to BehovType.INNTEKT.name
             )
-            it.requireKeys(
+            it.interestedIn(
                 Key.UUID,
                 DataFelt.ORGNRUNDERENHET,
                 DataFelt.FNR,
@@ -67,48 +62,53 @@ class InntektLoeser(
             it.rejectKeys(Key.LØSNING)
         }
 
-    override fun onBehov(packet: JsonMessage) {
-        val json = packet.toJson().parseJson()
-
+    override fun onBehov(behov: Behov) {
         logger.info("Mottok melding med behov '${BehovType.INNTEKT}'.")
-        sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
+        sikkerLogger.info("Mottok melding:\n${behov.toJsonMessage().toPretty()}")
 
         MdcUtils.withLogFields(
             Log.klasse(this),
+            Log.event(behov.event),
             Log.behov(BehovType.INNTEKT)
         ) {
-            val melding = runCatching {
-                Melding.fra(json)
+            runCatching {
+                behov.validate()
+            }.onFailure {
+                behov.createFail("Klarte ikke lese påkrevde felt fra innkommende melding.").also { publishFail(it) }
             }
-                .onFailure {
-                    publishFeil("Klarte ikke lese påkrevde felt fra innkommende melding.", it, null)
-                }
-                .getOrNull()
 
-            melding?.withLogFields {
-                runCatching {
-                    hentInntekt(it)
-                }
-                    .onFailure { feil ->
-                        publishFeil("Ukjent feil.", feil, it)
-                    }
+            runCatching {
+                hentInntekt(behov)
             }
+                .onFailure { feil ->
+                    sikkerLogger.error("Ukjent feil.", feil)
+                    behov.createFail("Ukjent feil.").also { this.publishFail(it) }
+                }
         }
     }
 
-    private fun hentInntekt(melding: Melding) {
+    override fun onBehov(packet: JsonMessage) {
+    }
+
+    private fun hentInntekt(behov: Behov) {
         val requestTimer = requestLatency.startTimer()
-        hentInntektPerOrgnrOgMaaned(melding.fnr, melding.skjaeringstidspunkt, melding.transaksjonId)
+        hentInntektPerOrgnrOgMaaned(behov.fnr(), behov.skjaeringstidspunkt(), UUID.fromString(behov.uuid()))
             .onSuccess {
-                val inntekt = it[melding.orgnr.verdi]
+                val inntekt = it[behov.orgnr().verdi]
                     .orEmpty()
                     .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }
                     .let(::Inntekt)
 
-                publishSuksess(inntekt, melding)
+                publishData(
+                    behov.createData(
+                        mapOf(
+                            DataFelt.INNTEKT to inntekt
+                        )
+                    )
+                )
             }
             .onFailure {
-                publishFeil("Klarte ikke hente inntekt.", it, melding)
+                publishFail(behov.createFail("Klarte ikke hente inntekt."))
             }
         requestTimer.observeDuration()
     }
@@ -133,52 +133,20 @@ class InntektLoeser(
             }
         }
     }
-
-    private fun publishSuksess(inntekt: Inntekt, melding: Melding) {
-        sikkerLogger.info("Hentet inntekt for ${melding.fnr}:\n$inntekt")
-
-        rapid.publish(
-            Key.EVENT_NAME to melding.event.toJson(),
-            Key.DATA to "".toJson(),
-            Key.UUID to melding.transaksjonId.toJson(),
-            DataFelt.INNTEKT to inntekt.toJson(Inntekt.serializer())
-        )
-            .also {
-                logger.info("Publiserte data for '${BehovType.INNTEKT}'.")
-                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
-            }
-    }
-
-    private fun publishFeil(feilmelding: String, feil: Throwable, melding: Melding?) {
-        logger.error("$feilmelding Se sikker logg for mer info.")
-        sikkerLogger.error(feilmelding, feil)
-
-        Fail(
-            eventName = melding?.event,
-            behov = BehovType.INNTEKT,
-            feilmelding = feilmelding,
-            forespørselId = null,
-            uuid = melding?.transaksjonId?.toString()
-        )
-            .toJsonMessage()
-            .toJson()
-            .also(rapid::publish)
-            .also {
-                logger.error("Publiserte feil for ${BehovType.INNTEKT}.")
-                sikkerLogger.error("Publiserte feil:\n${it.parseJson().toPretty()}")
-            }
-    }
-
-    override fun onError(problems: MessageProblems, context: MessageContext) {
-        "Innkommende melding har feil.".let {
-            logger.error("$it Se sikker logg for mer info.")
-            sikkerLogger.error("$it Detaljer:\n${problems.toExtendedReport()}")
-        }
-    }
 }
 
 private fun LocalDate.minusMaaneder(maanederTilbake: Long): YearMonth =
     toYearMonth().minusMonths(maanederTilbake)
+
+private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(this[DataFelt.SKJAERINGSTIDSPUNKT].asText())
+private fun Behov.fnr(): Fnr = Fnr(this[DataFelt.FNR].asText())
+private fun Behov.orgnr(): Orgnr = Orgnr(this[DataFelt.ORGNRUNDERENHET].asText())
+
+private fun Behov.validate() {
+    this.skjaeringstidspunkt()
+    this.fnr()
+    this.orgnr()
+}
 
 private data class Melding(
     val event: EventName,
@@ -198,14 +166,5 @@ private data class Melding(
                     skjaeringstidspunkt = DataFelt.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, it)
                 )
             }
-    }
-
-    fun withLogFields(block: (Melding) -> Unit) {
-        MdcUtils.withLogFields(
-            Log.event(event),
-            Log.transaksjonId(transaksjonId)
-        ) {
-            block(this)
-        }
     }
 }

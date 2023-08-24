@@ -9,11 +9,13 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
@@ -62,14 +64,14 @@ class HentPersistertLøserTest {
         coEvery {
             repository.hentNyeste(any())
         } throws Exception()
-        val feilmelding = sendMeldingMedFeil(
+        val fail = sendMeldingMedFeil(
             Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.INITIATE_ID to UUID.randomUUID().toJson()
         )
-        assertNotNull(feilmelding.melding)
-        assertEquals("Klarte ikke hente persistert inntektsmelding", feilmelding.melding)
+        assertNotNull(fail.feilmelding)
+        assertEquals("Klarte ikke hente persistert inntektsmelding", fail.feilmelding)
     }
 
     @Test
@@ -97,13 +99,11 @@ class HentPersistertLøserTest {
         return rapid.inspektør.message(index)
     }
 
-    private fun sendMeldingMedFeil(vararg melding: Pair<Key, JsonElement>): Feilmelding {
+    private fun sendMeldingMedFeil(vararg melding: Pair<Key, JsonElement>): no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())
-        val json = rapid.inspektør
-            .message(0)
-            .path(Key.FAIL.str).asText()
-        return customObjectMapper().readValue(json, Feilmelding::class.java)
+        return rapid.inspektør
+            .message(0).toJsonElement().toJsonNode().toDomeneMessage()
         // TODO - serialisering med Feilmelding.serializer() funker ikke:
 //            .toJsonElement()
 //            .fromJson(Feilmelding.serializer())

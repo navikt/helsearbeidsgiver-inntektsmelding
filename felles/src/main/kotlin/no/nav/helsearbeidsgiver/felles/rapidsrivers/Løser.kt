@@ -47,7 +47,7 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
         }
         rapidsConnection.publish(message.toJson())
     }
-    
+
     fun publishBehov(behov: Behov) {
         behov.toJsonMessage()
             .also {

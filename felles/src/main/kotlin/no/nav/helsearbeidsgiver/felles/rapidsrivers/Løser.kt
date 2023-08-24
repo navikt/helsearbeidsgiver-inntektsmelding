@@ -9,6 +9,8 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -46,11 +48,30 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
         rapidsConnection.publish(message.toJson())
     }
 
+    fun publishBehov(behov: Behov) {
+        behov.toJsonMessage()
+            .also {
+                rapidsConnection.publish(it.toJson())
+            }.also {
+                logger.info("Publiserte behov for eventname ${behov.event} and uuid ${behov.uuid()}'.")
+                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+            }
+    }
+
     fun publishEvent(message: JsonMessage) {
         if (forespoerselId.isNotEmpty()) {
             message[Key.FORESPOERSEL_ID.str] = forespoerselId
         }
         rapidsConnection.publish(message.toJson())
+    }
+
+    fun publishEvent(event: Event) {
+        event.toJsonMessage()
+            .also { rapidsConnection.publish(it.toJson()) }
+            .also {
+                logger.info("Publiserte data for eventname ${event.event} and uuid ${event.uuid()}'.")
+                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+            }
     }
 
     fun publishData(data: Data) {

@@ -15,12 +15,27 @@ import org.valiktor.functions.isGreaterThanOrEqualTo
 import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isNotEmpty
 import org.valiktor.functions.isNotNull
+import org.valiktor.functions.isNull
 import org.valiktor.functions.isTrue
 import org.valiktor.functions.validate
 import org.valiktor.functions.validateForEach
 
 fun InnsendingRequest.validate() {
     org.valiktor.validate(this) {
+        // sjekk om delvis eller komplett innsending:
+        if (isKomplettForespoersel(it.forespurtData)) { // komplett innsending (settes per nå fra frontend :/ )
+            // validering kan komme til å divergere mer i fremtiden
+            // Betaler arbeidsgiver full lønn til arbeidstaker
+            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).isNotNull() // må gjøre dette eksplisitt siden kontrakten tillater nullable
+            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {
+                if (!it.utbetalerFullLønn) {
+                    validate(FullLonnIArbeidsgiverPerioden::begrunnelse).isNotNull()
+                }
+            }
+        } else {
+            // skal ikke komme i delvis im - gir ikke mening - og da bør vi heller ikke ta det imot og lagre det!!
+            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).isNull()
+        }
         // Den ansatte
         validate(InnsendingRequest::orgnrUnderenhet).isNotNull()
         validate(InnsendingRequest::orgnrUnderenhet).isOrganisasjonsnummer()
@@ -37,7 +52,7 @@ fun InnsendingRequest.validate() {
         }
         // Er tillatt å unngå arbeidsgiverperioder når:
         // - arbeidsgiver ikke betaler lønn i arbeidsgiverperioden
-        if (it.fullLønnIArbeidsgiverPerioden.utbetalerFullLønn) {
+        if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
             validate(InnsendingRequest::arbeidsgiverperioder).isNotEmpty()
         }
         // Fraværsperiode
@@ -57,12 +72,6 @@ fun InnsendingRequest.validate() {
                 validate(Inntekt::endringÅrsak).isNotNull()
             }
         }
-        // Betaler arbeidsgiver full lønn til arbeidstaker
-        validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {
-            if (!it.utbetalerFullLønn) {
-                validate(FullLonnIArbeidsgiverPerioden::begrunnelse).isNotNull()
-            }
-        }
         // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
         validate(InnsendingRequest::refusjon).validate {
             if (it.utbetalerHeleEllerDeler) {
@@ -80,4 +89,9 @@ fun InnsendingRequest.validate() {
         }
         validate(InnsendingRequest::bekreftOpplysninger).isTrue()
     }
+}
+
+fun isKomplettForespoersel(forespurtData: List<String>?): Boolean {
+    // TODO: Midlertidig funksjon - heller enn å la frontend fortelle oss, bør vi sjekke om dette er delvis eller komplett forespørsel på backend
+    return forespurtData.isNullOrEmpty() || forespurtData.size > 2
 }

@@ -78,3 +78,30 @@ fun mockInntektsmeldingDokument(): InntektsmeldingDokument =
         identitetsnummerInnsender = "123123123123123",
         telefonnummer = "22222222"
     )
+
+fun mockDelvisInntektsmeldingDokument() = mockInntektsmeldingDokument().copy(
+    // Nullstill alle unødige felter, sett inntekt og refusjon
+    behandlingsdager = emptyList(),
+    egenmeldingsperioder = emptyList(),
+    fraværsperioder = emptyList(),
+    arbeidsgiverperioder = emptyList(),
+    fullLønnIArbeidsgiverPerioden = null,
+    naturalytelser = null,
+    inntekt = Inntekt(
+        bekreftet = true,
+        beregnetInntekt = inntekt,
+        endringÅrsak = Tariffendring(dag, dag),
+        manueltKorrigert = false
+    ),
+    refusjon = Refusjon(
+        utbetalerHeleEllerDeler = true,
+        refusjonPrMnd = inntekt,
+        refusjonOpphører = dag.plusDays(3),
+        refusjonEndringer = listOf(
+            RefusjonEndring(140.0.toBigDecimal(), dag.minusDays(4)),
+            RefusjonEndring(150.0.toBigDecimal(), dag.minusDays(5)),
+            RefusjonEndring(160.0.toBigDecimal(), dag.minusDays(6))
+        )
+    ),
+    forespurtData = listOf("inntekt", "refusjon")
+)

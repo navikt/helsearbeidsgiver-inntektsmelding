@@ -24,6 +24,7 @@ fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, ar
             tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
             årsakInnsending = request.årsakInnsending,
             identitetsnummerInnsender = "", // TODO Mangler innsenders fødselsnr
+            forespurtData = request.forespurtData,
             telefonnummer = request.telefonnummer
         )
     } catch (ex: Exception) {

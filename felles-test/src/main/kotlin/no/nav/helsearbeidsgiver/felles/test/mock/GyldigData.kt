@@ -4,16 +4,13 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Begrunnelse
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.OffsetDateTime
 
 object TestData {
     const val validIdentitetsnummer = "20015001543"
@@ -56,26 +53,26 @@ val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
     "+4722222222"
 )
 
-val INNTEKTSMELDING_DOK_MED_GAMMEL_INNTEKT = InntektsmeldingDokument(
+val DELVIS_INNSENDING_REQUEST = InnsendingRequest(
+
     orgnrUnderenhet = TestData.validOrgNr,
     identitetsnummer = TestData.validIdentitetsnummer,
-    fulltNavn = "Testnavn",
-    virksomhetNavn = "Test A/S",
     behandlingsdager = emptyList(),
     egenmeldingsperioder = emptyList(),
-    bestemmendeFraværsdag = LocalDate.now(),
-    fraværsperioder = emptyList(),
     arbeidsgiverperioder = emptyList(),
-    beregnetInntekt = BigDecimal.ONE,
-    inntekt = null,
-    fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(utbetalerFullLønn = true),
-    refusjon = Refusjon(false),
-    naturalytelser = null,
-    tidspunkt = OffsetDateTime.now(),
+    bestemmendeFraværsdag = LocalDate.of(2001, 1, 1),
+    fraværsperioder = emptyList(),
+    inntekt = Inntekt(
+        bekreftet = true,
+        beregnetInntekt = BigDecimal.TEN,
+        endringÅrsak = null,
+        manueltKorrigert = false
+    ),
+    fullLønnIArbeidsgiverPerioden = null,
+    refusjon = Refusjon(false, null, null, null),
+    naturalytelser = emptyList(),
     årsakInnsending = ÅrsakInnsending.NY,
-    identitetsnummerInnsender = null,
-    telefonnummer = "22555555"
-)
+    bekreftOpplysninger = true,
+    forespurtData = listOf("inntekt", "refusjon")
 
-val DOK_MED_NY_INNTEKT =
-    INNTEKTSMELDING_DOK_MED_GAMMEL_INNTEKT.copy(inntekt = Inntekt(true, BigDecimal.ONE, NyStillingsprosent(LocalDate.of(2020, 1, 1)), true))
+)

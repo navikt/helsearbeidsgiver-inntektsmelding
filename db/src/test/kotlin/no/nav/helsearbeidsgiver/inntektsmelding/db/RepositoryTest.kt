@@ -4,6 +4,8 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.ForespoerselEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database
@@ -85,6 +87,19 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
                 )
             }.single()
         }
+        // lagre varianter:
+        inntektsmeldingRepo.lagreInntektsmelding(UUID, INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA)
+        val im = inntektsmeldingRepo.hentNyeste(UUID)
+        im shouldBe INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA
+
+        inntektsmeldingRepo.lagreInntektsmelding(UUID, INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA)
+        val im2 = inntektsmeldingRepo.hentNyeste(UUID)
+        im2?.forespurtData shouldNotBe(null)
+        im2?.forespurtData shouldBe INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.forespurtData
+
+        inntektsmeldingRepo.lagreInntektsmelding(UUID, INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.copy(fullLønnIArbeidsgiverPerioden = null))
+        val im3 = inntektsmeldingRepo.hentNyeste(UUID)
+        im3?.fullLønnIArbeidsgiverPerioden shouldBe null
     }
 
     test("skal returnere im med gammelt inntekt-format ok") {

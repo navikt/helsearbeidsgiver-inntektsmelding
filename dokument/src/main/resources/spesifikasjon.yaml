@@ -129,6 +129,8 @@ components:
           $ref: '#/components/schemas/ÅrsakInnsending'
         bekreftOpplysninger:
           type: boolean
+        telefonnummer:
+          type: string
     Inntekt:
       type: object
       required:
@@ -316,6 +318,8 @@ components:
         årsakInnsending:
           $ref: '#/components/schemas/ÅrsakInnsending'
         identitetsnummerInnsender:
+          type: string
+        telefonnummer:
           type: string
     FullLonnIArbeidsgiverPerioden:
       type: object

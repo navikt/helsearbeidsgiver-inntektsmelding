@@ -52,7 +52,8 @@ val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
         )
     ),
     ÅrsakInnsending.ENDRING,
-    true
+    true,
+    "+4722222222"
 )
 
 val INNTEKTSMELDING_DOK_MED_GAMMEL_INNTEKT = InntektsmeldingDokument(
@@ -72,7 +73,8 @@ val INNTEKTSMELDING_DOK_MED_GAMMEL_INNTEKT = InntektsmeldingDokument(
     naturalytelser = null,
     tidspunkt = OffsetDateTime.now(),
     årsakInnsending = ÅrsakInnsending.NY,
-    identitetsnummerInnsender = null
+    identitetsnummerInnsender = null,
+    telefonnummer = "22555555"
 )
 
 val DOK_MED_NY_INNTEKT =

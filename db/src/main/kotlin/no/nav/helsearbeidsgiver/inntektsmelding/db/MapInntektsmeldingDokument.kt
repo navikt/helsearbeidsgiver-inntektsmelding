@@ -23,7 +23,8 @@ fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, ar
             naturalytelser = request.naturalytelser,
             tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
             årsakInnsending = request.årsakInnsending,
-            identitetsnummerInnsender = "" // TODO Mangler innsenders fødselsnr
+            identitetsnummerInnsender = "", // TODO Mangler innsenders fødselsnr
+            telefonnummer = request.telefonnummer
         )
     } catch (ex: Exception) {
         throw UgyldigFormatException(ex)

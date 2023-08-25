@@ -180,6 +180,13 @@ class InnsendingValidateKtTest {
     }
 
     @Test
+    fun `skal gi feilmelding når telefonnummer er ugyldig`() {
+        assertThrows<ConstraintViolationException> {
+            GYLDIG_INNSENDING_REQUEST.copy(telefonnummer = "313").validate()
+        }
+    }
+
+    @Test
     fun `skal godta tom liste med naturalytelser`() {
         GYLDIG_INNSENDING_REQUEST.copy(naturalytelser = emptyList()).validate()
     }

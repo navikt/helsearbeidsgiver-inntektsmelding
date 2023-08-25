@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
+import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isTelefonnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBehandlingsdager
 import org.valiktor.functions.isGreaterThan
 import org.valiktor.functions.isGreaterThanOrEqualTo
@@ -26,6 +27,8 @@ fun InnsendingRequest.validate() {
         // Arbeidsgiver
         validate(InnsendingRequest::identitetsnummer).isNotNull()
         validate(InnsendingRequest::identitetsnummer).isIdentitetsnummer()
+        // TODO; valider telefon, men kun på komplett innsending!
+        validate(InnsendingRequest::telefonnummer).isTelefonnummer()
         // Arbeidsgiverperioder
         validate(InnsendingRequest::arbeidsgiverperioder).validateForEach {
             validate(Periode::fom).isNotNull()

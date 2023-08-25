@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
+import io.ktor.network.sockets.SocketTimeoutException
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -107,5 +108,25 @@ class AvsenderSystemLoeserTest : FunSpec({
         actual[DataFelt.AVSENDER_SYSTEM_DATA]["avsenderSystemNavn"].get("content").asText() shouldBe avsenderSystemData.avsenderSystemNavn
         actual[DataFelt.AVSENDER_SYSTEM_DATA]["avsenderSystemVersjon"].get("content").asText() shouldBe avsenderSystemData.avsenderSystemVersjon
         actual[DataFelt.AVSENDER_SYSTEM_DATA]["arkivreferanse"].get("content").asText() shouldBe avsenderSystemData.arkivreferanse
+    }
+
+    test("Hvis request timer ut blir feil publisert") {
+        every { spinnKlient.hentAvsenderSystemData(any()) } throws SocketTimeoutException("Timeout!")
+
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns UUID.randomUUID()
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.name.toJson(),
+                DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+            )
+        }
+
+        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
+
+        testRapid.inspektør.size shouldBeExactly 1
+        actual.behov shouldBe BehovType.HENT_AVSENDER_SYSTEM
+        actual.feilmelding shouldBe "Ukjent feil ved kall til spinn"
     }
 })

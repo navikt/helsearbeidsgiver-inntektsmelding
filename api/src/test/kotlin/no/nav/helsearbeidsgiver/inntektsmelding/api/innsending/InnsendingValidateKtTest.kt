@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permitterin
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
+import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
@@ -71,6 +72,28 @@ class InnsendingValidateKtTest {
         GYLDIG_INNSENDING_REQUEST.copy(
             arbeidsgiverperioder = listOf(Periode(NOW, NOW.plusDays(3)))
         ).validate()
+    }
+
+    @Test
+    fun `midlertidig - komplett innsending har forespurtData-liste med minst tre elementer`() {
+        GYLDIG_INNSENDING_REQUEST.copy(
+            forespurtData = listOf("eple", "banan", "appelsin")
+        ).validate()
+    }
+
+    @Test
+    fun `midlertidig - komplett innsending kan også ha ingen eller tom forespurtData-liste`() {
+        GYLDIG_INNSENDING_REQUEST.copy(
+            forespurtData = null
+        ).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(
+            forespurtData = emptyList()
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta delvis innsending`() {
+        DELVIS_INNSENDING_REQUEST.validate()
     }
 
     @Test

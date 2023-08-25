@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.FIKK_SVAR_MED_RESPONSE_STATUS
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnApiException
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnKlient
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import java.util.UUID
@@ -105,9 +106,8 @@ class AvsenderSystemLoeserTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
         actual.event shouldBe EventName.FORESPOERSEL_BESVART
-        actual[DataFelt.AVSENDER_SYSTEM_DATA]["avsenderSystemNavn"].get("content").asText() shouldBe avsenderSystemData.avsenderSystemNavn
-        actual[DataFelt.AVSENDER_SYSTEM_DATA]["avsenderSystemVersjon"].get("content").asText() shouldBe avsenderSystemData.avsenderSystemVersjon
-        actual[DataFelt.AVSENDER_SYSTEM_DATA]["arkivreferanse"].get("content").asText() shouldBe avsenderSystemData.arkivreferanse
+
+        actual[DataFelt.AVSENDER_SYSTEM_DATA].toString().fromJson(AvsenderSystemData.serializer()) shouldBe avsenderSystemData
     }
 
     test("Hvis request timer ut blir feil publisert") {

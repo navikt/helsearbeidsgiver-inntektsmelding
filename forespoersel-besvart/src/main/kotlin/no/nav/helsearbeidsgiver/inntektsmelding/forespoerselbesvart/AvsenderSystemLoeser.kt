@@ -46,7 +46,7 @@ class AvsenderSystemLoeser(
         }
         try {
             val avsenderSystem = spinnKlient.hentAvsenderSystemData(inntektsmeldingId.asText())
-            publishData(behov.createData(mapOf(DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystem.toJson(AvsenderSystemData.serializer()))))
+            publishData(behov.createData(mapOf(DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystem)))
         } catch (e: SpinnApiException) {
             "Feil ved kall mot spinn api: ${e.message}".also {
                 logger.error(it)

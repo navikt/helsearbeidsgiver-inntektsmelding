@@ -1,11 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 
-import com.fasterxml.jackson.module.kotlin.treeToValue
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
-
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -15,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
@@ -27,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.FIKK_SVAR_MED_RESPONSE_STATUS
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnApiException
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnKlient
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import java.util.*
@@ -53,13 +48,12 @@ class AvsenderSystemLoeserTest : FunSpec({
 
     test("Ved når inntektsmeldingId mangler skal feil publiseres") {
 
-
         mockStatic(::randomUuid) {
             every { randomUuid() } returns UUID.randomUUID()
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.name.toJson(),
+                Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.name.toJson()
             )
         }
 
@@ -104,7 +98,7 @@ class AvsenderSystemLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>(){
+        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
             it.interestedIn(DataFelt.AVSENDER_SYSTEM_DATA.str)
         }
 

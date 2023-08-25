@@ -13,7 +13,6 @@ import io.mockk.mockk
 import no.nav.helsearbeidsgiver.tokenprovider.AccessTokenProvider
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 
-
 class SpinnKlientTest : FunSpec({
     val expectedJson = "gyldingRespons.json".readResource()
     var status: HttpStatusCode = HttpStatusCode.OK
@@ -28,7 +27,6 @@ class SpinnKlientTest : FunSpec({
     val httpKlient = HttpClient(mockEngine)
     val tokenProvider = mockk<AccessTokenProvider>(relaxed = true)
     val spinnKlient = SpinnKlient("dummyUrl", httpKlient, tokenProvider::getToken)
-
 
     test("Hvis inntektsmelding ikke finnes kastes feil") {
         status = HttpStatusCode.NotFound

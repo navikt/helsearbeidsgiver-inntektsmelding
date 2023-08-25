@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 
-
 class SpinnKlient(
     val url: String,
     val httpClient: HttpClient,
@@ -44,4 +43,3 @@ class SpinnApiException(message: String, cause: Throwable? = null) : Exception(m
 
 const val MANGLER_AVSENDER = "Mangler avsenderSystemNavn"
 const val FIKK_SVAR_MED_RESPONSE_STATUS = "Fikk svar med response status"
-

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -13,7 +12,6 @@ import io.ktor.http.headersOf
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.tokenprovider.AccessTokenProvider
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 import no.nav.inntektsmeldingkontrakt.AvsenderSystem
 import no.nav.inntektsmeldingkontrakt.Inntektsmelding
@@ -23,7 +21,7 @@ class SpinnKlientTest : FunSpec({
     val expectedJson = "gyldingRespons.json".readResource()
     val expectedInntektsmelding = Jackson.fromJson<Inntektsmelding>(expectedJson)
     var status: HttpStatusCode = HttpStatusCode.OK
-    var responsData : String = expectedJson
+    var responsData: String = expectedJson
     val mockEngine = MockEngine { request ->
         val r = status
         respond(
@@ -38,7 +36,7 @@ class SpinnKlientTest : FunSpec({
 
     test("Hvis inntektsmelding ikke finnes kastes feil") {
         status = HttpStatusCode.NotFound
-        val exception = shouldThrow<SpinnApiException> {
+        val exception = shouldThrowExactly<SpinnApiException> {
             spinnKlient.hentAvsenderSystemData("abc-1")
         }
         exception.message shouldBe "$FIKK_SVAR_MED_RESPONSE_STATUS: ${HttpStatusCode.NotFound.value}"
@@ -48,11 +46,10 @@ class SpinnKlientTest : FunSpec({
         status = HttpStatusCode.OK
         responsData = Jackson.objectMapper.writeValueAsString(expectedInntektsmelding.copy(avsenderSystem = AvsenderSystem(null, null)))
 
-        val exception = shouldThrow<SpinnApiException> {
+        val exception = shouldThrowExactly<SpinnApiException> {
             spinnKlient.hentAvsenderSystemData("abc-1")
         }
         exception.message shouldBe MANGLER_AVSENDER
-
     }
     test("Hvis inntektsmelding finnes returneres system navn") {
         status = HttpStatusCode.OK

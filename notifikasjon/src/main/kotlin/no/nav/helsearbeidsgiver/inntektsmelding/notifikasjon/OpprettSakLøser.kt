@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -61,17 +60,14 @@ class OpprettSakLøser(
     }
 
     override fun onBehov(behov: Behov) {
-        logger.info("Skal opprette sak for forespørselId: $forespoerselId")
+        logger.info("Skal opprette sak for forespørselId: ${behov.forespoerselId}")
         val orgnr = behov[DataFelt.ORGNRUNDERENHET].asText()
         val personDato = hentNavn(behov)
         val navn = personDato.navn
         val fødselsdato = personDato.fødselsdato
-        val sakId = opprettSak(forespoerselId, orgnr, navn, fødselsdato)
-        logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: $forespoerselId")
+        val sakId = opprettSak(behov.forespoerselId!!, orgnr, navn, fødselsdato)
+        logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
         behov.createData(mapOf(DataFelt.SAK_ID to sakId)).also { publishData(it) }
-        sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=$forespoerselId")
-    }
-
-    override fun onBehov(packet: JsonMessage) {
+        sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=${behov.forespoerselId}")
     }
 }

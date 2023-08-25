@@ -95,7 +95,4 @@ class OpprettOppgaveLøser(
 
         sikkerLogger.info("OpprettOppgaveLøser publiserte med uuid: ${behov.uuid()}")
     }
-
-    override fun onBehov(packet: JsonMessage) {
-    }
 }

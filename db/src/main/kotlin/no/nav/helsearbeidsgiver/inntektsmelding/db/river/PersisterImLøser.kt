@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -61,8 +60,5 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
             sikkerLogger.error("Klarte ikke persistere: ${behov.forespoerselId}", ex)
             behov.createFail("Klarte ikke persistere: ${behov.forespoerselId}").also { publishFail(it) }
         }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 }

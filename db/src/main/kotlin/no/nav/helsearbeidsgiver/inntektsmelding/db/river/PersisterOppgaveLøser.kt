@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -29,9 +28,6 @@ class PersisterOppgaveLøser(
         val oppgaveId = behov[DataFelt.OPPGAVE_ID].asText()
         repository.oppdaterOppgaveId(behov.forespoerselId!!, oppgaveId)
         behov.createEvent(EventName.OPPGAVE_LAGRET, mapOf(DataFelt.OPPGAVE_ID to oppgaveId)).also { publishEvent(it) }
-        sikkerLogger.info("PersisterOppgaveLøser lagret oppgaveId $oppgaveId for forespoerselID $forespoerselId")
-    }
-
-    override fun onBehov(packet: JsonMessage) {
+        sikkerLogger.info("PersisterOppgaveLøser lagret oppgaveId $oppgaveId for forespoerselID ${behov.forespoerselId}")
     }
 }

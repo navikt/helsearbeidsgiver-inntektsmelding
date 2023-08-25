@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -28,7 +27,7 @@ class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val re
     override fun onBehov(behov: Behov) {
         val orgnr = behov[DataFelt.ORGNRUNDERENHET].asText()
         val fnr = behov[Key.IDENTITETSNUMMER].asText()
-        repository.lagreForespoersel(forespoerselId, orgnr)
+        repository.lagreForespoersel(behov.forespoerselId!!, orgnr)
 
         behov.createEvent(
             EventName.FORESPØRSEL_LAGRET,
@@ -37,8 +36,5 @@ class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val re
                 DataFelt.ORGNRUNDERENHET to orgnr
             )
         ).also { publishEvent(it) }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 }

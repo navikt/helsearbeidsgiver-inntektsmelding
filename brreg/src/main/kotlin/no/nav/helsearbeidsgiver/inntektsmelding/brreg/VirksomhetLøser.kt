@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
@@ -80,8 +79,5 @@ class VirksomhetLøser(
             sikkerLogger.error("Det oppstod en feil ved henting for orgnr $orgnr: ", ex)
             publishFail(behov.createFail("Klarte ikke hente virksomhet"))
         }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 }

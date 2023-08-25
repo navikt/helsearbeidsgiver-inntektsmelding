@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.toUUID
@@ -42,9 +41,6 @@ class TilgangLoeser(
                 DataFelt.FNR
             )
         }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 
     override fun onBehov(behov: Behov) {

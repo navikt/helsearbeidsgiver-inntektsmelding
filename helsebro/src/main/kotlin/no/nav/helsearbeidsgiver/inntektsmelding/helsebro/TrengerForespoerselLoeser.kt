@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -66,9 +65,6 @@ class TrengerForespoerselLoeser(
                 spoerrEtterForespoersel(behov.event, transaksjonId, forespoerselId)
             }
         }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 
     private fun spoerrEtterForespoersel(event: EventName, transaksjonId: UUID, forespoerselId: UUID) {

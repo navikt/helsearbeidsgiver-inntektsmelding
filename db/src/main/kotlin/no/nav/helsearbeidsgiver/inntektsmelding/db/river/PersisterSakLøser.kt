@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -31,8 +30,5 @@ class PersisterSakLøser(
         repository.oppdaterSakId(behov.forespoerselId!!, sakId)
         sikkerLogger.info("PersisterSakLøser lagred sakId: $sakId for forespoerselId: ${behov.forespoerselId}")
         behov.createData(mapOf(DataFelt.PERSISTERT_SAK_ID to sakId)).also { publishData(it) }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 }

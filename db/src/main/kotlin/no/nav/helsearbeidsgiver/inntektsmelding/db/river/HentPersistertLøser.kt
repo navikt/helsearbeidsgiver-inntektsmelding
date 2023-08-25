@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -35,18 +34,15 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
             )
         }
 
-    override fun onBehov(packet: JsonMessage) {
-    }
-
     override fun onBehov(behov: Behov) {
         measureTimeMillis {
-            logger.info("Skal hente persistert inntektsmelding med forespørselId $forespoerselId")
+            logger.info("Skal hente persistert inntektsmelding med forespørselId ${behov.forespoerselId}")
             try {
-                val dokument = repository.hentNyeste(forespoerselId)
+                val dokument = repository.hentNyeste(behov.forespoerselId!!)
                 if (dokument == null) {
-                    logger.info("Fant IKKE persistert inntektsmelding for forespørselId $forespoerselId")
+                    logger.info("Fant IKKE persistert inntektsmelding for forespørselId ${behov.forespoerselId}")
                 } else {
-                    sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId $forespoerselId")
+                    sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId ${behov.forespoerselId}")
                 }
                 behov.createData(
                     mapOf(
@@ -63,9 +59,9 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
                         publishData(it)
                     }
             } catch (ex: Exception) {
-                logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId")
+                logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId ${behov.forespoerselId}")
                 sikkerLogger.error(
-                    "Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId $forespoerselId",
+                    "Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId ${behov.forespoerselId}",
                     ex
                 )
                 behov.createFail("Klarte ikke hente persistert inntektsmelding").also {

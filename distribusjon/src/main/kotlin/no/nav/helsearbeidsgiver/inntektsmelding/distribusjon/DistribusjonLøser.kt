@@ -3,7 +3,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import io.prometheus.client.Summary
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -97,8 +96,5 @@ class DistribusjonLøser(
         } finally {
             requestTimer.observeDuration()
         }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 }

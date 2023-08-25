@@ -1,0 +1,35 @@
+{
+  "inntektsmeldingId": "4231ac69-aea9-4825-a46f-5316bc75f82e",
+  "arbeidstakerFnr": "",
+  "arbeidstakerAktorId": "1234567890123",
+  "virksomhetsnummer": "123456789",
+  "arbeidsgiverFnr": null,
+  "arbeidsgiverAktorId": null,
+  "begrunnelseForReduksjonEllerIkkeUtbetalt": "",
+  "arbeidsgivertype": "VIRKSOMHET",
+  "arbeidsforholdId": null,
+  "beregnetInntekt": "15000.00",
+  "refusjon": {
+    "beloepPrMnd": "0.00",
+    "opphoersdato": null
+  },
+  "endringIRefusjoner": [],
+  "opphoerAvNaturalytelser": [],
+  "gjenopptakelseNaturalytelser": [],
+  "arbeidsgiverperioder": [
+    {
+      "fom": "2023-03-31",
+      "tom": "2023-04-15"
+    }
+  ],
+  "status": "GYLDIG",
+  "arkivreferanse": "im_123456789",
+  "ferieperioder": [],
+  "foersteFravaersdag": "2023-03-31",
+  "mottattDato": "2023-06-30T14:33:42.076600592",
+  "naerRelasjon": null,
+  "avsenderSystem": {
+    "navn": "NAV_NO",
+    "versjon": "1.0"
+  }
+}

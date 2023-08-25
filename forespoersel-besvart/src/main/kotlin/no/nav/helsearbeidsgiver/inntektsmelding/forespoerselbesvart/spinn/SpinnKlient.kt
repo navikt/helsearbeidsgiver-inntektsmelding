@@ -1,15 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.inntektsmeldingkontrakt.Inntektsmelding
+
 
 class SpinnKlient(
     val url: String,
@@ -23,9 +25,9 @@ class SpinnKlient(
                 bearerAuth(getAccessToken())
             }
             if (response.status != HttpStatusCode.OK) {
-                throw SpinnApiException("Fikk svar med response status: ${response.status.value}")
+                throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${response.status.value}")
             }
-            response.body<Inntektsmelding>()
+            Jackson.fromJson<Inntektsmelding>(response.bodyAsText())
         }
 
         if (result.avsenderSystem?.navn != null) {
@@ -35,7 +37,11 @@ class SpinnKlient(
                 avsenderSystemVersjon = result.avsenderSystem?.versjon ?: ""
             )
         }
-        throw SpinnApiException("Mangler avsenderSystemNavn")
+        throw SpinnApiException(MANGLER_AVSENDER)
     }
 }
 class SpinnApiException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
+const val MANGLER_AVSENDER = "Mangler avsenderSystemNavn"
+const val FIKK_SVAR_MED_RESPONSE_STATUS = "Fikk svar med response status"
+

@@ -76,3 +76,11 @@ fun String.delOppLangeNavn(): List<String> {
 fun <T> List<T>.dropLastIfNotEmpty(): List<T> {
     return if (isNotEmpty()) dropLast(1) else this
 }
+
+fun String.formaterTelefonnummer(): String {
+    if (this.length > 8) {
+        val start = this.length - 8
+        return this.substring(0, start) + " " + this.substring(start)
+    }
+    return this
+}

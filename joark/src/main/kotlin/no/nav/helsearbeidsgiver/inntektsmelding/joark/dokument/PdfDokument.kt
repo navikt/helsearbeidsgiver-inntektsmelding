@@ -129,6 +129,8 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         moveCursorTo(topY)
         addLabel("Organisasjonsnummer for underenhet", dokument.orgnrUnderenhet, KOLONNE_TO)
         moveCursorTo(afterY)
+        moveCursorBy(pdf.bodySize * 2)
+        dokument.telefonnummer?.let { addLabel("Kontaktinformasjon til innsender", it.formaterTelefonnummer(), linefeed = true) }
     }
 
     private fun addFraværsperiode() {

@@ -34,6 +34,8 @@ components:
           type: string
         fulltNavn:
           type: string
+        telefonnummer:
+          type: string
         virksomhetNavn:
           type: string
         behandlingsdager:

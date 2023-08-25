@@ -9,7 +9,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
+import no.nav.helsearbeidsgiver.felles.test.mock.mockDelvisInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -31,6 +33,7 @@ class InnsendingRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.INNSENDING + "/${Mock.forespoerselId}"
 
     private val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson).parseJson()
+    private val GYLDIG_DELVIS_REQUEST = DELVIS_INNSENDING_REQUEST.let(Jackson::toJson).parseJson()
 
     @BeforeEach
     fun setup() {
@@ -90,6 +93,28 @@ class InnsendingRouteKtTest : ApiTest() {
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
         assertEquals(RedisTimeoutResponse(Mock.forespoerselId).toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
+    }
+
+    @Test
+    fun `skal godta delvis im og returnere kvittering`() = testApi {
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        val mockClientId = UUID.randomUUID()
+
+        coEvery {
+            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
+        } returns mockDelvisInntektsmeldingDokument().let(Jackson::toJson).parseJson()
+
+        val response = mockConstructor(InnsendingProducer::class) {
+            every {
+                anyConstructed<InnsendingProducer>().publish(any(), any())
+            } returns mockClientId
+
+            post(path, GYLDIG_DELVIS_REQUEST)
+        }
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals(InnsendingResponse(Mock.forespoerselId).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
     }
 
     private object Mock {

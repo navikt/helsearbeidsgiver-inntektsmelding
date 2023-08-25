@@ -25,7 +25,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnA
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
-import java.util.*
+import java.util.UUID
 
 val avsenderSystemData = AvsenderSystemData(
     avsenderSystemNavn = "NAV_NO",

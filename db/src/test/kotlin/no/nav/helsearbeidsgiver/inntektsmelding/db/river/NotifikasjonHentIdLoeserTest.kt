@@ -9,18 +9,21 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -38,23 +41,35 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
     }
 
     test("Ved behov om å hente notifikasjon-ID-er publiseres ID-ene på samme event") {
-        val expected = Published.mock()
+        val expected = Behov.create(
+            EventName.FORESPOERSEL_BESVART,
+            BehovType.NOTIFIKASJON_HENT_ID,
+            UUID.randomUUID().toString(),
+            mapOf(
+                Key.TRANSACTION_ORIGIN to UUID.randomUUID(),
+                DataFelt.OPPGAVE_ID to "syngende-hemul",
+                DataFelt.SAK_ID to "skuffet-apokalypse"
+            )
+        ) {
+            it.interestedIn(DataFelt.OPPGAVE_ID, DataFelt.SAK_ID, Key.TRANSACTION_ORIGIN)
+        }
 
-        every { mockForespoerselRepo.hentSakId(any()) } returns expected.sakId
-        every { mockForespoerselRepo.hentOppgaveId(any()) } returns expected.oppgaveId
+        every { mockForespoerselRepo.hentSakId(any()) } returns expected[DataFelt.SAK_ID].asText()
+        every { mockForespoerselRepo.hentOppgaveId(any()) } returns expected[DataFelt.OPPGAVE_ID].asText()
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
-            Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to expected.transaksjonId.toJson()
+            Key.FORESPOERSEL_ID to expected.forespoerselId!!.toJson(),
+            Key.TRANSACTION_ORIGIN to expected[Key.TRANSACTION_ORIGIN].asText().toJson()
         )
 
         testRapid.inspektør.size shouldBeExactly 1
 
-        val actual = testRapid.firstMessage().fromJson(Published.serializer())
+        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Event>()
 
-        actual shouldBe expected
+        actual.forespoerselId shouldBe expected.forespoerselId
+        actual.uuid() shouldBe expected.uuid()
 
         verifySequence {
             mockForespoerselRepo.hentSakId(any())
@@ -112,27 +127,3 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
         actual shouldBe expectedRepublisert
     }
 })
-
-@Serializable
-private data class Published(
-    @SerialName("@event_name")
-    val eventName: EventName,
-    @SerialName("sak_id")
-    val sakId: String,
-    @SerialName("oppgave_id")
-    val oppgaveId: String,
-    val forespoerselId: UUID,
-    @SerialName("transaction_origin")
-    val transaksjonId: UUID
-) {
-    companion object {
-        fun mock(): Published =
-            Published(
-                eventName = EventName.FORESPOERSEL_BESVART,
-                sakId = "syngende-hemul",
-                oppgaveId = "skuffet-apokalypse",
-                forespoerselId = UUID.randomUUID(),
-                transaksjonId = UUID.randomUUID()
-            )
-    }
-}

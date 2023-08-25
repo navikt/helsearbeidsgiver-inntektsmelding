@@ -36,7 +36,13 @@ class Behov(
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
 
-        fun create(event: EventName, behov: BehovType, forespoerselId: String, map: Map<IKey, Any> = emptyMap()): Behov {
+        fun create(
+            event: EventName,
+            behov: BehovType,
+            forespoerselId: String,
+            map: Map<IKey, Any> = emptyMap(),
+            packetValidation: River.PacketValidation = River.PacketValidation { }
+        ): Behov {
             return Behov(
                 event,
                 behov,
@@ -48,7 +54,9 @@ class Behov(
                         Key.FORESPOERSEL_ID.str to forespoerselId
                     ) + map.mapKeys { it.key.str }
                 )
-            )
+            ).also {
+                packetValidation.validate(it.jsonMessage)
+            }
         }
 
         fun create(jsonMessage: JsonMessage): Behov {
@@ -111,6 +119,10 @@ class Behov(
                 ) + data.mapKeys { it.key.str }
             )
         )
+    }
+
+    fun createEvent(event: EventName, data: Map<IKey, Any>): Event {
+        return Event.create(event, forespoerselId, data + mapOfNotNull(Key.TRANSACTION_ORIGIN to this.uuid().ifEmpty { null }))
     }
 
     override fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()

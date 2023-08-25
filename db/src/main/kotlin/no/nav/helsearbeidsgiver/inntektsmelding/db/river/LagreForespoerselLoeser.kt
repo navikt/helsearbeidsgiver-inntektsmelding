@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -25,23 +25,20 @@ class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val re
         }
     }
 
-    override fun onBehov(packet: JsonMessage) {
-        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        sikkerLogger.info("LagreForespoerselLoeser mottok:\n${packet.toPretty()}")
-        val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
-        val fnr = packet[Key.IDENTITETSNUMMER.str].asText()
+    override fun onBehov(behov: Behov) {
+        val orgnr = behov[DataFelt.ORGNRUNDERENHET].asText()
+        val fnr = behov[Key.IDENTITETSNUMMER].asText()
         repository.lagreForespoersel(forespoerselId, orgnr)
 
-        val msg =
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
-                    Key.IDENTITETSNUMMER.str to fnr,
-                    DataFelt.ORGNRUNDERENHET.str to orgnr
-                )
+        behov.createEvent(
+            EventName.FORESPØRSEL_LAGRET,
+            mapOf(
+                Key.IDENTITETSNUMMER to fnr,
+                DataFelt.ORGNRUNDERENHET to orgnr
             )
+        ).also { publishEvent(it) }
+    }
 
-        publishEvent(msg)
-        sikkerLogger.info("LagreForespoerselLoeser publiserte:\n${msg.toPretty()}")
+    override fun onBehov(packet: JsonMessage) {
     }
 }

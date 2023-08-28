@@ -4,7 +4,6 @@ import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -85,9 +84,6 @@ class InntektLoeser(
                     behov.createFail("Ukjent feil.").also { this.publishFail(it) }
                 }
         }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 
     private fun hentInntekt(behov: Behov) {

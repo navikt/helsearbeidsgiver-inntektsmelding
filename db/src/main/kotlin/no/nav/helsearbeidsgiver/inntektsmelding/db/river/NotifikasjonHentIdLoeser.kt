@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -61,9 +60,6 @@ class NotifikasjonHentIdLoeser(
         }
     }
 
-    override fun onBehov(packet: JsonMessage) {
-    }
-
     private fun loesBehov(behov: Behov) {
         logger.info("Mottok melding med behov '${BehovType.NOTIFIKASJON_HENT_ID}'.")
 
@@ -83,7 +79,7 @@ class NotifikasjonHentIdLoeser(
             sikkerLogger.info(it)
         }
 
-        val oppgaveId = forespoerselRepo.hentOppgaveId(forespoerselId!!)
+        val oppgaveId = forespoerselRepo.hentOppgaveId(behov.forespoerselId!!)
         "Fant oppgaveId '$oppgaveId'.".also {
             logger.info(it)
             sikkerLogger.info(it)
@@ -94,7 +90,7 @@ class NotifikasjonHentIdLoeser(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 DataFelt.SAK_ID to sakId.toJson(),
                 DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.FORESPOERSEL_ID to behov.forespoerselId!!.toJson(),
                 Key.TRANSACTION_ORIGIN to behov[Key.TRANSACTION_ORIGIN].asText().toJson()
             )
         } else {

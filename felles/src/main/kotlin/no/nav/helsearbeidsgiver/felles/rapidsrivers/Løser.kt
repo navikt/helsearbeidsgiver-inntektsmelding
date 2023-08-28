@@ -4,7 +4,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -15,8 +14,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
-    lateinit var eventName: EventName
-    lateinit var forespoerselId: String
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -37,17 +34,9 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
         }
     }
 
-    // Ungå å bruke det, hvis du kan.
+    // Var forsiktig å bruke det, hvis du kan.
     // Alle løser som publiserer Behov vil få kunskap om nedstrøms løserne.
     // i tilleg gjenbruktbarhet av løseren vil vare betydelig redusert
-    fun publishBehov(message: JsonMessage) {
-        message[Key.EVENT_NAME.str] = eventName.name
-        if (forespoerselId.isNotEmpty()) {
-            message[Key.FORESPOERSEL_ID.str] = forespoerselId
-        }
-        rapidsConnection.publish(message.toJson())
-    }
-
     fun publishBehov(behov: Behov) {
         behov.toJsonMessage()
             .also {
@@ -56,13 +45,6 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
                 logger.info("Publiserte behov for eventname ${behov.event} and uuid ${behov.uuid()}'.")
                 sikkerLogger.info("Publiserte behov:\n${it.toPretty()}")
             }
-    }
-
-    fun publishEvent(message: JsonMessage) {
-        if (forespoerselId.isNotEmpty()) {
-            message[Key.FORESPOERSEL_ID.str] = forespoerselId
-        }
-        rapidsConnection.publish(message.toJson())
     }
 
     fun publishEvent(event: Event) {
@@ -83,19 +65,6 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
             }
     }
 
-    fun publishData(message: JsonMessage) {
-        message[Key.EVENT_NAME.str] = eventName.name
-        rapidsConnection.publish(message.toJson())
-    }
-
-    fun publishFail(fail: Fail) {
-        rapidsConnection.publish(fail.toJsonMessage().toJson())
-    }
-
-    fun publishFail(message: JsonMessage) {
-        message[Key.EVENT_NAME.str] = eventName.name
-        rapidsConnection.publish(message.toJson())
-    }
     fun publishFail(fail: no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail) {
         fail.toJsonMessage()
             .also { rapidsConnection.publish(it.toJson()) }
@@ -106,18 +75,13 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        eventName = EventName.valueOf(packet[Key.EVENT_NAME.str].asText())
-        forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
         logger.info("Mottok melding med behov '${packet[Key.BEHOV.str].asText()}'.")
         sikkerLogger.info("Mottok melding:\n${packet.toPretty()}")
-        onBehov(packet)
         if (!packet[Key.BEHOV.str].isArray) {
             val behov = Behov.create(packet)
             onBehov(behov)
         }
     }
-
-    abstract fun onBehov(packet: JsonMessage)
 
     open fun onBehov(behov: Behov) {
     }

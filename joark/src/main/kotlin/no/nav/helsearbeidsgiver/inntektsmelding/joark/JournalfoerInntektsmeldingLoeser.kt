@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 import com.fasterxml.jackson.databind.JsonNode
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
@@ -79,9 +78,6 @@ class JournalfoerInntektsmeldingLoeser(
         }
     }
 
-    override fun onBehov(packet: JsonMessage) {
-    }
-
     private fun opprettOgFerdigstillJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument): String {
         sikkerLogger.info("Bruker inntektsinformasjon $inntektsmelding")
 
@@ -109,19 +105,6 @@ class JournalfoerInntektsmeldingLoeser(
         }
 
         return response.journalpostId
-    }
-
-    private fun publiserLagring(uuid: String, journalpostId: String) {
-        val packet: JsonMessage = JsonMessage.newMessage(
-            mapOf(
-                Key.BEHOV.str to BehovType.LAGRE_JOURNALPOST_ID.name,
-                Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.JOURNALPOST_ID.str to journalpostId,
-                Key.UUID.str to uuid
-            )
-        )
-
-        publishBehov(packet)
     }
 }
 

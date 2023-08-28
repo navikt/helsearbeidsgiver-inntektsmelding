@@ -73,6 +73,7 @@ val DELVIS_INNSENDING_REQUEST = InnsendingRequest(
     naturalytelser = emptyList(),
     årsakInnsending = ÅrsakInnsending.NY,
     bekreftOpplysninger = true,
-    forespurtData = listOf("inntekt", "refusjon")
+    forespurtData = listOf("inntekt", "refusjon"),
+    telefonnummer = "22555555"
 
 )

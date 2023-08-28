@@ -32,8 +32,6 @@ fun InnsendingRequest.validate() {
                     validate(FullLonnIArbeidsgiverPerioden::begrunnelse).isNotNull()
                 }
             }
-            // valider telefon, men kun på komplett innsending! (vil feile fram til frontend sender tlf)
-            validate(InnsendingRequest::telefonnummer).isTelefonnummer()
         } else {
             // skal ikke komme i delvis im - gir ikke mening - og da bør vi heller ikke ta det imot og lagre det!!
             validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).isNull()
@@ -44,6 +42,8 @@ fun InnsendingRequest.validate() {
         // Arbeidsgiver
         validate(InnsendingRequest::identitetsnummer).isNotNull()
         validate(InnsendingRequest::identitetsnummer).isIdentitetsnummer()
+        // valider telefon
+        validate(InnsendingRequest::telefonnummer).isTelefonnummer()
         // Arbeidsgiverperioder
         validate(InnsendingRequest::arbeidsgiverperioder).validateForEach {
             validate(Periode::fom).isNotNull()

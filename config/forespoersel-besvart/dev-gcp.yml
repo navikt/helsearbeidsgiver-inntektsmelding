@@ -4,7 +4,7 @@ azure:
 env:
   - name: PROXY_SCOPE
     value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
-  - name: SPINN_URL
+  - name: SPINN_API_URL
     value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/syfoinntektsmelding"
   - name: KAFKA_EXTRA_TOPIC
     value: helsearbeidsgiver.pri

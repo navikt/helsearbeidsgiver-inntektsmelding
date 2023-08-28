@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
@@ -58,8 +57,5 @@ class AvsenderSystemLoeser(
                 publishFail(behov.createFail(it))
             }
         }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 }

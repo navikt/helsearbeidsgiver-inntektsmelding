@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.aareg.AaregClient
@@ -44,9 +43,6 @@ class ArbeidsforholdLøser(
                 Key.UUID
             )
         }
-
-    override fun onBehov(packet: JsonMessage) {
-    }
 
     override fun onBehov(behov: Behov) {
         measureTimeMillis {

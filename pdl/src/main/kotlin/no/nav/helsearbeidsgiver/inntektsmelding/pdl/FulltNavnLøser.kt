@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -67,9 +66,6 @@ class FulltNavnLøser(
         }.also {
             logger.info("FullNavn løser took $it")
         }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 
     private suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {

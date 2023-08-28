@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -40,9 +39,9 @@ class LagreJournalpostIdLøser(
                 .also { publishFail(it) }
         } else {
             try {
-                repository.oppdaterJournalpostId(journalpostId, forespoerselId)
-                logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for forespoerselId $forespoerselId")
-                val inntektsmeldingDokument = repository.hentNyeste(forespoerselId)
+                repository.oppdaterJournalpostId(journalpostId, behov.forespoerselId!!)
+                logger.info("LagreJournalpostIdLøser lagret journalpostId $journalpostId i database for forespoerselId ${behov.forespoerselId}")
+                val inntektsmeldingDokument = repository.hentNyeste(behov.forespoerselId!!)
                 behov.createEvent(
                     EventName.INNTEKTSMELDING_JOURNALFOERT,
                     mapOfNotNull(
@@ -58,8 +57,5 @@ class LagreJournalpostIdLøser(
                 sikkerLogger.error("LagreJournalpostIdLøser klarte ikke lagre journalpostId $journalpostId for transaksjonsId ${behov.uuid()}", ex)
             }
         }
-    }
-
-    override fun onBehov(packet: JsonMessage) {
     }
 }

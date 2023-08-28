@@ -16,7 +16,7 @@ class InnsendingProducerTest {
         val rapidsConnection = mockk<RapidsConnection>()
         val producer = InnsendingProducer(rapidsConnection)
         every {
-            rapidsConnection.publish(TestData.validIdentitetsnummer, any())
+            rapidsConnection.publish(any())
         } returns Unit
         assertNotNull(producer.publish(UUID.randomUUID(), GYLDIG_INNSENDING_REQUEST))
     }

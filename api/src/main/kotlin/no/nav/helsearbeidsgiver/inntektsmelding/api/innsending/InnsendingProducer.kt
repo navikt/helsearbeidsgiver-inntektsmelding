@@ -32,7 +32,7 @@ class InnsendingProducer(
                 DataFelt.INNTEKTSMELDING.str to request
             )
         )
-        rapidsConnection.publish(request.identitetsnummer, packet.toJson())
+        rapidsConnection.publish(packet.toJson())
         logger.info("Publiserte til kafka forespørselId: $forespoerselId og clientId=$clientId")
         sikkerLogger.info("Publiserte til kafka forespørselId: $forespoerselId json=${packet.toPretty()}")
         return clientId

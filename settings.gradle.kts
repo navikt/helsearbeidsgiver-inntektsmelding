@@ -18,3 +18,4 @@ pluginManagement {
         id("org.jmailen.kotlinter") version kotlinterVersion
     }
 }
+include("forespoersel-forkastet")

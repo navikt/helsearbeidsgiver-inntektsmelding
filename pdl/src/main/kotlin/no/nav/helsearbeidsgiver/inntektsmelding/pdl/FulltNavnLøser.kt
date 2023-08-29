@@ -10,13 +10,12 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.pdl.PdlClient
-import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
+import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import kotlin.system.measureTimeMillis
@@ -69,14 +68,14 @@ class FulltNavnLøser(
     }
 
     private suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
-        val liste: PdlHentFullPerson.PdlFullPersonliste?
+        val liste: FullPerson?
         measureTimeMillis {
-            liste = pdlClient.fullPerson(identitetsnummer)?.hentPerson
+            liste = pdlClient.fullPerson(identitetsnummer)
         }.also {
             logger.info("PDL invocation took $it")
         }
-        val fødselsdato: LocalDate? = liste?.foedsel?.firstOrNull()?.foedselsdato
-        val fulltNavn = liste?.trekkUtFulltNavn() ?: "Ukjent"
+        val fødselsdato: LocalDate? = liste?.foedselsdato
+        val fulltNavn = liste?.navn?.fulltNavn() ?: "Ukjent"
         return PersonDato(fulltNavn, fødselsdato)
     }
 }

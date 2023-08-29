@@ -17,8 +17,8 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.pdl.PdlClient
-import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
-import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
+import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
+import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.BeforeEach
@@ -44,7 +44,7 @@ class FulltNavnLøserTest {
     @Test
     fun `skal finne navn`() {
         coEvery {
-            mockPdlClient.fullPerson(any(), any())
+            mockPdlClient.fullPerson(any())
         } returns mockPerson("Ola", "", "Normann", LocalDate.now())
 
         testRapid.sendJson(
@@ -82,24 +82,8 @@ class FulltNavnLøserTest {
     }
 }
 
-private fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson =
-    PdlHentFullPerson(
-        hentPerson = PdlHentFullPerson.PdlFullPersonliste(
-            navn = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlNavn(fornavn, mellomNavn, etternavn, PdlPersonNavnMetadata(""))),
-            foedsel = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlFoedsel(fødselsdato)),
-            doedsfall = emptyList(),
-            adressebeskyttelse = emptyList(),
-            statsborgerskap = emptyList(),
-            bostedsadresse = emptyList(),
-            kjoenn = emptyList()
-        ),
-        hentIdenter = PdlHentFullPerson.PdlIdentResponse(
-            emptyList()
-        ),
-        hentGeografiskTilknytning = PdlHentFullPerson.PdlGeografiskTilknytning(
-            PdlHentFullPerson.PdlGeografiskTilknytning.PdlGtType.KOMMUNE,
-            null,
-            null,
-            null
-        )
+private fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): FullPerson =
+    FullPerson(
+        navn = PersonNavn(fornavn, mellomNavn, etternavn),
+        foedselsdato = fødselsdato
     )

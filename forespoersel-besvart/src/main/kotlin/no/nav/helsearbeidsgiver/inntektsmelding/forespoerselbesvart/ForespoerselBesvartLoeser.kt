@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -49,6 +50,9 @@ class ForespoerselBesvartLoeser(
                 )
                 it.requireKeys(
                     Pri.Key.FORESPOERSEL_ID
+                )
+                it.interestedIn(
+                    Pri.Key.SPINN_INNTEKTSMELDING_ID
                 )
             }
         }.register(this)

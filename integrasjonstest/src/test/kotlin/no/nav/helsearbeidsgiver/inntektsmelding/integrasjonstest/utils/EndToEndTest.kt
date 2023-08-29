@@ -33,6 +33,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerService
+import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -79,6 +80,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val forespoerselRepository by lazy { ForespoerselRepository(database.db) }
 
     val altinnClient = mockk<AltinnClient>()
+    val pdlClient = mockk<PdlClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
 
@@ -109,7 +111,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createInntekt(mockk(relaxed = true))
             createJoark(dokarkivClient)
             createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)
-            createPdl(mockk(relaxed = true))
+            createPdl(pdlClient)
         }
             .register(this)
 

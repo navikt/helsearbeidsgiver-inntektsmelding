@@ -1,13 +1,12 @@
 kafkaPool: nav-dev
+idportenEnabled: true
+sidecarEnabled: true
 azure:
   enabled: true
 ingress: https://helsearbeidsgiver-im-api.intern.dev.nav.no
-envFrom:
-  - type: configmap
-    name: loginservice-idporten
 env:
   - name: REDIS_URL
     value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
 apps:
   - name: helsearbeidsgiver-redis
-  
+

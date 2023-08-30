@@ -5,7 +5,7 @@
 #   -e CLUSTER=dev-fss \
 #   -e VAR="app=aareg" \
 #   ghcr.io/nais/deploy/deploy:latest /app/deploy \
-#     --dry-run --print-payload --resource /config/nais.yml --vars /config/myapp/dev-fss.yml
+#     --dry-run --print-payload --resource /config/nais.yml --vars /config/myapp/dev-
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
@@ -16,6 +16,10 @@ metadata:
 spec:
   image: {{ image }}
   port: 8080
+  idporten:
+    enabled: {{#if idportenEnabled}}true{{else}}false{{/if}}
+    sidecar:
+      enabled: {{#if sidecarEnabled}}true{{else}}false{{/if}}
   {{#if ingress}}
   ingresses:
     - {{ ingress }}
@@ -98,5 +102,4 @@ spec:
           namespace: {{ app.namespace }}
           {{/if}}
         {{/each}}{{/if}}
-          
-        
+

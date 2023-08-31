@@ -8,7 +8,7 @@ import no.nav.security.token.support.v2.TokenSupportConfig
 import no.nav.security.token.support.v2.tokenValidationSupport
 
 object Auth {
-    const val ISSUER = "idporten-issuer"
+    const val ISSUER = "loginservice-issuer"
     const val CLAIM_PID = "pid"
 }
 

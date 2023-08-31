@@ -7,7 +7,7 @@ val valiktorVersion: String by project
 
 tasks {
     test {
-        environment("IDPORTEN_WELL_KNOWN_URL", "http://localhost:6666/loginservice-issuer/.well-known/openid-configuration")
+        environment("IDPORTEN_WELL_KNOWN_URL", "http://localhost:6666/idporten-issuer/.well-known/openid-configuration")
         environment("IDPORTEN_AUDIENCE", "aud-localhost")
         environment("REDIS_URL", "redis://test_url:6379/0")
     }

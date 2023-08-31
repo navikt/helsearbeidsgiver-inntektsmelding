@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
+import java.time.format.DateTimeFormatter
 
 class OpprettSakLøserTest : FunSpec({
 
@@ -71,5 +72,5 @@ class OpprettSakLøserTest : FunSpec({
 private fun mockPersonDato(): PersonDato =
     PersonDato(
         navn = "Rosa damesykkel",
-        fødselsdato = 5.januar(2020)
+        fødselsdato = 5.januar(2020).format(DateTimeFormatter.ofPattern("ddMMyy"))
     )

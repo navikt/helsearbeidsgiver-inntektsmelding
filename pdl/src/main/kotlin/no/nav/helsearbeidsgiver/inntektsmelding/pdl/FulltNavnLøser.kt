@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlin.system.measureTimeMillis
 
 class FulltNavnLøser(
@@ -74,8 +75,18 @@ class FulltNavnLøser(
         }.also {
             logger.info("PDL invocation took $it")
         }
-        val fødselsdato: LocalDate? = liste?.foedselsdato
+        val fødselsdato: String? = getFødselsdato(liste?.foedselsdato)
         val fulltNavn = liste?.navn?.fulltNavn() ?: "Ukjent"
         return PersonDato(fulltNavn, fødselsdato)
+    }
+
+    private fun getFødselsdato(fdato: LocalDate?): String {
+        val ukjent = "Ukjent"
+        try {
+            return fdato?.format(DateTimeFormatter.ofPattern("ddMMyy")) ?: ukjent
+        } catch (e: IllegalArgumentException) {
+            sikkerLogger.warn("Ukjent datoformat: $fdato")
+        }
+        return ukjent
     }
 }

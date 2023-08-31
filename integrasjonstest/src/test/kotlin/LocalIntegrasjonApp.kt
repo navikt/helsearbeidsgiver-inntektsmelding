@@ -35,6 +35,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 val logger = "helsearbeidsgiver-im-integrasjon-local".logger()
 
@@ -108,7 +109,9 @@ class DummyLøser(
                 DataFelt.VIRKSOMHET to "Din Bedrift A/S".toJson()
             )
             BehovType.FULLT_NAVN -> mapOf(
-                DataFelt.ARBEIDSTAKER_INFORMASJON to PersonDato("Navn navnesen", LocalDate.now()).toJson(PersonDato.serializer())
+                DataFelt.ARBEIDSTAKER_INFORMASJON to PersonDato("Navn navnesen", LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyy"))).toJson(
+                    PersonDato.serializer()
+                )
             )
             BehovType.INNTEKT -> mapOf(
                 DataFelt.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer())

@@ -12,8 +12,6 @@ import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.utils.log.logger
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class OpprettSakLøser(
     rapidsConnection: RapidsConnection,
@@ -35,9 +33,9 @@ class OpprettSakLøser(
         forespoerselId: String,
         orgnr: String,
         navn: String,
-        fødselsdato: LocalDate?
+        fødselsdato: String?
     ): String {
-        val datoString = fødselsdato?.format(DateTimeFormatter.ofPattern("ddMMyy")) ?: "Ukjent"
+        val datoString = fødselsdato ?: "Ukjent"
         val requestTimer = Metrics.requestLatency.labels("opprettSak").startTimer()
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNySak(

@@ -80,7 +80,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val forespoerselRepository by lazy { ForespoerselRepository(database.db) }
 
     val altinnClient = mockk<AltinnClient>()
-    val pdlClient = mockk<PdlClient>()
+    val pdlClient = mockk<PdlClient>(relaxed = true)
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
 

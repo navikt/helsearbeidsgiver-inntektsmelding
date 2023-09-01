@@ -1,6 +1,8 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
+replicasMin: 2
+replicasMax: 2
 ingress: https://helsearbeidsgiver-im-altinn.intern.dev.nav.no
 envFrom:
   - type: secret

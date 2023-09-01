@@ -44,8 +44,8 @@ class FulltNavnLøserTest {
     @Test
     fun `skal finne navn`() {
         coEvery {
-            mockPdlClient.fullPerson(any())
-        } returns mockPerson("Ola", "", "Normann", LocalDate.now())
+            mockPdlClient.personBolk(any())
+        } returns listOf(mockPerson("Ola", "", "Normann", LocalDate.now()))
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),

@@ -69,15 +69,14 @@ class FulltNavnLøser(
     }
 
     private suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
-        val liste: FullPerson?
+        val liste: List<PersonDato>?
         measureTimeMillis {
-            liste = pdlClient.fullPerson(identitetsnummer)
+            liste = hentPersonInfo((listOf(identitetsnummer)))
         }.also {
             logger.info("PDL invocation took $it")
         }
-        val fødselsdato: String? = getFødselsdato(liste?.foedselsdato)
-        val fulltNavn = liste?.navn?.fulltNavn() ?: "Ukjent"
-        return PersonDato(fulltNavn, fødselsdato)
+        val person = liste?.getOrNull(0)
+        return person ?: PersonDato(navn = "Ukjent", fødselsdato = "Ukjent")
     }
 
     private fun getFødselsdato(fdato: LocalDate?): String {
@@ -88,5 +87,15 @@ class FulltNavnLøser(
             sikkerLogger.warn("Ukjent datoformat: $fdato")
         }
         return ukjent
+    }
+
+    private suspend fun hentPersonInfo(identitetsnummere: List<String>): List<PersonDato>? {
+        val liste: List<FullPerson>?
+        measureTimeMillis {
+            liste = pdlClient.personBolk(identitetsnummere)
+        }.also {
+            logger.info("PDL invocation took $it")
+        }
+        return liste?.mapNotNull { fp -> PersonDato(fp.navn.fulltNavn(), getFødselsdato(fp.foedselsdato)) }
     }
 }

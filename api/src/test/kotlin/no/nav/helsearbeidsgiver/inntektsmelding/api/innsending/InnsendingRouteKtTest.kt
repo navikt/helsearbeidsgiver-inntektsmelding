@@ -52,7 +52,7 @@ class InnsendingRouteKtTest : ApiTest() {
 
         val response = mockConstructor(InnsendingProducer::class) {
             every {
-                anyConstructed<InnsendingProducer>().publish(any(), any())
+                anyConstructed<InnsendingProducer>().publish(any(), any(), any())
             } returns mockClientId
 
             post(path, GYLDIG_REQUEST)
@@ -85,7 +85,7 @@ class InnsendingRouteKtTest : ApiTest() {
 
         val response = mockConstructor(InnsendingProducer::class) {
             every {
-                anyConstructed<InnsendingProducer>().publish(any(), any())
+                anyConstructed<InnsendingProducer>().publish(any(), any(), any())
             } returns mockClientId
 
             post(path, GYLDIG_REQUEST)
@@ -107,7 +107,7 @@ class InnsendingRouteKtTest : ApiTest() {
 
         val response = mockConstructor(InnsendingProducer::class) {
             every {
-                anyConstructed<InnsendingProducer>().publish(any(), any())
+                anyConstructed<InnsendingProducer>().publish(any(), any(), any())
             } returns mockClientId
 
             post(path, GYLDIG_DELVIS_REQUEST)

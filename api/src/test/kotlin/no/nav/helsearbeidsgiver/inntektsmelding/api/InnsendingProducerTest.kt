@@ -18,6 +18,6 @@ class InnsendingProducerTest {
         every {
             rapidsConnection.publish(any())
         } returns Unit
-        assertNotNull(producer.publish(UUID.randomUUID(), GYLDIG_INNSENDING_REQUEST))
+        assertNotNull(producer.publish(UUID.randomUUID(), GYLDIG_INNSENDING_REQUEST, "gyldig-fnr"))
     }
 }

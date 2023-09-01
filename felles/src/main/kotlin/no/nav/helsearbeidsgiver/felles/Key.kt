@@ -46,6 +46,8 @@ enum class Key(override val str: String) : IKey {
 enum class DataFelt(override val str: String) : IKey {
     VIRKSOMHET("virksomhet"),
     ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
+    ARBEIDSGIVER_INFORMASJON("arbeidstaker-informasjon"),
+    ARBEIDSGIVER_INNSENDER_ID("arbeidsgiver_innsender_id"),
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),

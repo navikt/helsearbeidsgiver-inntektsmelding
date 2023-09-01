@@ -19,7 +19,7 @@ class InnsendingProducer(
         logger.info("Starter InnsendingProducer...")
     }
 
-    fun publish(forespoerselId: UUID, request: InnsendingRequest): UUID {
+    fun publish(forespoerselId: UUID, request: InnsendingRequest, arbeidsgiverFnr: String): UUID {
         val clientId = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
@@ -30,6 +30,7 @@ class InnsendingProducer(
                 DataFelt.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to request.identitetsnummer,
                 DataFelt.INNTEKTSMELDING.str to request
+                // DataFelt.ARBEIDSGIVER_INNSENDER_ID.str to arbeidsgiverFnr
             )
         )
         rapidsConnection.publish(packet.toJson())

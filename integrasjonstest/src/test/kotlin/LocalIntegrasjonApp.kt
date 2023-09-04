@@ -117,6 +117,15 @@ class DummyLøser(
                     )
                         .toJson(
                             PersonDato.serializer()
+                        ),
+                DataFelt.ARBEIDSGIVER_INFORMASJON to
+                    PersonDato(
+                        "Arbeidsgiver",
+                        LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyy")),
+                        "654321"
+                    )
+                        .toJson(
+                            PersonDato.serializer()
                         )
             )
             BehovType.INNTEKT -> mapOf(

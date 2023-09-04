@@ -32,6 +32,7 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
                 DataFelt.INNTEKTSMELDING,
                 DataFelt.VIRKSOMHET,
                 DataFelt.ARBEIDSTAKER_INFORMASJON,
+                DataFelt.ARBEIDSGIVER_INFORMASJON,
                 Key.FORESPOERSEL_ID
             )
         }
@@ -42,10 +43,11 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
             val arbeidsgiver = behov[DataFelt.VIRKSOMHET].asText()
             sikkerLogger.info("Fant arbeidsgiver: $arbeidsgiver")
             val arbeidstakerInfo = customObjectMapper().treeToValue(behov[DataFelt.ARBEIDSTAKER_INFORMASJON], PersonDato::class.java)
+            val arbeidsgiverInfo = customObjectMapper().treeToValue(behov[DataFelt.ARBEIDSGIVER_INFORMASJON], PersonDato::class.java)
             val fulltNavn = arbeidstakerInfo.navn
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
             val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(behov[DataFelt.INNTEKTSMELDING], InnsendingRequest::class.java)
-            val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver)
+            val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver, arbeidsgiverInfo.ident)
             repository.lagreInntektsmelding(behov.forespoerselId!!, inntektsmeldingDokument)
             sikkerLogger.info("Lagret InntektsmeldingDokument for forespoerselId: ${behov.forespoerselId}")
             behov.createData(

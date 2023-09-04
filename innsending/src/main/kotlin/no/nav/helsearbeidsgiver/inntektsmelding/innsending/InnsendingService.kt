@@ -35,8 +35,8 @@ class InnsendingService(
                     DataFelt.VIRKSOMHET.str,
                     DataFelt.ARBEIDSFORHOLD.str,
                     DataFelt.INNTEKTSMELDING_DOKUMENT.str,
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str,
-                    DataFelt.ARBEIDSGIVER_INFORMASJON.str
+                    DataFelt.ARBEIDSGIVER_INFORMASJON.str,
+                    DataFelt.ARBEIDSTAKER_INFORMASJON.str
                 ),
                 event,
                 it,

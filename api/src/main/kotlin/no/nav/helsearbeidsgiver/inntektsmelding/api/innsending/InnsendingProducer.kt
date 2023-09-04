@@ -29,8 +29,8 @@ class InnsendingProducer(
                 Key.FORESPOERSEL_ID.str to forespoerselId,
                 DataFelt.ORGNRUNDERENHET.str to request.orgnrUnderenhet,
                 Key.IDENTITETSNUMMER.str to request.identitetsnummer,
+                Key.ARBEIDSGIVER_ID.str to arbeidsgiverFnr,
                 DataFelt.INNTEKTSMELDING.str to request
-                // DataFelt.ARBEIDSGIVER_INNSENDER_ID.str to arbeidsgiverFnr
             )
         )
         rapidsConnection.publish(packet.toJson())

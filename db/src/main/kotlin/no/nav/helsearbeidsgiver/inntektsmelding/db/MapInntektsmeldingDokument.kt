@@ -4,7 +4,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingR
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import java.time.ZonedDateTime
 
-fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument =
+fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, arbeidsgiver: String, innsenderId: String): InntektsmeldingDokument =
     try {
         InntektsmeldingDokument(
             orgnrUnderenhet = request.orgnrUnderenhet,
@@ -23,7 +23,7 @@ fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, ar
             naturalytelser = request.naturalytelser,
             tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
             årsakInnsending = request.årsakInnsending,
-            identitetsnummerInnsender = "", // TODO Mangler innsenders fødselsnr
+            identitetsnummerInnsender = innsenderId,
             forespurtData = request.forespurtData,
             telefonnummer = request.telefonnummer
         )

@@ -37,6 +37,7 @@ class InnsendingServiceIT : EndToEndTest() {
             DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson).parseJson(),
             DataFelt.ORGNRUNDERENHET to TestData.validOrgNr.toJson(),
             Key.IDENTITETSNUMMER to TestData.validIdentitetsnummer.toJson(),
+            Key.ARBEIDSGIVER_ID to TestData.validIdentitetsnummer.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 

@@ -16,7 +16,8 @@ class MapInntektsmeldingDokumentTest {
     fun testmapInntektsmeldingDokument() {
         val fulltNavn = "Test Testesen"
         val arbeidsgiver = "Bedrift A/S"
-        val inntektsmeldingDokument = mapInntektsmeldingDokument(GYLDIG_INNSENDING_REQUEST, fulltNavn, arbeidsgiver)
+        val arbeidsgiverId = "12345612345"
+        val inntektsmeldingDokument = mapInntektsmeldingDokument(GYLDIG_INNSENDING_REQUEST, fulltNavn, arbeidsgiver, arbeidsgiverId)
         assertNotNull(inntektsmeldingDokument.inntekt)
         assertEquals(GYLDIG_INNSENDING_REQUEST.inntekt.beregnetInntekt, inntektsmeldingDokument.inntekt?.beregnetInntekt)
 
@@ -25,7 +26,7 @@ class MapInntektsmeldingDokumentTest {
         val inntekt = Inntekt(true, BigDecimal.ONE, aarsak, true)
 
         val request2 = GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt)
-        val dok = mapInntektsmeldingDokument(request2, fulltNavn, arbeidsgiver)
+        val dok = mapInntektsmeldingDokument(request2, fulltNavn, arbeidsgiver, arbeidsgiverId)
         assertEquals(inntekt, dok.inntekt)
     }
 }

@@ -9,5 +9,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 @Serializable
 data class PersonDato(
     val navn: String,
-    val fødselsdato: String?
+    val fødselsdato: String?,
+    val ident: String
 )

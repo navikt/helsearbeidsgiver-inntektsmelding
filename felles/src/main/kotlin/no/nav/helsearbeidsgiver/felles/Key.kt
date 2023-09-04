@@ -20,6 +20,7 @@ enum class Key(override val str: String) : IKey {
 
     // Egendefinerte
     IDENTITETSNUMMER("identitetsnummer"),
+    ARBEIDSGIVER_ID("arbeidsgiverId"),
     INITIATE_ID("initiateId"),
     UUID("uuid"),
     CLIENT_ID("client_id"),
@@ -46,8 +47,7 @@ enum class Key(override val str: String) : IKey {
 enum class DataFelt(override val str: String) : IKey {
     VIRKSOMHET("virksomhet"),
     ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
-    ARBEIDSGIVER_INFORMASJON("arbeidstaker-informasjon"),
-    ARBEIDSGIVER_INNSENDER_ID("arbeidsgiver_innsender_id"),
+    ARBEIDSGIVER_INFORMASJON("arbeidsgiver-informasjon"),
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),

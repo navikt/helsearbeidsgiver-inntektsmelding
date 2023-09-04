@@ -143,7 +143,7 @@ private object Mock {
     val TRENGER_DATA_OK = TrengerData(
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
-        personDato = PersonDato("Ola Normann", "Ukjent"),
+        personDato = PersonDato("Ola Normann", "Ukjent", "123456"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,
@@ -156,7 +156,7 @@ private object Mock {
     val TRENGER_DATA_OK_MED_FORRIGE_INNTEKT = TrengerData(
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
-        personDato = PersonDato("Ola Normann", "010518"),
+        personDato = PersonDato("Ola Normann", "010518", "123456"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,

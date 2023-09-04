@@ -53,7 +53,7 @@ class OpprettSakLøser(
     }
 
     private fun hentNavn(behov: Behov): PersonDato {
-        if (behov[DataFelt.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null)
+        if (behov[DataFelt.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null, "")
         return customObjectMapper().treeToValue(behov[DataFelt.ARBEIDSTAKER_INFORMASJON], PersonDato::class.java)
     }
 

@@ -72,5 +72,6 @@ class OpprettSakLøserTest : FunSpec({
 private fun mockPersonDato(): PersonDato =
     PersonDato(
         navn = "Rosa damesykkel",
-        fødselsdato = 5.januar(2020).format(DateTimeFormatter.ofPattern("ddMMyy"))
+        fødselsdato = 5.januar(2020).format(DateTimeFormatter.ofPattern("ddMMyy")),
+        "12345678910"
     )

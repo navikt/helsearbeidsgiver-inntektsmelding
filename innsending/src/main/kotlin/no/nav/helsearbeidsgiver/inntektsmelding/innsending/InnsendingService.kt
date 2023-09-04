@@ -35,7 +35,8 @@ class InnsendingService(
                     DataFelt.VIRKSOMHET.str,
                     DataFelt.ARBEIDSFORHOLD.str,
                     DataFelt.INNTEKTSMELDING_DOKUMENT.str,
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str
+                    DataFelt.ARBEIDSTAKER_INFORMASJON.str,
+                    DataFelt.ARBEIDSGIVER_INFORMASJON.str
                 ),
                 event,
                 it,
@@ -47,7 +48,13 @@ class InnsendingService(
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.ORGNRUNDERENHET.str, DataFelt.INNTEKTSMELDING.str, Key.IDENTITETSNUMMER.str),
+                arrayOf(
+                    DataFelt.FORESPOERSEL_ID.str,
+                    DataFelt.ORGNRUNDERENHET.str,
+                    DataFelt.INNTEKTSMELDING.str,
+                    Key.ARBEIDSGIVER_ID.str,
+                    Key.IDENTITETSNUMMER.str
+                ),
                 it,
                 rapidsConnection
             )
@@ -60,8 +67,10 @@ class InnsendingService(
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
             return Transaction.IN_PROGRESS
         } else if (feil.behov == BehovType.FULLT_NAVN) {
-            val fulltNavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
-            redisStore.set(fulltNavnKey, customObjectMapper().writeValueAsString(PersonDato("Ukjent person", null)))
+            val arbeidstakerFulltnavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
+            val arbeidsgiverFulltnavnKey = "${feil.uuid}${DataFelt.ARBEIDSGIVER_INFORMASJON.str}"
+            redisStore.set(arbeidstakerFulltnavnKey, customObjectMapper().writeValueAsString(personIkkeFunnet()))
+            redisStore.set(arbeidsgiverFulltnavnKey, customObjectMapper().writeValueAsString(personIkkeFunnet()))
             return Transaction.IN_PROGRESS
         }
         return Transaction.TERMINATE
@@ -104,6 +113,7 @@ class InnsendingService(
                             Key.EVENT_NAME.str to event.name,
                             Key.BEHOV.str to BehovType.FULLT_NAVN.name,
                             Key.IDENTITETSNUMMER.str to message[Key.IDENTITETSNUMMER.str].asText(),
+                            Key.ARBEIDSGIVER_ID.str to message[Key.ARBEIDSGIVER_ID.str].asText(),
                             Key.UUID.str to uuid
                         )
                     ).toJson()
@@ -113,6 +123,7 @@ class InnsendingService(
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
                     val arbeidstakerRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java)
+                    val arbeidsgiverRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_INFORMASJON), PersonDato::class.java)
                     logger.info("InnsendingService: emitting behov PERSISTER_IM")
                     rapidsConnection.publish(
                         JsonMessage.newMessage(
@@ -121,10 +132,10 @@ class InnsendingService(
                                 Key.BEHOV.str to BehovType.PERSISTER_IM.name,
                                 DataFelt.VIRKSOMHET.str to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet"),
                                 DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
-                                    arbeidstakerRedis ?: PersonDato(
-                                        "Ukjent navn",
-                                        null
-                                    )
+                                    arbeidstakerRedis ?: personIkkeFunnet(message[Key.IDENTITETSNUMMER.str].asText())
+                                    ),
+                                DataFelt.ARBEIDSGIVER_INFORMASJON.str to (
+                                    arbeidsgiverRedis ?: personIkkeFunnet(message[Key.ARBEIDSGIVER_ID.str].asText())
                                     ),
                                 DataFelt.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING)))!!,
                                 Key.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!,
@@ -166,6 +177,13 @@ class InnsendingService(
     private fun step1data(uuid: String): Array<RedisKey> = arrayOf(
         RedisKey.of(uuid, DataFelt.VIRKSOMHET),
         RedisKey.of(uuid, DataFelt.ARBEIDSFORHOLD),
-        RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON)
+        RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON),
+        RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_INFORMASJON)
+    )
+
+    private fun personIkkeFunnet(ident: String = "") = PersonDato(
+        navn = "",
+        fødselsdato = null,
+        ident = ident
     )
 }

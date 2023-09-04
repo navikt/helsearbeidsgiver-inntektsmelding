@@ -12,11 +12,13 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.system.measureTimeMillis
@@ -39,6 +41,7 @@ class FulltNavnLøser(
                 Key.BEHOV to BEHOV.name
             )
             it.requireKeys(Key.IDENTITETSNUMMER)
+            it.interestedIn(Key.ARBEIDSGIVER_ID)
         }
 
     override fun onBehov(behov: Behov) {
@@ -47,18 +50,29 @@ class FulltNavnLøser(
                 ?: behov.forespoerselId.let { if (it.isNullOrEmpty()) null else "forespoerselId is $it" }
                 ?: " kan ikke finne uuid/forespørselID"
             logger.info("Henter navn for $idtext")
-            val identitetsnummer = behov[Key.IDENTITETSNUMMER].asText()
+            val arbeidstakerID = behov[Key.IDENTITETSNUMMER].asText().orEmpty()
+            val arbeidsgiverID = behov[Key.ARBEIDSGIVER_ID].asText().orEmpty()
+            val identer = listOf(arbeidstakerID, arbeidsgiverID).filterNot { s -> s.isNullOrEmpty() }
             val requestTimer = requestLatency.startTimer()
             try {
                 val info = runBlocking {
-                    hentPersonInfo(identitetsnummer)
+                    hentPersonInfo(identer)
                 }
-                sikkerLogger.info("Fant navn: ${info.navn} og ${info.fødselsdato} for identitetsnummer: $identitetsnummer for $idtext")
-                logger.info("Fant navn for id: $idtext")
-                publishData(behov.createData(mapOf(DataFelt.ARBEIDSTAKER_INFORMASJON to info)))
+                logger.info("Mottok ${info?.size} navn fra pdl, ba om ${identer.size}")
+                val arbeidstakerInfo = info?.filter { p -> p.ident == arbeidstakerID }?.firstOrNull().orDefault(PersonDato("", "", arbeidstakerID))
+                val arbeidsgiverInfo = info?.filter { p -> p.ident == arbeidsgiverID }?.firstOrNull().orDefault(PersonDato("", "", arbeidsgiverID))
+
+                publishData(
+                    behov.createData(
+                        mapOf(
+                            DataFelt.ARBEIDSTAKER_INFORMASJON to arbeidstakerInfo,
+                            DataFelt.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo
+                        )
+                    )
+                )
             } catch (ex: Exception) {
                 logger.error("Klarte ikke hente navn for $idtext")
-                sikkerLogger.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for $idtext", ex)
+                sikkerLogger.error("Det oppstod en feil ved henting av identitetsnummer: $arbeidstakerID: ${ex.message} for $idtext", ex)
                 publishFail(behov.createFail("Klarte ikke hente navn"))
             } finally {
                 requestTimer.observeDuration()
@@ -68,15 +82,14 @@ class FulltNavnLøser(
         }
     }
 
-    private suspend fun hentPersonInfo(identitetsnummer: String): PersonDato {
-        val liste: List<PersonDato>?
+    private suspend fun hentPersonInfo(identitetsnummere: List<String>): List<PersonDato>? {
+        val liste: List<FullPerson>?
         measureTimeMillis {
-            liste = hentPersonInfo((listOf(identitetsnummer)))
+            liste = pdlClient.personBolk(identitetsnummere)
         }.also {
             logger.info("PDL invocation took $it")
         }
-        val person = liste?.getOrNull(0)
-        return person ?: PersonDato(navn = "Ukjent", fødselsdato = "Ukjent")
+        return liste?.mapNotNull { fp -> PersonDato(fp.navn.fulltNavn(), getFødselsdato(fp.foedselsdato), fp.ident.orEmpty()) }
     }
 
     private fun getFødselsdato(fdato: LocalDate?): String {
@@ -87,15 +100,5 @@ class FulltNavnLøser(
             sikkerLogger.warn("Ukjent datoformat: $fdato")
         }
         return ukjent
-    }
-
-    private suspend fun hentPersonInfo(identitetsnummere: List<String>): List<PersonDato>? {
-        val liste: List<FullPerson>?
-        measureTimeMillis {
-            liste = pdlClient.personBolk(identitetsnummere)
-        }.also {
-            logger.info("PDL invocation took $it")
-        }
-        return liste?.mapNotNull { fp -> PersonDato(fp.navn.fulltNavn(), getFødselsdato(fp.foedselsdato)) }
     }
 }

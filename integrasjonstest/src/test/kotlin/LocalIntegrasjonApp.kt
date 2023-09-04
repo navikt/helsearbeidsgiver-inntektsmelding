@@ -109,9 +109,15 @@ class DummyLøser(
                 DataFelt.VIRKSOMHET to "Din Bedrift A/S".toJson()
             )
             BehovType.FULLT_NAVN -> mapOf(
-                DataFelt.ARBEIDSTAKER_INFORMASJON to PersonDato("Navn navnesen", LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyy"))).toJson(
-                    PersonDato.serializer()
-                )
+                DataFelt.ARBEIDSTAKER_INFORMASJON to
+                    PersonDato(
+                        "Navn navnesen",
+                        LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyy")),
+                        "123456"
+                    )
+                        .toJson(
+                            PersonDato.serializer()
+                        )
             )
             BehovType.INNTEKT -> mapOf(
                 DataFelt.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer())

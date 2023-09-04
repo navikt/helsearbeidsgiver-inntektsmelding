@@ -71,7 +71,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             redisStore.set(RedisKey.of(uuid, DataFelt.VIRKSOMHET), "Ukjent navn")
         } else if (feil.behov == BehovType.FULLT_NAVN) {
             feilmelding = Feilmelding("Vi klarte ikke å hente arbeidstaker informasjon.", datafelt = DataFelt.ARBEIDSTAKER_INFORMASJON)
-            redisStore.set(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato("Ukjent navn", null).toJsonStr(PersonDato.serializer()))
+            redisStore.set(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato("Ukjent navn", null, "").toJsonStr(PersonDato.serializer()))
         } else if (feil.behov == BehovType.INNTEKT) {
             feilmelding = Feilmelding(
                 "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",

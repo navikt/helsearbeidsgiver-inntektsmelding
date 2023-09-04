@@ -109,7 +109,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
     override fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.FULLT_NAVN) {
             val fulltNavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
-            redisStore.set(fulltNavnKey, customObjectMapper().writeValueAsString(PersonDato("Ukjent person", null)))
+            redisStore.set(fulltNavnKey, customObjectMapper().writeValueAsString(PersonDato("Ukjent person", null, "")))
             return Transaction.IN_PROGRESS
         }
         return Transaction.TERMINATE

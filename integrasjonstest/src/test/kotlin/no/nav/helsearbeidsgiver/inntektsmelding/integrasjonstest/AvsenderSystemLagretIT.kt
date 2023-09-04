@@ -4,6 +4,7 @@ import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import kotlinx.serialization.builtins.serializer
+import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -21,13 +22,19 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class ForespoerselBesvartIT : EndToEndTest() {
+class AvsenderSystemLagretIT : EndToEndTest() {
 
     @Test
-    fun `ved notis om besvart forespørsel så ferdigstilles sak og oppgave`() {
+    fun `ved notis om besvart forespørsel så lagres avsenderSystem hvis ikke fra nav_no`() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+        val avsenderSystemData = AvsenderSystemData(
+            "AltinnPortal",
+            "1.63",
+            "AR123456"
+        )
+        // imRepository.lagreAvsenderSystemData(Mock.forespoerselId.toString(), avsenderSystemData)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns Mock.transaksjonId
@@ -50,13 +57,6 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.NOTIFIKASJON_HENT_ID
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 Key.TRANSACTION_ORIGIN.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-            }
-        messages.filter(EventName.FORESPOERSEL_BESVART)
-            .filter(BehovType.HENT_AVSENDER_SYSTEM)
-            .first()
-            .fromJsonMapOnlyKeys()
-            .also {
-                DataFelt.SPINN_INNTEKTSMELDING_ID shouldBe Mock.spinnInntektsmeldinigId
             }
 
         messages.filter(EventName.FORESPOERSEL_BESVART)

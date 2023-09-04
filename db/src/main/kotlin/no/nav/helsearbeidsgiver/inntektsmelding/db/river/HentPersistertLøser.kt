@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
@@ -38,21 +37,18 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
         measureTimeMillis {
             logger.info("Skal hente persistert inntektsmelding med forespørselId ${behov.forespoerselId}")
             try {
-                val dokument = repository.hentNyeste(behov.forespoerselId!!)
-                if (dokument == null) {
+                val entitet = repository.hentNyesteEntitet(behov.forespoerselId!!)
+                val dokument = entitet?.first ?: EMPTY_PAYLOAD
+                val avsenderSystemData = entitet?.second ?: EMPTY_PAYLOAD
+                if (dokument == EMPTY_PAYLOAD) {
                     logger.info("Fant IKKE persistert inntektsmelding for forespørselId ${behov.forespoerselId}")
                 } else {
                     sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId ${behov.forespoerselId}")
                 }
                 behov.createData(
                     mapOf(
-                        DataFelt.INNTEKTSMELDING_DOKUMENT to if (dokument == null) {
-                            EMPTY_PAYLOAD
-                        } else {
-                            customObjectMapper().writeValueAsString(
-                                dokument
-                            )
-                        }
+                        DataFelt.INNTEKTSMELDING_DOKUMENT to dokument,
+                        DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystemData
                     )
                 )
                     .also {

@@ -7,12 +7,15 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -89,21 +92,24 @@ class ForespoerselBesvartLoeser(
         sikkerLogger.info("Mottok melding på pri-topic:\n${toPretty()}")
 
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
+        val spinnInntektsmeldingId = melding[Pri.Key.SPINN_INNTEKTSMELDING_ID]
 
+        val keyList = arrayListOf(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+            Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+        )
         MdcUtils.withLogFields(
             Log.event(EventName.FORESPOERSEL_BESVART),
             Log.behov(BehovType.NOTIFIKASJON_HENT_ID),
             Log.forespoerselId(forespoerselId)
         ) {
-            context.publish(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
-            )
+            spinnInntektsmeldingId?.also { keyList + DataFelt.SPINN_INNTEKTSMELDING_ID to it } ?: keyList
+            .also { context.publish(*it.toTypedArray()) }
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")
-                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                    //sikkerLogger.info("Publiserte melding:\n${it.toPretty()}") TODO: fiks logging til sikkerlogg
                     forespoerselBesvartCounter.inc()
                 }
         }
@@ -113,3 +119,5 @@ class ForespoerselBesvartLoeser(
         priProducer.send(this)
     }
 }
+
+private const val EMPTY_PAYLOAD = "{}"

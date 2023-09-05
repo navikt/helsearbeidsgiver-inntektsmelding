@@ -23,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -44,6 +43,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 listOf(
                     DataFelt.FORESPOERSEL_SVAR.str,
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str,
+                    DataFelt.ARBEIDSGIVER_INFORMASJON.str,
                     DataFelt.VIRKSOMHET.str,
                     DataFelt.INNTEKT.str
                 ).toTypedArray(),
@@ -72,6 +72,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         } else if (feil.behov == BehovType.FULLT_NAVN) {
             feilmelding = Feilmelding("Vi klarte ikke å hente arbeidstaker informasjon.", datafelt = DataFelt.ARBEIDSTAKER_INFORMASJON)
             redisStore.set(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato("Ukjent navn", null, "").toJsonStr(PersonDato.serializer()))
+            redisStore.set(RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_INFORMASJON), PersonDato("Ukjent navn", null, "").toJsonStr(PersonDato.serializer()))
         } else if (feil.behov == BehovType.INNTEKT) {
             feilmelding = Feilmelding(
                 "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
@@ -91,10 +92,11 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
         sikkerLogger.info("Dispatcher for $uuid with trans state $transaction")
-        println("Dispatcher for $uuid with trans state $transaction")
         if (transaction == Transaction.NEW) {
             sikkerLogger.info("Dispatcher HENT_TRENGER_IM for $uuid")
             sikkerLogger.info("${simpleName()} Dispatcher HENT_TRENGER_IM for $uuid")
+            val agFnr = message[Key.ARBEIDSGIVER_ID.str].asText()
+            redisStore.set(RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_FNR), agFnr) // ta vare på denne til vi slår opp fullt navn
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
@@ -118,7 +120,8 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
                     Key.UUID to uuid.toJson(),
-                    Key.IDENTITETSNUMMER to forespoersel.fnr.toJson()
+                    Key.IDENTITETSNUMMER to forespoersel.fnr.toJson(),
+                    Key.ARBEIDSGIVER_ID to redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_FNR)).orEmpty().toJson()
                 )
                 /*
                 rapidsConnection.publish(
@@ -167,6 +170,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             fnr = foresporselSvar?.fnr,
             orgnr = foresporselSvar?.orgnr,
             personDato = redisStore.get(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java),
+            arbeidsgiver = redisStore.get(RedisKey.of(transactionId, DataFelt.ARBEIDSGIVER_INFORMASJON), PersonDato::class.java),
             virksomhetNavn = redisStore.get(RedisKey.of(transactionId, DataFelt.VIRKSOMHET)),
             inntekt = redisStore.get(RedisKey.of(transactionId, DataFelt.INNTEKT))?.fromJsonWithUndefined(Inntekt.serializer()),
             fravarsPerioder = foresporselSvar?.sykmeldingsperioder,
@@ -182,7 +186,6 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
 
     override fun terminate(message: JsonMessage) {
         val transactionId = message[Key.UUID.str].asText()
-        val fail = message.toFeilMessage()
         sikkerLogger.info("terminate transaction id $transactionId with evenname ${message[Key.EVENT_NAME.str].asText()}")
         val clientId: String? = redisStore.get(RedisKey.of(transactionId, EventName.valueOf(message[Key.EVENT_NAME.str].asText())))
         // @TODO kan vare smartere her. Kan definere feilmeldingen i Feil message istedenfor å hardkode det i TrengerService. Vi også ikke trenger å sende alle andre ikke kritiske feilmeldinger hvis vi har noe kritisk

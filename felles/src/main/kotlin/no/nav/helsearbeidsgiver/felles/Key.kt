@@ -60,6 +60,7 @@ enum class DataFelt(override val str: String) : IKey {
     TRENGER_INNTEKT("trenger-inntekt"),
     INNTEKT("inntekt"),
     FNR("fnr"),
+    ARBEIDSGIVER_FNR("arbeidsgiverFnr"), // pga trengerService....
     SKJAERINGSTIDSPUNKT("skjaeringstidspunkt"),
     TILGANG("tilgang"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),

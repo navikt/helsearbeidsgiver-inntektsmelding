@@ -16,12 +16,13 @@ class TrengerProducer(
         logger.info("Starter TrengerProducer...")
     }
 
-    fun publish(request: TrengerRequest, initiateId: UUID = UUID.randomUUID()): UUID {
+    fun publish(request: TrengerRequest, initiateId: UUID = UUID.randomUUID(), arbeidsgiverFnr: String): UUID {
         sikkerLogger.info("trenger request is $request")
         val clientID = UUID.randomUUID()
         rapid.publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.FORESPOERSEL_ID to request.uuid.toJson(),
+            Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson(),
             Key.CLIENT_ID to clientID.toString().toJson()
         )
             .also {

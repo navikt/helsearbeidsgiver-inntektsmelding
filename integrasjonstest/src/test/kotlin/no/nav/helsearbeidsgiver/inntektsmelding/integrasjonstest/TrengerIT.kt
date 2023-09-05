@@ -30,6 +30,7 @@ class TrengerIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(UuidSerializer),
+            Key.ARBEIDSGIVER_ID to "12345678910".toJson(),
             DataFelt.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
         )
 

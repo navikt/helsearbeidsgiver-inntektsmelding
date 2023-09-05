@@ -31,7 +31,7 @@ class InnsendingService(
         withFailKanal { DelegatingFailKanal(event, it, rapidsConnection) }
         withDataKanal {
             StatefullDataKanal(
-                arrayOf(
+                dataFelter = arrayOf(
                     DataFelt.VIRKSOMHET.str,
                     DataFelt.ARBEIDSFORHOLD.str,
                     DataFelt.INNTEKTSMELDING_DOKUMENT.str,

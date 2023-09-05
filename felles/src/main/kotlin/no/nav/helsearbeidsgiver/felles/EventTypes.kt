@@ -22,7 +22,8 @@ enum class BehovType {
     PERSISTER_SAK_ID,
     OPPRETT_OPPGAVE,
     PERSISTER_OPPGAVE_ID,
-    HENT_IM_ORGNR
+    HENT_IM_ORGNR,
+    HENT_AVSENDER_SYSTEM
 }
 
 @Serializable

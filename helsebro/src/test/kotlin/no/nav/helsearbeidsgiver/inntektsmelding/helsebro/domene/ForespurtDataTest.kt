@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -15,7 +16,8 @@ import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 class ForespurtDataTest : FunSpec({
     listOf(
         row("forespurtData", ::mockForespurtData),
-        row("forespurtDataMedFastsattInntekt", ::mockForespurtDataMedFastsattInntekt)
+        row("forespurtDataMedFastsattInntekt", ::mockForespurtDataMedFastsattInntekt),
+        row("forespurtDataMedForrigeInntekt", ::mockForespurtDataMedForrigeInntekt)
     )
         .forEach { (fileName, mockDataFn) ->
             val expectedJson = "json/$fileName.json".readResource().removeJsonWhitespace()

@@ -1,13 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -25,20 +24,11 @@ class PersisterSakLøser(
         }
     }
 
-    override fun onBehov(packet: JsonMessage) {
-        sikkerLogger.info("PersisterSakLøser mottok pakke:\n${packet.toPretty()}")
-        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        val sakId = packet[DataFelt.SAK_ID.str].asText()
-        repository.oppdaterSakId(forespoerselId, sakId)
-        sikkerLogger.info("PersisterSakLøser lagred sakId: $sakId for forespoerselId: $forespoerselId")
-        publishData(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.DATA.str to "",
-                    DataFelt.PERSISTERT_SAK_ID.str to sakId,
-                    Key.UUID.str to packet[Key.UUID.str]
-                )
-            )
-        )
+    override fun onBehov(behov: Behov) {
+        sikkerLogger.info("PersisterSakLøser mottok behov med uuid: ${behov.uuid()}")
+        val sakId = behov[DataFelt.SAK_ID].asText()
+        repository.oppdaterSakId(behov.forespoerselId!!, sakId)
+        sikkerLogger.info("PersisterSakLøser lagred sakId: $sakId for forespoerselId: ${behov.forespoerselId}")
+        behov.createData(mapOf(DataFelt.PERSISTERT_SAK_ID to sakId)).also { publishData(it) }
     }
 }

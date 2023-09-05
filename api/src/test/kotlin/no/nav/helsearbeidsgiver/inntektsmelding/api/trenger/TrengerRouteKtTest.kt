@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
+import no.nav.helsearbeidsgiver.felles.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.Inntekt
@@ -21,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.TilgangData
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -56,6 +58,24 @@ class TrengerRouteKtTest : ApiTest() {
         } returns Mock.TRENGER_DATA_OK.toJsonStr(TrengerData.serializer())
 
         val expectedJson = Mock.trengerResponseJson()
+
+        val response = post(PATH, Mock.GYLDIG_REQUEST, TrengerRequest.serializer())
+
+        val actualJson = response.bodyAsText()
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals(expectedJson, actualJson)
+    }
+
+    @Test
+    fun `skal returnere resultat og status CREATED når trenger virker med forespørsel bare inntekt`() = testApi {
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        coEvery {
+            anyConstructed<RedisPoller>().getString(any(), any(), any())
+        } returns Mock.TRENGER_DATA_OK_MED_FORRIGE_INNTEKT.toJsonStr(TrengerData.serializer())
+
+        val expectedJson = Mock.trengerBareInntektResponseJson()
 
         val response = post(PATH, Mock.GYLDIG_REQUEST, TrengerRequest.serializer())
 
@@ -134,6 +154,19 @@ private object Mock {
         tidligereinntekter = inntekt().maanedOversikt
     )
 
+    val TRENGER_DATA_OK_MED_FORRIGE_INNTEKT = TrengerData(
+        fnr = trengerInntekt().fnr,
+        orgnr = trengerInntekt().orgnr,
+        personDato = PersonDato("Ola Normann", 1.mai),
+        virksomhetNavn = "Norge AS",
+        inntekt = inntekt(),
+        fravarsPerioder = trengerInntekt().sykmeldingsperioder,
+        egenmeldingsPerioder = trengerInntekt().egenmeldingsperioder,
+        forespurtData = mockForespurtDataMedForrigeInntekt(),
+        bruttoinntekt = inntekt().gjennomsnitt(),
+        tidligereinntekter = inntekt().maanedOversikt
+    )
+
     fun trengerResponseJson(): String {
         val mockTrengerInntekt = trengerInntekt()
         val mockInntekt = inntekt()
@@ -150,6 +183,26 @@ private object Mock {
                 "behandlingsperiode": null,
                 "behandlingsdager": [],
                 "forespurtData": ${mockTrengerInntekt.forespurtData.hardcodedJson()}
+            }
+        """.removeJsonWhitespace()
+    }
+
+    fun trengerBareInntektResponseJson(): String {
+        val mockTrengerInntekt = trengerInntekt()
+        val mockInntekt = inntekt()
+        return """
+            {
+                "navn": "Ola Normann",
+                "orgNavn": "Norge AS",
+                "identitetsnummer": "${mockTrengerInntekt.fnr}",
+                "orgnrUnderenhet": "${mockTrengerInntekt.orgnr}",
+                "fravaersperioder": [${mockTrengerInntekt.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+                "egenmeldingsperioder": [${mockTrengerInntekt.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+                "bruttoinntekt": ${mockInntekt.gjennomsnitt()},
+                "tidligereinntekter": [${mockInntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
+                "behandlingsperiode": null,
+                "behandlingsdager": [],
+                "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()}
             }
         """.removeJsonWhitespace()
     }
@@ -223,6 +276,7 @@ private fun ForslagInntekt.hardcodedJson(): String =
             {
                 "type": "ForslagInntektGrunnlag",
                 "beregningsmaaneder": [${beregningsmaaneder.joinToString { yearMonth -> "\"$yearMonth\"" }}]
+                ${forrigeInntekt?.let { ",\"forrigeInntekt\": ${it.hardcodedJson()}"} ?: ""}
             }
             """
 
@@ -234,6 +288,15 @@ private fun ForslagInntekt.hardcodedJson(): String =
             }
             """
     }
+
+private fun ForrigeInntekt.hardcodedJson(): String =
+    """
+        {
+            "skjæringstidspunkt":"$skjæringstidspunkt",
+            "kilde":"$kilde",
+            "beløp":$beløp
+        }
+    """
 
 private fun ForslagRefusjon.hardcodedJson(): String =
     """

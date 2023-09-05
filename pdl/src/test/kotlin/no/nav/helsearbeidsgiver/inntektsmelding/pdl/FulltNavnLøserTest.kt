@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.prometheus.client.CollectorRegistry
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -39,6 +40,7 @@ class FulltNavnLøserTest {
     fun setup() {
         testRapid.reset()
         clearAllMocks()
+        CollectorRegistry.defaultRegistry.clear()
     }
 
     @Test

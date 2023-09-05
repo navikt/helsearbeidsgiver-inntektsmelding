@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import io.ktor.server.application.call
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
+import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
@@ -36,6 +37,10 @@ private const val EMPTY_PAYLOAD = "{}"
 fun RouteExtra.kvitteringRoute() {
     val kvitteringProducer = KvitteringProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
+    val requestLatency = Summary.build()
+        .name("simba_kvittering_latency_seconds")
+        .help("kvittering endpoint latency in seconds")
+        .register()
 
     route.route(Routes.KVITTERING) {
         get {
@@ -51,6 +56,7 @@ fun RouteExtra.kvitteringRoute() {
                 }
             } else {
                 logger.info("Henter data for forespørselId: $forespoerselId")
+                val requestTimer = requestLatency.startTimer()
                 measureTimeMillis {
                     try {
                         measureTimeMillis {
@@ -101,6 +107,7 @@ fun RouteExtra.kvitteringRoute() {
                         respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
                     }
                 }.also {
+                    requestTimer.observeDuration()
                     logger.info("api call took $it")
                 }
             }
@@ -131,5 +138,6 @@ private fun tilKvitteringResponse(inntektsmeldingDokument: InntektsmeldingDokume
         naturalytelser = inntektsmeldingDokument.naturalytelser,
         årsakInnsending = inntektsmeldingDokument.årsakInnsending,
         bekreftOpplysninger = true,
-        tidspunkt = inntektsmeldingDokument.tidspunkt
+        tidspunkt = inntektsmeldingDokument.tidspunkt,
+        forespurtData = inntektsmeldingDokument.forespurtData
     )

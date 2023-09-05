@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -11,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -39,6 +38,7 @@ class OpprettSakLøser(
         fødselsdato: LocalDate?
     ): String {
         val datoString = fødselsdato?.format(DateTimeFormatter.ofPattern("ddMMyy")) ?: "Ukjent"
+        val requestTimer = Metrics.requestLatency.labels("opprettSak").startTimer()
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNySak(
                 grupperingsid = forespoerselId,
@@ -49,34 +49,25 @@ class OpprettSakLøser(
                 statusTekst = "NAV trenger inntektsmelding",
                 harddeleteOm = "P5M"
             )
+        }.also {
+            requestTimer.observeDuration()
         }
     }
 
-    private fun hentNavn(packet: JsonMessage): PersonDato {
-        if (packet[DataFelt.ARBEIDSTAKER_INFORMASJON.str].isMissingNode) return PersonDato("Ukjent", null)
-        return customObjectMapper().treeToValue(packet[DataFelt.ARBEIDSTAKER_INFORMASJON.str], PersonDato::class.java)
+    private fun hentNavn(behov: Behov): PersonDato {
+        if (behov[DataFelt.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null)
+        return customObjectMapper().treeToValue(behov[DataFelt.ARBEIDSTAKER_INFORMASJON], PersonDato::class.java)
     }
 
-    override fun onBehov(packet: JsonMessage) {
-        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        sikkerLogger.info("OpprettSakLøser: fikk pakke:\n${packet.toPretty()}")
-        logger.info("Skal opprette sak for forespørselId: $forespoerselId")
-        val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
-        val personDato = hentNavn(packet)
+    override fun onBehov(behov: Behov) {
+        logger.info("Skal opprette sak for forespørselId: ${behov.forespoerselId}")
+        val orgnr = behov[DataFelt.ORGNRUNDERENHET].asText()
+        val personDato = hentNavn(behov)
         val navn = personDato.navn
         val fødselsdato = personDato.fødselsdato
-        val sakId = opprettSak(forespoerselId, orgnr, navn, fødselsdato)
-        logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: $forespoerselId")
-        publishData(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.DATA.str to "",
-                    Key.FORESPOERSEL_ID.str to forespoerselId,
-                    Key.UUID.str to packet[Key.UUID.str],
-                    DataFelt.SAK_ID.str to sakId
-                )
-            )
-        )
-        sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=$forespoerselId")
+        val sakId = opprettSak(behov.forespoerselId!!, orgnr, navn, fødselsdato)
+        logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
+        behov.createData(mapOf(DataFelt.SAK_ID to sakId)).also { publishData(it) }
+        sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=${behov.forespoerselId}")
     }
 }

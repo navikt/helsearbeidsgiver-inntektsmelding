@@ -23,7 +23,6 @@ components:
         - bestemmendeFraværsdag
         - fraværsperioder
         - inntekt
-        - fullLønnIArbeidsgiverPerioden
         - refusjon
         - årsakInnsending
         - bekreftOpplysninger
@@ -75,6 +74,10 @@ components:
           type: string
           format: date-time
           pattern: yyyy-MM-dd'T'HH:mm:ss.SSSxx
+        forespurtData:
+          type: array
+          items:
+            type: string
     InnsendingRequest:
       type: object
       required:
@@ -86,7 +89,6 @@ components:
         - bestemmendeFraværsdag
         - fraværsperioder
         - inntekt
-        - fullLønnIArbeidsgiverPerioden
         - refusjon
         - årsakInnsending
         - bekreftOpplysninger
@@ -129,6 +131,10 @@ components:
           $ref: '#/components/schemas/ÅrsakInnsending'
         bekreftOpplysninger:
           type: boolean
+        forespurtData:
+          type: array
+          items:
+            type: string
     Inntekt:
       type: object
       required:
@@ -255,7 +261,6 @@ components:
       required:
         - arbeidsgiverperioder
         - refusjon
-        - fullLønnIArbeidsgiverPerioden
         - virksomhetNavn
         - identitetsnummer
         - behandlingsdager
@@ -317,6 +322,10 @@ components:
           $ref: '#/components/schemas/ÅrsakInnsending'
         identitetsnummerInnsender:
           type: string
+        forespurtData:
+          type: array
+          items:
+            type: string
     FullLonnIArbeidsgiverPerioden:
       type: object
       required:

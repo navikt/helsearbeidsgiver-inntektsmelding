@@ -9,26 +9,22 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import io.mockk.mockk
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNames
-import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.ArbeidsforholdLøser
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -46,95 +42,70 @@ class ArbeidsforholdLøserTest : FunSpec({
     }
 
     test("ved innkommende behov så hentes og publiseres arbeidsforhold fra aareg") {
-        val expected = PublishedData.mock()
+        val expected = Data.create(
+            EventName.INSENDING_STARTED,
+            UUID.randomUUID(),
+            mapOf(
+                DataFelt.ARBEIDSFORHOLD to no.nav.helsearbeidsgiver.felles.Data(
+                    mockKlientArbeidsforhold().tilArbeidsforhold().let(::listOf)
+                )
+            )
+        ).toJsonMessage()
+            .also {
+                Data.packetValidator.validate(it)
+                it.interestedIn(DataFelt.ARBEIDSFORHOLD.str)
+            }.let {
+                Data.create(it)
+            }
 
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
 
         testRapid.sendJson(
-            Key.EVENT_NAME to expected.eventName.toJson(),
+            Key.EVENT_NAME to expected.event.toJson(),
             Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-            Key.UUID to expected.uuid.toJson()
+            Key.UUID to expected.uuid().toJson()
         )
 
-        val actual = testRapid.firstMessage().fromJson(PublishedData.serializer())
+        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
+            it.interestedIn(DataFelt.ARBEIDSFORHOLD.str)
+        }
 
-        coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.uuid.toString()) }
+        coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.uuid()) }
         testRapid.inspektør.size shouldBeExactly 1
-        actual shouldBe expected
+        actual.uuid() shouldBe expected.uuid()
+        actual.event shouldBe expected.event
+        actual[DataFelt.ARBEIDSFORHOLD] shouldBe expected[DataFelt.ARBEIDSFORHOLD]
     }
 
     test("ved feil fra aareg så publiseres løsning med feilmelding") {
-        val expected = PublishedFeil.mock()
+        val uuid = UUID.randomUUID()
+        val expected = Fail.create(
+            EventName.TRENGER_REQUESTED,
+            BehovType.ARBEIDSFORHOLD,
+            "Klarte ikke hente arbeidsforhold",
+            uuid.toString()
+        )
 
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
 
         testRapid.sendJson(
-            Key.EVENT_NAME to expected.eventName.toJson(),
+            Key.EVENT_NAME to expected.event.toJson(),
             Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-            Key.UUID to expected.uuid.toJson()
+            Key.UUID to expected.uuid!!.toJson()
         )
 
-        val actual = testRapid.firstMessage().fromJson(PublishedFeil.serializer())
+        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.uuid.toString()) }
         testRapid.inspektør.size shouldBeExactly 1
-        actual shouldBe expected
+        actual.uuid() shouldBe expected.uuid()
+        actual.behov shouldBe expected.behov
+        actual.feilmelding shouldBe expected.feilmelding
     }
 })
 
 private object Mock {
     const val FNR = "12121200012"
 }
-
-@Serializable
-@OptIn(ExperimentalSerializationApi::class)
-private data class PublishedData(
-    val uuid: UUID,
-    val arbeidsforhold: Data
-) {
-    @JsonNames("@event_name")
-    val eventName = EventName.INSENDING_STARTED
-    val data = ""
-
-    companion object {
-        fun mock(): PublishedData =
-            PublishedData(
-                uuid = UUID.randomUUID(),
-                arbeidsforhold = mockKlientArbeidsforhold().tilArbeidsforhold().let(::listOf).let(::Data)
-            )
-    }
-}
-
-@Serializable
-@OptIn(ExperimentalSerializationApi::class)
-private data class PublishedFeil(
-    val uuid: UUID,
-    val fail: JsonElement
-) {
-    @JsonNames("@event_name")
-    val eventName = EventName.INSENDING_STARTED
-
-    companion object {
-        fun mock(): PublishedFeil {
-            val uuid = UUID.randomUUID()
-
-            return PublishedFeil(
-                uuid = uuid,
-                fail = mapOf(
-                    Fail::behov.name to BehovType.ARBEIDSFORHOLD.toJson(),
-                    Fail::feilmelding.name to "Klarte ikke hente arbeidsforhold".toJson(),
-                    Fail::data.name to JsonNull,
-                    Fail::uuid.name to uuid.toJson(),
-                    Fail::forespørselId.name to JsonNull
-                ).toJson()
-            )
-        }
-    }
-}
-
-@Serializable
-private data class Data(
-    val t: List<Arbeidsforhold>
-)

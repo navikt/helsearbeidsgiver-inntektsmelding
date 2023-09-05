@@ -21,7 +21,8 @@ object Pri {
         BOOMERANG("boomerang"),
         ORGNR("orgnr"),
         FNR("fnr"),
-        FORESPOERSEL_ID("forespoerselId");
+        FORESPOERSEL_ID("forespoerselId"),
+        SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId");
 
         override fun toString(): String =
             str

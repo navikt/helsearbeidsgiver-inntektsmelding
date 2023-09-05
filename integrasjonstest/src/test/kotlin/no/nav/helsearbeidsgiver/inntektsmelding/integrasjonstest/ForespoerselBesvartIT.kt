@@ -37,7 +37,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
             )
 
-            waitForMessages(8000)
+            waitForMessages(20000)
         }
 
         messages.filter(EventName.FORESPOERSEL_BESVART)

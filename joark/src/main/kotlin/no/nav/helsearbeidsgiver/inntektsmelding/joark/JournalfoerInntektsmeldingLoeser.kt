@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import com.fasterxml.jackson.databind.JsonNode
+import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -31,6 +31,10 @@ class JournalfoerInntektsmeldingLoeser(
     private val JOURNALFOER_BEHOV = BehovType.JOURNALFOER
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
+    private val requestLatency = Summary.build()
+        .name("simba_joark_journalfoer_im_latency_seconds")
+        .help("journaloer inntektsmelding latency in seconds")
+        .register()
 
     private fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
         try {
@@ -48,26 +52,29 @@ class JournalfoerInntektsmeldingLoeser(
         }
     }
 
-    override fun onBehov(packet: JsonMessage) {
-        val uuid = packet[Key.UUID.str].asText()
-        logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid $uuid")
-        sikkerLogger.info("Fikk pakke:\n${packet.toPretty()}")
+    override fun onBehov(behov: Behov) {
+        logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid ${behov.uuid()}")
         var inntektsmeldingDokument: InntektsmeldingDokument? = null
         try {
-            inntektsmeldingDokument = mapInntektsmeldingDokument(packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str])
+            inntektsmeldingDokument = mapInntektsmeldingDokument(behov[DataFelt.INNTEKTSMELDING_DOKUMENT])
             sikkerLogger.info("Skal journalføre: $inntektsmeldingDokument")
-            val journalpostId = opprettOgFerdigstillJournalpost(uuid, inntektsmeldingDokument)
+            val journalpostId = opprettOgFerdigstillJournalpost(behov.uuid(), inntektsmeldingDokument)
             sikkerLogger.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
             logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
-            publiserLagring(uuid, journalpostId)
+            behov.createBehov(
+                BehovType.LAGRE_JOURNALPOST_ID,
+                mapOf(
+                    Key.OPPRETTET to LocalDateTime.now(),
+                    Key.JOURNALPOST_ID to journalpostId
+                )
+            )
+                .also { publishBehov(it) }
         } catch (ex: UgyldigFormatException) {
             sikkerLogger.error("Klarte ikke journalføre: feil format!", ex)
-            val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
-            publishFail(packet.createFail("Feil format i InntektsmeldingDokument", data, behovType = JOURNALFOER_BEHOV))
+            publishFail(behov.createFail("Feil format i InntektsmeldingDokument", mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)))
         } catch (ex: Exception) {
             sikkerLogger.error("Klarte ikke journalføre!", ex)
-            val data = mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)
-            publishFail(packet.createFail("Klarte ikke journalføre", data, behovType = JOURNALFOER_BEHOV))
+            publishFail(behov.createFail("Klarte ikke journalføre", mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)))
         }
     }
 
@@ -75,7 +82,7 @@ class JournalfoerInntektsmeldingLoeser(
         sikkerLogger.info("Bruker inntektsinformasjon $inntektsmelding")
 
         logger.info("Prøver å opprette og ferdigstille journalpost for $uuid...")
-
+        val requestTimer = requestLatency.startTimer()
         val response = runBlocking {
             dokarkivClient.opprettOgFerdigstillJournalpost(
                 tittel = "Inntektsmelding",
@@ -89,6 +96,8 @@ class JournalfoerInntektsmeldingLoeser(
                 eksternReferanseId = "ARI-$uuid",
                 callId = "callId_$uuid"
             )
+        }.also {
+            requestTimer.observeDuration()
         }
 
         if (response.journalpostFerdigstilt) {
@@ -96,19 +105,6 @@ class JournalfoerInntektsmeldingLoeser(
         }
 
         return response.journalpostId
-    }
-
-    private fun publiserLagring(uuid: String, journalpostId: String) {
-        val packet: JsonMessage = JsonMessage.newMessage(
-            mapOf(
-                Key.BEHOV.str to BehovType.LAGRE_JOURNALPOST_ID.name,
-                Key.OPPRETTET.str to LocalDateTime.now(),
-                Key.JOURNALPOST_ID.str to journalpostId,
-                Key.UUID.str to uuid
-            )
-        )
-
-        publishBehov(packet)
     }
 }
 

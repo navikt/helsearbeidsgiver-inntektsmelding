@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 
+import io.prometheus.client.Counter
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -11,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -35,6 +37,10 @@ class ForespoerselBesvartLoeser(
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
+    private val forespoerselBesvartCounter = Counter.build()
+        .name("simba_forespoersel_besvart_total")
+        .help("Antall foresporsler besvart fra Spleis (pri-topic)")
+        .register()
 
     init {
         River(rapid).apply {
@@ -44,6 +50,9 @@ class ForespoerselBesvartLoeser(
                 )
                 it.requireKeys(
                     Pri.Key.FORESPOERSEL_ID
+                )
+                it.interestedIn(
+                    Pri.Key.SPINN_INNTEKTSMELDING_ID
                 )
             }
         }.register(this)
@@ -95,6 +104,7 @@ class ForespoerselBesvartLoeser(
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")
                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                    forespoerselBesvartCounter.inc()
                 }
         }
     }

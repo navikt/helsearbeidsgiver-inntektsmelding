@@ -1,10 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import io.kotest.matchers.maps.shouldContainKey
-import io.kotest.matchers.maps.shouldNotContainKey
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
@@ -12,12 +10,13 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -41,6 +40,7 @@ class JournalfoerInntektsmeldingLoeserTest {
     @BeforeEach
     fun setup() {
         testRapid.reset()
+        CollectorRegistry.defaultRegistry.clear()
     }
 
     @Test
@@ -58,17 +58,7 @@ class JournalfoerInntektsmeldingLoeserTest {
             Key.UUID to "uuid-557".toJson()
         )
 
-        val publisert = testRapid.firstMessage().let {
-            it.fromJsonMapOnlyKeys() + it.fromJsonMapOnlyDatafelter()
-        }
-
-        publisert shouldContainKey Key.FAIL
-        publisert shouldNotContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
-
-        val fail = publisert[Key.FAIL]
-            .shouldNotBeNull()
-            .toString()
-            .let<_, Fail>(Jackson::fromJson)
+        val fail = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
 
         assertEquals(forventetFeilmelding, fail.feilmelding)
     }
@@ -108,13 +98,7 @@ class JournalfoerInntektsmeldingLoeserTest {
             DataFelt.INNTEKTSMELDING_DOKUMENT to "xyz".toJson(),
             Key.UUID to "uuid-549".toJson()
         )
-
-        val fail = testRapid.firstMessage()
-            .fromJsonMapOnlyKeys()[Key.FAIL]
-            .shouldNotBeNull()
-            .toString()
-            .let<_, Fail>(Jackson::fromJson)
-
+        val fail = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
         assertTrue(fail.feilmelding.isNotEmpty())
     }
 }

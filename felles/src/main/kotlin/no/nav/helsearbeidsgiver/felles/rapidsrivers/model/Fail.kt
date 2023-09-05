@@ -33,11 +33,12 @@ class Fail(
             it.interestedIn(Key.FAILED_BEHOV.str)
         }
 
-        fun create(event: EventName, behov: BehovType? = null, feilmelding: String, data: Map<IKey, Any> = emptyMap()): Fail {
+        fun create(event: EventName, behov: BehovType? = null, feilmelding: String, uuid: String? = null, data: Map<IKey, Any> = emptyMap()): Fail {
             return Fail(
                 event,
                 behov,
                 feilmelding,
+                uuid,
                 jsonMessage = JsonMessage.newMessage(event.name, data.mapKeys { it.key.str }).also {
                     if (behov != null) it[Key.FAILED_BEHOV.str] = behov.name
                     it[Key.FAIL.str] = feilmelding
@@ -78,6 +79,6 @@ class Fail(
     }
 
     override fun toJsonMessage(): JsonMessage {
-        return jsonMessage
+        return this.jsonMessage
     }
 }

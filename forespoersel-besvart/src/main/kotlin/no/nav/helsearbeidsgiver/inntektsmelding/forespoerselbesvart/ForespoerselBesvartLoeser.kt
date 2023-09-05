@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -94,22 +93,28 @@ class ForespoerselBesvartLoeser(
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val spinnInntektsmeldingId = melding[Pri.Key.SPINN_INNTEKTSMELDING_ID]
 
-        val keyList = arrayListOf(
+        val keyList: Array<out Pair<IKey, JsonElement>> = arrayOf(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
         )
+            .let { keys ->
+                if (spinnInntektsmeldingId == null) keys
+                else {
+                    arrayOf(*keys, DataFelt.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId)
+                }
+            }
+
         MdcUtils.withLogFields(
             Log.event(EventName.FORESPOERSEL_BESVART),
             Log.behov(BehovType.NOTIFIKASJON_HENT_ID),
             Log.forespoerselId(forespoerselId)
         ) {
-            spinnInntektsmeldingId?.also { keyList + DataFelt.SPINN_INNTEKTSMELDING_ID to it } ?: keyList
-            .also { context.publish(*it.toTypedArray()) }
+            context.publish(*keyList)
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")
-                    //sikkerLogger.info("Publiserte melding:\n${it.toPretty()}") TODO: fiks logging til sikkerlogg
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                     forespoerselBesvartCounter.inc()
                 }
         }

@@ -45,7 +45,8 @@ class LagreAvsenderSystemLøser(
             try {
                 repository.lagreAvsenderSystemData(forespoerselId, avsenderSystemData)
                 logger.info(
-                    "LagreAvsenderSystemLøser lagret AvsenderSystemData med arkiv referanse ${avsenderSystemData.arkivreferanse} i database for forespoerselId $forespoerselId"
+                    "LagreAvsenderSystemLøser lagret AvsenderSystemData med arkiv referanse ${avsenderSystemData.arkivreferanse}" +
+                        " i database for forespoerselId $forespoerselId"
                 )
                 publishEvent(Event.create(EventName.AVSENDER_SYSTEM_LAGRET, forespoerselId))
             } catch (ex: Exception) {

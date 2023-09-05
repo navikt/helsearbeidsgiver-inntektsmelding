@@ -52,7 +52,6 @@ allprojects {
                 username = "x-access-token"
                 password = githubPassword
             }
-        mavenLocal()
         }
     }
 }

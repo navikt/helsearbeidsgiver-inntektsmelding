@@ -57,7 +57,7 @@ class StatefullDataKanal(
         }.ifEmpty {
             return false
         }.forEach {
-            data ->
+                data ->
             val str = if (data.second.isTextual) { data.second.asText() } else data.second.toString()
             redisStore.set(message[Key.UUID.str].asText() + data.first, str)
         }

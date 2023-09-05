@@ -36,6 +36,8 @@ components:
           type: string
         telefonnummer:
           type: string
+        innsenderNavn:
+          type: string
         virksomhetNavn:
           type: string
         behandlingsdager:
@@ -324,7 +326,7 @@ components:
           pattern: yyyy-MM-dd'T'HH:mm:ss.SSSxx
         årsakInnsending:
           $ref: '#/components/schemas/ÅrsakInnsending'
-        fulltNavnInnsender:
+        innsenderNavn:
           type: string
         telefonnummer:
           type: string

@@ -14,6 +14,7 @@ data class TrengerData(
     val fnr: String? = null,
     val orgnr: String? = null,
     val personDato: PersonDato? = null,
+    val arbeidsgiver: PersonDato? = null,
     val virksomhetNavn: String? = null,
     val arbeidsforhold: List<Arbeidsforhold>? = null,
     val inntekt: Inntekt? = null,

@@ -15,6 +15,7 @@ import java.time.LocalDate
 data class TrengerResponse(
     val navn: String,
     val orgNavn: String,
+    val innsenderNavn: String,
     val identitetsnummer: String,
     val orgnrUnderenhet: String,
     val fravaersperioder: List<Periode>,

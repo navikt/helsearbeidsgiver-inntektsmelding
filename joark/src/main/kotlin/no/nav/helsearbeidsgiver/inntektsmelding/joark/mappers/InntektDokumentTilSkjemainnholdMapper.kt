@@ -20,7 +20,7 @@ interface InntektDokumentTilSkjemainnholdMapper {
 
     @Mappings(
         Mapping(constant = "Sykepenger", target = "ytelse"),
-        Mapping(source = "fulltNavnInnsender", target = "arbeidsgiver.kontaktinformasjon.kontaktinformasjonNavn"),
+        Mapping(source = "innsenderNavn", target = "arbeidsgiver.kontaktinformasjon.kontaktinformasjonNavn"),
         Mapping(source = "telefonnummer", target = "arbeidsgiver.kontaktinformasjon.telefonnummer"),
         Mapping(source = "årsakInnsending.value", target = "aarsakTilInnsending"),
         Mapping(source = "orgnrUnderenhet", target = "arbeidsgiver.virksomhetsnummer"),

@@ -8,7 +8,7 @@ fun mapInntektsmeldingDokument(
     request: InnsendingRequest,
     fulltnavnArbeidstaker: String,
     arbeidsgiver: String,
-    fulltnavnInnsender: String
+    innsenderNavn: String
 ): InntektsmeldingDokument =
     try {
         InntektsmeldingDokument(
@@ -28,7 +28,7 @@ fun mapInntektsmeldingDokument(
             naturalytelser = request.naturalytelser,
             tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
             årsakInnsending = request.årsakInnsending,
-            fulltNavnInnsender = fulltnavnInnsender,
+            innsenderNavn = innsenderNavn,
             forespurtData = request.forespurtData,
             telefonnummer = request.telefonnummer
         )

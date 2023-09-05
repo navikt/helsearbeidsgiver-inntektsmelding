@@ -133,7 +133,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         val newY = y
         addLabel(
             label = "Innsender",
-            text = dokument.fulltNavnInnsender,
+            text = dokument.innsenderNavn,
             linefeed = false,
             splitLines = true
         )

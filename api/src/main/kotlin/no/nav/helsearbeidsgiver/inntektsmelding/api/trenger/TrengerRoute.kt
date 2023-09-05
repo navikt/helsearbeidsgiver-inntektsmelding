@@ -47,7 +47,7 @@ fun RouteExtra.trengerRoute() {
                             redisPoller = redis,
                             cache = tilgangCache
                         )
-
+                        // val innloggerFnr = hentIdentitetsnummerFraLoginToken(application.environment.config, call.request)
                         val trengerId = trengerProducer.publish(request)
                         val resultat = redis.getString(trengerId, 10, 500)
                         sikkerLogger.info("Fikk resultat: $resultat")
@@ -85,6 +85,7 @@ fun RouteExtra.trengerRoute() {
 fun mapTrengerResponse(trengerData: TrengerData): TrengerResponse {
     return TrengerResponse(
         navn = trengerData.personDato?.navn ?: "",
+        innsenderNavn = "",
         orgNavn = trengerData.virksomhetNavn ?: "",
         identitetsnummer = trengerData.fnr ?: "",
         orgnrUnderenhet = trengerData.orgnr ?: "",

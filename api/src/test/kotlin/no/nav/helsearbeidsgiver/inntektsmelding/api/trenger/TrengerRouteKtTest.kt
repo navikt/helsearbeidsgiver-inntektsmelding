@@ -144,6 +144,7 @@ private object Mock {
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
         personDato = PersonDato("Ola Normann", "Ukjent", "123456"),
+        arbeidsgiver = PersonDato("Arbeidsgiver", "Ukjent", "654321"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,
@@ -157,6 +158,7 @@ private object Mock {
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
         personDato = PersonDato("Ola Normann", "010518", "123456"),
+        arbeidsgiver = PersonDato("Arbeidsgiver", "Ukjent", "654321"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,
@@ -173,6 +175,7 @@ private object Mock {
             {
                 "navn": "Ola Normann",
                 "orgNavn": "Norge AS",
+                "innsenderNavn": "Arbeidsgiver",
                 "identitetsnummer": "${mockTrengerInntekt.fnr}",
                 "orgnrUnderenhet": "${mockTrengerInntekt.orgnr}",
                 "fravaersperioder": [${mockTrengerInntekt.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
@@ -193,6 +196,7 @@ private object Mock {
             {
                 "navn": "Ola Normann",
                 "orgNavn": "Norge AS",
+                "innsenderNavn": "Arbeidsgiver",
                 "identitetsnummer": "${mockTrengerInntekt.fnr}",
                 "orgnrUnderenhet": "${mockTrengerInntekt.orgnr}",
                 "fravaersperioder": [${mockTrengerInntekt.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],

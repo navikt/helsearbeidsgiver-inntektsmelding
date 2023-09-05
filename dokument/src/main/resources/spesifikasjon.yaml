@@ -324,7 +324,7 @@ components:
           pattern: yyyy-MM-dd'T'HH:mm:ss.SSSxx
         årsakInnsending:
           $ref: '#/components/schemas/ÅrsakInnsending'
-        identitetsnummerInnsender:
+        fulltNavnInnsender:
           type: string
         telefonnummer:
           type: string

@@ -130,13 +130,19 @@ class PdfDokumentTest {
     }
 
     @Test
-    fun `med telefonnummer`() {
+    fun `med kontaktInfo til arbeidsgiver`() {
         val tlf = "+4722555555"
+
         val medTelefon = im.copy(
             telefonnummer = tlf
         )
+        writePDF(
+            "med_begrunnelse",
+            medTelefon
+        )
         val pdfTekst = extractTextFromPdf(PdfDokument(medTelefon).export())
         assert(pdfTekst!!.contains(tlf.formaterTelefonnummer()))
+        assert(pdfTekst!!.contains(im.fulltNavnInnsender.toString()))
     }
 
     @Test

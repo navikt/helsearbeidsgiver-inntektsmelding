@@ -75,7 +75,7 @@ fun mockInntektsmeldingDokument(): InntektsmeldingDokument =
         bestemmendeFraværsdag = dag.plusDays(90),
         tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
         årsakInnsending = ÅrsakInnsending.NY,
-        identitetsnummerInnsender = "123123123123123",
+        fulltNavnInnsender = "Snill Arbeidsgiver",
         telefonnummer = "22222222"
     )
 

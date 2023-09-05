@@ -53,7 +53,15 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 redisStore
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, listOf(DataFelt.FORESPOERSEL_ID.str, Key.ARBEIDSGIVER_ID.str).toTypedArray(), it, rapidsConnection) }
+        withEventListener {
+            StatefullEventListener(
+                redisStore,
+                event,
+                listOf(DataFelt.FORESPOERSEL_ID.str, Key.ARBEIDSGIVER_ID.str).toTypedArray(),
+                it,
+                rapidsConnection
+            )
+        }
     }
 
     override fun onError(feil: Fail): Transaction {

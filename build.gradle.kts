@@ -14,7 +14,6 @@ plugins {
 buildscript {
     repositories {
         mavenCentral()
-        mavenLocal()
     }
 }
 
@@ -43,6 +42,7 @@ allprojects {
 
     repositories {
         val githubPassword: String by project
+
         maven("https://packages.confluent.io/maven/")
         maven("https://oss.sonatype.org")
         mavenCentral()

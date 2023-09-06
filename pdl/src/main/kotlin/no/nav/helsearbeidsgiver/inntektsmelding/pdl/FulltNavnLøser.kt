@@ -18,8 +18,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import kotlin.system.measureTimeMillis
 
 class FulltNavnLøser(
@@ -54,10 +52,12 @@ class FulltNavnLøser(
             val identer = listOf(arbeidstakerID, arbeidsgiverID).filterNot { s -> s.isNullOrEmpty() }
             val requestTimer = requestLatency.startTimer()
             try {
-                val info = hentPersonInfo(identer)
-                logger.info("Mottok ${info.size} navn fra pdl, ba om ${identer.size}")
-                val arbeidstakerInfo = info.filter { p -> p.ident == arbeidstakerID }.firstOrNull().orDefault(PersonDato("", "", arbeidstakerID))
-                val arbeidsgiverInfo = info.filter { p -> p.ident == arbeidsgiverID }.firstOrNull().orDefault(PersonDato("", "", arbeidsgiverID))
+                val personer = hentPersoner(identer)
+
+                logger.info("Mottok ${personer.size} navn fra pdl, ba om ${identer.size}")
+
+                val arbeidstakerInfo = personer.firstOrNull { it.ident == arbeidstakerID }.orDefault(PersonDato("", null, arbeidstakerID))
+                val arbeidsgiverInfo = personer.firstOrNull { it.ident == arbeidsgiverID }.orDefault(PersonDato("", null, arbeidsgiverID))
 
                 publishData(
                     behov.createData(
@@ -79,7 +79,7 @@ class FulltNavnLøser(
         }
     }
 
-    private fun hentPersonInfo(identitetsnummere: List<String>): List<PersonDato> =
+    private fun hentPersoner(identitetsnummere: List<String>): List<PersonDato> =
         runBlocking {
             pdlClient.personBolk(identitetsnummere)
         }
@@ -87,18 +87,8 @@ class FulltNavnLøser(
             .map {
                 PersonDato(
                     navn = it.navn.fulltNavn(),
-                    fødselsdato = getFødselsdato(it.foedselsdato),
+                    fødselsdato = it.foedselsdato,
                     ident = it.ident.orEmpty()
                 )
             }
-
-    private fun getFødselsdato(fdato: LocalDate?): String {
-        val ukjent = "Ukjent"
-        try {
-            return fdato?.format(DateTimeFormatter.ofPattern("ddMMyy")) ?: ukjent
-        } catch (e: IllegalArgumentException) {
-            sikkerLogger.warn("Ukjent datoformat: $fdato")
-        }
-        return ukjent
-    }
 }

@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventList
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 class InnsendingService(
@@ -69,8 +70,8 @@ class InnsendingService(
         } else if (feil.behov == BehovType.FULLT_NAVN) {
             val arbeidstakerFulltnavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
             val arbeidsgiverFulltnavnKey = "${feil.uuid}${DataFelt.ARBEIDSGIVER_INFORMASJON.str}"
-            redisStore.set(arbeidstakerFulltnavnKey, customObjectMapper().writeValueAsString(personIkkeFunnet()))
-            redisStore.set(arbeidsgiverFulltnavnKey, customObjectMapper().writeValueAsString(personIkkeFunnet()))
+            redisStore.set(arbeidstakerFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
+            redisStore.set(arbeidsgiverFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             return Transaction.IN_PROGRESS
         }
         return Transaction.TERMINATE

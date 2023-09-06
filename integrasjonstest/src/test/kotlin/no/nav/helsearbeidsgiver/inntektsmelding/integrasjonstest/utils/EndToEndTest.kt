@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
@@ -33,7 +34,11 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerService
+import no.nav.helsearbeidsgiver.pdl.PdlClient
+import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
+import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.test.date.mai
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -81,11 +86,21 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
+    private val pdlKlient = mockk<PdlClient>()
 
     @BeforeEach
     fun beforeEachEndToEnd() {
         messages.reset()
         clearAllMocks()
+
+        coEvery { pdlKlient.fullPerson(any()) } returns FullPerson(
+            navn = PersonNavn(
+                fornavn = "Bjarne",
+                mellomnavn = null,
+                etternavn = "Betjent"
+            ),
+            foedselsdato = 28.mai
+        )
     }
 
     @BeforeAll
@@ -109,7 +124,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createInntekt(mockk(relaxed = true))
             createJoark(dokarkivClient)
             createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)
-            createPdl(mockk(relaxed = true))
+            createPdl(pdlKlient)
         }
             .register(this)
 

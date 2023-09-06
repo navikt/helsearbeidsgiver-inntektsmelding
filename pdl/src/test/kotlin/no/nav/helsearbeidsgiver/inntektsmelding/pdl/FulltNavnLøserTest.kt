@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
@@ -17,13 +18,13 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.pdl.PdlClient
-import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
-import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
+import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
+import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.juni
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 class FulltNavnLøserTest {
@@ -38,14 +39,13 @@ class FulltNavnLøserTest {
     @BeforeEach
     fun setup() {
         testRapid.reset()
+        clearAllMocks()
         CollectorRegistry.defaultRegistry.clear()
     }
 
     @Test
     fun `skal finne navn`() {
-        coEvery {
-            mockPdlClient.fullPerson(any(), any())
-        } returns mockPerson("Ola", "", "Normann", LocalDate.now())
+        coEvery { mockPdlClient.fullPerson(any()) } returns mockPerson()
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
@@ -82,24 +82,12 @@ class FulltNavnLøserTest {
     }
 }
 
-private fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson =
-    PdlHentFullPerson(
-        hentPerson = PdlHentFullPerson.PdlFullPersonliste(
-            navn = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlNavn(fornavn, mellomNavn, etternavn, PdlPersonNavnMetadata(""))),
-            foedsel = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlFoedsel(fødselsdato)),
-            doedsfall = emptyList(),
-            adressebeskyttelse = emptyList(),
-            statsborgerskap = emptyList(),
-            bostedsadresse = emptyList(),
-            kjoenn = emptyList()
+private fun mockPerson(): FullPerson =
+    FullPerson(
+        navn = PersonNavn(
+            fornavn = "Ola",
+            mellomnavn = null,
+            etternavn = "Normann"
         ),
-        hentIdenter = PdlHentFullPerson.PdlIdentResponse(
-            emptyList()
-        ),
-        hentGeografiskTilknytning = PdlHentFullPerson.PdlGeografiskTilknytning(
-            PdlHentFullPerson.PdlGeografiskTilknytning.PdlGtType.KOMMUNE,
-            null,
-            null,
-            null
-        )
+        foedselsdato = 13.juni(1956)
     )

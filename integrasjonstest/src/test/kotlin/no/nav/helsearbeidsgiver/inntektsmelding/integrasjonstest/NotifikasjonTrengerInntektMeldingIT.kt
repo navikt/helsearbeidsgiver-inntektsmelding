@@ -14,15 +14,31 @@ import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
+import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
+import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.mai
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
+
+    @BeforeEach
+    fun setup() {
+        coEvery { pdlKlient.fullPerson(any()) } returns FullPerson(
+            navn = PersonNavn(
+                fornavn = "Bjarne",
+                mellomnavn = null,
+                etternavn = "Betjent"
+            ),
+            foedselsdato = 28.mai
+        )
+    }
 
     @Test
     fun `Oppretter og lagrer sak etter at forespørselen er mottatt`() {

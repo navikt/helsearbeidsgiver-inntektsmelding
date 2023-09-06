@@ -38,6 +38,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -143,8 +144,8 @@ private object Mock {
     val TRENGER_DATA_OK = TrengerData(
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
-        personDato = PersonDato("Ola Normann", "Ukjent", "123456"),
-        arbeidsgiver = PersonDato("Arbeidsgiver", "Ukjent", "654321"),
+        personDato = PersonDato("Ola Normann", null, "123456"),
+        arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,
@@ -157,8 +158,8 @@ private object Mock {
     val TRENGER_DATA_OK_MED_FORRIGE_INNTEKT = TrengerData(
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
-        personDato = PersonDato("Ola Normann", "010518", "123456"),
-        arbeidsgiver = PersonDato("Arbeidsgiver", "Ukjent", "654321"),
+        personDato = PersonDato("Ola Normann", 1.mai(2018), "123456"),
+        arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,

@@ -35,7 +35,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 val logger = "helsearbeidsgiver-im-integrasjon-local".logger()
 
@@ -112,7 +111,7 @@ class DummyLøser(
                 DataFelt.ARBEIDSTAKER_INFORMASJON to
                     PersonDato(
                         "Navn navnesen",
-                        LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyy")),
+                        LocalDate.now(),
                         "123456"
                     )
                         .toJson(
@@ -121,7 +120,7 @@ class DummyLøser(
                 DataFelt.ARBEIDSGIVER_INFORMASJON to
                     PersonDato(
                         "Arbeidsgiver",
-                        LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyy")),
+                        LocalDate.now(),
                         "654321"
                     )
                         .toJson(

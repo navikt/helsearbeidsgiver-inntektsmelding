@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.pdl.PdlClient
-import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.LocalDate
@@ -55,12 +54,10 @@ class FulltNavnLøser(
             val identer = listOf(arbeidstakerID, arbeidsgiverID).filterNot { s -> s.isNullOrEmpty() }
             val requestTimer = requestLatency.startTimer()
             try {
-                val info = runBlocking {
-                    hentPersonInfo(identer)
-                }
-                logger.info("Mottok ${info?.size} navn fra pdl, ba om ${identer.size}")
-                val arbeidstakerInfo = info?.filter { p -> p.ident == arbeidstakerID }?.firstOrNull().orDefault(PersonDato("", "", arbeidstakerID))
-                val arbeidsgiverInfo = info?.filter { p -> p.ident == arbeidsgiverID }?.firstOrNull().orDefault(PersonDato("", "", arbeidsgiverID))
+                val info = hentPersonInfo(identer)
+                logger.info("Mottok ${info.size} navn fra pdl, ba om ${identer.size}")
+                val arbeidstakerInfo = info.filter { p -> p.ident == arbeidstakerID }.firstOrNull().orDefault(PersonDato("", "", arbeidstakerID))
+                val arbeidsgiverInfo = info.filter { p -> p.ident == arbeidsgiverID }.firstOrNull().orDefault(PersonDato("", "", arbeidsgiverID))
 
                 publishData(
                     behov.createData(
@@ -82,15 +79,18 @@ class FulltNavnLøser(
         }
     }
 
-    private suspend fun hentPersonInfo(identitetsnummere: List<String>): List<PersonDato>? {
-        val liste: List<FullPerson>?
-        measureTimeMillis {
-            liste = pdlClient.personBolk(identitetsnummere)
-        }.also {
-            logger.info("PDL invocation took $it")
+    private fun hentPersonInfo(identitetsnummere: List<String>): List<PersonDato> =
+        runBlocking {
+            pdlClient.personBolk(identitetsnummere)
         }
-        return liste?.mapNotNull { fp -> PersonDato(fp.navn.fulltNavn(), getFødselsdato(fp.foedselsdato), fp.ident.orEmpty()) }
-    }
+            .orEmpty()
+            .map {
+                PersonDato(
+                    navn = it.navn.fulltNavn(),
+                    fødselsdato = getFødselsdato(it.foedselsdato),
+                    ident = it.ident.orEmpty()
+                )
+            }
 
     private fun getFødselsdato(fdato: LocalDate?): String {
         val ukjent = "Ukjent"

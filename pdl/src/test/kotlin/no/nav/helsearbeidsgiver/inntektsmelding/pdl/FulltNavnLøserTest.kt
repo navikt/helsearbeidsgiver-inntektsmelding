@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
@@ -21,9 +22,9 @@ import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.juni
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 class FulltNavnLøserTest {
@@ -38,15 +39,14 @@ class FulltNavnLøserTest {
     @BeforeEach
     fun setup() {
         testRapid.reset()
+        clearAllMocks()
         CollectorRegistry.defaultRegistry.clear()
     }
 
     @Test
     fun `skal finne navn`() {
         val id = "123"
-        coEvery {
-            mockPdlClient.personBolk(any())
-        } returns listOf(mockPerson("Ola", "", "Normann", LocalDate.now(), id))
+        coEvery { mockPdlClient.personBolk(any()) } returns listOf(mockPerson("Ola", id))
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
@@ -94,8 +94,8 @@ class FulltNavnLøserTest {
         coEvery {
             mockPdlClient.personBolk(any())
         } returns listOf(
-            mockPerson("Ola", "", "Normann", LocalDate.now(), arbeidstakerID),
-            mockPerson("Kari", "", "Normann", LocalDate.now(), arbeidsgiverID)
+            mockPerson("Ola", arbeidstakerID),
+            mockPerson("Kari", arbeidsgiverID)
         )
 
         testRapid.sendJson(
@@ -128,7 +128,7 @@ class FulltNavnLøserTest {
         coEvery {
             mockPdlClient.personBolk(any())
         } returns listOf(
-            mockPerson("Kari", "", "Normann", LocalDate.now(), arbeidsgiverID)
+            mockPerson("Kari", arbeidsgiverID)
         )
 
         testRapid.sendJson(
@@ -153,11 +153,15 @@ class FulltNavnLøserTest {
             .shouldBe("Kari Normann")
         publisert[Key.FAIL].shouldBeNull()
     }
-
-    private fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate, ident: String): FullPerson =
-        FullPerson(
-            navn = PersonNavn(fornavn, mellomNavn, etternavn),
-            foedselsdato = fødselsdato,
-            ident = ident
-        )
 }
+
+private fun mockPerson(fornavn: String, ident: String): FullPerson =
+    FullPerson(
+        navn = PersonNavn(
+            fornavn = fornavn,
+            mellomnavn = null,
+            etternavn = "Normann"
+        ),
+        foedselsdato = 13.juni(1956),
+        ident = ident
+    )

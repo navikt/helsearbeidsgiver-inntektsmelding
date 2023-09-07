@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.config
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
@@ -31,10 +31,10 @@ class JsonColumnType<T : Any>(private val clazz: Class<T>) : ColumnType() {
     override fun sqlType(): String =
         "jsonb"
 
-    override fun valueFromDB(value: Any): T = customObjectMapper().readValue(value as String, clazz)
+    override fun valueFromDB(value: Any): T = Jackson.objectMapper.readValue(value as String, clazz)
 
     override fun notNullValueToDB(value: Any): String =
-        customObjectMapper().writeValueAsString(value)
+        Jackson.toJson(value)
 
     override fun valueToString(value: Any?): String =
         when (value) {

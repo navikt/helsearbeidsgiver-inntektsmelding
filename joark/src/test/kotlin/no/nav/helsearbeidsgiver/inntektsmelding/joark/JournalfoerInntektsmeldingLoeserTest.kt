@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
@@ -58,7 +57,7 @@ class JournalfoerInntektsmeldingLoeserTest {
             Key.UUID to "uuid-557".toJson()
         )
 
-        val fail = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
+        val fail = testRapid.firstMessage().toDomeneMessage<Fail>()
 
         assertEquals(forventetFeilmelding, fail.feilmelding)
     }
@@ -98,7 +97,7 @@ class JournalfoerInntektsmeldingLoeserTest {
             DataFelt.INNTEKTSMELDING_DOKUMENT to "xyz".toJson(),
             Key.UUID to "uuid-549".toJson()
         )
-        val fail = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
+        val fail = testRapid.firstMessage().toDomeneMessage<Fail>()
         assertTrue(fail.feilmelding.isNotEmpty())
     }
 }

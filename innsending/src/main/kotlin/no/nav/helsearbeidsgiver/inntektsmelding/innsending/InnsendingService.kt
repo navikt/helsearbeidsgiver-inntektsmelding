@@ -8,14 +8,17 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -127,22 +130,18 @@ class InnsendingService(
                     val arbeidsgiverRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_INFORMASJON), PersonDato::class.java)
                     logger.info("InnsendingService: emitting behov PERSISTER_IM")
                     rapidsConnection.publish(
-                        JsonMessage.newMessage(
-                            mapOf(
-                                Key.EVENT_NAME.str to event.name,
-                                Key.BEHOV.str to BehovType.PERSISTER_IM.name,
-                                DataFelt.VIRKSOMHET.str to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet"),
-                                DataFelt.ARBEIDSTAKER_INFORMASJON.str to (
-                                    arbeidstakerRedis ?: personIkkeFunnet(message[Key.IDENTITETSNUMMER.str].asText())
-                                    ),
-                                DataFelt.ARBEIDSGIVER_INFORMASJON.str to (
-                                    arbeidsgiverRedis ?: personIkkeFunnet(message[Key.ARBEIDSGIVER_ID.str].asText())
-                                    ),
-                                DataFelt.INNTEKTSMELDING.str to customObjectMapper().readTree(redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING)))!!,
-                                Key.FORESPOERSEL_ID.str to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!,
-                                Key.UUID.str to uuid
-                            )
-                        ).toJson()
+                        Key.EVENT_NAME to event.toJson(),
+                        Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
+                        DataFelt.VIRKSOMHET to (redisStore.get(RedisKey.of(uuid, DataFelt.VIRKSOMHET)) ?: "Ukjent virksomhet").toJson(),
+                        DataFelt.ARBEIDSTAKER_INFORMASJON to (
+                            arbeidstakerRedis ?: personIkkeFunnet(message[Key.IDENTITETSNUMMER.str].asText())
+                            ).toJson(PersonDato.serializer()),
+                        DataFelt.ARBEIDSGIVER_INFORMASJON to (
+                            arbeidsgiverRedis ?: personIkkeFunnet(message[Key.ARBEIDSGIVER_ID.str].asText())
+                            ).toJson(PersonDato.serializer()),
+                        DataFelt.INNTEKTSMELDING to redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING))!!.parseJson(),
+                        Key.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson(),
+                        Key.UUID to uuid.toJson()
                     )
                 }
             }

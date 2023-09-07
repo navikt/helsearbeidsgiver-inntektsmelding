@@ -158,7 +158,7 @@ private object Mock {
     val TRENGER_DATA_OK_MED_FORRIGE_INNTEKT = TrengerData(
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
-        personDato = PersonDato("Ola Normann", 1.mai(2018), "123456"),
+        personDato = PersonDato("Ola Normann", 1.mai, "123456"),
         arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),

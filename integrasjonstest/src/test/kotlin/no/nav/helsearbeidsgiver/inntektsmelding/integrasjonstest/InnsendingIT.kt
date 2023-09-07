@@ -48,6 +48,7 @@ class InnsendingIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.innsendingRequest.orgnrUnderenhet.toJson(),
             Key.IDENTITETSNUMMER to Mock.innsendingRequest.identitetsnummer.toJson(),
+            Key.ARBEIDSGIVER_ID to Mock.innsendingRequest.identitetsnummer.toJson(),
             DataFelt.INNTEKTSMELDING to Mock.innsendingRequest.let(Jackson::toJson).parseJson()
         )
 

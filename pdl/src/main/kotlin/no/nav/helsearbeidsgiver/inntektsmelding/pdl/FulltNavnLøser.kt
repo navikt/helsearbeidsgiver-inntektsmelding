@@ -12,10 +12,12 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import kotlin.system.measureTimeMillis
 
 class FulltNavnLøser(
@@ -36,6 +38,7 @@ class FulltNavnLøser(
                 Key.BEHOV to BEHOV.name
             )
             it.requireKeys(Key.IDENTITETSNUMMER)
+            it.interestedIn(Key.ARBEIDSGIVER_ID)
         }
 
     override fun onBehov(behov: Behov) {
@@ -44,17 +47,29 @@ class FulltNavnLøser(
                 ?: behov.forespoerselId.let { if (it.isNullOrEmpty()) null else "forespoerselId is $it" }
                 ?: " kan ikke finne uuid/forespørselID"
             logger.info("Henter navn for $idtext")
-            val identitetsnummer = behov[Key.IDENTITETSNUMMER].asText()
+            val arbeidstakerID = behov[Key.IDENTITETSNUMMER].asText().orEmpty()
+            val arbeidsgiverID = behov[Key.ARBEIDSGIVER_ID].asText().orEmpty()
+            val identer = listOf(arbeidstakerID, arbeidsgiverID).filterNot { s -> s.isNullOrEmpty() }
             val requestTimer = requestLatency.startTimer()
             try {
-                val person = hentPerson(identitetsnummer)
+                val personer = hentPersoner(identer)
 
-                sikkerLogger.info("Fant navn: ${person.navn} og ${person.fødselsdato} for identitetsnummer: $identitetsnummer for $idtext")
-                logger.info("Fant navn for id: $idtext")
-                publishData(behov.createData(mapOf(DataFelt.ARBEIDSTAKER_INFORMASJON to person)))
+                logger.info("Mottok ${personer.size} navn fra pdl, ba om ${identer.size}")
+
+                val arbeidstakerInfo = personer.firstOrNull { it.ident == arbeidstakerID }.orDefault(PersonDato("", null, arbeidstakerID))
+                val arbeidsgiverInfo = personer.firstOrNull { it.ident == arbeidsgiverID }.orDefault(PersonDato("", null, arbeidsgiverID))
+
+                publishData(
+                    behov.createData(
+                        mapOf(
+                            DataFelt.ARBEIDSTAKER_INFORMASJON to arbeidstakerInfo,
+                            DataFelt.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo
+                        )
+                    )
+                )
             } catch (ex: Exception) {
                 logger.error("Klarte ikke hente navn for $idtext")
-                sikkerLogger.error("Det oppstod en feil ved henting av identitetsnummer: $identitetsnummer: ${ex.message} for $idtext", ex)
+                sikkerLogger.error("Det oppstod en feil ved henting av identitetsnummer: $arbeidstakerID: ${ex.message} for $idtext", ex)
                 publishFail(behov.createFail("Klarte ikke hente navn"))
             } finally {
                 requestTimer.observeDuration()
@@ -64,13 +79,16 @@ class FulltNavnLøser(
         }
     }
 
-    private fun hentPerson(identitetsnummer: String): PersonDato =
+    private fun hentPersoner(identitetsnummere: List<String>): List<PersonDato> =
         runBlocking {
-            pdlClient.fullPerson(identitetsnummer).let {
+            pdlClient.personBolk(identitetsnummere)
+        }
+            .orEmpty()
+            .map {
                 PersonDato(
-                    navn = it?.navn?.fulltNavn() ?: "Ukjent",
-                    fødselsdato = it?.foedselsdato
+                    navn = it.navn.fulltNavn(),
+                    fødselsdato = it.foedselsdato,
+                    ident = it.ident.orEmpty()
                 )
             }
-        }
 }

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.application
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.post
@@ -12,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.hentIdentitetsnummerFraLoginToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
@@ -54,8 +56,8 @@ fun RouteExtra.innsendingRoute() {
                     )
 
                     request.validate()
-
-                    val clientId = producer.publish(forespoerselId, request)
+                    val innloggerFnr = hentIdentitetsnummerFraLoginToken(application.environment.config, call.request)
+                    val clientId = producer.publish(forespoerselId, request, innloggerFnr)
                     logger.info("Publiserte til rapid med forespørselId: $forespoerselId og clientId=$clientId")
 
                     val resultat = redis.hent(clientId)

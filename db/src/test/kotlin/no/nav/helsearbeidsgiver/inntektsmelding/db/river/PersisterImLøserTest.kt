@@ -72,7 +72,7 @@ class PersisterImLøserTest {
                     Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                     Key.BEHOV.str to BehovType.PERSISTER_IM.name,
                     DataFelt.VIRKSOMHET.str to "Test Virksomhet",
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test persjon", null),
+                    DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
                     Key.UUID.str to "uuid",
                     DataFelt.INNTEKTSMELDING.str to request
                 )

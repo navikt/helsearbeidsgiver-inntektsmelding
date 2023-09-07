@@ -110,7 +110,7 @@ class DataKanalTest {
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
                     Key.UUID.str to uuid,
                     Key.DATA.str to "",
-                    "TESTFELT1" to customObjectMapper().valueToTree(PersonDato("X", null))
+                    "TESTFELT1" to customObjectMapper().valueToTree(PersonDato("X", null, ""))
                 )
             ).toJson()
         )

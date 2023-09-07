@@ -38,6 +38,7 @@ import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.mai
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -93,13 +94,23 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         messages.reset()
         clearAllMocks()
 
-        coEvery { pdlKlient.fullPerson(any()) } returns FullPerson(
-            navn = PersonNavn(
-                fornavn = "Bjarne",
-                mellomnavn = null,
-                etternavn = "Betjent"
+        coEvery { pdlKlient.personBolk(any()) } returns listOf(
+            FullPerson(
+                navn = PersonNavn(
+                    fornavn = "Bjarne",
+                    mellomnavn = null,
+                    etternavn = "Betjent"
+                ),
+                foedselsdato = 28.mai
             ),
-            foedselsdato = 28.mai
+            FullPerson(
+                navn = PersonNavn(
+                    fornavn = "Max",
+                    mellomnavn = null,
+                    etternavn = "Mekker"
+                ),
+                foedselsdato = 6.august
+            )
         )
     }
 

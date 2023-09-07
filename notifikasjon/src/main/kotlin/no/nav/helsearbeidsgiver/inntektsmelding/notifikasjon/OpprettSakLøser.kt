@@ -15,6 +15,8 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+private val birthDateFormatter = DateTimeFormatter.ofPattern("ddMMyy")
+
 class OpprettSakLøser(
     rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
@@ -35,16 +37,16 @@ class OpprettSakLøser(
         forespoerselId: String,
         orgnr: String,
         navn: String,
-        fødselsdato: LocalDate?
+        foedselsdato: LocalDate?
     ): String {
-        val datoString = fødselsdato?.format(DateTimeFormatter.ofPattern("ddMMyy")) ?: "Ukjent"
+        val formattertFoedselsdato = foedselsdato?.format(birthDateFormatter) ?: "Ukjent"
         val requestTimer = Metrics.requestLatency.labels("opprettSak").startTimer()
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNySak(
                 grupperingsid = forespoerselId,
                 merkelapp = "Inntektsmelding",
                 virksomhetsnummer = orgnr,
-                tittel = "Inntektsmelding for $navn: f. $datoString",
+                tittel = "Inntektsmelding for $navn: f. $formattertFoedselsdato",
                 lenke = "$linkUrl/im-dialog/$forespoerselId",
                 statusTekst = "NAV trenger inntektsmelding",
                 harddeleteOm = "P5M"
@@ -55,7 +57,7 @@ class OpprettSakLøser(
     }
 
     private fun hentNavn(behov: Behov): PersonDato {
-        if (behov[DataFelt.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null)
+        if (behov[DataFelt.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null, "")
         return customObjectMapper().treeToValue(behov[DataFelt.ARBEIDSTAKER_INFORMASJON], PersonDato::class.java)
     }
 
@@ -63,9 +65,12 @@ class OpprettSakLøser(
         logger.info("Skal opprette sak for forespørselId: ${behov.forespoerselId}")
         val orgnr = behov[DataFelt.ORGNRUNDERENHET].asText()
         val personDato = hentNavn(behov)
-        val navn = personDato.navn
-        val fødselsdato = personDato.fødselsdato
-        val sakId = opprettSak(behov.forespoerselId!!, orgnr, navn, fødselsdato)
+        val sakId = opprettSak(
+            forespoerselId = behov.forespoerselId!!,
+            orgnr = orgnr,
+            navn = personDato.navn,
+            foedselsdato = personDato.fødselsdato
+        )
         logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
         behov.createData(mapOf(DataFelt.SAK_ID to sakId)).also { publishData(it) }
         sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=${behov.forespoerselId}")

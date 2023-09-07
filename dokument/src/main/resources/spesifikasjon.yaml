@@ -34,6 +34,10 @@ components:
           type: string
         fulltNavn:
           type: string
+        telefonnummer:
+          type: string
+        innsenderNavn:
+          type: string
         virksomhetNavn:
           type: string
         behandlingsdager:
@@ -131,6 +135,8 @@ components:
           $ref: '#/components/schemas/ÅrsakInnsending'
         bekreftOpplysninger:
           type: boolean
+        telefonnummer:
+          type: string
         forespurtData:
           type: array
           items:
@@ -320,7 +326,9 @@ components:
           pattern: yyyy-MM-dd'T'HH:mm:ss.SSSxx
         årsakInnsending:
           $ref: '#/components/schemas/ÅrsakInnsending'
-        identitetsnummerInnsender:
+        innsenderNavn:
+          type: string
+        telefonnummer:
           type: string
         forespurtData:
           type: array

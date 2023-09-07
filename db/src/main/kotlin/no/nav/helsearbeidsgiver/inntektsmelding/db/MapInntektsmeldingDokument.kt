@@ -4,12 +4,17 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingR
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import java.time.ZonedDateTime
 
-fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, arbeidsgiver: String): InntektsmeldingDokument =
+fun mapInntektsmeldingDokument(
+    request: InnsendingRequest,
+    fulltnavnArbeidstaker: String,
+    arbeidsgiver: String,
+    innsenderNavn: String
+): InntektsmeldingDokument =
     try {
         InntektsmeldingDokument(
             orgnrUnderenhet = request.orgnrUnderenhet,
             identitetsnummer = request.identitetsnummer,
-            fulltNavn = fulltNavn,
+            fulltNavn = fulltnavnArbeidstaker,
             virksomhetNavn = arbeidsgiver,
             behandlingsdager = request.behandlingsdager,
             egenmeldingsperioder = request.egenmeldingsperioder,
@@ -23,8 +28,9 @@ fun mapInntektsmeldingDokument(request: InnsendingRequest, fulltNavn: String, ar
             naturalytelser = request.naturalytelser,
             tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
             årsakInnsending = request.årsakInnsending,
-            identitetsnummerInnsender = "", // TODO Mangler innsenders fødselsnr
-            forespurtData = request.forespurtData
+            innsenderNavn = innsenderNavn,
+            forespurtData = request.forespurtData,
+            telefonnummer = request.telefonnummer
         )
     } catch (ex: Exception) {
         throw UgyldigFormatException(ex)

@@ -45,4 +45,16 @@ class UtilsTest {
         assertEquals("Albert Fredriksens Saft- og", liste.first())
         assertEquals("Syltetøykokeri, avdeling Fredrikstad", liste.get(1))
     }
+
+    @Test
+    fun `formatter telefonnummer`() {
+        val tlf1 = "12345678"
+        assertEquals(tlf1, tlf1.formaterTelefonnummer())
+        val countryCode = "0047"
+        val tlf2 = countryCode + tlf1
+        assertEquals("$countryCode $tlf1", tlf2.formaterTelefonnummer())
+        val prefix = "+47"
+        val tlf3 = prefix + tlf1
+        assertEquals("$prefix $tlf1", tlf3.formaterTelefonnummer())
+    }
 }

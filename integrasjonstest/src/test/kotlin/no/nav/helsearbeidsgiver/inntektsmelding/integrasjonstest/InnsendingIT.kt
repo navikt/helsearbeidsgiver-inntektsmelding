@@ -4,15 +4,16 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsendingRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
@@ -31,6 +32,8 @@ class InnsendingIT : EndToEndTest() {
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.innsendingRequest.orgnrUnderenhet)
+        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
+        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -57,7 +60,7 @@ class InnsendingIT : EndToEndTest() {
         messages.filter(EventName.INSENDING_STARTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
             .first()
-            .fromJsonMapOnlyDatafelter()
+            .toMap()
             .also {
                 // Ble lagret i databasen
                 it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
@@ -65,7 +68,7 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
             .first()
-            .fromJsonMapOnlyKeys()
+            .toMap()
             .also {
                 // EVENT: Mottatt inntektsmelding
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
@@ -74,7 +77,7 @@ class InnsendingIT : EndToEndTest() {
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
             .filter(BehovType.JOURNALFOER)
             .first()
-            .fromJsonMapOnlyKeys()
+            .toMap()
             .also {
                 // Journalført i dokarkiv
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
@@ -83,7 +86,7 @@ class InnsendingIT : EndToEndTest() {
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .first()
-            .fromJsonMapOnlyKeys()
+            .toMap()
             .also {
                 // Journalført i dokarkiv
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
@@ -92,45 +95,77 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .first()
-            .also { msg ->
-                msg.fromJsonMapOnlyKeys().also {
-                    it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
-                    it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                }
-
-                msg.fromJsonMapOnlyDatafelter().also {
-                    it shouldContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
-                }
+            .toMap()
+            .also {
+                it shouldContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
+                it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
+                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
         messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .filter(BehovType.DISTRIBUER_IM)
             .first()
-            .also { msg ->
+            .toMap()
+            .also {
                 // Be om å distribuere
-                msg.fromJsonMapOnlyKeys().also {
-                    it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
-                }
-
-                msg.fromJsonMapOnlyDatafelter().also {
-                    it shouldContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
-                }
+                it shouldContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
+                it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
             }
 
         messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .first()
-            .also { msg ->
+            .toMap()
+            .also {
                 // Verifiser at inntektsmelding er distribuert på ekstern kafka
-                val journalpostId = msg.fromJsonMapOnlyKeys()[Key.JOURNALPOST_ID]?.fromJsonToString()
+                it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
 
-                journalpostId shouldBe Mock.JOURNALPOST_ID
+                it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+            }
 
-                msg.fromJsonMapOnlyDatafelter()[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+        bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak()
+    }
+
+    private fun bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak() {
+        messages.filter(EventName.FORESPOERSEL_BESVART)
+            .filter(BehovType.NOTIFIKASJON_HENT_ID)
+            .first()
+            .toMap()
+            .also {
+                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
+            }
+
+        messages.filter(EventName.FORESPOERSEL_BESVART)
+            .filter(DataFelt.SAK_ID, utenDataKey = true)
+            .filter(DataFelt.OPPGAVE_ID, utenDataKey = true)
+            .first()
+            .toMap()
+            .also {
+                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
+                DataFelt.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+                DataFelt.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
+            }
+
+        messages.filter(EventName.SAK_FERDIGSTILT)
+            .first()
+            .toMap()
+            .also {
+                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
+                DataFelt.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+            }
+
+        messages.filter(EventName.OPPGAVE_FERDIGSTILT)
+            .first()
+            .toMap()
+            .also {
+                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
+                DataFelt.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
     }
 
     private object Mock {
         const val JOURNALPOST_ID = "journalpost-id-skoleboller"
+        const val SAK_ID = "forundret-lysekrone"
+        const val OPPGAVE_ID = "neglisjert-sommer"
 
         val forespoerselId: UUID = UUID.randomUUID()
         val innsendingRequest = mockInnsendingRequest()

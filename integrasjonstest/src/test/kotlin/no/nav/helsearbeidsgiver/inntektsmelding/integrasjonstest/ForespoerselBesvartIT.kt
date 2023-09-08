@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
@@ -38,7 +39,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldinigId.toJson()
             )
 
-            waitForMessages(20000)
+            Thread.sleep(15000)
         }
 
         messages.filter(EventName.FORESPOERSEL_BESVART)
@@ -51,12 +52,12 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 Key.TRANSACTION_ORIGIN.les(UuidSerializer, it) shouldBe Mock.transaksjonId
             }
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages.filter(EventName.AVSENDER_REQUESTED)
             .filter(BehovType.HENT_AVSENDER_SYSTEM)
             .first()
-            .fromJsonMapOnlyKeys()
+            .toMap()
             .also {
-                DataFelt.SPINN_INNTEKTSMELDING_ID shouldBe Mock.spinnInntektsmeldinigId
+                DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldinigId
             }
 
         messages.filter(EventName.FORESPOERSEL_BESVART)

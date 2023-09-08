@@ -11,11 +11,14 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.*
 
 class LagreAvsenderSystemLøser(
     rapidsConnection: RapidsConnection,
@@ -35,25 +38,35 @@ class LagreAvsenderSystemLøser(
     override fun onBehov(behov: Behov) {
         val transaksjonsId = behov[Key.UUID].asText()
         val forespoerselId = behov[Key.FORESPOERSEL_ID].asText()
-        logger.info("LagreAvsenderSystemLøser behov ${BehovType.LAGRE_AVSENDER_SYSTEM.name} med transaksjonsId $transaksjonsId")
-        sikkerLogger.info("LagreAvsenderSystemLøser fikk pakke:\n${behov.toJsonMessage()}")
-        val avsenderSystemData = behov[DataFelt.AVSENDER_SYSTEM_DATA].toString().fromJson(AvsenderSystemData.serializer())
-        if (avsenderSystemData == null) {
-            logger.error("LagreAvsenderSystemLøser fant ingen AvsenderSystemData for transaksjonsId $transaksjonsId")
-            sikkerLogger.error("LagreAvsenderSystemLøser fant ingen AvsenderSystemData for transaksjonsId $transaksjonsId")
-            publishFail(behov.createFail("Klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId. Mangler datafelt"))
-        } else {
-            try {
-                repository.lagreAvsenderSystemData(forespoerselId, avsenderSystemData)
-                logger.info(
-                    "LagreAvsenderSystemLøser lagret AvsenderSystemData med arkiv referanse ${avsenderSystemData.arkivreferanse}" +
-                        " i database for forespoerselId $forespoerselId"
-                )
-                publishEvent(Event.create(EventName.AVSENDER_SYSTEM_LAGRET, forespoerselId, mapOf(Key.UUID to transaksjonsId)))
-            } catch (ex: Exception) {
-                publishFail(behov.createFail("Klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId"))
-                logger.error("LagreAvsenderSystemLøser klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId")
-                sikkerLogger.error("LagreAvsenderSystemLøser klarte ikke lagre AvsenderSystemData $AvsenderSystemData for transaksjonsId $transaksjonsId", ex)
+        MdcUtils.withLogFields(
+            Log.klasse(this),
+            Log.event(behov.event),
+            Log.transaksjonId(UUID.fromString(transaksjonsId)),
+            Log.behov(behov.behov)
+        ) {
+            logger.info("Mottok behov ${BehovType.LAGRE_AVSENDER_SYSTEM.name}")
+            sikkerLogger.info("Mottok behov:\n${behov.toJsonMessage()}")
+            val avsenderSystemData = behov[DataFelt.AVSENDER_SYSTEM_DATA].toString().fromJson(AvsenderSystemData.serializer())
+            if (avsenderSystemData == null) {
+                logger.error("Fant ingen AvsenderSystemData")
+                sikkerLogger.error("Fant ingen AvsenderSystemData")
+                publishFail(behov.createFail("Klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId. Mangler datafelt"))
+            } else {
+                try {
+                    repository.lagreAvsenderSystemData(forespoerselId, avsenderSystemData)
+                    logger.info(
+                        "Lagret AvsenderSystemData med arkiv referanse ${avsenderSystemData.arkivreferanse}" +
+                            " i database for forespoerselId $forespoerselId"
+                    )
+                    publishEvent(Event.create(EventName.AVSENDER_SYSTEM_LAGRET, forespoerselId, mapOf(Key.UUID to transaksjonsId)))
+                } catch (ex: Exception) {
+                    publishFail(behov.createFail("Klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId"))
+                    logger.error("Klarte ikke lagre AvsenderSystemData")
+                    sikkerLogger.error(
+                        "Klarte ikke lagre AvsenderSystemData $AvsenderSystemData",
+                        ex
+                    )
+                }
             }
         }
     }

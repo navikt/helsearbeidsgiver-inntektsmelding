@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -34,6 +35,9 @@ class ForespoerselBesvartFraSimbaLoeser(
                 it.requireKeys(
                     Key.FORESPOERSEL_ID,
                     Key.TRANSACTION_ORIGIN
+                )
+                it.rejectKeys(
+                    Key.BEHOV
                 )
             }
         }.register(this)

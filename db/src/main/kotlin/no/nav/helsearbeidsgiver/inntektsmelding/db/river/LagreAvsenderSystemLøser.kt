@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -48,7 +49,7 @@ class LagreAvsenderSystemLøser(
                     "LagreAvsenderSystemLøser lagret AvsenderSystemData med arkiv referanse ${avsenderSystemData.arkivreferanse}" +
                         " i database for forespoerselId $forespoerselId"
                 )
-                publishEvent(Event.create(EventName.AVSENDER_SYSTEM_LAGRET, forespoerselId))
+                publishEvent(Event.create(EventName.AVSENDER_SYSTEM_LAGRET, forespoerselId, mapOf(Key.UUID to transaksjonsId)))
             } catch (ex: Exception) {
                 publishFail(behov.createFail("Klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId"))
                 logger.error("LagreAvsenderSystemLøser klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId")

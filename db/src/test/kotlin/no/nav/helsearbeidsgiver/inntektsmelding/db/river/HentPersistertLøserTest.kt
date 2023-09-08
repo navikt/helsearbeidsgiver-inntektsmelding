@@ -40,8 +40,8 @@ class HentPersistertLøserTest {
     @Test
     fun `skal hente ut InntektsmeldingDokument`() {
         coEvery {
-            repository.hentNyeste(any())
-        } returns INNTEKTSMELDING_DOKUMENT
+            repository.hentNyesteEntitet(any())
+        } returns Pair(INNTEKTSMELDING_DOKUMENT, null)
         sendMelding(
             Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
@@ -62,7 +62,7 @@ class HentPersistertLøserTest {
     @Test
     fun `skal håndtere feil`() {
         coEvery {
-            repository.hentNyeste(any())
+            repository.hentNyesteEntitet(any())
         } throws Exception()
         val fail = sendMeldingMedFeil(
             Key.BEHOV to BEHOV.toJson(),
@@ -77,7 +77,7 @@ class HentPersistertLøserTest {
     @Test
     fun `Ingen feilmelding dersom im ikke eksisterer`() {
         coEvery {
-            repository.hentNyeste(any())
+            repository.hentNyesteEntitet(any())
         } returns null
         sendMelding(
             Key.BEHOV to BEHOV.toJson(),
@@ -87,7 +87,7 @@ class HentPersistertLøserTest {
         )
         val message = hentMelding(0)
         assertTrue(message.contains(Key.DATA.str))
-        assertEquals(message.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText(), "{}")
+        assertEquals("{}", message.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText())
     }
 
     private fun sendMelding(vararg melding: Pair<Key, JsonElement>) {

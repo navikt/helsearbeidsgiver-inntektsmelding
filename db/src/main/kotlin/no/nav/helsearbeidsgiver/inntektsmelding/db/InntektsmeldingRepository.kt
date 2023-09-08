@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.innsendt
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -43,7 +42,7 @@ class InntektsmeldingRepository(private val db: Database) {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet.run {
-                select { (forespoerselId eq forespørselId) }.orderBy(innsendt, SortOrder.DESC)
+                select { (forespoerselId eq forespørselId) and dokument.isNotNull() }.orderBy(innsendt, SortOrder.DESC)
             }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.dokument)
         }.also {
             requestTimer.observeDuration()
@@ -53,12 +52,12 @@ class InntektsmeldingRepository(private val db: Database) {
     fun hentNyesteEntitet(forespørselId: String): Pair<InntektsmeldingDokument?, AvsenderSystemData?>? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
-            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.avsenderSystemData, ForespoerselEntitet.forespoerselId).run {
-                select { (forespoerselId eq forespørselId) and (InntektsmeldingEntitet.avsenderSystemData.isNotNull()) }.orderBy(innsendt, SortOrder.DESC)
+            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksterntSystemData, ForespoerselEntitet.forespoerselId).run {
+                select { (forespoerselId eq forespørselId) }.orderBy(innsendt, SortOrder.DESC)
             }.limit(1).map {
                 Pair(
                     it[InntektsmeldingEntitet.dokument],
-                    it[InntektsmeldingEntitet.avsenderSystemData]
+                    it[InntektsmeldingEntitet.eksterntSystemData]
                 )
             }.firstOrNull()
         }
@@ -68,8 +67,8 @@ class InntektsmeldingRepository(private val db: Database) {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet.run {
-                select { (forespoerselId eq forespørselId) and (avsenderSystemData.isNotNull()) }.orderBy(innsendt, SortOrder.DESC)
-            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.avsenderSystemData)
+                select { (forespoerselId eq forespørselId) and (eksterntSystemData.isNotNull()) }.orderBy(innsendt, SortOrder.DESC)
+            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.eksterntSystemData)
         }.also {
             requestTimer.observeDuration()
         }
@@ -86,12 +85,12 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun lagreAvsenderSystemData(forespørselId: String, avsenderSystemInfo: AvsenderSystemData) {
+    fun lagreAvsenderSystemData(forespørselId: String, eksterntSystem: AvsenderSystemData) {
         transaction(db) {
             InntektsmeldingEntitet.run {
                 insert {
                     it[forespoerselId] = forespørselId
-                    it[avsenderSystemData] = avsenderSystemInfo
+                    it[eksterntSystemData] = eksterntSystem
                     it[innsendt] = LocalDateTime.now()
                 }
             }

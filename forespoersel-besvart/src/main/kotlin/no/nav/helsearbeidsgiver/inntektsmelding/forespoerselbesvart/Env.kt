@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 
 import no.nav.helsearbeidsgiver.felles.fromEnv
+import no.nav.helsearbeidsgiver.felles.getEnvVar
 import no.nav.helsearbeidsgiver.felles.oauth2.AzureOAuth2Environment
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 
@@ -23,4 +24,9 @@ object Env {
             azureAppClientSecret = "AZURE_APP_CLIENT_SECRET".fromEnv(),
             azureAppJwk = "AZURE_APP_JWK".fromEnv()
         )
+
+    val redisUrl = getEnvVar(
+        "REDIS_URL",
+        "helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local"
+    )
 }

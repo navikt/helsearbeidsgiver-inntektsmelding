@@ -22,7 +22,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createAvsenderSystemLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createEksterntSystemService
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvart
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -81,6 +84,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
+    val spinnKlient = mockk<SpinnKlient>(relaxed = true)
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -110,6 +114,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createJoark(dokarkivClient)
             createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)
             createPdl(mockk(relaxed = true))
+            createAvsenderSystemLoeser(spinnKlient)
+            createEksterntSystemService(redisStore)
         }
             .register(this)
 

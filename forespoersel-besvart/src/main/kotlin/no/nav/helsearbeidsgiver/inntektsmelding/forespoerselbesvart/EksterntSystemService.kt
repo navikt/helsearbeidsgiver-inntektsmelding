@@ -3,15 +3,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
-import no.nav.helsearbeidsgiver.felles.FeilReport
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangData
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -25,14 +21,14 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
-import java.util.UUID
+import java.util.*
 
 class EksterntSystemService(
     private val rapid: RapidsConnection,
@@ -84,55 +80,21 @@ class EksterntSystemService(
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
-            when (transaction) {
-                Transaction.NEW -> {
-                    rapid.publish(
-                        Key.EVENT_NAME to event.toJson(),
-                        Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.toJson(),
-                        DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
-                        DataFelt.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
-                        Key.UUID to transaksjonId.toJson()
-                    )
-                        .also {
-                            MdcUtils.withLogFields(
-                                Log.behov(BehovType.HENT_AVSENDER_SYSTEM)
-                            ) {
-                                sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                            }
+            if (transaction == Transaction.NEW) {
+                rapid.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.toJson(),
+                    DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    DataFelt.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
+                    Key.UUID to transaksjonId.toJson()
+                )
+                    .also {
+                        MdcUtils.withLogFields(
+                            Log.behov(BehovType.HENT_AVSENDER_SYSTEM)
+                        ) {
+                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                         }
-                }
-
-                Transaction.IN_PROGRESS -> {
-                    val avsenderSystemKey= RedisKey.of(transaksjonId.toString(), DataFelt.AVSENDER_SYSTEM_DATA)
-
-                    if (isDataCollected(avsenderSystemKey)) {
-                        val avsenderSystemData = avsenderSystemKey.read()
-
-                        if (avsenderSystemData == null) {
-                            publishFail(message)
-                            sikkerLogger.error("kunne ikke lese avsenderSystemData fra Redis")
-                            return
-                        }
-                        rapid.publish(
-                            Key.EVENT_NAME to event.toJson(),
-                            Key.BEHOV to BehovType.LAGRE_AVSENDER_SYSTEM.toJson(),
-                            DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystemData.toJson(),
-                            Key.UUID to transaksjonId.toJson()
-                        )
-                            .also {
-                                MdcUtils.withLogFields(
-                                    Log.behov(BehovType.LAGRE_AVSENDER_SYSTEM)
-                                ) {
-                                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                                }
-                            }
-                    } else {
-                        sikkerLogger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")
                     }
-                }
-                else -> {
-                    sikkerLogger.error("Støtte på forutsett transaksjonstype: $transaction")
-                }
             }
         }
     }
@@ -143,16 +105,40 @@ class EksterntSystemService(
 
     override fun finalize(message: JsonMessage) {
         val json = message.toJsonMap()
-
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
+        val avsenderSystem = message[DataFelt.AVSENDER_SYSTEM_DATA.str]
+        val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
+            .read()?.let(UUID::fromString)
 
+        if (avsenderSystem != null && forespoerselId != null) {
+            val avsenderSystemData: AvsenderSystemData = avsenderSystem.toString().fromJson(AvsenderSystemData.serializer())
+
+            if (avsenderSystemData.avsenderSystemNavn != "NAV_NO") {
+                val msg = JsonMessage.newMessage(
+                    mapOf(
+                        Key.EVENT_NAME.str to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.name,
+                        Key.BEHOV.str to BehovType.LAGRE_AVSENDER_SYSTEM.name,
+                        Key.UUID.str to randomUuid(),
+                        DataFelt.FORESPOERSEL_ID.str to forespoerselId,
+                        DataFelt.AVSENDER_SYSTEM_DATA.str to avsenderSystemData
+                    )
+                ).toJson()
+                // rapid.publish(Behov.create(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT, BehovType.LAGRE_AVSENDER_SYSTEM, forespoerselId.toString(), mapOf(DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystemData)).toJsonMessage().toString())
+                rapid.publish(msg)
+                /*rapid.publish(
+                    Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
+                    Key.BEHOV to BehovType.LAGRE_AVSENDER_SYSTEM.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystemData.toJson(AvsenderSystemData.serializer())
+                )*/
+            }
+        }
         val clientId = RedisKey.of(transaksjonId.toString(), event)
             .read()?.let(UUID::fromString)
         if (clientId == null) {
             sikkerLogger.error("Kunne ikke lese clientId for $transaksjonId fra Redis")
         }
-
-
 
         val logFields = loggFelterNotNull(transaksjonId, clientId)
 
@@ -172,55 +158,15 @@ class EksterntSystemService(
             .read()
             ?.let(UUID::fromString)
 
-        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding(""))
-            .read()
-
-        val feilResponse = TilgangData(
-            feil = feil?.fromJson(FeilReport.serializer())
-        )
-            .toJson(TilgangData.serializer())
         if (clientId == null) {
             sikkerLogger.error("$event forsøkt terminert, kunne ikke finne $transaksjonId i redis!")
         }
-        RedisKey.of(clientId.toString()).write(feilResponse)
 
         val logFields = loggFelterNotNull(transaksjonId, clientId)
         MdcUtils.withLogFields(
             *logFields
         ) {
             sikkerLogger.error("$event terminert.")
-        }
-    }
-
-    override fun onError(feil: Fail): Transaction {
-        val transaksjonId = feil.uuid ?: throw IllegalStateException("Feil mangler transaksjon-ID.")
-
-        val manglendeDatafelt = when (feil.behov) {
-            BehovType.HENT_AVSENDER_SYSTEM -> DataFelt.SPINN_INNTEKTSMELDING_ID
-            BehovType.LAGRE_AVSENDER_SYSTEM -> DataFelt.AVSENDER_SYSTEM_DATA
-            else -> null
-        }
-
-        return if (manglendeDatafelt != null) {
-            val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, manglendeDatafelt)
-
-            sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
-
-            val feilKey = RedisKey.of(transaksjonId, feilmelding)
-
-            val feilReport = feilKey.read()
-                ?.fromJson(FeilReport.serializer())
-                .orDefault(FeilReport())
-                .also {
-                    it.feil.add(feilmelding)
-                }
-                .toJson(FeilReport.serializer())
-
-            feilKey.write(feilReport)
-
-            Transaction.TERMINATE
-        } else {
-            Transaction.IN_PROGRESS
         }
     }
 

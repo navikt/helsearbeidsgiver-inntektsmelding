@@ -56,7 +56,7 @@ class KvitteringService(
         val transaksjonsId = message[Key.UUID.str].asText()
         val clientId = redisStore.get(RedisKey.of(transaksjonsId, event))
         val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
-        val dok2 = message[DataFelt.AVSENDER_SYSTEM_DATA.str].asText()
+        // val dok2 = message[DataFelt.AVSENDER_SYSTEM_DATA.str].asText()
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
         redisStore.set(clientId!!, dok)
     }

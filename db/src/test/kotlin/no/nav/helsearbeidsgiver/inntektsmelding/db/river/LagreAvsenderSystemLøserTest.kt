@@ -43,10 +43,11 @@ class LagreAvsenderSystemLøserTest {
         sendMelding(
             JsonMessage.newMessage(
                 mapOf(
-                    Key.EVENT_NAME.str to EventName.FORESPOERSEL_BESVART.name,
+                    Key.EVENT_NAME.str to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.name,
                     Key.BEHOV.str to BehovType.LAGRE_AVSENDER_SYSTEM.name,
                     Key.UUID.str to "uuid",
-                    DataFelt.AVSENDER_SYSTEM_DATA.str to avsenderSystem
+                    DataFelt.AVSENDER_SYSTEM_DATA.str to avsenderSystem,
+                    Key.FORESPOERSEL_ID.str to "uuid"
                 )
             )
         )

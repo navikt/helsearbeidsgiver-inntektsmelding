@@ -100,8 +100,9 @@ class ForespoerselBesvartLoeser(
             Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
         )
             .let { keys ->
-                if (spinnInntektsmeldingId == null) keys
-                else {
+                if (spinnInntektsmeldingId == null) {
+                    keys
+                } else {
                     arrayOf(*keys, DataFelt.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId)
                 }
             }

@@ -7,6 +7,8 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -21,6 +23,7 @@ fun main() {
         .create(System.getenv())
         .createForespoerselBesvart(priProducer)
         .createAvsenderSystemLoeser(createSpinnKlient())
+        .createEksterntSystemService(buildRedisStore())
         .start()
 
     logger.info("Bye bye, baby, bye bye!")
@@ -37,6 +40,16 @@ fun RapidsConnection.createAvsenderSystemLoeser(spinnKlient: SpinnKlient): Rapid
         logger.info("Starting ${AvsenderSystemLoeser::class.simpleName}...")
         AvsenderSystemLoeser(this, spinnKlient)
     }
+
+fun RapidsConnection.createEksterntSystemService(redisStore: IRedisStore): RapidsConnection =
+    apply {
+        logger.info("Starting ${AvsenderSystemLoeser::class.simpleName}...")
+        EksterntSystemService(this, redisStore)
+    }
+
+fun buildRedisStore(): IRedisStore {
+    return RedisStore(Env.redisUrl)
+}
 
 fun createSpinnKlient(): SpinnKlient {
     val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)

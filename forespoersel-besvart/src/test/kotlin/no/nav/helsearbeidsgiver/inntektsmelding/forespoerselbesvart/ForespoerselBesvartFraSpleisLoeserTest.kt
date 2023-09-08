@@ -9,13 +9,9 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -26,13 +22,12 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
-import java.util.UUID
 
-class ForespoerselBesvartLoeserTest : FunSpec({
+class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
     val testRapid = TestRapid()
     val mockPriProducer = mockk<PriProducer<JsonElement>>(relaxed = true)
 
-    ForespoerselBesvartLoeser(testRapid, mockPriProducer)
+    ForespoerselBesvartFraSpleisLoeser(testRapid, mockPriProducer)
 
     beforeEach {
         testRapid.reset()
@@ -78,24 +73,3 @@ class ForespoerselBesvartLoeserTest : FunSpec({
         }
     }
 })
-
-@Serializable
-private data class Published(
-    @SerialName("@event_name")
-    val eventName: EventName,
-    @SerialName("@behov")
-    val behov: BehovType,
-    val forespoerselId: UUID,
-    @SerialName("transaction_origin")
-    val transaksjonId: UUID
-) {
-    companion object {
-        fun mock(): Published =
-            Published(
-                eventName = EventName.FORESPOERSEL_BESVART,
-                behov = BehovType.NOTIFIKASJON_HENT_ID,
-                forespoerselId = UUID.randomUUID(),
-                transaksjonId = UUID.randomUUID()
-            )
-    }
-}

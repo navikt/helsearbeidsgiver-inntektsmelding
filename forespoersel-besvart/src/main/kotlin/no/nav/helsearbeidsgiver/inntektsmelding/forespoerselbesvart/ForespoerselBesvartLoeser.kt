@@ -4,24 +4,17 @@ import io.prometheus.client.Counter
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -30,46 +23,27 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 /** Tar imot notifikasjon om at en forespørsel om arbeidsgiveropplysninger er besvart. */
-class ForespoerselBesvartLoeser(
-    rapid: RapidsConnection,
-    private val priProducer: PriProducer<JsonElement>
-) : River.PacketListener {
+sealed class ForespoerselBesvartLoeser : River.PacketListener {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
-    private val forespoerselBesvartCounter = Counter.build()
-        .name("simba_forespoersel_besvart_total")
-        .help("Antall foresporsler besvart fra Spleis (pri-topic)")
-        .register()
 
-    init {
-        River(rapid).apply {
-            validate {
-                it.demandValues(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.name
-                )
-                it.requireKeys(
-                    Pri.Key.FORESPOERSEL_ID
-                )
-                it.interestedIn(
-                    Pri.Key.SPINN_INNTEKTSMELDING_ID
-                )
-            }
-        }.register(this)
-    }
+    abstract val forespoerselBesvartCounter: Counter
+
+    abstract fun Map<IKey, JsonElement>.lesMelding(): Melding
+
+    abstract fun haandterFeil(json: JsonElement)
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val json = packet.toJson().parseJson()
 
-        val transaksjonId = randomUuid()
+        sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
         MdcUtils.withLogFields(
-            Log.klasse(this),
-            Log.priNotis(Pri.NotisType.FORESPOERSEL_BESVART),
-            Log.transaksjonId(transaksjonId)
+            Log.klasse(this)
         ) {
             runCatching {
-                json.opprettEvent(transaksjonId, context)
+                opprettEvent(json, context)
             }
                 .onFailure { e ->
                     "Ukjent feil.".also {
@@ -77,29 +51,28 @@ class ForespoerselBesvartLoeser(
                         sikkerLogger.error(it, e)
                     }
 
-                    json.republiser()
+                    haandterFeil(json)
                 }
         }
     }
 
-    private fun JsonElement.opprettEvent(transaksjonId: UUID, context: MessageContext) {
-        val melding = fromJsonMapFiltered(Pri.Key.serializer())
+    private fun opprettEvent(json: JsonElement, context: MessageContext) {
+        val melding = json.toMap().lesMelding()
 
-        logger.info("Mottok melding på pri-topic om '${Pri.NotisType.FORESPOERSEL_BESVART}'.")
-        sikkerLogger.info("Mottok melding på pri-topic:\n${toPretty()}")
-
-        val forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
+        logger.info("Mottok melding om '${melding.event}'.")
 
         MdcUtils.withLogFields(
             Log.event(EventName.FORESPOERSEL_BESVART),
             Log.behov(BehovType.NOTIFIKASJON_HENT_ID),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(melding.forespoerselId),
+            Log.transaksjonId(melding.transaksjonId),
+            bestemLoggFelt(melding.event)
         ) {
             context.publish(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+                Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
+                Key.TRANSACTION_ORIGIN to melding.transaksjonId.toJson()
             )
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")
@@ -108,8 +81,21 @@ class ForespoerselBesvartLoeser(
                 }
         }
     }
+}
 
-    private fun JsonElement.republiser() {
-        priProducer.send(this)
+data class Melding(
+    val event: String,
+    val forespoerselId: UUID,
+    val transaksjonId: UUID
+)
+
+private fun bestemLoggFelt(event: String): Pair<String, String> {
+    val priNotis = Pri.NotisType.entries.firstOrNull { it.toString() == event }
+    val eventName = EventName.entries.firstOrNull { it.toString() == event }
+
+    return when {
+        priNotis != null -> Log.priNotis(priNotis)
+        eventName != null -> Log.event(eventName)
+        else -> Log.ukjentType(event)
     }
 }

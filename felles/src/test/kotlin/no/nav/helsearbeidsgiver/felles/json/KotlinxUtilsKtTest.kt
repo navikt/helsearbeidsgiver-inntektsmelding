@@ -65,7 +65,7 @@ class KotlinxUtilsKtTest : FunSpec({
             }
         """.removeJsonWhitespace()
 
-        val testSerializer = String.serializer().løsning()
+        val testSerializer = String.serializer().loesning()
 
         test("serialiserer korrekt") {
             loesning.toJsonStr(testSerializer) shouldBe loesningJson

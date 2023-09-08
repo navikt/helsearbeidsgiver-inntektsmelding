@@ -9,12 +9,11 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -31,7 +30,7 @@ import java.util.UUID
 class TrengerForespoerselLoeser(
     rapid: RapidsConnection,
     private val priProducer: PriProducer<TrengerForespoersel>
-) : Løser(rapid) {
+) : Loeser(rapid) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()

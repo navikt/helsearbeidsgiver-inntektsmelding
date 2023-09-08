@@ -9,8 +9,8 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.løsning
-import no.nav.helsearbeidsgiver.felles.loeser.Løser
+import no.nav.helsearbeidsgiver.felles.json.loesning
+import no.nav.helsearbeidsgiver.felles.loeser.Loeser
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -20,30 +20,30 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.test.mock.mockObject
 import java.util.UUID
 
-abstract class LøserTest {
+abstract class LoeserTest {
     val testRapid = TestRapid()
 
-    fun <T : Any> withTestRapid(initLøser: () -> Løser<T>): Løser<T> =
+    fun <T : Any> withTestRapid(initLoeser: () -> Loeser<T>): Loeser<T> =
         mockObject(RapidApplication) {
             every { RapidApplication.create(any()) } returns testRapid
 
-            initLøser()
+            initLoeser()
         }
 
-    data class LøserAnswer<out T : Any>(
+    data class LoeserAnswer<out T : Any>(
         val behovType: BehovType,
         val initiateId: UUID,
-        val løsning: Løsning<T>
+        val loesning: Løsning<T>
     ) {
         companion object {
-            fun <T : Any> JsonElement.toLøserAnswer(tSerializer: KSerializer<T>): LøserAnswer<T> =
+            fun <T : Any> JsonElement.toLøserAnswer(tSerializer: KSerializer<T>): LoeserAnswer<T> =
                 fromJsonMapOnlyKeys()
                     .let {
                         val behov = behov(it)
-                        LøserAnswer(
+                        LoeserAnswer(
                             behovType = behov,
                             initiateId = initiateId(it),
-                            løsning = løsning(it, behov, tSerializer)
+                            loesning = loesning(it, behov, tSerializer)
                         )
                     }
 
@@ -59,7 +59,7 @@ abstract class LøserTest {
                     .shouldNotBeNull()
                     .fromJson(UuidSerializer)
 
-            private fun <T : Any> løsning(
+            private fun <T : Any> loesning(
                 json: Map<Key, JsonElement>,
                 behovType: BehovType,
                 tSerializer: KSerializer<T>
@@ -69,7 +69,7 @@ abstract class LøserTest {
                     .fromJsonMap(BehovType.serializer())
                     .get(behovType)
                     .shouldNotBeNull()
-                    .fromJson(tSerializer.løsning())
+                    .fromJson(tSerializer.loesning())
         }
     }
 }

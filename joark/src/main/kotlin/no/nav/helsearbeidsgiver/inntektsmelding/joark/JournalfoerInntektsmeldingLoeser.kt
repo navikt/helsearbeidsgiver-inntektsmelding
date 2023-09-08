@@ -12,10 +12,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -26,7 +25,7 @@ import java.time.LocalDateTime
 class JournalfoerInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
     private val dokarkivClient: DokArkivClient
-) : Løser(rapidsConnection) {
+) : Loeser(rapidsConnection) {
 
     private val JOURNALFOER_BEHOV = BehovType.JOURNALFOER
     private val logger = logger()

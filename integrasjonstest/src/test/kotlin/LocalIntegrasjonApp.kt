@@ -27,6 +27,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
+import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -42,16 +43,16 @@ fun main() {
     val env = LocalApp().setupEnvironment("im-helsebro", 8083)
 
     val rapid = RapidApplication.create(env)
-    // Dummyløser lar deg teste flyten, så du slipper å mocke hvert enkelt endepunkt
-    DummyLøser(rapid, BehovType.HENT_TRENGER_IM)
+    // DummyLoeser lar deg teste flyten, så du slipper å mocke hvert enkelt endepunkt
+    DummyLoeser(rapid, BehovType.HENT_TRENGER_IM)
     // enten::
-//    DummyLøser(rapid, BehovType.PREUTFYLL, listOf(BehovType.FULLT_NAVN))
+//    DummyLoeser(rapid, BehovType.PREUTFYLL, listOf(BehovType.FULLT_NAVN))
     // eller: start opp faktisk løser med LocalPreutfyltApp og lag dummy av resten:
     // HentPreutfyltLøser(rapid)
-//    DummyLøser(rapid, BehovType.INNTEKT)
-//    DummyLøser(rapid, BehovType.ARBEIDSFORHOLD)
-//    DummyLøser(rapid, BehovType.VIRKSOMHET)
-    DummyLøser(rapid, BehovType.FULLT_NAVN)
+//    DummyLoeser(rapid, BehovType.INNTEKT)
+//    DummyLoeser(rapid, BehovType.ARBEIDSFORHOLD)
+//    DummyLoeser(rapid, BehovType.VIRKSOMHET)
+    DummyLoeser(rapid, BehovType.FULLT_NAVN)
     // Hvis ønskelig kan man kjøre opp "ekte" løsere med eller uten mocking parallellt, sammen med DummyLøser:
     val priProducer = mockk<PriProducer<TrengerForespoersel>>()
     coEvery { priProducer.send(any()) } returns true
@@ -60,13 +61,13 @@ fun main() {
     rapid.start()
 }
 
-class DummyLøser(
+class DummyLoeser(
     private val rapid: RapidsConnection,
     private val behov: BehovType
 ) : River.PacketListener {
 
     init {
-        logger.info("Starter dummyløser for Behov $behov")
+        logger.info("Starter ${simpleName()} for Behov $behov")
         River(rapid).apply {
             validate { msg ->
                 msg.demandValues(Key.BEHOV to behov.name)

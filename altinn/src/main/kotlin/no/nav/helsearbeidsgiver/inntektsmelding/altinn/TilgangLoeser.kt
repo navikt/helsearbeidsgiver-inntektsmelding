@@ -10,23 +10,18 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import no.nav.helsearbeidsgiver.utils.log.logger
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.UUID
 
 class TilgangLoeser(
     rapidsConnection: RapidsConnection,
     private val altinnClient: AltinnClient
-) : Løser(rapidsConnection) {
+) : Loeser(rapidsConnection) {
 
-    private val logger = logger()
-    private val sikkerLogger = sikkerLogger()
     private val requestLatency = Summary.build()
         .name("simba_altinn_tilgangskontroll_latency_seconds")
         .help("altinn tilgangskontroll latency in seconds")

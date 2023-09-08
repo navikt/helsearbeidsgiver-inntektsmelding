@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Orgnr
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -27,7 +27,6 @@ import no.nav.helsearbeidsgiver.felles.utils.toYearMonth
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -38,7 +37,7 @@ import java.util.UUID
 class InntektLoeser(
     private val rapid: RapidsConnection,
     private val inntektKlient: InntektKlient
-) : Løser(rapid) {
+) : Loeser(rapid) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
     private val requestLatency = Summary.build()

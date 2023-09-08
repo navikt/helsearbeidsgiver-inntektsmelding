@@ -9,9 +9,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
 
@@ -44,7 +43,7 @@ class OpprettOppgaveLøser(
     rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val linkUrl: String
-) : Løser(rapidsConnection) {
+) : Loeser(rapidsConnection) {
 
     private val EVENT = EventName.FORESPØRSEL_LAGRET
 

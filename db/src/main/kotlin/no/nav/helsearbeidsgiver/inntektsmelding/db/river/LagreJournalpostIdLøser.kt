@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 class LagreJournalpostIdLøser(
     rapidsConnection: RapidsConnection,
     private val repository: InntektsmeldingRepository
-) : Løser(rapidsConnection) {
+) : Loeser(rapidsConnection) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()

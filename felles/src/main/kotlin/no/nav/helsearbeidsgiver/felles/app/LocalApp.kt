@@ -8,7 +8,7 @@ open class LocalApp {
             "KAFKA_CONSUMER_GROUP_ID" to memberId,
             "KAFKA_RAPID_TOPIC" to "helsearbeidsgiver.rapid",
             "IDPORTEN_AUDIENCE" to "aud-localhost",
-            "IDPORTEN_WELL_KNOWN_URL" to "https://fakedings.dev-gcp.nais.io/default/.well-known/openid-configuration",
+            "IDPORTEN_WELL_KNOWN_URL" to "https://fakedings.intern.dev.nav.no/default/.well-known/openid-configuration",
             "NAIS_APP_NAME" to "nimrod",
             "REDIS_URL" to "redis://localhost:6379/0",
             "REDIS_HOST" to "localhost",

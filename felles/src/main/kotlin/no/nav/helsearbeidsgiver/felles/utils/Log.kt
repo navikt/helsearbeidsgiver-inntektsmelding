@@ -23,4 +23,6 @@ object Log {
     fun sakId(value: String) = "sak_id" to value
 
     fun oppgaveId(value: String) = "oppgave_id" to value
+
+    fun ukjentType(value: String) = "ukjent_type" to value
 }

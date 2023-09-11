@@ -32,7 +32,7 @@ class MockRedisStore : IRedisStore {
     }
 
     override fun exist(vararg keys: String): Long {
-        TODO("Not yet implemented")
+        return keys.map { store.containsKey(it) }.toTypedArray().count { it }.toLong()
     }
 
     override fun exist(vararg keys: RedisKey): Long {

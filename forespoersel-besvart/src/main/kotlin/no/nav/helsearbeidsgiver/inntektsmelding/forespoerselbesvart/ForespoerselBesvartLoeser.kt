@@ -9,7 +9,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -29,7 +28,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.UUID
+import java.util.*
 
 /** Tar imot notifikasjon om at en forespørsel om arbeidsgiveropplysninger er besvart. */
 class ForespoerselBesvartLoeser(
@@ -109,7 +108,6 @@ class ForespoerselBesvartLoeser(
                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                     forespoerselBesvartCounter.inc()
                 }
-
         }
         MdcUtils.withLogFields(
             Log.event(EventName.AVSENDER_REQUESTED),

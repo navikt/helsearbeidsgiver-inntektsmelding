@@ -9,7 +9,10 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -40,18 +43,16 @@ class LagreAvsenderSystemLøserTest {
             "AR123456"
         )
 
-        sendMelding(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.name,
-                    Key.BEHOV.str to BehovType.LAGRE_AVSENDER_SYSTEM.name,
-                    Key.UUID.str to "uuid",
-                    DataFelt.AVSENDER_SYSTEM_DATA.str to avsenderSystem,
-                    Key.FORESPOERSEL_ID.str to "uuid"
-                )
-            )
+        rapid.sendJson(
+                Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
+                Key.BEHOV to BehovType.LAGRE_AVSENDER_SYSTEM.toJson(BehovType.serializer()),
+                Key.UUID to randomUuid().toJson(),
+                DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystem.toJson(AvsenderSystemData.serializer()),
+                Key.FORESPOERSEL_ID to randomUuid().toJson()
+
         )
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.AVSENDER_SYSTEM_LAGRET.name, message.path(Key.EVENT_NAME.str).asText())
     }
+
 }

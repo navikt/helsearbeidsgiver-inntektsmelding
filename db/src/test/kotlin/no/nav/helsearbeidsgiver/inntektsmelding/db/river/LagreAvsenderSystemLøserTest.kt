@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import io.mockk.coEvery
 import io.mockk.mockk
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -26,11 +25,6 @@ class LagreAvsenderSystemLøserTest {
         løser = LagreAvsenderSystemLøser(rapid, repository)
     }
 
-    private fun sendMelding(melding: JsonMessage) {
-        rapid.reset()
-        rapid.sendTestMessage(melding.toJson())
-    }
-
     @Test
     fun `skal publisere event for AvsenderSystem Lagret`() {
         coEvery {
@@ -44,15 +38,14 @@ class LagreAvsenderSystemLøserTest {
         )
 
         rapid.sendJson(
-                Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
-                Key.BEHOV to BehovType.LAGRE_AVSENDER_SYSTEM.toJson(BehovType.serializer()),
-                Key.UUID to randomUuid().toJson(),
-                DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystem.toJson(AvsenderSystemData.serializer()),
-                Key.FORESPOERSEL_ID to randomUuid().toJson()
+            Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
+            Key.BEHOV to BehovType.LAGRE_AVSENDER_SYSTEM.toJson(BehovType.serializer()),
+            Key.UUID to randomUuid().toJson(),
+            DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystem.toJson(AvsenderSystemData.serializer()),
+            Key.FORESPOERSEL_ID to randomUuid().toJson()
 
         )
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.AVSENDER_SYSTEM_LAGRET.name, message.path(Key.EVENT_NAME.str).asText())
     }
-
 }

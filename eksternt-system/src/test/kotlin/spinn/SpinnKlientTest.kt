@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn
+package spinn
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
@@ -11,6 +11,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.FIKK_SVAR_MED_RESPONSE_STATUS
+import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.MANGLER_AVSENDER
+import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnApiException
+import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.tokenprovider.AccessTokenProvider
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 import no.nav.inntektsmeldingkontrakt.AvsenderSystem

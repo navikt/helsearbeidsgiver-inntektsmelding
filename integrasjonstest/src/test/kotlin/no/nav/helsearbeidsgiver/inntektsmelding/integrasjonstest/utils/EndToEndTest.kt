@@ -22,10 +22,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createAvsenderSystemLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createEksterntSystemService
+import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.createAvsenderSystemLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.createEksterntSystemService
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvart
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnKlient
+import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending

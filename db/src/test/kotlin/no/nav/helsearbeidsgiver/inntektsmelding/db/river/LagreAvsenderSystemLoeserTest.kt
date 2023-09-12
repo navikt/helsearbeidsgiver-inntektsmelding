@@ -15,14 +15,14 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class LagreAvsenderSystemLøserTest {
+class LagreAvsenderSystemLoeserTest {
 
     private val rapid = TestRapid()
-    private var løser: LagreAvsenderSystemLøser
+    private var løser: LagreAvsenderSystemLoeser
     private val repository = mockk<InntektsmeldingRepository>()
 
     init {
-        løser = LagreAvsenderSystemLøser(rapid, repository)
+        løser = LagreAvsenderSystemLoeser(rapid, repository)
     }
 
     @Test

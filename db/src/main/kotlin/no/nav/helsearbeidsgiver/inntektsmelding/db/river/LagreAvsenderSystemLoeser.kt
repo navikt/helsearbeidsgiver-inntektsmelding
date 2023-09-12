@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.*
 
-class LagreAvsenderSystemLøser(
+class LagreAvsenderSystemLoeser(
     rapidsConnection: RapidsConnection,
     private val repository: InntektsmeldingRepository
 ) : Løser(rapidsConnection) {

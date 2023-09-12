@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -32,12 +32,12 @@ class KvitteringIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_GYLDIG.toJson()
         )
 
-        Thread.sleep(1000)
+        Thread.sleep(5000)
 
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
             .first()
-            .fromJsonMapOnlyDatafelter()
+            .toMap()
             .also {
                 // Skal finne inntektsmeldingdokumentet
                 val imDokument = it[DataFelt.INNTEKTSMELDING_DOKUMENT]
@@ -64,7 +64,7 @@ class KvitteringIT : EndToEndTest() {
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
             .first()
-            .fromJsonMapOnlyDatafelter()
+            .toMap()
             .also {
                 // Skal ikke finne inntektsmeldingdokument - men en dummy payload
                 it[DataFelt.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng

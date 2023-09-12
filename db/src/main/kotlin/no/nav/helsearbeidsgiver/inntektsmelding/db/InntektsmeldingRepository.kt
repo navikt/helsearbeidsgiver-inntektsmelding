@@ -52,7 +52,7 @@ class InntektsmeldingRepository(private val db: Database) {
     fun hentNyesteEntitet(forespørselId: String): Pair<InntektsmeldingDokument?, AvsenderSystemData?>? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
-            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksterntSystemData, ForespoerselEntitet.forespoerselId).run {
+            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksterntSystemData).run {
                 select { (forespoerselId eq forespørselId) }.orderBy(innsendt, SortOrder.DESC)
             }.limit(1).map {
                 Pair(

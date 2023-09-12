@@ -10,14 +10,13 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -63,8 +62,6 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
         val melding = json.toMap().lesMelding()
 
         logger.info("Mottok melding om '${melding.event}'.")
-        val forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val spinnInntektsmeldingId = melding[Pri.Key.SPINN_INNTEKTSMELDING_ID]
 
         MdcUtils.withLogFields(
             Log.event(EventName.FORESPOERSEL_BESVART),
@@ -87,14 +84,15 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
         }
         MdcUtils.withLogFields(
             Log.event(EventName.AVSENDER_REQUESTED),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(melding.forespoerselId),
+            Log.transaksjonId(melding.transaksjonId)
         ) {
-            if (spinnInntektsmeldingId != null) {
+            if (melding.spinnInntektsmeldingId != null) {
                 context.publish(
                     Key.EVENT_NAME to EventName.AVSENDER_REQUESTED.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
                     Key.UUID to randomUuid().toJson(),
-                    DataFelt.SPINN_INNTEKTSMELDING_ID to spinnInntektsmeldingId
+                    DataFelt.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson()
                 ).also {
                     logger.info("Publiserte melding om ekstern avsender")
                     sikkerLogger.info("Publiserte melding om ekstern avsender:\n${it.toPretty()}")
@@ -107,7 +105,8 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
 data class Melding(
     val event: String,
     val forespoerselId: UUID,
-    val transaksjonId: UUID
+    val transaksjonId: UUID,
+    val spinnInntektsmeldingId: UUID?
 )
 
 private fun bestemLoggFelt(event: String): Pair<String, String> {

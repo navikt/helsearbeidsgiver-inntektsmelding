@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.JournalførtInntektsmelding
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
@@ -42,10 +42,8 @@ class DistribusjonLøser(
 
     private fun hentInntektsmeldingDokument(behov: Behov): InntektsmeldingDokument {
         try {
-            return customObjectMapper().treeToValue(
-                behov[DataFelt.INNTEKTSMELDING_DOKUMENT],
-                InntektsmeldingDokument::class.java
-            )
+            val json = behov[DataFelt.INNTEKTSMELDING_DOKUMENT].toString()
+            return Jackson.fromJson<InntektsmeldingDokument>(json)
         } catch (ex: Exception) {
             throw DeserialiseringException(ex)
         }
@@ -58,7 +56,7 @@ class DistribusjonLøser(
         try {
             val inntektsmeldingDokument = hentInntektsmeldingDokument(behov)
             val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
-            val journalførtJson = customObjectMapper().writeValueAsString(journalførtInntektsmelding)
+            val journalførtJson = Jackson.toJson(journalførtInntektsmelding)
             kafkaProducer.send(ProducerRecord(TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN, journalførtJson))
             logger.info("Distribuerte eksternt for journalpostId: $journalpostId")
             sikkerLogger.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalførtJson")

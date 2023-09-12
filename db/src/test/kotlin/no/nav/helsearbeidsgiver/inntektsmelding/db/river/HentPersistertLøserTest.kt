@@ -11,11 +11,10 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
@@ -24,6 +23,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
 
 class HentPersistertLøserTest {
@@ -51,12 +51,9 @@ class HentPersistertLøserTest {
         val melding = hentMelding(0)
         assertTrue(melding.contains(Key.DATA.str))
         assertTrue(melding.contains(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
-        assertTrue(
-            customObjectMapper().readValue(
-                melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText(),
-                InntektsmeldingDokument::class.java
-            ) is InntektsmeldingDokument
-        )
+        assertDoesNotThrow {
+            Jackson.fromJson<InntektsmeldingDokument>(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText())
+        }
     }
 
     @Test
@@ -102,8 +99,7 @@ class HentPersistertLøserTest {
     private fun sendMeldingMedFeil(vararg melding: Pair<Key, JsonElement>): no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())
-        return rapid.inspektør
-            .message(0).toJsonElement().toJsonNode().toDomeneMessage()
+        return rapid.firstMessage().toDomeneMessage()
         // TODO - serialisering med Feilmelding.serializer() funker ikke:
 //            .toJsonElement()
 //            .fromJson(Feilmelding.serializer())

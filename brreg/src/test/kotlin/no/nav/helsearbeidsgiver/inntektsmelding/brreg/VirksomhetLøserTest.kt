@@ -2,7 +2,6 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
-import com.fasterxml.jackson.module.kotlin.contains
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery

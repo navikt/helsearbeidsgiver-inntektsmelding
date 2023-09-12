@@ -9,8 +9,11 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -70,7 +73,7 @@ class DataKanalTest {
     @Test
     fun `Test DATA collection, Primitive`() {
         val testFelter = arrayOf("TESTFELT1", "TESTFELT2")
-        val statefullDataKanal = StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, redis)
+        StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, redis)
         val uuid = UUID.randomUUID().toString()
         testRapid.sendTestMessage(
             JsonMessage.newMessage(
@@ -101,21 +104,20 @@ class DataKanalTest {
 
     @Test
     fun `Test DATA collection, Object`() {
-        val testFelter = arrayOf("TESTFELT1", "TESTFELT2")
-        val statefullDataKanal = StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, redis)
+        val testFelter = arrayOf(DataFelt.ARBEIDSGIVER_INFORMASJON.str, "TESTFELT")
+        StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, redis)
         val uuid = UUID.randomUUID().toString()
-        testRapid.sendTestMessage(
-            JsonMessage.newMessage(
-                mapOf<String, Any>(
-                    Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
-                    Key.UUID.str to uuid,
-                    Key.DATA.str to "",
-                    "TESTFELT1" to customObjectMapper().valueToTree(PersonDato("X", null, ""))
-                )
-            ).toJson()
+
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+            Key.UUID to uuid.toJson(),
+            Key.DATA to "".toJson(),
+            DataFelt.ARBEIDSGIVER_INFORMASJON to PersonDato("X", null, "").toJson(PersonDato.serializer())
         )
-        val personDato = customObjectMapper().readValue(redis.get(uuid + "TESTFELT1"), PersonDato::class.java)
-        Assertions.assertEquals("X", personDato.navn)
+
+        val personDato = redis.get(uuid + DataFelt.ARBEIDSGIVER_INFORMASJON.str)?.fromJson(PersonDato.serializer())
+
+        Assertions.assertEquals("X", personDato?.navn)
     }
 }
 

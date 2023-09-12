@@ -1,6 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.application
+import io.ktor.server.application.call
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.prometheus.client.Summary
@@ -10,6 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.hentIdentitetsnummerFraLoginToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
@@ -47,8 +50,8 @@ fun RouteExtra.trengerRoute() {
                             redisPoller = redis,
                             cache = tilgangCache
                         )
-
-                        val trengerId = trengerProducer.publish(request)
+                        val arbeidsgiverFnr = hentIdentitetsnummerFraLoginToken(application.environment.config, call.request)
+                        val trengerId = trengerProducer.publish(request = request, arbeidsgiverFnr = arbeidsgiverFnr)
                         val resultat = redis.getString(trengerId, 10, 500)
                         sikkerLogger.info("Fikk resultat: $resultat")
                         val trengerResponse = mapTrengerResponse(resultat.fromJson(TrengerData.serializer()))
@@ -85,6 +88,7 @@ fun RouteExtra.trengerRoute() {
 fun mapTrengerResponse(trengerData: TrengerData): TrengerResponse {
     return TrengerResponse(
         navn = trengerData.personDato?.navn ?: "",
+        innsenderNavn = trengerData.arbeidsgiver?.navn ?: "",
         orgNavn = trengerData.virksomhetNavn ?: "",
         identitetsnummer = trengerData.fnr ?: "",
         orgnrUnderenhet = trengerData.orgnr ?: "",

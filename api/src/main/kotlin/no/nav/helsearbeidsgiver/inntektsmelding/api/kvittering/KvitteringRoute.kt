@@ -7,7 +7,6 @@ import io.ktor.server.routing.route
 import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringDokument
@@ -121,28 +120,30 @@ private fun tilKvitteringResponse(inntektsmeldingDokument: InntektsmeldingDokume
     KvitteringResponse(
         kvitteringDokument = KvitteringDokument(
             orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
-            identitetsnummer = inntektsmeldingDokument.identitetsnummer,
-            fulltNavn = inntektsmeldingDokument.fulltNavn,
-            virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
-            behandlingsdager = inntektsmeldingDokument.behandlingsdager,
-            egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
-            arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
-            bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
-            fraværsperioder = inntektsmeldingDokument.fraværsperioder,
-            inntekt = Inntekt(
-                bekreftet = true,
-                // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
-                beregnetInntekt = inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
-                endringÅrsak = inntektsmeldingDokument.inntekt?.endringÅrsak,
-                manueltKorrigert = inntektsmeldingDokument.inntekt?.manueltKorrigert.orDefault(false)
-            ),
-            fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
-            refusjon = inntektsmeldingDokument.refusjon,
-            naturalytelser = inntektsmeldingDokument.naturalytelser,
-            årsakInnsending = inntektsmeldingDokument.årsakInnsending,
-            bekreftOpplysninger = true,
-            tidspunkt = inntektsmeldingDokument.tidspunkt,
-            forespurtData = inntektsmeldingDokument.forespurtData
+        identitetsnummer = inntektsmeldingDokument.identitetsnummer,
+        fulltNavn = inntektsmeldingDokument.fulltNavn,
+        virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
+        behandlingsdager = inntektsmeldingDokument.behandlingsdager,
+        egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
+        arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
+        bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
+        fraværsperioder = inntektsmeldingDokument.fraværsperioder,
+        inntekt = Inntekt(
+            bekreftet = true,
+            // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
+            beregnetInntekt = inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
+            endringÅrsak = inntektsmeldingDokument.inntekt?.endringÅrsak,
+            manueltKorrigert = inntektsmeldingDokument.inntekt?.manueltKorrigert.orDefault(false)
+        ),
+        fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
+        refusjon = inntektsmeldingDokument.refusjon,
+        naturalytelser = inntektsmeldingDokument.naturalytelser,
+        årsakInnsending = inntektsmeldingDokument.årsakInnsending,
+        bekreftOpplysninger = true,
+        tidspunkt = inntektsmeldingDokument.tidspunkt,
+        forespurtData = inntektsmeldingDokument.forespurtData,
+        //telefonnummer = inntektsmeldingDokument.telefonnummer,
+        //innsenderNavn = inntektsmeldingDokument.innsenderNavn
         )
     )
 data class InnsendtInntektsmelding(

@@ -20,6 +20,7 @@ enum class Key(override val str: String) : IKey {
 
     // Egendefinerte
     IDENTITETSNUMMER("identitetsnummer"),
+    ARBEIDSGIVER_ID("arbeidsgiverId"),
     INITIATE_ID("initiateId"),
     UUID("uuid"),
     CLIENT_ID("client_id"),
@@ -45,7 +46,8 @@ enum class Key(override val str: String) : IKey {
 @Serializable(DataFeltSerializer::class)
 enum class DataFelt(override val str: String) : IKey {
     VIRKSOMHET("virksomhet"),
-    ARBEIDSTAKER_INFORMASJON("arbeidstaker-informasjon"),
+    ARBEIDSTAKER_INFORMASJON("arbeidstakerInformasjon"),
+    ARBEIDSGIVER_INFORMASJON("arbeidsgiverInformasjon"),
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),
@@ -58,6 +60,7 @@ enum class DataFelt(override val str: String) : IKey {
     TRENGER_INNTEKT("trenger-inntekt"),
     INNTEKT("inntekt"),
     FNR("fnr"),
+    ARBEIDSGIVER_FNR("arbeidsgiverFnr"), // pga trengerService....
     SKJAERINGSTIDSPUNKT("skjaeringstidspunkt"),
     TILGANG("tilgang"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),

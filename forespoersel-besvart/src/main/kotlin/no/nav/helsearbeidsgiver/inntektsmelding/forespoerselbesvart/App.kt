@@ -15,14 +15,22 @@ fun main() {
 
     RapidApplication
         .create(System.getenv())
-        .createForespoerselBesvart(priProducer)
+        .createForespoerselBesvartFraSimba()
+        .createForespoerselBesvartFraSpleis(priProducer)
         .start()
 
     logger.info("Bye bye, baby, bye bye!")
 }
 
-fun RapidsConnection.createForespoerselBesvart(priProducer: PriProducer<JsonElement>): RapidsConnection =
+fun RapidsConnection.createForespoerselBesvartFraSimba(): RapidsConnection =
     apply {
-        logger.info("Starting ${ForespoerselBesvartLoeser::class.simpleName}...")
-        ForespoerselBesvartLoeser(this, priProducer)
+        logger.info("Starter ${ForespoerselBesvartFraSimbaLoeser::class.simpleName}...")
+        ForespoerselBesvartFraSimbaLoeser(this)
     }
+
+fun RapidsConnection.createForespoerselBesvartFraSpleis(priProducer: PriProducer<JsonElement>): RapidsConnection =
+    apply {
+        logger.info("Starter ${ForespoerselBesvartFraSpleisLoeser::class.simpleName}...")
+        ForespoerselBesvartFraSpleisLoeser(this, priProducer)
+    }
+

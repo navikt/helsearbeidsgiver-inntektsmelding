@@ -10,5 +10,6 @@ import java.time.LocalDate
 @Serializable
 data class PersonDato(
     val navn: String,
-    val fødselsdato: LocalDate?
+    val fødselsdato: LocalDate?,
+    val ident: String
 )

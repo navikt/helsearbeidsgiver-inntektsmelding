@@ -52,9 +52,9 @@ value class Messages(
                 .orDefault(false)
         }
 
-    fun filter(dataFelt: DataFelt): Messages =
+    fun filter(dataFelt: DataFelt, utenDataKey: Boolean = false): Messages =
         filter { msg ->
-            val dataFunnet = msg.fromJsonMapOnlyKeys().contains(Key.DATA)
+            val dataFunnet = utenDataKey || msg.fromJsonMapOnlyKeys().contains(Key.DATA)
 
             val datafeltFunnet = msg.fromJsonMapFiltered(DataFelt.serializer()).contains(dataFelt)
 

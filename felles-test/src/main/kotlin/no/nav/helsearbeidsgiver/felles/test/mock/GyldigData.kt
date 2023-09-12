@@ -49,7 +49,8 @@ val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
         )
     ),
     ÅrsakInnsending.ENDRING,
-    true
+    true,
+    "+4722222222"
 )
 
 val DELVIS_INNSENDING_REQUEST = InnsendingRequest(
@@ -72,6 +73,7 @@ val DELVIS_INNSENDING_REQUEST = InnsendingRequest(
     naturalytelser = emptyList(),
     årsakInnsending = ÅrsakInnsending.NY,
     bekreftOpplysninger = true,
-    forespurtData = listOf("inntekt", "refusjon")
+    forespurtData = listOf("inntekt", "refusjon"),
+    telefonnummer = "22555555"
 
 )

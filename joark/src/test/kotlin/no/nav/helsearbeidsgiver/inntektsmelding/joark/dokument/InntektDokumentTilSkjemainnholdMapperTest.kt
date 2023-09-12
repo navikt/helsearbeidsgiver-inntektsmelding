@@ -22,6 +22,8 @@ class InntektDokumentTilSkjemainnholdMapperTest {
         assertNotNull(skjema.aarsakTilInnsending)
         assertNotNull(skjema.arbeidsgiver)
         assertEquals(skjema.arbeidsgiver.virksomhetsnummer, inntektsmeldingDokument.orgnrUnderenhet)
+        assertEquals(skjema.arbeidsgiver.kontaktinformasjon.telefonnummer, inntektsmeldingDokument.telefonnummer)
+        assertEquals(skjema.arbeidsgiver.kontaktinformasjon.kontaktinformasjonNavn, inntektsmeldingDokument.innsenderNavn)
         assertEquals(skjema.arbeidstakerFnr, inntektsmeldingDokument.identitetsnummer)
         assertEquals(skjema.arbeidsforhold.foersteFravaersdag, inntektsmeldingDokument.bestemmendeFraværsdag)
         assertNotNull(skjema.arbeidsforhold.beregnetInntekt)

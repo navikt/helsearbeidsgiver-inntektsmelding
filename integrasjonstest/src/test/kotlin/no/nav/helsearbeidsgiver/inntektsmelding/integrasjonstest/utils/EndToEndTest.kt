@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
@@ -22,6 +23,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
 import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.createAvsenderSystemLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.createEksterntSystemService
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvart
@@ -36,7 +39,14 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerService
+import no.nav.helsearbeidsgiver.pdl.PdlClient
+import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
+import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.mai
+import org.intellij.lang.annotations.Language
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -69,6 +79,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         postgreSQLContainer.toHikariConfig()
             .let(::Database)
             .also(Database::migrate)
+            .createTruncateFunction()
     }
 
     val redisStore by lazy {
@@ -84,12 +95,31 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
-    val spinnKlient = mockk<SpinnKlient>(relaxed = true)
+    private val pdlKlient = mockk<PdlClient>()
 
     @BeforeEach
     fun beforeEachEndToEnd() {
         messages.reset()
         clearAllMocks()
+
+        coEvery { pdlKlient.personBolk(any()) } returns listOf(
+            FullPerson(
+                navn = PersonNavn(
+                    fornavn = "Bjarne",
+                    mellomnavn = null,
+                    etternavn = "Betjent"
+                ),
+                foedselsdato = 28.mai
+            ),
+            FullPerson(
+                navn = PersonNavn(
+                    fornavn = "Max",
+                    mellomnavn = null,
+                    etternavn = "Mekker"
+                ),
+                foedselsdato = 6.august
+            )
+        )
     }
 
     @BeforeAll
@@ -107,15 +137,14 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createBrreg(mockk(relaxed = true), true)
             createDb(database, imRepository, forespoerselRepository)
             createDistribusjon(mockk(relaxed = true))
-            createForespoerselBesvart(mockk(relaxed = true))
+            createForespoerselBesvartFraSimba()
+            createForespoerselBesvartFraSpleis(mockk(relaxed = true))
             createForespoerselMottatt(mockk(relaxed = true))
             createHelsebro(mockk(relaxed = true))
             createInntekt(mockk(relaxed = true))
             createJoark(dokarkivClient)
             createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)
-            createPdl(mockk(relaxed = true))
-            createAvsenderSystemLoeser(spinnKlient)
-            createEksterntSystemService(redisStore)
+            createPdl(pdlKlient)
         }
             .register(this)
 
@@ -162,8 +191,37 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             Thread.sleep(1500)
         }
     }
+
+    fun truncateDatabase() {
+        transaction(database.db) {
+            exec("SELECT truncate_tables()")
+        }
+    }
 }
 
 private class MessagesWaitLimitException(millis: Long) : RuntimeException(
     "Tid brukt på å vente på meldinger overskred grensen på $millis ms."
 )
+
+private fun Database.createTruncateFunction() =
+    also {
+        @Language("PostgreSQL")
+        val query = """
+            CREATE OR REPLACE FUNCTION truncate_tables() RETURNS void AS $$
+            DECLARE
+            truncate_statement text;
+            BEGIN
+                SELECT 'TRUNCATE ' || string_agg(format('%I.%I', schemaname, tablename), ',') || ' RESTART IDENTITY CASCADE'
+                    INTO truncate_statement
+                FROM pg_tables
+                WHERE schemaname='public';
+
+                EXECUTE truncate_statement;
+            END;
+            $$ LANGUAGE plpgsql;
+        """
+
+        transaction(db) {
+            exec(query)
+        }
+    }

@@ -39,7 +39,7 @@ val INNTEKTSMELDING_DOKUMENT = InntektsmeldingDokument(
         begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT,
         utbetalt = 500.0.toBigDecimal()
     ),
-    identitetsnummerInnsender = "123"
+    innsenderNavn = "Fido"
 )
 
 val INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT = INNTEKTSMELDING_DOKUMENT.copy(inntekt = null)

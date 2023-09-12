@@ -144,7 +144,8 @@ private object Mock {
     val TRENGER_DATA_OK = TrengerData(
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
-        personDato = PersonDato("Ola Normann", 1.mai),
+        personDato = PersonDato("Ola Normann", null, "123456"),
+        arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,
@@ -157,7 +158,8 @@ private object Mock {
     val TRENGER_DATA_OK_MED_FORRIGE_INNTEKT = TrengerData(
         fnr = trengerInntekt().fnr,
         orgnr = trengerInntekt().orgnr,
-        personDato = PersonDato("Ola Normann", 1.mai),
+        personDato = PersonDato("Ola Normann", 1.mai, "123456"),
+        arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,
@@ -174,6 +176,7 @@ private object Mock {
             {
                 "navn": "Ola Normann",
                 "orgNavn": "Norge AS",
+                "innsenderNavn": "Arbeidsgiver",
                 "identitetsnummer": "${mockTrengerInntekt.fnr}",
                 "orgnrUnderenhet": "${mockTrengerInntekt.orgnr}",
                 "fravaersperioder": [${mockTrengerInntekt.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
@@ -194,6 +197,7 @@ private object Mock {
             {
                 "navn": "Ola Normann",
                 "orgNavn": "Norge AS",
+                "innsenderNavn": "Arbeidsgiver",
                 "identitetsnummer": "${mockTrengerInntekt.fnr}",
                 "orgnrUnderenhet": "${mockTrengerInntekt.orgnr}",
                 "fravaersperioder": [${mockTrengerInntekt.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],

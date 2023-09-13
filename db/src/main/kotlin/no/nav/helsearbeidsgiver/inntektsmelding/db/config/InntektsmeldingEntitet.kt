@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.config
 
 import kotlinx.serialization.json.Json
-import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import org.jetbrains.exposed.sql.Column
@@ -16,7 +16,7 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
     )
     val forespoerselId = varchar(name = "forespoersel_id", length = 40) references ForespoerselEntitet.forespoerselId
     val dokument = json("dokument", InntektsmeldingDokument::class.java).nullable()
-    val eksterntSystemData = jsonb<AvsenderSystemData>("eksternt_system_data", Json.Default).nullable()
+    val eksternInntektsmelding = jsonb<EksternInntektsmelding>("ekstern_inntektsmelding", Json.Default).nullable()
     val innsendt = datetime("innsendt")
     val journalpostId = varchar("journalpostid", 30).nullable()
     override val primaryKey = PrimaryKey(id, name = "id")

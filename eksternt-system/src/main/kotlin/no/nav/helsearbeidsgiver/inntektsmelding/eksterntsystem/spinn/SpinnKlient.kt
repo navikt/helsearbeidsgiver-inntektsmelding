@@ -8,7 +8,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
-import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 
@@ -17,7 +17,7 @@ class SpinnKlient(
     val httpClient: HttpClient,
     private val getAccessToken: () -> String
 ) {
-    fun hentAvsenderSystemData(inntektsmeldingId: String): AvsenderSystemData {
+    fun hentAvsenderSystemData(inntektsmeldingId: String): EksternInntektsmelding {
         val result = runBlocking {
             val response = httpClient.get("$url/$inntektsmeldingId") {
                 contentType(ContentType.Application.Json)
@@ -30,10 +30,11 @@ class SpinnKlient(
         }
 
         if (result.avsenderSystem?.navn != null) {
-            return AvsenderSystemData(
+            return EksternInntektsmelding(
                 arkivreferanse = result.arkivreferanse,
                 avsenderSystemNavn = result.avsenderSystem!!.navn!!,
-                avsenderSystemVersjon = result.avsenderSystem?.versjon ?: ""
+                avsenderSystemVersjon = result.avsenderSystem?.versjon ?: "",
+                tidspunkt = result.mottattDato
             )
         }
         throw SpinnApiException(MANGLER_AVSENDER)

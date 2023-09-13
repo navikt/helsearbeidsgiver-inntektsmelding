@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.shouldBe
 import io.mockk.every
-import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AvsenderSystemLagretIT : EndToEndTest() {
@@ -27,12 +28,13 @@ class AvsenderSystemLagretIT : EndToEndTest() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        val avsenderSystemData = AvsenderSystemData(
+        val eksternInntektsmelding = EksternInntektsmelding(
             "AltinnPortal",
             "1.63",
-            "AR123456"
+            "AR123456",
+            11.januar(2018).atStartOfDay()
         )
-        every { spinnKlient.hentAvsenderSystemData(any()) } returns avsenderSystemData
+        every { spinnKlient.hentAvsenderSystemData(any()) } returns eksternInntektsmelding
         // imRepository.lagreAvsenderSystemData(Mock.forespoerselId.toString(), avsenderSystemData)
 
         mockStatic(::randomUuid) {
@@ -63,7 +65,7 @@ class AvsenderSystemLagretIT : EndToEndTest() {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_MOTTATT
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.LAGRE_AVSENDER_SYSTEM
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                DataFelt.AVSENDER_SYSTEM_DATA.les(AvsenderSystemData.serializer(), it) shouldBe avsenderSystemData
+                DataFelt.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), it) shouldBe eksternInntektsmelding
             }
 
         messages.filter(EventName.AVSENDER_SYSTEM_LAGRET)

@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -44,7 +44,7 @@ class EksterntSystemService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.AVSENDER_SYSTEM_DATA.str
+                    DataFelt.EKSTERN_INNTEKTSMELDING.str
                 ),
                 eventName = event,
                 mainListener = it,
@@ -106,21 +106,21 @@ class EksterntSystemService(
     override fun finalize(message: JsonMessage) {
         val json = message.toJsonMap()
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
-        val avsenderSystem = message[DataFelt.AVSENDER_SYSTEM_DATA.str]
+        val avsenderSystem = message[DataFelt.EKSTERN_INNTEKTSMELDING.str]
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
 
         if (avsenderSystem != null && forespoerselId != null) {
-            val avsenderSystemData: AvsenderSystemData = avsenderSystem.toString().fromJson(AvsenderSystemData.serializer())
+            val eksternInntektsmelding: EksternInntektsmelding = avsenderSystem.toString().fromJson(EksternInntektsmelding.serializer())
 
-            if (avsenderSystemData.avsenderSystemNavn != "NAV_NO") {
+            if (eksternInntektsmelding.avsenderSystemNavn != "NAV_NO") {
                 val msg = JsonMessage.newMessage(
                     mapOf(
                         Key.EVENT_NAME.str to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.name,
                         Key.BEHOV.str to BehovType.LAGRE_AVSENDER_SYSTEM.name,
                         Key.UUID.str to randomUuid(),
                         DataFelt.FORESPOERSEL_ID.str to forespoerselId,
-                        DataFelt.AVSENDER_SYSTEM_DATA.str to avsenderSystemData
+                        DataFelt.EKSTERN_INNTEKTSMELDING.str to eksternInntektsmelding
                     )
                 ).toJson()
                 // rapid.publish(Behov.create(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT, BehovType.LAGRE_AVSENDER_SYSTEM, forespoerselId.toString(), mapOf(DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystemData)).toJsonMessage().toString())

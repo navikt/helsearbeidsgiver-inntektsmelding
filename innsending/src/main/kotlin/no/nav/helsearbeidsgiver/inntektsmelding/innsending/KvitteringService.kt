@@ -2,10 +2,16 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringEkstern
+import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
@@ -13,6 +19,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventList
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
@@ -55,10 +63,15 @@ class KvitteringService(
     override fun finalize(message: JsonMessage) {
         val transaksjonsId = message[Key.UUID.str].asText()
         val clientId = redisStore.get(RedisKey.of(transaksjonsId, event))
-        val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
-        // val dok2 = message[DataFelt.AVSENDER_SYSTEM_DATA.str].asText()
+        val im = message.toJsonMap().let {
+            InnsendtInntektsmelding(
+                eksternInntektsmelding = DataFelt.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), it),
+                dokument = Jackson.fromJson(it[DataFelt.INNTEKTSMELDING_DOKUMENT].toString())
+            )
+        }.let { Jackson.toJson(it) }
+
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
-        redisStore.set(clientId!!, dok)
+        redisStore.set(clientId!!, im)
     }
 
     override fun terminate(message: JsonMessage) {

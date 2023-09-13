@@ -20,22 +20,10 @@ components:
     KvitteringEkstern:
       type: object
       required:
-        - orgnrUnderenhet
-        - identitetsnummer
-        - fulltNavn
-        - virksomhetNavn
         - avsenderSystem
         - referanse
         - tidspunkt
       properties:
-        orgnrUnderenhet:
-          type: string
-        identitetsnummer:
-          type: string
-        fulltNavn:
-          type: string
-        virksomhetNavn:
-          type: string
         avsenderSystem:
           type: string
         referanse:

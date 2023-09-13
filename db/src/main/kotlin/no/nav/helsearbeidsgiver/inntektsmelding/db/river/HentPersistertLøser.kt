@@ -49,7 +49,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
                 behov.createData(
                     mapOf(
                         DataFelt.INNTEKTSMELDING_DOKUMENT to dokument,
-                        DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystemData
+                        DataFelt.EKSTERN_INNTEKTSMELDING to avsenderSystemData
                     )
                 )
                     .also {

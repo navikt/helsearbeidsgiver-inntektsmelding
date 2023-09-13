@@ -6,7 +6,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -27,11 +27,15 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import java.util.UUID
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 
-val avsenderSystemData = AvsenderSystemData(
+
+val eksternInntektsmelding = EksternInntektsmelding(
     avsenderSystemNavn = "NAV_NO",
     avsenderSystemVersjon = "1.63",
-    arkivreferanse = "im1234567"
+    arkivreferanse = "im1234567",
+    11.januar(2018).atStartOfDay()
+
 )
 
 class AvsenderSystemLoeserTest : FunSpec({
@@ -45,7 +49,7 @@ class AvsenderSystemLoeserTest : FunSpec({
         testRapid.reset()
         clearAllMocks()
     }
-    every { spinnKlient.hentAvsenderSystemData(any()) } returns avsenderSystemData
+    every { spinnKlient.hentAvsenderSystemData(any()) } returns eksternInntektsmelding
 
     test("Ved når inntektsmeldingId mangler skal feil publiseres") {
 
@@ -87,7 +91,7 @@ class AvsenderSystemLoeserTest : FunSpec({
     }
 
     test("Hvis Inntektsmelding finnes publiseres data") {
-        every { spinnKlient.hentAvsenderSystemData(any()) } returns avsenderSystemData
+        every { spinnKlient.hentAvsenderSystemData(any()) } returns eksternInntektsmelding
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns UUID.randomUUID()
@@ -100,13 +104,13 @@ class AvsenderSystemLoeserTest : FunSpec({
         }
 
         val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
-            it.interestedIn(DataFelt.AVSENDER_SYSTEM_DATA.str)
+            it.interestedIn(DataFelt.EKSTERN_INNTEKTSMELDING.str)
         }
 
         testRapid.inspektør.size shouldBeExactly 1
         actual.event shouldBe EventName.FORESPOERSEL_BESVART
 
-        actual[DataFelt.AVSENDER_SYSTEM_DATA].toString().fromJson(AvsenderSystemData.serializer()) shouldBe avsenderSystemData
+        actual[DataFelt.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer()) shouldBe eksternInntektsmelding
     }
 
     test("Hvis request timer ut blir feil publisert") {

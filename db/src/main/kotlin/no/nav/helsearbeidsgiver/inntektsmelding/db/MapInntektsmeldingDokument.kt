@@ -26,6 +26,7 @@ fun mapInntektsmeldingDokument(
             fullLønnIArbeidsgiverPerioden = request.fullLønnIArbeidsgiverPerioden,
             refusjon = request.refusjon,
             naturalytelser = request.naturalytelser,
+            // TODO: burde være tidpunkt i vår tidsone OSLO
             tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
             årsakInnsending = request.årsakInnsending,
             innsenderNavn = innsenderNavn,

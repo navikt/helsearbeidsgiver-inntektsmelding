@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.prometheus.client.Summary
-import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.forespoerselId
@@ -48,26 +48,28 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun hentNyesteEntitet(forespørselId: String): Pair<InntektsmeldingDokument?, AvsenderSystemData?>? {
-        val requestTimer = requestLatency.labels("hentNyeste").startTimer()
+    fun hentNyesteEntitet(forespørselId: String): Pair<InntektsmeldingDokument?, EksternInntektsmelding?>? {
+        val requestTimer = requestLatency.labels("hentNyesteEntitet").startTimer()
         return transaction(db) {
-            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksterntSystemData).run {
+            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding).run {
                 select { (forespoerselId eq forespørselId) }.orderBy(innsendt, SortOrder.DESC)
             }.limit(1).map {
                 Pair(
                     it[InntektsmeldingEntitet.dokument],
-                    it[InntektsmeldingEntitet.eksterntSystemData]
+                    it[InntektsmeldingEntitet.eksternInntektsmelding]
                 )
-            }.firstOrNull()
+            }.firstOrNull().also {
+                requestTimer.observeDuration()
+            }
         }
     }
 
-    fun hentNyesteFraEksterntSystem(forespørselId: String): AvsenderSystemData? {
+    fun hentNyesteFraEksterntSystem(forespørselId: String): EksternInntektsmelding? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet.run {
-                select { (forespoerselId eq forespørselId) and (eksterntSystemData.isNotNull()) }.orderBy(innsendt, SortOrder.DESC)
-            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.eksterntSystemData)
+                select { (forespoerselId eq forespørselId) and (eksternInntektsmelding.isNotNull()) }.orderBy(innsendt, SortOrder.DESC)
+            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding)
         }.also {
             requestTimer.observeDuration()
         }
@@ -84,12 +86,12 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun lagreAvsenderSystemData(forespørselId: String, eksterntSystem: AvsenderSystemData) {
+    fun lagreAvsenderSystemData(forespørselId: String, eksternIm: EksternInntektsmelding) {
         transaction(db) {
             InntektsmeldingEntitet.run {
                 insert {
                     it[forespoerselId] = forespørselId
-                    it[eksterntSystemData] = eksterntSystem
+                    it[eksternInntektsmelding] = eksternIm
                     it[innsendt] = LocalDateTime.now()
                 }
             }

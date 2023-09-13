@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.*
+import java.util.UUID
 
 class LagreAvsenderSystemLoeser(
     rapidsConnection: RapidsConnection,
@@ -31,7 +31,7 @@ class LagreAvsenderSystemLoeser(
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.LAGRE_AVSENDER_SYSTEM.name)
             it.requireKey(Key.UUID.str)
-            it.interestedIn(DataFelt.AVSENDER_SYSTEM_DATA)
+            it.interestedIn(DataFelt.EKSTERN_INNTEKTSMELDING)
         }
     }
     override fun onBehov(behov: Behov) {
@@ -45,16 +45,16 @@ class LagreAvsenderSystemLoeser(
         ) {
             logger.info("Mottok behov ${BehovType.LAGRE_AVSENDER_SYSTEM.name}")
             sikkerLogger.info("Mottok behov:\n${behov.toJsonMessage()}")
-            val avsenderSystemData = behov[DataFelt.AVSENDER_SYSTEM_DATA].toString().fromJson(AvsenderSystemData.serializer())
-            if (avsenderSystemData == null) {
+            val eksternInntektsmelding = behov[DataFelt.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer())
+            if (eksternInntektsmelding == null) {
                 logger.error("Fant ingen AvsenderSystemData")
                 sikkerLogger.error("Fant ingen AvsenderSystemData")
                 publishFail(behov.createFail("Klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId. Mangler datafelt"))
             } else {
                 try {
-                    repository.lagreAvsenderSystemData(forespoerselId, avsenderSystemData)
+                    repository.lagreAvsenderSystemData(forespoerselId, eksternInntektsmelding)
                     logger.info(
-                        "Lagret AvsenderSystemData med arkiv referanse ${avsenderSystemData.arkivreferanse}" +
+                        "Lagret AvsenderSystemData med arkiv referanse ${eksternInntektsmelding.arkivreferanse}" +
                             " i database for forespoerselId $forespoerselId"
                     )
                     publishEvent(Event.create(EventName.AVSENDER_SYSTEM_LAGRET, forespoerselId, mapOf(Key.UUID to transaksjonsId)))
@@ -62,7 +62,7 @@ class LagreAvsenderSystemLoeser(
                     publishFail(behov.createFail("Klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId"))
                     logger.error("Klarte ikke lagre AvsenderSystemData")
                     sikkerLogger.error(
-                        "Klarte ikke lagre AvsenderSystemData $AvsenderSystemData",
+                        "Klarte ikke lagre AvsenderSystemData $EksternInntektsmelding",
                         ex
                     )
                 }

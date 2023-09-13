@@ -101,7 +101,7 @@ class AvsenderSystemLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
+        val actual = testRapid.firstMessage().toDomeneMessage<Data>() {
             it.interestedIn(DataFelt.EKSTERN_INNTEKTSMELDING.str)
         }
 

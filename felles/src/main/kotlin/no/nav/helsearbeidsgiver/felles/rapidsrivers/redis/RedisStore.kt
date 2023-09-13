@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 import com.fasterxml.jackson.databind.JsonNode
 import io.lettuce.core.RedisClient
 import io.lettuce.core.SetArgs
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class RedisStore(redisUrl: String) : IRedisStore {
@@ -40,7 +40,7 @@ class RedisStore(redisUrl: String) : IRedisStore {
 
     override fun <T : Any> get(key: RedisKey, clazz: Class<T>): T? {
         val value = syncCommands.get(key.toString())
-        if (value.isNullOrEmpty()) return null else return customObjectMapper().readValue(value, clazz)
+        return if (value.isNullOrEmpty()) null else Jackson.objectMapper.readValue(value, clazz)
     }
 
     override fun exist(vararg keys: String): Long {

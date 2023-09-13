@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
@@ -66,7 +65,7 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
-        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Event>()
+        val actual = testRapid.firstMessage().toDomeneMessage<Event>()
 
         actual.forespoerselId shouldBe expected.forespoerselId
         actual.uuid() shouldBe expected.uuid()

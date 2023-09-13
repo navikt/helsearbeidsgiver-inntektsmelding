@@ -17,7 +17,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
@@ -67,7 +66,7 @@ class ArbeidsforholdLøserTest : FunSpec({
             Key.UUID to expected.uuid().toJson()
         )
 
-        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
+        val actual = testRapid.firstMessage().toDomeneMessage<Data>() {
             it.interestedIn(DataFelt.ARBEIDSFORHOLD.str)
         }
 
@@ -96,7 +95,7 @@ class ArbeidsforholdLøserTest : FunSpec({
             Key.UUID to expected.uuid!!.toJson()
         )
 
-        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
+        val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.uuid.toString()) }
         testRapid.inspektør.size shouldBeExactly 1

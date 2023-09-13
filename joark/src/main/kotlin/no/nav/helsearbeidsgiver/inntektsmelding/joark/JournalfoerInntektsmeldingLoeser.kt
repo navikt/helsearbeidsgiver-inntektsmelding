@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
@@ -38,7 +38,7 @@ class JournalfoerInntektsmeldingLoeser(
 
     private fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
         try {
-            return customObjectMapper().treeToValue(jsonNode, InntektsmeldingDokument::class.java)
+            return Jackson.fromJson(jsonNode.toString())
         } catch (ex: Exception) {
             throw UgyldigFormatException(ex)
         }

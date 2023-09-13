@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Orgnr
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
@@ -72,7 +71,7 @@ class InntektLoeserTest : FunSpec({
 
         testRapid.sendJson(*mockInnkommendeMelding())
 
-        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
+        val publisert = testRapid.firstMessage().toDomeneMessage<Data>() {
             it.interestedIn(DataFelt.INNTEKT)
         }
 
@@ -107,7 +106,7 @@ class InntektLoeserTest : FunSpec({
 
         testRapid.sendJson(*mockInnkommendeMelding())
 
-        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
+        val publisert = testRapid.firstMessage().toDomeneMessage<Data>() {
             it.interestedIn(DataFelt.INNTEKT)
         }
 
@@ -162,7 +161,7 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         }
 
-        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail>()
+        val publisert = testRapid.firstMessage().toDomeneMessage<no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail>()
 
         publisert.feilmelding shouldBe "Klarte ikke hente inntekt."
     }
@@ -176,7 +175,7 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         }
 
-        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail>()
+        val publisert = testRapid.firstMessage().toDomeneMessage<no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail>()
 
         publisert.feilmelding shouldBe "Klarte ikke lese påkrevde felt fra innkommende melding."
     }
@@ -196,7 +195,7 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         }
 
-        val publisert = testRapid.firstMessage().toJsonNode().toDomeneMessage<no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail>()
+        val publisert = testRapid.firstMessage().toDomeneMessage<no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail>()
 
         publisert.feilmelding shouldBe "Ukjent feil."
     }

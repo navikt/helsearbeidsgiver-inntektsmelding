@@ -2,15 +2,16 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -19,7 +20,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class LagreAvsenderSystemLoeser(
+class LagreEksternInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
     private val repository: InntektsmeldingRepository
 ) : Løser(rapidsConnection) {
@@ -44,25 +45,25 @@ class LagreAvsenderSystemLoeser(
             Log.behov(behov.behov)
         ) {
             logger.info("Mottok behov ${BehovType.LAGRE_AVSENDER_SYSTEM.name}")
-            sikkerLogger.info("Mottok behov:\n${behov.toJsonMessage()}")
+            sikkerLogger.info("Mottok behov:\n${behov.toJsonMessage().toPretty()}")
             val eksternInntektsmelding = behov[DataFelt.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer())
             if (eksternInntektsmelding == null) {
-                logger.error("Fant ingen AvsenderSystemData")
-                sikkerLogger.error("Fant ingen AvsenderSystemData")
-                publishFail(behov.createFail("Klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId. Mangler datafelt"))
+                logger.error("Fant ingen EksternInntektsmelding")
+                sikkerLogger.error("Fant ingen EksternInntektsmelding")
+                publishFail(behov.createFail("Klarte ikke lagre EksternInntektsmelding for transaksjonsId $transaksjonsId. Mangler datafelt"))
             } else {
                 try {
                     repository.lagreAvsenderSystemData(forespoerselId, eksternInntektsmelding)
                     logger.info(
-                        "Lagret AvsenderSystemData med arkiv referanse ${eksternInntektsmelding.arkivreferanse}" +
+                        "Lagret EksternInntektsmelding med arkiv referanse ${eksternInntektsmelding.arkivreferanse}" +
                             " i database for forespoerselId $forespoerselId"
                     )
                     publishEvent(Event.create(EventName.AVSENDER_SYSTEM_LAGRET, forespoerselId, mapOf(Key.UUID to transaksjonsId)))
                 } catch (ex: Exception) {
-                    publishFail(behov.createFail("Klarte ikke lagre AvsenderSystemData for transaksjonsId $transaksjonsId"))
-                    logger.error("Klarte ikke lagre AvsenderSystemData")
+                    publishFail(behov.createFail("Klarte ikke lagre EksternInntektsmelding for transaksjonsId $transaksjonsId"))
+                    logger.error("Klarte ikke lagre EksternInntektsmelding")
                     sikkerLogger.error(
-                        "Klarte ikke lagre AvsenderSystemData $EksternInntektsmelding",
+                        "Klarte ikke lagre EksternInntektsmelding $EksternInntektsmelding",
                         ex
                     )
                 }

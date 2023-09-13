@@ -83,14 +83,13 @@ fun RouteExtra.kvitteringRoute() {
                         }
                         sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
 
-                        if (resultat == EMPTY_PAYLOAD ) {
+                        if (resultat == EMPTY_PAYLOAD) {
                             // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
                             respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                         } else {
-
                             val innsendtInntektsmelding = Jackson.fromJson<InnsendtInntektsmelding>(resultat!!)
 
-                            if (innsendtInntektsmelding.dokument == null && innsendtInntektsmelding.eksternInntektsmelding == null){
+                            if (innsendtInntektsmelding.dokument == null && innsendtInntektsmelding.eksternInntektsmelding == null) {
                                 respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                             }
                             measureTimeMillis {
@@ -126,37 +125,41 @@ fun RouteExtra.kvitteringRoute() {
 
 private fun tilKvitteringResponse(innsendtInntektsmelding: InnsendtInntektsmelding): KvitteringResponse =
     KvitteringResponse(
-        kvitteringDokument = innsendtInntektsmelding.dokument?.let { inntektsmeldingDokument -> KvitteringDokument(
-            orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
-            identitetsnummer = inntektsmeldingDokument.identitetsnummer,
-            fulltNavn = inntektsmeldingDokument.fulltNavn,
-            virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
-            behandlingsdager = inntektsmeldingDokument.behandlingsdager,
-            egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
-            arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
-            bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
-            fraværsperioder = inntektsmeldingDokument.fraværsperioder,
-            inntekt = Inntekt(
-                bekreftet = true,
-                // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
-                beregnetInntekt = inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
-                endringÅrsak = inntektsmeldingDokument.inntekt?.endringÅrsak,
-                manueltKorrigert = inntektsmeldingDokument.inntekt?.manueltKorrigert.orDefault(false)
-            ),
-            fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
-            refusjon = inntektsmeldingDokument.refusjon,
-            naturalytelser = inntektsmeldingDokument.naturalytelser,
-            årsakInnsending = inntektsmeldingDokument.årsakInnsending,
-            bekreftOpplysninger = true,
-            tidspunkt = inntektsmeldingDokument.tidspunkt,
-            forespurtData = inntektsmeldingDokument.forespurtData,
-            telefonnummer = inntektsmeldingDokument.telefonnummer,
-            innsenderNavn = inntektsmeldingDokument.innsenderNavn
-        )},
-        kvitteringEkstern = innsendtInntektsmelding.eksternInntektsmelding?.let { eIm -> KvitteringEkstern(
-            eIm.avsenderSystemNavn,
-            eIm.avsenderSystemNavn,
-            // TODO: burde være tidspunkt i vår tidsone OSLO
-            eIm.tidspunkt.let { ZonedDateTime.of(it, Clock.systemDefaultZone().zone).toOffsetDateTime() }
-        )}
+        kvitteringDokument = innsendtInntektsmelding.dokument?.let { inntektsmeldingDokument ->
+            KvitteringDokument(
+                orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
+                identitetsnummer = inntektsmeldingDokument.identitetsnummer,
+                fulltNavn = inntektsmeldingDokument.fulltNavn,
+                virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
+                behandlingsdager = inntektsmeldingDokument.behandlingsdager,
+                egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
+                arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
+                bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
+                fraværsperioder = inntektsmeldingDokument.fraværsperioder,
+                inntekt = Inntekt(
+                    bekreftet = true,
+                    // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
+                    beregnetInntekt = inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
+                    endringÅrsak = inntektsmeldingDokument.inntekt?.endringÅrsak,
+                    manueltKorrigert = inntektsmeldingDokument.inntekt?.manueltKorrigert.orDefault(false)
+                ),
+                fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
+                refusjon = inntektsmeldingDokument.refusjon,
+                naturalytelser = inntektsmeldingDokument.naturalytelser,
+                årsakInnsending = inntektsmeldingDokument.årsakInnsending,
+                bekreftOpplysninger = true,
+                tidspunkt = inntektsmeldingDokument.tidspunkt,
+                forespurtData = inntektsmeldingDokument.forespurtData,
+                telefonnummer = inntektsmeldingDokument.telefonnummer,
+                innsenderNavn = inntektsmeldingDokument.innsenderNavn
+            )
+        },
+        kvitteringEkstern = innsendtInntektsmelding.eksternInntektsmelding?.let { eIm ->
+            KvitteringEkstern(
+                eIm.avsenderSystemNavn,
+                eIm.avsenderSystemNavn,
+                // TODO: burde være tidspunkt i vår tidsone OSLO
+                eIm.tidspunkt.let { ZonedDateTime.of(it, Clock.systemDefaultZone().zone).toOffsetDateTime() }
+            )
+        }
     )

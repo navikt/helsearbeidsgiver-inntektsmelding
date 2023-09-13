@@ -1,3 +1,3 @@
 ALTER TABLE inntektsmelding
-    ADD COLUMN eksternt_inntektsmelding jsonb;
+    ADD COLUMN ekstern_inntektsmelding jsonb;
 

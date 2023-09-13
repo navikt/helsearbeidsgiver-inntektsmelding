@@ -26,6 +26,7 @@ class KvitteringIT : EndToEndTest() {
     fun setup() {
         truncateDatabase()
     }
+
     @Test
     fun `skal hente data til kvittering`() {
         val clientId = UUID.randomUUID()
@@ -58,7 +59,6 @@ class KvitteringIT : EndToEndTest() {
         redisStore.get(clientId.toString()).shouldNotBeNull()
     }
 
-
     @Test
     fun `skal hente data til kvittering hvis fra eksternt system`() {
         val clientId = UUID.randomUUID()
@@ -87,7 +87,6 @@ class KvitteringIT : EndToEndTest() {
 
         redisStore.get(clientId.toString()).shouldNotBeNull()
     }
-
 
     @Test
     fun `skal gi feilmelding når forespørsel ikke finnes`() {

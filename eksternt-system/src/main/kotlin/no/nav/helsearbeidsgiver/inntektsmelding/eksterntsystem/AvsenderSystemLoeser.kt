@@ -22,7 +22,7 @@ class AvsenderSystemLoeser(
 
     private val logger = logger()
     val sikkerlogger = sikkerLogger()
-    private val BEHOV = BehovType.HENT_AVSENDER_SYSTEM
+    private val BEHOV = BehovType.HENT_EKSTERN_INNTEKTSMELDING
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
@@ -42,7 +42,7 @@ class AvsenderSystemLoeser(
             return
         }
         try {
-            val avsenderSystem = spinnKlient.hentAvsenderSystemData(inntektsmeldingId.asText())
+            val avsenderSystem = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId.asText())
             publishData(behov.createData(mapOf(DataFelt.EKSTERN_INNTEKTSMELDING to avsenderSystem)))
         } catch (e: SpinnApiException) {
             "Feil ved kall mot spinn api: ${e.message}".also {

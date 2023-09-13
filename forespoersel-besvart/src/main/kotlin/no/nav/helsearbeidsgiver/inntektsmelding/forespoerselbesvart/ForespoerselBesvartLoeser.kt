@@ -83,13 +83,13 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
                 }
         }
         MdcUtils.withLogFields(
-            Log.event(EventName.AVSENDER_REQUESTED),
+            Log.event(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED),
             Log.forespoerselId(melding.forespoerselId),
             Log.transaksjonId(melding.transaksjonId)
         ) {
             if (melding.spinnInntektsmeldingId != null) {
                 context.publish(
-                    Key.EVENT_NAME to EventName.AVSENDER_REQUESTED.toJson(),
+                    Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
                     Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
                     Key.UUID to randomUuid().toJson(),
                     DataFelt.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson()

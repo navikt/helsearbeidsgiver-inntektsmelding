@@ -34,44 +34,44 @@ class AvsenderSystemLagretIT : EndToEndTest() {
             "AR123456",
             11.januar(2018).atStartOfDay()
         )
-        every { spinnKlient.hentAvsenderSystemData(any()) } returns eksternInntektsmelding
+        every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
         // imRepository.lagreAvsenderSystemData(Mock.forespoerselId.toString(), avsenderSystemData)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns Mock.transaksjonId
 
             publish(
-                Key.EVENT_NAME to EventName.AVSENDER_REQUESTED.toJson(),
+                Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldinigId.toJson()
             )
             Thread.sleep(10000)
         }
 
-        messages.filter(EventName.AVSENDER_REQUESTED)
-            .filter(BehovType.HENT_AVSENDER_SYSTEM)
+        messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
+            .filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
             .first().toMap()
             .also {
-                Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.AVSENDER_REQUESTED
-                Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.HENT_AVSENDER_SYSTEM
+                Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
+                Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldinigId
             }
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT)
-            .filter(BehovType.LAGRE_AVSENDER_SYSTEM)
+            .filter(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING)
             .first().toMap()
             .also {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_MOTTATT
-                Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.LAGRE_AVSENDER_SYSTEM
+                Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.LAGRE_EKSTERN_INNTEKTSMELDING
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 DataFelt.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), it) shouldBe eksternInntektsmelding
             }
 
-        messages.filter(EventName.AVSENDER_SYSTEM_LAGRET)
+        messages.filter(EventName.EKSTERN_INNTEKTSMELDING_LAGRET)
             .first().toMap()
             .also {
-                Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.AVSENDER_SYSTEM_LAGRET
+                Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_LAGRET
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
             }
     }

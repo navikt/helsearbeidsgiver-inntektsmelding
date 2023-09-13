@@ -37,7 +37,7 @@ class EksterntSystemService(
 
     private val sikkerLogger = sikkerLogger()
 
-    override val event: EventName = EventName.AVSENDER_REQUESTED
+    override val event: EventName = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
 
     init {
         withFailKanal { DelegatingFailKanal(event, it, rapid) }
@@ -83,14 +83,14 @@ class EksterntSystemService(
             if (transaction == Transaction.NEW) {
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.toJson(),
+                    Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
                     DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
                     DataFelt.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
                     Key.UUID to transaksjonId.toJson()
                 )
                     .also {
                         MdcUtils.withLogFields(
-                            Log.behov(BehovType.HENT_AVSENDER_SYSTEM)
+                            Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
                         ) {
                             sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                         }
@@ -117,7 +117,7 @@ class EksterntSystemService(
                 val msg = JsonMessage.newMessage(
                     mapOf(
                         Key.EVENT_NAME.str to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.name,
-                        Key.BEHOV.str to BehovType.LAGRE_AVSENDER_SYSTEM.name,
+                        Key.BEHOV.str to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name,
                         Key.UUID.str to randomUuid(),
                         DataFelt.FORESPOERSEL_ID.str to forespoerselId,
                         DataFelt.EKSTERN_INNTEKTSMELDING.str to eksternInntektsmelding

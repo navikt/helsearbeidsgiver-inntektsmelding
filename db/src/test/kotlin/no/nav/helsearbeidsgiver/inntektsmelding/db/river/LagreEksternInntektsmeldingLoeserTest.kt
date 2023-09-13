@@ -29,7 +29,7 @@ class LagreEksternInntektsmeldingLoeserTest {
     @Test
     fun `skal publisere event for AvsenderSystem Lagret`() {
         coEvery {
-            repository.lagreAvsenderSystemData(any(), any())
+            repository.lagreEksternInntektsmelding(any(), any())
         } returns Unit
 
         val avsenderSystem = EksternInntektsmelding(
@@ -41,13 +41,13 @@ class LagreEksternInntektsmeldingLoeserTest {
 
         rapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
-            Key.BEHOV to BehovType.LAGRE_AVSENDER_SYSTEM.toJson(BehovType.serializer()),
+            Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(BehovType.serializer()),
             Key.UUID to randomUuid().toJson(),
             DataFelt.EKSTERN_INNTEKTSMELDING to avsenderSystem.toJson(EksternInntektsmelding.serializer()),
             Key.FORESPOERSEL_ID to randomUuid().toJson()
 
         )
         val message = rapid.inspektør.message(0)
-        Assertions.assertEquals(EventName.AVSENDER_SYSTEM_LAGRET.name, message.path(Key.EVENT_NAME.str).asText())
+        Assertions.assertEquals(EventName.EKSTERN_INNTEKTSMELDING_LAGRET.name, message.path(Key.EVENT_NAME.str).asText())
     }
 }

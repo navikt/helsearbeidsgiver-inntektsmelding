@@ -30,7 +30,7 @@ class LagreEksternInntektsmeldingLoeser(
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
-            it.demandValue(Key.BEHOV.str, BehovType.LAGRE_AVSENDER_SYSTEM.name)
+            it.demandValue(Key.BEHOV.str, BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name)
             it.requireKey(Key.UUID.str)
             it.interestedIn(DataFelt.EKSTERN_INNTEKTSMELDING)
         }
@@ -44,7 +44,7 @@ class LagreEksternInntektsmeldingLoeser(
             Log.transaksjonId(UUID.fromString(transaksjonsId)),
             Log.behov(behov.behov)
         ) {
-            logger.info("Mottok behov ${BehovType.LAGRE_AVSENDER_SYSTEM.name}")
+            logger.info("Mottok behov ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name}")
             sikkerLogger.info("Mottok behov:\n${behov.toJsonMessage().toPretty()}")
             val eksternInntektsmelding = behov[DataFelt.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer())
             if (eksternInntektsmelding == null) {
@@ -53,12 +53,12 @@ class LagreEksternInntektsmeldingLoeser(
                 publishFail(behov.createFail("Klarte ikke lagre EksternInntektsmelding for transaksjonsId $transaksjonsId. Mangler datafelt"))
             } else {
                 try {
-                    repository.lagreAvsenderSystemData(forespoerselId, eksternInntektsmelding)
+                    repository.lagreEksternInntektsmelding(forespoerselId, eksternInntektsmelding)
                     logger.info(
                         "Lagret EksternInntektsmelding med arkiv referanse ${eksternInntektsmelding.arkivreferanse}" +
                             " i database for forespoerselId $forespoerselId"
                     )
-                    publishEvent(Event.create(EventName.AVSENDER_SYSTEM_LAGRET, forespoerselId, mapOf(Key.UUID to transaksjonsId)))
+                    publishEvent(Event.create(EventName.EKSTERN_INNTEKTSMELDING_LAGRET, forespoerselId, mapOf(Key.UUID to transaksjonsId)))
                 } catch (ex: Exception) {
                     publishFail(behov.createFail("Klarte ikke lagre EksternInntektsmelding for transaksjonsId $transaksjonsId"))
                     logger.error("Klarte ikke lagre EksternInntektsmelding")

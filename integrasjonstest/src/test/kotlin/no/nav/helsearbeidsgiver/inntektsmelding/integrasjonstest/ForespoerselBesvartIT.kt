@@ -50,8 +50,8 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         bekreftForventedeMeldinger()
 
-        messages.filter(EventName.AVSENDER_REQUESTED)
-            .filter(BehovType.HENT_AVSENDER_SYSTEM)
+        messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
+            .filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
             .first()
             .toMap()
             .also {

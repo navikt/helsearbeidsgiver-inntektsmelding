@@ -17,7 +17,7 @@ class SpinnKlient(
     val httpClient: HttpClient,
     private val getAccessToken: () -> String
 ) {
-    fun hentAvsenderSystemData(inntektsmeldingId: String): EksternInntektsmelding {
+    fun hentEksternInntektsmelding(inntektsmeldingId: String): EksternInntektsmelding {
         val result = runBlocking {
             val response = httpClient.get("$url/$inntektsmeldingId") {
                 contentType(ContentType.Application.Json)

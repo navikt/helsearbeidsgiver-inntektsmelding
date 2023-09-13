@@ -86,7 +86,7 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun lagreAvsenderSystemData(forespørselId: String, eksternIm: EksternInntektsmelding) {
+    fun lagreEksternInntektsmelding(forespørselId: String, eksternIm: EksternInntektsmelding) {
         transaction(db) {
             InntektsmeldingEntitet.run {
                 insert {

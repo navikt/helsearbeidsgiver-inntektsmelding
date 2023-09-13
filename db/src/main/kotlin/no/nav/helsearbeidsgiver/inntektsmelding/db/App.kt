@@ -56,7 +56,7 @@ fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingReposit
         HentOrgnrLoeser(this, forespoerselRepo)
         logger.info("Starter NotifikasjonHentIdLoeser...")
         NotifikasjonHentIdLoeser(this, forespoerselRepo)
-        logger.info("Starter LagreAvsenderSystemLøser...")
+        logger.info("Starter LagreEksternInntektsmeldingLøser...")
         LagreEksternInntektsmeldingLoeser(this, imRepo)
         registerDbLifecycle(database)
     }

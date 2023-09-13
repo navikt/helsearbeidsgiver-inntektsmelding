@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem
 
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -114,24 +113,15 @@ class EksterntSystemService(
             val eksternInntektsmelding: EksternInntektsmelding = avsenderSystem.toString().fromJson(EksternInntektsmelding.serializer())
 
             if (eksternInntektsmelding.avsenderSystemNavn != "NAV_NO") {
-                val msg = JsonMessage.newMessage(
-                    mapOf(
-                        Key.EVENT_NAME.str to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.name,
-                        Key.BEHOV.str to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name,
-                        Key.UUID.str to randomUuid(),
-                        DataFelt.FORESPOERSEL_ID.str to forespoerselId,
-                        DataFelt.EKSTERN_INNTEKTSMELDING.str to eksternInntektsmelding
-                    )
-                ).toJson()
-                // rapid.publish(Behov.create(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT, BehovType.LAGRE_AVSENDER_SYSTEM, forespoerselId.toString(), mapOf(DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystemData)).toJsonMessage().toString())
-                rapid.publish(msg)
-                /*rapid.publish(
+                rapid.publish(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.BEHOV to BehovType.LAGRE_AVSENDER_SYSTEM.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+                    Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
+                    Key.UUID to randomUuid().toJson(),
                     DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystemData.toJson(AvsenderSystemData.serializer())
-                )*/
+                    DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(
+                        EksternInntektsmelding.serializer()
+                    )
+                )
             }
         }
         val clientId = RedisKey.of(transaksjonId.toString(), event)
@@ -168,10 +158,6 @@ class EksterntSystemService(
         ) {
             sikkerLogger.error("$event terminert.")
         }
-    }
-
-    private fun RedisKey.write(json: JsonElement) {
-        redisStore.set(this, json.toString())
     }
 
     private fun RedisKey.read(): String? =

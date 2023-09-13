@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AvsenderSystemLagretIT : EndToEndTest() {
+class EksternInntektsmeldingLagretIT : EndToEndTest() {
 
     @Test
     fun `lagre avsenderSystem hvis ikke fra nav_no`() {

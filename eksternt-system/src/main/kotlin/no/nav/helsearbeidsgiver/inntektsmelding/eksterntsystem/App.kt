@@ -26,13 +26,13 @@ fun main() {
 
 fun RapidsConnection.createAvsenderSystemLoeser(spinnKlient: SpinnKlient): RapidsConnection =
     apply {
-        logger.info("Starting ${AvsenderSystemLoeser::class.simpleName}...")
-        AvsenderSystemLoeser(this, spinnKlient)
+        logger.info("Starting ${EksternInntektsmeldingLoeser::class.simpleName}...")
+        EksternInntektsmeldingLoeser(this, spinnKlient)
     }
 
 fun RapidsConnection.createEksterntSystemService(redisStore: IRedisStore): RapidsConnection =
     apply {
-        logger.info("Starting ${AvsenderSystemLoeser::class.simpleName}...")
+        logger.info("Starting ${EksternInntektsmeldingLoeser::class.simpleName}...")
         EksterntSystemService(this, redisStore)
     }
 

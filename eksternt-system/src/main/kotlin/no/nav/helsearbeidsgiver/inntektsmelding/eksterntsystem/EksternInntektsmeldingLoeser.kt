@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class AvsenderSystemLoeser(
+class EksternInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
     private val spinnKlient: SpinnKlient
 ) : Løser(rapidsConnection) {

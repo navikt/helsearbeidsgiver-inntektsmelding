@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.AvsenderSystemLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.EksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.FIKK_SVAR_MED_RESPONSE_STATUS
 import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnApiException
 import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnKlient
@@ -41,7 +41,7 @@ class AvsenderSystemLoeserTest : FunSpec({
 
     val spinnKlient = mockk<SpinnKlient>()
 
-    AvsenderSystemLoeser(testRapid, spinnKlient)
+    EksternInntektsmeldingLoeser(testRapid, spinnKlient)
 
     beforeEach {
         testRapid.reset()

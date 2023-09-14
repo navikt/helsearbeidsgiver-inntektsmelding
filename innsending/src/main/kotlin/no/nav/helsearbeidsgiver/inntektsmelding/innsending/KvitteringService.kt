@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventList
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
@@ -70,7 +71,7 @@ class KvitteringService(
         // TODO: Skriv bort fra empty payload hvis mulig
         val im = InnsendtInntektsmelding(
             message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText().let { if (it != "{}") Jackson.fromJson<InntektsmeldingDokument>(it) else null },
-            message[DataFelt.EKSTERN_INNTEKTSMELDING.str].asText().let { if (it != "{}") Jackson.fromJson<EksternInntektsmelding>(it) else null }
+            message[DataFelt.EKSTERN_INNTEKTSMELDING.str].asText().let { if (it != "{}") it.fromJson(EksternInntektsmelding.serializer()) else null }
         ).let { Jackson.toJson(it) }
 
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")

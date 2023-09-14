@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytel
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
@@ -38,6 +39,20 @@ class InnsendingValidateKtTest {
     @Test
     fun `skal akseptere gyldig`() {
         GYLDIG_INNSENDING_REQUEST.validate()
+    }
+
+    @Test
+    fun `skal tillate at refusjon i arbeidsgiverperioden ikke settes (ved delvis innsending)`() {
+        DELVIS_INNSENDING_REQUEST.validate()
+    }
+
+    @Test
+    fun `skal gi feil om refusjonIarbeidsgiverperioden ikke settes (ved komplett innsending)`() {
+        assertThrows<ConstraintViolationException> {
+            GYLDIG_INNSENDING_REQUEST.copy(
+                fullLønnIArbeidsgiverPerioden = null
+            ).validate()
+        }
     }
 
     @Test
@@ -150,9 +165,13 @@ class InnsendingValidateKtTest {
 
     @Test
     fun `skal gi feil dersom bruttoInntekt er negativ`() {
-        assertThrows<ConstraintViolationException> {
+        try {
             val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = NEGATIVT_BELØP)
             GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
+        } catch (ex: ConstraintViolationException) {
+            val response = validationResponseMapper(ex.constraintViolations)
+            assertEquals("inntekt.beregnetInntekt", response.errors[0].property)
+            assertEquals("Må være større eller lik 0", response.errors[0].error)
         }
     }
 
@@ -220,7 +239,7 @@ class InnsendingValidateKtTest {
             GYLDIG_INNSENDING_REQUEST.copy(
                 naturalytelser = listOf(
                     Naturalytelse(
-                        NaturalytelseKode.YRKEBILTJENESTLIGBEHOVKILOMETER,
+                        NaturalytelseKode.KOSTDOEGN,
                         NOW,
                         NEGATIVT_BELØP
                     )
@@ -257,7 +276,7 @@ class InnsendingValidateKtTest {
             GYLDIG_INNSENDING_REQUEST.copy(
                 naturalytelser = listOf(
                     Naturalytelse(
-                        NaturalytelseKode.INNBETALINGTILUTENLANDSKPENSJONSORDNING,
+                        NaturalytelseKode.BIL,
                         NOW,
                         MAX_NATURAL_BELØP.plus(1.toBigDecimal())
                     )
@@ -398,6 +417,18 @@ class InnsendingValidateKtTest {
         GYLDIG_INNSENDING_REQUEST.copy(
             inntekt = Inntekt(
                 endringÅrsak = Bonus(),
+                beregnetInntekt = 1.0.toBigDecimal(),
+                bekreftet = true,
+                manueltKorrigert = false
+            )
+        ).validate()
+    }
+
+    @Test
+    fun `skal godta endringsårsak - Nyansatt`() {
+        GYLDIG_INNSENDING_REQUEST.copy(
+            inntekt = Inntekt(
+                endringÅrsak = Nyansatt(),
                 beregnetInntekt = 1.0.toBigDecimal(),
                 bekreftet = true,
                 manueltKorrigert = false

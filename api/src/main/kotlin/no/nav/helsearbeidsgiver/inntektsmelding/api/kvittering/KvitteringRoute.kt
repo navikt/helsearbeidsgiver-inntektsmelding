@@ -157,7 +157,7 @@ private fun tilKvitteringResponse(innsendtInntektsmelding: InnsendtInntektsmeldi
         kvitteringEkstern = innsendtInntektsmelding.eksternInntektsmelding?.let { eIm ->
             KvitteringEkstern(
                 eIm.avsenderSystemNavn,
-                eIm.avsenderSystemNavn,
+                eIm.arkivreferanse,
                 // TODO: burde være tidspunkt i vår tidsone OSLO
                 eIm.tidspunkt.let { ZonedDateTime.of(it, Clock.systemDefaultZone().zone).toOffsetDateTime() }
             )

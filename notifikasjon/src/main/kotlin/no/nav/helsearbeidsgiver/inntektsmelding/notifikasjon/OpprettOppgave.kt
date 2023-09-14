@@ -20,6 +20,19 @@ class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventList
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
         it.requireKey(DataFelt.ORGNRUNDERENHET.str)
+
+        // Vi skal manuelt publisere events som har gitt feil, men ønsker ikke at
+        // denne løseren skal agere på eventsene, derfor filtrerer vi dem ut her midlertidig
+        it.rejectValues(
+            Key.FORESPOERSEL_ID.str,
+            listOf(
+                "2d62ac7f-fa2e-4770-9377-9eea1a94506f",
+                "d6d61e86-1ea3-4250-b7b9-c1dd1767ef23",
+                "81f7e7ab-9388-4f1a-b828-f5cb6e4a642a",
+                "3bb011ed-b275-4df8-aec5-5b9c6ee60d95",
+                "9ac8eb21-1e9c-4bd8-95b3-c2e3613ad82e"
+            )
+        )
     }
 
     override fun onEvent(event: Event) {

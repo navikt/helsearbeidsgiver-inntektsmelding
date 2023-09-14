@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn
+package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River

@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn
+package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
@@ -21,7 +22,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -105,24 +105,23 @@ class SpinnService(
     override fun finalize(message: JsonMessage) {
         val json = message.toJsonMap()
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
-        val avsenderSystem = message[DataFelt.EKSTERN_INNTEKTSMELDING.str]
+        val eksternInntektsmelding = DataFelt.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), json)
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
-
-        if (avsenderSystem != null && forespoerselId != null) {
-            val eksternInntektsmelding: EksternInntektsmelding = avsenderSystem.toString().fromJson(EksternInntektsmelding.serializer())
-
-            if (eksternInntektsmelding.avsenderSystemNavn != "NAV_NO") {
-                rapid.publish(
-                    Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
-                    Key.UUID to randomUuid().toJson(),
-                    DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(
-                        EksternInntektsmelding.serializer()
-                    )
+        if (
+            forespoerselId != null &&
+            eksternInntektsmelding?.avsenderSystemNavn != null &&
+            eksternInntektsmelding.avsenderSystemNavn != "NAV_NO"
+        ) {
+            rapid.publish(
+                Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
+                Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
+                Key.UUID to randomUuid().toJson(),
+                DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
+                DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding!!.toJson(
+                    EksternInntektsmelding.serializer()
                 )
-            }
+            )
         }
         val clientId = RedisKey.of(transaksjonId.toString(), event)
             .read()?.let(UUID::fromString)
@@ -130,7 +129,7 @@ class SpinnService(
             sikkerLogger.error("Kunne ikke lese clientId for $transaksjonId fra Redis")
         }
 
-        val logFields = loggFelterNotNull(transaksjonId, clientId)
+        val logFields = loggFelterNotNull(transaksjonId, clientId,)
 
         MdcUtils.withLogFields(
             *logFields

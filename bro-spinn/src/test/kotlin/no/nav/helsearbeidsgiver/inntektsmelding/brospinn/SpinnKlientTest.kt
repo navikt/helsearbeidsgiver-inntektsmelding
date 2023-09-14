@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn
+package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec

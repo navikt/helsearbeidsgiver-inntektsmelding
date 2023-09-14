@@ -17,9 +17,9 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.SpinnKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.createAvsenderSystemLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.createEksterntSystemService
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createAvsenderSystemLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksterntSystemService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository

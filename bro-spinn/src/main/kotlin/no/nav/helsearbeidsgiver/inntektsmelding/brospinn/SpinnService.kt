@@ -74,14 +74,15 @@ class SpinnService(
             publishFail(message)
             return
         }
-
-        val fields = loggFelterNotNull(transaksjonId, forespoerselId)
+        val clientId = RedisKey.of(transaksjonId.toString(), event).read()?.let(UUID::fromString)
+        val fields = loggFelterNotNull(transaksjonId, clientId)
 
         MdcUtils.withLogFields(
-            *fields
+            *fields,
+            Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING),
+            Log.forespoerselId(forespoerselId)
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
-
             if (transaction == Transaction.NEW) {
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
@@ -90,13 +91,11 @@ class SpinnService(
                     DataFelt.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
                     Key.UUID to transaksjonId.toJson()
                 )
-                    .also {
-                        MdcUtils.withLogFields(
-                            Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
-                        ) {
-                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                        }
-                    }
+                .also {
+                    logger.info("Publiserte melding om ${BehovType.HENT_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                }
+
             }
         }
     }

@@ -18,7 +18,7 @@ import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 
 class SpinnKlientTest : FunSpec({
 
-    val expectedJson = "gyldingRespons.json".readResource()
+    val expectedJson = "gyldigRespons.json".readResource()
     val expectedInntektsmelding = Jackson.fromJson<Inntektsmelding>(expectedJson)
     var status: HttpStatusCode = HttpStatusCode.OK
     var responsData: String = expectedJson

@@ -46,6 +46,11 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
                 } else {
                     sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId ${behov.forespoerselId}")
                 }
+                if (eksternInntektsmelding == EMPTY_PAYLOAD) {
+                    logger.info("Fant IKKE persistert eksternInntektsmelding for forespørselId ${behov.forespoerselId}")
+                } else {
+                    sikkerLogger.info("Fant persistert eksternInntektsmelding: $eksternInntektsmelding for forespørselId ${behov.forespoerselId}")
+                }
                 behov.createData(
                     mapOf(
                         DataFelt.INNTEKTSMELDING_DOKUMENT to dokument,

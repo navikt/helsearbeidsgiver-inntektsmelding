@@ -18,4 +18,3 @@ pluginManagement {
         id("org.jmailen.kotlinter") version kotlinterVersion
     }
 }
-include("eksternt-system")

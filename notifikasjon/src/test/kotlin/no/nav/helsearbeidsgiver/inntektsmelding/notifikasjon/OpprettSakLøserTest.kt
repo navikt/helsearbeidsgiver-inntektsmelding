@@ -8,6 +8,7 @@ import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakException
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -47,6 +48,39 @@ class OpprettSakLøserTest : FunSpec({
                 "P5M"
             )
         } returns expectedSakId
+
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
+            Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
+            DataFelt.ARBEIDSTAKER_INFORMASJON to mockPersonDato().toJson(PersonDato.serializer()),
+            DataFelt.ORGNRUNDERENHET to "org-456".toJson(),
+            Key.IDENTITETSNUMMER to "12345678901".toJson(),
+            Key.FORESPOERSEL_ID to "uuid-abc".toJson()
+        )
+
+        val resultat = testRapid.firstMessage()
+
+        resultat.fromJsonMapOnlyKeys() shouldContainKey Key.DATA
+
+        resultat.fromJsonMapFiltered(DataFelt.serializer()).let {
+            val actualSakId = it[DataFelt.SAK_ID]?.fromJson(String.serializer())
+            actualSakId shouldBe expectedSakId
+        }
+    }
+    test("skal håndtere feilmelding på duplikater") {
+        val expectedSakId = "en helt særegen id"
+
+        coEvery {
+            mockArbeidsgiverNotifikasjonKlient.opprettNySak(
+                "uuid-abc",
+                "Inntektsmelding",
+                "org-456",
+                "Inntektsmelding for ${mockPersonDato().navn}: f. 050120",
+                "enSlagsUrl/im-dialog/uuid-abc",
+                "NAV trenger inntektsmelding",
+                "P5M"
+            )
+        } throws OpprettNySakException("duplikat melding")
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),

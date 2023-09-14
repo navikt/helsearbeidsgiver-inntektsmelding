@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.EksterntSystemService
+import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.EksterntSystemService
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr

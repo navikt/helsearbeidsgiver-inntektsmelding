@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn
+package no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.spinn
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth

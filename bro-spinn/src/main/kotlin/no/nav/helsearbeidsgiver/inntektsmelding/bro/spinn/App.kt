@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem
+package no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
@@ -7,7 +7,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnKlient
+import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-forespoersel-besvart".logger()

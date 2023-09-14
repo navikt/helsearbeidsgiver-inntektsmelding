@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem
+package no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn
 
 import no.nav.helsearbeidsgiver.felles.fromEnv
 import no.nav.helsearbeidsgiver.felles.oauth2.AzureOAuth2Environment

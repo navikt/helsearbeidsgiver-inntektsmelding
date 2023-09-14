@@ -23,9 +23,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
-import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.createAvsenderSystemLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.createEksterntSystemService
-import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnKlient
+import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.createAvsenderSystemLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.createEksterntSystemService
+import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt

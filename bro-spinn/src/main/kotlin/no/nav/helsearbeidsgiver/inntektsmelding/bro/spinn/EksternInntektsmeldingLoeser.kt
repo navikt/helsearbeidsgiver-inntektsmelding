@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem
+package no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -10,8 +10,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnApiException
-import no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem.spinn.SpinnKlient
+import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.spinn.SpinnApiException
+import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 

@@ -33,7 +33,7 @@ dependencies {
     implementation(project(":pdl"))
     implementation(project(":tilgangservice"))
     implementation(project(":trengerservice"))
-    implementation(project(":eksternt-system"))
+    implementation(project(":bro-spinn"))
 
     implementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")

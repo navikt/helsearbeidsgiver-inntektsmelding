@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.eksterntsystem
+package no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection

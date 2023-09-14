@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -26,6 +27,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
@@ -34,6 +36,7 @@ class SpinnService(
     override val redisStore: IRedisStore
 ) : CompositeEventListener(redisStore) {
 
+    private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val event: EventName = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
@@ -118,10 +121,14 @@ class SpinnService(
                 Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
                 Key.UUID to randomUuid().toJson(),
                 DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
-                DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding!!.toJson(
+                DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(
                     EksternInntektsmelding.serializer()
                 )
-            )
+            ).also {
+                logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
+                sikkerLogger.info("Publiserte melding: ${it.toPretty()}")
+            }
+
         }
         val clientId = RedisKey.of(transaksjonId.toString(), event)
             .read()?.let(UUID::fromString)

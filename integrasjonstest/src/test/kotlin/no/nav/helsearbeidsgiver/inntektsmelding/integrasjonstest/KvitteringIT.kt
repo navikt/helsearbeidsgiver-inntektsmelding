@@ -44,6 +44,7 @@ class KvitteringIT : EndToEndTest() {
 
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
             .first()
             .toMap()
             .also {
@@ -76,6 +77,7 @@ class KvitteringIT : EndToEndTest() {
 
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
             .first()
             .toMap()
             .also {
@@ -102,6 +104,7 @@ class KvitteringIT : EndToEndTest() {
 
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
             .first()
             .toMap()
             .also {

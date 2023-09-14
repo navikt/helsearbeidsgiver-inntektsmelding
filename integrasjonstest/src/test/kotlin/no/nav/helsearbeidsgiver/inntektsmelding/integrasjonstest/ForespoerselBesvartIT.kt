@@ -42,7 +42,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
             publish(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldinigId.toJson()
+                Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldinId.toJson()
             )
 
             waitForMessages(20000)
@@ -55,7 +55,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
             .first()
             .toMap()
             .also {
-                DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldinigId
+                DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldinId
             }
     }
 
@@ -137,6 +137,6 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         val forespoerselId = randomUuid()
         val transaksjonId = randomUuid()
-        val spinnInntektsmeldinigId = randomUuid()
+        val spinnInntektsmeldinId = randomUuid()
     }
 }

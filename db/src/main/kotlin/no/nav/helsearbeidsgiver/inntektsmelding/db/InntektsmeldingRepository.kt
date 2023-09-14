@@ -49,7 +49,7 @@ class InntektsmeldingRepository(private val db: Database) {
     }
 
     fun hentNyesteEksternEllerInternInntektsmelding(forespørselId: String): Pair<InntektsmeldingDokument?, EksternInntektsmelding?>? {
-        val requestTimer = requestLatency.labels("hentNyesteEntitet").startTimer()
+        val requestTimer = requestLatency.labels("hentNyesteInternEllerEkstern").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding).run {
                 select { (forespoerselId eq forespørselId) }.orderBy(innsendt, SortOrder.DESC)

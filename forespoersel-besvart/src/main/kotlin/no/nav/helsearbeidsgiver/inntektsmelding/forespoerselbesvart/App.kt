@@ -13,7 +13,11 @@ fun main() {
 
     val priProducer = PriProducer(Env.Kafka, JsonElement.serializer())
 
-    RapidApplication.create(System.getenv()).createForespoerselBesvartFraSimba().createForespoerselBesvartFraSpleis(priProducer).start()
+    RapidApplication
+        .create(System.getenv())
+        .createForespoerselBesvartFraSimba()
+        .createForespoerselBesvartFraSpleis(priProducer)
+        .start()
 
     logger.info("Bye bye, baby, bye bye!")
 }

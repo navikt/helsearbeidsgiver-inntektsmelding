@@ -48,7 +48,7 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun hentNyesteEntitet(forespørselId: String): Pair<InntektsmeldingDokument?, EksternInntektsmelding?>? {
+    fun hentNyesteEksternEllerInternInntektsmelding(forespørselId: String): Pair<InntektsmeldingDokument?, EksternInntektsmelding?>? {
         val requestTimer = requestLatency.labels("hentNyesteEntitet").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding).run {
@@ -61,17 +61,6 @@ class InntektsmeldingRepository(private val db: Database) {
             }.firstOrNull().also {
                 requestTimer.observeDuration()
             }
-        }
-    }
-
-    fun hentNyesteFraEksterntSystem(forespørselId: String): EksternInntektsmelding? {
-        val requestTimer = requestLatency.labels("hentNyeste").startTimer()
-        return transaction(db) {
-            InntektsmeldingEntitet.run {
-                select { (forespoerselId eq forespørselId) and (eksternInntektsmelding.isNotNull()) }.orderBy(innsendt, SortOrder.DESC)
-            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.eksternInntektsmelding)
-        }.also {
-            requestTimer.observeDuration()
         }
     }
 

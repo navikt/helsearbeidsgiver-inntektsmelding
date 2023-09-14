@@ -40,7 +40,7 @@ class HentPersistertLøserTest {
     @Test
     fun `skal hente ut InntektsmeldingDokument`() {
         coEvery {
-            repository.hentNyesteEntitet(any())
+            repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } returns Pair(INNTEKTSMELDING_DOKUMENT, null)
         sendMelding(
             Key.BEHOV to BEHOV.toJson(),
@@ -59,7 +59,7 @@ class HentPersistertLøserTest {
     @Test
     fun `skal håndtere feil`() {
         coEvery {
-            repository.hentNyesteEntitet(any())
+            repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } throws Exception()
         val fail = sendMeldingMedFeil(
             Key.BEHOV to BEHOV.toJson(),
@@ -74,7 +74,7 @@ class HentPersistertLøserTest {
     @Test
     fun `Ingen feilmelding dersom im ikke eksisterer`() {
         coEvery {
-            repository.hentNyesteEntitet(any())
+            repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } returns null
         sendMelding(
             Key.BEHOV to BEHOV.toJson(),

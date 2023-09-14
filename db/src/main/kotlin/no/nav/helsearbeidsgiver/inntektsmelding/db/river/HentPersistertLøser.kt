@@ -38,7 +38,7 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
         measureTimeMillis {
             logger.info("Skal hente persistert inntektsmelding med forespørselId ${behov.forespoerselId}")
             try {
-                val entitet = repository.hentNyesteEntitet(behov.forespoerselId!!)
+                val entitet = repository.hentNyesteEksternEllerInternInntektsmelding(behov.forespoerselId!!)
                 val dokument = entitet?.first?.let { Jackson.toJson(it) } ?: EMPTY_PAYLOAD
                 val eksternInntektsmelding = entitet?.second?.let { Jackson.toJson(it) } ?: EMPTY_PAYLOAD
                 if (dokument == EMPTY_PAYLOAD) {

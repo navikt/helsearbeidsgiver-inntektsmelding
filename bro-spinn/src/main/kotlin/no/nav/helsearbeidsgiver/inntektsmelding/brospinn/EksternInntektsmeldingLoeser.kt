@@ -40,8 +40,8 @@ class EksternInntektsmeldingLoeser(
             return
         }
         try {
-            val avsenderSystem = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId.asText())
-            publishData(behov.createData(mapOf(DataFelt.EKSTERN_INNTEKTSMELDING to avsenderSystem)))
+            val eksternInntektsmelding = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId.asText())
+            publishData(behov.createData(mapOf(DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding)))
         } catch (e: SpinnApiException) {
             "Feil ved kall mot spinn api: ${e.message}".also {
                 logger.error(it)

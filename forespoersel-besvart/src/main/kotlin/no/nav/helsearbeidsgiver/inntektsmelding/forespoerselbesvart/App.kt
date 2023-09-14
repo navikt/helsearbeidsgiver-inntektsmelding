@@ -22,12 +22,14 @@ fun main() {
     logger.info("Bye bye, baby, bye bye!")
 }
 
-fun RapidsConnection.createForespoerselBesvartFraSimba(): RapidsConnection = apply {
-    logger.info("Starter ${ForespoerselBesvartFraSimbaLoeser::class.simpleName}...")
-    ForespoerselBesvartFraSimbaLoeser(this)
-}
+fun RapidsConnection.createForespoerselBesvartFraSimba(): RapidsConnection =
+    apply {
+        logger.info("Starter ${ForespoerselBesvartFraSimbaLoeser::class.simpleName}...")
+        ForespoerselBesvartFraSimbaLoeser(this)
+    }
 
-fun RapidsConnection.createForespoerselBesvartFraSpleis(priProducer: PriProducer<JsonElement>): RapidsConnection = apply {
-    logger.info("Starter ${ForespoerselBesvartFraSpleisLoeser::class.simpleName}...")
-    ForespoerselBesvartFraSpleisLoeser(this, priProducer)
-}
+fun RapidsConnection.createForespoerselBesvartFraSpleis(priProducer: PriProducer<JsonElement>): RapidsConnection =
+    apply {
+        logger.info("Starter ${ForespoerselBesvartFraSpleisLoeser::class.simpleName}...")
+        ForespoerselBesvartFraSpleisLoeser(this, priProducer)
+    }

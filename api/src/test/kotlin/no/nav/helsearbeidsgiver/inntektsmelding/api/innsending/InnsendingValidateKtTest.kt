@@ -14,27 +14,29 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.valiktor.ConstraintViolationException
-import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
 class InnsendingValidateKtTest {
 
-    private val NOW = LocalDate.now()
-    private val MAX_INNTEKT: BigDecimal = 1_000_001.0.toBigDecimal()
-    private val MAX_REFUSJON: BigDecimal = 1_000_001.0.toBigDecimal()
-    private val NEGATIVT_BELØP: BigDecimal = (-0.1).toBigDecimal()
-    private val MAX_NATURAL_BELØP: BigDecimal = 1_000_000.0.toBigDecimal()
-    private val ZERO: BigDecimal = 0.toBigDecimal()
+    private val now: LocalDate = LocalDate.now()
+    private val zero = 0.toBigDecimal()
+    private val maksInntekt = 1_000_001.0.toBigDecimal()
+    private val maksRefusjon = 1_000_001.0.toBigDecimal()
+    private val maksNaturalBeloep = 1_000_000.0.toBigDecimal()
+    private val negativtBeloep = (-0.1).toBigDecimal()
 
     @Test
     fun `skal akseptere gyldig`() {
@@ -68,7 +70,11 @@ class InnsendingValidateKtTest {
     @Test
     fun `skal godta tom liste med arbeidsgiverperioder når arbeidsgiver ikke betaler lønn`() {
         GYLDIG_INNSENDING_REQUEST.copy(
-            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(false, BegrunnelseIngenEllerRedusertUtbetalingKode.FISKER_MED_HYRE),
+            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                utbetalerFullLønn = false,
+                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FISKER_MED_HYRE,
+                utbetalt = zero
+            ),
             arbeidsgiverperioder = emptyList()
         ).validate()
     }
@@ -77,7 +83,7 @@ class InnsendingValidateKtTest {
     fun `skal ikke godta arbeidsgiverperioder med ugyldig periode (fom ETTER tom))`() {
         assertThrows<ConstraintViolationException> {
             GYLDIG_INNSENDING_REQUEST.copy(
-                arbeidsgiverperioder = listOf(Periode(NOW, NOW.minusDays(5)))
+                arbeidsgiverperioder = listOf(Periode(now, now.minusDays(5)))
             ).validate()
         }
     }
@@ -85,7 +91,7 @@ class InnsendingValidateKtTest {
     @Test
     fun `skal godta arbeidsgiverperioder med gyldig periode (fom FØR tom)`() {
         GYLDIG_INNSENDING_REQUEST.copy(
-            arbeidsgiverperioder = listOf(Periode(NOW, NOW.plusDays(3)))
+            arbeidsgiverperioder = listOf(Periode(now, now.plusDays(3)))
         ).validate()
     }
 
@@ -147,8 +153,8 @@ class InnsendingValidateKtTest {
             GYLDIG_INNSENDING_REQUEST.copy(
                 egenmeldingsperioder = listOf(
                     Periode(
-                        NOW.plusDays(1),
-                        NOW
+                        now.plusDays(1),
+                        now
                     )
                 )
             ).validate()
@@ -158,7 +164,7 @@ class InnsendingValidateKtTest {
     @Test
     fun `skal gi feil dersom bruttoInntekt er for høy`() {
         assertThrows<ConstraintViolationException> {
-            val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = MAX_INNTEKT)
+            val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = maksInntekt)
             GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
         }
     }
@@ -166,7 +172,7 @@ class InnsendingValidateKtTest {
     @Test
     fun `skal gi feil dersom bruttoInntekt er negativ`() {
         try {
-            val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = NEGATIVT_BELØP)
+            val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = negativtBeloep)
             GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
         } catch (ex: ConstraintViolationException) {
             val response = validationResponseMapper(ex.constraintViolations)
@@ -177,7 +183,7 @@ class InnsendingValidateKtTest {
 
     @Test
     fun `skal tillate inntekt på 0 kroner`() {
-        val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = ZERO)
+        val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = zero)
         GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
     }
 
@@ -190,34 +196,171 @@ class InnsendingValidateKtTest {
     }
 
     @Test
-    fun `skal gi feil dersom arbeidsgiver ikke betaler lønn og refusjonsbeløp er tom`() {
+    fun `skal gi feil dersom arbeidsgiver ikke betaler lønn og begrunnelse er tom`() {
+        val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                utbetalerFullLønn = false,
+                begrunnelse = null,
+                utbetalt = 1.0.toBigDecimal()
+            )
+        )
+
         assertThrows<ConstraintViolationException> {
-            GYLDIG_INNSENDING_REQUEST.copy(
-                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
-                    false
-                )
-            ).validate()
+            ugyldigInnsending.validate()
+        }
+    }
+
+    @Test
+    fun `skal gi feil dersom arbeidsgiver ikke betaler lønn og utbetalt beløp er tomt`() {
+        val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                utbetalerFullLønn = false,
+                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT,
+                utbetalt = null
+            )
+        )
+
+        assertThrows<ConstraintViolationException> {
+            ugyldigInnsending.validate()
+        }
+    }
+
+    @Test
+    fun `skal gi feil dersom arbeidsgiver ikke betaler lønn og utbetalt beløp er negativt`() {
+        val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                utbetalerFullLønn = false,
+                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT,
+                utbetalt = negativtBeloep
+            )
+        )
+
+        assertThrows<ConstraintViolationException> {
+            ugyldigInnsending.validate()
+        }
+    }
+
+    @Test
+    fun `skal gi feil dersom arbeidsgiver ikke betaler lønn og utbetalt beløp er over maks`() {
+        val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                utbetalerFullLønn = false,
+                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT,
+                utbetalt = maksInntekt
+            )
+        )
+
+        assertThrows<ConstraintViolationException> {
+            ugyldigInnsending.validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom refusjonsbeløp er for høyt`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, MAX_REFUSJON)).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, maksRefusjon)).validate()
         }
     }
 
     @Test
     fun `skal gi feil dersom refusjonsbeløp er negativt`() {
         assertThrows<ConstraintViolationException> {
-            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, NEGATIVT_BELØP, NOW)).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, negativtBeloep, now)).validate()
         }
     }
 
     @Test
-    fun `skal gi feil dersom refusjonskravet opphører i perioden og dato er tom`() {
+    fun `endringer på refusjon er ikke påkrevd`() {
+        val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+            refusjon = Refusjon(
+                utbetalerHeleEllerDeler = true,
+                refusjonPrMnd = 1.0.toBigDecimal(),
+                refusjonEndringer = null
+            )
+        )
+
+        assertDoesNotThrow {
+            ugyldigInnsending.validate()
+        }
+    }
+
+    @Test
+    fun `skal gi feil dersom refusjon endres uten definert beløp`() {
+        val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+            refusjon = Refusjon(
+                utbetalerHeleEllerDeler = true,
+                refusjonPrMnd = 1.0.toBigDecimal(),
+                refusjonEndringer = listOf(
+                    RefusjonEndring(
+                        beløp = null,
+                        dato = now
+                    )
+                )
+            )
+        )
+
         assertThrows<ConstraintViolationException> {
-            GYLDIG_INNSENDING_REQUEST.copy(refusjon = Refusjon(true, NEGATIVT_BELØP)).validate()
+            ugyldigInnsending.validate()
+        }
+    }
+
+    @Test
+    fun `skal gi feil dersom refusjon endres til negativt beløp`() {
+        val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+            refusjon = Refusjon(
+                utbetalerHeleEllerDeler = true,
+                refusjonPrMnd = 1.0.toBigDecimal(),
+                refusjonEndringer = listOf(
+                    RefusjonEndring(
+                        beløp = negativtBeloep,
+                        dato = now
+                    )
+                )
+            )
+        )
+
+        assertThrows<ConstraintViolationException> {
+            ugyldigInnsending.validate()
+        }
+    }
+
+    @Test
+    fun `skal gi feil dersom refusjon endres til over maksimalt beløp`() {
+        val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+            refusjon = Refusjon(
+                utbetalerHeleEllerDeler = true,
+                refusjonPrMnd = 1.0.toBigDecimal(),
+                refusjonEndringer = listOf(
+                    RefusjonEndring(
+                        beløp = maksRefusjon,
+                        dato = now
+                    )
+                )
+            )
+        )
+
+        assertThrows<ConstraintViolationException> {
+            ugyldigInnsending.validate()
+        }
+    }
+
+    @Test
+    fun `skal gi feil dersom refusjon endres uten satt dato`() {
+        val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+            refusjon = Refusjon(
+                utbetalerHeleEllerDeler = true,
+                refusjonPrMnd = 1.0.toBigDecimal(),
+                refusjonEndringer = listOf(
+                    RefusjonEndring(
+                        beløp = 1.0.toBigDecimal(),
+                        dato = null
+                    )
+                )
+            )
+        )
+
+        assertThrows<ConstraintViolationException> {
+            ugyldigInnsending.validate()
         }
     }
 
@@ -240,8 +383,8 @@ class InnsendingValidateKtTest {
                 naturalytelser = listOf(
                     Naturalytelse(
                         NaturalytelseKode.KOSTDOEGN,
-                        NOW,
-                        NEGATIVT_BELØP
+                        now,
+                        negativtBeloep
                     )
                 )
             ).validate()
@@ -255,8 +398,8 @@ class InnsendingValidateKtTest {
                 naturalytelser = listOf(
                     Naturalytelse(
                         NaturalytelseKode.BOLIG,
-                        NOW,
-                        MAX_NATURAL_BELØP
+                        now,
+                        maksNaturalBeloep
                     )
                 )
             ).validate()
@@ -277,8 +420,8 @@ class InnsendingValidateKtTest {
                 naturalytelser = listOf(
                     Naturalytelse(
                         NaturalytelseKode.BIL,
-                        NOW,
-                        MAX_NATURAL_BELØP.plus(1.toBigDecimal())
+                        now,
+                        maksNaturalBeloep.plus(1.toBigDecimal())
                     )
                 )
             ).validate()
@@ -291,8 +434,8 @@ class InnsendingValidateKtTest {
 
     @Test
     fun `skal godta ulike årsak innsendinger`() {
-        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.NY).validate()
-        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.ENDRING).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = ÅrsakInnsending.NY).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = ÅrsakInnsending.ENDRING).validate()
     }
 
     @Test

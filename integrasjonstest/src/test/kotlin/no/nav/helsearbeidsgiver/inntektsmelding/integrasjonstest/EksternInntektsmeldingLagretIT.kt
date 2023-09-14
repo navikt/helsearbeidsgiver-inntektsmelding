@@ -24,7 +24,7 @@ import org.junit.jupiter.api.TestInstance
 class EksternInntektsmeldingLagretIT : EndToEndTest() {
 
     @Test
-    fun `lagre avsenderSystem hvis ikke fra nav_no`() {
+    fun `lagre ekstern inntektsmelding hvis ikke fra nav_no`() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
@@ -42,7 +42,7 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldinigId.toJson()
+                Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
             )
             Thread.sleep(10000)
         }
@@ -54,7 +54,7 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldinigId
+                DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldingId
             }
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT)
@@ -82,6 +82,6 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
 
         val forespoerselId = randomUuid()
         val transaksjonId = randomUuid()
-        val spinnInntektsmeldinigId = randomUuid()
+        val spinnInntektsmeldingId = randomUuid()
     }
 }

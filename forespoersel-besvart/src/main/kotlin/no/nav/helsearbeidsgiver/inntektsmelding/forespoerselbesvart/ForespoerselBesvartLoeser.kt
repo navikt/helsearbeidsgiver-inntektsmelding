@@ -119,5 +119,3 @@ private fun bestemLoggFelt(event: String): Pair<String, String> {
         else -> Log.ukjentType(event)
     }
 }
-
-private const val EMPTY_PAYLOAD = "{}"

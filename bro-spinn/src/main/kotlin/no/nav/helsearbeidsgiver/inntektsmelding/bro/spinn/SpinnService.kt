@@ -29,7 +29,7 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class EksterntSystemService(
+class SpinnService(
     private val rapid: RapidsConnection,
     override val redisStore: IRedisStore
 ) : CompositeEventListener(redisStore) {

@@ -33,7 +33,7 @@ fun RapidsConnection.createAvsenderSystemLoeser(spinnKlient: SpinnKlient): Rapid
 fun RapidsConnection.createEksterntSystemService(redisStore: IRedisStore): RapidsConnection =
     apply {
         logger.info("Starting ${EksternInntektsmeldingLoeser::class.simpleName}...")
-        EksterntSystemService(this, redisStore)
+        SpinnService(this, redisStore)
     }
 
 fun buildRedisStore(): IRedisStore {

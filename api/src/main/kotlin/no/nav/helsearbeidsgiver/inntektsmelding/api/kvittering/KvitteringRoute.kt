@@ -33,7 +33,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.Clock
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.UUID
 import kotlin.system.measureTimeMillis
 
 private const val EMPTY_PAYLOAD = "{}"

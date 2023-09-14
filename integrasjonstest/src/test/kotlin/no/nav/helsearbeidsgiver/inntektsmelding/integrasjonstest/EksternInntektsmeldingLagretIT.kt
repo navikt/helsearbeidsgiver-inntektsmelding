@@ -35,7 +35,6 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
             11.januar(2018).atStartOfDay()
         )
         every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
-        // imRepository.lagreAvsenderSystemData(Mock.forespoerselId.toString(), avsenderSystemData)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns Mock.transaksjonId

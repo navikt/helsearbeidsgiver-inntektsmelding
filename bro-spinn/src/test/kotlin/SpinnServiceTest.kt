@@ -15,18 +15,18 @@ import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.EksterntSystemService
+import no.nav.helsearbeidsgiver.inntektsmelding.bro.spinn.SpinnService
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 
-class EksterntSystemServiceTest : FunSpec({
+class SpinnServiceTest : FunSpec({
     val testRapid = TestRapid()
 
     val testRedis = MockRedisStore()
 
-    EksterntSystemService(testRapid, testRedis)
+    SpinnService(testRapid, testRedis)
 
     beforeEach {
         testRapid.reset()

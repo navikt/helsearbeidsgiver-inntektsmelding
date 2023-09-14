@@ -79,9 +79,9 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
     }
 
     private object Mock {
-        const val ORGNR = "sur-moskus"
-        const val SAK_ID = "tjukk-kalender"
-        const val OPPGAVE_ID = "kunstig-demon"
+        const val ORGNR = "sur-gubbe"
+        const val SAK_ID = "tjukk-gubbe"
+        const val OPPGAVE_ID = "kunstig-gubbe"
 
         val forespoerselId = randomUuid()
         val transaksjonId = randomUuid()

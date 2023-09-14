@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isTelefonnummer
@@ -21,15 +22,18 @@ import org.valiktor.functions.validate
 import org.valiktor.functions.validateForEach
 
 fun InnsendingRequest.validate() {
-    org.valiktor.validate(this) {
+    org.valiktor.validate(this) { innsendt ->
         // sjekk om delvis eller komplett innsending:
-        if (isKomplettForespoersel(it.forespurtData)) { // komplett innsending (settes per nå fra frontend :/ )
+        if (isKomplettForespoersel(innsendt.forespurtData)) { // komplett innsending (settes per nå fra frontend :/ )
             // validering kan komme til å divergere mer i fremtiden
             // Betaler arbeidsgiver full lønn til arbeidstaker
             validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).isNotNull() // må gjøre dette eksplisitt siden kontrakten tillater nullable
             validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {
                 if (!it.utbetalerFullLønn) {
                     validate(FullLonnIArbeidsgiverPerioden::begrunnelse).isNotNull()
+                    validate(FullLonnIArbeidsgiverPerioden::utbetalt).isNotNull()
+                    validate(FullLonnIArbeidsgiverPerioden::utbetalt).isGreaterThanOrEqualTo(0.0.toBigDecimal())
+                    validate(FullLonnIArbeidsgiverPerioden::utbetalt).isLessThan(1_000_000.0.toBigDecimal())
                 }
             }
         } else {
@@ -52,7 +56,7 @@ fun InnsendingRequest.validate() {
         }
         // Er tillatt å unngå arbeidsgiverperioder når:
         // - arbeidsgiver ikke betaler lønn i arbeidsgiverperioden
-        if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
+        if (innsendt.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
             validate(InnsendingRequest::arbeidsgiverperioder).isNotEmpty()
         }
         // Fraværsperiode
@@ -75,8 +79,16 @@ fun InnsendingRequest.validate() {
         // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
         validate(InnsendingRequest::refusjon).validate {
             if (it.utbetalerHeleEllerDeler) {
+                validate(Refusjon::refusjonPrMnd).isNotNull()
                 validate(Refusjon::refusjonPrMnd).isGreaterThan(0.0.toBigDecimal())
                 validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0.toBigDecimal())
+
+                validate(Refusjon::refusjonEndringer).validateForEach {
+                    validate(RefusjonEndring::beløp).isNotNull()
+                    validate(RefusjonEndring::beløp).isGreaterThan(0.0.toBigDecimal())
+                    validate(RefusjonEndring::beløp).isLessThan(1_000_000.0.toBigDecimal())
+                    validate(RefusjonEndring::dato).isNotNull()
+                }
             }
         }
         // Naturalytelser

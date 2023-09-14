@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -30,6 +29,8 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
+
+private const val AVSENDER_NAV_NO = "NAV_NO"
 
 class SpinnService(
     private val rapid: RapidsConnection,
@@ -113,7 +114,7 @@ class SpinnService(
         if (
             forespoerselId != null &&
             eksternInntektsmelding?.avsenderSystemNavn != null &&
-            eksternInntektsmelding.avsenderSystemNavn != "NAV_NO"
+            eksternInntektsmelding.avsenderSystemNavn != AVSENDER_NAV_NO
         ) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),

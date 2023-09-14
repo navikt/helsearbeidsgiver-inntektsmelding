@@ -40,7 +40,7 @@ class KotlinxUtilsKtTest : FunSpec({
                 }
             """.removeJsonWhitespace()
 
-            val bilboJsonNode = customObjectMapper().readTree(bilboJson)
+            val bilboJsonNode = Jackson.objectMapper.readTree(bilboJson)
 
             shouldNotThrowAny {
                 val converted = bilboJsonNode.toJsonElement()

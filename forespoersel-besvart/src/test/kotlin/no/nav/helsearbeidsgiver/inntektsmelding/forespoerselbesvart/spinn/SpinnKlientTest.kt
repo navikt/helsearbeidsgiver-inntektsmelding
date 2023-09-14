@@ -44,7 +44,7 @@ class SpinnKlientTest : FunSpec({
 
     test("Hvis inntektsmelding finnes men mangler avsenderSystemNavn kastes feil") {
         status = HttpStatusCode.OK
-        responsData = Jackson.objectMapper.writeValueAsString(expectedInntektsmelding.copy(avsenderSystem = AvsenderSystem(null, null)))
+        responsData = Jackson.toJson(expectedInntektsmelding.copy(avsenderSystem = AvsenderSystem(null, null)))
 
         val exception = shouldThrowExactly<SpinnApiException> {
             spinnKlient.hentAvsenderSystemData("abc-1")

@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
-import no.nav.helsearbeidsgiver.felles.test.mock.TestData
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -26,27 +26,37 @@ class InnsendingServiceIT : EndToEndTest() {
 
     @Test
     fun `Test at innsending er mottatt`() {
-        val forespoerselId = UUID.randomUUID()
-        val clientId = UUID.randomUUID()
-
-        forespoerselRepository.lagreForespoersel(forespoerselId.toString(), TestData.validOrgNr)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
+        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
+        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.CLIENT_ID to clientId.toJson(),
+            Key.CLIENT_ID to Mock.clientId.toJson(),
             DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson).parseJson(),
-            DataFelt.ORGNRUNDERENHET to TestData.validOrgNr.toJson(),
-            Key.IDENTITETSNUMMER to TestData.validIdentitetsnummer.toJson(),
-            Key.ARBEIDSGIVER_ID to TestData.validIdentitetsnummer.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
+            Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
+            Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
         Thread.sleep(10000)
 
-        messages.all().filter(clientId).size shouldBe 10
+        messages.all().filter(Mock.clientId).size shouldBe 10
 
-        val innsendingStr = redisStore.get(clientId.toString()).shouldNotBeNull()
+        val innsendingStr = redisStore.get(Mock.clientId.toString()).shouldNotBeNull()
         innsendingStr.length shouldBeGreaterThan 2
+    }
+
+    private object Mock {
+        const val ORGNR = "stolt-krakk"
+        const val FNR = "kongelig-albatross"
+        const val FNR_AG = "uutgrunnelig-koffert"
+        const val SAK_ID = "tjukk-kalender"
+        const val OPPGAVE_ID = "kunstig-demon"
+
+        val forespoerselId = randomUuid()
+        val clientId = randomUuid()
     }
 }
 

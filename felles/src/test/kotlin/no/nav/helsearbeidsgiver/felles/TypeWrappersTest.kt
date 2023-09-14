@@ -65,6 +65,14 @@ class TypeWrappersTest : FunSpec({
                     "31129912345",
                     "25056712345",
                     "11085812345",
+                    "41066612345", // D-nummer
+                    "45066612345", // D-nummer
+                    "50066612345", // D-nummer
+                    "57066612345", // D-nummer
+                    "60066612345", // D-nummer
+                    "69066612345", // D-nummer
+                    "70066612345", // D-nummer
+                    "71066612345", // D-nummer
                     "01490012345", // Testperson fra NAV
                     "01500012345", // Testperson fra NAV
                     "01890012345", // Testperson fra TestNorge
@@ -82,7 +90,9 @@ class TypeWrappersTest : FunSpec({
                 listOf(
                     "00010012345", // dag 0, andre siffer feil
                     "32010012345", // dag 32, andre siffer feil
-                    "40010012345", // dag 40, første siffer feil
+                    "40010012345", // dag 40, andre siffer feil (D-nummer)
+                    "72010012345", // dag 72, andre siffer feil (D-nummer)
+                    "80010012345", // dag 80, første siffer feil
                     "01000012345", // måned 0, fjerde siffer feil
                     "01130012345", // måned 13, fjerde siffer feil
                     "01200012345", // måned 20, tredje siffer feil

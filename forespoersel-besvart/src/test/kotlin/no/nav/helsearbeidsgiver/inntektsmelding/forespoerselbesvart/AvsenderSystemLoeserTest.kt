@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
@@ -59,7 +58,7 @@ class AvsenderSystemLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
+        val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
 
         testRapid.inspektør.size shouldBeExactly 1
         actual.behov shouldBe BehovType.HENT_AVSENDER_SYSTEM
@@ -80,7 +79,7 @@ class AvsenderSystemLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
+        val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
 
         testRapid.inspektør.size shouldBeExactly 1
         actual.behov shouldBe BehovType.HENT_AVSENDER_SYSTEM
@@ -100,7 +99,7 @@ class AvsenderSystemLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Data>() {
+        val actual = testRapid.firstMessage().toDomeneMessage<Data>() {
             it.interestedIn(DataFelt.AVSENDER_SYSTEM_DATA.str)
         }
 
@@ -123,7 +122,7 @@ class AvsenderSystemLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toJsonNode().toDomeneMessage<Fail>()
+        val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
 
         testRapid.inspektør.size shouldBeExactly 1
         actual.behov shouldBe BehovType.HENT_AVSENDER_SYSTEM

@@ -7,13 +7,15 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -42,11 +44,11 @@ class PersisterImLøser(rapidsConnection: RapidsConnection, private val reposito
         try {
             val arbeidsgiver = behov[DataFelt.VIRKSOMHET].asText()
             sikkerLogger.info("Fant arbeidsgiver: $arbeidsgiver")
-            val arbeidstakerInfo = customObjectMapper().treeToValue(behov[DataFelt.ARBEIDSTAKER_INFORMASJON], PersonDato::class.java)
-            val arbeidsgiverInfo = customObjectMapper().treeToValue(behov[DataFelt.ARBEIDSGIVER_INFORMASJON], PersonDato::class.java)
+            val arbeidstakerInfo = behov[DataFelt.ARBEIDSTAKER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
+            val arbeidsgiverInfo = behov[DataFelt.ARBEIDSGIVER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
             val fulltNavn = arbeidstakerInfo.navn
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
-            val innsendingRequest: InnsendingRequest = customObjectMapper().treeToValue(behov[DataFelt.INNTEKTSMELDING], InnsendingRequest::class.java)
+            val innsendingRequest = Jackson.fromJson<InnsendingRequest>(behov[DataFelt.INNTEKTSMELDING].toString())
             val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver, arbeidsgiverInfo.navn)
             repository.lagreInntektsmelding(behov.forespoerselId!!, inntektsmeldingDokument)
             sikkerLogger.info("Lagret InntektsmeldingDokument for forespoerselId: ${behov.forespoerselId}")

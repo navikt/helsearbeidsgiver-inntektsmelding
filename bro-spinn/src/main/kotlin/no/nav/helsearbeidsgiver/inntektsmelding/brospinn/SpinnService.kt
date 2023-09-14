@@ -92,11 +92,10 @@ class SpinnService(
                     DataFelt.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
                     Key.UUID to transaksjonId.toJson()
                 )
-                .also {
-                    logger.info("Publiserte melding om ${BehovType.HENT_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
-                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                }
-
+                    .also {
+                        logger.info("Publiserte melding om ${BehovType.HENT_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
+                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                    }
             }
         }
     }
@@ -128,7 +127,6 @@ class SpinnService(
                 logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
                 sikkerLogger.info("Publiserte melding: ${it.toPretty()}")
             }
-
         }
         val clientId = RedisKey.of(transaksjonId.toString(), event)
             .read()?.let(UUID::fromString)
@@ -136,7 +134,7 @@ class SpinnService(
             sikkerLogger.error("Kunne ikke lese clientId for $transaksjonId fra Redis")
         }
 
-        val logFields = loggFelterNotNull(transaksjonId, clientId,)
+        val logFields = loggFelterNotNull(transaksjonId, clientId)
 
         MdcUtils.withLogFields(
             *logFields

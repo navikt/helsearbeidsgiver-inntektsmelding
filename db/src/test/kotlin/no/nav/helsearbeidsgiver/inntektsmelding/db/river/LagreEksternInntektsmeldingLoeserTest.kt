@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
@@ -32,7 +33,7 @@ class LagreEksternInntektsmeldingLoeserTest {
             repository.lagreEksternInntektsmelding(any(), any())
         } returns Unit
 
-        val avsenderSystem = EksternInntektsmelding(
+        val eksterninntektsmelding = EksternInntektsmelding(
             "AltinnPortal",
             "1.63",
             "AR123456",
@@ -40,10 +41,10 @@ class LagreEksternInntektsmeldingLoeserTest {
         )
 
         rapid.sendJson(
-            Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
-            Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(BehovType.serializer()),
+            Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
+            Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
             Key.UUID to randomUuid().toJson(),
-            DataFelt.EKSTERN_INNTEKTSMELDING to avsenderSystem.toJson(EksternInntektsmelding.serializer()),
+            DataFelt.EKSTERN_INNTEKTSMELDING to eksterninntektsmelding.toJson(EksternInntektsmelding.serializer()),
             Key.FORESPOERSEL_ID to randomUuid().toJson()
 
         )

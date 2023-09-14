@@ -9,29 +9,29 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
-private val logger = "im-forespoersel-besvart".logger()
+private val logger = "im-bro-spinn".logger()
 
 fun main() {
     logger.info("Jeg er oppe og kjører!")
 
     RapidApplication
         .create(System.getenv())
-        .createAvsenderSystemLoeser(createSpinnKlient())
-        .createEksterntSystemService(buildRedisStore())
+        .createEksternInntektsmeldingLoeser(createSpinnKlient())
+        .createSpinnService(buildRedisStore())
         .start()
 
     logger.info("Bye bye, baby, bye bye!")
 }
 
-fun RapidsConnection.createAvsenderSystemLoeser(spinnKlient: SpinnKlient): RapidsConnection =
+fun RapidsConnection.createEksternInntektsmeldingLoeser(spinnKlient: SpinnKlient): RapidsConnection =
     apply {
         logger.info("Starting ${EksternInntektsmeldingLoeser::class.simpleName}...")
         EksternInntektsmeldingLoeser(this, spinnKlient)
     }
 
-fun RapidsConnection.createEksterntSystemService(redisStore: IRedisStore): RapidsConnection =
+fun RapidsConnection.createSpinnService(redisStore: IRedisStore): RapidsConnection =
     apply {
-        logger.info("Starting ${EksternInntektsmeldingLoeser::class.simpleName}...")
+        logger.info("Starting ${SpinnService::class.simpleName}...")
         SpinnService(this, redisStore)
     }
 
@@ -41,6 +41,5 @@ fun buildRedisStore(): IRedisStore {
 
 fun createSpinnKlient(): SpinnKlient {
     val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
-
     return SpinnKlient(Env.spinnUrl, HttpClient(Apache5), tokenProvider::getToken)
 }

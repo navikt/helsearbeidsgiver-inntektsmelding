@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class OpprettSakTest {
+class OpprettSakTest {
 
     val testRapid = TestRapid()
     val testRedis = MockRedisStore()
@@ -50,7 +50,9 @@ internal class OpprettSakTest {
                 Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
                 Key.FORESPOERSEL_ID.str to foresporselId,
                 Key.UUID.str to uuid,
-                Key.FAIL.str to Behov.create(EventName.FORESPØRSEL_LAGRET, BehovType.FULLT_NAVN, foresporselId.toString()).createFail("Klarte ikke hente navn")
+                Key.FAIL.str to Behov.create(EventName.FORESPØRSEL_LAGRET, BehovType.FULLT_NAVN, foresporselId.toString(), mapOf(Key.UUID to uuid)).createFail(
+                    "Klarte ikke hente navn"
+                )
                 // Key.FAIL.str to "Klarte ikke hente navn"
             )
         )

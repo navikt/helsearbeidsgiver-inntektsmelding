@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -28,7 +27,6 @@ class LagreEksternInntektsmeldingLoeserTest {
 
     @Test
     fun `skal publisere event for vellykket lagring av ekstern inntektsmelding`() {
-
         val eksterninntektsmelding = EksternInntektsmelding(
             "AltinnPortal",
             "1.63",

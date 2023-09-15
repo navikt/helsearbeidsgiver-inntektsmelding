@@ -25,7 +25,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.IDENTITETSNUMMER.str, Key.FORESPOERSEL_ID.str),
+                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.IDENTITETSNUMMER.str, Key.FORESPOERSEL_ID.str, Key.UUID.str),
                 this,
                 rapidsConnection
             )

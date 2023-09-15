@@ -78,6 +78,7 @@ class SpinnService(
         MdcUtils.withLogFields(
             Log.transaksjonId(transaksjonId),
             Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING),
+            Log.event(event),
             Log.forespoerselId(forespoerselId)
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
@@ -123,7 +124,8 @@ class SpinnService(
             ).also {
                 MdcUtils.withLogFields(
                     Log.transaksjonId(transaksjonId),
-                    Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING),
+                    Log.behov(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING),
+                    Log.event(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT),
                     Log.forespoerselId(forespoerselId)
                 ) {
                     logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")

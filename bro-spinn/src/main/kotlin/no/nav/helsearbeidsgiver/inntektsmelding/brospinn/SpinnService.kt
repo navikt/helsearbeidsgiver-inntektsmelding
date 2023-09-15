@@ -75,11 +75,8 @@ class SpinnService(
             publishFail(message)
             return
         }
-        val clientId = RedisKey.of(transaksjonId.toString(), event).read()?.let(UUID::fromString)
-        val fields = loggFelterNotNull(transaksjonId, clientId)
-
         MdcUtils.withLogFields(
-            *fields,
+            Log.transaksjonId(transaksjonId),
             Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING),
             Log.forespoerselId(forespoerselId)
         ) {
@@ -124,20 +121,19 @@ class SpinnService(
                     EksternInntektsmelding.serializer()
                 )
             ).also {
-                logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
-                sikkerLogger.info("Publiserte melding: ${it.toPretty()}")
+                MdcUtils.withLogFields(
+                    Log.transaksjonId(transaksjonId),
+                    Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING),
+                    Log.forespoerselId(forespoerselId)
+                ) {
+                    logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
+                    sikkerLogger.info("Publiserte melding: ${it.toPretty()}")
+                }
             }
         }
-        val clientId = RedisKey.of(transaksjonId.toString(), event)
-            .read()?.let(UUID::fromString)
-        if (clientId == null) {
-            sikkerLogger.error("Kunne ikke lese clientId for $transaksjonId fra Redis")
-        }
-
-        val logFields = loggFelterNotNull(transaksjonId, clientId)
 
         MdcUtils.withLogFields(
-            *logFields
+            Log.transaksjonId(transaksjonId)
         ) {
             sikkerLogger.info("$event fullført.")
         }
@@ -145,20 +141,10 @@ class SpinnService(
 
     override fun terminate(message: JsonMessage) {
         val json = message.toJsonMap()
-
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val clientId = RedisKey.of(transaksjonId.toString(), event)
-            .read()
-            ?.let(UUID::fromString)
-
-        if (clientId == null) {
-            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne $transaksjonId i redis!")
-        }
-
-        val logFields = loggFelterNotNull(transaksjonId, clientId)
         MdcUtils.withLogFields(
-            *logFields
+            Log.transaksjonId(transaksjonId)
         ) {
             sikkerLogger.error("$event terminert.")
         }
@@ -166,24 +152,4 @@ class SpinnService(
 
     private fun RedisKey.read(): String? =
         redisStore.get(this)
-
-    // Veldig stygt, ta med clientId i loggfelter når den eksisterer
-    // TODO: skriv heller om MDCUtils.log. Fjern dette...
-    private fun loggFelterNotNull(
-        transaksjonId: UUID,
-        clientId: UUID?
-    ): Array<Pair<String, String>> {
-        val logs = arrayOf(
-            Log.klasse(this),
-            Log.event(event),
-            Log.transaksjonId(transaksjonId)
-        )
-        val logFields = clientId?.let {
-            logs +
-                arrayOf(
-                    Log.clientId(clientId)
-                )
-        } ?: logs
-        return logFields
-    }
 }

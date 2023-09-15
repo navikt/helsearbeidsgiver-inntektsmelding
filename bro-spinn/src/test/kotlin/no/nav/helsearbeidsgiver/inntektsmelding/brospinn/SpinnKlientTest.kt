@@ -15,7 +15,7 @@ class SpinnKlientTest : FunSpec({
     val expectedInntektsmelding = Jackson.fromJson<Inntektsmelding>(expectedJson)
 
     test("Hvis inntektsmelding ikke finnes kastes feil") {
-        val spinnKlient = mockSpinnKlient(expectedJson, HttpStatusCode.NotFound)
+        val spinnKlient = mockSpinnKlient("", HttpStatusCode.NotFound)
         val exception = shouldThrowExactly<SpinnApiException> {
             spinnKlient.hentEksternInntektsmelding("abc-1")
         }

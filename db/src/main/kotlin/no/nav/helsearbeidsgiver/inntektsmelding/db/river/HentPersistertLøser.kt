@@ -4,13 +4,16 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.system.measureTimeMillis
@@ -38,9 +41,11 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
         measureTimeMillis {
             logger.info("Skal hente persistert inntektsmelding med forespørselId ${behov.forespoerselId}")
             try {
-                val entitet = repository.hentNyesteEksternEllerInternInntektsmelding(behov.forespoerselId!!)
-                val dokument = entitet?.first?.let { Jackson.toJson(it) } ?: EMPTY_PAYLOAD
-                val eksternInntektsmelding = entitet?.second?.let { Jackson.toJson(it) } ?: EMPTY_PAYLOAD
+                val (dokument, eksternInntektsmelding) =
+                    repository
+                        .hentNyesteEksternEllerInternInntektsmelding(behov.forespoerselId!!)
+                        .tilPayloadPair()
+
                 if (dokument == EMPTY_PAYLOAD) {
                     logger.info("Fant IKKE persistert inntektsmelding for forespørselId ${behov.forespoerselId}")
                 } else {
@@ -75,3 +80,9 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
         }
     }
 }
+
+fun Pair<InntektsmeldingDokument?, EksternInntektsmelding?>?.tilPayloadPair() =
+    Pair(
+        this?.first?.let { Jackson.toJson(it) } ?: EMPTY_PAYLOAD,
+        this?.second?.toJson(EksternInntektsmelding.serializer()) ?: EMPTY_PAYLOAD
+    )

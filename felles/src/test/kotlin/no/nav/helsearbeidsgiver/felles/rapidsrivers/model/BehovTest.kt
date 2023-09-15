@@ -4,8 +4,8 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -33,7 +33,7 @@ class BehovTest {
         val message = fail.toJsonMessage()
         println(message.toJson())
         assertFalse(message[Key.FAIL.str].isNull)
-        assertTrue(message[Key.FAIL.str].asText() == feilmelding)
+        assertEquals(message[Key.FAIL.str].asText(), feilmelding)
         assertFalse(message[Key.FAILED_BEHOV.str].isNull)
     }
 }

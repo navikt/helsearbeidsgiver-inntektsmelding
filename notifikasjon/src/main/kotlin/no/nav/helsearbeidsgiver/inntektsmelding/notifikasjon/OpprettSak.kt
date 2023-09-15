@@ -21,12 +21,11 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
     override val event: EventName = EventName.FORESPØRSEL_LAGRET
 
     init {
-        withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
         withEventListener {
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.IDENTITETSNUMMER.str, Key.FORESPOERSEL_ID.str, Key.UUID.str),
+                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.IDENTITETSNUMMER.str, Key.FORESPOERSEL_ID.str),
                 this,
                 rapidsConnection
             )
@@ -40,6 +39,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
                 redisStore
             )
         }
+        withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
     }
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transaksjonsId = message[Key.UUID.str].asText()

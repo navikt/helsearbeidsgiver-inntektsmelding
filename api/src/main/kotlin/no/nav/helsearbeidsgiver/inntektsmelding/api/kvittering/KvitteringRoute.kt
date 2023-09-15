@@ -32,6 +32,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.Clock
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
 import kotlin.system.measureTimeMillis
@@ -158,8 +160,7 @@ private fun tilKvitteringResponse(innsendtInntektsmelding: InnsendtInntektsmeldi
             KvitteringEkstern(
                 eIm.avsenderSystemNavn,
                 eIm.arkivreferanse,
-                // TODO: burde være tidspunkt i vår tidsone OSLO
-                eIm.tidspunkt.let { ZonedDateTime.of(it, Clock.systemDefaultZone().zone).toOffsetDateTime() }
+                eIm.tidspunkt.let { OffsetDateTime.of(it, ZoneOffset.UTC) }
             )
         }
     )

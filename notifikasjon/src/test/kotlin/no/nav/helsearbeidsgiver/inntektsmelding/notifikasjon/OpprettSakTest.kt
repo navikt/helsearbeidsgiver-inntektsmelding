@@ -41,10 +41,8 @@ class OpprettSakTest {
             message.toJson()
         )
         val uuid = testRedis.get("uuid").orEmpty()
-        testRedis.set("uuid2", "hei")
         println("Fant uuid: $uuid")
         assertNotNull(testRedis.get(RedisKey.of(uuid, EventName.FORESPØRSEL_LAGRET)))
-        println(testRedis.exist(*arrayOf("uuid", "uuid2")))
         val message2 = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,

@@ -4,12 +4,11 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
-import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -51,7 +50,7 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
         event.toJsonMessage()
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
-                logger.info("Publiserte data for eventname ${event.event} and uuid ${event.uuid()}'.")
+                logger.info("Publiserte event for eventname ${event.event} and uuid ${event.uuid()}'.")
                 sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
             }
     }
@@ -65,12 +64,12 @@ abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketList
             }
     }
 
-    fun publishFail(fail: no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail) {
+    fun publishFail(fail: Fail) {
         fail.toJsonMessage()
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
-                logger.info("Publiserte feil for eventname ${fail.event.name} and'${fail.behov?.name}'.")
-                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+                logger.info("Publiserte feil for eventname ${fail.event.name} and '${fail.behov?.name}'.")
+                sikkerLogger.info("Publiserte feil:\n${it.toPretty()}")
             }
     }
 

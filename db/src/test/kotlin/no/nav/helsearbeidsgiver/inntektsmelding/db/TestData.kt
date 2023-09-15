@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
@@ -7,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntektsmel
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 val INNTEKTSMELDING_DOKUMENT = InntektsmeldingDokument(
@@ -40,6 +42,13 @@ val INNTEKTSMELDING_DOKUMENT = InntektsmeldingDokument(
         utbetalt = 500.0.toBigDecimal()
     ),
     innsenderNavn = "Fido"
+)
+
+val EKSTERN_INNTEKTSMELDING_DOKUMENT = EksternInntektsmelding(
+    "AltinnPortal",
+    "1.63",
+    "AR123456",
+    LocalDateTime.now()
 )
 
 val INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT = INNTEKTSMELDING_DOKUMENT.copy(inntekt = null)

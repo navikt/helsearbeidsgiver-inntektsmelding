@@ -20,18 +20,14 @@ import org.junit.jupiter.api.Test
 class LagreEksternInntektsmeldingLoeserTest {
 
     private val rapid = TestRapid()
-    private var løser: LagreEksternInntektsmeldingLoeser
-    private val repository = mockk<InntektsmeldingRepository>()
+    private val repository = mockk<InntektsmeldingRepository>(relaxed = true)
 
     init {
-        løser = LagreEksternInntektsmeldingLoeser(rapid, repository)
+        LagreEksternInntektsmeldingLoeser(rapid, repository)
     }
 
     @Test
-    fun `skal publisere event for AvsenderSystem Lagret`() {
-        coEvery {
-            repository.lagreEksternInntektsmelding(any(), any())
-        } returns Unit
+    fun `skal publisere event for vellykket lagring av ekstern inntektsmelding`() {
 
         val eksterninntektsmelding = EksternInntektsmelding(
             "AltinnPortal",

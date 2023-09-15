@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.system.measureTimeMillis
@@ -84,5 +84,5 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
 fun Pair<InntektsmeldingDokument?, EksternInntektsmelding?>?.tilPayloadPair() =
     Pair(
         this?.first?.let { Jackson.toJson(it) } ?: EMPTY_PAYLOAD,
-        this?.second?.toJson(EksternInntektsmelding.serializer()) ?: EMPTY_PAYLOAD
+        this?.second?.toJsonStr(EksternInntektsmelding.serializer()) ?: EMPTY_PAYLOAD
     )

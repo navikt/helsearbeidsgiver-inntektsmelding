@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache5.Apache5
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
@@ -41,5 +39,5 @@ fun buildRedisStore(): IRedisStore {
 
 fun createSpinnKlient(): SpinnKlient {
     val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
-    return SpinnKlient(Env.spinnUrl, HttpClient(Apache5), tokenProvider::getToken)
+    return SpinnKlient(Env.spinnUrl, tokenProvider::getToken)
 }

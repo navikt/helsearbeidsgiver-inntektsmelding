@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
-import io.ktor.client.HttpClient
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -14,19 +14,23 @@ import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 
 class SpinnKlient(
     val url: String,
-    val httpClient: HttpClient,
     private val getAccessToken: () -> String
 ) {
+    private val httpClient = createHttpClient()
     fun hentEksternInntektsmelding(inntektsmeldingId: String): EksternInntektsmelding {
         val result = runBlocking {
-            val response = httpClient.get("$url/$inntektsmeldingId") {
-                contentType(ContentType.Application.Json)
-                bearerAuth(getAccessToken())
+            try {
+                val response = httpClient.get("$url/$inntektsmeldingId") {
+                    contentType(ContentType.Application.Json)
+                    bearerAuth(getAccessToken())
+                }
+                if (response.status != HttpStatusCode.OK) {
+                    throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${response.status.value}")
+                }
+                Jackson.fromJson<Inntektsmelding>(response.bodyAsText())
+            } catch (e: ClientRequestException) {
+                throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${e.response.status.value}", e)
             }
-            if (response.status != HttpStatusCode.OK) {
-                throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${response.status.value}")
-            }
-            Jackson.fromJson<Inntektsmelding>(response.bodyAsText())
         }
 
         if (result.avsenderSystem?.navn != null) {

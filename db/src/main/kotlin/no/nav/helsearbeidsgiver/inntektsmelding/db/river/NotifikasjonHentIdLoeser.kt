@@ -93,12 +93,20 @@ class NotifikasjonHentIdLoeser(
                 Key.FORESPOERSEL_ID to behov.forespoerselId!!.toJson(),
                 Key.TRANSACTION_ORIGIN to behov[Key.TRANSACTION_ORIGIN].asText().toJson()
             )
+        } else if (oppgaveId != null) {
+            logger.warn("Fant ikke sakId, ferdigstiller kun oppgave for ${behov.forespoerselId}!")
+            rapid.publish(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
+                Key.FORESPOERSEL_ID to behov.forespoerselId!!.toJson(),
+                Key.TRANSACTION_ORIGIN to behov[Key.TRANSACTION_ORIGIN].asText().toJson()
+            )
         } else {
-            "Klarte ikke hente notifikasjons-ID-er. Én eller flere er 'null'. Republiserer melding.".also {
+            "Klarte ikke hente notifikasjons-ID-er. Begge er 'null'.".also {
                 logger.error(it)
                 sikkerLogger.error(it)
             }
-            publishBehov(behov)
+            // publishBehov(behov)
         }
     }
 }

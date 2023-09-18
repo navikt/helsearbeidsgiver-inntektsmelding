@@ -28,6 +28,7 @@ fun RapidsConnection.createNotifikasjon(
     SakFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
     OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
     OpprettSak(this, redisStore)
+    ManuellOpprettSakService(this, redisStore)
     return this
 }
 

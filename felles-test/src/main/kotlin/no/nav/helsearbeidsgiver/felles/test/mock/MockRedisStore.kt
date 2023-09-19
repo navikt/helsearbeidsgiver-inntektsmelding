@@ -16,7 +16,7 @@ class MockRedisStore : IRedisStore {
             // denne funker bare når uuid er lagt inn i service sine datafelter
         }
         if (key.endsWith("forespoerselId")) {
-            println("Setter inn uuid")
+            println("Setter inn forespoerselId")
             store.put("uuid", key.substring(0, key.indexOf("forespoerselId"))) // CollectData() lager *ny* UUID så i test må vi finne den...
         }
         store.put(key, value)

@@ -4,13 +4,16 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.system.measureTimeMillis
@@ -38,19 +41,25 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
         measureTimeMillis {
             logger.info("Skal hente persistert inntektsmelding med forespørselId ${behov.forespoerselId}")
             try {
-                val dokument = repository.hentNyeste(behov.forespoerselId!!)
-                if (dokument == null) {
+                val (dokument, eksternInntektsmelding) =
+                    repository
+                        .hentNyesteEksternEllerInternInntektsmelding(behov.forespoerselId!!)
+                        .tilPayloadPair()
+
+                if (dokument == EMPTY_PAYLOAD) {
                     logger.info("Fant IKKE persistert inntektsmelding for forespørselId ${behov.forespoerselId}")
                 } else {
                     sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId ${behov.forespoerselId}")
                 }
+                if (eksternInntektsmelding == EMPTY_PAYLOAD) {
+                    logger.info("Fant IKKE persistert eksternInntektsmelding for forespørselId ${behov.forespoerselId}")
+                } else {
+                    sikkerLogger.info("Fant persistert eksternInntektsmelding: $eksternInntektsmelding for forespørselId ${behov.forespoerselId}")
+                }
                 behov.createData(
                     mapOf(
-                        DataFelt.INNTEKTSMELDING_DOKUMENT to if (dokument == null) {
-                            EMPTY_PAYLOAD
-                        } else {
-                            Jackson.toJson(dokument)
-                        }
+                        DataFelt.INNTEKTSMELDING_DOKUMENT to dokument,
+                        DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding
                     )
                 )
                     .also {
@@ -71,3 +80,9 @@ class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repos
         }
     }
 }
+
+fun Pair<InntektsmeldingDokument?, EksternInntektsmelding?>?.tilPayloadPair() =
+    Pair(
+        this?.first?.let { Jackson.toJson(it) } ?: EMPTY_PAYLOAD,
+        this?.second?.toJsonStr(EksternInntektsmelding.serializer()) ?: EMPTY_PAYLOAD
+    )

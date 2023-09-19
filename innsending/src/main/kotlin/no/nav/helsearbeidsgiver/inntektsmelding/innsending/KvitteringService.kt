@@ -4,8 +4,12 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
@@ -13,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventList
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
@@ -29,7 +34,15 @@ class KvitteringService(
         logger.info("Starter kvitteringservice")
         withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID.str), this, rapidsConnection) }
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
-        withDataKanal { StatefullDataKanal(arrayOf(DataFelt.INNTEKTSMELDING_DOKUMENT.str), event, this, rapidsConnection, redisStore) }
+        withDataKanal {
+            StatefullDataKanal(
+                arrayOf(DataFelt.INNTEKTSMELDING_DOKUMENT.str, DataFelt.EKSTERN_INNTEKTSMELDING.str),
+                event,
+                this,
+                rapidsConnection,
+                redisStore
+            )
+        }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -55,9 +68,14 @@ class KvitteringService(
     override fun finalize(message: JsonMessage) {
         val transaksjonsId = message[Key.UUID.str].asText()
         val clientId = redisStore.get(RedisKey.of(transaksjonsId, event))
-        val dok = message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText()
+        // TODO: Skriv bort fra empty payload hvis mulig
+        val im = InnsendtInntektsmelding(
+            message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText().let { if (it != "{}") Jackson.fromJson<InntektsmeldingDokument>(it) else null },
+            message[DataFelt.EKSTERN_INNTEKTSMELDING.str].asText().let { if (it != "{}") it.fromJson(EksternInntektsmelding.serializer()) else null }
+        ).let { Jackson.toJson(it) }
+
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
-        redisStore.set(clientId!!, dok)
+        redisStore.set(clientId!!, im)
     }
 
     override fun terminate(message: JsonMessage) {

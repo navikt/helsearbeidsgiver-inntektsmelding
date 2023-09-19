@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -44,7 +45,8 @@ class ForespoerselBesvartFraSpleisLoeser(
         Melding(
             event = Pri.NotisType.FORESPOERSEL_BESVART.name,
             forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, this),
-            transaksjonId = randomUuid()
+            transaksjonId = randomUuid(),
+            spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, this)
         )
 
     override fun haandterFeil(json: JsonElement) {

@@ -41,6 +41,9 @@ fun JsonElement.toMap(): Map<IKey, JsonElement> =
             jsonMap + fromJsonMapFiltered(keySerializer)
         }
 
-fun <K : IKey, T : Any> K.les(serializer: KSerializer<T>, melding: Map<K, JsonElement>): T =
+fun <K : IKey, T : Any> K.lesOrNull(serializer: KSerializer<T>, melding: Map<K, JsonElement>): T? =
     melding[this]?.fromJson(serializer.nullable)
+
+fun <K : IKey, T : Any> K.les(serializer: KSerializer<T>, melding: Map<K, JsonElement>): T =
+    lesOrNull(serializer, melding)
         ?: throw IllegalArgumentException("Felt '$this' mangler i JSON-map.")

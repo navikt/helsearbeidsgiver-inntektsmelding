@@ -47,7 +47,8 @@ class ForespoerselBesvartFraSimbaLoeser(
         Melding(
             event = EventName.INNTEKTSMELDING_MOTTATT.name,
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, this),
-            transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, this)
+            transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, this),
+            spinnInntektsmeldingId = null
         )
 
     override fun haandterFeil(json: JsonElement) {

@@ -8,5 +8,7 @@ env:
     value: "https://helsearbeidsgiver-proxy.prod-fss-pub.nais.io/syfoinntektsmelding"
   - name: REDIS_URL
     value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
+apps:
+  - name: helsearbeidsgiver-redis
 externalHosts:
   - helsearbeidsgiver-proxy.prod-fss-pub.nais.io

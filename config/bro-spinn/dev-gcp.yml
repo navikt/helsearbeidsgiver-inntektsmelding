@@ -6,5 +6,7 @@ env:
     value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
   - name: SPINN_API_URL
     value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/syfoinntektsmelding"
+  - name: REDIS_URL
+    value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
 externalHosts:
   - helsearbeidsgiver-proxy.dev-fss-pub.nais.io

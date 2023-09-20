@@ -8,7 +8,6 @@ import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.LocalDate
-import java.time.YearMonth
 
 @Serializable
 data class ForespurtData(
@@ -39,8 +38,7 @@ sealed class ForslagInntekt {
     @Serializable
     @SerialName("ForslagInntektGrunnlag")
     data class Grunnlag(
-        val beregningsmaaneder: List<YearMonth>,
-        val forrigeInntekt: ForrigeInntekt? = null
+        val forrigeInntekt: ForrigeInntekt?
     ) : ForslagInntekt()
 
     @Serializable

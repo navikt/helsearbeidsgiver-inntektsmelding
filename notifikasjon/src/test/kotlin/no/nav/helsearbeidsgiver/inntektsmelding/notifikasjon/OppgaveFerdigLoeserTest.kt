@@ -44,7 +44,7 @@ class OppgaveFerdigLoeserTest : FunSpec({
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             DataFelt.OPPGAVE_ID to expected.oppgaveId.toJson(),
             Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to expected.transaksjonId.toJson()
+            Key.UUID to expected.transaksjonId.toJson()
         )
 
         val actual = testRapid.firstMessage().fromJson(PublishedOppgave.serializer())
@@ -63,7 +63,7 @@ class OppgaveFerdigLoeserTest : FunSpec({
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             DataFelt.OPPGAVE_ID to "utspekulert-banan".toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-            Key.TRANSACTION_ORIGIN to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
         coEvery { mockAgNotifikasjonKlient.oppgaveUtfoert(any()) } throws RuntimeException("fydda!")

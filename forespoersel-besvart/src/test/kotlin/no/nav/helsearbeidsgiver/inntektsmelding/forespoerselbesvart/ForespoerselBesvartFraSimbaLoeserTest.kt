@@ -29,7 +29,7 @@ class ForespoerselBesvartFraSimbaLoeserTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to expected.transaksjonId.toJson()
+            Key.UUID to expected.transaksjonId.toJson()
         )
 
         val actual = testRapid.firstMessage().fromJson(Published.serializer())
@@ -42,7 +42,7 @@ class ForespoerselBesvartFraSimbaLoeserTest : FunSpec({
         val expectedRepublisert = mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.FORESPOERSEL_ID to "ikke en uuid".toJson(),
-            Key.TRANSACTION_ORIGIN to "heller ikke en uuid".toJson()
+            Key.UUID to "heller ikke en uuid".toJson()
         )
 
         testRapid.sendJson(

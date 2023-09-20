@@ -43,7 +43,7 @@ class OppgaveFerdigLoeser(
                 it.requireKeys(
                     DataFelt.OPPGAVE_ID,
                     Key.FORESPOERSEL_ID,
-                    Key.TRANSACTION_ORIGIN
+                    Key.UUID
                 )
             }
         }.register(this)
@@ -78,7 +78,7 @@ class OppgaveFerdigLoeser(
 
         val oppgaveId = DataFelt.OPPGAVE_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.oppgaveId(oppgaveId),
@@ -101,7 +101,7 @@ class OppgaveFerdigLoeser(
             Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
             DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+            Key.UUID to transaksjonId.toJson()
         )
 
         logger.info("Oppgave ferdigstilt.")

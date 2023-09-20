@@ -37,7 +37,6 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             // for backward compatability
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
-            it.interestedIn(Key.TRANSACTION_ORIGIN.str)
         }
     }
     fun publishBehov(message: JsonMessage) {

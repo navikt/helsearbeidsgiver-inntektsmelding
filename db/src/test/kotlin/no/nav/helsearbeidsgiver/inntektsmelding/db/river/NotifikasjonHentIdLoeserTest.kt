@@ -45,12 +45,12 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
             BehovType.NOTIFIKASJON_HENT_ID,
             UUID.randomUUID().toString(),
             mapOf(
-                Key.TRANSACTION_ORIGIN to UUID.randomUUID(),
+                Key.UUID to UUID.randomUUID(),
                 DataFelt.OPPGAVE_ID to "syngende-hemul",
                 DataFelt.SAK_ID to "skuffet-apokalypse"
             )
         ) {
-            it.interestedIn(DataFelt.OPPGAVE_ID, DataFelt.SAK_ID, Key.TRANSACTION_ORIGIN)
+            it.interestedIn(DataFelt.OPPGAVE_ID, DataFelt.SAK_ID, Key.UUID)
         }
 
         every { mockForespoerselRepo.hentSakId(any()) } returns expected[DataFelt.SAK_ID].asText()
@@ -60,7 +60,7 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
             Key.FORESPOERSEL_ID to expected.forespoerselId!!.toJson(),
-            Key.TRANSACTION_ORIGIN to expected[Key.TRANSACTION_ORIGIN].asText().toJson()
+            Key.UUID to expected[Key.UUID].asText().toJson()
         )
 
         testRapid.inspektør.size shouldBeExactly 1
@@ -81,7 +81,7 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-            Key.TRANSACTION_ORIGIN to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
         every { mockForespoerselRepo.hentSakId(any()) } returns null
@@ -106,7 +106,7 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-            Key.TRANSACTION_ORIGIN to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
         every { mockForespoerselRepo.hentSakId(any()) } returns "en id for sak"

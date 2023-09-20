@@ -44,10 +44,10 @@ class Behov(
             packetValidation: River.PacketValidation = River.PacketValidation { }
         ): Behov {
             return Behov(
-                event,
-                behov,
-                forespoerselId,
-                JsonMessage.newMessage(
+                event = event,
+                behov = behov,
+                forespoerselId = forespoerselId,
+                jsonMessage = JsonMessage.newMessage(
                     event.name,
                     mapOf(
                         Key.BEHOV.str to behov.name,
@@ -95,9 +95,10 @@ class Behov(
         val forespoerselID = this[Key.FORESPOERSEL_ID]
 
         return Fail.create(
-            event,
-            behov,
-            feilmelding,
+            event = event,
+            behov = behov,
+            feilmelding = feilmelding,
+            uuid = this.uuid(),
             data = mapOfNotNull(
                 Key.UUID to this.uuid().takeUnless { it.isBlank() },
                 Key.FORESPOERSEL_ID to forespoerselID
@@ -111,8 +112,8 @@ class Behov(
             behov,
             forespoerselId,
             JsonMessage.newMessage(
-                event.name,
-                mapOfNotNull(
+                eventName = event.name,
+                map = mapOfNotNull(
                     Key.BEHOV.str to behov.name,
                     Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
                     Key.FORESPOERSEL_ID.str to this.forespoerselId

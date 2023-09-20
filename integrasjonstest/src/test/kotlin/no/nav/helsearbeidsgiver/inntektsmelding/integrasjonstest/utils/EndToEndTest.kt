@@ -17,6 +17,9 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
@@ -92,6 +95,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
     private val pdlKlient = mockk<PdlClient>()
+    val spinnKlient = mockk<SpinnKlient>()
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -141,6 +145,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createJoark(dokarkivClient)
             createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)
             createPdl(pdlKlient)
+            createEksternInntektsmeldingLoeser(spinnKlient)
+            createSpinnService(redisStore)
         }
             .register(this)
 

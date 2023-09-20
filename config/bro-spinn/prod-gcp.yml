@@ -1,0 +1,14 @@
+kafkaPool: nav-prod
+azure:
+  enabled: true
+env:
+  - name: PROXY_SCOPE
+    value: "api://prod-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+  - name: SPINN_API_URL
+    value: "https://helsearbeidsgiver-proxy.prod-fss-pub.nais.io/syfoinntektsmelding"
+  - name: REDIS_URL
+    value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
+apps:
+  - name: helsearbeidsgiver-redis
+externalHosts:
+  - helsearbeidsgiver-proxy.prod-fss-pub.nais.io

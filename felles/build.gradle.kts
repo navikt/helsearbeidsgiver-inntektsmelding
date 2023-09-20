@@ -11,4 +11,5 @@ dependencies {
 
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")
+    implementation(project(":dokument"))
 }

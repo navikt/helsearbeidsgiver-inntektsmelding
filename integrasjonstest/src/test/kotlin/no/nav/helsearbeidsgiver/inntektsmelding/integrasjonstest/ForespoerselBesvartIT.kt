@@ -41,13 +41,22 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
             publish(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
             )
 
             waitForMessages(20000)
         }
 
         bekreftForventedeMeldinger()
+
+        messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
+            .filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
+            .first()
+            .toMap()
+            .also {
+                DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldingId
+            }
     }
 
     @Test
@@ -78,7 +87,6 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 Key.TRANSACTION_ORIGIN.les(UuidSerializer, it) shouldBe Mock.transaksjonId
             }
-
         messages.filter(EventName.FORESPOERSEL_BESVART)
             .all()
             .map(JsonElement::toMap)
@@ -129,5 +137,6 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         val forespoerselId = randomUuid()
         val transaksjonId = randomUuid()
+        val spinnInntektsmeldingId = randomUuid()
     }
 }

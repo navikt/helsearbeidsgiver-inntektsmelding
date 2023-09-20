@@ -7,8 +7,10 @@ import io.ktor.server.routing.route
 import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringEkstern
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringResponse
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -29,6 +31,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.system.measureTimeMillis
 
@@ -83,9 +87,13 @@ fun RouteExtra.kvitteringRoute() {
                             // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
                             respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                         } else {
-                            measureTimeMillis {
-                                val innsending = tilKvitteringResponse(Jackson.fromJson<InntektsmeldingDokument>(resultat!!))
+                            val innsendtInntektsmelding = Jackson.fromJson<InnsendtInntektsmelding>(resultat!!)
 
+                            if (innsendtInntektsmelding.dokument == null && innsendtInntektsmelding.eksternInntektsmelding == null) {
+                                respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
+                            }
+                            measureTimeMillis {
+                                val innsending = tilKvitteringResponse(innsendtInntektsmelding)
                                 respondOk(
                                     Jackson.toJson(innsending).parseJson(),
                                     JsonElement.serializer()
@@ -115,31 +123,42 @@ fun RouteExtra.kvitteringRoute() {
     }
 }
 
-private fun tilKvitteringResponse(inntektsmeldingDokument: InntektsmeldingDokument): KvitteringResponse =
+private fun tilKvitteringResponse(innsendtInntektsmelding: InnsendtInntektsmelding): KvitteringResponse =
     KvitteringResponse(
-        orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
-        identitetsnummer = inntektsmeldingDokument.identitetsnummer,
-        fulltNavn = inntektsmeldingDokument.fulltNavn,
-        virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
-        behandlingsdager = inntektsmeldingDokument.behandlingsdager,
-        egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
-        arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
-        bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
-        fraværsperioder = inntektsmeldingDokument.fraværsperioder,
-        inntekt = Inntekt(
-            bekreftet = true,
-            // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
-            beregnetInntekt = inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
-            endringÅrsak = inntektsmeldingDokument.inntekt?.endringÅrsak,
-            manueltKorrigert = inntektsmeldingDokument.inntekt?.manueltKorrigert.orDefault(false)
-        ),
-        fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
-        refusjon = inntektsmeldingDokument.refusjon,
-        naturalytelser = inntektsmeldingDokument.naturalytelser,
-        årsakInnsending = inntektsmeldingDokument.årsakInnsending,
-        bekreftOpplysninger = true,
-        tidspunkt = inntektsmeldingDokument.tidspunkt,
-        forespurtData = inntektsmeldingDokument.forespurtData,
-        telefonnummer = inntektsmeldingDokument.telefonnummer,
-        innsenderNavn = inntektsmeldingDokument.innsenderNavn
+        kvitteringDokument = innsendtInntektsmelding.dokument?.let { inntektsmeldingDokument ->
+            KvitteringDokument(
+                orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
+                identitetsnummer = inntektsmeldingDokument.identitetsnummer,
+                fulltNavn = inntektsmeldingDokument.fulltNavn,
+                virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
+                behandlingsdager = inntektsmeldingDokument.behandlingsdager,
+                egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
+                arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
+                bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
+                fraværsperioder = inntektsmeldingDokument.fraværsperioder,
+                inntekt = Inntekt(
+                    bekreftet = true,
+                    // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
+                    beregnetInntekt = inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
+                    endringÅrsak = inntektsmeldingDokument.inntekt?.endringÅrsak,
+                    manueltKorrigert = inntektsmeldingDokument.inntekt?.manueltKorrigert.orDefault(false)
+                ),
+                fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
+                refusjon = inntektsmeldingDokument.refusjon,
+                naturalytelser = inntektsmeldingDokument.naturalytelser,
+                årsakInnsending = inntektsmeldingDokument.årsakInnsending,
+                bekreftOpplysninger = true,
+                tidspunkt = inntektsmeldingDokument.tidspunkt,
+                forespurtData = inntektsmeldingDokument.forespurtData,
+                telefonnummer = inntektsmeldingDokument.telefonnummer,
+                innsenderNavn = inntektsmeldingDokument.innsenderNavn
+            )
+        },
+        kvitteringEkstern = innsendtInntektsmelding.eksternInntektsmelding?.let { eIm ->
+            KvitteringEkstern(
+                eIm.avsenderSystemNavn,
+                eIm.arkivreferanse,
+                eIm.tidspunkt.let { OffsetDateTime.of(it, ZoneOffset.UTC) }
+            )
+        }
     )

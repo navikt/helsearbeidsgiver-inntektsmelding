@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
+package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -10,19 +10,17 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnApiException
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class AvsenderSystemLoeser(
+class EksternInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
     private val spinnKlient: SpinnKlient
 ) : Loeser(rapidsConnection) {
 
     private val logger = logger()
     val sikkerlogger = sikkerLogger()
-    private val BEHOV = BehovType.HENT_AVSENDER_SYSTEM
+    private val BEHOV = BehovType.HENT_EKSTERN_INNTEKTSMELDING
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
@@ -42,8 +40,8 @@ class AvsenderSystemLoeser(
             return
         }
         try {
-            val avsenderSystem = spinnKlient.hentAvsenderSystemData(inntektsmeldingId.asText())
-            publishData(behov.createData(mapOf(DataFelt.AVSENDER_SYSTEM_DATA to avsenderSystem)))
+            val eksternInntektsmelding = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId.asText())
+            publishData(behov.createData(mapOf(DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding)))
         } catch (e: SpinnApiException) {
             "Feil ved kall mot spinn api: ${e.message}".also {
                 logger.error(it)

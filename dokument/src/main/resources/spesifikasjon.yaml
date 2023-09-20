@@ -12,6 +12,28 @@ components:
   schemas:
     KvitteringResponse:
       type: object
+      properties:
+        kvitteringEkstern:
+          $ref: '#/components/schemas/KvitteringEkstern'
+        kvitteringDokument:
+          $ref: '#/components/schemas/KvitteringDokument'
+    KvitteringEkstern:
+      type: object
+      required:
+        - avsenderSystem
+        - referanse
+        - tidspunkt
+      properties:
+        avsenderSystem:
+          type: string
+        referanse:
+          type: string
+        tidspunkt:
+          type: string
+          format: date-time
+          pattern: yyyy-MM-dd'T'HH:mm:ss.SSSxx
+    KvitteringDokument:
+      type: object
       required:
         - orgnrUnderenhet
         - identitetsnummer

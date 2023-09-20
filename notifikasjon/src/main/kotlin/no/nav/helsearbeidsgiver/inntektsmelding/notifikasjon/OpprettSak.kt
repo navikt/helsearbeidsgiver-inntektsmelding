@@ -13,11 +13,11 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
-class OpprettSak(private val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
+class OpprettSak(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
     override val event: EventName = EventName.FORESPØRSEL_LAGRET
 
     init {
@@ -25,7 +25,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.IDENTITETSNUMMER.str, Key.FORESPOERSEL_ID.str),
+                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.IDENTITETSNUMMER.str, Key.FORESPOERSEL_ID.str, Key.UUID.str),
                 this,
                 rapidsConnection
             )
@@ -103,7 +103,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
     }
 
     override fun terminate(message: JsonMessage) {
-        TODO("Not yet implemented")
+        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
     }
 
     override fun onError(feil: Fail): Transaction {

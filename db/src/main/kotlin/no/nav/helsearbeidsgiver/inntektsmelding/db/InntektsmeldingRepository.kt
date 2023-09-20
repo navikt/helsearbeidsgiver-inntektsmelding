@@ -1,8 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.prometheus.client.Summary
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.forespoerselId
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.innsendt
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
@@ -39,12 +42,28 @@ class InntektsmeldingRepository(private val db: Database) {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet.run {
-                select { (forespoerselId eq forespørselId) }.orderBy(innsendt, SortOrder.DESC)
+                select { (forespoerselId eq forespørselId) and dokument.isNotNull() }.orderBy(innsendt, SortOrder.DESC)
             }
                 .firstOrNull()
                 ?.getOrNull(InntektsmeldingEntitet.dokument)
         }.also {
             requestTimer.observeDuration()
+        }
+    }
+
+    fun hentNyesteEksternEllerInternInntektsmelding(forespørselId: String): Pair<InntektsmeldingDokument?, EksternInntektsmelding?>? {
+        val requestTimer = requestLatency.labels("hentNyesteInternEllerEkstern").startTimer()
+        return transaction(db) {
+            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding).run {
+                select { (forespoerselId eq forespørselId) }.orderBy(innsendt, SortOrder.DESC)
+            }.limit(1).map {
+                Pair(
+                    it[InntektsmeldingEntitet.dokument],
+                    it[InntektsmeldingEntitet.eksternInntektsmelding]
+                )
+            }.firstOrNull().also {
+                requestTimer.observeDuration()
+            }
         }
     }
 
@@ -58,6 +77,18 @@ class InntektsmeldingRepository(private val db: Database) {
             }
         }.also {
             requestTimer.observeDuration()
+        }
+    }
+
+    fun lagreEksternInntektsmelding(forespørselId: String, eksternIm: EksternInntektsmelding) {
+        transaction(db) {
+            InntektsmeldingEntitet.run {
+                insert {
+                    it[forespoerselId] = forespørselId
+                    it[eksternInntektsmelding] = eksternIm
+                    it[innsendt] = LocalDateTime.now()
+                }
+            }
         }
     }
 }

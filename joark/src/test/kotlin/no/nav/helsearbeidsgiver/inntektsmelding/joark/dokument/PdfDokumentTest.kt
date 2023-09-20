@@ -142,7 +142,7 @@ class PdfDokumentTest {
         )
         val pdfTekst = extractTextFromPdf(PdfDokument(medTelefon).export())
         assert(pdfTekst!!.contains(tlf.formaterTelefonnummer()))
-        assert(pdfTekst!!.contains(im.innsenderNavn.toString()))
+        assert(pdfTekst.contains(im.innsenderNavn.toString()))
     }
 
     @Test

@@ -1,7 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.config
 
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.json.jsonb
@@ -16,6 +18,7 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
         serialize = Jackson::toJson,
         deserialize = Jackson::fromJson
     ).nullable()
+    val eksternInntektsmelding = jsonb<EksternInntektsmelding>("ekstern_inntektsmelding", jsonIgnoreUnknown).nullable()
     val innsendt = datetime("innsendt")
     val journalpostId = varchar("journalpostid", 30).nullable()
     override val primaryKey = PrimaryKey(id, name = "id")

@@ -8,6 +8,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
@@ -16,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.inntektsmelding.db.EKSTERN_INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -40,8 +42,8 @@ class HentPersistertLøserTest {
     @Test
     fun `skal hente ut InntektsmeldingDokument`() {
         coEvery {
-            repository.hentNyeste(any())
-        } returns INNTEKTSMELDING_DOKUMENT
+            repository.hentNyesteEksternEllerInternInntektsmelding(any())
+        } returns Pair(INNTEKTSMELDING_DOKUMENT, null)
         sendMelding(
             Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
@@ -57,9 +59,28 @@ class HentPersistertLøserTest {
     }
 
     @Test
+    fun `skal hente ut EksternInntektsmelding`() {
+        coEvery {
+            repository.hentNyesteEksternEllerInternInntektsmelding(any())
+        } returns Pair(null, EKSTERN_INNTEKTSMELDING_DOKUMENT)
+        sendMelding(
+            Key.BEHOV to BEHOV.toJson(),
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.INITIATE_ID to UUID.randomUUID().toJson()
+        )
+        val melding = hentMelding(0)
+        assertTrue(melding.contains(Key.DATA.str))
+        assertTrue(melding.contains(DataFelt.EKSTERN_INNTEKTSMELDING.str))
+        assertDoesNotThrow {
+            Jackson.fromJson<EksternInntektsmelding>(melding.get(DataFelt.EKSTERN_INNTEKTSMELDING.str).asText())
+        }
+    }
+
+    @Test
     fun `skal håndtere feil`() {
         coEvery {
-            repository.hentNyeste(any())
+            repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } throws Exception()
         val fail = sendMeldingMedFeil(
             Key.BEHOV to BEHOV.toJson(),
@@ -74,7 +95,7 @@ class HentPersistertLøserTest {
     @Test
     fun `Ingen feilmelding dersom im ikke eksisterer`() {
         coEvery {
-            repository.hentNyeste(any())
+            repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } returns null
         sendMelding(
             Key.BEHOV to BEHOV.toJson(),
@@ -84,7 +105,7 @@ class HentPersistertLøserTest {
         )
         val message = hentMelding(0)
         assertTrue(message.contains(Key.DATA.str))
-        assertEquals(message.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText(), "{}")
+        assertEquals("{}", message.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText())
     }
 
     private fun sendMelding(vararg melding: Pair<Key, JsonElement>) {

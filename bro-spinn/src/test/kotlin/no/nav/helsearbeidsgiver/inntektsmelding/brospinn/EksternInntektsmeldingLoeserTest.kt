@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
+package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
@@ -8,9 +8,9 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.AvsenderSystemData
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -20,32 +20,32 @@ import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.FIKK_SVAR_MED_RESPONSE_STATUS
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnApiException
-import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.spinn.SpinnKlient
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import java.util.UUID
 
-val avsenderSystemData = AvsenderSystemData(
+val eksternInntektsmelding = EksternInntektsmelding(
     avsenderSystemNavn = "NAV_NO",
     avsenderSystemVersjon = "1.63",
-    arkivreferanse = "im1234567"
+    arkivreferanse = "im1234567",
+    11.januar(2018).atStartOfDay()
+
 )
 
-class AvsenderSystemLoeserTest : FunSpec({
+class EksternInntektsmeldingLoeserTest : FunSpec({
     val testRapid = TestRapid()
 
     val spinnKlient = mockk<SpinnKlient>()
 
-    AvsenderSystemLoeser(testRapid, spinnKlient)
+    EksternInntektsmeldingLoeser(testRapid, spinnKlient)
 
     beforeEach {
         testRapid.reset()
         clearAllMocks()
     }
-    every { spinnKlient.hentAvsenderSystemData(any()) } returns avsenderSystemData
+    every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
 
     test("Ved når inntektsmeldingId mangler skal feil publiseres") {
 
@@ -54,27 +54,27 @@ class AvsenderSystemLoeserTest : FunSpec({
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.name.toJson()
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson()
             )
         }
 
         val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.behov shouldBe BehovType.HENT_AVSENDER_SYSTEM
+        actual.behov shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
         actual.feilmelding shouldBe "Mangler inntektsmeldingId"
     }
 
     test("Hvis inntektsmelding ikke finnes publiseres feil") {
 
-        every { spinnKlient.hentAvsenderSystemData(any()) } throws SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: 404")
+        every { spinnKlient.hentEksternInntektsmelding(any()) } throws SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: 404")
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns UUID.randomUUID()
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.name.toJson(),
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
                 DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
             )
         }
@@ -82,42 +82,42 @@ class AvsenderSystemLoeserTest : FunSpec({
         val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.behov shouldBe BehovType.HENT_AVSENDER_SYSTEM
+        actual.behov shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
         actual.feilmelding shouldBe "Feil ved kall mot spinn api: $FIKK_SVAR_MED_RESPONSE_STATUS: 404"
     }
 
     test("Hvis Inntektsmelding finnes publiseres data") {
-        every { spinnKlient.hentAvsenderSystemData(any()) } returns avsenderSystemData
+        every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns UUID.randomUUID()
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.name.toJson(),
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
                 DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
             )
         }
 
         val actual = testRapid.firstMessage().toDomeneMessage<Data>() {
-            it.interestedIn(DataFelt.AVSENDER_SYSTEM_DATA.str)
+            it.interestedIn(DataFelt.EKSTERN_INNTEKTSMELDING.str)
         }
 
         testRapid.inspektør.size shouldBeExactly 1
         actual.event shouldBe EventName.FORESPOERSEL_BESVART
 
-        actual[DataFelt.AVSENDER_SYSTEM_DATA].toString().fromJson(AvsenderSystemData.serializer()) shouldBe avsenderSystemData
+        actual[DataFelt.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer()) shouldBe eksternInntektsmelding
     }
 
     test("Hvis request timer ut blir feil publisert") {
-        every { spinnKlient.hentAvsenderSystemData(any()) } throws SocketTimeoutException("Timeout!")
+        every { spinnKlient.hentEksternInntektsmelding(any()) } throws SocketTimeoutException("Timeout!")
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns UUID.randomUUID()
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.HENT_AVSENDER_SYSTEM.name.toJson(),
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
                 DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
             )
         }
@@ -125,7 +125,7 @@ class AvsenderSystemLoeserTest : FunSpec({
         val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.behov shouldBe BehovType.HENT_AVSENDER_SYSTEM
+        actual.behov shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
         actual.feilmelding shouldBe "Ukjent feil ved kall til spinn"
     }
 })

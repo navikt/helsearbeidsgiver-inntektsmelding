@@ -9,8 +9,8 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 
 class ForespurtDataTest : FunSpec({

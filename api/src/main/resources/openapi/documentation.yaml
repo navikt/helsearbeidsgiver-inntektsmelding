@@ -1,0 +1,290 @@
+openapi: "3.0.3"
+info:
+  title: "helsearbeidsgiver_inntektsmelding API"
+  description: "helsearbeidsgiver_inntektsmelding API"
+  version: "1.0.0"
+servers:
+- url: "https://helsearbeidsgiver_inntektsmelding"
+paths:
+  /api/v1/trenger:
+    post:
+      description: ""
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        required: false
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: "#/components/schemas/TrengerRequest"
+        required: true
+      responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RedisTimeoutResponse"
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: ""
+                Example#2:
+                  value: ""
+                Example#3:
+                  value: ""
+                Example#4:
+                  value: ""
+        "201":
+          description: "Created"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TrengerResponse"
+        "503":
+          description: "Service Unavailable"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TrengerResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Du har ikke rettigheter for organisasjon."
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ValidationResponse"
+              examples:
+                Example#1:
+                  description: ""
+                  value:
+                    errors:
+                    - property: "null"
+                      error: "null"
+                      value: "<ukjent>"
+  /isalive:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "I'm alive"
+  /isready:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "I'm ready"
+  /metrics:
+    get:
+      description: ""
+      parameters:
+      - name: "name[]"
+        in: "query"
+        required: false
+        schema:
+          type: "array"
+          items:
+            type: "string"
+components:
+  schemas:
+    TrengerRequest:
+      type: "object"
+      properties:
+        uuid:
+          type: "string"
+          format: "uuid"
+    Periode:
+      type: "object"
+      properties:
+        fom:
+          type: "string"
+          format: "date"
+        tom:
+          type: "string"
+          format: "date"
+    YearMonth:
+      type: "object"
+      properties:
+        year:
+          type: "integer"
+          format: "int32"
+        month:
+          type: "integer"
+          format: "int32"
+    InntektPerMaaned:
+      type: "object"
+      properties:
+        maaned:
+          $ref: "#/components/schemas/YearMonth"
+        inntekt:
+          type: "number"
+          format: "double"
+    Arbeidsgiverperiode:
+      type: "object"
+      properties:
+        paakrevd:
+          type: "boolean"
+    ForslagInntekt:
+      type: "object"
+      properties: {}
+    Inntekt:
+      type: "object"
+      properties:
+        paakrevd:
+          type: "boolean"
+        forslag:
+          $ref: "#/components/schemas/ForslagInntekt"
+    ForslagRefusjon:
+      type: "object"
+      properties:
+        perioder:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Periode"
+        opphoersdato:
+          type: "string"
+          format: "date"
+    Refusjon:
+      type: "object"
+      properties:
+        paakrevd:
+          type: "boolean"
+        forslag:
+          $ref: "#/components/schemas/ForslagRefusjon"
+    ForespurtData:
+      type: "object"
+      properties:
+        arbeidsgiverperiode:
+          $ref: "#/components/schemas/Arbeidsgiverperiode"
+        inntekt:
+          $ref: "#/components/schemas/Inntekt"
+        refusjon:
+          $ref: "#/components/schemas/Refusjon"
+    Feilmelding:
+      type: "object"
+      properties:
+        melding:
+          type: "string"
+        status:
+          type: "integer"
+          format: "int32"
+        datafelt:
+          type: "string"
+          enum:
+          - "VIRKSOMHET"
+          - "ARBEIDSTAKER_INFORMASJON"
+          - "ARBEIDSGIVER_INFORMASJON"
+          - "INNTEKTSMELDING_DOKUMENT"
+          - "ARBEIDSFORHOLD"
+          - "SAK_ID"
+          - "PERSISTERT_SAK_ID"
+          - "OPPGAVE_ID"
+          - "ORGNRUNDERENHET"
+          - "FORESPOERSEL_ID"
+          - "INNTEKTSMELDING"
+          - "FORESPOERSEL_SVAR"
+          - "TRENGER_INNTEKT"
+          - "INNTEKT"
+          - "FNR"
+          - "ARBEIDSGIVER_FNR"
+          - "SKJAERINGSTIDSPUNKT"
+          - "TILGANG"
+          - "SPINN_INNTEKTSMELDING_ID"
+          - "EKSTERN_INNTEKTSMELDING"
+    FeilReport:
+      type: "object"
+      properties:
+        feil:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Feilmelding"
+    TrengerResponse:
+      type: "object"
+      properties:
+        navn:
+          type: "string"
+        orgNavn:
+          type: "string"
+        innsenderNavn:
+          type: "string"
+        identitetsnummer:
+          type: "string"
+        orgnrUnderenhet:
+          type: "string"
+        fravaersperioder:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Periode"
+        egenmeldingsperioder:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Periode"
+        bruttoinntekt:
+          type: "number"
+          format: "double"
+        tidligereinntekter:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/InntektPerMaaned"
+        behandlingsperiode:
+          $ref: "#/components/schemas/Periode"
+        behandlingsdager:
+          type: "array"
+          items:
+            type: "string"
+            format: "date"
+        forespurtData:
+          $ref: "#/components/schemas/ForespurtData"
+        feilReport:
+          $ref: "#/components/schemas/FeilReport"
+    RedisTimeoutResponse:
+      type: "object"
+      properties:
+        uuid:
+          type: "string"
+          format: "uuid"
+        error:
+          type: "string"
+    ValidationError:
+      type: "object"
+      properties:
+        property:
+          type: "string"
+        error:
+          type: "string"
+        value:
+          type: "string"
+    ValidationResponse:
+      type: "object"
+      properties:
+        errors:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ValidationError"

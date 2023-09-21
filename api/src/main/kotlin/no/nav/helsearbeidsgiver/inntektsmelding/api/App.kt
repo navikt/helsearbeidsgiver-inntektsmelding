@@ -9,7 +9,9 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.openapi.openAPI
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
@@ -58,6 +60,9 @@ fun startServer(env: Map<String, String> = System.getenv()) {
 }
 
 fun Application.apiModule(rapid: RapidsConnection) {
+    val redisPoller = RedisPoller()
+    val tilgangCache = LocalCache<Tilgang>(60.minutes, 100)
+
     customAuthentication()
 
     install(ContentNegotiation) {
@@ -76,23 +81,18 @@ fun Application.apiModule(rapid: RapidsConnection) {
     HelsesjekkerRouting()
 
     routing {
-        get("/") {
-            call.respondText("helsearbeidsgiver inntektsmelding")
-        }
-
-        val redisPoller = RedisPoller()
-
-        val tilgangCache = LocalCache<Tilgang>(60.minutes, 100)
-
         authenticate {
             route(Routes.PREFIX) {
+                trengerRoute(rapid, redisPoller, tilgangCache)
                 routeExtra(rapid, redisPoller, tilgangCache) {
-                    trengerRoute()
                     inntektRoute()
                     innsendingRoute()
                     kvitteringRoute()
                 }
             }
         }
+
+        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
+        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
     }
 }

@@ -25,14 +25,13 @@ swaggerSources {
 
 dependencies {
     swaggerUI("org.webjars:swagger-ui:5.6.1")
-    implementation("io.swagger.codegen.v3:swagger-codegen-generators:1.0.42")
 
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-openapi:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    implementation("io.ktor:ktor-server-swagger:$ktorVersion")
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnVersion")
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")

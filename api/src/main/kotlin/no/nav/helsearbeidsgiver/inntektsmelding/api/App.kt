@@ -9,13 +9,12 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.openapi.openAPI
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import io.swagger.codegen.v3.generators.html.StaticHtmlCodegen
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Tilgang
@@ -92,8 +91,6 @@ fun Application.apiModule(rapid: RapidsConnection) {
             }
         }
 
-        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml") {
-            codegen = StaticHtmlCodegen()
-        }
+        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
     }
 }

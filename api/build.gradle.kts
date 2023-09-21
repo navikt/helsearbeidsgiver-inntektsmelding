@@ -20,7 +20,6 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-openapi:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-    implementation("io.ktor:ktor-server-swagger:$ktorVersion")
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnVersion")
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")

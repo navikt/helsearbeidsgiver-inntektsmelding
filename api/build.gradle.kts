@@ -5,6 +5,10 @@ val mockOauth2ServerVersion: String by project
 val tokenSupportVersion: String by project
 val valiktorVersion: String by project
 
+plugins {
+    id("org.hidetake.swagger.generator") version "2.19.2"
+}
+
 tasks {
     test {
         environment("IDPORTEN_WELL_KNOWN_URL", "http://localhost:6666/idporten-issuer/.well-known/openid-configuration")
@@ -13,7 +17,16 @@ tasks {
     }
 }
 
+swaggerSources {
+    register("simba") {
+        setInputFile(file("src/main/resources/openapi/documentation.yaml"))
+    }
+}
+
 dependencies {
+    swaggerUI("org.webjars:swagger-ui:5.6.1")
+    implementation("io.swagger.codegen.v3:swagger-codegen-generators:1.0.42")
+
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")

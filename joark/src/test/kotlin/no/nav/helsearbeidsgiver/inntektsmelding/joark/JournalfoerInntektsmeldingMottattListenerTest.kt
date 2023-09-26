@@ -54,7 +54,7 @@ class JournalfoerInntektsmeldingMottattListenerTest {
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
-                    Key.UUID.str to "uuid",
+                    Key.UUID.str to UUID.randomUUID(),
                     DataFelt.INNTEKTSMELDING_DOKUMENT.str to request
                 )
             )

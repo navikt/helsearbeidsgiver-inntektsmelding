@@ -20,7 +20,7 @@ jobs:
       deploy_matrix: ${{ steps.set_matrix.outputs.deploy_matrix }}
       is_deploy_matrix_empty: ${{ steps.set_matrix.outputs.is_deploy_matrix_empty }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
@@ -89,7 +89,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.generate_vars.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-java@v3
         with:
           java-version: 17
@@ -161,7 +161,7 @@ jobs:
 
       - name: Fetch sources
         if: env.IMAGE_EXISTS == 'true'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Determine app configuration file
         if: env.IMAGE_EXISTS == 'true'

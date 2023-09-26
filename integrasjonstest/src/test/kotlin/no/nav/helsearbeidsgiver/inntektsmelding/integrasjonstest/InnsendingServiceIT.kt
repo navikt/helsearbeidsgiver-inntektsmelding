@@ -42,7 +42,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         Thread.sleep(10000)
 
-        messages.all().filter(Mock.clientId).size shouldBe 10
+        messages.all().filter(Mock.clientId).size shouldBe 11
 
         val innsendingStr = redisStore.get(Mock.clientId.toString()).shouldNotBeNull()
         innsendingStr.length shouldBeGreaterThan 2

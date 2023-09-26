@@ -79,6 +79,7 @@ fun InnsendingRequest.validate() {
         // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
         validate(InnsendingRequest::refusjon).validate {
             if (it.utbetalerHeleEllerDeler) {
+                validate(Refusjon::refusjonPrMnd).isNotNull()
                 validate(Refusjon::refusjonPrMnd).isGreaterThan(0.0.toBigDecimal())
                 validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0.toBigDecimal())
 

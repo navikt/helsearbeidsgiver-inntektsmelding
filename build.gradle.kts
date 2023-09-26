@@ -195,6 +195,7 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
         )
 
     return subprojects.map { it.name }
+        .filter { it != "integrasjonstest" }
         .let { projects ->
             if (hasCommonChanges) {
                 projects

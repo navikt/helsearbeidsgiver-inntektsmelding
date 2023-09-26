@@ -37,12 +37,15 @@ class InntektsmeldingRepository(private val db: Database) {
             requestTimer.observeDuration()
         }
     }
+
     fun hentNyeste(forespørselId: String): InntektsmeldingDokument? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet.run {
                 select { (forespoerselId eq forespørselId) and dokument.isNotNull() }.orderBy(innsendt, SortOrder.DESC)
-            }.firstOrNull()?.getOrNull(InntektsmeldingEntitet.dokument)
+            }
+                .firstOrNull()
+                ?.getOrNull(InntektsmeldingEntitet.dokument)
         }.also {
             requestTimer.observeDuration()
         }
@@ -67,7 +70,9 @@ class InntektsmeldingRepository(private val db: Database) {
     fun oppdaterJournalpostId(journalpostId: String, forespørselId: String) {
         val requestTimer = requestLatency.labels("oppdaterJournalpostId").startTimer()
         transaction(db) {
-            InntektsmeldingEntitet.update({ (InntektsmeldingEntitet.forespoerselId eq forespørselId) and (InntektsmeldingEntitet.journalpostId eq null) }) {
+            InntektsmeldingEntitet.update(
+                where = { (InntektsmeldingEntitet.forespoerselId eq forespørselId) and (InntektsmeldingEntitet.journalpostId eq null) }
+            ) {
                 it[InntektsmeldingEntitet.journalpostId] = journalpostId
             }
         }.also {

@@ -8,7 +8,9 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -28,13 +30,17 @@ class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnecti
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.requireKeys(
-                Key.UUID,
                 DataFelt.INNTEKTSMELDING_DOKUMENT
+            )
+            it.interestedIn(
+                Key.UUID,
+                Key.TRANSACTION_ORIGIN // TODO slett etter overgangsperiode
             )
         }
 
     override fun onEvent(packet: JsonMessage) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, packet.toJsonMap())
+        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, packet.toJsonMap())
+            ?: Key.TRANSACTION_ORIGIN.les(UuidSerializer, packet.toJsonMap())
 
         MdcUtils.withLogFields(
             Log.klasse(this),

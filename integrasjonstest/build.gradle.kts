@@ -53,7 +53,6 @@ dependencies {
 
     testApi(project(":api"))
 
-    testImplementation(project(":felles-test"))
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")

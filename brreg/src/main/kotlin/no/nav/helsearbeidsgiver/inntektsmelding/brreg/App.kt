@@ -3,9 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.brreg.BrregClient
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.log.logger
 
-val sikkerLogger = sikkerLogger()
+private val logger = "im-brreg".logger()
 
 fun main() {
     val environment = setUpEnvironment()
@@ -16,8 +16,8 @@ fun main() {
         .start()
 }
 
-fun RapidsConnection.createBrreg(brregClient: BrregClient, isDevelopmentMode: Boolean): RapidsConnection {
-    sikkerLogger.info("Starting VirksomhetLøser... developmentMode: $isDevelopmentMode")
-    VirksomhetLøser(this, brregClient, isDevelopmentMode)
-    return this
-}
+fun RapidsConnection.createBrreg(brregClient: BrregClient, isDevelopmentMode: Boolean): RapidsConnection =
+    also {
+        logger.info("Starter ${VirksomhetLoeser::class.simpleName}... developmentMode: $isDevelopmentMode")
+        VirksomhetLoeser(this, brregClient, isDevelopmentMode)
+    }

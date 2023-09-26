@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.value
  *
  * Eksempel på bruk:
  * ```
- * class SecondBreakfastLøser : Løser<String>() {
+ * class SecondBreakfastLoeser : Loeser<String>() {
  *     override val behovType = BehovType.SECOND_BREAKFAST
  *
  *     lateinit var hobbit(): Behov.() -> String

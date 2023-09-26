@@ -22,14 +22,14 @@ fun main() {
 }
 
 fun RapidsConnection.createEksternInntektsmeldingLoeser(spinnKlient: SpinnKlient): RapidsConnection =
-    apply {
-        logger.info("Starting ${EksternInntektsmeldingLoeser::class.simpleName}...")
+    also {
+        logger.info("Starter ${EksternInntektsmeldingLoeser::class.simpleName}...")
         EksternInntektsmeldingLoeser(this, spinnKlient)
     }
 
 fun RapidsConnection.createSpinnService(redisStore: IRedisStore): RapidsConnection =
-    apply {
-        logger.info("Starting ${SpinnService::class.simpleName}...")
+    also {
+        logger.info("Starter ${SpinnService::class.simpleName}...")
         SpinnService(this, redisStore)
     }
 

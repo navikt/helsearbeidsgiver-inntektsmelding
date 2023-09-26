@@ -28,15 +28,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
 
-class HentPersistertLøserTest {
+class HentPersistertLoeserTest {
 
     private val rapid = TestRapid()
-    private var løser: HentPersistertLøser
+    private var løser: HentPersistertLoeser
     private val BEHOV = BehovType.HENT_PERSISTERT_IM.toString()
     private val repository = mockk<InntektsmeldingRepository>()
 
     init {
-        løser = HentPersistertLøser(rapid, repository)
+        løser = HentPersistertLoeser(rapid, repository)
     }
 
     @Test

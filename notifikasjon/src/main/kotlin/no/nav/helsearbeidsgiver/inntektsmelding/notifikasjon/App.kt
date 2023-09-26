@@ -5,8 +5,10 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
+private val logger = "im-notifikasjon".logger()
 val sikkerLogger = sikkerLogger()
 
 fun main() {
@@ -21,16 +23,29 @@ fun RapidsConnection.createNotifikasjon(
     redisStore: RedisStore,
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     linkUrl: String
-): RapidsConnection {
-    OpprettSakLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-    ForespørselLagretListener(this)
-    OpprettOppgaveLøser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
-    SakFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
-    OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
-    OpprettSak(this, redisStore)
-    ManuellOpprettSakService(this, redisStore)
-    return this
-}
+): RapidsConnection =
+    also {
+        logger.info("Starter ${OpprettSak::class.simpleName}...")
+        OpprettSak(this, redisStore)
+
+        logger.info("Starter ${OpprettSakLoeser::class.simpleName}...")
+        OpprettSakLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+
+        logger.info("Starter ${SakFerdigLoeser::class.simpleName}...")
+        SakFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
+
+        logger.info("Starter ${ForespoerselLagretListener::class.simpleName}...")
+        ForespoerselLagretListener(this)
+
+        logger.info("Starter ${OpprettOppgaveLoeser::class.simpleName}...")
+        OpprettOppgaveLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
+
+        logger.info("Starter ${OppgaveFerdigLoeser::class.simpleName}...")
+        OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
+
+        logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")
+        ManuellOpprettSakService(this, redisStore)
+    }
 
 fun buildClient(environment: Environment): ArbeidsgiverNotifikasjonKlient {
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)

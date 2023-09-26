@@ -16,11 +16,11 @@ fun main() {
 }
 
 fun RapidsConnection.createJoark(dokArkivClient: DokArkivClient): RapidsConnection =
-    apply {
-        logger.info("Starting JournalfoerInntektsmeldingLoeser...")
+    also {
+        logger.info("Starter ${JournalfoerInntektsmeldingLoeser::class.simpleName}...")
         JournalfoerInntektsmeldingLoeser(this, dokArkivClient)
 
-        logger.info("Starting JournalfoerInntektsmeldingMottattListener...")
+        logger.info("Starter ${JournalfoerInntektsmeldingMottattListener::class.simpleName}...")
         JournalfoerInntektsmeldingMottattListener(this)
     }
 

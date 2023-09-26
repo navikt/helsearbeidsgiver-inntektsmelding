@@ -7,14 +7,14 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.mapHikariConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.NotifikasjonHentIdLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterImLøser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterOppgaveLøser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterSakLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterImLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterOppgaveLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterSakLoeser
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -39,25 +39,34 @@ fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
 }
 
 fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingRepository, forespoerselRepo: ForespoerselRepository): RapidsConnection =
-    apply {
-        logger.info("Starter LagreForespoerselLoeser...")
+    also {
+        logger.info("Starter ${LagreForespoerselLoeser::class.simpleName}...")
         LagreForespoerselLoeser(this, forespoerselRepo)
-        logger.info("Starter PersisterImLøser...")
-        PersisterImLøser(this, imRepo)
-        logger.info("Starter HentPersistertLøser...")
-        HentPersistertLøser(this, imRepo)
-        logger.info("Starter LagreJournalpostIdLøser...")
-        LagreJournalpostIdLøser(this, imRepo)
-        logger.info("Starter PersisterSakLøser...")
-        PersisterSakLøser(this, forespoerselRepo)
-        logger.info("Starter PersisterOppgaveLøser...")
-        PersisterOppgaveLøser(this, forespoerselRepo)
-        logger.info("Starter HentOrgnrLoeser...")
+
+        logger.info("Starter ${PersisterImLoeser::class.simpleName}...")
+        PersisterImLoeser(this, imRepo)
+
+        logger.info("Starter ${HentPersistertLoeser::class.simpleName}...")
+        HentPersistertLoeser(this, imRepo)
+
+        logger.info("Starter ${LagreJournalpostIdLoeser::class.simpleName}...")
+        LagreJournalpostIdLoeser(this, imRepo)
+
+        logger.info("Starter ${PersisterSakLoeser::class.simpleName}...")
+        PersisterSakLoeser(this, forespoerselRepo)
+
+        logger.info("Starter ${PersisterOppgaveLoeser::class.simpleName}...")
+        PersisterOppgaveLoeser(this, forespoerselRepo)
+
+        logger.info("Starter ${HentOrgnrLoeser::class.simpleName}...")
         HentOrgnrLoeser(this, forespoerselRepo)
-        logger.info("Starter NotifikasjonHentIdLoeser...")
+
+        logger.info("Starter ${NotifikasjonHentIdLoeser::class.simpleName}...")
         NotifikasjonHentIdLoeser(this, forespoerselRepo)
-        logger.info("Starter LagreEksternInntektsmeldingLøser...")
+
+        logger.info("Starter ${LagreEksternInntektsmeldingLoeser::class.simpleName}...")
         LagreEksternInntektsmeldingLoeser(this, imRepo)
+
         registerDbLifecycle(database)
     }
 

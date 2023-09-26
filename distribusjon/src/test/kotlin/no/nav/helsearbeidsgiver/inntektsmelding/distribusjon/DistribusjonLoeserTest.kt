@@ -23,15 +23,15 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
 
-class DistribusjonLøserTest {
+class DistribusjonLoeserTest {
 
     private val rapid = TestRapid()
-    private var løser: DistribusjonLøser
+    private var løser: DistribusjonLoeser
     private val kafkaProducer = mockk<KafkaProducer<String, String>>()
     private val JOURNALPOST_ID = "12345"
 
     init {
-        løser = DistribusjonLøser(rapid, kafkaProducer)
+        løser = DistribusjonLoeser(rapid, kafkaProducer)
     }
 
     @BeforeEach

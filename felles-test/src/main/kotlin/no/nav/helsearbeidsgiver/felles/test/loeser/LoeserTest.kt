@@ -36,7 +36,7 @@ abstract class LoeserTest {
         val loesning: Løsning<T>
     ) {
         companion object {
-            fun <T : Any> JsonElement.toLøserAnswer(tSerializer: KSerializer<T>): LoeserAnswer<T> =
+            fun <T : Any> JsonElement.toLoeserAnswer(tSerializer: KSerializer<T>): LoeserAnswer<T> =
                 fromJsonMapOnlyKeys()
                     .let {
                         val behov = behov(it)

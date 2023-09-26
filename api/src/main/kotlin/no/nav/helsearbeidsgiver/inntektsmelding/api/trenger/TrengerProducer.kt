@@ -13,7 +13,7 @@ class TrengerProducer(
     private val rapid: RapidsConnection
 ) {
     init {
-        logger.info("Starter TrengerProducer...")
+        logger.info("Starter ${TrengerProducer::class.simpleName}...")
     }
 
     fun publish(request: TrengerRequest, initiateId: UUID = UUID.randomUUID(), arbeidsgiverFnr: String): UUID {

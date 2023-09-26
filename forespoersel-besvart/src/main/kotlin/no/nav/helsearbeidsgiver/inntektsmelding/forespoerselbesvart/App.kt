@@ -23,13 +23,13 @@ fun main() {
 }
 
 fun RapidsConnection.createForespoerselBesvartFraSimba(): RapidsConnection =
-    apply {
+    also {
         logger.info("Starter ${ForespoerselBesvartFraSimbaLoeser::class.simpleName}...")
         ForespoerselBesvartFraSimbaLoeser(this)
     }
 
 fun RapidsConnection.createForespoerselBesvartFraSpleis(priProducer: PriProducer<JsonElement>): RapidsConnection =
-    apply {
+    also {
         logger.info("Starter ${ForespoerselBesvartFraSpleisLoeser::class.simpleName}...")
         ForespoerselBesvartFraSpleisLoeser(this, priProducer)
     }

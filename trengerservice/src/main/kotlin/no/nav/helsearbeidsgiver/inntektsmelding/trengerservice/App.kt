@@ -17,6 +17,6 @@ fun main() {
 
 fun RapidsConnection.createTrengerService(redisStore: IRedisStore): RapidsConnection =
     also {
-        logger.info("Starting TrengerService...")
+        logger.info("Starter ${TrengerService::class.simpleName}...")
         TrengerService(this, redisStore)
     }

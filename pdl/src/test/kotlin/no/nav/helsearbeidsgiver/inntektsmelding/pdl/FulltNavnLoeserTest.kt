@@ -27,13 +27,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class FulltNavnLøserTest {
+class FulltNavnLoeserTest {
 
     private val testRapid = TestRapid()
     private val mockPdlClient = mockk<PdlClient>()
 
     init {
-        FulltNavnLøser(testRapid, mockPdlClient)
+        FulltNavnLoeser(testRapid, mockPdlClient)
     }
 
     @BeforeEach

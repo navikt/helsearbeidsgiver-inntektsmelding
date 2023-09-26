@@ -35,7 +35,6 @@ class SakFerdigLoeser(
     private val logger = logger()
 
     init {
-        logger.info("Starter SakFerdigLoeser...")
         River(rapid).apply {
             validate {
                 it.demandValues(

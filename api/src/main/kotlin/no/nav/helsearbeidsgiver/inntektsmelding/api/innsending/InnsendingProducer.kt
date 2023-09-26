@@ -16,7 +16,7 @@ class InnsendingProducer(
     private val rapidsConnection: RapidsConnection
 ) {
     init {
-        logger.info("Starter InnsendingProducer...")
+        logger.info("Starter ${InnsendingProducer::class.simpleName}...")
     }
 
     fun publish(forespoerselId: UUID, request: InnsendingRequest, arbeidsgiverFnr: String): UUID {

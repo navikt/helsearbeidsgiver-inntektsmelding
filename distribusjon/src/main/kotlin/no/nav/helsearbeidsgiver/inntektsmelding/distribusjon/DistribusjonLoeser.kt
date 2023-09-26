@@ -21,7 +21,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 
 private const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
 
-class DistribusjonLøser(
+class DistribusjonLoeser(
     rapidsConnection: RapidsConnection,
     private val kafkaProducer: KafkaProducer<String, String>
 ) : Loeser(rapidsConnection) {

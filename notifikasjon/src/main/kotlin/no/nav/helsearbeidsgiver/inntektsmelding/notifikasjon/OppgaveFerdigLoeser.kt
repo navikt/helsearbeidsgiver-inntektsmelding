@@ -34,7 +34,6 @@ class OppgaveFerdigLoeser(
     private val logger = logger()
 
     init {
-        logger.info("Starter OppgaveFerdigLoeser...")
         River(rapid).apply {
             validate {
                 it.demandValues(

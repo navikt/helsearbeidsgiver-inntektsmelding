@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class PersisterOppgaveLøser(
+class PersisterOppgaveLoeser(
     rapidsConnection: RapidsConnection,
     private val repository: ForespoerselRepository
 ) : Loeser(rapidsConnection) {

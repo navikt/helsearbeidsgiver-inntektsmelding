@@ -15,15 +15,18 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.system.measureTimeMillis
 
-class VirksomhetLøser(
+class VirksomhetLoeser(
     rapidsConnection: RapidsConnection,
     private val brregClient: BrregClient,
     private val isPreProd: Boolean
 ) : Loeser(rapidsConnection) {
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
     private val BEHOV = BehovType.VIRKSOMHET
     private val requestLatency = Summary.build()
         .name("simba_brreg_hent_virksomhet_latency_seconds")

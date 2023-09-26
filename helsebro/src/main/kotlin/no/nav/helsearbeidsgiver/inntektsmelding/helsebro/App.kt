@@ -22,9 +22,10 @@ fun main() {
 }
 
 fun RapidsConnection.createHelsebro(priProducer: PriProducer<TrengerForespoersel>): RapidsConnection =
-    apply {
-        logger.info("Starting TrengerForespoerselLoeser...")
+    also {
+        logger.info("Starter ${TrengerForespoerselLoeser::class.simpleName}...")
         TrengerForespoerselLoeser(this, priProducer)
-        logger.info("Starting ForespoerselSvarLoeser...")
+
+        logger.info("Starter ${ForespoerselSvarLoeser::class.simpleName}...")
         ForespoerselSvarLoeser(this)
     }

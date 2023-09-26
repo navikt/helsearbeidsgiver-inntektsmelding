@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.loeser.Loeser
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class AltinnLøser(
+class AltinnLoeser(
     private val altinnClient: AltinnClient
 ) : Loeser<Set<AltinnOrganisasjon>>() {
     override val behovType = BehovType.ARBEIDSGIVERE

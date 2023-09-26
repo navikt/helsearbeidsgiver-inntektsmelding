@@ -4,16 +4,16 @@ import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
-fun JsonMessage.demandAll(key: IKey, values: List<BehovType>) {
-    demandAll(key.str, values.map(BehovType::name))
-}
+fun JsonMessage.toPretty(): String =
+    toJson().parseJson().toPretty()
 
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<IKey, String>) {
     keyAndValuePairs.forEach { (key, value) ->
@@ -41,10 +41,18 @@ fun JsonMessage.require(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> An
     validate(JsonMessage::require, keyStringAndParserPairs)
 }
 
+fun JsonMessage.interestedIn(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> Any>) {
+    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(IKey::str) }
+    validate(JsonMessage::interestedIn, keyStringAndParserPairs)
+}
+
 fun JsonMessage.interestedIn(vararg keys: IKey) {
     val keysAsStr = keys.map(IKey::str).toTypedArray()
     interestedIn(*keysAsStr)
 }
+
+fun JsonMessage.toJsonMap(): Map<IKey, JsonElement> =
+    toJson().parseJson().toMap()
 
 fun MessageContext.publish(vararg messageFields: Pair<IKey, JsonElement>): JsonElement =
     messageFields

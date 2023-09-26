@@ -8,16 +8,16 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
-class OpprettSak(private val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
+class OpprettSak(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
     override val event: EventName = EventName.FORESPØRSEL_LAGRET
 
     init {
@@ -25,7 +25,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.IDENTITETSNUMMER.str, Key.FORESPOERSEL_ID.str),
+                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.IDENTITETSNUMMER.str, Key.FORESPOERSEL_ID.str, Key.UUID.str),
                 this,
                 rapidsConnection
             )
@@ -50,7 +50,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
                     mapOf(
                         Key.EVENT_NAME.str to event.name,
                         Key.UUID.str to transaksjonsId,
-                        Key.BEHOV.str to listOf(BehovType.FULLT_NAVN.name),
+                        Key.BEHOV.str to BehovType.FULLT_NAVN.name,
                         Key.IDENTITETSNUMMER.str to redisStore.get(transaksjonsId + Key.IDENTITETSNUMMER.str)!!,
                         Key.FORESPOERSEL_ID.str to forespørselId
 
@@ -103,13 +103,13 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
     }
 
     override fun terminate(message: JsonMessage) {
-        TODO("Not yet implemented")
+        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
     }
 
     override fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.FULLT_NAVN) {
             val fulltNavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
-            redisStore.set(fulltNavnKey, customObjectMapper().writeValueAsString(PersonDato("Ukjent person", null)))
+            redisStore.set(fulltNavnKey, PersonDato("Ukjent person", null, "").toJsonStr(PersonDato.serializer()))
             return Transaction.IN_PROGRESS
         }
         return Transaction.TERMINATE

@@ -43,32 +43,27 @@ value class Messages(
                 .orDefault(false)
         }
 
-    fun filter(behovType: BehovType, loesningPaakrevd: Boolean): Messages =
-        filter { msg ->
-            val msgMap = msg.fromJsonMapOnlyKeys()
-
-            val behovTypeFunnet = msgMap[Key.BEHOV]
+    fun filter(behovType: BehovType): Messages =
+        filter {
+            it.fromJsonMapOnlyKeys()[Key.BEHOV]
                 ?.runCatching { fromJsonToBehovTypeListe() }
                 ?.getOrElse { emptyList() }
                 ?.contains(behovType)
                 .orDefault(false)
-
-            val loesningFunnet = msgMap[Key.LØSNING]
-                ?.runCatching { fromJsonMapFiltered(BehovType.serializer()) }
-                ?.getOrElse { emptyMap() }
-                ?.contains(behovType)
-                .orDefault(false)
-
-            behovTypeFunnet && (!loesningPaakrevd || loesningFunnet)
         }
 
-    fun filter(dataFelt: DataFelt): Messages =
+    fun filter(dataFelt: DataFelt, utenDataKey: Boolean = false): Messages =
         filter { msg ->
-            val dataFunnet = msg.fromJsonMapOnlyKeys().contains(Key.DATA)
+            val dataFunnet = utenDataKey || msg.fromJsonMapOnlyKeys().contains(Key.DATA)
 
             val datafeltFunnet = msg.fromJsonMapFiltered(DataFelt.serializer()).contains(dataFelt)
 
             dataFunnet && datafeltFunnet
+        }
+
+    fun filterFeil(): Messages =
+        filter { msg ->
+            msg.fromJsonMapOnlyKeys().contains(Key.FAIL)
         }
 
     private fun filter(predicate: (JsonElement) -> Boolean): Messages =

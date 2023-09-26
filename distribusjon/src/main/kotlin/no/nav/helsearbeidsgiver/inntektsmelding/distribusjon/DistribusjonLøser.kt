@@ -2,7 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
-import no.nav.helse.rapids_rivers.JsonMessage
+import io.prometheus.client.Summary
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -11,8 +11,10 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.JournalførtInntektsmelding
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -25,10 +27,10 @@ class DistribusjonLøser(
 ) : Løser(rapidsConnection) {
 
     private val logger = logger()
-
-    init {
-        logger.info("Starting DistribuerIMLøser...")
-    }
+    private val requestLatency = Summary.build()
+        .name("simba_distribusjon_inntektsmelding_latency_seconds")
+        .help("distribusjon inntektsmelding latency in seconds")
+        .register()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
@@ -38,63 +40,59 @@ class DistribusjonLøser(
         }
     }
 
-    private fun hentInntektsmeldingDokument(packet: JsonMessage): InntektsmeldingDokument {
+    private fun hentInntektsmeldingDokument(behov: Behov): InntektsmeldingDokument {
         try {
-            return customObjectMapper().treeToValue(
-                packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str],
-                InntektsmeldingDokument::class.java
-            )
+            val json = behov[DataFelt.INNTEKTSMELDING_DOKUMENT].toString()
+            return Jackson.fromJson<InntektsmeldingDokument>(json)
         } catch (ex: Exception) {
             throw DeserialiseringException(ex)
         }
     }
 
-    override fun onBehov(packet: JsonMessage) {
-        sikkerLogger.info("Skal distribuere pakken: ${packet.toJson()}")
-        val journalpostId: String = packet[Key.JOURNALPOST_ID.str].asText()
+    override fun onBehov(behov: Behov) {
+        val journalpostId: String = behov[Key.JOURNALPOST_ID].asText()
         logger.info("Skal distribuere inntektsmelding for journalpostId $journalpostId...")
-        val eventName = packet[Key.EVENT_NAME.str].asText()
+        val requestTimer = requestLatency.startTimer()
         try {
-            val inntektsmeldingDokument = hentInntektsmeldingDokument(packet)
+            val inntektsmeldingDokument = hentInntektsmeldingDokument(behov)
             val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
-            val journalførtJson = customObjectMapper().writeValueAsString(journalførtInntektsmelding)
+            val journalførtJson = Jackson.toJson(journalførtInntektsmelding)
             kafkaProducer.send(ProducerRecord(TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN, journalførtJson))
             logger.info("Distribuerte eksternt for journalpostId: $journalpostId")
             sikkerLogger.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalførtJson")
-            publishEvent(
-                JsonMessage.newMessage(
-                    mapOf(
-                        Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_DISTRIBUERT,
-                        DataFelt.INNTEKTSMELDING_DOKUMENT.str to inntektsmeldingDokument,
-                        Key.JOURNALPOST_ID.str to journalpostId
-                    )
+
+            Event.create(
+                EventName.INNTEKTSMELDING_DISTRIBUERT,
+                behov.forespoerselId!!,
+                mapOf(
+                    Key.JOURNALPOST_ID to journalpostId,
+                    DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument
                 )
-            )
+            ).also {
+                publishEvent(it)
+            }
+
             logger.info("Distribuerte inntektsmelding for journalpostId: $journalpostId")
         } catch (e: DeserialiseringException) {
             logger.error("Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId")
             sikkerLogger.error("Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId", e)
             publishFail(
-                JsonMessage.newMessage(
-                    eventName,
-                    mapOf(
-                        Key.FAIL.str to "Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId",
-                        Key.JOURNALPOST_ID.str to journalpostId
-                    )
+                behov.createFail(
+                    "Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId",
+                    mapOf(Key.JOURNALPOST_ID to journalpostId)
                 )
             )
         } catch (e: Exception) {
             logger.error("Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId")
             sikkerLogger.error("Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId", e)
             publishFail(
-                JsonMessage.newMessage(
-                    eventName,
-                    mapOf(
-                        Key.FAIL.str to "Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId",
-                        Key.JOURNALPOST_ID.str to journalpostId
-                    )
+                behov.createFail(
+                    "Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId",
+                    mapOf(Key.JOURNALPOST_ID to journalpostId)
                 )
             )
+        } finally {
+            requestTimer.observeDuration()
         }
     }
 }

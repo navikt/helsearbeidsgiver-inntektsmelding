@@ -38,7 +38,7 @@ class DelegatingFailKanalTest {
         testRapid.sendTestMessage(
             JsonMessage.newMessage(
                 mapOf(
-                    Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_REQUESTED,
+                    Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED,
                     Key.UUID.str to UUID.randomUUID().toString(),
                     Key.FAIL.str to "This is a fail"
                 )

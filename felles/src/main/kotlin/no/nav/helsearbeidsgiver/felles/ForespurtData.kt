@@ -2,45 +2,65 @@
 
 package no.nav.helsearbeidsgiver.felles
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.json.JsonClassDiscriminator
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.LocalDate
-import java.time.YearMonth
 
 @Serializable
-@OptIn(ExperimentalSerializationApi::class)
-@JsonClassDiscriminator("opplysningstype")
-sealed class ForespurtData {
+data class ForespurtData(
+    val arbeidsgiverperiode: Arbeidsgiverperiode,
+    val inntekt: Inntekt,
+    val refusjon: Refusjon
+) {
     @Serializable
-    @SerialName("Arbeidsgiverperiode")
-    object ArbeidsgiverPeriode : ForespurtData()
+    data class Arbeidsgiverperiode(
+        val paakrevd: Boolean
+    )
 
     @Serializable
-    @SerialName("Inntekt")
-    data class Inntekt(val forslag: ForslagInntekt) : ForespurtData()
+    data class Inntekt(
+        val paakrevd: Boolean,
+        val forslag: ForslagInntekt
+    )
 
     @Serializable
-    @SerialName("FastsattInntekt")
-    data class FastsattInntekt(val fastsattInntekt: Double) : ForespurtData()
+    data class Refusjon(
+        val paakrevd: Boolean,
+        val forslag: ForslagRefusjon
+    )
+}
+
+@Serializable
+sealed class ForslagInntekt {
+    @Serializable
+    @SerialName("ForslagInntektGrunnlag")
+    data class Grunnlag(
+        val forrigeInntekt: ForrigeInntekt?
+    ) : ForslagInntekt()
 
     @Serializable
-    @SerialName("Refusjon")
-    data class Refusjon(val forslag: List<ForslagRefusjon>) : ForespurtData()
+    @SerialName("ForslagInntektFastsatt")
+    data class Fastsatt(val fastsattInntekt: Double) : ForslagInntekt()
 }
 
 @Serializable
 data class ForslagRefusjon(
-    val fom: LocalDate,
-    val tom: LocalDate?,
-    val beløp: Double
-)
+    val perioder: List<Periode>,
+    val opphoersdato: LocalDate?
+) {
+    @Serializable
+    data class Periode(
+        val fom: LocalDate,
+        val beloep: Double
+    )
+}
 
 @Serializable
-data class ForslagInntekt(
-    val beregningsmåneder: List<YearMonth>
+data class ForrigeInntekt(
+    val skjæringstidspunkt: LocalDate,
+    val kilde: String,
+    val beløp: Double
 )

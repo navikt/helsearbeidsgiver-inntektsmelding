@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEnd
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Sykefravaer
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.jupiter.api.Test
@@ -108,6 +109,56 @@ class PdfDokumentTest {
     }
 
     @Test
+    fun `med langt virksomhetsnavn over flere linjer`() {
+        val imLangNavn = im.copy(
+            virksomhetNavn = "Blå Rød Grønn Blåbærebærekraftsvennligutendørsbedrift AS"
+        )
+        val forventetInnhold = "Blå Rød Grønn${System.lineSeparator()}Blåbærebærekraftsvennligutendørsbedrift${System.lineSeparator()}AS"
+        val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
+        assert(pdfTekst!!.contains(forventetInnhold))
+    }
+
+    @Test
+    fun `med langt fulltnavn over flere linjer`() {
+        val imLangNavn = im.copy(
+            fulltNavn = "Blå Rød Grønn BlåbærebærekraftsvennligutendørsNavn"
+        )
+        val forventetInnhold = "Blå Rød Grønn${System.lineSeparator()}BlåbærebærekraftsvennligutendørsNavn"
+        val pdfDok = PdfDokument(imLangNavn).export()
+        val pdfTekst = extractTextFromPdf(pdfDok)
+        assert(pdfTekst!!.contains(forventetInnhold))
+    }
+
+    @Test
+    fun `med kontaktInfo til arbeidsgiver`() {
+        val tlf = "+4722555555"
+
+        val medTelefon = im.copy(
+            telefonnummer = tlf
+        )
+        writePDF(
+            "med_begrunnelse",
+            medTelefon
+        )
+        val pdfTekst = extractTextFromPdf(PdfDokument(medTelefon).export())
+        assert(pdfTekst!!.contains(tlf.formaterTelefonnummer()))
+        assert(pdfTekst.contains(im.innsenderNavn.toString()))
+    }
+
+    @Test
+    fun `med begrunnelse`() {
+        writePDF(
+            "med_begrunnelse",
+            im.copy(
+                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                    false,
+                    begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FERIE_ELLER_AVSPASERING
+                )
+            )
+        )
+    }
+
+    @Test
     fun `med inntekt endring årsak - alle varianter`() {
         val perioder = listOf(Periode(dag, dag.plusDays(12)), Periode(dag.plusDays(13), dag.plusDays(18)))
         val map = HashMap<String, InntektEndringAarsak>()
@@ -131,6 +182,12 @@ class PdfDokumentTest {
                 )
             )
         }
+        writePDF(
+            "med_ingen_aarsak_inntekt_endring",
+            im.copy(
+                inntekt = Inntekt(true, 123.0.toBigDecimal(), null, true)
+            )
+        )
     }
     private fun writePDF(title: String, im: InntektsmeldingDokument) {
         // val file = File(System.getProperty("user.home"), "/Desktop/$title.pdf")

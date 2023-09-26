@@ -2,16 +2,24 @@ package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.prometheus.client.CollectorRegistry
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
 
@@ -20,11 +28,15 @@ class DistribusjonLøserTest {
     private val rapid = TestRapid()
     private var løser: DistribusjonLøser
     private val kafkaProducer = mockk<KafkaProducer<String, String>>()
-    private val om = customObjectMapper()
     private val JOURNALPOST_ID = "12345"
 
     init {
         løser = DistribusjonLøser(rapid, kafkaProducer)
+    }
+
+    @BeforeEach
+    fun setup() {
+        rapid.reset()
     }
 
     @Test
@@ -32,13 +44,12 @@ class DistribusjonLøserTest {
         coEvery {
             kafkaProducer.send(any())
         } returns CompletableFuture()
-        val mld = mapOf(
-            Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
-            Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
-            Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            DataFelt.INNTEKTSMELDING_DOKUMENT.str to mockInntektsmeldingDokument()
+        rapid.sendJson(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
+            Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
+            Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmeldingDokument().let(Jackson::toJson).parseJson()
         )
-        sendMelding(mld)
         val melding = rapid.inspektør.message(0)
         assertNotNull(melding, "Skal publisere event at inntektsmelding er distribuert")
         assertEquals(EventName.INNTEKTSMELDING_DISTRIBUERT.name, melding.get(Key.EVENT_NAME.str).asText())
@@ -52,13 +63,12 @@ class DistribusjonLøserTest {
         coEvery {
             kafkaProducer.send(any())
         } returns CompletableFuture()
-        val mld = mapOf(
-            Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
-            Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
-            Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            DataFelt.INNTEKTSMELDING_DOKUMENT.str to "dummy"
+        rapid.sendJson(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
+            Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
+            Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to "dummy".toJson()
         )
-        sendMelding(mld)
         val melding = rapid.inspektør.message(0)
         assertNotNull(melding, "Skal publisere event at inntektsmelding IKKE ble distribuert")
         assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, melding.get(Key.EVENT_NAME.str).asText())
@@ -70,21 +80,20 @@ class DistribusjonLøserTest {
         coEvery {
             kafkaProducer.send(any())
         } throws Exception("")
-        val mld = mapOf(
-            Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
-            Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
-            Key.JOURNALPOST_ID.str to JOURNALPOST_ID,
-            DataFelt.INNTEKTSMELDING_DOKUMENT.str to "dummy"
+        rapid.sendJson(
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
+            Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
+            Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to "dummy".toJson()
         )
-        sendMelding(mld)
         val melding = rapid.inspektør.message(0)
         assertNotNull(melding, "Skal publisere event at inntektsmelding IKKE ble distribuert")
         assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, melding.get(Key.EVENT_NAME.str).asText())
         assertNotNull(melding.get(Key.FAIL.str).asText(), "Skal inneholde feil")
     }
 
-    private fun sendMelding(melding: Map<String, Any>) {
-        rapid.reset()
-        rapid.sendTestMessage(om.writeValueAsString(melding))
+    @AfterEach
+    fun cleanPrometheusMetrics() {
+        CollectorRegistry.defaultRegistry.clear()
     }
 }

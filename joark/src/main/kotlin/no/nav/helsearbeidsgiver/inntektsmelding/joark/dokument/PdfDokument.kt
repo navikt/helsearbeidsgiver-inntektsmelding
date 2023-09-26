@@ -66,13 +66,27 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         moveCursorBy(pdf.sectionSize * 2)
     }
 
-    private fun addLabel(label: String, text: String? = null, x: Int = KOLONNE_EN, newY: Int = y, linefeed: Boolean = true) {
+    private fun addLabel(
+        label: String,
+        text: String? = null,
+        x: Int = KOLONNE_EN,
+        newY: Int = y,
+        linefeed: Boolean = true,
+        splitLines: Boolean = false
+    ) {
         pdf.addText(label, x, newY, BOLD_LABELS)
-        if (text != null) {
-            pdf.addText(text, x, newY + pdf.bodySize + (pdf.bodySize / 2), !BOLD_LABELS)
-        }
-        if (linefeed) {
-            moveCursorBy(if (text == null) { pdf.bodySize * 2 } else { pdf.bodySize * 4 })
+        if (splitLines && text != null) {
+            text.delOppLangeNavn().forEach {
+                pdf.addText(it, x, y + pdf.bodySize + (pdf.bodySize / 2), !BOLD_LABELS)
+                moveCursorBy(pdf.bodySize * 2)
+            }
+        } else {
+            if (text != null) {
+                pdf.addText(text, x, newY + pdf.bodySize + (pdf.bodySize / 2), !BOLD_LABELS)
+            }
+            if (linefeed) {
+                moveCursorBy(if (text == null) { pdf.bodySize * 2 } else { pdf.bodySize * 4 })
+            }
         }
     }
 
@@ -98,14 +112,33 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
 
     private fun addAnsatt() {
         addSection("Den ansatte")
-        addLabel("Navn", dokument.fulltNavn, linefeed = false)
+        val topY = y
+        addLabel("Navn", dokument.fulltNavn, linefeed = false, splitLines = true)
+        val afterY = y
+        moveCursorTo(topY)
         addLabel("Personnummer", dokument.identitetsnummer, KOLONNE_TO)
+        moveCursorTo(afterY)
+        moveCursorBy(pdf.bodySize * 2)
     }
 
     private fun addArbeidsgiver() {
         addSection("Arbeidsgiveren")
-        addLabel("Virksomhetsnavn", dokument.virksomhetNavn, linefeed = false)
+        val topY = y
+        addLabel("Virksomhetsnavn", dokument.virksomhetNavn, linefeed = false, splitLines = true)
+        val afterY = y
+        moveCursorTo(topY)
         addLabel("Organisasjonsnummer for underenhet", dokument.orgnrUnderenhet, KOLONNE_TO)
+        moveCursorTo(afterY)
+        moveCursorBy(pdf.bodySize * 2)
+        val newY = y
+        addLabel(
+            label = "Innsender",
+            text = dokument.innsenderNavn,
+            linefeed = false,
+            splitLines = true
+        )
+        moveCursorTo(newY)
+        addLabel("Telefonnummer", dokument.telefonnummer?.formaterTelefonnummer(), KOLONNE_TO)
     }
 
     private fun addFraværsperiode() {
@@ -148,6 +181,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
         val endringsårsak = dokument.inntekt?.endringÅrsak
         when (endringsårsak) {
+            null -> return // trenger ikke sende inn årsak...
             is Permisjon -> addPermisjon(endringsårsak)
             is Ferie -> addFerie(endringsårsak)
             is Permittering -> addPermittering(endringsårsak)
@@ -159,7 +193,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             is Sykefravaer -> addSykefravaer(endringsårsak)
             is Nyansatt -> addNyAnsatt()
             is Feilregistrert -> addFeilregistrert()
-            else -> throw IllegalArgumentException("Mangler hjelpefunksjon for type: ${endringsårsak?.typpe}")
+            else -> throw IllegalArgumentException("Type ${endringsårsak.typpe} håndteres ikke. Legg til hjelpefunksjon for å løse feilen.")
         }
     }
 
@@ -221,13 +255,15 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addSection("Refusjon")
 
         val lønnArbeidsgiverperioden = dokument.fullLønnIArbeidsgiverPerioden
-        addLabel("Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", lønnArbeidsgiverperioden.utbetalerFullLønn.toNorsk())
-        if (lønnArbeidsgiverperioden.utbetalerFullLønn) {
-            // Ja
-        } else {
-            // Nei - to ekstra spørsmål
-            addLabel("Begrunnelse", lønnArbeidsgiverperioden.begrunnelse?.name ?: "-")
-            addLabel("Utbetalt under arbeidsgiverperiode", (lønnArbeidsgiverperioden.utbetalt?.toNorsk() ?: "-") + " kr")
+        if (lønnArbeidsgiverperioden != null) {
+            addLabel("Betaler arbeidsgiver full lønn til arbeidstaker i arbeidsgiverperioden?", lønnArbeidsgiverperioden.utbetalerFullLønn.toNorsk())
+            if (lønnArbeidsgiverperioden.utbetalerFullLønn) {
+                // Ja
+            } else {
+                // Nei - to ekstra spørsmål
+                addLabel("Begrunnelse", lønnArbeidsgiverperioden.begrunnelse?.tekst() ?: "-")
+                addLabel("Utbetalt under arbeidsgiverperiode", (lønnArbeidsgiverperioden.utbetalt?.toNorsk() ?: "-") + " kr")
+            }
         }
 
         val refusjon = dokument.refusjon

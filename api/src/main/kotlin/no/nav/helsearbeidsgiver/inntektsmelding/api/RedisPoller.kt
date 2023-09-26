@@ -5,10 +5,9 @@ import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.Resultat
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
@@ -27,35 +26,26 @@ class RedisPoller {
         return syncCommands
     }
 
-    suspend fun hent(key: String, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
+    suspend fun hent(key: UUID, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
         val json = getString(key, maxRetries, waitMillis)
 
-        sikkerLogger.info("Hentet verdi for: $key = $json")
+        sikkerLogger.info("Hentet verdi for: '$key' = $json")
 
         return try {
             json.parseJson()
         } catch (e: Exception) {
             "JSON-parsing feilet.".let {
                 sikkerLogger.error("$it key=$key json=$json")
-                throw RedisPollerJsonParseException("$it Se sikker logg for mer info. key=$key", e)
+                throw RedisPollerJsonParseException("$it Se sikker logg for mer info. key='$key'", e)
             }
         }
     }
 
-    suspend fun getResultat(key: String, maxRetries: Int = 10, waitMillis: Long = 500): Resultat {
-        val json = hent(key, maxRetries, waitMillis)
-        return try {
-            json.fromJson(Resultat.serializer())
-        } catch (_: Exception) {
-            throw RedisPollerJsonException(key, json.toString())
-        }
-    }
-
-    suspend fun getString(key: String, maxRetries: Int, waitMillis: Long): String {
+    suspend fun getString(key: UUID, maxRetries: Int, waitMillis: Long): String {
         repeat(maxRetries) {
             sikkerLogger.debug("Polling redis: $it time(s) for key $key")
-            if (redisCommand().exists(key) == 1.toLong()) {
-                return syncCommands.get(key)
+            if (redisCommand().exists(key.toString()) == 1.toLong()) {
+                return syncCommands.get(key.toString())
             }
             delay(waitMillis)
         }
@@ -71,10 +61,6 @@ sealed class RedisPollerException(
 
 class RedisPollerJsonParseException(message: String, cause: Throwable) : RedisPollerException(message, cause)
 
-class RedisPollerJsonException(uuid: String, json: String) : RedisPollerException(
-    "Klarte ikke å parse ($uuid) med json: $json"
-)
-
-class RedisPollerTimeoutException(uuid: String) : RedisPollerException(
+class RedisPollerTimeoutException(uuid: UUID) : RedisPollerException(
     "Brukte for lang tid på å svare ($uuid)."
 )

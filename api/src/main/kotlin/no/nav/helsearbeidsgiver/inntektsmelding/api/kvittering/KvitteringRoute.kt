@@ -4,16 +4,19 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import io.ktor.server.application.call
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
+import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringDokument
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringEkstern
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringResponse
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
-import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.mapInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
@@ -26,79 +29,135 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import org.valiktor.ConstraintViolationException
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.time.ZoneId
+import java.util.UUID
+import kotlin.system.measureTimeMillis
 
 private const val EMPTY_PAYLOAD = "{}"
 
 fun RouteExtra.kvitteringRoute() {
     val kvitteringProducer = KvitteringProducer(connection)
     val tilgangProducer = TilgangProducer(connection)
+    val requestLatency = Summary.build()
+        .name("simba_kvittering_latency_seconds")
+        .help("kvittering endpoint latency in seconds")
+        .register()
 
     route.route(Routes.KVITTERING) {
         get {
-            val forespoerselId = fjernLedendeSlash(call.parameters["uuid"].orEmpty())
+            val forespoerselId = call.parameters["uuid"]
+                ?.let(::fjernLedendeSlash)
+                ?.runCatching(UUID::fromString)
+                ?.getOrNull()
 
-            if (forespoerselId.isEmpty() || forespoerselId.length != 36) {
-                "Ugyldig parameter: $forespoerselId".let {
+            if (forespoerselId == null) {
+                "Ugyldig parameter: ${call.parameters["uuid"]}".let {
                     logger.warn(it)
                     respondBadRequest(it, String.serializer())
                 }
-            }
+            } else {
+                logger.info("Henter data for forespørselId: $forespoerselId")
+                val requestTimer = requestLatency.startTimer()
+                measureTimeMillis {
+                    try {
+                        measureTimeMillis {
+                            authorize(
+                                forespoerselId = forespoerselId,
+                                tilgangProducer = tilgangProducer,
+                                redisPoller = redis,
+                                cache = tilgangCache
+                            )
+                        }.also {
+                            logger.info("Authorize took $it")
+                        }
 
-            logger.info("Henter data for forespørselId: $forespoerselId")
+                        val clientId = kvitteringProducer.publish(forespoerselId)
+                        var resultat: String?
+                        measureTimeMillis {
+                            resultat = redis.getString(clientId, 10, 500)
+                        }.also {
+                            logger.info("redis polling took $it")
+                        }
+                        sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
 
-            try {
-                authorize(
-                    forespørselId = forespoerselId,
-                    tilgangProducer = tilgangProducer,
-                    redisPoller = redis,
-                    cache = tilgangCache
-                )
+                        if (resultat == EMPTY_PAYLOAD) {
+                            // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
+                            respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
+                        } else {
+                            val innsendtInntektsmelding = Jackson.fromJson<InnsendtInntektsmelding>(resultat!!)
 
-                val clientId = kvitteringProducer.publish(forespoerselId)
-
-                val resultat = redis.getString(clientId, 10, 500)
-                sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
-
-                if (resultat == EMPTY_PAYLOAD) {
-                    // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
-                    respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
-                } else {
-                    val innsending = mapInnsending(Jackson.parseInntektsmeldingDokument(resultat))
-
-                    respondOk(
-                        Jackson.toJson(innsending).parseJson(),
-                        JsonElement.serializer()
-                    )
+                            if (innsendtInntektsmelding.dokument == null && innsendtInntektsmelding.eksternInntektsmelding == null) {
+                                respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
+                            }
+                            measureTimeMillis {
+                                val innsending = tilKvitteringResponse(innsendtInntektsmelding)
+                                respondOk(
+                                    Jackson.toJson(innsending).parseJson(),
+                                    JsonElement.serializer()
+                                )
+                            }.also {
+                                logger.info("Mapping og respond took $it")
+                            }
+                        }
+                    } catch (e: ManglerAltinnRettigheterException) {
+                        respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
+                    } catch (e: JsonMappingException) {
+                        "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
+                            logger.error(it)
+                            sikkerLogger.error(it, e)
+                            respondInternalServerError(JacksonErrorResponse(forespoerselId.toString()), JacksonErrorResponse.serializer())
+                        }
+                    } catch (_: RedisPollerTimeoutException) {
+                        logger.error("Fikk timeout for forespørselId: $forespoerselId")
+                        respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
+                    }
+                }.also {
+                    requestTimer.observeDuration()
+                    logger.info("api call took $it")
                 }
-            } catch (e: ManglerAltinnRettigheterException) {
-                respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-            } catch (e: ConstraintViolationException) {
-                logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
-                respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
-            } catch (e: JsonMappingException) {
-                "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
-                    logger.error(it)
-                    sikkerLogger.error(it, e)
-                    respondInternalServerError(JacksonErrorResponse(forespoerselId), JacksonErrorResponse.serializer())
-                }
-            } catch (_: RedisPollerTimeoutException) {
-                logger.error("Fikk timeout for forespørselId: $forespoerselId")
-                respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
             }
         }
     }
 }
 
-private object Jackson {
-    private val objectMapper = customObjectMapper()
-
-    fun parseInntektsmeldingDokument(json: String): InntektsmeldingDokument =
-        objectMapper.readValue(json, InntektsmeldingDokument::class.java)
-
-    fun toJson(kvitteringResponse: KvitteringResponse): String =
-        objectMapper.writeValueAsString(kvitteringResponse)
-}
+private fun tilKvitteringResponse(innsendtInntektsmelding: InnsendtInntektsmelding): KvitteringResponse =
+    KvitteringResponse(
+        kvitteringDokument = innsendtInntektsmelding.dokument?.let { inntektsmeldingDokument ->
+            KvitteringDokument(
+                orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
+                identitetsnummer = inntektsmeldingDokument.identitetsnummer,
+                fulltNavn = inntektsmeldingDokument.fulltNavn,
+                virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
+                behandlingsdager = inntektsmeldingDokument.behandlingsdager,
+                egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
+                arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
+                bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
+                fraværsperioder = inntektsmeldingDokument.fraværsperioder,
+                inntekt = Inntekt(
+                    bekreftet = true,
+                    // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
+                    beregnetInntekt = inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
+                    endringÅrsak = inntektsmeldingDokument.inntekt?.endringÅrsak,
+                    manueltKorrigert = inntektsmeldingDokument.inntekt?.manueltKorrigert.orDefault(false)
+                ),
+                fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
+                refusjon = inntektsmeldingDokument.refusjon,
+                naturalytelser = inntektsmeldingDokument.naturalytelser,
+                årsakInnsending = inntektsmeldingDokument.årsakInnsending,
+                bekreftOpplysninger = true,
+                tidspunkt = inntektsmeldingDokument.tidspunkt,
+                forespurtData = inntektsmeldingDokument.forespurtData,
+                telefonnummer = inntektsmeldingDokument.telefonnummer,
+                innsenderNavn = inntektsmeldingDokument.innsenderNavn
+            )
+        },
+        kvitteringEkstern = innsendtInntektsmelding.eksternInntektsmelding?.let { eIm ->
+            KvitteringEkstern(
+                eIm.avsenderSystemNavn,
+                eIm.arkivreferanse,
+                eIm.tidspunkt.atZone(ZoneId.systemDefault()).toOffsetDateTime()
+            )
+        }
+    )

@@ -1,107 +1,167 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.prometheus.client.CollectorRegistry
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
+import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.pdl.PdlClient
-import no.nav.helsearbeidsgiver.pdl.PdlHentFullPerson
-import no.nav.helsearbeidsgiver.pdl.PdlPersonNavnMetadata
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
+import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
+import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.juni
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 class FulltNavnLøserTest {
 
-    private val rapid = TestRapid()
-    private var løser: FulltNavnLøser
-    private val BEHOV = BehovType.FULLT_NAVN
-    private val objectMapper: ObjectMapper = jacksonObjectMapper()
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .registerModule(JavaTimeModule())
-    private val pdlClient = mockk<PdlClient>()
+    private val testRapid = TestRapid()
+    private val mockPdlClient = mockk<PdlClient>()
 
     init {
-        løser = FulltNavnLøser(rapid, pdlClient)
+        FulltNavnLøser(testRapid, mockPdlClient)
+    }
+
+    @BeforeEach
+    fun setup() {
+        testRapid.reset()
+        clearAllMocks()
+        CollectorRegistry.defaultRegistry.clear()
     }
 
     @Test
     fun `skal finne navn`() {
-        coEvery {
-            pdlClient.fullPerson(any(), any())
-        } returns mockPerson("Ola", "", "Normann", LocalDate.now())
-        val løsning = sendMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
-                Key.BEHOV.str to listOf(BEHOV.name),
-                Key.ID.str to UUID.randomUUID(),
-                Key.IDENTITETSNUMMER.str to "abc"
-            )
+        val id = "123"
+        coEvery { mockPdlClient.personBolk(any()) } returns listOf(mockPerson("Ola", id))
+
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+            Key.IDENTITETSNUMMER to id.toJson(),
+            Key.UUID to UUID.randomUUID().toJson()
         )
-        assertNotNull(løsning.value)
-        assertEquals("Ola Normann", løsning.value!!.navn)
-        assertNull(løsning.error)
+
+        val publisert = testRapid.firstMessage().toMap()
+
+        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON]
+            .shouldNotBeNull()
+            .fromJson(PersonDato.serializer())
+            .navn
+            .shouldBe("Ola Normann")
+        publisert[DataFelt.ARBEIDSGIVER_INFORMASJON]
+            .shouldNotBeNull()
+            .fromJson(PersonDato.serializer())
+            .ident
+            .shouldBe("")
+        publisert[Key.FAIL].shouldBeNull()
     }
 
     @Test
     fun `skal håndtere ukjente feil`() {
-        val løsning = sendMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.INSENDING_STARTED,
-                Key.BEHOV.str to listOf(BEHOV.name),
-                Key.ID.str to UUID.randomUUID(),
-                Key.IDENTITETSNUMMER.str to "abc"
-            )
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+            Key.IDENTITETSNUMMER to "abc".toJson(),
+            Key.UUID to UUID.randomUUID().toJson()
         )
-        assertNull(løsning.value)
-        assertNotNull(løsning.error)
+
+        val publisert = testRapid.firstMessage().toMap()
+
+        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON].shouldBeNull()
+        publisert[DataFelt.ARBEIDSGIVER_INFORMASJON].shouldBeNull()
+
+        publisert[Key.FAIL].shouldNotBeNull()
     }
 
-    private fun sendMessage(packet: Map<String, Any>): NavnLøsning {
-        rapid.reset()
-        rapid.sendTestMessage(
-            objectMapper.writeValueAsString(
-                packet
-            )
+    @Test
+    fun `skal returnere navn på både arbeidstaker og arbeidsgiver`() {
+        val arbeidstakerID = "123456"
+        val arbeidsgiverID = "654321"
+        coEvery {
+            mockPdlClient.personBolk(any())
+        } returns listOf(
+            mockPerson("Ola", arbeidstakerID),
+            mockPerson("Kari", arbeidsgiverID)
         )
-        val losning: JsonNode = rapid.inspektør.message(0).path(Key.LØSNING.str)
-        return objectMapper.readValue<NavnLøsning>(losning.get(BEHOV.name).toString())
+
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+            Key.IDENTITETSNUMMER to arbeidstakerID.toJson(),
+            Key.ARBEIDSGIVER_ID to arbeidsgiverID.toJson(),
+            Key.UUID to UUID.randomUUID().toJson()
+        )
+
+        val publisert = testRapid.firstMessage().toMap()
+
+        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON]
+            .shouldNotBeNull()
+            .fromJson(PersonDato.serializer())
+            .navn
+            .shouldBe("Ola Normann")
+        publisert[DataFelt.ARBEIDSGIVER_INFORMASJON]
+            .shouldNotBeNull()
+            .fromJson(PersonDato.serializer())
+            .navn
+            .shouldBe("Kari Normann")
+        publisert[Key.FAIL].shouldBeNull()
     }
 
-    private fun mockPerson(fornavn: String, mellomNavn: String, etternavn: String, fødselsdato: LocalDate): PdlHentFullPerson {
-        return PdlHentFullPerson(
-            hentPerson = PdlHentFullPerson.PdlFullPersonliste(
-                navn = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlNavn(fornavn, mellomNavn, etternavn, PdlPersonNavnMetadata(""))),
-                foedsel = listOf(PdlHentFullPerson.PdlFullPersonliste.PdlFoedsel(fødselsdato)),
-                doedsfall = emptyList(),
-                adressebeskyttelse = emptyList(),
-                statsborgerskap = emptyList(),
-                bostedsadresse = emptyList(),
-                kjoenn = emptyList()
-            ),
-            hentIdenter = PdlHentFullPerson.PdlIdentResponse(
-                emptyList()
-            ),
-            hentGeografiskTilknytning = PdlHentFullPerson.PdlGeografiskTilknytning(
-                PdlHentFullPerson.PdlGeografiskTilknytning.PdlGtType.KOMMUNE,
-                null,
-                null,
-                null
-            )
+    @Test
+    fun `skal returnere navn på arbeidsgiver og tomt navn på arbeidstaker dersom arbeidstaker ikke blir funnet`() {
+        val arbeidstakerID = "123456"
+        val arbeidsgiverID = "654321"
+        coEvery {
+            mockPdlClient.personBolk(any())
+        } returns listOf(
+            mockPerson("Kari", arbeidsgiverID)
         )
+
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+            Key.IDENTITETSNUMMER to arbeidstakerID.toJson(),
+            Key.ARBEIDSGIVER_ID to arbeidsgiverID.toJson(),
+            Key.UUID to UUID.randomUUID().toJson()
+        )
+
+        val publisert = testRapid.firstMessage().toMap()
+
+        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON]
+            .shouldNotBeNull()
+            .fromJson(PersonDato.serializer())
+            .navn
+            .shouldBe("")
+        publisert[DataFelt.ARBEIDSGIVER_INFORMASJON]
+            .shouldNotBeNull()
+            .fromJson(PersonDato.serializer())
+            .navn
+            .shouldBe("Kari Normann")
+        publisert[Key.FAIL].shouldBeNull()
     }
 }
+
+private fun mockPerson(fornavn: String, ident: String): FullPerson =
+    FullPerson(
+        navn = PersonNavn(
+            fornavn = fornavn,
+            mellomnavn = null,
+            etternavn = "Normann"
+        ),
+        foedselsdato = 13.juni(1956),
+        ident = ident
+    )

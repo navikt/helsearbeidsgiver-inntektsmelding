@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers.InntektDokumentTilSkjemainnholdMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -21,6 +22,8 @@ class InntektDokumentTilSkjemainnholdMapperTest {
         assertNotNull(skjema.aarsakTilInnsending)
         assertNotNull(skjema.arbeidsgiver)
         assertEquals(skjema.arbeidsgiver.virksomhetsnummer, inntektsmeldingDokument.orgnrUnderenhet)
+        assertEquals(skjema.arbeidsgiver.kontaktinformasjon.telefonnummer, inntektsmeldingDokument.telefonnummer)
+        assertEquals(skjema.arbeidsgiver.kontaktinformasjon.kontaktinformasjonNavn, inntektsmeldingDokument.innsenderNavn)
         assertEquals(skjema.arbeidstakerFnr, inntektsmeldingDokument.identitetsnummer)
         assertEquals(skjema.arbeidsforhold.foersteFravaersdag, inntektsmeldingDokument.bestemmendeFraværsdag)
         assertNotNull(skjema.arbeidsforhold.beregnetInntekt)

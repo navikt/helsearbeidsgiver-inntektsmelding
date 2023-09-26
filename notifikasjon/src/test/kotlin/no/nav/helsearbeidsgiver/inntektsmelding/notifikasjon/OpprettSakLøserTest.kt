@@ -13,13 +13,14 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.test.date.januar
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 
 class OpprettSakLøserTest : FunSpec({
 
@@ -48,14 +49,12 @@ class OpprettSakLøserTest : FunSpec({
         } returns expectedSakId
 
         testRapid.sendJson(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.toJson(EventName.serializer()),
-                Key.BEHOV.str to BehovType.OPPRETT_SAK.toJson(BehovType.serializer()),
-                DataFelt.ARBEIDSTAKER_INFORMASJON.str to mockPersonDato().toJson(PersonDato.serializer()),
-                DataFelt.ORGNRUNDERENHET.str to "org-456".toJson(),
-                Key.IDENTITETSNUMMER.str to "12345678901".toJson(),
-                Key.FORESPOERSEL_ID.str to "uuid-abc".toJson()
-            )
+            Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
+            Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
+            DataFelt.ARBEIDSTAKER_INFORMASJON to mockPersonDato().toJson(PersonDato.serializer()),
+            DataFelt.ORGNRUNDERENHET to "org-456".toJson(),
+            Key.IDENTITETSNUMMER to "12345678901".toJson(),
+            Key.FORESPOERSEL_ID to "uuid-abc".toJson()
         )
 
         val resultat = testRapid.firstMessage()
@@ -72,5 +71,6 @@ class OpprettSakLøserTest : FunSpec({
 private fun mockPersonDato(): PersonDato =
     PersonDato(
         navn = "Rosa damesykkel",
-        fødselsdato = 5.januar(2020)
+        fødselsdato = 5.januar(2020),
+        "12345678910"
     )

@@ -1,16 +1,21 @@
-@file:Suppress("NonAsciiCharacters")
-
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import com.fasterxml.jackson.module.kotlin.contains
+import io.kotest.matchers.maps.shouldNotContainKey
+import io.kotest.matchers.shouldBe
+import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -18,36 +23,51 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ForespoerselMottattIT : EndToEndTest() {
 
-    private val FNR = "fnr-123"
-    private val ORGNR = "orgnr-456"
-    private val FORESPOERSEL = UUID.randomUUID().toString()
-
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        publish(
-            mapOf(
-                Pri.Key.NOTIS.str to Pri.NotisType.FORESPØRSEL_MOTTATT.name,
-                Pri.Key.ORGNR.str to ORGNR,
-                Pri.Key.FNR.str to FNR,
-                Pri.Key.FORESPOERSEL_ID.str to FORESPOERSEL
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns Mock.transaksjonId
+
+            publish(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+                Pri.Key.ORGNR to Mock.ORGNR.toJson(),
+                Pri.Key.FNR to Mock.FNR.toJson(),
+                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
             )
-        )
-        Thread.sleep(8000)
 
-        with(filter(EventName.FORESPØRSEL_MOTTATT, BehovType.LAGRE_FORESPOERSEL).first()) {
-            assertEquals(BehovType.LAGRE_FORESPOERSEL.name, get(Key.BEHOV.str).asText())
-
-            assertEquals(EventName.FORESPØRSEL_MOTTATT.name, get(Key.EVENT_NAME.str).asText())
-            assertEquals(ORGNR, get(DataFelt.ORGNRUNDERENHET.str).asText())
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.FORESPOERSEL_ID.str).asText())
+            waitForMessages(8000)
         }
 
-        with(filter(EventName.FORESPØRSEL_LAGRET).first()) {
-            assertFalse(contains(Key.BEHOV.str))
-            assertEquals(FNR, get(Key.IDENTITETSNUMMER.str).asText())
-            assertEquals(ORGNR, get(DataFelt.ORGNRUNDERENHET.str).asText())
-            assertEquals(FORESPOERSEL, get(Key.FORESPOERSEL_ID.str).asText())
-        }
+        messages.filter(EventName.FORESPØRSEL_MOTTATT)
+            .filter(BehovType.LAGRE_FORESPOERSEL)
+            .first()
+            .toMap()
+            .also {
+                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_MOTTATT
+                it[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.LAGRE_FORESPOERSEL
+                it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
+                it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
+                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                it[Key.TRANSACTION_ORIGIN]?.fromJson(UuidSerializer) shouldBe Mock.transaksjonId
+            }
+
+        messages.filter(EventName.FORESPØRSEL_LAGRET)
+            .first()
+            .toMap()
+            .also {
+                it shouldNotContainKey Key.BEHOV
+                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_LAGRET
+                it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
+                it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
+                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+            }
+    }
+
+    private object Mock {
+        const val FNR = "fnr-rebekka"
+        const val ORGNR = "orgnr-gås"
+
+        val forespoerselId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
     }
 }

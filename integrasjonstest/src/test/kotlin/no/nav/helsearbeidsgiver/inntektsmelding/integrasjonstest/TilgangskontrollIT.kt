@@ -1,16 +1,18 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.felles.BehovType
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.jsonObject
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,63 +22,87 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TilgangskontrollIT : EndToEndTest() {
 
-    private val INNLOGGET_FNR = "fnr-456"
-    private val FORESPØRSEL_ID_HAR_TILGANG = UUID.randomUUID().toString()
-    private val FORESPØRSEL_ID_IKKE_TILGANG = UUID.randomUUID().toString()
-    private val FORESPØRSEL_ID_FINNES_IKKE = UUID.randomUUID().toString()
-    private val ORGNR_HAR_TILGANG = "org-456"
-    private val ORGNR_IKKE_TILGANG = "org-789"
-
     @BeforeAll
     fun beforeAll() {
-        forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID_HAR_TILGANG, ORGNR_HAR_TILGANG)
-        forespoerselRepository.lagreForespørsel(FORESPØRSEL_ID_IKKE_TILGANG, ORGNR_IKKE_TILGANG)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselIdMedTilgang.toString(), Mock.ORGNR_MED_TILGANG)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselIdUtenTilgang.toString(), Mock.ORGNR_UTEN_TILGANG)
     }
 
     @BeforeEach
     fun beforeEach() {
         coEvery {
-            altinnClient.harRettighetForOrganisasjon(INNLOGGET_FNR, ORGNR_IKKE_TILGANG)
-        } returns false
-        coEvery {
-            altinnClient.harRettighetForOrganisasjon(INNLOGGET_FNR, ORGNR_HAR_TILGANG)
+            altinnClient.harRettighetForOrganisasjon(Mock.INNLOGGET_FNR, Mock.ORGNR_MED_TILGANG)
         } returns true
-    }
 
-    @Test
-    fun `skal få melding om at forespørsel ikke finnes`() {
-        tilgangProducer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_FINNES_IKKE)
-        Thread.sleep(4000)
-        with(filter(EventName.HENT_PREUTFYLT, BehovType.HENT_IM_ORGNR, løsning = true).first()) {
-            assertEquals(BehovType.HENT_IM_ORGNR.name, get(Key.BEHOV.str)[0].asText())
-            assertEquals(
-                "Fant ikke forespørselId $FORESPØRSEL_ID_FINNES_IKKE",
-                get(Key.LØSNING.str).get(BehovType.HENT_IM_ORGNR.name).get("error").get("melding").asText()
-            )
-        }
-    }
-
-    @Test
-    fun `skal bli nektet tilgang`() {
-        tilgangProducer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_IKKE_TILGANG)
-        Thread.sleep(4000)
-        with(filter(EventName.HENT_PREUTFYLT, BehovType.TILGANGSKONTROLL, løsning = true).first()) {
-            assertNotNull(get(Key.LØSNING.str))
-            val løsning: TilgangskontrollLøsning = get(Key.LØSNING.str).get(BehovType.TILGANGSKONTROLL.name).toJsonElement().fromJson(
-                TilgangskontrollLøsning.serializer()
-            )
-            assertEquals(Tilgang.IKKE_TILGANG, løsning.value)
-            assertEquals(BehovType.HENT_IM_ORGNR.name, get(Key.BEHOV.str)[0].asText())
-        }
+        coEvery {
+            altinnClient.harRettighetForOrganisasjon(Mock.INNLOGGET_FNR, Mock.ORGNR_UTEN_TILGANG)
+        } returns false
     }
 
     @Test
     fun `skal få tilgang`() {
-        tilgangProducer.publish(INNLOGGET_FNR, FORESPØRSEL_ID_HAR_TILGANG)
+        tilgangProducer.publish(Mock.forespoerselIdMedTilgang, Mock.INNLOGGET_FNR)
+
         Thread.sleep(6000)
-        assertNotNull(messages)
-        with(filter(EventName.HENT_PREUTFYLT, BehovType.TILGANGSKONTROLL, løsning = true).first()) {
-            assertEquals(BehovType.HENT_IM_ORGNR.name, get(Key.BEHOV.str)[0].asText())
-        }
+
+        val result = messages.filter(EventName.TILGANG_REQUESTED)
+            .filter(DataFelt.TILGANG)
+            .first()
+            .toMap()
+
+        val tilgang = result[DataFelt.TILGANG]
+            .shouldNotBeNull()
+            .fromJson(Tilgang.serializer())
+
+        tilgang shouldBe Tilgang.HAR_TILGANG
+    }
+
+    @Test
+    fun `skal bli nektet tilgang`() {
+        tilgangProducer.publish(Mock.forespoerselIdUtenTilgang, Mock.INNLOGGET_FNR)
+
+        Thread.sleep(4000)
+
+        val result = messages.filter(EventName.TILGANG_REQUESTED)
+            .filter(DataFelt.TILGANG)
+            .first()
+            .toMap()
+
+        val tilgang = result[DataFelt.TILGANG]
+            .shouldNotBeNull()
+            .fromJson(Tilgang.serializer())
+
+        tilgang shouldBe Tilgang.IKKE_TILGANG
+    }
+
+    @Test
+    fun `skal få melding om at forespørsel ikke finnes`() {
+        tilgangProducer.publish(Mock.forespoerselIdFinnesIkke, Mock.INNLOGGET_FNR)
+
+        Thread.sleep(4000)
+
+        val result = messages.filter(EventName.TILGANG_REQUESTED)
+            .filterFeil()
+            .first()
+            .toMap()
+
+        val feilmelding = result[Key.FAIL]
+            .shouldNotBeNull()
+            .jsonObject[Fail::feilmelding.name]
+            .shouldNotBeNull()
+            .fromJson(String.serializer())
+
+        feilmelding shouldBe "Fant ingen orgnr for forespørsel-ID '${Mock.forespoerselIdFinnesIkke}'."
+    }
+
+    private object Mock {
+        const val INNLOGGET_FNR = "10436700000"
+
+        const val ORGNR_MED_TILGANG = "654654654"
+        const val ORGNR_UTEN_TILGANG = "789789789"
+
+        val forespoerselIdMedTilgang: UUID = UUID.randomUUID()
+        val forespoerselIdUtenTilgang: UUID = UUID.randomUUID()
+        val forespoerselIdFinnesIkke: UUID = UUID.randomUUID()
     }
 }

@@ -1,13 +1,20 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -15,50 +22,112 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KvitteringIT : EndToEndTest() {
 
-    private val UGYLDIG_FORESPPØRSEL_ID = "ugyldig-forespørsel"
-    private val GYLDIG_FORESPØRSEL_ID = "gyldig-forespørsel"
-    private val ORGNR = "987"
-    private val INNTEKTSMELDING_DOKUMENT = mockInntektsmeldingDokument()
-    private val INNTEKTSMELDING_NOT_FOUND = "{}"
-
-    @Test
-    fun `skal gi feilmelding når forespørsel ikke finnes`() {
-        val clientId = UUID.randomUUID().toString()
-        publish(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                Key.CLIENT_ID.str to clientId,
-                Key.FORESPOERSEL_ID.str to UGYLDIG_FORESPPØRSEL_ID
-            )
-        )
-        Thread.sleep(5000)
-        assertNotNull(messages)
-        with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
-            // Skal ikke finne inntektsmeldingdokument - men en dummy payload
-            assertEquals(INNTEKTSMELDING_NOT_FOUND, get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText())
-            // assertEquals(transactionId, get(Key.UUID.str).asText())
-        }
+    @BeforeEach
+    fun setup() {
+        truncateDatabase()
     }
 
     @Test
     fun `skal hente data til kvittering`() {
-        val clientId = UUID.randomUUID().toString()
-        forespoerselRepository.lagreForespørsel(GYLDIG_FORESPØRSEL_ID, ORGNR)
-        imRepository.lagreInntektsmeldng(GYLDIG_FORESPØRSEL_ID, INNTEKTSMELDING_DOKUMENT)
+        val clientId = UUID.randomUUID()
+
+        forespoerselRepository.lagreForespoersel(Mock.FORESPOERSEL_ID_GYLDIG, Mock.ORGNR)
+        imRepository.lagreInntektsmelding(Mock.FORESPOERSEL_ID_GYLDIG, Mock.inntektsmeldingDokument)
+
         publish(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                Key.CLIENT_ID.str to clientId,
-                Key.FORESPOERSEL_ID.str to GYLDIG_FORESPØRSEL_ID
-            )
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.CLIENT_ID to clientId.toJson(),
+            Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_GYLDIG.toJson()
         )
+
         Thread.sleep(5000)
-        assertNotNull(messages)
-        with(filter(EventName.KVITTERING_REQUESTED, datafelt = DataFelt.INNTEKTSMELDING_DOKUMENT).first()) {
-            assertNotNull(get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
-            // Skal finne inntektsmeldingdokumentet
-            assertNotEquals(INNTEKTSMELDING_NOT_FOUND, get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
-            // assertEquals(transactionId, get(Key.UUID.str).asText())
-        }
+
+        messages.filter(EventName.KVITTERING_REQUESTED)
+            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
+            .first()
+            .toMap()
+            .also {
+                // Skal finne inntektsmeldingdokumentet
+                val imDokument = it[DataFelt.INNTEKTSMELDING_DOKUMENT]
+
+                imDokument.shouldNotBeNull()
+                imDokument shouldNotBe Mock.tomObjektStreng
+
+                it[DataFelt.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomObjektStreng
+            }
+
+        redisStore.get(clientId.toString()).shouldNotBeNull()
+    }
+
+    @Test
+    fun `skal hente data til kvittering hvis fra eksternt system`() {
+        val clientId = UUID.randomUUID()
+
+        forespoerselRepository.lagreForespoersel(Mock.FORESPOERSEL_ID_GYLDIG, Mock.ORGNR)
+        imRepository.lagreEksternInntektsmelding(Mock.FORESPOERSEL_ID_GYLDIG, Mock.eksternInntektsmelding)
+
+        publish(
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.CLIENT_ID to clientId.toJson(),
+            Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_GYLDIG.toJson()
+        )
+
+        Thread.sleep(5000)
+
+        messages.filter(EventName.KVITTERING_REQUESTED)
+            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
+            .first()
+            .toMap()
+            .also {
+                it[DataFelt.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng
+                val eIm = it[DataFelt.EKSTERN_INNTEKTSMELDING]
+                eIm.shouldNotBeNull()
+                eIm shouldNotBe Mock.tomObjektStreng
+            }
+
+        redisStore.get(clientId.toString()).shouldNotBeNull()
+    }
+
+    @Test
+    fun `skal gi feilmelding når forespørsel ikke finnes`() {
+        val clientId = UUID.randomUUID()
+
+        publish(
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.CLIENT_ID to clientId.toJson(),
+            Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_UGYLDIG.toJson()
+        )
+
+        Thread.sleep(5000)
+
+        messages.filter(EventName.KVITTERING_REQUESTED)
+            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
+            .first()
+            .toMap()
+            .also {
+                // Skal ikke finne inntektsmeldingdokument - men en dummy payload
+                it[DataFelt.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng
+                it[DataFelt.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomObjektStreng
+            }
+    }
+
+    private object Mock {
+        const val ORGNR = "987"
+        const val FORESPOERSEL_ID_GYLDIG = "gyldig-forespørsel"
+        const val FORESPOERSEL_ID_UGYLDIG = "ugyldig-forespørsel"
+
+        val inntektsmeldingDokument = mockInntektsmeldingDokument()
+        val eksternInntektsmelding = EksternInntektsmelding(
+            "AltinnPortal",
+            "1.489",
+            "AR123456",
+            11.januar.atStartOfDay()
+        )
+
+        /** Rar verdi. Tror denne bør fikses i prodkoden. */
+        val tomObjektStreng = JsonPrimitive("{}")
     }
 }

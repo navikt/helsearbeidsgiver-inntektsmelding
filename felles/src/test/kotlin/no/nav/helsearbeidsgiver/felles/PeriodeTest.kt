@@ -8,7 +8,7 @@ import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.felles.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

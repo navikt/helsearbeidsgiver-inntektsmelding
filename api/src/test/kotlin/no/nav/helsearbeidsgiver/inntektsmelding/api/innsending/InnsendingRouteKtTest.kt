@@ -4,121 +4,120 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.NavnLøsning
-import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.Resultat
+import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangskontrollLøsning
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
-import no.nav.helsearbeidsgiver.felles.test.mock.MockUuid
+import no.nav.helsearbeidsgiver.felles.test.mock.mockDelvisInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import kotlin.test.assertNotNull
-
-private const val PATH = Routes.PREFIX + Routes.INNSENDING + "/${MockUuid.STRING}"
+import java.util.UUID
 
 class InnsendingRouteKtTest : ApiTest() {
-    private val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson)
-    private val UGYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.copy(
-        identitetsnummer = TestData.notValidIdentitetsnummer,
-        orgnrUnderenhet = TestData.notValidOrgNr
-    ).let(Jackson::toJson)
+    private val path = Routes.PREFIX + Routes.INNSENDING + "/${Mock.forespoerselId}"
 
-    private val RESULTAT_HAR_TILGANG = Resultat(TILGANGSKONTROLL = TilgangskontrollLøsning(Tilgang.HAR_TILGANG))
+    private val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson).parseJson()
+    private val GYLDIG_DELVIS_REQUEST = DELVIS_INNSENDING_REQUEST.let(Jackson::toJson).parseJson()
 
-    private val RESULTAT_OK = Resultat(FULLT_NAVN = NavnLøsning(PersonDato("verdi", LocalDate.now())))
-    private val RESULTAT_FEIL = Resultat(FULLT_NAVN = NavnLøsning(error = Feilmelding("feil", 500)))
-
-    @Test
-    fun `skal godta og returnere kvittering`() = testApi {
-        coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_HAR_TILGANG andThen RESULTAT_OK
-        val response = post(PATH, GYLDIG_REQUEST)
-        assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals(InnsendingResponse(MockUuid.STRING).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
+    @BeforeEach
+    fun setup() {
+        clearAllMocks()
     }
 
     @Test
-    fun `skal returnere valideringsfeil ved ugyldig request`() = testApi {
+    fun `skal godta og returnere kvittering`() = testApi {
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        val mockClientId = UUID.randomUUID()
+
         coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
+            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
+        } returns mockInntektsmeldingDokument().let(Jackson::toJson).parseJson()
 
-        val response = post(PATH, UGYLDIG_REQUEST)
+        val response = mockConstructor(InnsendingProducer::class) {
+            every {
+                anyConstructed<InnsendingProducer>().publish(any(), any(), any())
+            } returns mockClientId
 
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertNotNull(response.bodyAsText())
+            post(path, GYLDIG_REQUEST)
+        }
 
-        val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
-
-        assertEquals(2, violations.size)
-        assertEquals(DataFelt.ORGNRUNDERENHET.str, violations[0].property)
-        assertEquals("identitetsnummer", violations[1].property)
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals(InnsendingResponse(Mock.forespoerselId).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
     }
 
     @Test
     fun `gir jackson-feil ved ugyldig request-json`() = testApi {
-        val response = post(PATH, "\"ikke en request\"".toJson())
+        val response = post(path, "\"ikke en request\"".toJson())
 
         val feilmelding = response.bodyAsText().fromJson(JacksonErrorResponse.serializer())
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertEquals(MockUuid.STRING, feilmelding.forespoerselId)
+        assertEquals(Mock.forespoerselId.toString(), feilmelding.forespoerselId)
         assertEquals("Feil under serialisering med jackson.", feilmelding.error)
     }
 
     @Test
     fun `skal returnere feilmelding ved timeout fra Redis`() = testApi {
-        coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } throws RedisPollerTimeoutException(MockUuid.STRING)
+        mockTilgang(Tilgang.HAR_TILGANG)
 
-        val response = post(PATH, GYLDIG_REQUEST)
+        val mockClientId = UUID.randomUUID()
+
+        coEvery {
+            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
+        } throws RedisPollerTimeoutException(Mock.forespoerselId)
+
+        val response = mockConstructor(InnsendingProducer::class) {
+            every {
+                anyConstructed<InnsendingProducer>().publish(any(), any(), any())
+            } returns mockClientId
+
+            post(path, GYLDIG_REQUEST)
+        }
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals(RedisTimeoutResponse(MockUuid.STRING).toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
+        assertEquals(RedisTimeoutResponse(Mock.forespoerselId).toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
     }
 
     @Test
-    fun `skal vise feil når et behov feiler`() = testApi {
+    fun `skal godta delvis im og returnere kvittering`() = testApi {
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        val mockClientId = UUID.randomUUID()
+
         coEvery {
-            anyConstructed<RedisPoller>().getResultat(any(), any(), any())
-        } returns RESULTAT_HAR_TILGANG andThen RESULTAT_FEIL
+            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
+        } returns mockDelvisInntektsmeldingDokument().let(Jackson::toJson).parseJson()
 
-        val response = post(PATH, UGYLDIG_REQUEST)
+        val response = mockConstructor(InnsendingProducer::class) {
+            every {
+                anyConstructed<InnsendingProducer>().publish(any(), any(), any())
+            } returns mockClientId
 
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertNotNull(response.bodyAsText())
+            post(path, GYLDIG_DELVIS_REQUEST)
+        }
 
-        val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
-
-        assertEquals(2, violations.size)
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals(InnsendingResponse(Mock.forespoerselId).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
     }
 
-    private object Jackson {
-        private val objectMapper = customObjectMapper()
-
-        fun toJson(innsendingRequest: InnsendingRequest): JsonElement =
-            objectMapper.writeValueAsString(innsendingRequest).parseJson()
+    private object Mock {
+        val forespoerselId: UUID = UUID.randomUUID()
     }
 }

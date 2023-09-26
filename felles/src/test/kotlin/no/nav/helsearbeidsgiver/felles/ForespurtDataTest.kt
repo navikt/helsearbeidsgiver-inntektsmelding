@@ -3,28 +3,28 @@ package no.nav.helsearbeidsgiver.felles
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataListe
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntektListe
-import no.nav.helsearbeidsgiver.felles.test.resource.readResource
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 
 class ForespurtDataTest : FunSpec({
     listOf(
-        row("forespurtDataListe", ::mockForespurtDataListe),
-        row("forespurtDataMedFastsattInntektListe", ::mockForespurtDataMedFastsattInntektListe)
+        row("forespurtData", ::mockForespurtData),
+        row("forespurtDataMedFastsattInntekt", ::mockForespurtDataMedFastsattInntekt),
+        row("forespurtDataMedForrigeInntekt", ::mockForespurtDataMedForrigeInntekt)
     )
         .forEach { (fileName, mockDataFn) ->
             val expectedJson = "json/$fileName.json".readResource().removeJsonWhitespace()
 
             test("Forespurt data serialiseres korrekt") {
-                val forespurtDataListe = mockDataFn()
+                val forespurtData = mockDataFn()
 
-                val serialisertJson = forespurtDataListe.toJsonStr(ForespurtData.serializer().list())
+                val serialisertJson = forespurtData.toJsonStr(ForespurtData.serializer())
 
                 withClue("Validerer mot '$fileName'") {
                     serialisertJson shouldBe expectedJson
@@ -32,12 +32,12 @@ class ForespurtDataTest : FunSpec({
             }
 
             test("Forespurt data deserialiseres korrekt") {
-                val forespurtDataListe = mockDataFn()
+                val forespurtData = mockDataFn()
 
-                val deserialisertJson = expectedJson.fromJson(ForespurtData.serializer().list())
+                val deserialisertJson = expectedJson.fromJson(ForespurtData.serializer())
 
                 withClue("Validerer mot '$fileName'") {
-                    deserialisertJson shouldContainExactly forespurtDataListe
+                    deserialisertJson shouldBe forespurtData
                 }
             }
         }

@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -9,11 +8,15 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+private val birthDateFormatter = DateTimeFormatter.ofPattern("ddMMyy")
 
 class OpprettSakLøser(
     rapidsConnection: RapidsConnection,
@@ -35,47 +38,42 @@ class OpprettSakLøser(
         forespoerselId: String,
         orgnr: String,
         navn: String,
-        fødselsdato: LocalDate?
+        foedselsdato: LocalDate?
     ): String {
-        val datoString = fødselsdato?.format(DateTimeFormatter.ofPattern("ddMMyy")) ?: "Ukjent"
+        val formattertFoedselsdato = foedselsdato?.format(birthDateFormatter) ?: "Ukjent"
+        val requestTimer = Metrics.requestLatency.labels("opprettSak").startTimer()
         return runBlocking {
             arbeidsgiverNotifikasjonKlient.opprettNySak(
                 grupperingsid = forespoerselId,
                 merkelapp = "Inntektsmelding",
                 virksomhetsnummer = orgnr,
-                tittel = "Inntektsmelding for $navn: f. $datoString",
+                tittel = "Inntektsmelding for $navn: f. $formattertFoedselsdato",
                 lenke = "$linkUrl/im-dialog/$forespoerselId",
                 statusTekst = "NAV trenger inntektsmelding",
                 harddeleteOm = "P5M"
             )
+        }.also {
+            requestTimer.observeDuration()
         }
     }
 
-    private fun hentNavn(packet: JsonMessage): PersonDato {
-        if (packet[DataFelt.ARBEIDSTAKER_INFORMASJON.str].isMissingNode) return PersonDato("Ukjent", null)
-        return customObjectMapper().treeToValue(packet[DataFelt.ARBEIDSTAKER_INFORMASJON.str], PersonDato::class.java)
+    private fun hentNavn(behov: Behov): PersonDato {
+        if (behov[DataFelt.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null, "")
+        return behov[DataFelt.ARBEIDSTAKER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
     }
 
-    override fun onBehov(packet: JsonMessage) {
-        val forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        sikkerLogger.info("OpprettSakLøser: fikk pakke: ${packet.toJson()}")
-        logger.info("Skal opprette sak for forespørselId: $forespoerselId")
-        val orgnr = packet[DataFelt.ORGNRUNDERENHET.str].asText()
-        val personDato = hentNavn(packet)
-        val navn = personDato.navn
-        val fødselsdato = personDato.fødselsdato
-        val sakId = opprettSak(forespoerselId, orgnr, navn, fødselsdato)
-        logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: $forespoerselId")
-        publishData(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.DATA.str to "",
-                    Key.FORESPOERSEL_ID.str to forespoerselId,
-                    Key.UUID.str to packet[Key.UUID.str],
-                    DataFelt.SAK_ID.str to sakId
-                )
-            )
+    override fun onBehov(behov: Behov) {
+        logger.info("Skal opprette sak for forespørselId: ${behov.forespoerselId}")
+        val orgnr = behov[DataFelt.ORGNRUNDERENHET].asText()
+        val personDato = hentNavn(behov)
+        val sakId = opprettSak(
+            forespoerselId = behov.forespoerselId!!,
+            orgnr = orgnr,
+            navn = personDato.navn,
+            foedselsdato = personDato.fødselsdato
         )
-        sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=$forespoerselId")
+        logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
+        behov.createData(mapOf(DataFelt.SAK_ID to sakId)).also { publishData(it) }
+        sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=${behov.forespoerselId}")
     }
 }

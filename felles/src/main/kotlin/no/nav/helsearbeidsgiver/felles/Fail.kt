@@ -3,15 +3,15 @@ package no.nav.helsearbeidsgiver.felles
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helsearbeidsgiver.felles.json.customObjectMapper
+import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 
 data class Fail(
     @JsonIgnore
     val eventName: EventName?,
-    val behov: BehovType?,
+    val behov: BehovType? = null,
     val feilmelding: String,
-    val data: Map<DataFelt, Any?>?,
+    val data: Map<DataFelt, Any?>? = null,
     val uuid: String?,
     val forespørselId: String?
 ) {
@@ -26,9 +26,13 @@ data class Fail(
     }
 }
 
-fun JsonMessage.toFeilMessage(): Fail {
-    return customObjectMapper().treeToValue(this[Key.FAIL.str], Fail::class.java).copy(eventName = EventName.valueOf(this[Key.EVENT_NAME.str].asText()))
-}
+fun JsonMessage.toFeilMessage(): Fail =
+    Jackson.fromJson<Fail>(this[Key.FAIL.str].toString())
+        .copy(
+            eventName = EventName.valueOf(
+                this[Key.EVENT_NAME.str].asText()
+            )
+        )
 
 fun JsonMessage.createFail(feilmelding: String, data: Map<DataFelt, Any?>? = null, behovType: BehovType? = null): Fail {
     val behovNode: JsonNode? = this.valueNullable(Key.BEHOV)

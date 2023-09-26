@@ -6,11 +6,7 @@
     "paakrevd": true,
     "forslag": {
       "type": "ForslagInntektGrunnlag",
-      "beregningsmaaneder": [
-        "2017-10",
-        "2017-11",
-        "2017-12"
-      ]
+      "forrigeInntekt": null
     }
   },
   "refusjon": {

@@ -2,8 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 fun mapInntektsmeldingDokument(
     request: InnsendingRequest,
@@ -27,7 +26,7 @@ fun mapInntektsmeldingDokument(
             fullLønnIArbeidsgiverPerioden = request.fullLønnIArbeidsgiverPerioden,
             refusjon = request.refusjon,
             naturalytelser = request.naturalytelser,
-            tidspunkt = OffsetDateTime.now(ZoneOffset.UTC),
+            tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
             årsakInnsending = request.årsakInnsending,
             innsenderNavn = innsenderNavn,
             forespurtData = request.forespurtData,

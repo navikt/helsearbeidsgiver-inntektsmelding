@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.JournalførtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.json.Jackson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -24,7 +24,7 @@ private const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeid
 class DistribusjonLøser(
     rapidsConnection: RapidsConnection,
     private val kafkaProducer: KafkaProducer<String, String>
-) : Løser(rapidsConnection) {
+) : Loeser(rapidsConnection) {
 
     private val logger = logger()
     private val requestLatency = Summary.build()

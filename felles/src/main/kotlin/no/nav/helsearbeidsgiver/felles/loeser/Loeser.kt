@@ -44,7 +44,7 @@ import no.nav.helsearbeidsgiver.felles.value
  * - [Behov] er kun tilgjengelig (utenfor modulen) i [løs].
  * - [PacketSolver] markerer nøkler registrert i [BehovReader] som påkrevd for innkommende behov.
  */
-abstract class Løser<T : Any> {
+abstract class Loeser<T : Any> {
     /** Hvilken [BehovType] som løseren skal lytte etter og løse. */
     abstract val behovType: BehovType
 

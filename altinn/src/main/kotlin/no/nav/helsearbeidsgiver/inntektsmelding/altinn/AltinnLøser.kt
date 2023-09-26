@@ -7,13 +7,13 @@ import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.loeser.Løser
+import no.nav.helsearbeidsgiver.felles.loeser.Loeser
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class AltinnLøser(
     private val altinnClient: AltinnClient
-) : Løser<Set<AltinnOrganisasjon>>() {
+) : Loeser<Set<AltinnOrganisasjon>>() {
     override val behovType = BehovType.ARBEIDSGIVERE
 
     lateinit var identitetsnummer: Behov.() -> String

@@ -12,8 +12,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Data
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.createFail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
@@ -24,7 +23,7 @@ import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 class ArbeidsforholdLøser(
     rapidsConnection: RapidsConnection,
     private val aaregClient: AaregClient
-) : Løser(rapidsConnection) {
+) : Loeser(rapidsConnection) {
     private val logger = logger()
 
     private val behovType = BehovType.ARBEIDSFORHOLD

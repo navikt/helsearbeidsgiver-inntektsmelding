@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-abstract class Løser(val rapidsConnection: RapidsConnection) : River.PacketListener {
+abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()

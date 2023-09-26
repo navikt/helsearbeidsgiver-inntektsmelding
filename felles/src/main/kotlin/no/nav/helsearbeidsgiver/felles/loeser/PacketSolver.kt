@@ -8,7 +8,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.løsning
+import no.nav.helsearbeidsgiver.felles.json.loesning
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.value
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -19,10 +19,10 @@ private const val DEFAULT_ERROR_MESSAGE = "Ukjent feil."
 /**
  * Implementerer logikken for rapids-and-rivers.
  *
- * Bruker [Løser] for å lytte etter behov og løse dem.
+ * Bruker [Loeser] for å lytte etter behov og løse dem.
  */
 internal class PacketSolver(
-    private val løser: Løser<*>
+    private val loeser: Loeser<*>
 ) : River.PacketListener {
     init {
         val connection = RapidApplication.create(System.getenv())
@@ -30,11 +30,11 @@ internal class PacketSolver(
         River(connection)
             .apply {
                 validate { packet ->
-                    packet.demandAll(Key.BEHOV.str, løser.behovType)
+                    packet.demandAll(Key.BEHOV.str, loeser.behovType)
                     packet.rejectKey(Key.LØSNING.str)
                     packet.interestedIn(Key.INITIATE_ID.str)
 
-                    løser.behovReadingKeys.forEach { packet.requireKey(it.str) }
+                    loeser.behovReadingKeys.forEach { packet.requireKey(it.str) }
                 }
             }
             .register(this)
@@ -44,7 +44,7 @@ internal class PacketSolver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val løsning = runCatching {
-            løser.løsBehov(packet)
+            loeser.løsBehov(packet)
         }
             .map { it.toLøsningSuccess() }
             .getOrElse {
@@ -52,7 +52,7 @@ internal class PacketSolver(
                     .orDefault(DEFAULT_ERROR_MESSAGE)
                     .toLøsningFailure()
             }
-            .toJson(JsonElement.serializer().løsning())
+            .toJson(JsonElement.serializer().loesning())
             .toJsonNode()
 
         val behovType = packet.value(Key.BEHOV)[0].asText()

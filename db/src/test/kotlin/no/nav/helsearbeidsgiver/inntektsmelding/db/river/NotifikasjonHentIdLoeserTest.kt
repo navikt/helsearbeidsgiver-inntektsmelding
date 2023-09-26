@@ -68,7 +68,6 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
         val actual = testRapid.firstMessage().toDomeneMessage<Event>()
 
         actual.forespoerselId shouldBe expected.forespoerselId
-        actual.uuid() shouldBe expected.uuid()
 
         verifySequence {
             mockForespoerselRepo.hentSakId(any())

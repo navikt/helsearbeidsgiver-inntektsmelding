@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - preprod/**
+      - dev/**
+
 env:
   DOCKER_REGISTRY: ghcr.io
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/im-

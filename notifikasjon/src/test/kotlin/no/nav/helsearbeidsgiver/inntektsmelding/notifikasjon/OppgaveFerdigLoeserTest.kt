@@ -92,7 +92,7 @@ private data class PublishedOppgave(
     @SerialName("oppgave_id")
     val oppgaveId: String,
     val forespoerselId: UUID,
-    @SerialName("transaction_origin")
+    @SerialName("uuid")
     val transaksjonId: UUID
 ) {
     companion object {

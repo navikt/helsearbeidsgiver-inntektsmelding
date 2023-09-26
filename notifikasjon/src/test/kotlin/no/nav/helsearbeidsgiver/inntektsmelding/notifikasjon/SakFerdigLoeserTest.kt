@@ -97,7 +97,7 @@ private data class PublishedSak(
     @SerialName("sak_id")
     val sakId: String,
     val forespoerselId: UUID,
-    @SerialName("transaction_origin")
+    @SerialName("uuid")
     val transaksjonId: UUID
 ) {
     companion object {

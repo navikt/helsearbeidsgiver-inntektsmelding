@@ -289,7 +289,7 @@ class InnsendingValidateKtTest : FunSpec({
         }
 
         context(Refusjon::refusjonEndringer.name) {
-            test("endringer på refusjon er ikke påkrevd") {
+            test("Refusjon skal være større enn 0") {
                 val gyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
                     refusjon = Refusjon(
                         utbetalerHeleEllerDeler = true,
@@ -297,12 +297,25 @@ class InnsendingValidateKtTest : FunSpec({
                         refusjonEndringer = null
                     )
                 )
-
                 shouldNotThrowAny {
                     gyldigInnsending.validate()
                 }
             }
 
+            test("Refusjonendring beløp kan være 0") {
+                val gyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
+                    refusjon = Refusjon(
+                        utbetalerHeleEllerDeler = true,
+                        refusjonPrMnd = 1.0.toBigDecimal(),
+                        refusjonEndringer = listOf(RefusjonEndring(zero, now))
+                    )
+                )
+                shouldNotThrowAny {
+                    gyldigInnsending.validate()
+                }
+            }
+
+            test("endringer på refusjon er ikke påkrevd") {}
             withData(
                 mapOf(
                     "feiler ved endring av refusjon uten definert beløp" to RefusjonEndring(null, now),

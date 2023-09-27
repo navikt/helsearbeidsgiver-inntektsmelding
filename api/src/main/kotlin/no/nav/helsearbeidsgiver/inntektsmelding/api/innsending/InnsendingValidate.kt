@@ -85,7 +85,7 @@ fun InnsendingRequest.validate() {
 
                 validate(Refusjon::refusjonEndringer).validateForEach {
                     validate(RefusjonEndring::beløp).isNotNull()
-                    validate(RefusjonEndring::beløp).isGreaterThan(0.0.toBigDecimal())
+                    validate(RefusjonEndring::beløp).isGreaterThanOrEqualTo(0.0.toBigDecimal())
                     validate(RefusjonEndring::beløp).isLessThan(1_000_000.0.toBigDecimal())
                     validate(RefusjonEndring::dato).isNotNull()
                 }

@@ -80,12 +80,12 @@ fun InnsendingRequest.validate() {
         validate(InnsendingRequest::refusjon).validate {
             if (it.utbetalerHeleEllerDeler) {
                 validate(Refusjon::refusjonPrMnd).isNotNull()
-                validate(Refusjon::refusjonPrMnd).isGreaterThanOrEqualTo(0.0.toBigDecimal())
+                validate(Refusjon::refusjonPrMnd).isGreaterThan(0.0.toBigDecimal())
                 validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0.toBigDecimal())
 
                 validate(Refusjon::refusjonEndringer).validateForEach {
                     validate(RefusjonEndring::beløp).isNotNull()
-                    validate(RefusjonEndring::beløp).isGreaterThan(0.0.toBigDecimal())
+                    validate(RefusjonEndring::beløp).isGreaterThanOrEqualTo(0.0.toBigDecimal())
                     validate(RefusjonEndring::beløp).isLessThan(1_000_000.0.toBigDecimal())
                     validate(RefusjonEndring::dato).isNotNull()
                 }

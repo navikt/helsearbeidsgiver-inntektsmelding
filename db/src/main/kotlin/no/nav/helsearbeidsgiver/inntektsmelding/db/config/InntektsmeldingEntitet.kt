@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.config
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
-import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
+import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.json.jsonb
@@ -14,12 +14,12 @@ object InntektsmeldingEntitet : Table("inntektsmelding") {
     val forespoerselId = varchar(name = "forespoersel_id", length = 40) references ForespoerselEntitet.forespoerselId
     val dokument = jsonb<Inntektsmelding>(
         name = "dokument",
-        jsonConfig = jsonIgnoreUnknown,
+        jsonConfig = jsonConfig,
         kSerializer = Inntektsmelding.serializer()
     ).nullable()
     val eksternInntektsmelding = jsonb<EksternInntektsmelding>(
         name = "ekstern_inntektsmelding",
-        jsonConfig = jsonIgnoreUnknown,
+        jsonConfig = jsonConfig,
         kSerializer = EksternInntektsmelding.serializer()
     ).nullable()
     val innsendt = datetime("innsendt")

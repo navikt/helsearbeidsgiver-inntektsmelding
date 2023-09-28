@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -48,12 +48,12 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             val fulltNavn = arbeidstakerInfo.navn
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
             val innsending = behov[DataFelt.INNTEKTSMELDING].toString().fromJson(Innsending.serializer())
-            val inntektsmeldingDokument = mapInntektsmeldingDokument(innsending, fulltNavn, arbeidsgiver, arbeidsgiverInfo.navn)
-            repository.lagreInntektsmelding(behov.forespoerselId!!, inntektsmeldingDokument)
+            val inntektsmelding = mapInntektsmelding(innsending, fulltNavn, arbeidsgiver, arbeidsgiverInfo.navn)
+            repository.lagreInntektsmelding(behov.forespoerselId!!, inntektsmelding)
             sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: ${behov.forespoerselId}")
             behov.createData(
                 mapOf(
-                    DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument
+                    DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding
                 )
             ).also {
                 publishData(it)

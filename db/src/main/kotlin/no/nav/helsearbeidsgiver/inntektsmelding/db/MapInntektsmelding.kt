@@ -4,7 +4,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import java.time.ZonedDateTime
 
-fun mapInntektsmeldingDokument(
+fun mapInntektsmelding(
     request: Innsending,
     fulltnavnArbeidstaker: String,
     arbeidsgiver: String,

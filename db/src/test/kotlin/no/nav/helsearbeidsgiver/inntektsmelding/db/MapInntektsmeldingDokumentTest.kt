@@ -16,16 +16,16 @@ class MapInntektsmeldingDokumentTest {
         val fulltNavn = "Test Testesen"
         val arbeidsgiver = "Bedrift A/S"
         val innsenderNavn = "Hege fra HR"
-        val inntektsmeldingDokument = mapInntektsmeldingDokument(GYLDIG_INNSENDING_REQUEST, fulltNavn, arbeidsgiver, innsenderNavn)
-        assertNotNull(inntektsmeldingDokument.inntekt)
-        assertEquals(GYLDIG_INNSENDING_REQUEST.inntekt.beregnetInntekt, inntektsmeldingDokument.inntekt?.beregnetInntekt)
+        val inntektsmelding = mapInntektsmelding(GYLDIG_INNSENDING_REQUEST, fulltNavn, arbeidsgiver, innsenderNavn)
+        assertNotNull(inntektsmelding.inntekt)
+        assertEquals(GYLDIG_INNSENDING_REQUEST.inntekt.beregnetInntekt, inntektsmelding.inntekt?.beregnetInntekt)
 
         val periode = Periode(1.januar, 3.januar)
         val aarsak = Ferie(listOf(periode))
         val inntekt = Inntekt(true, 1.0, aarsak, true)
 
         val request2 = GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt)
-        val dok = mapInntektsmeldingDokument(request2, fulltNavn, arbeidsgiver, innsenderNavn)
+        val dok = mapInntektsmelding(request2, fulltNavn, arbeidsgiver, innsenderNavn)
         assertEquals(inntekt, dok.inntekt)
     }
 }

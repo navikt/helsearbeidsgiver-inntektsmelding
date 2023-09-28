@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.apache5.Apache5
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
@@ -15,5 +16,14 @@ internal fun HttpClientConfig<*>.configure() {
 
     install(ContentNegotiation) {
         json(jsonIgnoreUnknown)
+    }
+
+    install(HttpRequestRetry) {
+        maxRetries = 3
+        retryOnServerErrors(maxRetries)
+        retryOnExceptionIf { _, cause ->
+            cause is java.net.SocketTimeoutException
+        }
+        exponentialDelay()
     }
 }

@@ -17,6 +17,6 @@ fun main() {
 
 fun RapidsConnection.createInntektService(redisStore: IRedisStore): RapidsConnection =
     also {
-        logger.info("Starting InntektService...")
+        logger.info("Starter ${InntektService::class.simpleName}...")
         InntektService(this, redisStore)
     }

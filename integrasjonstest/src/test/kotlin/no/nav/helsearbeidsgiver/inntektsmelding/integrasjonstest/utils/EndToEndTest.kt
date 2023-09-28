@@ -124,8 +124,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        // Start løsere
-        logger.info("Starter løsere...")
+        // Start rivers
+        logger.info("Starter rivers...")
         rapid.apply {
             createInnsending(redisStore)
             createInntektService(redisStore)

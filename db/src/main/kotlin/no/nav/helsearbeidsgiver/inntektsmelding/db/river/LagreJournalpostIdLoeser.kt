@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class LagreJournalpostIdLøser(
+class LagreJournalpostIdLoeser(
     rapidsConnection: RapidsConnection,
     private val repository: InntektsmeldingRepository
 ) : Loeser(rapidsConnection) {

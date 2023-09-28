@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.loeser.LoeserTest
-import no.nav.helsearbeidsgiver.felles.test.loeser.LoeserTest.LoeserAnswer.Companion.toLøserAnswer
+import no.nav.helsearbeidsgiver.felles.test.loeser.LoeserTest.LoeserAnswer.Companion.toLoeserAnswer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
@@ -18,19 +18,19 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class AltinnLøserTest : LoeserTest() {
+class AltinnLoeserTest : LoeserTest() {
     private val mockAltinnClient = mockk<AltinnClient> {
         coEvery { hentRettighetOrganisasjoner(any()) } returns mockAltinnOrganisasjonSet()
     }
 
-    private val altinnLøser = withTestRapid { AltinnLøser(mockAltinnClient) }
+    private val altinnLoeser = withTestRapid { AltinnLoeser(mockAltinnClient) }
 
     @Test
-    fun `Løser henter organisasjonsrettigheter med id fra behov`() {
+    fun `henter organisasjonsrettigheter med id fra behov`() {
         val mockId = "long-john-silver"
 
         val expectedAnswer = LoeserAnswer(
-            behovType = altinnLøser.behovType,
+            behovType = altinnLoeser.behovType,
             initiateId = UUID.randomUUID(),
             loesning = mockAltinnOrganisasjonSet().toLøsningSuccess()
         )
@@ -42,7 +42,7 @@ class AltinnLøserTest : LoeserTest() {
         )
 
         val actualAnswer = testRapid.firstMessage()
-            .toLøserAnswer(AltinnOrganisasjon.serializer().set())
+            .toLoeserAnswer(AltinnOrganisasjon.serializer().set())
 
         coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(mockId) }
         actualAnswer shouldBe expectedAnswer

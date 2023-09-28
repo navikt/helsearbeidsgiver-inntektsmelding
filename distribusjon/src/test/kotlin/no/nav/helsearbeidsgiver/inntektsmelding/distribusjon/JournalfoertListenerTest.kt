@@ -16,13 +16,13 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class JournalførtListenerTest {
+class JournalfoertListenerTest {
 
     private val rapid = TestRapid()
     private val JOURNALPOST_ID = "12345"
 
     init {
-        JournalførtListener(rapid)
+        JournalfoertListener(rapid)
     }
 
     @BeforeEach

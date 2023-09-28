@@ -19,7 +19,7 @@ class TilgangProducer(
     private val rapid: RapidsConnection
 ) {
     init {
-        logger.info("Starter TilgangProducer...")
+        logger.info("Starter ${TilgangProducer::class.simpleName}...")
     }
 
     fun publish(forespoerselId: UUID, fnr: String): UUID {

@@ -19,7 +19,7 @@ class InntektProducer(
     private val rapid: RapidsConnection
 ) {
     init {
-        logger.info("Starter InntektProducer...")
+        logger.info("Starter ${InntektProducer::class.simpleName}...")
     }
 
     fun publish(request: InntektRequest): UUID {

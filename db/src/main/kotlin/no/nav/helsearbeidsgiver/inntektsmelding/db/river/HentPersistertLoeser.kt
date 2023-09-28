@@ -20,7 +20,7 @@ import kotlin.system.measureTimeMillis
 
 private const val EMPTY_PAYLOAD = "{}"
 
-class HentPersistertLøser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Loeser(rapidsConnection) {
+class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Loeser(rapidsConnection) {
 
     private val BEHOV = BehovType.HENT_PERSISTERT_IM
     private val logger = logger()

@@ -22,12 +22,12 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 
-class OpprettSakLøserTest : FunSpec({
+class OpprettSakLoeserTest : FunSpec({
 
     val testRapid = TestRapid()
     val mockArbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
 
-    OpprettSakLøser(testRapid, mockArbeidsgiverNotifikasjonKlient, "enSlagsUrl")
+    OpprettSakLoeser(testRapid, mockArbeidsgiverNotifikasjonKlient, "enSlagsUrl")
 
     beforeTest {
         testRapid.reset()

@@ -48,7 +48,7 @@ fun main() {
     // enten::
 //    DummyLoeser(rapid, BehovType.PREUTFYLL, listOf(BehovType.FULLT_NAVN))
     // eller: start opp faktisk løser med LocalPreutfyltApp og lag dummy av resten:
-    // HentPreutfyltLøser(rapid)
+    // HentPreutfyltLoeser(rapid)
 //    DummyLoeser(rapid, BehovType.INNTEKT)
 //    DummyLoeser(rapid, BehovType.ARBEIDSFORHOLD)
 //    DummyLoeser(rapid, BehovType.VIRKSOMHET)

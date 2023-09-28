@@ -16,15 +16,18 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.system.measureTimeMillis
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
-class ArbeidsforholdLøser(
+class ArbeidsforholdLoeser(
     rapidsConnection: RapidsConnection,
     private val aaregClient: AaregClient
 ) : Loeser(rapidsConnection) {
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     private val behovType = BehovType.ARBEIDSFORHOLD
     private val requestLatency = Summary.build()
@@ -66,7 +69,7 @@ class ArbeidsforholdLøser(
                 publishFail(behov.createFail("Klarte ikke hente arbeidsforhold"))
             }
         }.also {
-            logger.info("Arbeidsforhold løser took $it")
+            logger.info("${simpleName()} took $it")
         }
     }
 

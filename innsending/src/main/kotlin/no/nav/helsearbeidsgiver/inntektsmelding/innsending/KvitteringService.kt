@@ -31,7 +31,6 @@ class KvitteringService(
     private val logger = logger()
 
     init {
-        logger.info("Starter kvitteringservice")
         withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID.str), this, rapidsConnection) }
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
         withDataKanal {

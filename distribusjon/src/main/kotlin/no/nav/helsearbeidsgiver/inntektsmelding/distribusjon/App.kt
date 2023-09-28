@@ -17,10 +17,10 @@ fun main() {
 }
 
 fun RapidsConnection.createDistribusjon(kafkaProducer: KafkaProducer<String, String>): RapidsConnection =
-    apply {
-        logger.info("Starting DistribusjonLøser...")
-        DistribusjonLøser(this, kafkaProducer)
+    also {
+        logger.info("Starter ${DistribusjonLoeser::class.simpleName}...")
+        DistribusjonLoeser(this, kafkaProducer)
 
-        logger.info("Starting JournalførtListener...")
-        JournalførtListener(this)
+        logger.info("Starter ${JournalfoertListener::class.simpleName}...")
+        JournalfoertListener(this)
     }

@@ -23,14 +23,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class LagreJournalpostIdLøserTest {
+class LagreJournalpostIdLoeserTest {
 
     private val testRapid = TestRapid()
     private val BEHOV = BehovType.LAGRE_JOURNALPOST_ID
     private val inntektsmeldingRepo = mockk<InntektsmeldingRepository>()
 
     init {
-        LagreJournalpostIdLøser(testRapid, inntektsmeldingRepo)
+        LagreJournalpostIdLoeser(testRapid, inntektsmeldingRepo)
     }
 
     @BeforeEach

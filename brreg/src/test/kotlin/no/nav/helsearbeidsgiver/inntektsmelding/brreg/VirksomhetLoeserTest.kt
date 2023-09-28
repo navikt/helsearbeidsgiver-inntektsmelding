@@ -24,7 +24,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class VirksomhetLøserTest {
+class VirksomhetLoeserTest {
 
     private val testRapid = TestRapid()
     private val mockBrregClient = mockk<BrregClient>()
@@ -33,7 +33,7 @@ class VirksomhetLøserTest {
     private val VIRKSOMHET_NAVN = "Norge AS"
 
     init {
-        VirksomhetLøser(testRapid, mockBrregClient, false)
+        VirksomhetLoeser(testRapid, mockBrregClient, false)
     }
 
     @BeforeEach

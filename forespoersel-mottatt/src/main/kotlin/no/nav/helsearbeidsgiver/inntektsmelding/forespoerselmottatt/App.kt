@@ -22,7 +22,7 @@ fun main() {
 }
 
 fun RapidsConnection.createForespoerselMottatt(priProducer: PriProducer<JsonElement>): RapidsConnection =
-    apply {
-        logger.info("Starting ${ForespoerselMottattLoeser::class.simpleName}...")
+    also {
+        logger.info("Starter ${ForespoerselMottattLoeser::class.simpleName}...")
         ForespoerselMottattLoeser(this, priProducer)
     }

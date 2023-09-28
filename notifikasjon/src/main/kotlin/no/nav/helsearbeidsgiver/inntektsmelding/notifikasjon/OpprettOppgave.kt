@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
 
-class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+class ForespoerselLagretListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
     override val event: EventName = EventName.FORESPØRSEL_LAGRET
 
     override fun accept(): River.PacketValidation = River.PacketValidation {
@@ -39,7 +39,7 @@ class ForespørselLagretListener(rapidsConnection: RapidsConnection) : EventList
     }
 }
 
-class OpprettOppgaveLøser(
+class OpprettOppgaveLoeser(
     rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val linkUrl: String

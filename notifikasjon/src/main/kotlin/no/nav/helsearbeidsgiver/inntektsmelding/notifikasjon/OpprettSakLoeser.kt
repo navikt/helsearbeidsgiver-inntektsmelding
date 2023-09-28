@@ -18,7 +18,7 @@ import java.time.format.DateTimeFormatter
 
 private val birthDateFormatter = DateTimeFormatter.ofPattern("ddMMyy")
 
-class OpprettSakLøser(
+class OpprettSakLoeser(
     rapidsConnection: RapidsConnection,
     private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
     private val linkUrl: String

@@ -15,17 +15,21 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import kotlin.system.measureTimeMillis
 
-class FulltNavnLøser(
+class FulltNavnLoeser(
     rapidsConnection: RapidsConnection,
     private val pdlClient: PdlClient
 ) : Loeser(rapidsConnection) {
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
     private val BEHOV = BehovType.FULLT_NAVN
     private val requestLatency = Summary.build()
         .name("simba_pdl_latency_seconds")
@@ -75,7 +79,7 @@ class FulltNavnLøser(
                 requestTimer.observeDuration()
             }
         }.also {
-            logger.info("FullNavn løser took $it")
+            logger.info("${simpleName()} took $it")
         }
     }
 

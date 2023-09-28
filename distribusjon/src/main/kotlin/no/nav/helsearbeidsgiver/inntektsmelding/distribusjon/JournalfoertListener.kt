@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 
-class JournalførtListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
+class JournalfoertListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
 
     private val logger = logger()
 

@@ -20,14 +20,14 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class PersisterImLøserTest {
+class PersisterImLoeserTest {
 
     private val rapid = TestRapid()
-    private var løser: PersisterImLøser
+    private var løser: PersisterImLoeser
     private val repository = mockk<InntektsmeldingRepository>()
 
     init {
-        løser = PersisterImLøser(rapid, repository)
+        løser = PersisterImLoeser(rapid, repository)
     }
 
     private fun sendMelding(melding: JsonMessage) {

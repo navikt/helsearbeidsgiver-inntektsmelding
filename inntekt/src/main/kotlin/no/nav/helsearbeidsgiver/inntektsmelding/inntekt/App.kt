@@ -17,7 +17,7 @@ fun main() {
 
 fun RapidsConnection.createInntekt(inntektKlient: InntektKlient): RapidsConnection =
     also {
-        logger.info("Starter InntektLoeser...")
+        logger.info("Starter ${InntektLoeser::class.simpleName}...")
         InntektLoeser(this, inntektKlient)
     }
 

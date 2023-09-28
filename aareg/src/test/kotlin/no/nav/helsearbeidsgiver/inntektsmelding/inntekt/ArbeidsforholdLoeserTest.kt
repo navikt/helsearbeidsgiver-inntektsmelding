@@ -22,18 +22,18 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.ArbeidsforholdLøser
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.ArbeidsforholdLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class ArbeidsforholdLøserTest : FunSpec({
+class ArbeidsforholdLoeserTest : FunSpec({
     val testRapid = TestRapid()
 
     val mockAaregClient = mockk<AaregClient>()
 
-    ArbeidsforholdLøser(testRapid, mockAaregClient)
+    ArbeidsforholdLoeser(testRapid, mockAaregClient)
 
     beforeEach {
         testRapid.reset()

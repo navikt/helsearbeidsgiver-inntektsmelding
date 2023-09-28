@@ -1,18 +1,18 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NaturalytelseKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
 import java.time.LocalDate
 
-fun mockInnsendingRequest(): InnsendingRequest =
-    InnsendingRequest(
+fun mockInnsending(): Innsending =
+    Innsending(
         orgnrUnderenhet = "orgnr-bål",
         identitetsnummer = "fnr-fredrik",
         behandlingsdager = listOf(LocalDate.now().plusDays(5)),
@@ -27,26 +27,26 @@ fun mockInnsendingRequest(): InnsendingRequest =
         fraværsperioder = emptyList(),
         inntekt = Inntekt(
             bekreftet = true,
-            beregnetInntekt = 32100.0.toBigDecimal(),
+            beregnetInntekt = 32100.0,
             endringÅrsak = null,
             manueltKorrigert = false
         ),
-        fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+        fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
             utbetalerFullLønn = true,
             begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT
         ),
         refusjon = Refusjon(
             utbetalerHeleEllerDeler = true,
-            refusjonPrMnd = 200.0.toBigDecimal(),
+            refusjonPrMnd = 200.0,
             refusjonOpphører = LocalDate.now()
         ),
         naturalytelser = listOf(
             Naturalytelse(
                 naturalytelse = NaturalytelseKode.KOSTDOEGN,
                 dato = LocalDate.now(),
-                beløp = 300.0.toBigDecimal()
+                beløp = 300.0
             )
         ),
-        årsakInnsending = ÅrsakInnsending.ENDRING,
+        årsakInnsending = AarsakInnsending.ENDRING,
         bekreftOpplysninger = true
     )

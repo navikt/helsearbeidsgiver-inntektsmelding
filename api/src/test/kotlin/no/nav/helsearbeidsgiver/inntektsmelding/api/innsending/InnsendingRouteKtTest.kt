@@ -7,20 +7,20 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.mockDelvisInntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
@@ -32,8 +32,8 @@ import java.util.UUID
 class InnsendingRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.INNSENDING + "/${Mock.forespoerselId}"
 
-    private val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson).parseJson()
-    private val GYLDIG_DELVIS_REQUEST = DELVIS_INNSENDING_REQUEST.let(Jackson::toJson).parseJson()
+    private val GYLDIG_REQUEST = GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
+    private val GYLDIG_DELVIS_REQUEST = DELVIS_INNSENDING_REQUEST.toJson(Innsending.serializer())
 
     @BeforeEach
     fun setup() {
@@ -48,7 +48,7 @@ class InnsendingRouteKtTest : ApiTest() {
 
         coEvery {
             anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
-        } returns mockInntektsmeldingDokument().let(Jackson::toJson).parseJson()
+        } returns mockInntektsmelding().toJson(Inntektsmelding.serializer())
 
         val response = mockConstructor(InnsendingProducer::class) {
             every {
@@ -63,14 +63,14 @@ class InnsendingRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `gir jackson-feil ved ugyldig request-json`() = testApi {
+    fun `gir json-feil ved ugyldig request-json`() = testApi {
         val response = post(path, "\"ikke en request\"".toJson())
 
-        val feilmelding = response.bodyAsText().fromJson(JacksonErrorResponse.serializer())
+        val feilmelding = response.bodyAsText().fromJson(JsonErrorResponse.serializer())
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertEquals(Mock.forespoerselId.toString(), feilmelding.forespoerselId)
-        assertEquals("Feil under serialisering med jackson.", feilmelding.error)
+        assertEquals("Feil under serialisering.", feilmelding.error)
     }
 
     @Test
@@ -103,7 +103,7 @@ class InnsendingRouteKtTest : ApiTest() {
 
         coEvery {
             anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
-        } returns mockDelvisInntektsmeldingDokument().let(Jackson::toJson).parseJson()
+        } returns mockDelvisInntektsmeldingDokument().toJson(Inntektsmelding.serializer())
 
         val response = mockConstructor(InnsendingProducer::class) {
             every {

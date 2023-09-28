@@ -2,12 +2,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
@@ -81,8 +80,8 @@ class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repos
     }
 }
 
-fun Pair<InntektsmeldingDokument?, EksternInntektsmelding?>?.tilPayloadPair() =
+fun Pair<Inntektsmelding?, EksternInntektsmelding?>?.tilPayloadPair(): Pair<String, String> =
     Pair(
-        this?.first?.let { Jackson.toJson(it) } ?: EMPTY_PAYLOAD,
+        this?.first?.toJsonStr(Inntektsmelding.serializer()) ?: EMPTY_PAYLOAD,
         this?.second?.toJsonStr(EksternInntektsmelding.serializer()) ?: EMPTY_PAYLOAD
     )

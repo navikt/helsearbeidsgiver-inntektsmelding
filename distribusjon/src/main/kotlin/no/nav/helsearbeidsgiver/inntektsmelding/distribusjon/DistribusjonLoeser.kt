@@ -3,18 +3,19 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import io.prometheus.client.Summary
+import kotlinx.serialization.Serializable
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.JournalførtInntektsmelding
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -40,10 +41,10 @@ class DistribusjonLoeser(
         }
     }
 
-    private fun hentInntektsmeldingDokument(behov: Behov): InntektsmeldingDokument {
+    private fun hentInntektsmeldingDokument(behov: Behov): Inntektsmelding {
         try {
             val json = behov[DataFelt.INNTEKTSMELDING_DOKUMENT].toString()
-            return Jackson.fromJson<InntektsmeldingDokument>(json)
+            return json.fromJson(Inntektsmelding.serializer())
         } catch (ex: Exception) {
             throw DeserialiseringException(ex)
         }
@@ -56,7 +57,7 @@ class DistribusjonLoeser(
         try {
             val inntektsmeldingDokument = hentInntektsmeldingDokument(behov)
             val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
-            val journalførtJson = Jackson.toJson(journalførtInntektsmelding)
+            val journalførtJson = journalførtInntektsmelding.toJsonStr(JournalførtInntektsmelding.serializer())
             kafkaProducer.send(ProducerRecord(TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN, journalførtJson))
             logger.info("Distribuerte eksternt for journalpostId: $journalpostId")
             sikkerLogger.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalførtJson")
@@ -74,11 +75,11 @@ class DistribusjonLoeser(
 
             logger.info("Distribuerte inntektsmelding for journalpostId: $journalpostId")
         } catch (e: DeserialiseringException) {
-            logger.error("Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId")
-            sikkerLogger.error("Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId", e)
+            logger.error("Distribusjon feilet fordi Inntektsmelding ikke kunne leses for journalpostId: $journalpostId")
+            sikkerLogger.error("Distribusjon feilet fordi Inntektsmelding ikke kunne leses for journalpostId: $journalpostId", e)
             publishFail(
                 behov.createFail(
-                    "Distribusjon feilet fordi InntektsmeldingDokument ikke kunne leses for journalpostId: $journalpostId",
+                    "Distribusjon feilet fordi Inntektsmelding ikke kunne leses for journalpostId: $journalpostId",
                     mapOf(Key.JOURNALPOST_ID to journalpostId)
                 )
             )
@@ -96,3 +97,9 @@ class DistribusjonLoeser(
         }
     }
 }
+
+@Serializable
+class JournalførtInntektsmelding(
+    val inntektsmeldingDokument: Inntektsmelding,
+    val journalpostId: String
+)

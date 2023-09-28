@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
-import java.math.BigDecimal
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -41,7 +40,7 @@ fun OffsetDateTime.toNorsk(): String {
     return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
 }
 
-fun BigDecimal.toNorsk(): String {
+fun Double.toNorsk(): String {
     val format = DecimalFormat("#,###.##")
     return format.format(this)
 }

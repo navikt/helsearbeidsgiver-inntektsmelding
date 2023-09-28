@@ -2,12 +2,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -48,10 +47,10 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             val arbeidsgiverInfo = behov[DataFelt.ARBEIDSGIVER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
             val fulltNavn = arbeidstakerInfo.navn
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
-            val innsendingRequest = Jackson.fromJson<InnsendingRequest>(behov[DataFelt.INNTEKTSMELDING].toString())
-            val inntektsmeldingDokument = mapInntektsmeldingDokument(innsendingRequest, fulltNavn, arbeidsgiver, arbeidsgiverInfo.navn)
+            val innsending = behov[DataFelt.INNTEKTSMELDING].toString().fromJson(Innsending.serializer())
+            val inntektsmeldingDokument = mapInntektsmeldingDokument(innsending, fulltNavn, arbeidsgiver, arbeidsgiverInfo.navn)
             repository.lagreInntektsmelding(behov.forespoerselId!!, inntektsmeldingDokument)
-            sikkerLogger.info("Lagret InntektsmeldingDokument for forespoerselId: ${behov.forespoerselId}")
+            sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: ${behov.forespoerselId}")
             behov.createData(
                 mapOf(
                     DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument

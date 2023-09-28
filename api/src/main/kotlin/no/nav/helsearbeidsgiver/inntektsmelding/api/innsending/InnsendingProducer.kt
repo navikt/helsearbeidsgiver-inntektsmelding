@@ -2,10 +2,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
@@ -19,7 +19,7 @@ class InnsendingProducer(
         logger.info("Starter ${InnsendingProducer::class.simpleName}...")
     }
 
-    fun publish(forespoerselId: UUID, request: InnsendingRequest, arbeidsgiverFnr: String): UUID {
+    fun publish(forespoerselId: UUID, request: Innsending, arbeidsgiverFnr: String): UUID {
         val clientId = UUID.randomUUID()
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(

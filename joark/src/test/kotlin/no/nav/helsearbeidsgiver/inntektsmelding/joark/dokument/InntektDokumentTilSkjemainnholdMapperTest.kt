@@ -1,18 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers.InntektDokumentTilSkjemainnholdMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.mapstruct.factory.Mappers
-import java.math.BigDecimal
 
 class InntektDokumentTilSkjemainnholdMapperTest {
 
-    private val inntektsmeldingDokument = mockInntektsmeldingDokument()
+    private val inntektsmeldingDokument = mockInntektsmelding()
     private val mapper: InntektDokumentTilSkjemainnholdMapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
 
     @Test
@@ -44,7 +43,7 @@ class InntektDokumentTilSkjemainnholdMapperTest {
             inntektsmeldingDokument.copy(
                 inntekt = Inntekt(
                     true,
-                    BigDecimal.ONE,
+                    1.0,
                     null,
                     false
                 )

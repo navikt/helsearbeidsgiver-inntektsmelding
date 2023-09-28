@@ -5,25 +5,25 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NaturalytelseKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStilling
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStillingsprosent
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Nyansatt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Permisjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Permittering
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Tariffendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.VarigLonnsendring
 import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
@@ -34,11 +34,11 @@ import java.time.LocalDate
 class InnsendingValidateKtTest : FunSpec({
 
     val now: LocalDate = LocalDate.now()
-    val zero = 0.toBigDecimal()
-    val maksInntekt = 1_000_001.0.toBigDecimal()
-    val maksRefusjon = 1_000_001.0.toBigDecimal()
-    val maksNaturalBeloep = 1_000_000.0.toBigDecimal()
-    val negativtBeloep = (-0.1).toBigDecimal()
+    val zero = 0.0
+    val maksInntekt = 1_000_001.0
+    val maksRefusjon = 1_000_001.0
+    val maksNaturalBeloep = 1_000_000.0
+    val negativtBeloep = -0.1
 
     test("skal akseptere gyldig") {
         GYLDIG_INNSENDING_REQUEST.validate()
@@ -59,7 +59,7 @@ class InnsendingValidateKtTest : FunSpec({
     test("skal ikke godta tom liste med arbeidsgiverperioder når arbeidsgiver betaler lønn") {
         shouldThrowExactly<ConstraintViolationException> {
             GYLDIG_INNSENDING_REQUEST.copy(
-                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(true),
                 arbeidsgiverperioder = emptyList()
             ).validate()
         }
@@ -67,7 +67,7 @@ class InnsendingValidateKtTest : FunSpec({
 
     test("skal godta tom liste med arbeidsgiverperioder når arbeidsgiver ikke betaler lønn") {
         GYLDIG_INNSENDING_REQUEST.copy(
-            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+            fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                 utbetalerFullLønn = false,
                 begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FISKER_MED_HYRE,
                 utbetalt = zero
@@ -137,7 +137,7 @@ class InnsendingValidateKtTest : FunSpec({
         GYLDIG_INNSENDING_REQUEST.copy(behandlingsdager = emptyList()).validate()
     }
 
-    context(InnsendingRequest::egenmeldingsperioder.name) {
+    context(Innsending::egenmeldingsperioder.name) {
         test("skal godta tom liste med egenmeldinger") {
             GYLDIG_INNSENDING_REQUEST.copy(egenmeldingsperioder = emptyList()).validate()
         }
@@ -156,7 +156,7 @@ class InnsendingValidateKtTest : FunSpec({
         }
     }
 
-    context(InnsendingRequest::inntekt.name) {
+    context(Innsending::inntekt.name) {
         test("skal tillate inntekt på 0 kroner") {
             val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = zero)
             GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
@@ -211,13 +211,13 @@ class InnsendingValidateKtTest : FunSpec({
                     "NyStilling" to NyStilling(now),
                     "NyStillingsprosent" to NyStillingsprosent(now),
                     "Bonus" to Bonus(),
-                    "Nyansatt" to Nyansatt()
+                    "Nyansatt" to Nyansatt
                 )
             ) { endringAarsak ->
                 val gyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
                     inntekt = Inntekt(
                         endringÅrsak = endringAarsak,
-                        beregnetInntekt = 1.0.toBigDecimal(),
+                        beregnetInntekt = 1.0,
                         bekreftet = true,
                         manueltKorrigert = false
                     )
@@ -230,13 +230,13 @@ class InnsendingValidateKtTest : FunSpec({
         }
     }
 
-    context(InnsendingRequest::fullLønnIArbeidsgiverPerioden.name) {
+    context(Innsending::fullLønnIArbeidsgiverPerioden.name) {
         test("skal gi feil dersom arbeidsgiver ikke betaler lønn og begrunnelse er tom") {
             val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
-                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                     utbetalerFullLønn = false,
                     begrunnelse = null,
-                    utbetalt = 1.0.toBigDecimal()
+                    utbetalt = 1.0
                 )
             )
 
@@ -245,7 +245,7 @@ class InnsendingValidateKtTest : FunSpec({
             }
         }
 
-        context(FullLonnIArbeidsgiverPerioden::utbetalt.name) {
+        context(FullLoennIArbeidsgiverPerioden::utbetalt.name) {
             withData(
                 mapOf(
                     "feiler uten full lønn og utbetalt beløp er tomt" to null,
@@ -254,7 +254,7 @@ class InnsendingValidateKtTest : FunSpec({
                 )
             ) { utbetalt ->
                 val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
-                    fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                    fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                         utbetalerFullLønn = false,
                         begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT,
                         utbetalt = utbetalt
@@ -268,7 +268,7 @@ class InnsendingValidateKtTest : FunSpec({
         }
     }
 
-    context(InnsendingRequest::refusjon.name) {
+    context(Innsending::refusjon.name) {
         withData(
             mapOf(
                 "skal gi feil dersom refusjonsbeløp er udefinert" to null,
@@ -293,7 +293,7 @@ class InnsendingValidateKtTest : FunSpec({
                 val gyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
                     refusjon = Refusjon(
                         utbetalerHeleEllerDeler = true,
-                        refusjonPrMnd = 1.0.toBigDecimal(),
+                        refusjonPrMnd = 1.0,
                         refusjonEndringer = null
                     )
                 )
@@ -306,7 +306,7 @@ class InnsendingValidateKtTest : FunSpec({
                 val gyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
                     refusjon = Refusjon(
                         utbetalerHeleEllerDeler = true,
-                        refusjonPrMnd = 1.0.toBigDecimal(),
+                        refusjonPrMnd = 1.0,
                         refusjonEndringer = listOf(RefusjonEndring(zero, now))
                     )
                 )
@@ -321,13 +321,13 @@ class InnsendingValidateKtTest : FunSpec({
                     "feiler ved endring av refusjon uten definert beløp" to RefusjonEndring(null, now),
                     "feiler ved endring av refusjon til negativt beløp" to RefusjonEndring(negativtBeloep, now),
                     "feiler ved endring av refusjon til over maksimalt beløp" to RefusjonEndring(maksRefusjon, now),
-                    "feiler ved endring av refusjon uten satt dato" to RefusjonEndring(1.0.toBigDecimal(), null)
+                    "feiler ved endring av refusjon uten satt dato" to RefusjonEndring(1.0, null)
                 )
             ) { refusjonEndring ->
                 val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
                     refusjon = Refusjon(
                         utbetalerHeleEllerDeler = true,
-                        refusjonPrMnd = 1.0.toBigDecimal(),
+                        refusjonPrMnd = 1.0,
                         refusjonEndringer = listOf(refusjonEndring)
                     )
                 )
@@ -339,7 +339,7 @@ class InnsendingValidateKtTest : FunSpec({
         }
     }
 
-    context(InnsendingRequest::naturalytelser.name) {
+    context(Innsending::naturalytelser.name) {
         test("skal godta tom liste med naturalytelser") {
             GYLDIG_INNSENDING_REQUEST.copy(naturalytelser = emptyList()).validate()
         }
@@ -372,8 +372,8 @@ class InnsendingValidateKtTest : FunSpec({
     }
 
     test("skal godta ulike årsak innsendinger") {
-        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = ÅrsakInnsending.NY).validate()
-        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = ÅrsakInnsending.ENDRING).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = AarsakInnsending.NY).validate()
+        GYLDIG_INNSENDING_REQUEST.copy(årsakInnsending = AarsakInnsending.ENDRING).validate()
     }
 
     test("skal bruke språkfil for feil") {
@@ -383,14 +383,14 @@ class InnsendingValidateKtTest : FunSpec({
                     Naturalytelse(
                         NaturalytelseKode.BIL,
                         now,
-                        maksNaturalBeloep.plus(1.toBigDecimal())
+                        maksNaturalBeloep.plus(1)
                     )
                 )
             ).validate()
         } catch (ex: ConstraintViolationException) {
             val response = validationResponseMapper(ex.constraintViolations)
             response.errors[0].property shouldBe "naturalytelser[0].beløp"
-            response.errors[0].error shouldBe "Må være mindre enn 1 000 000,0"
+            response.errors[0].error shouldBe "Må være mindre enn 1 000 000"
         }
     }
 })

@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.RefusjonEndring
 import no.seres.xsd.nav.inntektsmelding_m._20181211.EndringIRefusjon
 import no.seres.xsd.nav.inntektsmelding_m._20181211.InntektsmeldingM
 import no.seres.xsd.nav.inntektsmelding_m._20181211.NaturalytelseDetaljer
@@ -16,7 +16,7 @@ import org.mapstruct.Mappings
 interface InntektDokumentTilSkjemainnholdMapper {
 
     @Mapping(source = ".", target = "skjemainnhold")
-    fun InntektDokumentTilInntekstmeldingM(inntektsmeldingDokument: InntektsmeldingDokument): InntektsmeldingM
+    fun InntektDokumentTilInntekstmeldingM(inntektsmeldingDokument: Inntektsmelding): InntektsmeldingM
 
     @Mappings(
         Mapping(constant = "Sykepenger", target = "ytelse"),
@@ -36,7 +36,7 @@ interface InntektDokumentTilSkjemainnholdMapper {
         Mapping(constant = "1.0", target = "avsendersystem.systemversjon"),
         Mapping(source = "tidspunkt", target = "avsendersystem.innsendingstidspunkt")
     )
-    fun inntektDokumentTilSkjemaInnhold(inntektsmeldingDokument: InntektsmeldingDokument): Skjemainnhold
+    fun inntektDokumentTilSkjemaInnhold(inntektsmeldingDokument: Inntektsmelding): Skjemainnhold
 
     @Mappings(
         Mapping(source = "refusjonPrMnd", target = "refusjonsbeloepPrMnd"),
@@ -54,7 +54,7 @@ interface InntektDokumentTilSkjemainnholdMapper {
     @Mappings(
         Mapping(source = "beløp", target = "beloepPrMnd"),
         Mapping(source = "dato", target = "fom"),
-        Mapping(source = "naturalytelse.value", target = "naturalytelseType")
+        Mapping(source = "naturalytelse", target = "naturalytelseType")
     )
     fun mapNaturalytelseDetaljer(naturalytelse: Naturalytelse): NaturalytelseDetaljer
 }

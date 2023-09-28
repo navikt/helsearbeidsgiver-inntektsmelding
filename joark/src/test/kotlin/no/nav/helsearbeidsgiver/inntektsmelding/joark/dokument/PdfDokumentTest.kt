@@ -1,25 +1,25 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektEndringAarsak
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Sykefravaer
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Feilregistrert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.InntektEndringAarsak
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStilling
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStillingsprosent
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Nyansatt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Permisjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Permittering
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Sykefravaer
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Tariffendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.VarigLonnsendring
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.jupiter.api.Test
@@ -30,14 +30,14 @@ import java.time.LocalDate
 class PdfDokumentTest {
 
     private val dag = LocalDate.of(2022, 12, 24)
-    private val im = mockInntektsmeldingDokument()
+    private val im = mockInntektsmelding()
 
     @Test
     fun `betaler full lønn i arbeidsgiverperioden`() {
         writePDF(
             "ikke_refusjon_og_full_lønn_i_arbeidsgiverperioden",
             im.copy(
-                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(true),
                 refusjon = Refusjon(false)
             )
         )
@@ -48,10 +48,10 @@ class PdfDokumentTest {
         writePDF(
             "ikke_refusjon_og_ikke_full_lønn_i_arbeidsgiverperioden",
             im.copy(
-                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                     false,
                     BegrunnelseIngenEllerRedusertUtbetalingKode.PERMITTERING,
-                    5000.0.toBigDecimal()
+                    5000.0
                 ),
                 refusjon = Refusjon(false)
             )
@@ -63,10 +63,10 @@ class PdfDokumentTest {
         writePDF(
             "med_refusjon_og_full_lønn_arbeidsgiverperioden_opphører",
             im.copy(
-                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(true),
                 refusjon = Refusjon(
                     true,
-                    25000.0.toBigDecimal(),
+                    25000.0,
                     dag.plusDays(3)
                 )
             )
@@ -78,10 +78,10 @@ class PdfDokumentTest {
         writePDF(
             "med_refusjon_og_full_lønn_arbeidsgiverperioden_oppnører_ikke",
             im.copy(
-                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(true),
                 refusjon = Refusjon(
                     true,
-                    25000.0.toBigDecimal(),
+                    25000.0,
                     null
                 )
             )
@@ -93,15 +93,15 @@ class PdfDokumentTest {
         writePDF(
             "med_refusjon_og_endringer_i_beloep",
             im.copy(
-                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(true),
+                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(true),
                 refusjon = Refusjon(
                     true,
-                    25000.0.toBigDecimal(),
+                    25000.0,
                     null,
                     refusjonEndringer = listOf(
-                        RefusjonEndring(140.0.toBigDecimal(), dag.minusDays(4)),
-                        RefusjonEndring(150.0.toBigDecimal(), dag.minusDays(5)),
-                        RefusjonEndring(160.0.toBigDecimal(), dag.minusDays(6))
+                        RefusjonEndring(140.0, dag.minusDays(4)),
+                        RefusjonEndring(150.0, dag.minusDays(5)),
+                        RefusjonEndring(160.0, dag.minusDays(6))
                     )
                 )
             )
@@ -150,7 +150,7 @@ class PdfDokumentTest {
         writePDF(
             "med_begrunnelse",
             im.copy(
-                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                     false,
                     begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FERIE_ELLER_AVSPASERING
                 )
@@ -171,25 +171,25 @@ class PdfDokumentTest {
         map["permisjon"] = Permisjon(perioder)
         map["permittering"] = Permittering(perioder)
         map["sykefravaer"] = Sykefravaer(perioder)
-        map["nyansatt"] = Nyansatt()
-        map["feilregistrert"] = Feilregistrert()
+        map["nyansatt"] = Nyansatt
+        map["feilregistrert"] = Feilregistrert
 
         map.forEach {
             writePDF(
                 "med_inntekt_endring_${it.key}",
                 im.copy(
-                    inntekt = Inntekt(true, 123.0.toBigDecimal(), it.value, true)
+                    inntekt = Inntekt(true, 123.0, it.value, true)
                 )
             )
         }
         writePDF(
             "med_ingen_aarsak_inntekt_endring",
             im.copy(
-                inntekt = Inntekt(true, 123.0.toBigDecimal(), null, true)
+                inntekt = Inntekt(true, 123.0, null, true)
             )
         )
     }
-    private fun writePDF(title: String, im: InntektsmeldingDokument) {
+    private fun writePDF(title: String, im: Inntektsmelding) {
         // val file = File(System.getProperty("user.home"), "/Desktop/$title.pdf")
         val file = File.createTempFile(title, ".pdf")
         val writer = FileOutputStream(file)

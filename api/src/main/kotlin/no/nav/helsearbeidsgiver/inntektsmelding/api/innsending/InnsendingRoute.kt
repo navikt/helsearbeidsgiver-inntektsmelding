@@ -1,22 +1,21 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import com.fasterxml.jackson.databind.JsonMappingException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.application
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.json.Jackson
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.hentIdentitetsnummerFraLoginToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -26,6 +25,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import org.valiktor.ConstraintViolationException
 import java.util.UUID
@@ -42,11 +42,11 @@ fun RouteExtra.innsendingRoute() {
 
             if (forespoerselId != null) {
                 try {
-                    val request = Jackson.fromJson<InnsendingRequest>(call.receiveText()).let {
+                    val request = call.receiveText().fromJson(Innsending.serializer()).let {
                         // TODO gjør denne sjekken ved opprettelse
                         if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
                             it.copy(
-                                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                                     utbetalerFullLønn = true,
                                     begrunnelse = null,
                                     utbetalt = null
@@ -81,11 +81,11 @@ fun RouteExtra.innsendingRoute() {
                 } catch (e: ConstraintViolationException) {
                     logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
                     respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
-                } catch (e: JsonMappingException) {
+                } catch (e: SerializationException) {
                     "Kunne ikke parse json for $forespoerselId".let {
                         logger.error(it)
                         sikkerLogger.error(it, e)
-                        respondBadRequest(JacksonErrorResponse(forespoerselId.toString()), JacksonErrorResponse.serializer())
+                        respondBadRequest(JsonErrorResponse(forespoerselId.toString()), JsonErrorResponse.serializer())
                     }
                 } catch (e: RedisPollerTimeoutException) {
                     logger.info("Fikk timeout for forespørselId: $forespoerselId", e)

@@ -1,17 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
-val INNTEKTSMELDING_DOKUMENT = InntektsmeldingDokument(
+val INNTEKTSMELDING_DOKUMENT = Inntektsmelding(
     orgnrUnderenhet = "",
     identitetsnummer = "",
     fulltNavn = "Ola Normann",
@@ -21,25 +21,25 @@ val INNTEKTSMELDING_DOKUMENT = InntektsmeldingDokument(
     bestemmendeFraværsdag = LocalDate.now(),
     fraværsperioder = emptyList(),
     arbeidsgiverperioder = emptyList(),
-    beregnetInntekt = 502.0.toBigDecimal(),
+    beregnetInntekt = 502.0,
     inntekt = Inntekt(
         bekreftet = true,
-        beregnetInntekt = 502.0.toBigDecimal(),
+        beregnetInntekt = 502.0,
         endringÅrsak = null,
         manueltKorrigert = false
     ),
     refusjon = Refusjon(
         true,
-        500.0.toBigDecimal(),
+        500.0,
         refusjonOpphører = LocalDate.now(),
         refusjonEndringer = emptyList()
     ),
-    årsakInnsending = ÅrsakInnsending.NY,
+    årsakInnsending = AarsakInnsending.NY,
     tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
-    fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+    fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
         utbetalerFullLønn = true,
         begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT,
-        utbetalt = 500.0.toBigDecimal()
+        utbetalt = 500.0
     ),
     innsenderNavn = "Fido"
 )

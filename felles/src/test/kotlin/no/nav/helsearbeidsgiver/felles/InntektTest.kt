@@ -57,6 +57,7 @@ class InntektTest {
 
         assertEquals(forventetSnitt, inntekt.gjennomsnitt())
     }
+
     @Test
     fun `test korrekt float ved beregning av gjennomsnitt`() {
         val maanedInntekterPairs = List(11) { (it + 1) to 0.2 }.toTypedArray()

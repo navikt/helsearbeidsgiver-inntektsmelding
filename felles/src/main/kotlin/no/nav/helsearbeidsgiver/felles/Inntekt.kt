@@ -27,6 +27,6 @@ data class Inntekt(
         if (maanedOversikt.isEmpty()) {
             0.0
         } else {
-            total().divideMoney(3) // Del alltid inntekt på tre måneder
+            total().divideMoney(maanedOversikt.size)
         }
 }

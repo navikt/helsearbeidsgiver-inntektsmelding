@@ -28,7 +28,7 @@ import java.time.YearMonth
 import java.util.UUID
 
 class InntektLoeser(
-    private val rapid: RapidsConnection,
+    rapid: RapidsConnection,
     private val inntektKlient: InntektKlient
 ) : Loeser(rapid) {
     private val logger = logger()
@@ -85,17 +85,17 @@ class InntektLoeser(
         val tom = behov.skjaeringstidspunkt().minusMaaneder(1)
 
         hentInntektPerOrgnrOgMaaned(behov.fnr(), fom, tom, UUID.fromString(behov.uuid()))
-            .onSuccess {
-                val inntekt = it[behov.orgnr().verdi]
+            .onSuccess { inntektPerOrgnrOgMaaned ->
+                val inntektPerMaaned = inntektPerOrgnrOgMaaned[behov.orgnr().verdi]
                     .orEmpty()
+                val inntekt = listOf(fom, middle, tom)
+                    .associateWith { inntektPerMaaned[it] }
                     .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }
-                val mndISvar = inntekt.associate { it.maaned to it.inntekt }
-                val alleMnd = listOf(fom, middle, tom).associate { mnd -> mnd to mndISvar[mnd] }
-                    .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }.let(::Inntekt)
+                    .let(::Inntekt)
                 publishData(
                     behov.createData(
                         mapOf(
-                            DataFelt.INNTEKT to alleMnd
+                            DataFelt.INNTEKT to inntekt
                         )
                     )
                 )

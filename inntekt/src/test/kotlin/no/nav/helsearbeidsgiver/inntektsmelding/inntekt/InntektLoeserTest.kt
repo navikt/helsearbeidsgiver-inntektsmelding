@@ -91,7 +91,7 @@ class InntektLoeserTest : FunSpec({
         )
     }
 
-    test("Gir _tom_ inntekt når klienten svarer med inntekt utelukkende for andre orgnr") {
+    test("Gir måneder uten inntekt når klienten svarer med inntekt utelukkende for andre orgnr") {
         coEvery {
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         } returns mapOf(

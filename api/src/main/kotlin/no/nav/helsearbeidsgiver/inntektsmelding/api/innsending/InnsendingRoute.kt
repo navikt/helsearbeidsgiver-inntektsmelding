@@ -114,30 +114,37 @@ fun RouteExtra.innsendingRoute() {
 
 // For FullLoennIArbeidsgiverPerioden.begrunnelse: Erstatter strengverdi med enum
 private fun JsonElement.erstattBegrunnelseForIkkeFullLoennIAgp(): JsonElement {
-    val innsendingMap = jsonObject.toMap()
+    val innsendingMap = runCatching { jsonObject }
+        .getOrElse { throw SerializationException("Noe gikk galt under erstatting av begrunnelse.") }
+        .toMap()
 
     val fullLoennIAgpMap = innsendingMap[Innsending::fullLønnIArbeidsgiverPerioden.name]
-        ?.jsonObject
+        ?.runCatching { jsonObject }
+        ?.getOrNull()
         ?.toMap()
-        ?: throw SerializationException("Noe gikk galt under erstatting av begrunnelse.")
 
-    val begrunnelse = fullLoennIAgpMap[FullLoennIArbeidsgiverPerioden::begrunnelse.name]
-        ?.jsonPrimitive
-        ?.content
-        ?.let { begrunnelseVerdi ->
-            BegrunnelseIngenEllerRedusertUtbetalingKode.entries.firstOrNull {
-                // Tåler wrappet verdi (dagens)
-                it.value == begrunnelseVerdi ||
-                    // ... og enum-navn (fremtidens?)
-                    it.name == begrunnelseVerdi
+    if (fullLoennIAgpMap != null) {
+        val begrunnelse = fullLoennIAgpMap[FullLoennIArbeidsgiverPerioden::begrunnelse.name]
+            ?.jsonPrimitive
+            ?.content
+            ?.let { begrunnelseVerdi ->
+                BegrunnelseIngenEllerRedusertUtbetalingKode.entries.firstOrNull {
+                    // Tåler wrappet verdi (dagens)
+                    it.value == begrunnelseVerdi ||
+                        // ... og enum-navn (fremtidens?)
+                        it.name == begrunnelseVerdi
+                }
             }
-        }
-        ?: throw SerializationException("Noe gikk galt under erstatting av begrunnelse.")
 
-    return innsendingMap.plus(
-        Innsending::fullLønnIArbeidsgiverPerioden.name to fullLoennIAgpMap.plus(
-            FullLoennIArbeidsgiverPerioden::begrunnelse.name to begrunnelse.toJson(BegrunnelseIngenEllerRedusertUtbetalingKode.serializer())
-        ).toJson()
-    )
-        .toJson()
+        if (begrunnelse != null) {
+            return innsendingMap.plus(
+                Innsending::fullLønnIArbeidsgiverPerioden.name to fullLoennIAgpMap.plus(
+                    FullLoennIArbeidsgiverPerioden::begrunnelse.name to begrunnelse.toJson(BegrunnelseIngenEllerRedusertUtbetalingKode.serializer())
+                ).toJson()
+            )
+                .toJson()
+        }
+    }
+
+    return this
 }

@@ -29,6 +29,7 @@ class InntektDokumentTilSkjemainnholdMapperTest {
         assertNotNull(skjema.arbeidsforhold.beregnetInntekt)
         assertEquals(skjema.sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe.size, 3)
         assertNotNull(skjema.sykepengerIArbeidsgiverperioden.bruttoUtbetalt)
+        assertNotNull(skjema.sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt)
         assertNotNull(skjema.refusjon.refusjonsbeloepPrMnd)
         assertNotNull(skjema.refusjon.refusjonsopphoersdato)
         assertEquals(skjema.refusjon.endringIRefusjonListe.size, 3)

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers.InntektDokumentTilSkjemainnholdMapper
@@ -21,23 +22,45 @@ class InntektDokumentTilSkjemainnholdMapperTest {
         val skjema = im.skjemainnhold
         assertNotNull(skjema.aarsakTilInnsending)
         assertNotNull(skjema.arbeidsgiver)
-        assertEquals(skjema.arbeidsgiver.virksomhetsnummer, inntektsmeldingDokument.orgnrUnderenhet)
-        assertEquals(skjema.arbeidsgiver.kontaktinformasjon.telefonnummer, inntektsmeldingDokument.telefonnummer)
-        assertEquals(skjema.arbeidsgiver.kontaktinformasjon.kontaktinformasjonNavn, inntektsmeldingDokument.innsenderNavn)
-        assertEquals(skjema.arbeidstakerFnr, inntektsmeldingDokument.identitetsnummer)
-        assertEquals(skjema.arbeidsforhold.foersteFravaersdag, inntektsmeldingDokument.bestemmendeFraværsdag)
+        assertEquals(inntektsmeldingDokument.orgnrUnderenhet, skjema.arbeidsgiver.virksomhetsnummer)
+        assertEquals(inntektsmeldingDokument.telefonnummer, skjema.arbeidsgiver.kontaktinformasjon.telefonnummer)
+        assertEquals(inntektsmeldingDokument.innsenderNavn, skjema.arbeidsgiver.kontaktinformasjon.kontaktinformasjonNavn)
+        assertEquals(inntektsmeldingDokument.identitetsnummer, skjema.arbeidstakerFnr)
+        assertEquals(inntektsmeldingDokument.bestemmendeFraværsdag, skjema.arbeidsforhold.foersteFravaersdag)
         assertNotNull(skjema.arbeidsforhold.beregnetInntekt)
-        assertEquals(skjema.sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe.size, 3)
+        assertEquals(3, skjema.sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe.size)
         assertNotNull(skjema.sykepengerIArbeidsgiverperioden.bruttoUtbetalt)
-        assertNotNull(skjema.sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt)
+        assertEquals(inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden!!.begrunnelse!!.value, skjema.sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt)
         assertNotNull(skjema.refusjon.refusjonsbeloepPrMnd)
         assertNotNull(skjema.refusjon.refusjonsopphoersdato)
-        assertEquals(skjema.refusjon.endringIRefusjonListe.size, 3)
-        assertEquals(skjema.opphoerAvNaturalytelseListe.size, 2)
+        assertEquals(3, skjema.refusjon.endringIRefusjonListe.size)
+        assertEquals(2, skjema.opphoerAvNaturalytelseListe.size)
         assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
         assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
         println(xmlMapper().writeValueAsString(im))
     }
+    @Test
+    fun `skal mappe InntektsMeldingdokument til skjema også hvis begrunnelse er null`() {
+        val im = mapper.InntektDokumentTilInntekstmeldingM(inntektsmeldingDokument.copy(fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(false)))
+        val skjema = im.skjemainnhold
+        assertNotNull(skjema.aarsakTilInnsending)
+        assertNotNull(skjema.arbeidsgiver)
+        assertEquals(inntektsmeldingDokument.orgnrUnderenhet, skjema.arbeidsgiver.virksomhetsnummer)
+        assertEquals(inntektsmeldingDokument.telefonnummer, skjema.arbeidsgiver.kontaktinformasjon.telefonnummer)
+        assertEquals(inntektsmeldingDokument.innsenderNavn, skjema.arbeidsgiver.kontaktinformasjon.kontaktinformasjonNavn)
+        assertEquals(inntektsmeldingDokument.identitetsnummer, skjema.arbeidstakerFnr)
+        assertEquals(inntektsmeldingDokument.bestemmendeFraværsdag, skjema.arbeidsforhold.foersteFravaersdag)
+        assertNotNull(skjema.arbeidsforhold.beregnetInntekt)
+        assertEquals(3, skjema.sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe.size)
+        assertNull(skjema.sykepengerIArbeidsgiverperioden.bruttoUtbetalt)
+        assertNull(skjema.sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt)
+        assertNotNull(skjema.refusjon.refusjonsbeloepPrMnd)
+        assertNotNull(skjema.refusjon.refusjonsopphoersdato)
+        assertEquals(3, skjema.refusjon.endringIRefusjonListe.size)
+        assertEquals(2, skjema.opphoerAvNaturalytelseListe.size)
+        assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
+        assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
+        println(xmlMapper().writeValueAsString(im))    }
 
     @Test
     fun `skal godta null-verdi i InntektEndringÅrsak`() {

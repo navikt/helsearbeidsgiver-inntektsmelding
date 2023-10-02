@@ -8,10 +8,6 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -30,8 +26,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import org.valiktor.ConstraintViolationException
 import java.util.UUID
@@ -48,23 +42,20 @@ fun RouteExtra.innsendingRoute() {
 
             if (forespoerselId != null) {
                 try {
-                    val request = call.receiveText()
-                        .parseJson()
-                        .erstattBegrunnelseForIkkeFullLoennIAgp()
-                        .fromJson(Innsending.serializer()).let {
-                            // TODO gjør denne sjekken ved opprettelse
-                            if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
-                                it.copy(
-                                    fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
-                                        utbetalerFullLønn = true,
-                                        begrunnelse = null,
-                                        utbetalt = null
-                                    )
+                    val request = call.receiveText().fromJson(Innsending.serializer()).let {
+                        // TODO gjør denne sjekken ved opprettelse
+                        if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
+                            it.copy(
+                                fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
+                                    utbetalerFullLønn = true,
+                                    begrunnelse = null,
+                                    utbetalt = null
                                 )
-                            } else {
-                                it
-                            }
+                            )
+                        } else {
+                            it
                         }
+                    }
 
                     "Mottok innsending med forespørselId: $forespoerselId".let {
                         logger.info(it)
@@ -110,41 +101,4 @@ fun RouteExtra.innsendingRoute() {
             }
         }
     }
-}
-
-// For FullLoennIArbeidsgiverPerioden.begrunnelse: Erstatter strengverdi med enum
-private fun JsonElement.erstattBegrunnelseForIkkeFullLoennIAgp(): JsonElement {
-    val innsendingMap = runCatching { jsonObject }
-        .getOrElse { throw SerializationException("Noe gikk galt under erstatting av begrunnelse.") }
-        .toMap()
-
-    val fullLoennIAgpMap = innsendingMap[Innsending::fullLønnIArbeidsgiverPerioden.name]
-        ?.runCatching { jsonObject }
-        ?.getOrNull()
-        ?.toMap()
-
-    if (fullLoennIAgpMap != null) {
-        val begrunnelse = fullLoennIAgpMap[FullLoennIArbeidsgiverPerioden::begrunnelse.name]
-            ?.jsonPrimitive
-            ?.content
-            ?.let { begrunnelseVerdi ->
-                BegrunnelseIngenEllerRedusertUtbetalingKode.entries.firstOrNull {
-                    // Tåler wrappet verdi (dagens)
-                    it.value == begrunnelseVerdi ||
-                        // ... og enum-navn (fremtidens?)
-                        it.name == begrunnelseVerdi
-                }
-            }
-
-        if (begrunnelse != null) {
-            return innsendingMap.plus(
-                Innsending::fullLønnIArbeidsgiverPerioden.name to fullLoennIAgpMap.plus(
-                    FullLoennIArbeidsgiverPerioden::begrunnelse.name to begrunnelse.toJson(BegrunnelseIngenEllerRedusertUtbetalingKode.serializer())
-                ).toJson()
-            )
-                .toJson()
-        }
-    }
-
-    return this
 }

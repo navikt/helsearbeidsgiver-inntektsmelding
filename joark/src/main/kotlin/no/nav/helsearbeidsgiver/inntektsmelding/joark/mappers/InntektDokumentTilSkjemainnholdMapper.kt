@@ -31,7 +31,7 @@ interface InntektDokumentTilSkjemainnholdMapper {
         Mapping(source = "arbeidsgiverperioder", target = "sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe"),
         Mapping(source = "fullLønnIArbeidsgiverPerioden.utbetalt", target = "sykepengerIArbeidsgiverperioden.bruttoUtbetalt"),
         Mapping(
-            source = "fullLønnIArbeidsgiverPerioden.begrunnelse.value",
+            source = "fullLønnIArbeidsgiverPerioden.begrunnelse",
             target = "sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt"
         ),
         Mapping(source = "refusjon", target = "refusjon"),

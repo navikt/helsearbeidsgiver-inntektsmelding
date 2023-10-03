@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 class EnumTilKodeverkListeTest {
     @Test
-    fun `Sjekk at NaturalytelseKodeliste i kodeverk tilsvarer NaturalYtelseKode i domenemodellen`(){
+    fun `Sjekk at NaturalytelseKodeliste i kodeverk tilsvarer NaturalYtelseKode i domenemodellen`() {
         Assertions.assertEquals(NaturalytelseKodeliste.entries.size, NaturalytelseKode.entries.size)
         val simbaNaturalytelseKodeListe = NaturalytelseKode.entries.map { it.value }
         NaturalytelseKodeliste.entries.forEach {
@@ -18,7 +18,7 @@ class EnumTilKodeverkListeTest {
     }
 
     @Test
-    fun `sjekk at BegrunnelseIngenEllerRedusertUtbetalingKodeliste i kodeverk tilsvarer BegrunnelseIngenEllerRedusertUtbetalingKode i domenemodellen`(){
+    fun `sjekk at BegrunnelseIngenEllerRedusertUtbetalingKodeliste i kodeverk tilsvarer BegrunnelseIngenEllerRedusertUtbetalingKode i domenemodellen`() {
         Assertions.assertEquals(BegrunnelseIngenEllerRedusertUtbetalingKodeliste.entries.size, BegrunnelseIngenEllerRedusertUtbetalingKode.entries.size)
         BegrunnelseIngenEllerRedusertUtbetalingKodeliste.entries.forEach {
             Assertions.assertEquals(it.name, BegrunnelseIngenEllerRedusertUtbetalingKode.valueOf(it.name).name)

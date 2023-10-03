@@ -37,7 +37,7 @@ fun mockInntektsmelding(): Inntektsmelding =
         ),
         fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
             utbetalerFullLønn = true,
-            begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT,
+            begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent,
             utbetalt = 10_000.0
         ),
         refusjon = Refusjon(

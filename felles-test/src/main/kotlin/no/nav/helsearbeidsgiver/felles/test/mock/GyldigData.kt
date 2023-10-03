@@ -37,7 +37,7 @@ val GYLDIG_INNSENDING_REQUEST = Innsending(
     Inntekt(true, 32100.0, endringÅrsak = null, false),
     FullLoennIArbeidsgiverPerioden(
         true,
-        BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT
+        BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert
     ),
     Refusjon(true, 200.0, LocalDate.now()),
     listOf(

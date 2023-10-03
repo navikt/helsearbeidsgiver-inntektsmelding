@@ -69,7 +69,7 @@ class InnsendingValidateKtTest : FunSpec({
         GYLDIG_INNSENDING_REQUEST.copy(
             fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                 utbetalerFullLønn = false,
-                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FISKER_MED_HYRE,
+                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FiskerMedHyre,
                 utbetalt = zero
             ),
             arbeidsgiverperioder = emptyList()
@@ -256,7 +256,7 @@ class InnsendingValidateKtTest : FunSpec({
                 val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
                     fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                         utbetalerFullLønn = false,
-                        begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT,
+                        begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert,
                         utbetalt = utbetalt
                     )
                 )

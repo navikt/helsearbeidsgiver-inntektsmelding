@@ -33,7 +33,7 @@ fun mockInnsending(): Innsending =
         ),
         fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
             utbetalerFullLønn = true,
-            begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT
+            begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert
         ),
         refusjon = Refusjon(
             utbetalerHeleEllerDeler = true,

@@ -38,7 +38,7 @@ val INNTEKTSMELDING_DOKUMENT = Inntektsmelding(
     tidspunkt = ZonedDateTime.now().toOffsetDateTime(),
     fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
         utbetalerFullLønn = true,
-        begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT,
+        begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent,
         utbetalt = 500.0
     ),
     innsenderNavn = "Fido"

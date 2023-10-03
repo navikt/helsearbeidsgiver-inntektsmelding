@@ -100,8 +100,8 @@ class PdfDokument(val dokument: Inntektsmelding) {
     private fun addHeader() {
         pdf.addTitle(
             title = when (dokument.årsakInnsending) {
+                AarsakInnsending.NY -> "Inntektsmelding for sykepenger"
                 AarsakInnsending.ENDRING -> "Inntektsmelding for sykepenger - endring"
-                else -> "Inntektsmelding for sykepenger"
             },
             x = 0,
             y = y

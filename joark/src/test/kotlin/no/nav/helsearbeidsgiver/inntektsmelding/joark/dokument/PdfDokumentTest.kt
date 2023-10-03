@@ -50,7 +50,7 @@ class PdfDokumentTest {
             im.copy(
                 fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                     false,
-                    BegrunnelseIngenEllerRedusertUtbetalingKode.PERMITTERING,
+                    BegrunnelseIngenEllerRedusertUtbetalingKode.Permittering,
                     5000.0
                 ),
                 refusjon = Refusjon(false)
@@ -152,7 +152,7 @@ class PdfDokumentTest {
             im.copy(
                 fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
                     false,
-                    begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FERIE_ELLER_AVSPASERING
+                    begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FerieEllerAvspasering
                 )
             )
         )

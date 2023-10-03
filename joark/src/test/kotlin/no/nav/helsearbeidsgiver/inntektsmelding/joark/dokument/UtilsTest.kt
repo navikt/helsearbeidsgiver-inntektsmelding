@@ -12,9 +12,9 @@ class UtilsTest {
     fun `ingen eller redusert refusjon begrunnelsetekst`() {
         BegrunnelseIngenEllerRedusertUtbetalingKode.entries.forEach {
             // sjekk at vi har lagt inn en fin tekst for alle koder:
-            assertNotEquals(it.value, it.tekst(), "Mangler verdi i tekst()-funksjon!")
+            assertNotEquals(it.name, it.tekst(), "Mangler verdi i tekst()-funksjon!")
         }
-        assertEquals("Lovlig fravær uten lønn", BegrunnelseIngenEllerRedusertUtbetalingKode.LOVLIG_FRAVAER.tekst())
+        assertEquals("Lovlig fravær uten lønn", BegrunnelseIngenEllerRedusertUtbetalingKode.LovligFravaer.tekst())
     }
 
     @Test

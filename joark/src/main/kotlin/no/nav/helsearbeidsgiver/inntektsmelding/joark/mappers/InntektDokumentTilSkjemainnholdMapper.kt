@@ -30,7 +30,10 @@ interface InntektDokumentTilSkjemainnholdMapper {
         Mapping(source = "inntekt.endringÅrsak", target = "arbeidsforhold.beregnetInntekt.aarsakVedEndring"),
         Mapping(source = "arbeidsgiverperioder", target = "sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe"),
         Mapping(source = "fullLønnIArbeidsgiverPerioden.utbetalt", target = "sykepengerIArbeidsgiverperioden.bruttoUtbetalt"),
-        Mapping(source = "fullLønnIArbeidsgiverPerioden.begrunnelse.value", target = "sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt"),
+        Mapping(
+            source = "fullLønnIArbeidsgiverPerioden.begrunnelse.value",
+            target = "sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt"
+        ),
         Mapping(source = "refusjon", target = "refusjon"),
         Mapping(source = "naturalytelser", target = "opphoerAvNaturalytelseListe"),
         Mapping(constant = "NAV_NO", target = "avsendersystem.systemnavn"),

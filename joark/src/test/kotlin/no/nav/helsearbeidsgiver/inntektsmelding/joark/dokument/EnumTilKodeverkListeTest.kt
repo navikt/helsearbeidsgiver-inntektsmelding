@@ -1,27 +1,23 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.datatest.withData
+import io.kotest.matchers.collections.shouldBeIn
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
 import no.nav.inntektsmelding.xml.kodeliste._20210216.BegrunnelseIngenEllerRedusertUtbetalingKodeliste
 import no.nav.inntektsmelding.xml.kodeliste._20210216.NaturalytelseKodeliste
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
 
-class EnumTilKodeverkListeTest {
-    @Test
-    fun `Sjekk at NaturalytelseKodeliste i kodeverk tilsvarer NaturalYtelseKode i domenemodellen`() {
-        Assertions.assertEquals(NaturalytelseKodeliste.entries.size, NaturalytelseKode.entries.size)
-        val simbaNaturalytelseKodeListe = NaturalytelseKode.entries.map { it.value }
-        NaturalytelseKodeliste.entries.forEach {
-            Assertions.assertTrue(simbaNaturalytelseKodeListe.contains(it.value().uppercase()))
+class EnumTilKodeverkListeTest : FunSpec({
+    context("Sjekk at NaturalytelseKodeliste i kodeverk tilsvarer NaturalYtelseKode i domenemodellen") {
+        withData(NaturalytelseKode.entries) { kode ->
+            kode.value shouldBeIn NaturalytelseKodeliste.entries.map { it.value().uppercase() }
         }
     }
 
-    @Test
-    fun `sjekk at BegrunnelseIngenEllerRedusertUtbetalingKodeliste i kodeverk tilsvarer BegrunnelseIngenEllerRedusertUtbetalingKode i domenemodellen`() {
-        Assertions.assertEquals(BegrunnelseIngenEllerRedusertUtbetalingKodeliste.entries.size, BegrunnelseIngenEllerRedusertUtbetalingKode.entries.size)
-        BegrunnelseIngenEllerRedusertUtbetalingKodeliste.entries.forEach {
-            Assertions.assertEquals(it.name, BegrunnelseIngenEllerRedusertUtbetalingKode.valueOf(it.name).name)
+    context("Sjekk at BegrunnelseIngenEllerRedusertUtbetalingKodeliste i kodeverk tilsvarer BegrunnelseIngenEllerRedusertUtbetalingKode i domenemodellen") {
+        withData(BegrunnelseIngenEllerRedusertUtbetalingKode.entries.map { it.value }) { kode ->
+            kode shouldBeIn BegrunnelseIngenEllerRedusertUtbetalingKodeliste.entries.map { it.value() }
         }
     }
-}
+})

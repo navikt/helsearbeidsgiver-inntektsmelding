@@ -18,6 +18,7 @@ data class TrengerResponse(
     val innsenderNavn: String,
     val identitetsnummer: String,
     val orgnrUnderenhet: String,
+    val skjaeringstidspunkt: LocalDate?,
     val fravaersperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
     val bruttoinntekt: Double?,

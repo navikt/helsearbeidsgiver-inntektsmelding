@@ -10,13 +10,11 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Fnr
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Inntekt
@@ -35,9 +33,9 @@ import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
-import no.nav.helsearbeidsgiver.utils.test.date.desember
-import no.nav.helsearbeidsgiver.utils.test.date.november
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.mars
 import java.time.YearMonth
 import java.util.UUID
 
@@ -58,14 +56,14 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         } returns mapOf(
             Mock.orgnr.verdi to mapOf(
-                oktober(1990) to 10.0,
-                november(1990) to 11.0,
-                desember(1990) to 12.0
+                januar(2018) to 10.0,
+                februar(2018) to 11.0,
+                mars(2018) to 12.0
             ),
             "annet orgnr" to mapOf(
-                oktober(1990) to 20.0,
-                november(1990) to 21.0,
-                desember(1990) to 22.0
+                januar(2018) to 20.0,
+                februar(2018) to 21.0,
+                mars(2018) to 22.0
             )
         )
 
@@ -78,29 +76,29 @@ class InntektLoeserTest : FunSpec({
         publisert[DataFelt.INNTEKT].toString().fromJson(Inntekt.serializer()) shouldBe Inntekt(
             maanedOversikt = listOf(
                 InntektPerMaaned(
-                    maaned = oktober(1990),
+                    maaned = januar(2018),
                     inntekt = 10.0
                 ),
                 InntektPerMaaned(
-                    maaned = november(1990),
+                    maaned = februar(2018),
                     inntekt = 11.0
                 ),
                 InntektPerMaaned(
-                    maaned = desember(1990),
+                    maaned = mars(2018),
                     inntekt = 12.0
                 )
             )
         )
     }
 
-    test("Gir _tom_ inntekt når klienten svarer med inntekt utelukkende for andre orgnr") {
+    test("Gir måneder uten inntekt når klienten svarer med inntekt utelukkende for andre orgnr") {
         coEvery {
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         } returns mapOf(
             "annet orgnr" to mapOf(
-                oktober(1990) to 20.0,
-                november(1990) to 21.0,
-                desember(1990) to 22.0
+                januar(2018) to 10.0,
+                februar(2018) to 11.0,
+                mars(2018) to 12.0
             )
         )
 
@@ -110,7 +108,61 @@ class InntektLoeserTest : FunSpec({
             it.interestedIn(DataFelt.INNTEKT)
         }
 
-        publisert[DataFelt.INNTEKT].toString().fromJson(Inntekt.serializer()) shouldBe Inntekt(emptyList())
+        publisert[DataFelt.INNTEKT].toString().fromJson(Inntekt.serializer()) shouldBe Inntekt(
+            maanedOversikt = listOf(
+                InntektPerMaaned(
+                    maaned = januar(2018),
+                    inntekt = null
+                ),
+                InntektPerMaaned(
+                    maaned = februar(2018),
+                    inntekt = null
+                ),
+                InntektPerMaaned(
+                    maaned = mars(2018),
+                    inntekt = null
+                )
+            )
+        )
+    }
+
+    test("Setter inn manglende måned med null") {
+        coEvery {
+            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+        } returns mapOf(
+            Mock.orgnr.verdi to mapOf(
+                januar(2018) to 10.0,
+                mars(2018) to 12.0
+            ),
+            "annet orgnr" to mapOf(
+                januar(2018) to 20.0,
+                februar(2018) to 21.0,
+                mars(2018) to 22.0
+            )
+        )
+
+        testRapid.sendJson(*mockInnkommendeMelding())
+
+        val publisert = testRapid.firstMessage().toDomeneMessage<Data>() {
+            it.interestedIn(DataFelt.INNTEKT)
+        }
+
+        publisert[DataFelt.INNTEKT].toString().fromJson(Inntekt.serializer()) shouldBe Inntekt(
+            maanedOversikt = listOf(
+                InntektPerMaaned(
+                    maaned = januar(2018),
+                    inntekt = 10.0
+                ),
+                InntektPerMaaned(
+                    maaned = februar(2018),
+                    inntekt = null
+                ),
+                InntektPerMaaned(
+                    maaned = mars(2018),
+                    inntekt = 12.0
+                )
+            )
+        )
     }
 
     test("Svarer med påkrevde felt") {

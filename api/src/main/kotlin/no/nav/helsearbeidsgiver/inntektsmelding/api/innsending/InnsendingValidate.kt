@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBehandling
 import org.valiktor.functions.isGreaterThan
 import org.valiktor.functions.isGreaterThanOrEqualTo
 import org.valiktor.functions.isLessThan
+import org.valiktor.functions.isLessThanOrEqualTo
 import org.valiktor.functions.isNotEmpty
 import org.valiktor.functions.isNotNull
 import org.valiktor.functions.isNull
@@ -82,11 +83,13 @@ fun InnsendingRequest.validate() {
                 validate(Refusjon::refusjonPrMnd).isNotNull()
                 validate(Refusjon::refusjonPrMnd).isGreaterThan(0.0.toBigDecimal())
                 validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0.toBigDecimal())
+                validate(Refusjon::refusjonPrMnd).isLessThanOrEqualTo(innsendt.inntekt.beregnetInntekt)
 
                 validate(Refusjon::refusjonEndringer).validateForEach {
                     validate(RefusjonEndring::beløp).isNotNull()
                     validate(RefusjonEndring::beløp).isGreaterThanOrEqualTo(0.0.toBigDecimal())
                     validate(RefusjonEndring::beløp).isLessThan(1_000_000.0.toBigDecimal())
+                    validate(RefusjonEndring::beløp).isLessThanOrEqualTo(innsendt.inntekt.beregnetInntekt)
                     validate(RefusjonEndring::dato).isNotNull()
                 }
             }

@@ -30,7 +30,10 @@ class InntektDokumentTilSkjemainnholdMapperTest {
         assertNotNull(skjema.arbeidsforhold.beregnetInntekt)
         assertEquals(3, skjema.sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe.size)
         assertNotNull(skjema.sykepengerIArbeidsgiverperioden.bruttoUtbetalt)
-        assertEquals(inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden!!.begrunnelse!!.value, skjema.sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt)
+        assertEquals(
+            inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden!!.begrunnelse!!.value,
+            skjema.sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt
+        )
         assertNotNull(skjema.refusjon.refusjonsbeloepPrMnd)
         assertNotNull(skjema.refusjon.refusjonsopphoersdato)
         assertEquals(3, skjema.refusjon.endringIRefusjonListe.size)
@@ -39,6 +42,7 @@ class InntektDokumentTilSkjemainnholdMapperTest {
         assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
         println(xmlMapper().writeValueAsString(im))
     }
+
     @Test
     fun `skal mappe InntektsMeldingdokument til skjema også hvis begrunnelse er null`() {
         val im = mapper.InntektDokumentTilInntekstmeldingM(inntektsmeldingDokument.copy(fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(false)))
@@ -60,7 +64,8 @@ class InntektDokumentTilSkjemainnholdMapperTest {
         assertEquals(2, skjema.opphoerAvNaturalytelseListe.size)
         assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
         assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
-        println(xmlMapper().writeValueAsString(im))    }
+        println(xmlMapper().writeValueAsString(im))
+    }
 
     @Test
     fun `skal godta null-verdi i InntektEndringÅrsak`() {

@@ -75,6 +75,7 @@ subprojects {
                 archiveBaseName.set("app")
 
                 val mainClass = project.mainClass()
+                val dependencies = configurations.runtimeClasspath.get()
 
                 doLast {
                     if (project.name != "dokument") {
@@ -84,11 +85,11 @@ subprojects {
 
                 manifest {
                     attributes["Main-Class"] = mainClass
-                    attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") { it.name }
+                    attributes["Class-Path"] = dependencies.joinToString(separator = " ") { it.name }
                 }
 
                 doLast {
-                    configurations.runtimeClasspath.get().forEach { file ->
+                    dependencies.forEach { file ->
                         File("$buildDir/libs/${file.name}")
                             .takeUnless(File::exists)
                             ?.let(file::copyTo)

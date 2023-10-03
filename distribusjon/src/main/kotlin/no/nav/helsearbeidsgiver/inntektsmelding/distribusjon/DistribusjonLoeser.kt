@@ -11,10 +11,12 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -55,8 +57,8 @@ class DistribusjonLoeser(
         logger.info("Skal distribuere inntektsmelding for journalpostId $journalpostId...")
         val requestTimer = requestLatency.startTimer()
         try {
-            val inntektsmeldingDokument = hentInntektsmeldingDokument(behov)
-            val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmeldingDokument, journalpostId)
+            val inntektsmelding = hentInntektsmeldingDokument(behov)
+            val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmelding, journalpostId)
             val journalførtJson = journalførtInntektsmelding.toJsonStr(JournalførtInntektsmelding.serializer())
             kafkaProducer.send(ProducerRecord(TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN, journalførtJson))
             logger.info("Distribuerte eksternt for journalpostId: $journalpostId")
@@ -67,7 +69,7 @@ class DistribusjonLoeser(
                 behov.forespoerselId!!,
                 mapOf(
                     Key.JOURNALPOST_ID to journalpostId,
-                    DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument
+                    DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()).toJsonNode()
                 )
             ).also {
                 publishEvent(it)

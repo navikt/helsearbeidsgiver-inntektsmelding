@@ -13,10 +13,12 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
@@ -53,13 +55,13 @@ class JournalfoerInntektsmeldingLoeser(
 
     override fun onBehov(behov: Behov) {
         logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid ${behov.uuid()}")
-        var inntektsmeldingDokument: Inntektsmelding? = null
+        var inntektsmelding: Inntektsmelding? = null
         try {
-            inntektsmeldingDokument = mapInntektsmeldingDokument(behov[DataFelt.INNTEKTSMELDING_DOKUMENT])
-            sikkerLogger.info("Skal journalføre: $inntektsmeldingDokument")
-            val journalpostId = opprettOgFerdigstillJournalpost(behov.uuid(), inntektsmeldingDokument)
-            sikkerLogger.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
-            logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
+            inntektsmelding = mapInntektsmeldingDokument(behov[DataFelt.INNTEKTSMELDING_DOKUMENT])
+            sikkerLogger.info("Skal journalføre: $inntektsmelding")
+            val journalpostId = opprettOgFerdigstillJournalpost(behov.uuid(), inntektsmelding)
+            sikkerLogger.info("Journalførte inntektsmelding journalpostid: $journalpostId")
+            logger.info("Journalførte inntektsmelding med journalpostid: $journalpostId")
             behov.createBehov(
                 BehovType.LAGRE_JOURNALPOST_ID,
                 mapOf(
@@ -70,10 +72,24 @@ class JournalfoerInntektsmeldingLoeser(
                 .also { publishBehov(it) }
         } catch (ex: UgyldigFormatException) {
             sikkerLogger.error("Klarte ikke journalføre: feil format!", ex)
-            publishFail(behov.createFail("Feil format i Inntektsmelding", mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)))
+            publishFail(
+                behov.createFail(
+                    "Feil format i Inntektsmelding",
+                    mapOfNotNull(
+                        DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
+                    )
+                )
+            )
         } catch (ex: Exception) {
             sikkerLogger.error("Klarte ikke journalføre!", ex)
-            publishFail(behov.createFail("Klarte ikke journalføre", mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)))
+            publishFail(
+                behov.createFail(
+                    "Klarte ikke journalføre",
+                    mapOfNotNull(
+                        DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
+                    )
+                )
+            )
         }
     }
 

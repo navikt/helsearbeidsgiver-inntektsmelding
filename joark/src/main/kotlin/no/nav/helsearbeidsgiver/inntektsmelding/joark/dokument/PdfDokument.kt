@@ -5,6 +5,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferietrekk
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
@@ -193,6 +194,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             is Sykefravaer -> addSykefravaer(endringsårsak)
             is Nyansatt -> addNyAnsatt()
             is Feilregistrert -> addFeilregistrert()
+            is Ferietrekk -> addFerietrekk()
             else -> throw IllegalArgumentException("Type ${endringsårsak.typpe} håndteres ikke. Legg til hjelpefunksjon for å løse feilen.")
         }
     }
@@ -249,6 +251,9 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         addLabel(FORKLARING_ENDRING, "Bonus")
         // addLabel("Estimert årlig bonus", årligBonus.toNorsk())
         // addLabel("Dato siste bonus", datoBonus.toNorsk())
+    }
+    private fun addFerietrekk() {
+        addLabel(FORKLARING_ENDRING, "Ferietrekk")
     }
 
     private fun addRefusjon() {

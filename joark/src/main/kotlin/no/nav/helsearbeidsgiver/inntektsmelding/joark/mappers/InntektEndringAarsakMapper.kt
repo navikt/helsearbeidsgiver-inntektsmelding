@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferietrekk
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektEndringAarsak
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
@@ -28,6 +29,7 @@ fun InntektEndringAarsak.stringValue(): String {
         is Tariffendring -> "$typpe: fra $gjelderFra"
         is VarigLonnsendring -> "Varig lønnsendring: fra $gjelderFra"
         is Feilregistrert -> "Mangelfull eller uriktig rapportering til A-ordningen"
+        is Ferietrekk -> "Ferietrekk"
         else -> typpe
     }
 }

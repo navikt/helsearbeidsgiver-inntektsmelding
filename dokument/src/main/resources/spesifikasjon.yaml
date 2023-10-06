@@ -283,6 +283,9 @@ components:
     Feilregistrert:
       allOf:
         - $ref: '#/components/schemas/InntektEndringAarsak'
+    Ferietrekk:
+      allOf:
+        - $ref: '#/components/schemas/InntektEndringAarsak'
 
     InntektsmeldingDokument:
       type: object

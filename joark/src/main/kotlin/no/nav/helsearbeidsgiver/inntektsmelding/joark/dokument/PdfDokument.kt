@@ -199,7 +199,6 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         }
     }
 
-
     private fun addInntektEndringPerioder(endringsårsak: String, perioder: List<Periode>) {
         addLabel(FORKLARING_ENDRING, endringsårsak, linefeed = false)
         addPerioder(KOLONNE_TO, perioder)

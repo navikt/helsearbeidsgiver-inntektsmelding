@@ -10,6 +10,7 @@ import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
+import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -42,20 +43,36 @@ fun RouteExtra.innsendingRoute() {
 
             if (forespoerselId != null) {
                 try {
-                    val request = Jackson.fromJson<InnsendingRequest>(call.receiveText()).let {
-                        // TODO gjør denne sjekken ved opprettelse
-                        if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
-                            it.copy(
-                                fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
-                                    utbetalerFullLønn = true,
-                                    begrunnelse = null,
-                                    utbetalt = null
+                    val request = Jackson.fromJson<InnsendingRequest>(call.receiveText())
+                        .let {
+                            // TODO gjør denne sjekken ved opprettelse
+                            if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
+                                it.copy(
+                                    fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                                        utbetalerFullLønn = true,
+                                        begrunnelse = null,
+                                        utbetalt = null
+                                    )
                                 )
-                            )
-                        } else {
-                            it
+                            } else {
+                                it
+                            }
                         }
-                    }
+                        .let {
+                            // TODO gjør denne sjekken ved opprettelse
+                            if (!it.refusjon.utbetalerHeleEllerDeler) {
+                                it.copy(
+                                    refusjon = Refusjon(
+                                        utbetalerHeleEllerDeler = false,
+                                        refusjonPrMnd = null,
+                                        refusjonOpphører = null,
+                                        refusjonEndringer = null
+                                    )
+                                )
+                            } else {
+                                it
+                            }
+                        }
 
                     "Mottok innsending med forespørselId: $forespoerselId".let {
                         logger.info(it)

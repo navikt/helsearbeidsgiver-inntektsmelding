@@ -2,6 +2,7 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -204,6 +205,42 @@ class InnsendingRouteKtTest : ApiTest() {
                             refusjonOpphører = null,
                             refusjonEndringer = null
                         )
+                    },
+                    arbeidsgiverFnr = any()
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `fjern ugyldige verdier dersom man ikke spør om AGP`() = testApi {
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        val mockClientId = UUID.randomUUID()
+
+        // Må bare returnere noe
+        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns JsonNull
+
+        val request = GYLDIG_INNSENDING_REQUEST.copy(
+            forespurtData = listOf("inntekt", "refusjon"),
+            fullLønnIArbeidsgiverPerioden = FullLonnIArbeidsgiverPerioden(
+                utbetalerFullLønn = false,
+                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.FRAVAER_UTEN_GYLDIG_GRUNN,
+                utbetalt = 222_333.0.toBigDecimal()
+            )
+        )
+            .let(Jackson::toJson).parseJson()
+
+        mockConstructor(InnsendingProducer::class) {
+            every { anyConstructed<InnsendingProducer>().publish(any(), any(), any()) } returns mockClientId
+
+            post(path, request)
+
+            verifySequence {
+                anyConstructed<InnsendingProducer>().publish(
+                    forespoerselId = any(),
+                    request = withArg {
+                        it.fullLønnIArbeidsgiverPerioden.shouldBeNull()
                     },
                     arbeidsgiverFnr = any()
                 )

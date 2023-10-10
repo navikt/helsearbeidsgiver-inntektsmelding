@@ -73,6 +73,23 @@ fun RouteExtra.innsendingRoute() {
                                 it
                             }
                         }
+                        .let {
+                            // TODO gjør denne sjekken ved opprettelse
+                            if (it.forespurtData?.contains("arbeidsgiverperiode") == false) {
+                                if (it.fullLønnIArbeidsgiverPerioden != null) {
+                                    "Frontend sender med ${InnsendingRequest::fullLønnIArbeidsgiverPerioden.name} når man ikke ber om AGP."
+                                        .also { feilmelding ->
+                                            logger.error(feilmelding)
+                                            sikkerLogger.error(feilmelding)
+                                        }
+                                }
+                                it.copy(
+                                    fullLønnIArbeidsgiverPerioden = null
+                                )
+                            } else {
+                                it
+                            }
+                        }
 
                     "Mottok innsending med forespørselId: $forespoerselId".let {
                         logger.info(it)

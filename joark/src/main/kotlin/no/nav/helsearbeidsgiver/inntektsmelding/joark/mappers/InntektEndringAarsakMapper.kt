@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.InntektEndringAarsak
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStillingsprosent
@@ -20,6 +21,7 @@ fun InntektEndringAarsak.stringValue(): String {
         is Nyansatt -> "Nyansatt"
         is Bonus -> "Bonus" // Beløp og dato ikke implementert i frontend
         is Ferie -> "Ferie: ${liste.lesbar()}"
+        is Ferietrekk -> "Ferietrekk"
         is Sykefravaer -> "Sykefravær: ${liste.lesbar()}"
         is NyStilling -> "Ny stilling: fra $gjelderFra"
         is NyStillingsprosent -> "Ny stillingsprosent: fra $gjelderFra"

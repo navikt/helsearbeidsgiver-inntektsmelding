@@ -40,11 +40,11 @@ class InnsendingValidateKtTest : FunSpec({
     val maksNaturalBeloep = 1_000_000.0
     val negativtBeloep = -0.1
 
-    test("skal akseptere gyldig") {
+    test("godtar fullstendig innsending") {
         GYLDIG_INNSENDING_REQUEST.validate()
     }
 
-    test("skal tillate at refusjon i arbeidsgiverperioden ikke settes (ved delvis innsending)") {
+    test("godtar delvis innsending") {
         DELVIS_INNSENDING_REQUEST.validate()
     }
 
@@ -103,10 +103,6 @@ class InnsendingValidateKtTest : FunSpec({
         GYLDIG_INNSENDING_REQUEST.copy(
             forespurtData = emptyList()
         ).validate()
-    }
-
-    test("skal godta delvis innsending") {
-        DELVIS_INNSENDING_REQUEST.validate()
     }
 
     test("skal gi feilmelding når orgnummer er ugyldig") {

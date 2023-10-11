@@ -16,7 +16,6 @@ import org.valiktor.functions.isGreaterThanOrEqualTo
 import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isNotEmpty
 import org.valiktor.functions.isNotNull
-import org.valiktor.functions.isNull
 import org.valiktor.functions.isTrue
 import org.valiktor.functions.validate
 import org.valiktor.functions.validateForEach
@@ -36,9 +35,6 @@ fun Innsending.validate() {
                     validate(FullLoennIArbeidsgiverPerioden::utbetalt).isLessThan(1_000_000.0)
                 }
             }
-        } else {
-            // skal ikke komme i delvis im - gir ikke mening - og da bør vi heller ikke ta det imot og lagre det!!
-            validate(Innsending::fullLønnIArbeidsgiverPerioden).isNull()
         }
         // Den ansatte
         validate(Innsending::orgnrUnderenhet).isNotNull()

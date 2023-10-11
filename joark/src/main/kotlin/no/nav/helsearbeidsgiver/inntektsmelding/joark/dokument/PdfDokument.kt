@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStilling
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStillingsprosent
@@ -184,6 +185,7 @@ class PdfDokument(val dokument: Inntektsmelding) {
             null -> return // trenger ikke sende inn årsak...
             is Permisjon -> addPermisjon(endringsårsak)
             is Ferie -> addFerie(endringsårsak)
+            is Ferietrekk -> addFerietrekk()
             is Permittering -> addPermittering(endringsårsak)
             is Tariffendring -> addTariffendring(endringsårsak)
             is VarigLonnsendring -> addVarigLonnsendring(endringsårsak)
@@ -248,6 +250,9 @@ class PdfDokument(val dokument: Inntektsmelding) {
         addLabel(FORKLARING_ENDRING, "Bonus")
         // addLabel("Estimert årlig bonus", årligBonus.toNorsk())
         // addLabel("Dato siste bonus", datoBonus.toNorsk())
+    }
+    private fun addFerietrekk() {
+        addLabel(FORKLARING_ENDRING, "Ferietrekk")
     }
 
     private fun addRefusjon() {

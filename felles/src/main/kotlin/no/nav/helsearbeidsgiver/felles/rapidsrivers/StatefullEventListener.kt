@@ -13,10 +13,9 @@ class StatefullEventListener(
     val redisStore: IRedisStore,
     override val event: EventName,
     private val dataFelter: Array<String>,
-    override val mainListener: River.PacketListener,
+    private val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection
-) : DelegatingEventListener(
-    mainListener,
+) : EventListener(
     rapidsConnection
 ) {
     override fun accept(): River.PacketValidation {

@@ -70,7 +70,7 @@ subprojects {
     )
 
     tasks {
-        if (!project.erFellesModul() && !project.erFellesTestModul() && !project.erDokumentModul()) {
+        if (!project.erFellesModul() && !project.erFellesTestModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -78,9 +78,7 @@ subprojects {
                 val dependencies = configurations.runtimeClasspath.get()
 
                 doLast {
-                    if (project.name != "dokument") {
-                        validateMainClassFound(mainClass)
-                    }
+                    validateMainClassFound(mainClass)
                 }
 
                 manifest {
@@ -118,14 +116,11 @@ subprojects {
     val utilsVersion: String by project
 
     dependencies {
-        if (!erDokumentModul()) {
-            if (!erFellesModul()) {
-                implementation(project(":felles"))
-                implementation(project(":dokument"))
-            }
-            if (!erFellesTestModul()) {
-                testImplementation(project(":felles-test"))
-            }
+        if (!erFellesModul()) {
+            implementation(project(":felles"))
+        }
+        if (!erFellesTestModul()) {
+            testImplementation(project(":felles-test"))
         }
 
         implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
@@ -189,12 +184,11 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
 
     val hasCommonChanges = changedFiles.any { it.startsWith("felles/") } ||
         changedFiles.containsAny(
+            "Dockerfile",
             ".github/workflows/build.yml",
             "config/nais.yml",
             "build.gradle.kts",
-            "Dockerfile",
-            "gradle.properties",
-            "spesifikasjon.yaml"
+            "gradle.properties"
         )
 
     return subprojects.map { it.name }
@@ -279,9 +273,6 @@ fun Project.erFellesModul(): Boolean =
 
 fun Project.erFellesTestModul(): Boolean =
     name == "felles-test"
-
-fun Project.erDokumentModul(): Boolean =
-    name == "dokument"
 
 fun List<String>.containsAny(vararg others: String): Boolean =
     this.intersect(others.toSet()).isNotEmpty()

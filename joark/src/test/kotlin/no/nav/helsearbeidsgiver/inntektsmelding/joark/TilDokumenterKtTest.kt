@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -8,7 +8,7 @@ class TilDokumenterKtTest {
 
     @Test
     fun tilDokumenter() {
-        val mockInntektsmelding = mockInntektsmeldingDokument()
+        val mockInntektsmelding = mockInntektsmelding()
 
         val dokumenter = tilDokumenter("uuid-hoppende-slott", mockInntektsmelding)
 

@@ -43,9 +43,9 @@ allprojects {
     repositories {
         val githubPassword: String by project
 
+        mavenCentral()
         maven("https://packages.confluent.io/maven/")
         maven("https://oss.sonatype.org")
-        mavenCentral()
         maven {
             setUrl("https://maven.pkg.github.com/navikt/*")
             credentials {
@@ -75,6 +75,7 @@ subprojects {
                 archiveBaseName.set("app")
 
                 val mainClass = project.mainClass()
+                val dependencies = configurations.runtimeClasspath.get()
 
                 doLast {
                     if (project.name != "dokument") {
@@ -84,11 +85,11 @@ subprojects {
 
                 manifest {
                     attributes["Main-Class"] = mainClass
-                    attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") { it.name }
+                    attributes["Class-Path"] = dependencies.joinToString(separator = " ") { it.name }
                 }
 
                 doLast {
-                    configurations.runtimeClasspath.get().forEach { file ->
+                    dependencies.forEach { file ->
                         File("$buildDir/libs/${file.name}")
                             .takeUnless(File::exists)
                             ?.let(file::copyTo)
@@ -108,6 +109,7 @@ subprojects {
         }
     }
 
+    val hagDomeneInntektsmeldingVersion: String by project
     val junitJupiterVersion: String by project
     val kotestVersion: String by project
     val kotlinCoroutinesVersion: String by project
@@ -126,6 +128,7 @@ subprojects {
             }
         }
 
+        implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
         implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")

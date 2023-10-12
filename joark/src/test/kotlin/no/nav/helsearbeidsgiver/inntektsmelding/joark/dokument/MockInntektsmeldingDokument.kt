@@ -1,10 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 
-fun mockInntektsmeldingDokumentMedTommeLister(): InntektsmeldingDokument =
-    mockInntektsmeldingDokument().let {
+fun mockInntektsmeldingDokumentMedTommeLister(): Inntektsmelding =
+    mockInntektsmelding().let {
         it.copy(
             behandlingsdager = emptyList(),
             egenmeldingsperioder = emptyList(),

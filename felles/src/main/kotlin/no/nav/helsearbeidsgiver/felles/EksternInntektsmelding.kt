@@ -4,7 +4,7 @@ package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import java.time.LocalDateTime
 
@@ -15,7 +15,9 @@ data class EksternInntektsmelding(
     val arkivreferanse: String,
     val tidspunkt: LocalDateTime
 )
+
+@Serializable
 data class InnsendtInntektsmelding(
-    val dokument: InntektsmeldingDokument?,
-    val eksternInntektsmelding: EksternInntektsmelding?
+    val dokument: Inntektsmelding? = null,
+    val eksternInntektsmelding: EksternInntektsmelding? = null
 )

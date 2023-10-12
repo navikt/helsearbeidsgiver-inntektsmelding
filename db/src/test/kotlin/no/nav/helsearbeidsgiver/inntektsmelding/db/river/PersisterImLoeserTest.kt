@@ -4,17 +4,17 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -41,7 +41,7 @@ class PersisterImLoeserTest {
             repository.lagreInntektsmelding(any(), any())
         } returns Unit
 
-        val request = InnsendingRequest(
+        val request = Innsending(
             "",
             "",
             emptyList(),
@@ -51,18 +51,18 @@ class PersisterImLoeserTest {
             emptyList(),
             Inntekt(
                 bekreftet = true,
-                500.0.toBigDecimal(),
+                500.0,
                 Bonus(),
                 true
             ),
-            FullLonnIArbeidsgiverPerioden(
+            FullLoennIArbeidsgiverPerioden(
                 true
             ),
             Refusjon(
                 true
             ),
             emptyList(),
-            ÅrsakInnsending.NY,
+            AarsakInnsending.NY,
             true
         )
 

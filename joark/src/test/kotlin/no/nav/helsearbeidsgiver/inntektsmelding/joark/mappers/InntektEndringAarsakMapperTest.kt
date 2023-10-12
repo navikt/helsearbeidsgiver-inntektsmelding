@@ -1,11 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Feilregistrert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Tariffendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.VarigLonnsendring
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mapstruct.factory.Mappers
@@ -32,7 +32,7 @@ class InntektEndringAarsakMapperTest {
         val bonus = Bonus()
         assertEquals("Bonus", mapper.inntektEndringAarsakTilString(bonus))
 
-        val feilregistrert = Feilregistrert()
+        val feilregistrert = Feilregistrert
         assertEquals("Mangelfull eller uriktig rapportering til A-ordningen", mapper.inntektEndringAarsakTilString(feilregistrert))
     }
 }

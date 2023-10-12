@@ -52,7 +52,7 @@ class KvitteringRouteKtTest : ApiTest() {
           },
           "naturalytelser": null,
           "tidspunkt": "2023-04-13T16:28:16.095083285+02:00",
-          "årsakInnsending": "Ny",
+          "årsakInnsending": "NY",
           "identitetsnummerInnsender": ""
         }
     """.removeJsonWhitespace()

@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -119,7 +119,7 @@ class KvitteringIT : EndToEndTest() {
         const val FORESPOERSEL_ID_GYLDIG = "gyldig-forespørsel"
         const val FORESPOERSEL_ID_UGYLDIG = "ugyldig-forespørsel"
 
-        val inntektsmeldingDokument = mockInntektsmeldingDokument()
+        val inntektsmeldingDokument = mockInntektsmelding()
         val eksternInntektsmelding = EksternInntektsmelding(
             "AltinnPortal",
             "1.489",

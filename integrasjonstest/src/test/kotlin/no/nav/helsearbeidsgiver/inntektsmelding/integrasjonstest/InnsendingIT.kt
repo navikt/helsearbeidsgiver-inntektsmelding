@@ -6,19 +6,18 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsendingRequest
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
@@ -31,7 +30,7 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.innsendingRequest.orgnrUnderenhet)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.innsending.orgnrUnderenhet)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
@@ -49,10 +48,10 @@ class InnsendingIT : EndToEndTest() {
             Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            DataFelt.ORGNRUNDERENHET to Mock.innsendingRequest.orgnrUnderenhet.toJson(),
-            Key.IDENTITETSNUMMER to Mock.innsendingRequest.identitetsnummer.toJson(),
-            Key.ARBEIDSGIVER_ID to Mock.innsendingRequest.identitetsnummer.toJson(),
-            DataFelt.INNTEKTSMELDING to Mock.innsendingRequest.let(Jackson::toJson).parseJson()
+            DataFelt.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
+            Key.IDENTITETSNUMMER to Mock.innsending.identitetsnummer.toJson(),
+            Key.ARBEIDSGIVER_ID to Mock.innsending.identitetsnummer.toJson(),
+            DataFelt.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
 
         Thread.sleep(10000)
@@ -168,6 +167,6 @@ class InnsendingIT : EndToEndTest() {
         const val OPPGAVE_ID = "neglisjert-sommer"
 
         val forespoerselId: UUID = UUID.randomUUID()
-        val innsendingRequest = mockInnsendingRequest()
+        val innsending = mockInnsending()
     }
 }

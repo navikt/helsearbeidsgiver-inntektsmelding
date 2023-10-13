@@ -87,10 +87,11 @@ subprojects {
                 }
 
                 doLast {
-                    dependencies.forEach { file ->
-                        File("$buildDir/libs/${file.name}")
-                            .takeUnless(File::exists)
-                            ?.let(file::copyTo)
+                    dependencies.forEach {
+                        val file = layout.buildDirectory.file("libs/${it.name}").get().asFile
+                        if (!file.exists()) {
+                            it.copyTo(file)
+                        }
                     }
                 }
             }

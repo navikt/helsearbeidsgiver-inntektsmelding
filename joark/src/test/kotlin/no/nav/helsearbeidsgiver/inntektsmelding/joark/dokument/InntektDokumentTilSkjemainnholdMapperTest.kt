@@ -38,7 +38,7 @@ class InntektDokumentTilSkjemainnholdMapperTest {
         assertEquals(3, skjema.refusjon.endringIRefusjonListe.size)
         assertEquals(2, skjema.opphoerAvNaturalytelseListe.size)
         assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
-        assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
+        assertNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
         println(xmlMapper().writeValueAsString(im))
     }
 
@@ -62,7 +62,7 @@ class InntektDokumentTilSkjemainnholdMapperTest {
         assertEquals(3, skjema.refusjon.endringIRefusjonListe.size)
         assertEquals(2, skjema.opphoerAvNaturalytelseListe.size)
         assertNotNull(skjema.avsendersystem.innsendingstidspunkt)
-        assertNotNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
+        assertNull(skjema.arbeidsforhold.beregnetInntekt.aarsakVedEndring)
         println(xmlMapper().writeValueAsString(im))
     }
 

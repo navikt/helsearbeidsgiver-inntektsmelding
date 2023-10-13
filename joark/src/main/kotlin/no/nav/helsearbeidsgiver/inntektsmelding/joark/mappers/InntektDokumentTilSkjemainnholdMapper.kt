@@ -27,7 +27,6 @@ interface InntektDokumentTilSkjemainnholdMapper {
         Mapping(source = "identitetsnummer", target = "arbeidstakerFnr"),
         Mapping(source = "bestemmendeFraværsdag", target = "arbeidsforhold.foersteFravaersdag"),
         Mapping(source = "beregnetInntekt", target = "arbeidsforhold.beregnetInntekt.beloep"),
-        Mapping(source = "inntekt.endringÅrsak", target = "arbeidsforhold.beregnetInntekt.aarsakVedEndring"),
         Mapping(source = "arbeidsgiverperioder", target = "sykepengerIArbeidsgiverperioden.arbeidsgiverperiodeListe"),
         Mapping(source = "fullLønnIArbeidsgiverPerioden.utbetalt", target = "sykepengerIArbeidsgiverperioden.bruttoUtbetalt"),
         Mapping(

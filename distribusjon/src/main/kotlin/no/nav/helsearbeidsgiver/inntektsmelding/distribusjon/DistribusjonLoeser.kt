@@ -100,6 +100,7 @@ class DistribusjonLoeser(
     }
 }
 
+// TODO erstatt med no.nav.helsearbeidsgiver.domene.inntektsmelding.JournalfoertInntektsmelding når Spinn er over på domenepakken
 @Serializable
 class JournalførtInntektsmelding(
     val inntektsmeldingDokument: Inntektsmelding,

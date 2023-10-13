@@ -1,6 +1,11 @@
+@file:UseSerializers(LocalDateSerializer::class)
+
 package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import java.time.LocalDate
 
 @Serializable
 data class TilgangData(
@@ -18,6 +23,7 @@ data class TrengerData(
     val virksomhetNavn: String? = null,
     val arbeidsforhold: List<Arbeidsforhold>? = null,
     val inntekt: Inntekt? = null,
+    val skjaeringstidspunkt: LocalDate? = null,
     val fravarsPerioder: List<Periode>? = null,
     val egenmeldingsPerioder: List<Periode>? = null,
     val forespurtData: ForespurtData? = null,

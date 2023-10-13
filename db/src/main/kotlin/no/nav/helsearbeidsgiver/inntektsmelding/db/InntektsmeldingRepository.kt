@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.prometheus.client.Summary
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.forespoerselId
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.innsendt
@@ -23,7 +23,7 @@ class InntektsmeldingRepository(private val db: Database) {
         .labelNames("method")
         .register()
 
-    fun lagreInntektsmelding(forespørselId: String, inntektsmeldingDokument: InntektsmeldingDokument) {
+    fun lagreInntektsmelding(forespørselId: String, inntektsmeldingDokument: Inntektsmelding) {
         val requestTimer = requestLatency.labels("lagreInntektsmelding").startTimer()
         transaction(db) {
             InntektsmeldingEntitet.run {
@@ -38,7 +38,7 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun hentNyeste(forespørselId: String): InntektsmeldingDokument? {
+    fun hentNyeste(forespørselId: String): Inntektsmelding? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet.run {
@@ -51,7 +51,7 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun hentNyesteEksternEllerInternInntektsmelding(forespørselId: String): Pair<InntektsmeldingDokument?, EksternInntektsmelding?>? {
+    fun hentNyesteEksternEllerInternInntektsmelding(forespørselId: String): Pair<Inntektsmelding?, EksternInntektsmelding?>? {
         val requestTimer = requestLatency.labels("hentNyesteInternEllerEkstern").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding).run {

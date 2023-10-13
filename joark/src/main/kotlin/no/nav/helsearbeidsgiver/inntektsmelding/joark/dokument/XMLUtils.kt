@@ -6,7 +6,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers.InntektDokumentTilSkjemainnholdMapper
 import no.seres.xsd.nav.inntektsmelding_m._20181211.ObjectFactory
 import org.mapstruct.factory.Mappers
@@ -22,7 +22,7 @@ fun xmlMapper(): ObjectMapper = XmlMapper().apply {
     this.enable(SerializationFeature.INDENT_OUTPUT)
 }
 
-fun transformToXML(inntektsmeldingDokument: InntektsmeldingDokument): String {
+fun transformToXML(inntektsmeldingDokument: Inntektsmelding): String {
     val mapper = Mappers.getMapper(InntektDokumentTilSkjemainnholdMapper::class.java)
     val inntektM = mapper.InntektDokumentTilInntekstmeldingM(inntektsmeldingDokument)
     val writer = StringWriter()

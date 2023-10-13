@@ -1,17 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import java.time.ZonedDateTime
 
-fun mapInntektsmeldingDokument(
-    request: InnsendingRequest,
+fun mapInntektsmelding(
+    request: Innsending,
     fulltnavnArbeidstaker: String,
     arbeidsgiver: String,
     innsenderNavn: String
-): InntektsmeldingDokument =
+): Inntektsmelding =
     try {
-        InntektsmeldingDokument(
+        Inntektsmelding(
             orgnrUnderenhet = request.orgnrUnderenhet,
             identitetsnummer = request.identitetsnummer,
             fulltNavn = fulltnavnArbeidstaker,

@@ -43,9 +43,9 @@ allprojects {
     repositories {
         val githubPassword: String by project
 
+        mavenCentral()
         maven("https://packages.confluent.io/maven/")
         maven("https://oss.sonatype.org")
-        mavenCentral()
         maven {
             setUrl("https://maven.pkg.github.com/navikt/*")
             credentials {
@@ -70,25 +70,24 @@ subprojects {
     )
 
     tasks {
-        if (!project.erFellesModul() && !project.erFellesTestModul() && !project.erDokumentModul()) {
+        if (!project.erFellesModul() && !project.erFellesTestModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
                 val mainClass = project.mainClass()
+                val dependencies = configurations.runtimeClasspath.get()
 
                 doLast {
-                    if (project.name != "dokument") {
-                        validateMainClassFound(mainClass)
-                    }
+                    validateMainClassFound(mainClass)
                 }
 
                 manifest {
                     attributes["Main-Class"] = mainClass
-                    attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") { it.name }
+                    attributes["Class-Path"] = dependencies.joinToString(separator = " ") { it.name }
                 }
 
                 doLast {
-                    configurations.runtimeClasspath.get().forEach { file ->
+                    dependencies.forEach { file ->
                         File("$buildDir/libs/${file.name}")
                             .takeUnless(File::exists)
                             ?.let(file::copyTo)
@@ -108,6 +107,7 @@ subprojects {
         }
     }
 
+    val hagDomeneInntektsmeldingVersion: String by project
     val junitJupiterVersion: String by project
     val kotestVersion: String by project
     val kotlinCoroutinesVersion: String by project
@@ -116,16 +116,14 @@ subprojects {
     val utilsVersion: String by project
 
     dependencies {
-        if (!erDokumentModul()) {
-            if (!erFellesModul()) {
-                implementation(project(":felles"))
-                implementation(project(":dokument"))
-            }
-            if (!erFellesTestModul()) {
-                testImplementation(project(":felles-test"))
-            }
+        if (!erFellesModul()) {
+            implementation(project(":felles"))
+        }
+        if (!erFellesTestModul()) {
+            testImplementation(project(":felles-test"))
         }
 
+        implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
         implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
@@ -186,12 +184,11 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
 
     val hasCommonChanges = changedFiles.any { it.startsWith("felles/") } ||
         changedFiles.containsAny(
+            "Dockerfile",
             ".github/workflows/build.yml",
             "config/nais.yml",
             "build.gradle.kts",
-            "Dockerfile",
-            "gradle.properties",
-            "spesifikasjon.yaml"
+            "gradle.properties"
         )
 
     return subprojects.map { it.name }
@@ -276,9 +273,6 @@ fun Project.erFellesModul(): Boolean =
 
 fun Project.erFellesTestModul(): Boolean =
     name == "felles-test"
-
-fun Project.erDokumentModul(): Boolean =
-    name == "dokument"
 
 fun List<String>.containsAny(vararg others: String): Boolean =
     this.intersect(others.toSet()).isNotEmpty()

@@ -92,6 +92,7 @@ fun mapTrengerResponse(trengerData: TrengerData): TrengerResponse {
         orgNavn = trengerData.virksomhetNavn ?: "",
         identitetsnummer = trengerData.fnr ?: "",
         orgnrUnderenhet = trengerData.orgnr ?: "",
+        skjaeringstidspunkt = trengerData.skjaeringstidspunkt,
         fravaersperioder = trengerData.fravarsPerioder ?: emptyList(),
         egenmeldingsperioder = trengerData.egenmeldingsPerioder ?: emptyList(),
         bruttoinntekt = trengerData.bruttoinntekt,

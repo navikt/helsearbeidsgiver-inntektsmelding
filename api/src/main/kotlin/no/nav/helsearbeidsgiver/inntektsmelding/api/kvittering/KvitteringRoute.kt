@@ -1,24 +1,23 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
-import com.fasterxml.jackson.databind.JsonMappingException
 import io.ktor.server.application.call
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.prometheus.client.Summary
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Kvittering
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.KvitteringEkstern
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.KvitteringSimba
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringEkstern
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.KvitteringResponse
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JacksonErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -29,7 +28,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
-import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.ZoneId
 import java.util.UUID
@@ -86,15 +86,15 @@ fun RouteExtra.kvitteringRoute() {
                             // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
                             respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                         } else {
-                            val innsendtInntektsmelding = Jackson.fromJson<InnsendtInntektsmelding>(resultat!!)
+                            val innsendtInntektsmelding = resultat!!.fromJson(InnsendtInntektsmelding.serializer())
 
                             if (innsendtInntektsmelding.dokument == null && innsendtInntektsmelding.eksternInntektsmelding == null) {
                                 respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
                             }
                             measureTimeMillis {
-                                val innsending = tilKvitteringResponse(innsendtInntektsmelding)
+                                val innsending = tilKvittering(innsendtInntektsmelding)
                                 respondOk(
-                                    Jackson.toJson(innsending).parseJson(),
+                                    innsending.toJson(Kvittering.serializer()),
                                     JsonElement.serializer()
                                 )
                             }.also {
@@ -103,11 +103,11 @@ fun RouteExtra.kvitteringRoute() {
                         }
                     } catch (e: ManglerAltinnRettigheterException) {
                         respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-                    } catch (e: JsonMappingException) {
+                    } catch (e: SerializationException) {
                         "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
                             logger.error(it)
                             sikkerLogger.error(it, e)
-                            respondInternalServerError(JacksonErrorResponse(forespoerselId.toString()), JacksonErrorResponse.serializer())
+                            respondInternalServerError(JsonErrorResponse(forespoerselId.toString()), JsonErrorResponse.serializer())
                         }
                     } catch (_: RedisPollerTimeoutException) {
                         logger.error("Fikk timeout for forespørselId: $forespoerselId")
@@ -122,10 +122,10 @@ fun RouteExtra.kvitteringRoute() {
     }
 }
 
-private fun tilKvitteringResponse(innsendtInntektsmelding: InnsendtInntektsmelding): KvitteringResponse =
-    KvitteringResponse(
+private fun tilKvittering(innsendtInntektsmelding: InnsendtInntektsmelding): Kvittering =
+    Kvittering(
         kvitteringDokument = innsendtInntektsmelding.dokument?.let { inntektsmeldingDokument ->
-            KvitteringDokument(
+            KvitteringSimba(
                 orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
                 identitetsnummer = inntektsmeldingDokument.identitetsnummer,
                 fulltNavn = inntektsmeldingDokument.fulltNavn,

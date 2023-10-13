@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.trengerRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
-import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
+import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.time.Duration.Companion.minutes
@@ -61,7 +61,7 @@ fun Application.apiModule(rapid: RapidsConnection) {
     customAuthentication()
 
     install(ContentNegotiation) {
-        json(jsonIgnoreUnknown)
+        json(jsonConfig)
     }
 
     install(StatusPages) {

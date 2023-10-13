@@ -181,6 +181,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             arbeidsgiver = redisStore.get(RedisKey.of(transactionId, DataFelt.ARBEIDSGIVER_INFORMASJON), PersonDato::class.java),
             virksomhetNavn = redisStore.get(RedisKey.of(transactionId, DataFelt.VIRKSOMHET)),
             inntekt = redisStore.get(RedisKey.of(transactionId, DataFelt.INNTEKT))?.fromJsonWithUndefined(Inntekt.serializer()),
+            skjaeringstidspunkt = foresporselSvar?.skjaeringstidspunkt,
             fravarsPerioder = foresporselSvar?.sykmeldingsperioder,
             egenmeldingsPerioder = foresporselSvar?.egenmeldingsperioder,
             forespurtData = foresporselSvar?.forespurtData,

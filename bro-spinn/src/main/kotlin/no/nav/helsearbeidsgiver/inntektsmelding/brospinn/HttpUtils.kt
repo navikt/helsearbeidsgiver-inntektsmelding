@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.HttpTimeout
 
 internal fun createHttpClient(): HttpClient =
     HttpClient(Apache5) { configure() }
@@ -31,5 +32,9 @@ internal fun HttpClientConfig<*>.configure() {
             cause is java.net.SocketTimeoutException
         }
         exponentialDelay()
+    }
+
+    install(HttpTimeout) {
+        socketTimeoutMillis = 3000
     }
 }

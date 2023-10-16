@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -18,9 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 
 class OpprettOppgaveMedVirksomhetnavn(
     private val rapidsConnection: RapidsConnection,
-    override val redisStore: IRedisStore,
-    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-    private val linkUrl: String
+    override val redisStore: IRedisStore
 ) : CompositeEventListener(redisStore) {
 
     override val event: EventName = EventName.FORESPØRSEL_LAGRET

@@ -1,10 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import io.mockk.coEvery
-import io.mockk.mockk
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -19,17 +16,13 @@ class OpprettOppgaveMedVirksomhetnavnTest {
     private val rapid = TestRapid()
     private val redisStore = MockRedisStore()
     private var løser: OpprettOppgaveMedVirksomhetnavn
-    private val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
 
     init {
-        løser = OpprettOppgaveMedVirksomhetnavn(rapid, redisStore, arbeidsgiverNotifikasjonKlient, "heia")
+        løser = OpprettOppgaveMedVirksomhetnavn(rapid, redisStore)
     }
 
     @Test
     fun `skal publisere to behov`() {
-        coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any())
-        } returns "2"
         rapid.sendTestMessage(
             JsonMessage.newMessage(
                 mapOf(

@@ -47,9 +47,41 @@ class OpprettOppgaveLoeser(
 
     private val EVENT = EventName.FORESPØRSEL_LAGRET
 
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValue(Key.EVENT_NAME.str, EVENT.name)
+            it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
+            it.demandKey(DataFelt.ORGNRUNDERENHET.str)
+            it.demandKey(DataFelt.VIRKSOMHET.str)
+        }
+
+    override fun onBehov(behov: Behov) {
+        val forespoerselId = behov.forespoerselId
+        if (forespoerselId.isNullOrBlank()) {
+            publishFail(behov.createFail("Mangler forespørselId"))
+            return
+        }
+        val oppgaveId = opprettOppgave(
+            forespoerselId,
+            behov[DataFelt.ORGNRUNDERENHET].asText(),
+            behov[DataFelt.VIRKSOMHET].asText()
+        )
+
+        behov.createBehov(
+            BehovType.PERSISTER_OPPGAVE_ID,
+            mapOf(
+                DataFelt.ORGNRUNDERENHET to behov[DataFelt.ORGNRUNDERENHET].asText(),
+                DataFelt.OPPGAVE_ID to oppgaveId
+            )
+        ).also { publishBehov(it) }
+
+        sikkerLogger.info("OpprettOppgaveLøser publiserte med uuid: ${behov.uuid()}")
+    }
+
     private fun opprettOppgave(
         forespørselId: String,
-        orgnr: String
+        orgnr: String,
+        virksomhetnavn: String
     ): String {
         val requestTimer = Metrics.requestLatency.labels("opprettOppgave").startTimer()
         return runBlocking {
@@ -62,36 +94,11 @@ class OpprettOppgaveLoeser(
                 tidspunkt = null,
                 grupperingsid = forespørselId,
                 varslingTittel = "Nav trenger inntektsmelding",
-                varslingInnhold = "En av dine ansatte har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
+                varslingInnhold = "En av dine ansatte i $virksomhetnavn - orgnr $orgnr har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
                     "søknaden. Logg inn på Min side – arbeidsgiver hos NAV"
             )
         }.also {
             requestTimer.observeDuration()
         }
-    }
-
-    override fun accept(): River.PacketValidation =
-        River.PacketValidation {
-            it.demandValue(Key.EVENT_NAME.str, EVENT.name)
-            it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
-            it.interestedIn(DataFelt.ORGNRUNDERENHET.str)
-        }
-
-    override fun onBehov(behov: Behov) {
-        val forespoerselId = behov.forespoerselId
-        if (forespoerselId.isNullOrBlank()) {
-            publishFail(behov.createFail("Mangler forespørselId"))
-            return
-        }
-        val oppgaveId = opprettOppgave(forespoerselId, behov[DataFelt.ORGNRUNDERENHET].asText())
-        behov.createBehov(
-            BehovType.PERSISTER_OPPGAVE_ID,
-            mapOf(
-                DataFelt.ORGNRUNDERENHET to behov[DataFelt.ORGNRUNDERENHET].asText(),
-                DataFelt.OPPGAVE_ID to oppgaveId
-            )
-        ).also { publishBehov(it) }
-
-        sikkerLogger.info("OpprettOppgaveLøser publiserte med uuid: ${behov.uuid()}")
     }
 }

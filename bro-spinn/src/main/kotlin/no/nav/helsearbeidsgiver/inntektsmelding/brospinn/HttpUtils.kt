@@ -38,9 +38,9 @@ internal fun HttpClientConfig<*>.configure() {
 
 private fun Throwable.isRetryableException() =
     when (this) {
-        is SocketTimeoutException -> true
-        is ConnectTimeoutException -> true
-        is HttpRequestTimeoutException -> true
+        is SocketTimeoutException,
+        is ConnectTimeoutException,
+        is HttpRequestTimeoutException,
         is java.net.SocketTimeoutException -> true
         else -> false
     }

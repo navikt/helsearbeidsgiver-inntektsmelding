@@ -26,10 +26,7 @@ internal fun HttpClientConfig<*>.configure() {
         maxRetries = 3
         retryOnServerErrors(maxRetries)
         retryOnExceptionIf { _, cause ->
-            cause is SocketTimeoutException ||
-                cause is ConnectTimeoutException ||
-                cause is HttpRequestTimeoutException ||
-                cause is java.net.SocketTimeoutException
+            cause.isRetryableException()
         }
         exponentialDelay()
     }
@@ -38,3 +35,12 @@ internal fun HttpClientConfig<*>.configure() {
         socketTimeoutMillis = 3000
     }
 }
+
+private fun Throwable.isRetryableException() =
+    when (this) {
+        is SocketTimeoutException -> true
+        is ConnectTimeoutException -> true
+        is HttpRequestTimeoutException -> true
+        is java.net.SocketTimeoutException -> true
+        else -> false
+    }

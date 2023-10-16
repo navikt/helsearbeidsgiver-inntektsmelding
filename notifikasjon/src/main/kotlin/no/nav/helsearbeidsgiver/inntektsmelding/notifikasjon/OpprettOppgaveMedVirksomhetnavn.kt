@@ -34,7 +34,7 @@ class OpprettOppgaveMedVirksomhetnavn(
         }
         withDataKanal {
             StatefullDataKanal(
-                arrayOf(DataFelt.VIRKSOMHET.str, DataFelt.OPPGAVE_ID.str),
+                arrayOf(DataFelt.VIRKSOMHET.str),
                 event,
                 this,
                 rapidsConnection,
@@ -58,24 +58,24 @@ class OpprettOppgaveMedVirksomhetnavn(
                     )
                 ).toJson()
             )
-        } else if (transaction == Transaction.IN_PROGRESS) {
-            val virksomhetnavn = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.VIRKSOMHET))
-            val orgnr = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.ORGNRUNDERENHET))
-            val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
-            rapidsConnection.publish(
-                JsonMessage.newMessage(
-                    mapOf(
-                        Key.BEHOV.str to BehovType.OPPRETT_OPPGAVE,
-                        Key.FORESPOERSEL_ID.str to forespoerselId,
-                        DataFelt.VIRKSOMHET.str to virksomhetnavn!!,
-                        DataFelt.ORGNRUNDERENHET.str to orgnr!!
-                    )
-                ).toJson()
-            )
         }
     }
 
     override fun finalize(message: JsonMessage) {
+        val transaksjonsId = message[Key.UUID.str].asText()
+        val virksomhetnavn = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.VIRKSOMHET))
+        val orgnr = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.ORGNRUNDERENHET))
+        val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
+        rapidsConnection.publish(
+            JsonMessage.newMessage(
+                mapOf(
+                    Key.BEHOV.str to BehovType.OPPRETT_OPPGAVE,
+                    Key.FORESPOERSEL_ID.str to forespoerselId,
+                    DataFelt.VIRKSOMHET.str to virksomhetnavn!!,
+                    DataFelt.ORGNRUNDERENHET.str to orgnr!!
+                )
+            ).toJson()
+        )
     }
 
     override fun terminate(message: JsonMessage) {
@@ -86,7 +86,7 @@ class OpprettOppgaveMedVirksomhetnavn(
         if (feil.behov == BehovType.VIRKSOMHET) {
             val virksomhetKey = "${feil.uuid}${DataFelt.VIRKSOMHET.str}"
             redisStore.set(virksomhetKey, " ")
-            return Transaction.IN_PROGRESS
+            return Transaction.FINALIZE
         }
         return Transaction.TERMINATE
     }

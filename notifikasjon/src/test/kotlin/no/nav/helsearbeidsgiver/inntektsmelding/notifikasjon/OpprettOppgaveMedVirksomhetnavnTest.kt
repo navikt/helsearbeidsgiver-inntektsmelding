@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.db.river
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.OpprettOppgaveMedVirksomhetnavn
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

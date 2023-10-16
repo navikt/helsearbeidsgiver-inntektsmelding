@@ -94,8 +94,8 @@ class OpprettOppgaveLoeser(
                 tidspunkt = null,
                 grupperingsid = forespørselId,
                 varslingTittel = "Nav trenger inntektsmelding",
-                varslingInnhold = "En av dine ansatte i $virksomhetnavn - orgnr $orgnr har sendt søknad for sykepenger og vi trenger inntektsmelding for å behandle " +
-                    "søknaden. Logg inn på Min side – arbeidsgiver hos NAV"
+                varslingInnhold = "En av dine ansatte i $virksomhetnavn - orgnr $orgnr har sendt søknad for sykepenger" +
+                    " og vi trenger inntektsmelding for å behandle søknaden. Logg inn på Min side – arbeidsgiver hos NAV"
             )
         }.also {
             requestTimer.observeDuration()

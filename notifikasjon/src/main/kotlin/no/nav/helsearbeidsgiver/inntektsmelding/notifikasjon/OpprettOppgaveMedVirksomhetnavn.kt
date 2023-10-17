@@ -69,6 +69,7 @@ class OpprettOppgaveMedVirksomhetnavn(
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(
+                    Key.EVENT_NAME.str to event.name,
                     Key.BEHOV.str to BehovType.OPPRETT_OPPGAVE,
                     Key.FORESPOERSEL_ID.str to forespoerselId,
                     DataFelt.VIRKSOMHET.str to virksomhetnavn!!,

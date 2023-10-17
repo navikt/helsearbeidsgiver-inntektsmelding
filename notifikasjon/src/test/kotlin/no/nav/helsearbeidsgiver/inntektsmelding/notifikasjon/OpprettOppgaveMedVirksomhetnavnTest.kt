@@ -38,7 +38,6 @@ class OpprettOppgaveMedVirksomhetnavnTest {
                 mapOf(
                     Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET,
                     Key.DATA.str to "",
-                    DataFelt.ORGNRUNDERENHET.str to "123456789",
                     DataFelt.VIRKSOMHET.str to "TestBedrift A/S",
                     Key.FORESPOERSEL_ID.str to generertForespoerselId!!,
                     Key.UUID.str to generertForespoerselId!!

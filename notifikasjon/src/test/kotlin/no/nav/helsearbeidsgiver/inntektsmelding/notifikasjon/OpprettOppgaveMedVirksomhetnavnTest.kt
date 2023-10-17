@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -75,7 +76,7 @@ class OpprettOppgaveMedVirksomhetnavnTest {
             BehovType.VIRKSOMHET,
             "Klarte ikke hente virksomhet",
             mapOf(
-                DataFelt.ORGNRUNDERENHET to "123456789"
+                DataFelt.ORGNRUNDERENHET to "123456789".toJson()
             ),
             generertForespoerselId,
             generertForespoerselId

@@ -9,11 +9,14 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.system.measureTimeMillis
@@ -76,11 +79,33 @@ class VirksomhetLoeser(
             publishData(behov.createData(mapOf(DataFelt.VIRKSOMHET to navn)))
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")
-            publishFail(behov.createFail("Ugyldig virksomhet $orgnr"))
+            rapidsConnection.publish(
+                createFail(behov, "Fant ikke virksomhet")
+                    .also {
+                        logger.error("Publiserte feil for ${BehovType.HENT_IM_ORGNR}.")
+                        sikkerLogger.error("Publiserte feil:\n${it.parseJson().toPretty()}")
+                    }
+            )
         } catch (ex: Exception) {
             logger.error("Det oppstod en feil ved henting for $orgnr")
             sikkerLogger.error("Det oppstod en feil ved henting for orgnr $orgnr: ", ex)
-            publishFail(behov.createFail("Klarte ikke hente virksomhet"))
+            rapidsConnection.publish(
+                createFail(behov, "Klarte ikke hente virksomhet")
+                    .also {
+                        logger.error("Publiserte feil for ${BehovType.HENT_IM_ORGNR}.")
+                        sikkerLogger.error("Publiserte feil:\n${it.parseJson().toPretty()}")
+                    }
+            )
         }
+    }
+
+    private fun createFail(behov: Behov, feilmelding: String): String {
+        return Fail(
+            eventName = behov.event,
+            behov = behov.behov,
+            feilmelding = feilmelding,
+            forespørselId = behov.forespoerselId,
+            uuid = behov.uuid()
+        ).toJsonMessage().toJson()
     }
 }

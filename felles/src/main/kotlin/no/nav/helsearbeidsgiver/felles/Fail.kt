@@ -2,16 +2,19 @@ package no.nav.helsearbeidsgiver.felles
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 
+@Serializable
 data class Fail(
     @JsonIgnore
-    val eventName: EventName?,
+    val eventName: EventName? = null,
     val behov: BehovType? = null,
     val feilmelding: String,
-    val data: Map<DataFelt, Any?>? = null,
+    val data: Map<DataFelt, @Contextual Any?>? = null,
     val uuid: String?,
     val forespørselId: String?
 ) {

@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -54,11 +55,11 @@ class VirksomhetLoeserTest {
         )
 
         val publisert = testRapid.firstMessage().toMap()
-
+        println(publisert)
         publisert[Key.FAIL]
             .shouldNotBeNull()
-            .fromJson(String.serializer())
-            .shouldBe("Ugyldig virksomhet $ORGNR")
+            .fromJson(Fail.serializer()).feilmelding
+            .shouldBe("Fant ikke virksomhet")
     }
 
     @Test
@@ -92,5 +93,7 @@ class VirksomhetLoeserTest {
         val publisert = testRapid.firstMessage().toMap()
 
         publisert[Key.FAIL].shouldNotBeNull()
+            .fromJson(Fail.serializer()).feilmelding
+            .shouldBe("Klarte ikke hente virksomhet")
     }
 }

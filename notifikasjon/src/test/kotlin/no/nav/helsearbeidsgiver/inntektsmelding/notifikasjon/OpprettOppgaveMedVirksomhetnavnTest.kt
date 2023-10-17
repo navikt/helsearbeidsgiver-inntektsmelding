@@ -5,9 +5,11 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class OpprettOppgaveMedVirksomhetnavnTest {
@@ -18,6 +20,11 @@ class OpprettOppgaveMedVirksomhetnavnTest {
 
     init {
         løser = OpprettOppgaveMedVirksomhetnavn(rapid, redisStore)
+    }
+
+    @BeforeEach
+    fun resetRapid() {
+        rapid.reset()
     }
 
     @Test
@@ -48,5 +55,36 @@ class OpprettOppgaveMedVirksomhetnavnTest {
         assertEquals(BehovType.VIRKSOMHET.name, behov.path(Key.BEHOV.str).asText())
         val behov2 = rapid.inspektør.message(1)
         assertEquals(BehovType.OPPRETT_OPPGAVE.name, behov2[Key.BEHOV.str].asText())
+    }
+
+    @Test
+    fun `skal fortsette selv om vi mottar feil fra hent virksomhetnavn`() {
+        rapid.sendTestMessage(
+            JsonMessage.newMessage(
+                mapOf(
+                    Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET,
+                    Key.UUID.str to "uuid",
+                    DataFelt.ORGNRUNDERENHET.str to "123456789",
+                    Key.FORESPOERSEL_ID.str to "987654321"
+                )
+            ).toJson()
+        )
+        val generertForespoerselId = redisStore.get("uuid")
+        val feil = Fail(
+            EventName.FORESPØRSEL_LAGRET,
+            BehovType.VIRKSOMHET,
+            "Klarte ikke hente virksomhet",
+            mapOf(
+                DataFelt.ORGNRUNDERENHET to "123456789"
+            ),
+            generertForespoerselId,
+            generertForespoerselId
+        ).toJsonMessage().toJson()
+        rapid.sendTestMessage(feil)
+        val behov = rapid.inspektør.message(0)
+        assertEquals(BehovType.VIRKSOMHET.name, behov.path(Key.BEHOV.str).asText())
+        val behov2 = rapid.inspektør.message(1)
+        assertEquals(BehovType.OPPRETT_OPPGAVE.name, behov2[Key.BEHOV.str].asText())
+        assertEquals(" ", behov2[DataFelt.VIRKSOMHET.str].asText())
     }
 }

@@ -10,6 +10,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -96,6 +97,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
     private val pdlKlient = mockk<PdlClient>()
     val spinnKlient = mockk<SpinnKlient>()
+    val brregClient = mockk<BrregClient>(relaxed = true)
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -120,6 +122,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                 foedselsdato = 6.august
             )
         )
+        coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
     }
 
     @BeforeAll
@@ -134,7 +137,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
             createAareg(mockk(relaxed = true))
             createAltinn(altinnClient)
-            createBrreg(mockk(relaxed = true), true)
+            createBrreg(brregClient, true)
             createDb(database, imRepository, forespoerselRepository)
             createDistribusjon(mockk(relaxed = true))
             createForespoerselBesvartFraSimba()

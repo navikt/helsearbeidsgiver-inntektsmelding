@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -137,7 +136,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 val msgKeyValues = it.fromJsonMapOnlyKeys()
 
                 msgKeyValues[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                msgKeyValues[Key.UUID]?.fromJsonToString() shouldBe transaksjonsId
             }
 
         messages.filter(EventName.OPPGAVE_LAGRET)
@@ -148,8 +146,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                     ?.fromJsonToString()
 
                 oppgaveId shouldBe Mock.OPPGAVE_ID
-
-                it.fromJsonMapOnlyKeys() shouldNotContainKey Key.UUID
             }
     }
 

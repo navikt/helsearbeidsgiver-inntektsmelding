@@ -26,5 +26,9 @@ fun RapidsConnection.createJoark(dokArkivClient: DokArkivClient): RapidsConnecti
 
 private fun createDokArkivClient(environment: Environment): DokArkivClient {
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return DokArkivClient(environment.dokarkivUrl, tokenProvider::getToken)
+    return DokArkivClient(
+        url = environment.dokarkivUrl,
+        maxRetries = 3,
+        getAccessToken = tokenProvider::getToken
+    )
 }

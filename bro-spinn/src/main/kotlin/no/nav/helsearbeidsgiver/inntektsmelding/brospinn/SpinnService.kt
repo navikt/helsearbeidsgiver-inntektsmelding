@@ -35,7 +35,7 @@ private const val AVSENDER_NAV_NO = "NAV_NO"
 class SpinnService(
     private val rapid: RapidsConnection,
     override val redisStore: IRedisStore
-) : CompositeEventListener(redisStore) {
+) : CompositeEventListener(redisStore, ttl = 60 * 10) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -52,10 +52,20 @@ class SpinnService(
                 eventName = event,
                 mainListener = it,
                 rapidsConnection = rapid,
-                redisStore = redisStore
+                redisStore = redisStore,
+                ttl = 60 * 10 // 10 min
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.SPINN_INNTEKTSMELDING_ID.str), it, rapid) }
+        withEventListener {
+            StatefullEventListener(
+                redisStore = redisStore,
+                event = event,
+                dataFelter = arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.SPINN_INNTEKTSMELDING_ID.str),
+                mainListener = it,
+                rapidsConnection = rapid,
+                ttl = 60 * 10 // 10 min
+            )
+        }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {

@@ -96,7 +96,7 @@ class SakFerdigLoeser(
             agNotifikasjonKlient.nyStatusSak(
                 id = sakId,
                 status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt"
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
             )
         }.also {
             requestTimer.observeDuration()

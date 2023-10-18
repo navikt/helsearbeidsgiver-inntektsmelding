@@ -127,7 +127,6 @@ private data class PublishedFeil(
                 fail = mapOf(
                     Fail::behov.name to BehovType.HENT_TRENGER_IM.toJson(),
                     Fail::feilmelding.name to feilmelding.toJson(),
-                    Fail::data.name to JsonNull,
                     Fail::uuid.name to transaksjonId.toJson(),
                     Fail::forespørselId.name to forespoerselSvar.forespoerselId.toJson()
                 ),

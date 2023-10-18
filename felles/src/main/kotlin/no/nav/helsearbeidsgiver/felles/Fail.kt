@@ -14,6 +14,7 @@ data class Fail(
     val eventName: EventName? = null,
     val behov: BehovType? = null,
     val feilmelding: String,
+    @JsonIgnore
     val data: Map<DataFelt, JsonElement?>? = null,
     val uuid: String?,
     val forespørselId: String?

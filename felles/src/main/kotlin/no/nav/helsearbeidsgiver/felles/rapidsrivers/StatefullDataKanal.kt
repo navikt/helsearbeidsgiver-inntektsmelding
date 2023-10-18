@@ -16,7 +16,8 @@ class StatefullDataKanal(
     override val eventName: EventName,
     private val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,
-    val redisStore: IRedisStore
+    val redisStore: IRedisStore,
+    val ttl: Long = 60
 ) : DataKanal(
     rapidsConnection
 ) {
@@ -59,7 +60,7 @@ class StatefullDataKanal(
         }.forEach {
                 data ->
             val str = if (data.second.isTextual) { data.second.asText() } else data.second.toString()
-            redisStore.set(message[Key.UUID.str].asText() + data.first, str)
+            redisStore.set(message[Key.UUID.str].asText() + data.first, str, ttl)
         }
         return true
     }

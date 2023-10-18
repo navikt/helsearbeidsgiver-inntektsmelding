@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
-abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
+abstract class CompositeEventListener(open val redisStore: IRedisStore, open val ttl: Long = 60) : River.PacketListener {
 
     abstract val event: EventName
     private lateinit var dataKanal: StatefullDataKanal
@@ -60,7 +60,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
                         ?.asText()
                         .orDefault(transactionId)
 
-                    redisStore.set(eventKey, clientId)
+                    redisStore.set(eventKey, clientId, ttl)
 
                     Transaction.NEW
                 }

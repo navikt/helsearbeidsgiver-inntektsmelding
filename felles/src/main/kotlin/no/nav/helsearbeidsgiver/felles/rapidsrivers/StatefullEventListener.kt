@@ -14,7 +14,8 @@ class StatefullEventListener(
     override val event: EventName,
     private val dataFelter: Array<String>,
     private val mainListener: River.PacketListener,
-    rapidsConnection: RapidsConnection
+    rapidsConnection: RapidsConnection,
+    val ttl: Long = 60
 ) : EventListener(
     rapidsConnection
 ) {
@@ -32,7 +33,7 @@ class StatefullEventListener(
             Pair(dataFelt, packet[dataFelt])
         }.forEach { data ->
             val str = if (data.second.isTextual) { data.second.asText() } else data.second.toString()
-            redisStore.set(transactionId + data.first, str)
+            redisStore.set(transactionId + data.first, str, ttl)
         }
     }
     override fun onEvent(packet: JsonMessage) {

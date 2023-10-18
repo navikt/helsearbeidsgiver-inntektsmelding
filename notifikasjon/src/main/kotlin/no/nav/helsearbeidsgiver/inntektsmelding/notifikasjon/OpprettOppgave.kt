@@ -97,7 +97,8 @@ class OpprettOppgaveLoeser(
                 varslingInnhold = """$virksomhetnavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger
                     og vi trenger inntektsmelding for å behandle søknaden.
                     Logg inn på Min side – arbeidsgiver hos NAV.
-                    Hvis dere sender inntektsmelding via lønnssystem, kan dere fortsatt bruke det."""
+                    Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,
+                    og trenger ikke sende inn via Min side – arbeidsgiver ."""
             )
         }.also {
             requestTimer.observeDuration()

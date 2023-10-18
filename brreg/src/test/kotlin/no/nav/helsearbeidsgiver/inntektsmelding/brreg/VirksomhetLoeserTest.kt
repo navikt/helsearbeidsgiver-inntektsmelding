@@ -55,7 +55,6 @@ class VirksomhetLoeserTest {
         )
 
         val publisert = testRapid.firstMessage().toMap()
-        println(publisert)
         publisert[Key.FAIL]
             .shouldNotBeNull()
             .fromJson(Fail.serializer()).feilmelding

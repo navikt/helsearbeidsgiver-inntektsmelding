@@ -76,7 +76,7 @@ fun Innsending.validate() {
         validate(Innsending::refusjon).validate {
             if (it.utbetalerHeleEllerDeler) {
                 validate(Refusjon::refusjonPrMnd).isNotNull()
-                validate(Refusjon::refusjonPrMnd).isGreaterThan(0.0)
+                validate(Refusjon::refusjonPrMnd).isGreaterThanOrEqualTo(0.0)
                 validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0)
 
                 validate(Refusjon::refusjonEndringer).validateForEach {

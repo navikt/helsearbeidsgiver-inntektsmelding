@@ -92,13 +92,13 @@ private fun List<JsonElement>.filter(clientId: UUID): List<JsonElement> {
                 msg[Key.TRANSACTION_ORIGIN]
             )
                 .firstOrNull()
-                .shouldNotBeNull()
-                .fromJson(UuidSerializer)
+                ?.fromJson(UuidSerializer)
 
             val innsendingStartetEllerImMottatt = eventName == EventName.INSENDING_STARTED ||
                 (eventName == EventName.INNTEKTSMELDING_MOTTATT && !msg.contains(Key.BEHOV))
 
-            uuid == transaksjonId &&
+            uuid != null &&
+                uuid == transaksjonId &&
                 innsendingStartetEllerImMottatt &&
                 !msg.contains(Key.LØSNING)
         }

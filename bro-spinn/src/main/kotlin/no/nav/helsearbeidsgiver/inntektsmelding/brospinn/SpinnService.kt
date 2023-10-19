@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -82,7 +83,7 @@ class SpinnService(
             Log.forespoerselId(forespoerselId)
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
-            if (transaction == Transaction.NEW) {
+            if (transaction is Transaction.New) {
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
@@ -141,12 +142,9 @@ class SpinnService(
         }
     }
 
-    override fun terminate(message: JsonMessage) {
-        val json = message.toJsonMap()
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
+    override fun terminate(fail: Fail) {
         MdcUtils.withLogFields(
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(fail.uuid.let(UUID::fromString))
         ) {
             sikkerLogger.error("$event terminert.")
         }

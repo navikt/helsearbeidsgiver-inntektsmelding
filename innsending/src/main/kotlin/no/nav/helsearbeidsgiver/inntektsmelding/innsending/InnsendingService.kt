@@ -71,25 +71,25 @@ class InnsendingService(
         if (feil.behov == BehovType.VIRKSOMHET) {
             val virksomhetKey = "${feil.uuid}${DataFelt.VIRKSOMHET}"
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
-            return Transaction.IN_PROGRESS
+            return Transaction.InProgress
         } else if (feil.behov == BehovType.FULLT_NAVN) {
             val arbeidstakerFulltnavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
             val arbeidsgiverFulltnavnKey = "${feil.uuid}${DataFelt.ARBEIDSGIVER_INFORMASJON.str}"
             redisStore.set(arbeidstakerFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             redisStore.set(arbeidsgiverFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
-            return Transaction.IN_PROGRESS
+            return Transaction.InProgress
         }
-        return Transaction.TERMINATE
+        return Transaction.Terminate(feil)
     }
 
-    override fun terminate(message: JsonMessage) {
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
+    override fun terminate(fail: Fail) {
+        redisStore.set(fail.uuid!!, fail.feilmelding)
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid: String = message[Key.UUID.str].asText()
         when (transaction) {
-            Transaction.NEW -> {
+            is Transaction.New -> {
                 logger.info("InnsendingService: emitting behov Virksomhet")
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
@@ -116,7 +116,7 @@ class InnsendingService(
                 )
             }
 
-            Transaction.IN_PROGRESS -> {
+            is Transaction.InProgress -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
                     val arbeidstakerRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java)
                     val arbeidsgiverRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_INFORMASJON), PersonDato::class.java)

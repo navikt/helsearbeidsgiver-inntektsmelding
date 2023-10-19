@@ -73,7 +73,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             val feilReport: FeilReport = redisStore.get(feilKey)?.fromJson(FeilReport.serializer()) ?: FeilReport()
             feilReport.feil.add(feilmelding)
             redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
-            return Transaction.TERMINATE
+            return Transaction.Terminate(feil)
         } else if (feil.behov == BehovType.VIRKSOMHET) {
             feilmelding = Feilmelding("Vi klarte ikke å hente virksomhet navn.", datafelt = DataFelt.VIRKSOMHET)
             redisStore.set(RedisKey.of(uuid, DataFelt.VIRKSOMHET), "Ukjent navn")
@@ -94,13 +94,13 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             feilReport.feil.add(feilmelding)
             redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
         }
-        return Transaction.IN_PROGRESS
+        return Transaction.InProgress
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
         sikkerLogger.info("Dispatcher for $uuid with trans state $transaction")
-        if (transaction == Transaction.NEW) {
+        if (transaction is Transaction.New) {
             sikkerLogger.info("Dispatcher HENT_TRENGER_IM for $uuid")
             sikkerLogger.info("${simpleName()} Dispatcher HENT_TRENGER_IM for $uuid")
             val agFnr = message[Key.ARBEIDSGIVER_ID.str].asText()
@@ -111,7 +111,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson(),
                 Key.UUID to uuid.toJson()
             )
-        } else if (transaction == Transaction.IN_PROGRESS) {
+        } else if (transaction is Transaction.InProgress) {
             message.interestedIn(DataFelt.FORESPOERSEL_SVAR.str)
             if (isDataCollected(*step1data(uuid)) && !message[DataFelt.FORESPOERSEL_SVAR.str].isMissingNode) {
                 val forespoersel = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
@@ -193,12 +193,11 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         redisStore.set(RedisKey.of(clientId!!), json)
     }
 
-    override fun terminate(message: JsonMessage) {
-        val transactionId = message[Key.UUID.str].asText()
-        sikkerLogger.info("terminate transaction id $transactionId with evenname ${message[Key.EVENT_NAME.str].asText()}")
-        val clientId: String? = redisStore.get(RedisKey.of(transactionId, EventName.valueOf(message[Key.EVENT_NAME.str].asText())))
+    override fun terminate(fail: Fail) {
+        sikkerLogger.info("terminate transaction id ${fail.uuid} with evenname ${fail.eventName}")
+        val clientId: String? = redisStore.get(RedisKey.of(fail.uuid!!, fail.eventName!!))
         // @TODO kan vare smartere her. Kan definere feilmeldingen i Feil message istedenfor å hardkode det i TrengerService. Vi også ikke trenger å sende alle andre ikke kritiske feilmeldinger hvis vi har noe kritisk
-        val feilReport: FeilReport = redisStore.get(RedisKey.of(uuid = transactionId, Feilmelding("")))!!.fromJson(FeilReport.serializer())
+        val feilReport: FeilReport = redisStore.get(RedisKey.of(uuid = fail.uuid!!, Feilmelding("")))!!.fromJson(FeilReport.serializer())
         if (clientId != null) {
             redisStore.set(RedisKey.of(clientId), TrengerData(feilReport = feilReport).toJsonStr(TrengerData.serializer()))
         }

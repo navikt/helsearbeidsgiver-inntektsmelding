@@ -54,7 +54,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transaksjonsId = message[Key.UUID.str].asText()
         val forespoerselId = redisStore.get(transaksjonsId + Key.FORESPOERSEL_ID.str)!!
-        if (transaction == Transaction.NEW) {
+        if (transaction is Transaction.New) {
             rapidsConnection.publish(
                 JsonMessage.newMessage(
                     mapOf(
@@ -65,7 +65,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
                     )
                 ).toJson()
             )
-        } else if (transaction == Transaction.IN_PROGRESS) {
+        } else if (transaction is Transaction.InProgress) {
             val forespoersel = redisStore.get(transaksjonsId + DataFelt.FORESPOERSEL_SVAR.str)?.fromJson(TrengerInntekt.serializer())
 
             if (forespoersel == null) {
@@ -147,13 +147,13 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
         )
     }
 
-    override fun terminate(message: JsonMessage) {
-        sikkerLogger.error("Terminerer flyt med transaksjon-ID '${message[Key.UUID.str].asText()}'")
+    override fun terminate(fail: Fail) {
+        sikkerLogger.error("Terminerer flyt med transaksjon-ID '${fail.uuid}'")
     }
 
     override fun onError(feil: Fail): Transaction {
         sikkerLogger.error("Mottok feil:\n$feil")
-        return Transaction.TERMINATE
+        return Transaction.Terminate(feil)
     }
 
     private fun steg2(transactionId: String) = arrayOf(RedisKey.of(transactionId, DataFelt.FORESPOERSEL_SVAR))

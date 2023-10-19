@@ -79,7 +79,7 @@ class TilgangService(
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
             when (transaction) {
-                Transaction.NEW -> {
+                is Transaction.New -> {
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.HENT_IM_ORGNR.toJson(),
@@ -95,7 +95,7 @@ class TilgangService(
                         }
                 }
 
-                Transaction.IN_PROGRESS -> {
+                is Transaction.InProgress -> {
                     val orgnrKey = RedisKey.of(transaksjonId.toString(), DataFelt.ORGNRUNDERENHET)
 
                     if (isDataCollected(orgnrKey)) {
@@ -168,16 +168,12 @@ class TilgangService(
         }
     }
 
-    override fun terminate(message: JsonMessage) {
-        val json = message.toJsonMap()
-
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
-        val clientId = RedisKey.of(transaksjonId.toString(), event)
+    override fun terminate(fail: Fail) {
+        val clientId = RedisKey.of(fail.uuid!!, event)
             .read()
             ?.let(UUID::fromString)
 
-        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding(""))
+        val feil = RedisKey.of(fail.uuid!!, Feilmelding(""))
             .read()
 
         val feilResponse = TilgangData(
@@ -185,11 +181,11 @@ class TilgangService(
         )
             .toJson(TilgangData.serializer())
         if (clientId == null) {
-            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne $transaksjonId i redis!")
+            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne ${fail.uuid} i redis!")
         }
         RedisKey.of(clientId.toString()).write(feilResponse)
 
-        val logFields = loggFelterNotNull(transaksjonId, clientId)
+        val logFields = loggFelterNotNull(fail.uuid!!.let(UUID::fromString), clientId)
         MdcUtils.withLogFields(
             *logFields
         ) {
@@ -224,7 +220,7 @@ class TilgangService(
             feilKey.write(feilReport)
         }
 
-        return Transaction.TERMINATE
+        return Transaction.Terminate(feil)
     }
 
     private fun RedisKey.write(json: JsonElement) {

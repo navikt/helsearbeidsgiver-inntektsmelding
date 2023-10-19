@@ -87,7 +87,7 @@ class InntektService(
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
             when (transaction) {
-                Transaction.NEW -> {
+                is Transaction.New -> {
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
@@ -103,7 +103,7 @@ class InntektService(
                         }
                 }
 
-                Transaction.IN_PROGRESS -> {
+                is Transaction.InProgress -> {
                     val forspoerselKey = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_SVAR)
 
                     if (isDataCollected(forspoerselKey)) {
@@ -173,19 +173,15 @@ class InntektService(
         }
     }
 
-    override fun terminate(message: JsonMessage) {
-        val json = message.toJsonMap()
-
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
-        val clientId = RedisKey.of(transaksjonId.toString(), event)
+    override fun terminate(fail: Fail) {
+        val clientId = RedisKey.of(fail.uuid!!, event)
             .read()
             ?.let(UUID::fromString)
         if (clientId == null) {
-            sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
-            logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
+            sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.uuid} i Redis")
+            logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.uuid} i Redis")
         }
-        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding("")).read()
+        val feil = RedisKey.of(fail.uuid!!, Feilmelding("")).read()
 
         val feilResponse = InntektData(
             feil = feil?.fromJson(FeilReport.serializer())
@@ -193,7 +189,7 @@ class InntektService(
             .toJson(InntektData.serializer())
 
         RedisKey.of(clientId.toString()).write(feilResponse)
-        val logFields = loggFelterNotNull(transaksjonId, clientId)
+        val logFields = loggFelterNotNull(fail.uuid.let(UUID::fromString), clientId)
         MdcUtils.withLogFields(
             *logFields
         ) {
@@ -208,7 +204,7 @@ class InntektService(
             BehovType.HENT_TRENGER_IM -> {
                 val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, DataFelt.FORESPOERSEL_SVAR)
 
-                feilmelding to Transaction.TERMINATE
+                feilmelding to Transaction.Terminate(feil)
             }
             BehovType.INNTEKT -> {
                 val feilmelding = Feilmelding(
@@ -239,7 +235,7 @@ class InntektService(
             feilKey.write(feilReport)
         }
 
-        return transaction ?: Transaction.IN_PROGRESS
+        return transaction ?: Transaction.InProgress
     }
 
     private fun publishFail(fail: Fail) {

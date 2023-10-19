@@ -27,7 +27,7 @@ class InntektServiceTest {
             forespørselId = null
         )
         val transaction = service.onError(feil)
-        assertEquals(Transaction.IN_PROGRESS, transaction)
-        service.terminate(feil.toJsonMessage()) // skal ikke kaste exception..
+        assertEquals(Transaction.InProgress, transaction)
+        service.terminate(feil) // skal ikke kaste exception..
     }
 }

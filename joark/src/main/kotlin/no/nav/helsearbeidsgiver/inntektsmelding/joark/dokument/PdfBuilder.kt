@@ -17,7 +17,7 @@ class PdfBuilder(
     val sectionSize: Int = 24,
     val bodySize: Int = 16,
     private val logo: String = "logo.png",
-    private val innsendt: String
+    private val topText: String? = null
 ) {
 
     private val list: MutableList<Text> = mutableListOf()
@@ -68,9 +68,9 @@ class PdfBuilder(
         return y >= pageNumber * PAGE_HEIGHT && y < (pageNumber + 1) * PAGE_HEIGHT
     }
 
-    private fun addTimestampTop(contentStream: PDPageContentStream, font: PDType0Font) {
+    private fun addTopText(contentStream: PDPageContentStream, font: PDType0Font, text: String) {
         contentStream.beginText()
-        Text(bodySize, innsendt, bold = false, italic = true, 0 + paddingHorisontal / 2, MAX).also { text ->
+        Text(bodySize, text, bold = false, italic = true, 0 + paddingHorisontal / 2, MAX).also { text ->
             contentStream.setFont(font, text.fontSize.toFloat() * RATIO)
             contentStream.newLineAtOffset(text.x.toFloat(), text.y.toFloat())
             contentStream.showText(text.value)
@@ -90,7 +90,7 @@ class PdfBuilder(
             val logoX = PAGE_WIDTH - w - paddingHorisontal
             val logoY = MAX - h
             contentStream.drawImage(pdImage, logoX, logoY, w, h)
-            addTimestampTop(contentStream, FONT_ITALIC)
+            topText?.also { addTopText(contentStream, FONT_ITALIC, it) }
         }
 
         val filteredList = list.filter { isPage(it.y, pageNr) }

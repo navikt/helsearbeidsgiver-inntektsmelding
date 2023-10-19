@@ -31,6 +31,15 @@ class InnsendingServiceIT : EndToEndTest() {
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
+        coEvery {
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+        } returns OpprettOgFerdigstillResponse(
+            journalpostId = "journalpost-id-sukkerspinn",
+            journalpostFerdigstilt = true,
+            melding = "Ha en brillefin dag!",
+            dokumenter = emptyList()
+        )
+
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),

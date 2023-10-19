@@ -3,7 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -42,6 +44,8 @@ class InnsendingServiceIT : EndToEndTest() {
         Thread.sleep(10000)
 
         messages.all().filter(Mock.clientId).size shouldBe 10
+
+        messages.filterFeil().all().size shouldBe 0
 
         val innsendingStr = redisStore.get(Mock.clientId.toString()).shouldNotBeNull()
         innsendingStr.length shouldBeGreaterThan 2

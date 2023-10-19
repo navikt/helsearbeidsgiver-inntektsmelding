@@ -9,12 +9,12 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -65,7 +65,7 @@ class HentOrgnrLoeser(
                 Melding.fra(json)
             }
                 .onFailure {
-                    context.publishFeil("Klarte ikke lese påkrevde felt fra innkommende melding.", it, null)
+                    sikkerLogger.error("Klarte ikke lese påkrevde felt fra innkommende melding. Publiserer ingen feil.", it)
                 }
                 .getOrNull()
 
@@ -114,23 +114,25 @@ class HentOrgnrLoeser(
             }
     }
 
-    private fun MessageContext.publishFeil(feilmelding: String, feil: Throwable?, melding: Melding?) {
+    private fun MessageContext.publishFeil(feilmelding: String, feil: Throwable?, melding: Melding) {
         logger.error("$feilmelding Se sikker logg for mer info.")
         sikkerLogger.error(feilmelding, feil)
 
-        Fail(
-            eventName = melding?.event,
-            behov = BehovType.HENT_IM_ORGNR,
+        val failJson = Fail(
             feilmelding = feilmelding,
-            forespørselId = null,
-            uuid = melding?.transaksjonId?.toString()
+            event = melding.event,
+            transaksjonId = melding.transaksjonId,
+            forespoerselId = melding.forespoerselId,
+            utloesendeMelding = melding.json
         )
-            .toJsonMessage()
-            .toJson()
-            .also(::publish)
+            .toJson(Fail.serializer())
+
+        publish(
+            Key.FAIL to failJson
+        )
             .also {
                 logger.error("Publiserte feil for ${BehovType.HENT_IM_ORGNR}.")
-                sikkerLogger.error("Publiserte feil:\n${it.parseJson().toPretty()}")
+                sikkerLogger.error("Publiserte feil:\n${it.toPretty()}")
             }
     }
 
@@ -145,7 +147,8 @@ class HentOrgnrLoeser(
 private data class Melding(
     val event: EventName,
     val transaksjonId: UUID,
-    val forespoerselId: UUID
+    val forespoerselId: UUID,
+    val json: JsonElement
 ) {
     companion object {
         fun fra(json: JsonElement): Melding =
@@ -153,7 +156,8 @@ private data class Melding(
                 Melding(
                     event = Key.EVENT_NAME.les(EventName.serializer(), it),
                     transaksjonId = Key.UUID.les(UuidSerializer, it),
-                    forespoerselId = DataFelt.FORESPOERSEL_ID.les(UuidSerializer, it)
+                    forespoerselId = DataFelt.FORESPOERSEL_ID.les(UuidSerializer, it),
+                    json = json
                 )
             }
     }

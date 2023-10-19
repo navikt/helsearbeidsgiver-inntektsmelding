@@ -59,7 +59,7 @@ class TilgangLoeser(
         val requestTimer = requestLatency.startTimer()
         runCatching {
             runBlocking {
-                altinnClient.harRettighetForOrganisasjon(behov[DataFelt.FNR].asText(), behov[DataFelt.ORGNRUNDERENHET].asText())
+                altinnClient.harRettighetForOrganisasjon(behov.jsonMessage[DataFelt.FNR.str].asText(), behov.jsonMessage[DataFelt.ORGNRUNDERENHET.str].asText())
             }
         }.also {
             requestTimer.observeDuration()

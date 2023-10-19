@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -46,7 +47,7 @@ class KvitteringService(
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transactionId: String = message[Key.UUID.str].asText()
-        if (transaction == Transaction.NEW) {
+        if (transaction is Transaction.New) {
             val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
             logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
             val msg = JsonMessage.newMessage(
@@ -77,10 +78,8 @@ class KvitteringService(
         redisStore.set(clientId!!, im)
     }
 
-    override fun terminate(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText()
-        val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
-        logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
-        redisStore.set(transaksjonsId, message[Key.FAIL.str].asText())
+    override fun terminate(fail: Fail) {
+        logger.info("Terminate kvittering med forespoerselId=${fail.forespoerselId} og transaksjonsId ${fail.transaksjonId}")
+        redisStore.set(fail.transaksjonId.toString(), fail.feilmelding)
     }
 }

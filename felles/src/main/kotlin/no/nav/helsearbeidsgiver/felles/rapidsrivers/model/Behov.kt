@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
@@ -11,14 +12,15 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
-import java.lang.IllegalArgumentException
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import java.util.UUID
 
 class Behov(
     val event: EventName,
     val behov: BehovType,
     val forespoerselId: String?,
-    private val jsonMessage: JsonMessage
-) : Message, TxMessage {
+    val jsonMessage: JsonMessage
+) : TxMessage {
 
     init {
         packetValidator.validate(jsonMessage)
@@ -58,26 +60,10 @@ class Behov(
                 packetValidation.validate(it.jsonMessage)
             }
         }
-
-        fun create(jsonMessage: JsonMessage): Behov {
-            return Behov(
-                EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText()),
-                BehovType.valueOf(jsonMessage[Key.BEHOV.str].asText()),
-                jsonMessage[Key.FORESPOERSEL_ID.str].asText(),
-                jsonMessage
-            )
-        }
-    }
-
-    override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
-
-    override operator fun set(key: IKey, value: Any) {
-        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
-        jsonMessage[key.str] = value
     }
 
     fun createData(map: Map<DataFelt, Any>): Data {
-        val forespoerselID = this[Key.FORESPOERSEL_ID]
+        val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str]
         return Data(
             event,
             JsonMessage.newMessage(
@@ -91,20 +77,14 @@ class Behov(
         )
     }
 
-    fun createFail(feilmelding: String, data: Map<IKey, Any> = emptyMap()): Fail {
-        val forespoerselID = this[Key.FORESPOERSEL_ID]
-
-        return Fail.create(
-            event = event,
-            behov = behov,
+    fun createFail(feilmelding: String): Fail =
+        Fail(
             feilmelding = feilmelding,
-            uuid = this.uuid(),
-            data = mapOfNotNull(
-                Key.UUID to this.uuid().takeUnless { it.isBlank() },
-                Key.FORESPOERSEL_ID to forespoerselID
-            ) + data.mapKeys { it.key }
+            event = event,
+            transaksjonId = uuid().takeUnless { it.isBlank() }?.let(UUID::fromString),
+            forespoerselId = forespoerselId?.takeUnless { it.isBlank() }?.let(UUID::fromString),
+            utloesendeMelding = jsonMessage.toJson().parseJson()
         )
-    }
 
     fun createBehov(behov: BehovType, data: Map<IKey, Any>): Behov {
         return Behov(
@@ -115,7 +95,7 @@ class Behov(
                 eventName = event.name,
                 map = mapOfNotNull(
                     Key.BEHOV.str to behov.name,
-                    Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
+                    Key.UUID.str to uuid().takeUnless { it.isBlank() },
                     Key.FORESPOERSEL_ID.str to this.forespoerselId
                 ) + data.mapKeys { it.key.str }
             )
@@ -126,9 +106,10 @@ class Behov(
         return Event.create(event, forespoerselId, data + mapOfNotNull(Key.TRANSACTION_ORIGIN to this.uuid().ifEmpty { null }))
     }
 
+    fun toJson(): JsonElement =
+        jsonMessage.toJson().parseJson()
+
     override fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
 
-    override fun toJsonMessage(): JsonMessage {
-        return this.jsonMessage
-    }
+    operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 }

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
@@ -10,7 +11,9 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -68,10 +71,9 @@ class DistribusjonLoeserTest {
             Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
             DataFelt.INNTEKTSMELDING_DOKUMENT to "dummy".toJson()
         )
-        val melding = rapid.inspektør.message(0)
-        assertNotNull(melding, "Skal publisere event at inntektsmelding IKKE ble distribuert")
-        assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, melding.get(Key.EVENT_NAME.str).asText())
-        assertNotNull(melding.get(Key.FAIL.str).asText(), "Skal inneholde feil")
+        val publisert = rapid.firstMessage().readFail()
+
+        publisert.event shouldBe EventName.INNTEKTSMELDING_JOURNALFOERT
     }
 
     @Test
@@ -85,10 +87,10 @@ class DistribusjonLoeserTest {
             Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
             DataFelt.INNTEKTSMELDING_DOKUMENT to "dummy".toJson()
         )
-        val melding = rapid.inspektør.message(0)
-        assertNotNull(melding, "Skal publisere event at inntektsmelding IKKE ble distribuert")
-        assertEquals(EventName.INNTEKTSMELDING_JOURNALFOERT.name, melding.get(Key.EVENT_NAME.str).asText())
-        assertNotNull(melding.get(Key.FAIL.str).asText(), "Skal inneholde feil")
+
+        val publisert = rapid.firstMessage().readFail()
+
+        publisert.event shouldBe EventName.INNTEKTSMELDING_JOURNALFOERT
     }
 
     @AfterEach

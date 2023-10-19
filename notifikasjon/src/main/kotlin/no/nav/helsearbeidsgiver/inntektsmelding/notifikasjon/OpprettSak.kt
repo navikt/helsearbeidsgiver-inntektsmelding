@@ -5,14 +5,16 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -44,7 +46,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transaksjonsId = message[Key.UUID.str].asText()
         val forespørselId = redisStore.get(transaksjonsId + Key.FORESPOERSEL_ID.str)!!
-        if (transaction == Transaction.NEW) {
+        if (transaction is Transaction.New) {
             rapidsConnection.publish(
                 JsonMessage.newMessage(
                     mapOf(
@@ -57,7 +59,7 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
                     )
                 ).toJson()
             )
-        } else if (transaction == Transaction.IN_PROGRESS) {
+        } else if (transaction is Transaction.InProgress) {
             if (isDataCollected(*steg3(transaksjonsId))) {
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
@@ -102,17 +104,18 @@ class OpprettSak(private val rapidsConnection: RapidsConnection, override val re
         )
     }
 
-    override fun terminate(message: JsonMessage) {
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
+    override fun terminate(fail: Fail) {
+        redisStore.set(fail.transaksjonId.toString(), fail.feilmelding)
     }
 
     override fun onError(feil: Fail): Transaction {
-        if (feil.behov == BehovType.FULLT_NAVN) {
-            val fulltNavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
+        if (utloesendeBehov == BehovType.FULLT_NAVN) {
+            val fulltNavnKey = "${feil.transaksjonId}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
             redisStore.set(fulltNavnKey, PersonDato("Ukjent person", null, "").toJsonStr(PersonDato.serializer()))
-            return Transaction.IN_PROGRESS
+            return Transaction.InProgress
         }
-        return Transaction.TERMINATE
+        return Transaction.Terminate(feil)
     }
 
     fun steg2(transactionId: String) = arrayOf(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON))

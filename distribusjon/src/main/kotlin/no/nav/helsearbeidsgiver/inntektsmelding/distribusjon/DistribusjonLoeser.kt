@@ -81,8 +81,7 @@ class DistribusjonLoeser(
             sikkerLogger.error("Distribusjon feilet fordi Inntektsmelding ikke kunne leses for journalpostId: $journalpostId", e)
             publishFail(
                 behov.createFail(
-                    "Distribusjon feilet fordi Inntektsmelding ikke kunne leses for journalpostId: $journalpostId",
-                    mapOf(Key.JOURNALPOST_ID to journalpostId)
+                    "Distribusjon feilet fordi Inntektsmelding ikke kunne leses for journalpostId: $journalpostId"
                 )
             )
         } catch (e: Exception) {
@@ -90,8 +89,7 @@ class DistribusjonLoeser(
             sikkerLogger.error("Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId", e)
             publishFail(
                 behov.createFail(
-                    "Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId",
-                    mapOf(Key.JOURNALPOST_ID to journalpostId)
+                    "Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId"
                 )
             )
         } finally {

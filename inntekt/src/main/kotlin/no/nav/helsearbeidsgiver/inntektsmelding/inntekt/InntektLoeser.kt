@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.toYearMonth
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -55,7 +56,7 @@ class InntektLoeser(
 
     override fun onBehov(behov: Behov) {
         logger.info("Mottok melding med behov '${BehovType.INNTEKT}'.")
-        sikkerLogger.info("Mottok melding:\n${behov.toJsonMessage().toPretty()}")
+        sikkerLogger.info("Mottok melding:\n${behov.toJson().toPretty()}")
 
         MdcUtils.withLogFields(
             Log.klasse(this),
@@ -128,9 +129,9 @@ class InntektLoeser(
 private fun LocalDate.minusMaaneder(maanederTilbake: Long): YearMonth =
     toYearMonth().minusMonths(maanederTilbake)
 
-private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(this[DataFelt.SKJAERINGSTIDSPUNKT].asText())
-private fun Behov.fnr(): Fnr = Fnr(this[DataFelt.FNR].asText())
-private fun Behov.orgnr(): Orgnr = Orgnr(this[DataFelt.ORGNRUNDERENHET].asText())
+private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(jsonMessage[DataFelt.SKJAERINGSTIDSPUNKT.toString()].asText())
+private fun Behov.fnr(): Fnr = Fnr(jsonMessage[DataFelt.FNR.toString()].asText())
+private fun Behov.orgnr(): Orgnr = Orgnr(jsonMessage[DataFelt.ORGNRUNDERENHET.toString()].asText())
 
 private fun Behov.validate() {
     this.skjaeringstidspunkt()

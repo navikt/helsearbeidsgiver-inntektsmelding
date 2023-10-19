@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -16,12 +15,14 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -66,13 +67,27 @@ class SpinnService(
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
-            publishFail(message)
+            Fail(
+                feilmelding = "Klarte ikke lese '${DataFelt.FORESPOERSEL_ID}' fra Redis!",
+                event = event,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding = message.toJson().parseJson()
+            )
+                .publish()
             return
         }
         val spinnImId = RedisKey.of(transaksjonId.toString(), DataFelt.SPINN_INNTEKTSMELDING_ID)
             .read()?.let(UUID::fromString)
         if (spinnImId == null) {
-            publishFail(message)
+            Fail(
+                feilmelding = "Klarte ikke lese '${DataFelt.SPINN_INNTEKTSMELDING_ID}' fra Redis!",
+                event = event,
+                transaksjonId = transaksjonId,
+                forespoerselId = forespoerselId,
+                utloesendeMelding = message.toJson().parseJson()
+            )
+                .publish()
             return
         }
         MdcUtils.withLogFields(
@@ -82,7 +97,7 @@ class SpinnService(
             Log.forespoerselId(forespoerselId)
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
-            if (transaction == Transaction.NEW) {
+            if (transaction is Transaction.New) {
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
@@ -96,10 +111,6 @@ class SpinnService(
                     }
             }
         }
-    }
-
-    private fun publishFail(message: JsonMessage) {
-        rapid.publish(message.createFail("Kunne ikke lese data fra Redis!").toJsonMessage().toJson())
     }
 
     override fun finalize(message: JsonMessage) {
@@ -141,12 +152,9 @@ class SpinnService(
         }
     }
 
-    override fun terminate(message: JsonMessage) {
-        val json = message.toJsonMap()
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
+    override fun terminate(fail: Fail) {
         MdcUtils.withLogFields(
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(fail.transaksjonId!!)
         ) {
             sikkerLogger.error("$event terminert.")
         }
@@ -154,4 +162,10 @@ class SpinnService(
 
     private fun RedisKey.read(): String? =
         redisStore.get(this)
+
+    private fun Fail.publish() {
+        rapid.publish(
+            Key.FAIL to toJson(Fail.serializer())
+        )
+    }
 }

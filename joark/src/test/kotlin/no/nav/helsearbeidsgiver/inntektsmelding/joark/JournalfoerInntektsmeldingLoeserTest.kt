@@ -13,9 +13,8 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
-import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
+import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -25,6 +24,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class JournalfoerInntektsmeldingLoeserTest {
 
@@ -53,10 +53,10 @@ class JournalfoerInntektsmeldingLoeserTest {
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.toJson(),
             DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer()),
-            Key.UUID to "uuid-557".toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val fail = testRapid.firstMessage().toDomeneMessage<Fail>()
+        val fail = testRapid.firstMessage().readFail()
 
         assertEquals(forventetFeilmelding, fail.feilmelding)
     }
@@ -72,11 +72,13 @@ class JournalfoerInntektsmeldingLoeserTest {
             dokumenter = emptyList()
         )
 
+        val expectedUuid = UUID.randomUUID()
+
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.toJson(),
             DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer()),
-            Key.UUID to "uuid-979".toJson()
+            Key.UUID to expectedUuid.toJson()
         )
 
         val publisert = testRapid.firstMessage()
@@ -85,7 +87,7 @@ class JournalfoerInntektsmeldingLoeserTest {
 
         assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, publisert[Key.BEHOV])
         assertEquals("jid-ulende-koala", publisert[Key.JOURNALPOST_ID])
-        assertEquals("uuid-979", publisert[Key.UUID])
+        assertEquals(expectedUuid.toString(), publisert[Key.UUID])
     }
 
     @Test
@@ -94,9 +96,9 @@ class JournalfoerInntektsmeldingLoeserTest {
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.name.toJson(),
             DataFelt.INNTEKTSMELDING_DOKUMENT to "xyz".toJson(),
-            Key.UUID to "uuid-549".toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
-        val fail = testRapid.firstMessage().toDomeneMessage<Fail>()
+        val fail = testRapid.firstMessage().readFail()
         assertTrue(fail.feilmelding.isNotEmpty())
     }
 }

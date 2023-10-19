@@ -1,11 +1,12 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
+import io.kotest.matchers.shouldBe
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -16,24 +17,31 @@ class BehovTest {
 
     @Test
     fun createFail() {
-        val behov = Behov(
-            event,
-            behov,
-            UUID.randomUUID().toString(),
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.BEHOV.str to behov,
-                    Key.EVENT_NAME.str to event,
-                    "hepp" to "hei"
-                )
+        val forespoerselId = UUID.randomUUID()
+
+        val utloesendeMelding = JsonMessage.newMessage(
+            mapOf(
+                Key.BEHOV.str to behov,
+                Key.EVENT_NAME.str to event,
+                "hepp" to "hei"
             )
+        )
+
+        val behov = Behov(
+            event = event,
+            behov = behov,
+            forespoerselId = forespoerselId.toString(),
+            jsonMessage = utloesendeMelding
         )
         val feilmelding = "feilmelding"
         val fail = behov.createFail(feilmelding)
-        val message = fail.toJsonMessage()
-        println(message.toJson())
-        assertFalse(message[Key.FAIL.str].isNull)
-        assertEquals(feilmelding, message[Key.FAIL.str].asText())
-        assertFalse(message[Key.FAILED_BEHOV.str].isNull)
+
+        fail shouldBe Fail(
+            feilmelding = feilmelding,
+            event = event,
+            transaksjonId = null,
+            forespoerselId = forespoerselId,
+            utloesendeMelding = utloesendeMelding.toJson().parseJson()
+        )
     }
 }

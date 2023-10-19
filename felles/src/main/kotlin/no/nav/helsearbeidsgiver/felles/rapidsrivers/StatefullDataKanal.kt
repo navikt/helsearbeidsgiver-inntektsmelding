@@ -5,11 +5,14 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.createFail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 class StatefullDataKanal(
     private val dataFelter: Array<String>,
@@ -33,11 +36,17 @@ class StatefullDataKanal(
 
     override fun onData(packet: JsonMessage) {
         if (packet[Key.UUID.str].asText().isNullOrEmpty()) {
-            sikkerLogger().error("TransaksjonsID er ikke initialisert for\n${packet.toPretty()}")
+            sikkerLogger().error("Transaksjon-ID er ikke initialisert for\n${packet.toPretty()}")
+            val fail = Fail(
+                feilmelding = "TransaksjonsID / UUID kan ikke vare tom da man bruker Composite Service",
+                event = eventName,
+                transaksjonId = UUID.randomUUID(),
+                forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText().runCatching(UUID::fromString).getOrNull(),
+                utloesendeMelding = packet.toJson().parseJson()
+            )
+
             rapidsConnection.publish(
-                packet.createFail(
-                    "TransaksjonsID / UUID kan ikke vare tom da man bruker Composite Service"
-                ).toJsonMessage().toJson()
+                Key.FAIL to fail.toJson(Fail.serializer())
             )
         } else if (collectData(packet)) {
             sikkerLogger().info("data collected for event ${eventName.name} med packet\n${packet.toPretty()}")

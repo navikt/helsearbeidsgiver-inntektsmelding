@@ -6,15 +6,15 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
-import no.nav.helsearbeidsgiver.felles.toFeilMessage
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
@@ -27,14 +27,14 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         val transaction: Transaction = determineTransactionState(packet)
 
         when (transaction) {
-            Transaction.NEW -> {
+            is Transaction.New -> {
                 initialTransactionState(packet)
                 dispatchBehov(packet, transaction)
             }
-            Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
-            Transaction.FINALIZE -> finalize(packet)
-            Transaction.TERMINATE -> terminate(packet)
-            Transaction.NOT_ACTIVE -> return
+            is Transaction.InProgress -> dispatchBehov(packet, transaction)
+            is Transaction.Finalize -> finalize(packet)
+            is Transaction.Terminate -> terminate(transaction.fail)
+            is Transaction.NotActive -> return
         }
     }
 
@@ -44,7 +44,8 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         val transactionId = message[Key.UUID.str].asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
             sikkerLogger().error("Feilmelding er\n${message.toPretty()}")
-            return onError(message.toFeilMessage())
+            val fail = message[Key.FAIL.str].toString().fromJson(Fail.serializer())
+            return onError(fail)
         }
 
         val eventKey = RedisKey.of(transactionId, event)
@@ -53,7 +54,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         return when {
             value.isNullOrEmpty() -> {
                 if (!isEventMelding(message)) {
-                    Transaction.NOT_ACTIVE
+                    Transaction.NotActive
                 } else {
                     val clientId = message[Key.CLIENT_ID.str]
                         .takeUnless(JsonNode::isMissingOrNull)
@@ -62,11 +63,11 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
 
                     redisStore.set(eventKey, clientId)
 
-                    Transaction.NEW
+                    Transaction.New
                 }
             }
-            isDataCollected(transactionId) -> Transaction.FINALIZE
-            else -> Transaction.IN_PROGRESS
+            isDataCollected(transactionId) -> Transaction.Finalize
+            else -> Transaction.InProgress
         }
     }
 
@@ -93,11 +94,11 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
 
     abstract fun dispatchBehov(message: JsonMessage, transaction: Transaction)
     abstract fun finalize(message: JsonMessage)
-    abstract fun terminate(message: JsonMessage)
+    abstract fun terminate(fail: Fail)
     open fun initialTransactionState(message: JsonMessage) {}
 
     open fun onError(feil: Fail): Transaction {
-        return Transaction.TERMINATE
+        return Transaction.Terminate(feil)
     }
 
     fun withFailKanal(failKanalSupplier: (t: CompositeEventListener) -> FailKanal): CompositeEventListener {

@@ -13,10 +13,10 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -58,10 +58,10 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
+        val actual = testRapid.firstMessage().readFail()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.behov shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
+        Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
         actual.feilmelding shouldBe "Mangler inntektsmeldingId"
     }
 
@@ -79,10 +79,10 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
+        val actual = testRapid.firstMessage().readFail()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.behov shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
+        Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
         actual.feilmelding shouldBe "Feil ved kall mot spinn api: $FIKK_SVAR_MED_RESPONSE_STATUS: 404"
     }
 
@@ -99,14 +99,12 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toDomeneMessage<Data>() {
-            it.interestedIn(DataFelt.EKSTERN_INNTEKTSMELDING.str)
-        }
+        val actual = testRapid.firstMessage().toMap()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.event shouldBe EventName.FORESPOERSEL_BESVART
 
-        actual[DataFelt.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer()) shouldBe eksternInntektsmelding
+        actual[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPOERSEL_BESVART
+        actual[DataFelt.EKSTERN_INNTEKTSMELDING]?.fromJson(EksternInntektsmelding.serializer()) shouldBe eksternInntektsmelding
     }
 
     test("Hvis request timer ut blir feil publisert") {
@@ -122,10 +120,10 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             )
         }
 
-        val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
+        val actual = testRapid.firstMessage().readFail()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.behov shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
+        Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
         actual.feilmelding shouldBe "Ukjent feil ved kall til spinn"
     }
 })

@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import io.mockk.coEvery
 import io.mockk.mockk
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
@@ -15,10 +14,15 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 
 class PersisterImLoeserTest {
 
@@ -30,9 +34,9 @@ class PersisterImLoeserTest {
         løser = PersisterImLoeser(rapid, repository)
     }
 
-    private fun sendMelding(melding: JsonMessage) {
+    @BeforeEach
+    fun setup() {
         rapid.reset()
-        rapid.sendTestMessage(melding.toJson())
     }
 
     @Test
@@ -66,18 +70,16 @@ class PersisterImLoeserTest {
             true
         )
 
-        sendMelding(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                    Key.BEHOV.str to BehovType.PERSISTER_IM.name,
-                    DataFelt.VIRKSOMHET.str to "Test Virksomhet",
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
-                    Key.UUID.str to "uuid",
-                    DataFelt.INNTEKTSMELDING.str to request
-                )
-            )
+        rapid.sendJson(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
+            DataFelt.VIRKSOMHET to "Test Virksomhet".toJson(),
+            DataFelt.ARBEIDSGIVER_INFORMASJON to PersonDato("Gudrun Arbeidsgiver", null, "").toJson(PersonDato.serializer()),
+            DataFelt.ARBEIDSTAKER_INFORMASJON to PersonDato("Toril Arbeidstaker", null, "").toJson(PersonDato.serializer()),
+            Key.UUID to UUID.randomUUID().toJson(),
+            DataFelt.INNTEKTSMELDING to request.toJson(Innsending.serializer())
         )
+
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
         Assertions.assertNotNull(message.path(DataFelt.INNTEKTSMELDING.str).asText())

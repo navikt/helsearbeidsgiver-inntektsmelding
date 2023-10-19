@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -21,7 +22,8 @@ class ForespoerselLagretListener(rapidsConnection: RapidsConnection) : EventList
         it.requireKey(DataFelt.ORGNRUNDERENHET.str)
     }
 
-    override fun onEvent(event: Event) {
+    override fun onEvent(packet: JsonMessage) {
+        val event = createEvent(packet)
         if (event.forespoerselId.isNullOrBlank()) {
             publishFail(event.createFail("Mangler forespørselId"))
             return
@@ -30,12 +32,16 @@ class ForespoerselLagretListener(rapidsConnection: RapidsConnection) : EventList
         event.createBehov(
             BehovType.OPPRETT_OPPGAVE,
             mapOf(
-                DataFelt.ORGNRUNDERENHET to event[DataFelt.ORGNRUNDERENHET]
+                DataFelt.ORGNRUNDERENHET to event.jsonMessage[DataFelt.ORGNRUNDERENHET.str]
             )
         ).also { publishBehov(it) }
     }
 
-    override fun onEvent(packet: JsonMessage) {
+    private fun createEvent(jsonMessage: JsonMessage): Event {
+        val event = EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText())
+        val clientID = jsonMessage[Key.CLIENT_ID.str].takeUnless { it.isMissingOrNull() }?.asText()
+        val forespoerselId = jsonMessage[Key.FORESPOERSEL_ID.str].takeUnless { it.isMissingOrNull() }?.asText()
+        return Event(event, forespoerselId, jsonMessage, clientID)
     }
 }
 
@@ -83,11 +89,11 @@ class OpprettOppgaveLoeser(
             publishFail(behov.createFail("Mangler forespørselId"))
             return
         }
-        val oppgaveId = opprettOppgave(forespoerselId, behov[DataFelt.ORGNRUNDERENHET].asText())
+        val oppgaveId = opprettOppgave(forespoerselId, behov.jsonMessage[DataFelt.ORGNRUNDERENHET.str].asText())
         behov.createBehov(
             BehovType.PERSISTER_OPPGAVE_ID,
             mapOf(
-                DataFelt.ORGNRUNDERENHET to behov[DataFelt.ORGNRUNDERENHET].asText(),
+                DataFelt.ORGNRUNDERENHET to behov.jsonMessage[DataFelt.ORGNRUNDERENHET.str].asText(),
                 DataFelt.OPPGAVE_ID to oppgaveId
             )
         ).also { publishBehov(it) }

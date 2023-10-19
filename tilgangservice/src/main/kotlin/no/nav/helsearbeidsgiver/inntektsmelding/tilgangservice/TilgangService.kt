@@ -6,26 +6,28 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -68,7 +70,14 @@ class TilgangService(
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
-            publishFail(message)
+            Fail(
+                feilmelding = "Klarte ikke lese '${DataFelt.FORESPOERSEL_ID}' fra Redis!",
+                event = event,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding = message.toJson().parseJson()
+            )
+                .publish()
             return
         }
         val fields = loggFelterNotNull(transaksjonId, forespoerselId)
@@ -79,7 +88,7 @@ class TilgangService(
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
             when (transaction) {
-                Transaction.NEW -> {
+                is Transaction.New -> {
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.HENT_IM_ORGNR.toJson(),
@@ -95,7 +104,7 @@ class TilgangService(
                         }
                 }
 
-                Transaction.IN_PROGRESS -> {
+                is Transaction.InProgress -> {
                     val orgnrKey = RedisKey.of(transaksjonId.toString(), DataFelt.ORGNRUNDERENHET)
 
                     if (isDataCollected(orgnrKey)) {
@@ -104,8 +113,15 @@ class TilgangService(
                         val fnr = RedisKey.of(transaksjonId.toString(), DataFelt.FNR)
                             .read()
                         if (orgnr == null || fnr == null) {
-                            publishFail(message)
-                            sikkerLogger.error("kunne ikke lese orgnr og / eller fnr fra Redis")
+                            sikkerLogger.error("Klarte ikke lese orgnr og/eller fnr fra Redis!")
+                            Fail(
+                                feilmelding = "Klarte ikke lese orgnr og/eller fnr fra Redis!",
+                                event = event,
+                                transaksjonId = transaksjonId,
+                                forespoerselId = forespoerselId,
+                                utloesendeMelding = message.toJson().parseJson()
+                            )
+                                .publish()
                             return
                         }
                         rapid.publish(
@@ -131,10 +147,6 @@ class TilgangService(
                 }
             }
         }
-    }
-
-    private fun publishFail(message: JsonMessage) {
-        rapid.publish(message.createFail("Kunne ikke lese data fra Redis!").toJsonMessage().toJson())
     }
 
     override fun finalize(message: JsonMessage) {
@@ -168,16 +180,12 @@ class TilgangService(
         }
     }
 
-    override fun terminate(message: JsonMessage) {
-        val json = message.toJsonMap()
-
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
-        val clientId = RedisKey.of(transaksjonId.toString(), event)
+    override fun terminate(fail: Fail) {
+        val clientId = RedisKey.of(fail.transaksjonId.toString(), event)
             .read()
             ?.let(UUID::fromString)
 
-        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding(""))
+        val feil = RedisKey.of(fail.transaksjonId.toString(), Feilmelding(""))
             .read()
 
         val feilResponse = TilgangData(
@@ -185,11 +193,11 @@ class TilgangService(
         )
             .toJson(TilgangData.serializer())
         if (clientId == null) {
-            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne $transaksjonId i redis!")
+            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne ${fail.transaksjonId} i redis!")
         }
         RedisKey.of(clientId.toString()).write(feilResponse)
 
-        val logFields = loggFelterNotNull(transaksjonId, clientId)
+        val logFields = loggFelterNotNull(fail.transaksjonId!!, clientId)
         MdcUtils.withLogFields(
             *logFields
         ) {
@@ -198,9 +206,9 @@ class TilgangService(
     }
 
     override fun onError(feil: Fail): Transaction {
-        val transaksjonId = feil.uuid ?: throw IllegalStateException("Feil mangler transaksjon-ID.")
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
 
-        val manglendeDatafelt = when (feil.behov) {
+        val manglendeDatafelt = when (utloesendeBehov) {
             BehovType.HENT_IM_ORGNR -> DataFelt.ORGNRUNDERENHET
             BehovType.TILGANGSKONTROLL -> DataFelt.TILGANG
             else -> null
@@ -211,7 +219,7 @@ class TilgangService(
 
             sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
 
-            val feilKey = RedisKey.of(transaksjonId, feilmelding)
+            val feilKey = RedisKey.of(feil.transaksjonId.toString(), feilmelding)
 
             val feilReport = feilKey.read()
                 ?.fromJson(FeilReport.serializer())
@@ -224,7 +232,7 @@ class TilgangService(
             feilKey.write(feilReport)
         }
 
-        return Transaction.TERMINATE
+        return Transaction.Terminate(feil)
     }
 
     private fun RedisKey.write(json: JsonElement) {
@@ -233,6 +241,12 @@ class TilgangService(
 
     private fun RedisKey.read(): String? =
         redisStore.get(this)
+
+    private fun Fail.publish() {
+        rapid.publish(
+            Key.FAIL to toJson(Fail.serializer())
+        )
+    }
 
     // Veldig stygt, ta med clientId i loggfelter når den eksisterer
     // TODO: skriv heller om MDCUtils.log. Fjern dette...

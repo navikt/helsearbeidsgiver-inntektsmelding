@@ -9,7 +9,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -17,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demand
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -63,7 +63,7 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
                 Melding.fra(json)
             }
                 .onFailure {
-                    context.publishFeil("Klarte ikke lese påkrevde felt fra innkommende melding.", it, null)
+                    sikkerLogger.error("Klarte ikke lese påkrevde felt fra innkommende melding. Publiserer ingen feil.", it)
                 }
                 .getOrNull()
 
@@ -106,23 +106,25 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
             }
     }
 
-    private fun MessageContext.publishFeil(feilmelding: String, feil: Throwable?, melding: Melding?) {
+    private fun MessageContext.publishFeil(feilmelding: String, feil: Throwable?, melding: Melding) {
         logger.error("$feilmelding Se sikker logg for mer info.")
         sikkerLogger.error(feilmelding, feil)
 
-        Fail(
-            eventName = melding?.initiateEvent,
-            behov = BehovType.HENT_TRENGER_IM,
+        val failJson = Fail(
             feilmelding = feilmelding,
-            forespørselId = melding?.forespoerselSvar?.forespoerselId?.toString(),
-            uuid = melding?.transaksjonId?.toString()
+            event = melding.initiateEvent,
+            transaksjonId = melding.transaksjonId,
+            forespoerselId = melding.forespoerselSvar.forespoerselId,
+            utloesendeMelding = melding.json
         )
-            .toJsonMessage()
-            .toJson()
-            .also(::publish)
+            .toJson(Fail.serializer())
+
+        publish(
+            Key.FAIL to failJson
+        )
             .also {
                 logger.warn("Publiserte feil for ${BehovType.HENT_TRENGER_IM}.")
-                sikkerLogger.warn("Publiserte feil:\n${it.parseJson().toPretty()}")
+                sikkerLogger.warn("Publiserte feil:\n${it.toPretty()}")
             }
     }
 
@@ -149,7 +151,8 @@ fun ForespoerselSvar.Suksess.toTrengerInntekt(): TrengerInntekt =
 private data class Melding(
     val initiateEvent: EventName,
     val transaksjonId: UUID,
-    val forespoerselSvar: ForespoerselSvar
+    val forespoerselSvar: ForespoerselSvar,
+    val json: JsonElement
 ) {
     companion object {
         fun fra(json: JsonElement): Melding =
@@ -160,7 +163,8 @@ private data class Melding(
                 Melding(
                     initiateEvent = Key.EVENT_NAME.les(EventName.serializer(), boomerang),
                     transaksjonId = Key.UUID.les(UuidSerializer, boomerang),
-                    forespoerselSvar = forespoerselSvar
+                    forespoerselSvar = forespoerselSvar,
+                    json = json
                 )
             }
     }

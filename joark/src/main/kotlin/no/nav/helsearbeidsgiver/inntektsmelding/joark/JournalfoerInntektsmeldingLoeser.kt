@@ -13,12 +13,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
@@ -73,22 +70,12 @@ class JournalfoerInntektsmeldingLoeser(
         } catch (ex: UgyldigFormatException) {
             sikkerLogger.error("Klarte ikke journalføre: feil format!", ex)
             publishFail(
-                behov.createFail(
-                    "Feil format i Inntektsmelding",
-                    mapOfNotNull(
-                        DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
-                    )
-                )
+                behov.createFail("Feil format i Inntektsmelding")
             )
         } catch (ex: Exception) {
             sikkerLogger.error("Klarte ikke journalføre!", ex)
             publishFail(
-                behov.createFail(
-                    "Klarte ikke journalføre",
-                    mapOfNotNull(
-                        DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
-                    )
-                )
+                behov.createFail("Klarte ikke journalføre")
             )
         }
     }

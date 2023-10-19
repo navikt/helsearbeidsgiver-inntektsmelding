@@ -6,32 +6,30 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+
 // vi kan vurdere å bruke event feltet og dispatche event istedenfor Fail.
 abstract class FailKanal(val rapidsConnection: RapidsConnection) : River.PacketListener {
     abstract val eventName: EventName
 
     init {
-        configure(
-            River(rapidsConnection).apply {
-                validate(accept())
+        River(rapidsConnection).apply {
+            validate { msg ->
+                msg.demand(
+                    Key.FAIL to {
+                        val fail = it.fromJson(Fail.serializer())
+                        require(fail.event == eventName)
+                    }
+                )
+                msg.rejectKey(Key.BEHOV.str)
+                msg.rejectKey(Key.LØSNING.str)
+                msg.rejectKey(Key.DATA.str)
+                msg.interestedIn(Key.UUID.str)
+                msg.interestedIn(Key.FORESPOERSEL_ID.str)
             }
-        ).register(this)
-    }
-
-    protected fun accept(): River.PacketValidation {
-        return River.PacketValidation { }
-    }
-
-    private fun configure(river: River): River {
-        return river.validate {
-            it.demandValue(Key.EVENT_NAME.str, eventName.name)
-            it.demandKey(Key.FAIL.str)
-            it.rejectKey(Key.BEHOV.str)
-            it.rejectKey(Key.LØSNING.str)
-            it.rejectKey(Key.DATA.str)
-            it.requireKey(Key.UUID.str)
-            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
+            .register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

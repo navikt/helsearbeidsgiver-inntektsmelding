@@ -107,6 +107,8 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
             .filter(BehovType.OPPRETT_OPPGAVE)
+            .all()
+            .also { it.size shouldBe 1 }
             .first()
             .also { msg ->
                 val msgOnlyKeys = msg.fromJsonMapOnlyKeys()

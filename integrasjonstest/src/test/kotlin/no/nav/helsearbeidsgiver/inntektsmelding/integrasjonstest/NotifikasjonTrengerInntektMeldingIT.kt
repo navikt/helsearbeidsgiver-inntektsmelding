@@ -98,12 +98,11 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Key.UUID to Mock.forespoerselId.toJson()
         )
 
         Thread.sleep(8000)
-
-        var transaksjonsId: String
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
             .filter(BehovType.OPPRETT_OPPGAVE)
@@ -113,11 +112,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             .also { msg ->
                 val msgOnlyKeys = msg.fromJsonMapOnlyKeys()
 
-                msgOnlyKeys[Key.UUID]
-                    .shouldNotBeNull()
-                    .fromJsonToString()
-                    .also { id -> transaksjonsId = id }
-
+                msgOnlyKeys[Key.UUID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
                 msgOnlyKeys[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
 
                 val orgnr = msg.fromJsonMapOnlyDatafelter()[DataFelt.ORGNRUNDERENHET]?.fromJsonToString()

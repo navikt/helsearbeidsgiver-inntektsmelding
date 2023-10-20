@@ -39,6 +39,7 @@ class InnsendingValidateKtTest : FunSpec({
     val maksRefusjon = 1_000_001.0
     val maksNaturalBeloep = 1_000_000.0
     val negativtBeloep = -0.1
+    val hoeyereEnnInntekt = GYLDIG_INNSENDING_REQUEST.inntekt.beregnetInntekt.plus(1)
 
     test("godtar fullstendig innsending") {
         GYLDIG_INNSENDING_REQUEST.validate()
@@ -155,7 +156,10 @@ class InnsendingValidateKtTest : FunSpec({
     context(Innsending::inntekt.name) {
         test("skal tillate inntekt på 0 kroner") {
             val inntekt = GYLDIG_INNSENDING_REQUEST.inntekt.copy(beregnetInntekt = zero)
-            GYLDIG_INNSENDING_REQUEST.copy(inntekt = inntekt).validate()
+            GYLDIG_INNSENDING_REQUEST.copy(
+                inntekt = inntekt,
+                refusjon = Refusjon(utbetalerHeleEllerDeler = false)
+            ).validate()
         }
 
         test("skal gi feil dersom beregnetInntekt er for høy") {
@@ -213,7 +217,7 @@ class InnsendingValidateKtTest : FunSpec({
                 val gyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
                     inntekt = Inntekt(
                         endringÅrsak = endringAarsak,
-                        beregnetInntekt = 1.0,
+                        beregnetInntekt = GYLDIG_INNSENDING_REQUEST.inntekt.beregnetInntekt,
                         bekreftet = true,
                         manueltKorrigert = false
                     )
@@ -269,7 +273,8 @@ class InnsendingValidateKtTest : FunSpec({
             mapOf(
                 "skal gi feil dersom refusjonsbeløp er udefinert" to null,
                 "skal gi feil dersom refusjonsbeløp er negativt" to negativtBeloep,
-                "skal gi feil dersom refusjonsbeløp er for høyt" to maksRefusjon
+                "skal gi feil dersom refusjonsbeløp er for høyt" to maksRefusjon,
+                "skal gi feil dersom refusjonsbeløp er høyere enn inntekt" to hoeyereEnnInntekt
             )
         ) { refusjonPrMnd ->
             val ugyldigInnsending = GYLDIG_INNSENDING_REQUEST.copy(
@@ -317,6 +322,7 @@ class InnsendingValidateKtTest : FunSpec({
                     "feiler ved endring av refusjon uten definert beløp" to RefusjonEndring(null, now),
                     "feiler ved endring av refusjon til negativt beløp" to RefusjonEndring(negativtBeloep, now),
                     "feiler ved endring av refusjon til over maksimalt beløp" to RefusjonEndring(maksRefusjon, now),
+                    "feiler ved endring av refusjon til høyere enn inntekt" to RefusjonEndring(hoeyereEnnInntekt, now),
                     "feiler ved endring av refusjon uten satt dato" to RefusjonEndring(1.0, null)
                 )
             ) { refusjonEndring ->

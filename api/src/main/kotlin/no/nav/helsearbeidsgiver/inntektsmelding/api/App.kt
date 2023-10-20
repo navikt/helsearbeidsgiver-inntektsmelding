@@ -66,6 +66,11 @@ fun Application.apiModule(rapid: RapidsConnection) {
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
+            "Ukjent feil.".also {
+                logger.error(it)
+                sikkerLogger.error(it, cause)
+            }
+
             call.respondText(
                 text = "Error 500: $cause",
                 status = HttpStatusCode.InternalServerError

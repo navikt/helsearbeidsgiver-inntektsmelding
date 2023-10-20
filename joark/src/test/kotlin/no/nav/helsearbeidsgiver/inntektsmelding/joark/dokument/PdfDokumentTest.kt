@@ -4,6 +4,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedu
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Feilregistrert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferietrekk
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.InntektEndringAarsak
@@ -173,6 +174,7 @@ class PdfDokumentTest {
         map["sykefravaer"] = Sykefravaer(perioder)
         map["nyansatt"] = Nyansatt
         map["feilregistrert"] = Feilregistrert
+        map["ferietrekk"] = Ferietrekk
 
         map.forEach {
             writePDF(

@@ -98,8 +98,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.UUID to Mock.forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
         Thread.sleep(8000)
@@ -112,9 +111,8 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             .also { msg ->
                 val msgOnlyKeys = msg.fromJsonMapOnlyKeys()
 
-                msgOnlyKeys[Key.UUID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
                 msgOnlyKeys[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-
+                msgOnlyKeys[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
                 val orgnr = msg.fromJsonMapOnlyDatafelter()[DataFelt.ORGNRUNDERENHET]?.fromJsonToString()
 
                 orgnr shouldBe Mock.ORGNR

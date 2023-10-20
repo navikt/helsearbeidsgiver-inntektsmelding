@@ -23,8 +23,8 @@ class OpprettOppgaveLoeser(
         River.PacketValidation {
             it.demandValue(Key.EVENT_NAME.str, EVENT.name)
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
-            it.demandKey(DataFelt.ORGNRUNDERENHET.str)
-            it.demandKey(DataFelt.VIRKSOMHET.str)
+            it.requireKey(DataFelt.ORGNRUNDERENHET.str)
+            it.requireKey(DataFelt.VIRKSOMHET.str)
         }
 
     override fun onBehov(behov: Behov) {

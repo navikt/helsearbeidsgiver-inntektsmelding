@@ -103,21 +103,16 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         Thread.sleep(8000)
 
-        var transaksjonsId: String
-
         messages.filter(EventName.FORESPØRSEL_LAGRET)
             .filter(BehovType.OPPRETT_OPPGAVE)
+            .all()
+            .also { it.size shouldBe 1 }
             .first()
             .also { msg ->
                 val msgOnlyKeys = msg.fromJsonMapOnlyKeys()
 
-                msgOnlyKeys[Key.UUID]
-                    .shouldNotBeNull()
-                    .fromJsonToString()
-                    .also { id -> transaksjonsId = id }
-
                 msgOnlyKeys[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-
+                msgOnlyKeys[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
                 val orgnr = msg.fromJsonMapOnlyDatafelter()[DataFelt.ORGNRUNDERENHET]?.fromJsonToString()
 
                 orgnr shouldBe Mock.ORGNR

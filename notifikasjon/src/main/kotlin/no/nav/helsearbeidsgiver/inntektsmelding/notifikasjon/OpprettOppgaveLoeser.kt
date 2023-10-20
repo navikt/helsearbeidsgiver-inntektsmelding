@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -9,35 +8,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
-
-class ForespoerselLagretListener(rapidsConnection: RapidsConnection) : EventListener(rapidsConnection) {
-    override val event: EventName = EventName.FORESPØRSEL_LAGRET
-
-    override fun accept(): River.PacketValidation = River.PacketValidation {
-        it.requireKey(DataFelt.ORGNRUNDERENHET.str)
-    }
-
-    override fun onEvent(event: Event) {
-        if (event.forespoerselId.isNullOrBlank()) {
-            publishFail(event.createFail("Mangler forespørselId"))
-            return
-        }
-
-        event.createBehov(
-            BehovType.OPPRETT_OPPGAVE,
-            mapOf(
-                DataFelt.ORGNRUNDERENHET to event[DataFelt.ORGNRUNDERENHET]
-            )
-        ).also { publishBehov(it) }
-    }
-
-    override fun onEvent(packet: JsonMessage) {
-    }
-}
 
 class OpprettOppgaveLoeser(
     rapidsConnection: RapidsConnection,

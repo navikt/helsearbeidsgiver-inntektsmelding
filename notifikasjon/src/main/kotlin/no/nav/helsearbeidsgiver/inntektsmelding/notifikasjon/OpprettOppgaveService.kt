@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 
-class OpprettOppgave(
+class OpprettOppgaveService(
     private val rapidsConnection: RapidsConnection,
     override val redisStore: IRedisStore
 ) : CompositeEventListener(redisStore) {
@@ -87,7 +87,7 @@ class OpprettOppgave(
     override fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.VIRKSOMHET) {
             val virksomhetKey = "${feil.uuid}${DataFelt.VIRKSOMHET.str}"
-            redisStore.set(virksomhetKey, " ")
+            redisStore.set(virksomhetKey, "Arbeidsgiver")
             return Transaction.FINALIZE
         }
         return Transaction.TERMINATE

@@ -70,7 +70,7 @@ class OpprettOppgaveLoeser(
                     og vi trenger inntektsmelding for å behandle søknaden.
                     Logg inn på Min side – arbeidsgiver hos NAV.
                     Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,
-                    og trenger ikke sende inn via Min side – arbeidsgiver ."""
+                    og trenger ikke sende inn via Min side – arbeidsgiver."""
             )
         }.also {
             requestTimer.observeDuration()

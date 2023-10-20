@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class OpprettSakTest {
+class OpprettSakServiceTest {
 
     val testRapid = TestRapid()
     val testRedis = MockRedisStore()
@@ -30,7 +30,7 @@ class OpprettSakTest {
             )
         )
 
-        OpprettSak(testRapid, testRedis)
+        OpprettSakService(testRapid, testRedis)
 
         testRapid.sendTestMessage(
             message.toJson()

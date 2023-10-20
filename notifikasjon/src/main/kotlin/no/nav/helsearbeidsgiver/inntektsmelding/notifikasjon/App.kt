@@ -25,8 +25,8 @@ fun RapidsConnection.createNotifikasjon(
     linkUrl: String
 ): RapidsConnection =
     also {
-        logger.info("Starter ${OpprettSak::class.simpleName}...")
-        OpprettSak(this, redisStore)
+        logger.info("Starter ${OpprettSakService::class.simpleName}...")
+        OpprettSakService(this, redisStore)
 
         logger.info("Starter ${OpprettSakLoeser::class.simpleName}...")
         OpprettSakLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
@@ -37,8 +37,8 @@ fun RapidsConnection.createNotifikasjon(
         logger.info("Starter ${OpprettOppgaveLoeser::class.simpleName}...")
         OpprettOppgaveLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
-        logger.info("Starter ${OpprettOppgave::class.simpleName}...")
-        OpprettOppgave(this, redisStore)
+        logger.info("Starter ${OpprettOppgaveService::class.simpleName}...")
+        OpprettOppgaveService(this, redisStore)
 
         logger.info("Starter ${OppgaveFerdigLoeser::class.simpleName}...")
         OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)

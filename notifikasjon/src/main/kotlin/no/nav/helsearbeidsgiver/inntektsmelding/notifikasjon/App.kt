@@ -34,9 +34,6 @@ fun RapidsConnection.createNotifikasjon(
         logger.info("Starter ${SakFerdigLoeser::class.simpleName}...")
         SakFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
 
-        logger.info("Starter ${ForespoerselLagretListener::class.simpleName}...")
-        ForespoerselLagretListener(this)
-
         logger.info("Starter ${OpprettOppgaveLoeser::class.simpleName}...")
         OpprettOppgaveLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 

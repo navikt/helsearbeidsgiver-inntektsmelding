@@ -20,7 +20,6 @@ dependencies {
     implementation(project(":brreg"))
     implementation(project(":db"))
     implementation(project(":distribusjon"))
-    implementation(project(":dokument"))
     implementation(project(":felles"))
     implementation(project(":forespoersel-besvart"))
     implementation(project(":forespoersel-mottatt"))

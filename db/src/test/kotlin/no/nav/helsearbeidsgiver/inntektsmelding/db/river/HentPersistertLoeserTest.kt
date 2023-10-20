@@ -6,13 +6,12 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -20,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.EKSTERN_INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -40,7 +40,7 @@ class HentPersistertLoeserTest {
     }
 
     @Test
-    fun `skal hente ut InntektsmeldingDokument`() {
+    fun `skal hente ut Inntektsmelding`() {
         coEvery {
             repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } returns Pair(INNTEKTSMELDING_DOKUMENT, null)
@@ -54,7 +54,7 @@ class HentPersistertLoeserTest {
         assertTrue(melding.contains(Key.DATA.str))
         assertTrue(melding.contains(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
         assertDoesNotThrow {
-            Jackson.fromJson<InntektsmeldingDokument>(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText())
+            melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText().fromJson(Inntektsmelding.serializer())
         }
     }
 
@@ -73,7 +73,7 @@ class HentPersistertLoeserTest {
         assertTrue(melding.contains(Key.DATA.str))
         assertTrue(melding.contains(DataFelt.EKSTERN_INNTEKTSMELDING.str))
         assertDoesNotThrow {
-            Jackson.fromJson<EksternInntektsmelding>(melding.get(DataFelt.EKSTERN_INNTEKTSMELDING.str).asText())
+            melding.get(DataFelt.EKSTERN_INNTEKTSMELDING.str).asText().fromJson(EksternInntektsmelding.serializer())
         }
     }
 

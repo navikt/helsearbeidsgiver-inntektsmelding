@@ -1,12 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.RefusjonEndring
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isTelefonnummer
@@ -17,40 +17,36 @@ import org.valiktor.functions.isLessThan
 import org.valiktor.functions.isLessThanOrEqualTo
 import org.valiktor.functions.isNotEmpty
 import org.valiktor.functions.isNotNull
-import org.valiktor.functions.isNull
 import org.valiktor.functions.isTrue
 import org.valiktor.functions.validate
 import org.valiktor.functions.validateForEach
 
-fun InnsendingRequest.validate() {
+fun Innsending.validate() {
     org.valiktor.validate(this) { innsendt ->
         // sjekk om delvis eller komplett innsending:
         if (isKomplettForespoersel(innsendt.forespurtData)) { // komplett innsending (settes per nå fra frontend :/ )
             // validering kan komme til å divergere mer i fremtiden
             // Betaler arbeidsgiver full lønn til arbeidstaker
-            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).isNotNull() // må gjøre dette eksplisitt siden kontrakten tillater nullable
-            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).validate {
+            validate(Innsending::fullLønnIArbeidsgiverPerioden).isNotNull() // må gjøre dette eksplisitt siden kontrakten tillater nullable
+            validate(Innsending::fullLønnIArbeidsgiverPerioden).validate {
                 if (!it.utbetalerFullLønn) {
-                    validate(FullLonnIArbeidsgiverPerioden::begrunnelse).isNotNull()
-                    validate(FullLonnIArbeidsgiverPerioden::utbetalt).isNotNull()
-                    validate(FullLonnIArbeidsgiverPerioden::utbetalt).isGreaterThanOrEqualTo(0.0.toBigDecimal())
-                    validate(FullLonnIArbeidsgiverPerioden::utbetalt).isLessThan(1_000_000.0.toBigDecimal())
+                    validate(FullLoennIArbeidsgiverPerioden::begrunnelse).isNotNull()
+                    validate(FullLoennIArbeidsgiverPerioden::utbetalt).isNotNull()
+                    validate(FullLoennIArbeidsgiverPerioden::utbetalt).isGreaterThanOrEqualTo(0.0)
+                    validate(FullLoennIArbeidsgiverPerioden::utbetalt).isLessThan(1_000_000.0)
                 }
             }
-        } else {
-            // skal ikke komme i delvis im - gir ikke mening - og da bør vi heller ikke ta det imot og lagre det!!
-            validate(InnsendingRequest::fullLønnIArbeidsgiverPerioden).isNull()
         }
         // Den ansatte
-        validate(InnsendingRequest::orgnrUnderenhet).isNotNull()
-        validate(InnsendingRequest::orgnrUnderenhet).isOrganisasjonsnummer()
+        validate(Innsending::orgnrUnderenhet).isNotNull()
+        validate(Innsending::orgnrUnderenhet).isOrganisasjonsnummer()
         // Arbeidsgiver
-        validate(InnsendingRequest::identitetsnummer).isNotNull()
-        validate(InnsendingRequest::identitetsnummer).isIdentitetsnummer()
+        validate(Innsending::identitetsnummer).isNotNull()
+        validate(Innsending::identitetsnummer).isIdentitetsnummer()
         // valider telefon
-        validate(InnsendingRequest::telefonnummer).isTelefonnummer()
+        validate(Innsending::telefonnummer).isTelefonnummer()
         // Arbeidsgiverperioder
-        validate(InnsendingRequest::arbeidsgiverperioder).validateForEach {
+        validate(Innsending::arbeidsgiverperioder).validateForEach {
             validate(Periode::fom).isNotNull()
             validate(Periode::tom).isNotNull()
             validate(Periode::tom).isGreaterThanOrEqualTo(it.fom)
@@ -58,51 +54,51 @@ fun InnsendingRequest.validate() {
         // Er tillatt å unngå arbeidsgiverperioder når:
         // - arbeidsgiver ikke betaler lønn i arbeidsgiverperioden
         if (innsendt.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
-            validate(InnsendingRequest::arbeidsgiverperioder).isNotEmpty()
+            validate(Innsending::arbeidsgiverperioder).isNotEmpty()
         }
         // Fraværsperiode
-        validate(InnsendingRequest::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
+        validate(Innsending::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
         // Egenmelding
-        validate(InnsendingRequest::egenmeldingsperioder).validateForEach {
+        validate(Innsending::egenmeldingsperioder).validateForEach {
             validate(Periode::fom).isNotNull()
             validate(Periode::tom).isNotNull()
             validate(Periode::tom).isGreaterThanOrEqualTo(it.fom)
         }
         // Brutto inntekt
-        validate(InnsendingRequest::inntekt).validate {
+        validate(Innsending::inntekt).validate {
             validate(Inntekt::bekreftet).isTrue()
-            validate(Inntekt::beregnetInntekt).isGreaterThanOrEqualTo(0.0.toBigDecimal())
-            validate(Inntekt::beregnetInntekt).isLessThan(1_000_000.0.toBigDecimal())
+            validate(Inntekt::beregnetInntekt).isGreaterThanOrEqualTo(0.0)
+            validate(Inntekt::beregnetInntekt).isLessThan(1_000_000.0)
             if (it.manueltKorrigert) {
                 validate(Inntekt::endringÅrsak).isNotNull()
             }
         }
         // Betaler arbeidsgiver lønn under hele eller deler av sykefraværet
-        validate(InnsendingRequest::refusjon).validate {
+        validate(Innsending::refusjon).validate {
             if (it.utbetalerHeleEllerDeler) {
                 validate(Refusjon::refusjonPrMnd).isNotNull()
-                validate(Refusjon::refusjonPrMnd).isGreaterThan(0.0.toBigDecimal())
-                validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0.toBigDecimal())
+                validate(Refusjon::refusjonPrMnd).isGreaterThanOrEqualTo(0.0)
+                validate(Refusjon::refusjonPrMnd).isLessThan(1_000_000.0)
                 validate(Refusjon::refusjonPrMnd).isLessThanOrEqualTo(innsendt.inntekt.beregnetInntekt)
 
                 validate(Refusjon::refusjonEndringer).validateForEach {
                     validate(RefusjonEndring::beløp).isNotNull()
-                    validate(RefusjonEndring::beløp).isGreaterThanOrEqualTo(0.0.toBigDecimal())
-                    validate(RefusjonEndring::beløp).isLessThan(1_000_000.0.toBigDecimal())
+                    validate(RefusjonEndring::beløp).isGreaterThanOrEqualTo(0.0)
+                    validate(RefusjonEndring::beløp).isLessThan(1_000_000.0)
                     validate(RefusjonEndring::beløp).isLessThanOrEqualTo(innsendt.inntekt.beregnetInntekt)
                     validate(RefusjonEndring::dato).isNotNull()
                 }
             }
         }
         // Naturalytelser
-        validate(InnsendingRequest::naturalytelser).validateForEach {
+        validate(Innsending::naturalytelser).validateForEach {
             validate(Naturalytelse::naturalytelse).isNotNull()
             validate(Naturalytelse::dato).isNotNull()
             validate(Naturalytelse::beløp).isNotNull()
-            validate(Naturalytelse::beløp).isGreaterThan(0.0.toBigDecimal())
-            validate(Naturalytelse::beløp).isLessThan(1_000_000.0.toBigDecimal())
+            validate(Naturalytelse::beløp).isGreaterThan(0.0)
+            validate(Naturalytelse::beløp).isLessThan(1_000_000.0)
         }
-        validate(InnsendingRequest::bekreftOpplysninger).isTrue()
+        validate(Innsending::bekreftOpplysninger).isTrue()
     }
 }
 

@@ -7,20 +7,19 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
-import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingDokument
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -53,7 +52,7 @@ class JournalfoerInntektsmeldingLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmeldingDokument().let(Jackson::toJson).parseJson(),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer()),
             Key.UUID to "uuid-557".toJson()
         )
 
@@ -76,7 +75,7 @@ class JournalfoerInntektsmeldingLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmeldingDokument().let(Jackson::toJson).parseJson(),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer()),
             Key.UUID to "uuid-979".toJson()
         )
 

@@ -1,15 +1,14 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NaturalytelseKode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
-import java.math.BigDecimal
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NaturalytelseKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
 import java.time.LocalDate
 
 object TestData {
@@ -17,7 +16,7 @@ object TestData {
     const val validOrgNr = "123456785"
 }
 
-val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
+val GYLDIG_INNSENDING_REQUEST = Innsending(
     TestData.validOrgNr,
     TestData.validIdentitetsnummer,
     listOf(LocalDate.now().plusDays(5)),
@@ -35,25 +34,25 @@ val GYLDIG_INNSENDING_REQUEST = InnsendingRequest(
     ),
     LocalDate.now(),
     emptyList(),
-    Inntekt(true, 32100.0.toBigDecimal(), endringÅrsak = null, false),
-    FullLonnIArbeidsgiverPerioden(
+    Inntekt(true, 32100.0, endringÅrsak = null, false),
+    FullLoennIArbeidsgiverPerioden(
         true,
-        BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT
+        BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert
     ),
-    Refusjon(true, 200.0.toBigDecimal(), LocalDate.now()),
+    Refusjon(true, 200.0, LocalDate.now()),
     listOf(
         Naturalytelse(
             NaturalytelseKode.KOSTDOEGN,
             LocalDate.now(),
-            300.0.toBigDecimal()
+            300.0
         )
     ),
-    ÅrsakInnsending.ENDRING,
+    AarsakInnsending.ENDRING,
     true,
     "+4722222222"
 )
 
-val DELVIS_INNSENDING_REQUEST = InnsendingRequest(
+val DELVIS_INNSENDING_REQUEST = Innsending(
 
     orgnrUnderenhet = TestData.validOrgNr,
     identitetsnummer = TestData.validIdentitetsnummer,
@@ -64,14 +63,14 @@ val DELVIS_INNSENDING_REQUEST = InnsendingRequest(
     fraværsperioder = emptyList(),
     inntekt = Inntekt(
         bekreftet = true,
-        beregnetInntekt = BigDecimal.TEN,
+        beregnetInntekt = 10.0,
         endringÅrsak = null,
         manueltKorrigert = false
     ),
     fullLønnIArbeidsgiverPerioden = null,
     refusjon = Refusjon(false, null, null, null),
     naturalytelser = emptyList(),
-    årsakInnsending = ÅrsakInnsending.NY,
+    årsakInnsending = AarsakInnsending.NY,
     bekreftOpplysninger = true,
     forespurtData = listOf("inntekt", "refusjon"),
     telefonnummer = "22555555"

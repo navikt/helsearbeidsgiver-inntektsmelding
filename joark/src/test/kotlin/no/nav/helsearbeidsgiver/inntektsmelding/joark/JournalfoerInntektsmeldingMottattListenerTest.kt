@@ -2,15 +2,15 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.FullLonnIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InnsendingRequest
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Inntekt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Refusjon
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -26,7 +26,7 @@ class JournalfoerInntektsmeldingMottattListenerTest {
 
     @Test
     fun publisererEventOgBehovVedMottattInntektsmelding() {
-        val request = InnsendingRequest(
+        val request = Innsending(
             "",
             "",
             emptyList(),
@@ -36,18 +36,18 @@ class JournalfoerInntektsmeldingMottattListenerTest {
             emptyList(),
             Inntekt(
                 bekreftet = true,
-                500.0.toBigDecimal(),
+                500.0,
                 Bonus(),
                 true
             ),
-            FullLonnIArbeidsgiverPerioden(
+            FullLoennIArbeidsgiverPerioden(
                 true
             ),
             Refusjon(
                 true
             ),
             emptyList(),
-            no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending.NY,
+            no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending.NY,
             true
         )
         sendMelding(

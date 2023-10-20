@@ -24,7 +24,7 @@ import no.nav.helsearbeidsgiver.felles.TilgangData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
-import no.nav.helsearbeidsgiver.utils.json.jsonIgnoreUnknown
+import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 import org.junit.jupiter.api.AfterEach
@@ -57,7 +57,7 @@ class TestClient(
 ) {
     private val httpClient = appTestBuilder.createClient {
         install(ContentNegotiation) {
-            json(jsonIgnoreUnknown)
+            json(jsonConfig)
         }
     }
 

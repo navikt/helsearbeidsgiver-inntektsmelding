@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.BegrunnelseIngenEllerRedusertUtbetalingKode
-import java.math.BigDecimal
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -9,23 +8,23 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 private val begrunnelseRefusjonTilTekst = mapOf(
-    BegrunnelseIngenEllerRedusertUtbetalingKode.LOVLIG_FRAVAER to "Lovlig fravær uten lønn",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.FRAVAER_UTEN_GYLDIG_GRUNN to "Ikke lovlig fravær",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.ARBEID_OPPHOERT to "Arbeidsforholdet er avsluttet",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.BESKJED_GITT_FOR_SENT to "Beskjed om fravær gitt for sent eller sykmeldingen er ikke sendt i tide",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.MANGLER_OPPTJENING to "Det er ikke fire ukers opptjeningstid",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.IKKE_LOENN to "Det er ikke avtale om videre arbeid",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.BETVILER_ARBEIDSUFOERHET to "Vi betviler at ansatt er ute av stand til å jobbe",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.IKKE_FRAVAER to "Ansatt har ikke hatt fravær fra jobb",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.STREIK_ELLER_LOCKOUT to "Streik eller lockout",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.PERMITTERING to "Ansatt er helt eller delvis permittert",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.FISKER_MED_HYRE to "Ansatt er fisker med hyre på blad B",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.SAERREGLER to "Ansatt skal være donor eller skal til kontrollundersøkelse som varer i mer enn 24 timer",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.FERIE_ELLER_AVSPASERING to
+    BegrunnelseIngenEllerRedusertUtbetalingKode.LovligFravaer to "Lovlig fravær uten lønn",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.FravaerUtenGyldigGrunn to "Ikke lovlig fravær",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert to "Arbeidsforholdet er avsluttet",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent to "Beskjed om fravær gitt for sent eller sykmeldingen er ikke sendt i tide",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.ManglerOpptjening to "Det er ikke fire ukers opptjeningstid",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.IkkeLoenn to "Det er ikke avtale om videre arbeid",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.BetvilerArbeidsufoerhet to "Vi betviler at ansatt er ute av stand til å jobbe",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.IkkeFravaer to "Ansatt har ikke hatt fravær fra jobb",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.StreikEllerLockout to "Streik eller lockout",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.Permittering to "Ansatt er helt eller delvis permittert",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.FiskerMedHyre to "Ansatt er fisker med hyre på blad B",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.Saerregler to "Ansatt skal være donor eller skal til kontrollundersøkelse som varer i mer enn 24 timer",
+    BegrunnelseIngenEllerRedusertUtbetalingKode.FerieEllerAvspasering to
         "Mindre enn 16 dager siden arbeidet ble gjenopptatt på grunn av lovpålagt ferie eller avspasering",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.IKKE_FULL_STILLINGSANDEL to
+    BegrunnelseIngenEllerRedusertUtbetalingKode.IkkeFullStillingsandel to
         "Ansatt har ikke gjenopptatt full stilling etter forrige arbeidsgiverperiode",
-    BegrunnelseIngenEllerRedusertUtbetalingKode.TIDLIGERE_VIRKSOMHET to
+    BegrunnelseIngenEllerRedusertUtbetalingKode.TidligereVirksomhet to
         "Arbeidsgiverperioden er helt eller delvis gjennomført hos tidligere virksomhet"
 )
 
@@ -41,7 +40,7 @@ fun OffsetDateTime.toNorsk(): String {
     return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
 }
 
-fun BigDecimal.toNorsk(): String {
+fun Double.toNorsk(): String {
     val format = DecimalFormat("#,###.##")
     return format.format(this)
 }
@@ -51,7 +50,7 @@ fun Boolean.toNorsk(): String {
 }
 
 fun BegrunnelseIngenEllerRedusertUtbetalingKode.tekst(): String {
-    return begrunnelseRefusjonTilTekst.getOrDefault(this, this.value)
+    return begrunnelseRefusjonTilTekst.getOrDefault(this, this.name)
 }
 
 private const val MAX_LINJELENGDE = 40

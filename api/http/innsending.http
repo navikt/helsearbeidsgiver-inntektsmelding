@@ -42,7 +42,7 @@ Content-Type: application/json
   },
   "bekreftOpplysninger": true,
   "behandlingsdager": [],
-  "årsakInnsending": "Ny"
+  "årsakInnsending": "NY"
 }
 
 > {%

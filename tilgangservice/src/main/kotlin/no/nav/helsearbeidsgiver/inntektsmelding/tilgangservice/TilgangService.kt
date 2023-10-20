@@ -206,7 +206,7 @@ class TilgangService(
             else -> null
         }
 
-        return if (manglendeDatafelt != null) {
+        if (manglendeDatafelt != null) {
             val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, manglendeDatafelt)
 
             sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
@@ -222,11 +222,9 @@ class TilgangService(
                 .toJson(FeilReport.serializer())
 
             feilKey.write(feilReport)
-
-            Transaction.TERMINATE
-        } else {
-            Transaction.IN_PROGRESS
         }
+
+        return Transaction.TERMINATE
     }
 
     private fun RedisKey.write(json: JsonElement) {

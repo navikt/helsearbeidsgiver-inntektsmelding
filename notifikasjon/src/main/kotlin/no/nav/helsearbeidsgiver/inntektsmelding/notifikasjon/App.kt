@@ -37,8 +37,8 @@ fun RapidsConnection.createNotifikasjon(
         logger.info("Starter ${OpprettOppgaveLoeser::class.simpleName}...")
         OpprettOppgaveLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
-        logger.info("Starter ${OpprettOppgaveMedVirksomhetnavn::class.simpleName}...")
-        OpprettOppgaveMedVirksomhetnavn(this, redisStore)
+        logger.info("Starter ${OpprettOppgave::class.simpleName}...")
+        OpprettOppgave(this, redisStore)
 
         logger.info("Starter ${OppgaveFerdigLoeser::class.simpleName}...")
         OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)

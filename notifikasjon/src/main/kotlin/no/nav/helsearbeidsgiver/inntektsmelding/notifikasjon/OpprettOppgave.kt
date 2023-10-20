@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 
-class OpprettOppgaveMedVirksomhetnavn(
+class OpprettOppgave(
     private val rapidsConnection: RapidsConnection,
     override val redisStore: IRedisStore
 ) : CompositeEventListener(redisStore) {

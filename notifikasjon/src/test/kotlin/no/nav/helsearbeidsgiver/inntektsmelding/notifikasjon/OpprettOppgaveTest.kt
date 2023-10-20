@@ -13,14 +13,14 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class OpprettOppgaveMedVirksomhetnavnTest {
+class OpprettOppgaveTest {
 
     private val rapid = TestRapid()
     private val redisStore = MockRedisStore()
-    private var løser: OpprettOppgaveMedVirksomhetnavn
+    private var løser: OpprettOppgave
 
     init {
-        løser = OpprettOppgaveMedVirksomhetnavn(rapid, redisStore)
+        løser = OpprettOppgave(rapid, redisStore)
     }
 
     @BeforeEach
@@ -48,7 +48,7 @@ class OpprettOppgaveMedVirksomhetnavnTest {
                     Key.DATA.str to "",
                     DataFelt.VIRKSOMHET.str to "TestBedrift A/S",
                     Key.FORESPOERSEL_ID.str to generertForespoerselId!!,
-                    Key.UUID.str to generertForespoerselId!!
+                    Key.UUID.str to generertForespoerselId
                 )
             ).toJson()
         )

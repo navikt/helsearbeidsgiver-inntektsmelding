@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 
+@Deprecated("Replace with rapidrivers.model.Fail")
 @Serializable
 data class Fail(
     @JsonIgnore

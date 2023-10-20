@@ -13,10 +13,11 @@ import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -54,11 +55,9 @@ class VirksomhetLoeserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val publisert = testRapid.firstMessage().toMap()
-        publisert[Key.FAIL]
-            .shouldNotBeNull()
-            .fromJson(Fail.serializer()).feilmelding
-            .shouldBe("Fant ikke virksomhet")
+        val publisert = testRapid.firstMessage()
+
+        publisert.toDomeneMessage<Fail>().feilmelding.shouldBe("Fant ikke virksomhet")
     }
 
     @Test
@@ -89,10 +88,8 @@ class VirksomhetLoeserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val publisert = testRapid.firstMessage().toMap()
+        val publisert = testRapid.firstMessage()
 
-        publisert[Key.FAIL].shouldNotBeNull()
-            .fromJson(Fail.serializer()).feilmelding
-            .shouldBe("Klarte ikke hente virksomhet")
+        publisert.toDomeneMessage<Fail>().feilmelding.shouldBe("Klarte ikke hente virksomhet")
     }
 }

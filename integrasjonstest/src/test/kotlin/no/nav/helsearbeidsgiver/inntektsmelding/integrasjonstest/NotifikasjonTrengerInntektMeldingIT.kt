@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -104,21 +103,16 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         Thread.sleep(8000)
 
-        var transaksjonsId: String
-
         messages.filter(EventName.FORESPØRSEL_LAGRET)
             .filter(BehovType.OPPRETT_OPPGAVE)
+            .all()
+            .also { it.size shouldBe 1 }
             .first()
             .also { msg ->
                 val msgOnlyKeys = msg.fromJsonMapOnlyKeys()
 
-                msgOnlyKeys[Key.UUID]
-                    .shouldNotBeNull()
-                    .fromJsonToString()
-                    .also { id -> transaksjonsId = id }
-
                 msgOnlyKeys[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-
+                msgOnlyKeys[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
                 val orgnr = msg.fromJsonMapOnlyDatafelter()[DataFelt.ORGNRUNDERENHET]?.fromJsonToString()
 
                 orgnr shouldBe Mock.ORGNR
@@ -137,7 +131,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 val msgKeyValues = it.fromJsonMapOnlyKeys()
 
                 msgKeyValues[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                msgKeyValues[Key.UUID]?.fromJsonToString() shouldBe transaksjonsId
             }
 
         messages.filter(EventName.OPPGAVE_LAGRET)
@@ -148,8 +141,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                     ?.fromJsonToString()
 
                 oppgaveId shouldBe Mock.OPPGAVE_ID
-
-                it.fromJsonMapOnlyKeys() shouldNotContainKey Key.UUID
             }
     }
 

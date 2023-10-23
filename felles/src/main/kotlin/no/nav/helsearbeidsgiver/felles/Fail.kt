@@ -2,16 +2,21 @@ package no.nav.helsearbeidsgiver.felles
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 
+@Deprecated("Replace with rapidrivers.model.Fail")
+@Serializable
 data class Fail(
     @JsonIgnore
-    val eventName: EventName?,
+    val eventName: EventName? = null,
     val behov: BehovType? = null,
     val feilmelding: String,
-    val data: Map<DataFelt, Any?>? = null,
+    @JsonIgnore
+    val data: Map<DataFelt, JsonElement?>? = null,
     val uuid: String?,
     val forespørselId: String?
 ) {
@@ -34,7 +39,7 @@ fun JsonMessage.toFeilMessage(): Fail =
             )
         )
 
-fun JsonMessage.createFail(feilmelding: String, data: Map<DataFelt, Any?>? = null, behovType: BehovType? = null): Fail {
+fun JsonMessage.createFail(feilmelding: String, data: Map<DataFelt, JsonElement?>? = null, behovType: BehovType? = null): Fail {
     val behovNode: JsonNode? = this.valueNullable(Key.BEHOV)
     // behovtype trenger å vare definert eksplisit da behov elemente er en List
     val behov: BehovType? = behovType ?: if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null

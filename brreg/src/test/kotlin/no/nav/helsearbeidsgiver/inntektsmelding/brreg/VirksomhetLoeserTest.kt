@@ -16,6 +16,8 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -53,12 +55,9 @@ class VirksomhetLoeserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val publisert = testRapid.firstMessage().toMap()
+        val publisert = testRapid.firstMessage()
 
-        publisert[Key.FAIL]
-            .shouldNotBeNull()
-            .fromJson(String.serializer())
-            .shouldBe("Ugyldig virksomhet $ORGNR")
+        publisert.toDomeneMessage<Fail>().feilmelding.shouldBe("Fant ikke virksomhet")
     }
 
     @Test
@@ -89,8 +88,8 @@ class VirksomhetLoeserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val publisert = testRapid.firstMessage().toMap()
+        val publisert = testRapid.firstMessage()
 
-        publisert[Key.FAIL].shouldNotBeNull()
+        publisert.toDomeneMessage<Fail>().feilmelding.shouldBe("Klarte ikke hente virksomhet")
     }
 }

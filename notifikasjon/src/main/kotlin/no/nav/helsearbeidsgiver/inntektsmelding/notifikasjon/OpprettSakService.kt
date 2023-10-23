@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
 class OpprettSakService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
-    override val event: EventName = EventName.SAK_OPPRETT
+    override val event: EventName = EventName.SAK_OPPRETT_REQUESTED
 
     init {
         withEventListener {

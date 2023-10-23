@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -27,28 +26,25 @@ class ForespoerselLagretListener(rapidsConnection: RapidsConnection) : EventList
 
     override fun onEvent(packet: JsonMessage) {
         logger.info("Mottatt event ${EventName.FORESPØRSEL_LAGRET}")
-        val sakUUID = UUID.randomUUID()
-        val oppgaveUUID = UUID.randomUUID()
-        val sakbehov = JsonMessage.newMessage(
+        val uuid = UUID.randomUUID()
+        val sakEvent = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.SAK_OPPRETT,
-                Key.BEHOV.str to BehovType.OPPRETT_SAK,
-                Key.UUID.str to sakUUID,
+                Key.EVENT_NAME.str to EventName.SAK_OPPRETT_REQUESTED,
+                Key.UUID.str to uuid,
                 Key.FORESPOERSEL_ID.str to packet[Key.FORESPOERSEL_ID.str],
                 Key.IDENTITETSNUMMER.str to packet[Key.IDENTITETSNUMMER.str],
                 DataFelt.ORGNRUNDERENHET.str to packet[DataFelt.ORGNRUNDERENHET.str]
             )
         )
-        val oppgavebehov = JsonMessage.newMessage(
+        val oppgaveEvent = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT,
-                Key.BEHOV.str to BehovType.OPPRETT_OPPGAVE,
-                Key.UUID.str to oppgaveUUID,
+                Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
+                Key.UUID.str to uuid,
                 Key.FORESPOERSEL_ID.str to packet[Key.FORESPOERSEL_ID.str],
                 DataFelt.ORGNRUNDERENHET.str to packet[DataFelt.ORGNRUNDERENHET.str]
             )
         )
-        publishBehov(sakbehov)
-        publishBehov(oppgavebehov)
+        rapidsConnection.publish(sakEvent.toJson())
+        rapidsConnection.publish(oppgaveEvent.toJson())
     }
 }

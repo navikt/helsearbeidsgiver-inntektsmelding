@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -17,11 +16,8 @@ class OpprettOppgaveLoeser(
     private val linkUrl: String
 ) : Loeser(rapidsConnection) {
 
-    private val EVENT = EventName.FORESPØRSEL_LAGRET
-
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
-            it.demandValue(Key.EVENT_NAME.str, EVENT.name)
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
             it.requireKey(DataFelt.ORGNRUNDERENHET.str)
             it.requireKey(DataFelt.VIRKSOMHET.str)

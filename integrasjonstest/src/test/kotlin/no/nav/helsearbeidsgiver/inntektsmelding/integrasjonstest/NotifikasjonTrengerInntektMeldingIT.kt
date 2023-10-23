@@ -41,7 +41,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         Thread.sleep(10000)
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT)
             .filter(BehovType.FULLT_NAVN)
             .first()
             .fromJsonMapOnlyKeys()
@@ -50,7 +50,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT)
             .filter(DataFelt.ARBEIDSTAKER_INFORMASJON)
             .first()
             .fromJsonMapOnlyDatafelter()
@@ -60,7 +60,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                     .shouldNotBeNull()
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT)
             .filter(BehovType.OPPRETT_SAK)
             .first()
             .fromJsonMapOnlyKeys()
@@ -68,7 +68,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT)
             .filter(DataFelt.SAK_ID)
             .first()
             .also {
@@ -103,7 +103,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         Thread.sleep(8000)
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.OPPGAVE_OPPRETT)
             .filter(BehovType.OPPRETT_OPPGAVE)
             .all()
             .also { it.size shouldBe 1 }
@@ -118,7 +118,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 orgnr shouldBe Mock.ORGNR
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.OPPGAVE_OPPRETT)
             .filter(BehovType.PERSISTER_OPPGAVE_ID)
             .first()
             .also {

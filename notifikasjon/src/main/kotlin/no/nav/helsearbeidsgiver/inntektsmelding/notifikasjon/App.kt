@@ -25,6 +25,9 @@ fun RapidsConnection.createNotifikasjon(
     linkUrl: String
 ): RapidsConnection =
     also {
+        logger.info("Starter ${ForespoerselLagretListener::class.simpleName}...")
+        ForespoerselLagretListener(this)
+
         logger.info("Starter ${OpprettSakService::class.simpleName}...")
         OpprettSakService(this, redisStore)
 

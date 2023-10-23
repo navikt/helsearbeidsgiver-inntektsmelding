@@ -49,7 +49,7 @@ class OpprettSakLoeserTest : FunSpec({
         } returns expectedSakId
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
+            Key.EVENT_NAME to EventName.SAK_OPPRETT.toJson(),
             Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
             DataFelt.ARBEIDSTAKER_INFORMASJON to mockPersonDato().toJson(PersonDato.serializer()),
             DataFelt.ORGNRUNDERENHET to "org-456".toJson(),

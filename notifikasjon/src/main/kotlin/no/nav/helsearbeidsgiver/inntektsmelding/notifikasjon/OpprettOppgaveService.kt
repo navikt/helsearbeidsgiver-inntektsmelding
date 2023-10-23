@@ -20,7 +20,7 @@ class OpprettOppgaveService(
     override val redisStore: IRedisStore
 ) : CompositeEventListener(redisStore) {
 
-    override val event: EventName = EventName.FORESPØRSEL_LAGRET
+    override val event: EventName = EventName.OPPGAVE_OPPRETT
 
     init {
         withEventListener {

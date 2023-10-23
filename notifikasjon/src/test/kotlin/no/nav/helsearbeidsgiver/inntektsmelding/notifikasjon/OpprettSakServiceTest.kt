@@ -44,12 +44,15 @@ class OpprettSakServiceTest {
                 Key.FORESPOERSEL_ID.str to foresporselId,
                 Key.UUID.str to uuid,
                 Key.FAIL.str to
-                    Behov.create
-                        (EventName.SAK_OPPRETT_REQUESTED, BehovType.FULLT_NAVN, foresporselId.toString(), mapOf(Key.UUID to uuid)
+                    Behov.create(
+                        EventName.SAK_OPPRETT_REQUESTED,
+                        BehovType.FULLT_NAVN,
+                        foresporselId.toString(),
+                        mapOf(Key.UUID to uuid)
                     )
-                    .createFail(
-                "Klarte ikke hente navn"
-                    )
+                        .createFail(
+                            "Klarte ikke hente navn"
+                        )
                 // Key.FAIL.str to "Klarte ikke hente navn" -> Dette knekker StatefullEventListener.isFailMelding()
             )
         )

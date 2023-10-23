@@ -18,12 +18,9 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 
 class KotlinxUtilsKtTest : FunSpec({
@@ -53,26 +50,6 @@ class KotlinxUtilsKtTest : FunSpec({
                     hobbit["age"].shouldNotBeNull().jsonPrimitive.content shouldBe "111"
                 }
             }
-        }
-    }
-
-    context("løsning") {
-        val loesning = "gninsøl".toLøsningSuccess()
-        val loesningJson = """
-            {
-                "løsningType": "SUCCESS",
-                "resultat": "gninsøl"
-            }
-        """.removeJsonWhitespace()
-
-        val testSerializer = String.serializer().loesning()
-
-        test("serialiserer korrekt") {
-            loesning.toJsonStr(testSerializer) shouldBe loesningJson
-        }
-
-        test("deserialiserer korrekt") {
-            loesningJson.fromJson(testSerializer) shouldBe loesning
         }
     }
 

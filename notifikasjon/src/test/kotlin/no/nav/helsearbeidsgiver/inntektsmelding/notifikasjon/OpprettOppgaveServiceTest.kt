@@ -32,7 +32,7 @@ class OpprettOppgaveServiceTest {
         rapid.sendTestMessage(
             JsonMessage.newMessage(
                 mapOf(
-                    Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET,
+                    Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
                     Key.UUID.str to UUID.randomUUID(),
                     DataFelt.ORGNRUNDERENHET.str to "123456789",
                     Key.FORESPOERSEL_ID.str to "987654321"
@@ -43,7 +43,7 @@ class OpprettOppgaveServiceTest {
         rapid.sendTestMessage(
             JsonMessage.newMessage(
                 mapOf(
-                    Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET,
+                    Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
                     Key.DATA.str to "",
                     DataFelt.VIRKSOMHET.str to "TestBedrift A/S",
                     Key.FORESPOERSEL_ID.str to generertForespoerselId!!,
@@ -62,7 +62,7 @@ class OpprettOppgaveServiceTest {
         rapid.sendTestMessage(
             JsonMessage.newMessage(
                 mapOf(
-                    Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET,
+                    Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
                     Key.UUID.str to UUID.randomUUID(),
                     DataFelt.ORGNRUNDERENHET.str to "123456789",
                     Key.FORESPOERSEL_ID.str to "987654321"
@@ -71,7 +71,7 @@ class OpprettOppgaveServiceTest {
         )
         val generertForespoerselId = redisStore.get("uuid")
         val feil = Fail(
-            EventName.FORESPØRSEL_LAGRET,
+            EventName.OPPGAVE_OPPRETT_REQUESTED,
             BehovType.VIRKSOMHET,
             "Klarte ikke hente virksomhet",
             mapOf(

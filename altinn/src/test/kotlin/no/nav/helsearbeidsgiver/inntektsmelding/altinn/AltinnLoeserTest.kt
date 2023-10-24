@@ -52,7 +52,7 @@ class AltinnLoeserTest : LoeserTest() {
 private fun mockAltinnOrganisasjonSet(): Set<AltinnOrganisasjon> =
     setOf(
         AltinnOrganisasjon(
-            name = "Pippin's Breakfast & Breakfast",
+            navn = "Pippin's Breakfast & Breakfast",
             type = "gluttonous"
         )
     )

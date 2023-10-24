@@ -1,4 +1,3 @@
-val altinnClientVersion: String by project
 val ktorVersion: String by project
 val lettuceVersion: String by project
 val mockOauth2ServerVersion: String by project
@@ -27,7 +26,6 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
-    implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")
     implementation("no.nav.security:token-validation-ktor-v2:$tokenSupportVersion")
     implementation("org.valiktor:valiktor-core:$valiktorVersion")

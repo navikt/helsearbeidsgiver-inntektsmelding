@@ -15,7 +15,7 @@ abstract class ContainerTest {
     val topic = "helsearbeidsgiver.inntektsmelding"
 
     val kafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.1"))
-    val redisContainer = RedisContainer(RedisContainer.DEFAULT_IMAGE_NAME.withTag(RedisContainer.DEFAULT_TAG))
+    val redisContainer = RedisContainer(DockerImageName.parse("redis:7"))
     val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:14")
 
     @BeforeAll

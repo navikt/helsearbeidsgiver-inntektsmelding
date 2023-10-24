@@ -1,4 +1,4 @@
-val altinnVersion: String by project
+val altinnClientVersion: String by project
 val ktorVersion: String by project
 val lettuceVersion: String by project
 val mockOauth2ServerVersion: String by project
@@ -14,13 +14,20 @@ tasks {
 }
 
 dependencies {
+    constraints {
+        // En transitiv avhengighet i ktor 2.3.5. Kan trolig fjernes ved nyere versjoner.
+        implementation("io.netty:netty-codec-http2:4.1.100.Final") {
+            because("https://github.com/navikt/helsearbeidsgiver-inntektsmelding/security/dependabot/14")
+        }
+    }
+
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.lettuce:lettuce-core:$lettuceVersion")
-    implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnVersion")
+    implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")
     implementation("no.nav.security:token-client-core:$tokenSupportVersion")
     implementation("no.nav.security:token-validation-ktor-v2:$tokenSupportVersion")
     implementation("org.valiktor:valiktor-core:$valiktorVersion")

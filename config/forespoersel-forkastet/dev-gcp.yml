@@ -1,0 +1,4 @@
+kafkaPool: nav-dev
+env:
+  - name: KAFKA_EXTRA_TOPIC
+    value: helsearbeidsgiver.pri

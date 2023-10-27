@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
 
-import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -12,23 +13,28 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 import org.apache.kafka.common.serialization.Serializer as KafkaSerializer
 
-class PriProducer<T : Any>(
-    private val producer: KafkaProducer<String, T>
+class PriProducer(
+    private val producer: KafkaProducer<String, JsonElement>
 ) {
-    constructor(env: Env, serializer: KSerializer<T>) : this(
-        createProducer(env, serializer)
+    constructor(env: Env) : this(
+        createProducer(env)
     )
 
     private val topic = Pri.TOPIC
 
-    fun send(message: T): Boolean =
+    fun send(vararg message: Pair<Pri.Key, JsonElement>): Result<JsonElement> =
+        message.toMap()
+            .toJson()
+            .let(::send)
+
+    fun send(message: JsonElement): Result<JsonElement> =
         message.toRecord()
             .runCatching {
                 producer.send(this).get()
             }
-            .isSuccess
+            .map { message }
 
-    private fun T.toRecord(): ProducerRecord<String, T> =
+    private fun JsonElement.toRecord(): ProducerRecord<String, JsonElement> =
         ProducerRecord(topic, this)
 
     interface Env {
@@ -39,11 +45,19 @@ class PriProducer<T : Any>(
     }
 }
 
-private fun <T : Any> createProducer(env: PriProducer.Env, serializer: KSerializer<T>): KafkaProducer<String, T> =
+private fun Map<Pri.Key, JsonElement>.toJson(): JsonElement =
+    toJson(
+        MapSerializer(
+            Pri.Key.serializer(),
+            JsonElement.serializer()
+        )
+    )
+
+private fun createProducer(env: PriProducer.Env): KafkaProducer<String, JsonElement> =
     KafkaProducer(
         kafkaProperties(env),
         StringSerializer(),
-        Serializer(serializer)
+        Serializer()
     )
 
 private fun kafkaProperties(env: PriProducer.Env): Properties =
@@ -68,11 +82,9 @@ private fun kafkaProperties(env: PriProducer.Env): Properties =
         )
     }
 
-private class Serializer<T : Any>(
-    private val serializer: KSerializer<T>
-) : KafkaSerializer<T> {
-    override fun serialize(topic: String, data: T): ByteArray =
-        data.toJson(serializer)
+private class Serializer : KafkaSerializer<JsonElement> {
+    override fun serialize(topic: String, data: JsonElement): ByteArray =
+        data.toJson(JsonElement.serializer())
             .toString()
             .toByteArray()
 }

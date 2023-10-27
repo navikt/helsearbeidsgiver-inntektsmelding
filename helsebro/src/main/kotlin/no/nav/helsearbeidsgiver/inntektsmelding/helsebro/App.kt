@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-helsebro".logger()
@@ -11,7 +10,7 @@ private val logger = "helsearbeidsgiver-im-helsebro".logger()
 fun main() {
     logger.info("im-helsebro er oppe og kjører!")
 
-    val priProducer = PriProducer(Env.Kafka, TrengerForespoersel.serializer())
+    val priProducer = PriProducer(Env.Kafka)
 
     RapidApplication
         .create(System.getenv())
@@ -21,7 +20,7 @@ fun main() {
     logger.info("Nå dør jeg :(")
 }
 
-fun RapidsConnection.createHelsebro(priProducer: PriProducer<TrengerForespoersel>): RapidsConnection =
+fun RapidsConnection.createHelsebro(priProducer: PriProducer): RapidsConnection =
     also {
         logger.info("Starter ${TrengerForespoerselLoeser::class.simpleName}...")
         TrengerForespoerselLoeser(this, priProducer)

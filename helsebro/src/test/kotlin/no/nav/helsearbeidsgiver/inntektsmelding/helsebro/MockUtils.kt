@@ -9,16 +9,9 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID
-
-fun mockTrengerForespoersel(): TrengerForespoersel =
-    TrengerForespoersel(
-        forespoerselId = UUID.randomUUID(),
-        boomerang = mockBoomerang()
-    )
 
 fun mockForespoerselSvarMedSuksess(): ForespoerselSvar =
     ForespoerselSvar(

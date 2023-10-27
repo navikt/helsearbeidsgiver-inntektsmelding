@@ -1,4 +1,3 @@
-import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -29,7 +28,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -54,8 +52,7 @@ fun main() {
 //    DummyLoeser(rapid, BehovType.VIRKSOMHET)
     DummyLoeser(rapid, BehovType.FULLT_NAVN)
     // Hvis ønskelig kan man kjøre opp "ekte" løsere med eller uten mocking parallellt, sammen med DummyLøser:
-    val priProducer = mockk<PriProducer<TrengerForespoersel>>()
-    coEvery { priProducer.send(any()) } returns true
+    val priProducer = mockk<PriProducer>(relaxed = true)
     TrengerForespoerselLoeser(rapid, priProducer)
 
     rapid.start()

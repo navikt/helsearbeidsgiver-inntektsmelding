@@ -25,7 +25,7 @@ import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
 class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
     val testRapid = TestRapid()
-    val mockPriProducer = mockk<PriProducer<JsonElement>>(relaxed = true)
+    val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
     ForespoerselBesvartFraSpleisLoeser(testRapid, mockPriProducer)
 
@@ -66,7 +66,7 @@ class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
 
         verifySequence {
             mockPriProducer.send(
-                withArg {
+                withArg<JsonElement> {
                     it.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
                 }
             )

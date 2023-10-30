@@ -51,7 +51,8 @@ object Pri {
     @Serializable
     enum class NotisType : MessageType {
         FORESPØRSEL_MOTTATT,
-        FORESPOERSEL_BESVART
+        FORESPOERSEL_BESVART,
+        FORESPOERSEL_BESVART_SIMBA
     }
 
     internal object KeySerializer : AsStringSerializer<Key>(

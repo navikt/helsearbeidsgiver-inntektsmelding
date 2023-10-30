@@ -37,7 +37,8 @@ class ForespoerselBesvartFraSimbaLoeser(
                     Key.TRANSACTION_ORIGIN
                 )
                 it.rejectKeys(
-                    Key.BEHOV
+                    Key.BEHOV,
+                    Key.DATA
                 )
             }
         }.register(this)

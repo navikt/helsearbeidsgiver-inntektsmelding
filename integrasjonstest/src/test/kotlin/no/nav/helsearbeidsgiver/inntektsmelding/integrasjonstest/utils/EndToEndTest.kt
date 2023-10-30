@@ -33,6 +33,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -101,9 +102,9 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
     val spinnKlient = mockk<SpinnKlient>()
     val brregClient = mockk<BrregClient>(relaxed = true)
+    val mockPriProducer = mockk<PriProducer>()
 
     private val pdlKlient = mockk<PdlClient>()
-    private val mockPriProducer = mockk<PriProducer>()
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -156,6 +157,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
+            createMarkerForespoerselBesvart(mockPriProducer)
             createHelsebro(mockPriProducer)
             createInntekt(mockk(relaxed = true))
             createJoark(dokarkivClient)

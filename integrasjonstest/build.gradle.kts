@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":distribusjon"))
     implementation(project(":felles"))
     implementation(project(":forespoersel-besvart"))
+    implementation(project(":forespoersel-marker-besvart"))
     implementation(project(":forespoersel-mottatt"))
     implementation(project(":helsebro"))
     implementation(project(":innsending"))

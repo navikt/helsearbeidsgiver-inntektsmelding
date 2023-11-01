@@ -4,6 +4,7 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
@@ -14,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
@@ -122,6 +124,8 @@ class InnsendingIT : EndToEndTest() {
             }
 
         bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak()
+
+        bekreftMarkeringAvForespoerselSomBesvart()
     }
 
     private fun bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak() {
@@ -159,6 +163,15 @@ class InnsendingIT : EndToEndTest() {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 DataFelt.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
+    }
+
+    private fun bekreftMarkeringAvForespoerselSomBesvart() {
+        verify(exactly = 1) {
+            mockPriProducer.send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+            )
+        }
     }
 
     private object Mock {

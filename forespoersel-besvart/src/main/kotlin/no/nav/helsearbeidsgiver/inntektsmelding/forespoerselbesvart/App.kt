@@ -10,7 +10,7 @@ private val logger = "im-forespoersel-besvart".logger()
 fun main() {
     logger.info("Jeg er oppe og kjører!")
 
-    val priProducer = PriProducer(Env.Kafka)
+    val priProducer = PriProducer()
 
     RapidApplication
         .create(System.getenv())

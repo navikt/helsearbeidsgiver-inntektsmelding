@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic
 
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.fromEnv
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -16,7 +17,7 @@ import org.apache.kafka.common.serialization.Serializer as KafkaSerializer
 class PriProducer(
     private val producer: KafkaProducer<String, JsonElement>
 ) {
-    constructor(env: Env) : this(
+    constructor(env: Env = defaultEnv()) : this(
         createProducer(env)
     )
 
@@ -42,6 +43,15 @@ class PriProducer(
         val keystorePath: String
         val truststorePath: String
         val credstorePassword: String
+    }
+
+    companion object {
+        fun defaultEnv(): Env = object : Env {
+            override val brokers = "KAFKA_BROKERS".fromEnv()
+            override val keystorePath = "KAFKA_KEYSTORE_PATH".fromEnv()
+            override val truststorePath = "KAFKA_TRUSTSTORE_PATH".fromEnv()
+            override val credstorePassword = "KAFKA_CREDSTORE_PASSWORD".fromEnv()
+        }
     }
 }
 

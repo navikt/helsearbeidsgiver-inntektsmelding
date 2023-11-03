@@ -17,6 +17,6 @@ fun main() {
 
 fun RapidsConnection.createTilgangService(redisStore: IRedisStore): RapidsConnection =
     also {
-        logger.info("Starting TilgangService...")
+        logger.info("Starter ${TilgangService::class.simpleName}...")
         TilgangService(this, redisStore)
     }

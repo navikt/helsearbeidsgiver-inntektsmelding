@@ -32,7 +32,7 @@ import java.util.UUID
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLoeser(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer<JsonElement>
+    private val priProducer: PriProducer
 ) : River.PacketListener {
 
     private val logger = logger()

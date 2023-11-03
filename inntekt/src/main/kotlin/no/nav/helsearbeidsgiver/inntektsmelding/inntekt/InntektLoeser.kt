@@ -2,21 +2,16 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fnr
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Orgnr
-import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -25,9 +20,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.toYearMonth
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -36,9 +28,9 @@ import java.time.YearMonth
 import java.util.UUID
 
 class InntektLoeser(
-    private val rapid: RapidsConnection,
+    rapid: RapidsConnection,
     private val inntektKlient: InntektKlient
-) : Løser(rapid) {
+) : Loeser(rapid) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
     private val requestLatency = Summary.build()
@@ -88,13 +80,18 @@ class InntektLoeser(
 
     private fun hentInntekt(behov: Behov) {
         val requestTimer = requestLatency.startTimer()
-        hentInntektPerOrgnrOgMaaned(behov.fnr(), behov.skjaeringstidspunkt(), UUID.fromString(behov.uuid()))
-            .onSuccess {
-                val inntekt = it[behov.orgnr().verdi]
+        val fom = behov.skjaeringstidspunkt().minusMaaneder(3)
+        val middle = behov.skjaeringstidspunkt().minusMaaneder(2)
+        val tom = behov.skjaeringstidspunkt().minusMaaneder(1)
+
+        hentInntektPerOrgnrOgMaaned(behov.fnr(), fom, tom, UUID.fromString(behov.uuid()))
+            .onSuccess { inntektPerOrgnrOgMaaned ->
+                val inntektPerMaaned = inntektPerOrgnrOgMaaned[behov.orgnr().verdi]
                     .orEmpty()
+                val inntekt = listOf(fom, middle, tom)
+                    .associateWith { inntektPerMaaned[it] }
                     .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }
                     .let(::Inntekt)
-
                 publishData(
                     behov.createData(
                         mapOf(
@@ -109,10 +106,7 @@ class InntektLoeser(
         requestTimer.observeDuration()
     }
 
-    private fun hentInntektPerOrgnrOgMaaned(fnr: Fnr, skjaeringstidspunkt: LocalDate, id: UUID): Result<Map<String, Map<YearMonth, Double>>> {
-        val fom = skjaeringstidspunkt.minusMaaneder(3)
-        val tom = skjaeringstidspunkt.minusMaaneder(1)
-
+    private fun hentInntektPerOrgnrOgMaaned(fnr: Fnr, fom: YearMonth, tom: YearMonth, id: UUID): Result<Map<String, Map<YearMonth, Double>>> {
         val callId = "helsearbeidsgiver-im-inntekt-$id"
 
         sikkerLogger.info("Henter inntekt for $fnr i perioden $fom til $tom (callId: $callId).")
@@ -142,25 +136,4 @@ private fun Behov.validate() {
     this.skjaeringstidspunkt()
     this.fnr()
     this.orgnr()
-}
-
-private data class Melding(
-    val event: EventName,
-    val transaksjonId: UUID,
-    val orgnr: Orgnr,
-    val fnr: Fnr,
-    val skjaeringstidspunkt: LocalDate
-) {
-    companion object {
-        fun fra(json: JsonElement): Melding =
-            json.toMap().let {
-                Melding(
-                    event = Key.EVENT_NAME.les(EventName.serializer(), it),
-                    transaksjonId = Key.UUID.les(UuidSerializer, it),
-                    orgnr = DataFelt.ORGNRUNDERENHET.les(String.serializer(), it).let(::Orgnr),
-                    fnr = DataFelt.FNR.les(String.serializer(), it).let(::Fnr),
-                    skjaeringstidspunkt = DataFelt.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, it)
-                )
-            }
-    }
 }

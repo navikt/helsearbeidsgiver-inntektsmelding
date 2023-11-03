@@ -22,9 +22,9 @@ import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 
 class KotlinxUtilsKtTest : FunSpec({
 
@@ -65,7 +65,7 @@ class KotlinxUtilsKtTest : FunSpec({
             }
         """.removeJsonWhitespace()
 
-        val testSerializer = String.serializer().løsning()
+        val testSerializer = String.serializer().loesning()
 
         test("serialiserer korrekt") {
             loesning.toJsonStr(testSerializer) shouldBe loesningJson

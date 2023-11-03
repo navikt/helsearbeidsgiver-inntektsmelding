@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 fun JsonNode.toJsonElement(): JsonElement =
     toString().parseJson()
 
-fun <T : Any> KSerializer<T>.løsning(): KSerializer<Løsning<T>> =
+fun <T : Any> KSerializer<T>.loesning(): KSerializer<Løsning<T>> =
     Løsning.serializer(this)
 
 fun EventName.toJson(): JsonElement =

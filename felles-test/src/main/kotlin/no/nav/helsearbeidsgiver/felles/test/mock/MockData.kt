@@ -7,11 +7,8 @@ import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.til
-import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.date.november
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
 
 fun mockForespurtData(): ForespurtData =
     ForespurtData(
@@ -20,13 +17,7 @@ fun mockForespurtData(): ForespurtData =
         ),
         inntekt = ForespurtData.Inntekt(
             paakrevd = true,
-            forslag = ForslagInntekt.Grunnlag(
-                beregningsmaaneder = listOf(
-                    oktober(2017),
-                    november(2017),
-                    desember(2017)
-                )
-            )
+            forslag = ForslagInntekt.Grunnlag(forrigeInntekt = null)
         ),
         refusjon = ForespurtData.Refusjon(
             paakrevd = true,
@@ -45,6 +36,7 @@ fun mockForespurtData(): ForespurtData =
             )
         )
     )
+
 fun mockForespurtDataMedForrigeInntekt(): ForespurtData =
     ForespurtData(
         arbeidsgiverperiode = ForespurtData.Arbeidsgiverperiode(
@@ -53,11 +45,6 @@ fun mockForespurtDataMedForrigeInntekt(): ForespurtData =
         inntekt = ForespurtData.Inntekt(
             paakrevd = true,
             forslag = ForslagInntekt.Grunnlag(
-                beregningsmaaneder = listOf(
-                    oktober(2017),
-                    november(2017),
-                    desember(2017)
-                ),
                 forrigeInntekt = ForrigeInntekt(
                     skjæringstidspunkt = 1.januar.minusYears(1),
                     kilde = "INNTEKTSMELDING",

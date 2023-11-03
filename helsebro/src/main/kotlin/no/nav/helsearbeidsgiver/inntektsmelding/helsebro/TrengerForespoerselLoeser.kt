@@ -9,14 +9,13 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -24,14 +23,12 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
-import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import java.util.UUID
 
 class TrengerForespoerselLoeser(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer<TrengerForespoersel>
-) : Løser(rapid) {
+    private val priProducer: PriProducer
+) : Loeser(rapid) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -68,21 +65,20 @@ class TrengerForespoerselLoeser(
     }
 
     private fun spoerrEtterForespoersel(event: EventName, transaksjonId: UUID, forespoerselId: UUID) {
-        val trengerForespoersel = TrengerForespoersel(
-            forespoerselId = forespoerselId,
-            boomerang = mapOf(
+        priProducer.send(
+            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Pri.Key.BOOMERANG to mapOf(
                 Key.EVENT_NAME to event.toJson(),
                 Key.UUID to transaksjonId.toJson()
             ).toJson()
         )
-
-        priProducer.send(trengerForespoersel)
-            .ifTrue {
-                logger.info("Publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
-                sikkerLogger.info("Publiserte melding på pri-topic:\n${trengerForespoersel.toJson(TrengerForespoersel.serializer()).toPretty()}")
+            .onSuccess {
+                logger.info("Publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")
+                sikkerLogger.info("Publiserte melding på pri-topic:\n${it.toPretty()}")
             }
-            .ifFalse {
-                logger.warn("Klarte ikke publiserte melding på pri-topic om ${trengerForespoersel.behov}.")
+            .onFailure {
+                logger.warn("Klarte ikke publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")
             }
     }
 }

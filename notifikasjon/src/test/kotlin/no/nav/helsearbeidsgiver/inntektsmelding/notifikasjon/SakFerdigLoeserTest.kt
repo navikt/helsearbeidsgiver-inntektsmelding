@@ -58,7 +58,7 @@ class SakFerdigLoeserTest : FunSpec({
             mockAgNotifikasjonKlient.nyStatusSak(
                 id = expected.sakId,
                 status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt"
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
             )
         }
     }

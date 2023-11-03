@@ -2,14 +2,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
@@ -18,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
@@ -31,7 +31,6 @@ class KvitteringService(
     private val logger = logger()
 
     init {
-        logger.info("Starter kvitteringservice")
         withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID.str), this, rapidsConnection) }
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
         withDataKanal {
@@ -70,9 +69,9 @@ class KvitteringService(
         val clientId = redisStore.get(RedisKey.of(transaksjonsId, event))
         // TODO: Skriv bort fra empty payload hvis mulig
         val im = InnsendtInntektsmelding(
-            message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText().let { if (it != "{}") Jackson.fromJson<InntektsmeldingDokument>(it) else null },
+            message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText().let { if (it != "{}") it.fromJson(Inntektsmelding.serializer()) else null },
             message[DataFelt.EKSTERN_INNTEKTSMELDING.str].asText().let { if (it != "{}") it.fromJson(EksternInntektsmelding.serializer()) else null }
-        ).let { Jackson.toJson(it) }
+        ).toJsonStr(InnsendtInntektsmelding.serializer())
 
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
         redisStore.set(clientId!!, im)

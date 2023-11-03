@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 
 class ForespoerselBesvartFraSpleisLoeser(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer<JsonElement>
+    private val priProducer: PriProducer
 ) : ForespoerselBesvartLoeser() {
 
     override val forespoerselBesvartCounter: Counter = Counter.build()

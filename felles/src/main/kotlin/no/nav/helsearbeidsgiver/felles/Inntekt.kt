@@ -12,7 +12,7 @@ import java.time.YearMonth
 @Serializable
 data class InntektPerMaaned(
     val maaned: YearMonth,
-    val inntekt: Double
+    val inntekt: Double?
 )
 
 @Serializable
@@ -20,7 +20,7 @@ data class Inntekt(
     val maanedOversikt: List<InntektPerMaaned>
 ) {
     fun total(): Double =
-        maanedOversikt.map { it.inntekt }
+        maanedOversikt.mapNotNull { it.inntekt }
             .sumMoney()
 
     fun gjennomsnitt(): Double =

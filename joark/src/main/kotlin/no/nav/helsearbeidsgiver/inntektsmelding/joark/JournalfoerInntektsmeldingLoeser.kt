@@ -8,16 +8,17 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.createFail
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.json.Jackson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
@@ -26,7 +27,7 @@ import java.time.LocalDateTime
 class JournalfoerInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
     private val dokarkivClient: DokArkivClient
-) : Løser(rapidsConnection) {
+) : Loeser(rapidsConnection) {
 
     private val JOURNALFOER_BEHOV = BehovType.JOURNALFOER
     private val logger = logger()
@@ -36,9 +37,9 @@ class JournalfoerInntektsmeldingLoeser(
         .help("journaloer inntektsmelding latency in seconds")
         .register()
 
-    private fun mapInntektsmeldingDokument(jsonNode: JsonNode): InntektsmeldingDokument {
+    private fun mapInntektsmeldingDokument(jsonNode: JsonNode): Inntektsmelding {
         try {
-            return Jackson.fromJson(jsonNode.toString())
+            return jsonNode.toString().fromJson(Inntektsmelding.serializer())
         } catch (ex: Exception) {
             throw UgyldigFormatException(ex)
         }
@@ -54,13 +55,13 @@ class JournalfoerInntektsmeldingLoeser(
 
     override fun onBehov(behov: Behov) {
         logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid ${behov.uuid()}")
-        var inntektsmeldingDokument: InntektsmeldingDokument? = null
+        var inntektsmelding: Inntektsmelding? = null
         try {
-            inntektsmeldingDokument = mapInntektsmeldingDokument(behov[DataFelt.INNTEKTSMELDING_DOKUMENT])
-            sikkerLogger.info("Skal journalføre: $inntektsmeldingDokument")
-            val journalpostId = opprettOgFerdigstillJournalpost(behov.uuid(), inntektsmeldingDokument)
-            sikkerLogger.info("Journalførte inntektsmeldingDokument journalpostid: $journalpostId")
-            logger.info("Journalførte inntektsmeldingDokument med journalpostid: $journalpostId")
+            inntektsmelding = mapInntektsmeldingDokument(behov[DataFelt.INNTEKTSMELDING_DOKUMENT])
+            sikkerLogger.info("Skal journalføre: $inntektsmelding")
+            val journalpostId = opprettOgFerdigstillJournalpost(behov.uuid(), inntektsmelding)
+            sikkerLogger.info("Journalførte inntektsmelding journalpostid: $journalpostId")
+            logger.info("Journalførte inntektsmelding med journalpostid: $journalpostId")
             behov.createBehov(
                 BehovType.LAGRE_JOURNALPOST_ID,
                 mapOf(
@@ -71,14 +72,28 @@ class JournalfoerInntektsmeldingLoeser(
                 .also { publishBehov(it) }
         } catch (ex: UgyldigFormatException) {
             sikkerLogger.error("Klarte ikke journalføre: feil format!", ex)
-            publishFail(behov.createFail("Feil format i InntektsmeldingDokument", mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)))
+            publishFail(
+                behov.createFail(
+                    "Feil format i Inntektsmelding",
+                    mapOfNotNull(
+                        DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
+                    )
+                )
+            )
         } catch (ex: Exception) {
             sikkerLogger.error("Klarte ikke journalføre!", ex)
-            publishFail(behov.createFail("Klarte ikke journalføre", mapOfNotNull(DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmeldingDokument)))
+            publishFail(
+                behov.createFail(
+                    "Klarte ikke journalføre",
+                    mapOfNotNull(
+                        DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
+                    )
+                )
+            )
         }
     }
 
-    private fun opprettOgFerdigstillJournalpost(uuid: String, inntektsmelding: InntektsmeldingDokument): String {
+    private fun opprettOgFerdigstillJournalpost(uuid: String, inntektsmelding: Inntektsmelding): String {
         sikkerLogger.info("Bruker inntektsinformasjon $inntektsmelding")
 
         logger.info("Prøver å opprette og ferdigstille journalpost for $uuid...")

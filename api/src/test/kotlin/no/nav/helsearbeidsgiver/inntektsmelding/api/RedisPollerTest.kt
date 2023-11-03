@@ -8,7 +8,7 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.json.løsning
+import no.nav.helsearbeidsgiver.felles.json.loesning
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -21,7 +21,7 @@ import java.util.UUID
 
 class RedisPollerTest {
     private val key = UUID.randomUUID()
-    private val løsningSuccess = "noe data".toLøsningSuccess().toJson(String.serializer().løsning())
+    private val løsningSuccess = "noe data".toLøsningSuccess().toJson(String.serializer().loesning())
     private val gyldigRedisInnhold = løsningSuccess.toString()
 
     @Test

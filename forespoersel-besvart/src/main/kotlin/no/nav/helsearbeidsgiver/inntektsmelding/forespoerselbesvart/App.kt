@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart
 
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
@@ -11,7 +10,7 @@ private val logger = "im-forespoersel-besvart".logger()
 fun main() {
     logger.info("Jeg er oppe og kjører!")
 
-    val priProducer = PriProducer(Env.Kafka, JsonElement.serializer())
+    val priProducer = PriProducer()
 
     RapidApplication
         .create(System.getenv())
@@ -23,13 +22,13 @@ fun main() {
 }
 
 fun RapidsConnection.createForespoerselBesvartFraSimba(): RapidsConnection =
-    apply {
+    also {
         logger.info("Starter ${ForespoerselBesvartFraSimbaLoeser::class.simpleName}...")
         ForespoerselBesvartFraSimbaLoeser(this)
     }
 
-fun RapidsConnection.createForespoerselBesvartFraSpleis(priProducer: PriProducer<JsonElement>): RapidsConnection =
-    apply {
+fun RapidsConnection.createForespoerselBesvartFraSpleis(priProducer: PriProducer): RapidsConnection =
+    also {
         logger.info("Starter ${ForespoerselBesvartFraSpleisLoeser::class.simpleName}...")
         ForespoerselBesvartFraSpleisLoeser(this, priProducer)
     }

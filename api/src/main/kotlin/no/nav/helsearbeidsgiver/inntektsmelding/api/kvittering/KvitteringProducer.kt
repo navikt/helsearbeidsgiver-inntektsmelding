@@ -11,7 +11,7 @@ class KvitteringProducer(
     private val rapid: RapidsConnection
 ) {
     init {
-        logger.info("Starter KvitteringProducer...")
+        logger.info("Starter ${KvitteringProducer::class.simpleName}...")
     }
 
     fun publish(foresporselId: UUID): UUID {

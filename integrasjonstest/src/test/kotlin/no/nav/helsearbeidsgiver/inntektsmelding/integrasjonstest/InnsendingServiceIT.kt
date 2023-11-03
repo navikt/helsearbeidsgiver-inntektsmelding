@@ -3,18 +3,19 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
@@ -30,10 +31,19 @@ class InnsendingServiceIT : EndToEndTest() {
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
+        coEvery {
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+        } returns OpprettOgFerdigstillResponse(
+            journalpostId = "journalpost-id-sukkerspinn",
+            journalpostFerdigstilt = true,
+            melding = "Ha en brillefin dag!",
+            dokumenter = emptyList()
+        )
+
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
-            DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.let(Jackson::toJson).parseJson(),
+            DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer()),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
             Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
@@ -43,6 +53,8 @@ class InnsendingServiceIT : EndToEndTest() {
         Thread.sleep(10000)
 
         messages.all().filter(Mock.clientId).size shouldBe 11
+
+        messages.filterFeil().all().size shouldBe 0
 
         val innsendingStr = redisStore.get(Mock.clientId.toString()).shouldNotBeNull()
         innsendingStr.length shouldBeGreaterThan 2
@@ -75,12 +87,13 @@ private fun List<JsonElement>.filter(clientId: UUID): List<JsonElement> {
                 transaksjonId = msg[Key.UUID]?.fromJson(UuidSerializer)
             }
 
-            val uuid = msg[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
+            val uuid = msg[Key.UUID]?.fromJson(UuidSerializer)
 
             val innsendingStartetEllerImMottatt = eventName == EventName.INSENDING_STARTED ||
                 (eventName == EventName.INNTEKTSMELDING_MOTTATT && !msg.contains(Key.BEHOV))
 
-            uuid == transaksjonId &&
+            uuid != null &&
+                uuid == transaksjonId &&
                 innsendingStartetEllerImMottatt &&
                 !msg.contains(Key.LØSNING)
         }

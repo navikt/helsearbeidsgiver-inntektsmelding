@@ -7,26 +7,26 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.NothingSerializer
 import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.felles.json.løsning
+import no.nav.helsearbeidsgiver.felles.json.loesning
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.loeser.LøsningSerializer
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningFailure
 import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.fail
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalSerializationApi::class)
 class LøsningTest : FunSpec({
     test("Løsning.Success kan serialiseres og deserialiseres") {
-        val successSerialized = Mock.Success.expectedResultat.toLøsningSuccess().toJson(Samwise.serializer().løsning())
+        val successSerialized = Mock.Success.expectedResultat.toLøsningSuccess().toJson(Samwise.serializer().loesning())
 
         successSerialized shouldBe Mock.Success.expectedJson
 
-        val successDeserialized = successSerialized.fromJson(Samwise.serializer().løsning())
+        val successDeserialized = successSerialized.fromJson(Samwise.serializer().loesning())
 
         when (successDeserialized) {
             is Løsning.Success ->
@@ -37,11 +37,11 @@ class LøsningTest : FunSpec({
     }
 
     test("Løsning.Failure kan serialiseres og deserialiseres") {
-        val failureSerialized = Mock.Failure.expectedFeilmelding.toLøsningFailure().toJson(String.serializer().løsning())
+        val failureSerialized = Mock.Failure.expectedFeilmelding.toLøsningFailure().toJson(String.serializer().loesning())
 
         failureSerialized shouldBe Mock.Failure.expectedJson
 
-        val failureDeserialized = failureSerialized.fromJson(NothingSerializer().løsning())
+        val failureDeserialized = failureSerialized.fromJson(NothingSerializer().loesning())
 
         when (failureDeserialized) {
             is Løsning.Success ->
@@ -60,7 +60,7 @@ class LøsningTest : FunSpec({
             """
                 .removeJsonWhitespace()
                 .parseJson()
-                .fromJson(Samwise.serializer().løsning())
+                .fromJson(Samwise.serializer().loesning())
         }
     }
 
@@ -73,7 +73,7 @@ class LøsningTest : FunSpec({
             """
                 .removeJsonWhitespace()
                 .parseJson()
-                .fromJson(Samwise.serializer().løsning())
+                .fromJson(Samwise.serializer().loesning())
         }
     }
 })

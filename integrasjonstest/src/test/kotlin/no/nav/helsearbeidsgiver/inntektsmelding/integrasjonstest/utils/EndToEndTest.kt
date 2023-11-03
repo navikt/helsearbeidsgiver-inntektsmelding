@@ -2,16 +2,21 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.IKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
@@ -28,6 +33,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
+import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
@@ -94,8 +100,11 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
     val dokarkivClient = mockk<DokArkivClient>(relaxed = true)
-    private val pdlKlient = mockk<PdlClient>()
     val spinnKlient = mockk<SpinnKlient>()
+    val brregClient = mockk<BrregClient>(relaxed = true)
+    val mockPriProducer = mockk<PriProducer>()
+
+    private val pdlKlient = mockk<PdlClient>()
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -120,12 +129,20 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                 foedselsdato = 6.august
             )
         )
+        coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
+
+        mockPriProducer.apply {
+            // Må bare returnere en Result med gyldig JSON
+            val emptyResult = Result.success(JsonObject(emptyMap()))
+            every { send(any<JsonElement>()) } returns emptyResult
+            every { send(*anyVararg<Pair<Pri.Key, JsonElement>>()) } returns emptyResult
+        }
     }
 
     @BeforeAll
     fun beforeAllEndToEnd() {
-        // Start løsere
-        logger.info("Starter løsere...")
+        // Start rivers
+        logger.info("Starter rivers...")
         rapid.apply {
             createInnsending(redisStore)
             createInntektService(redisStore)
@@ -134,13 +151,14 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
             createAareg(mockk(relaxed = true))
             createAltinn(altinnClient)
-            createBrreg(mockk(relaxed = true), true)
+            createBrreg(brregClient, true)
             createDb(database, imRepository, forespoerselRepository)
             createDistribusjon(mockk(relaxed = true))
             createForespoerselBesvartFraSimba()
-            createForespoerselBesvartFraSpleis(mockk(relaxed = true))
-            createForespoerselMottatt(mockk(relaxed = true))
-            createHelsebro(mockk(relaxed = true))
+            createForespoerselBesvartFraSpleis(mockPriProducer)
+            createForespoerselMottatt(mockPriProducer)
+            createMarkerForespoerselBesvart(mockPriProducer)
+            createHelsebro(mockPriProducer)
             createInntekt(mockk(relaxed = true))
             createJoark(dokarkivClient)
             createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)

@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.Løser
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -24,7 +24,7 @@ import java.util.UUID
 class NotifikasjonHentIdLoeser(
     private val rapid: RapidsConnection,
     private val forespoerselRepo: ForespoerselRepository
-) : Løser(rapid) {
+) : Loeser(rapid) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()

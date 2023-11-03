@@ -2,26 +2,27 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Bonus
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Feilregistrert
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Ferie
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.InntektsmeldingDokument
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStilling
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.NyStillingsprosent
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Nyansatt
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Periode
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permisjon
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Permittering
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Sykefravaer
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.Tariffendring
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.VarigLonnsendring
-import no.nav.helsearbeidsgiver.felles.inntektsmelding.felles.models.ÅrsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Feilregistrert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferietrekk
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStilling
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStillingsprosent
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Nyansatt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Permisjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Permittering
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Sykefravaer
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Tariffendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.VarigLonnsendring
 import java.time.LocalDate
 
 private const val FORKLARING_ENDRING = "Forklaring for endring"
-class PdfDokument(val dokument: InntektsmeldingDokument) {
+class PdfDokument(val dokument: Inntektsmelding) {
 
-    private val pdf = PdfBuilder(bodySize = 20) // Setter skriftstørrelsen på labels og text
+    private val pdf = PdfBuilder(bodySize = 20, topText = "Innsendt: ${dokument.tidspunkt.toNorsk()}") // Setter skriftstørrelsen på labels og text
     private var y = 0
     private val KOLONNE_EN = 0
     private val KOLONNE_TO = 420
@@ -100,8 +101,8 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
     private fun addHeader() {
         pdf.addTitle(
             title = when (dokument.årsakInnsending) {
-                ÅrsakInnsending.ENDRING -> "Inntektsmelding for sykepenger - endring"
-                else -> "Inntektsmelding for sykepenger"
+                AarsakInnsending.NY -> "Inntektsmelding for sykepenger"
+                AarsakInnsending.ENDRING -> "Inntektsmelding for sykepenger - endring"
             },
             x = 0,
             y = y
@@ -184,6 +185,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             null -> return // trenger ikke sende inn årsak...
             is Permisjon -> addPermisjon(endringsårsak)
             is Ferie -> addFerie(endringsårsak)
+            is Ferietrekk -> addFerietrekk()
             is Permittering -> addPermittering(endringsårsak)
             is Tariffendring -> addTariffendring(endringsårsak)
             is VarigLonnsendring -> addVarigLonnsendring(endringsårsak)
@@ -193,7 +195,6 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             is Sykefravaer -> addSykefravaer(endringsårsak)
             is Nyansatt -> addNyAnsatt()
             is Feilregistrert -> addFeilregistrert()
-            else -> throw IllegalArgumentException("Type ${endringsårsak.typpe} håndteres ikke. Legg til hjelpefunksjon for å løse feilen.")
         }
     }
 
@@ -250,6 +251,9 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
         // addLabel("Estimert årlig bonus", årligBonus.toNorsk())
         // addLabel("Dato siste bonus", datoBonus.toNorsk())
     }
+    private fun addFerietrekk() {
+        addLabel(FORKLARING_ENDRING, "Ferietrekk/Utbetaling av feriepenger")
+    }
 
     private fun addRefusjon() {
         addSection("Refusjon")
@@ -305,7 +309,7 @@ class PdfDokument(val dokument: InntektsmeldingDokument) {
             addLabel("Dato naturalytelse bortfaller", x = NATURALYTELSE_2, linefeed = false)
             addLabel("Verdi naturalytelse - kr/måned", x = NATURALYTELSE_3)
             dokument.naturalytelser?.forEach {
-                addText(it.naturalytelse.value, NATURALYTELSE_1, linefeed = false)
+                addText(it.naturalytelse.name, NATURALYTELSE_1, linefeed = false)
                 addText(it.dato.toNorsk(), NATURALYTELSE_2, linefeed = false)
                 addText(it.beløp.toNorsk(), NATURALYTELSE_3)
             }

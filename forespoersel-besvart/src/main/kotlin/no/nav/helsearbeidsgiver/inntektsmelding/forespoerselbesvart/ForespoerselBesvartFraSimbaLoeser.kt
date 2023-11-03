@@ -42,7 +42,8 @@ class ForespoerselBesvartFraSimbaLoeser(
                     Key.TRANSACTION_ORIGIN // TODO slett etter overgangsperiode
                 )
                 it.rejectKeys(
-                    Key.BEHOV
+                    Key.BEHOV,
+                    Key.DATA
                 )
             }
         }.register(this)

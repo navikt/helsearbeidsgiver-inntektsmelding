@@ -31,7 +31,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -40,6 +39,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -148,6 +148,7 @@ private object Mock {
         arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
+        skjaeringstidspunkt = trengerInntekt().skjaeringstidspunkt,
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,
         egenmeldingsPerioder = trengerInntekt().egenmeldingsperioder,
         forespurtData = trengerInntekt().forespurtData,
@@ -162,6 +163,7 @@ private object Mock {
         arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
         virksomhetNavn = "Norge AS",
         inntekt = inntekt(),
+        skjaeringstidspunkt = trengerInntekt().skjaeringstidspunkt,
         fravarsPerioder = trengerInntekt().sykmeldingsperioder,
         egenmeldingsPerioder = trengerInntekt().egenmeldingsperioder,
         forespurtData = mockForespurtDataMedForrigeInntekt(),
@@ -179,6 +181,7 @@ private object Mock {
                 "innsenderNavn": "Arbeidsgiver",
                 "identitetsnummer": "${mockTrengerInntekt.fnr}",
                 "orgnrUnderenhet": "${mockTrengerInntekt.orgnr}",
+                "skjaeringstidspunkt": ${mockTrengerInntekt.skjaeringstidspunkt.jsonStrOrNull()},
                 "fravaersperioder": [${mockTrengerInntekt.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
                 "egenmeldingsperioder": [${mockTrengerInntekt.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
                 "bruttoinntekt": ${mockInntekt.gjennomsnitt()},
@@ -200,6 +203,7 @@ private object Mock {
                 "innsenderNavn": "Arbeidsgiver",
                 "identitetsnummer": "${mockTrengerInntekt.fnr}",
                 "orgnrUnderenhet": "${mockTrengerInntekt.orgnr}",
+                "skjaeringstidspunkt": ${mockTrengerInntekt.skjaeringstidspunkt.jsonStrOrNull()},
                 "fravaersperioder": [${mockTrengerInntekt.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
                 "egenmeldingsperioder": [${mockTrengerInntekt.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
                 "bruttoinntekt": ${mockInntekt.gjennomsnitt()},
@@ -279,8 +283,7 @@ private fun ForslagInntekt.hardcodedJson(): String =
             """
             {
                 "type": "ForslagInntektGrunnlag",
-                "beregningsmaaneder": [${beregningsmaaneder.joinToString { yearMonth -> "\"$yearMonth\"" }}]
-                ${forrigeInntekt?.let { ",\"forrigeInntekt\": ${it.hardcodedJson()}"} ?: ""}
+                "forrigeInntekt": ${forrigeInntekt?.hardcodedJson()}
             }
             """
 
@@ -295,11 +298,11 @@ private fun ForslagInntekt.hardcodedJson(): String =
 
 private fun ForrigeInntekt.hardcodedJson(): String =
     """
-        {
-            "skjæringstidspunkt":"$skjæringstidspunkt",
-            "kilde":"$kilde",
-            "beløp":$beløp
-        }
+    {
+        "skjæringstidspunkt": "$skjæringstidspunkt",
+        "kilde": "$kilde",
+        "beløp": $beløp
+    }
     """
 
 private fun ForslagRefusjon.hardcodedJson(): String =

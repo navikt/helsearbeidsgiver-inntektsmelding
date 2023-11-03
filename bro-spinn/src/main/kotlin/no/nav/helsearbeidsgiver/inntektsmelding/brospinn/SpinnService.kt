@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -66,13 +65,19 @@ class SpinnService(
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
-            publishFail(message)
+            "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
             return
         }
         val spinnImId = RedisKey.of(transaksjonId.toString(), DataFelt.SPINN_INNTEKTSMELDING_ID)
             .read()?.let(UUID::fromString)
         if (spinnImId == null) {
-            publishFail(message)
+            "Klarte ikke finne spinnImId for transaksjon $transaksjonId i Redis.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
             return
         }
         MdcUtils.withLogFields(
@@ -96,10 +101,6 @@ class SpinnService(
                     }
             }
         }
-    }
-
-    private fun publishFail(message: JsonMessage) {
-        rapid.publish(message.createFail("Kunne ikke lese data fra Redis!").toJsonMessage().toJson())
     }
 
     override fun finalize(message: JsonMessage) {

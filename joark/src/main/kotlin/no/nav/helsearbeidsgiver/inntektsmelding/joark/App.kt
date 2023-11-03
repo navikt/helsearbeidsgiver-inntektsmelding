@@ -16,15 +16,19 @@ fun main() {
 }
 
 fun RapidsConnection.createJoark(dokArkivClient: DokArkivClient): RapidsConnection =
-    apply {
-        logger.info("Starting JournalfoerInntektsmeldingLoeser...")
+    also {
+        logger.info("Starter ${JournalfoerInntektsmeldingLoeser::class.simpleName}...")
         JournalfoerInntektsmeldingLoeser(this, dokArkivClient)
 
-        logger.info("Starting JournalfoerInntektsmeldingMottattListener...")
+        logger.info("Starter ${JournalfoerInntektsmeldingMottattListener::class.simpleName}...")
         JournalfoerInntektsmeldingMottattListener(this)
     }
 
 private fun createDokArkivClient(environment: Environment): DokArkivClient {
     val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return DokArkivClient(environment.dokarkivUrl, tokenProvider::getToken)
+    return DokArkivClient(
+        url = environment.dokarkivUrl,
+        maxRetries = 3,
+        getAccessToken = tokenProvider::getToken
+    )
 }

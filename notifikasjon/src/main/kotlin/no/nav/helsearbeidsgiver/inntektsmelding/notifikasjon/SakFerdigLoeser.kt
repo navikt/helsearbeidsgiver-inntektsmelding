@@ -37,7 +37,6 @@ class SakFerdigLoeser(
     private val logger = logger()
 
     init {
-        logger.info("Starter SakFerdigLoeser...")
         River(rapid).apply {
             validate {
                 it.demandValues(
@@ -103,7 +102,7 @@ class SakFerdigLoeser(
             agNotifikasjonKlient.nyStatusSak(
                 id = sakId,
                 status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt"
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
             )
         }.also {
             requestTimer.observeDuration()

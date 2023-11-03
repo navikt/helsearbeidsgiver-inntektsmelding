@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
@@ -30,6 +29,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
@@ -39,6 +39,7 @@ class TilgangService(
     override val redisStore: IRedisStore
 ) : CompositeEventListener(redisStore) {
 
+    private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val event: EventName = EventName.TILGANG_REQUESTED
@@ -68,7 +69,10 @@ class TilgangService(
         val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
-            publishFail(message)
+            "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
             return
         }
         val fields = loggFelterNotNull(transaksjonId, forespoerselId)
@@ -104,8 +108,10 @@ class TilgangService(
                         val fnr = RedisKey.of(transaksjonId.toString(), DataFelt.FNR)
                             .read()
                         if (orgnr == null || fnr == null) {
-                            publishFail(message)
-                            sikkerLogger.error("kunne ikke lese orgnr og / eller fnr fra Redis")
+                            "Klarte ikke lese orgnr og / eller fnr fra Redis.".also {
+                                logger.error(it)
+                                sikkerLogger.error(it)
+                            }
                             return
                         }
                         rapid.publish(
@@ -131,10 +137,6 @@ class TilgangService(
                 }
             }
         }
-    }
-
-    private fun publishFail(message: JsonMessage) {
-        rapid.publish(message.createFail("Kunne ikke lese data fra Redis!").toJsonMessage().toJson())
     }
 
     override fun finalize(message: JsonMessage) {
@@ -206,7 +208,7 @@ class TilgangService(
             else -> null
         }
 
-        return if (manglendeDatafelt != null) {
+        if (manglendeDatafelt != null) {
             val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, manglendeDatafelt)
 
             sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
@@ -222,11 +224,9 @@ class TilgangService(
                 .toJson(FeilReport.serializer())
 
             feilKey.write(feilReport)
-
-            Transaction.TERMINATE
-        } else {
-            Transaction.IN_PROGRESS
         }
+
+        return Transaction.TERMINATE
     }
 
     private fun RedisKey.write(json: JsonElement) {

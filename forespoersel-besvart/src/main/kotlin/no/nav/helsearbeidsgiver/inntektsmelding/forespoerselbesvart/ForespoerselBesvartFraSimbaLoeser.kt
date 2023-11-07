@@ -8,9 +8,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -35,11 +33,8 @@ class ForespoerselBesvartFraSimbaLoeser(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name
                 )
                 it.requireKeys(
-                    Key.FORESPOERSEL_ID
-                )
-                it.interestedIn(
                     Key.UUID,
-                    Key.TRANSACTION_ORIGIN // TODO slett etter overgangsperiode
+                    Key.FORESPOERSEL_ID
                 )
                 it.rejectKeys(
                     Key.BEHOV,
@@ -53,8 +48,7 @@ class ForespoerselBesvartFraSimbaLoeser(
         Melding(
             event = EventName.INNTEKTSMELDING_MOTTATT.name,
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, this),
-            transaksjonId = Key.UUID.lesOrNull(UuidSerializer, this)
-                ?: Key.TRANSACTION_ORIGIN.les(UuidSerializer, this),
+            transaksjonId = Key.UUID.les(UuidSerializer, this),
             spinnInntektsmeldingId = null
         )
 

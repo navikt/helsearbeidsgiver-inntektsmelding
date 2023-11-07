@@ -12,10 +12,8 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -42,12 +40,9 @@ class OppgaveFerdigLoeser(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name
                 )
                 it.requireKeys(
-                    DataFelt.OPPGAVE_ID,
-                    Key.FORESPOERSEL_ID
-                )
-                it.interestedIn(
                     Key.UUID,
-                    Key.TRANSACTION_ORIGIN // TODO slett etter overgangsperiode
+                    Key.FORESPOERSEL_ID,
+                    DataFelt.OPPGAVE_ID
                 )
             }
         }.register(this)
@@ -82,8 +77,7 @@ class OppgaveFerdigLoeser(
 
         val oppgaveId = DataFelt.OPPGAVE_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, melding)
-            ?: Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.oppgaveId(oppgaveId),

@@ -102,8 +102,7 @@ class ForespoerselMottattLoeser(
                 DataFelt.ORGNRUNDERENHET to orgnr.toJson(),
                 Key.IDENTITETSNUMMER to fnr.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.TRANSACTION_ORIGIN to transaksjonId.toJson() // TODO slett etter overgangsperiode
+                Key.UUID to transaksjonId.toJson()
             )
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")

@@ -46,7 +46,7 @@ class OpprettOppgaveService(
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transaksjonsId = message[Key.UUID.str].asText()
         val forespørselId = redisStore.get(transaksjonsId + Key.FORESPOERSEL_ID.str)!!
-        if (transaction == Transaction.NEW) {
+        if (transaction is Transaction.New) {
             rapidsConnection.publish(
                 JsonMessage.newMessage(
                     mapOf(
@@ -80,16 +80,16 @@ class OpprettOppgaveService(
         )
     }
 
-    override fun terminate(message: JsonMessage) {
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
+    override fun terminate(fail: Fail) {
+        redisStore.set(fail.uuid!!, fail.feilmelding)
     }
 
     override fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.VIRKSOMHET) {
             val virksomhetKey = "${feil.uuid}${DataFelt.VIRKSOMHET.str}"
             redisStore.set(virksomhetKey, "Arbeidsgiver")
-            return Transaction.FINALIZE
+            return Transaction.Finalize
         }
-        return Transaction.TERMINATE
+        return Transaction.Terminate(feil)
     }
 }

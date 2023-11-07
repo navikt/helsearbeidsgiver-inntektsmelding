@@ -13,8 +13,10 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -42,8 +44,11 @@ class SakFerdigLoeser(
                 )
                 it.requireKeys(
                     DataFelt.SAK_ID,
-                    Key.FORESPOERSEL_ID,
-                    Key.TRANSACTION_ORIGIN
+                    Key.FORESPOERSEL_ID
+                )
+                it.interestedIn(
+                    Key.UUID,
+                    Key.TRANSACTION_ORIGIN // TODO slett etter overgangsperiode
                 )
             }
         }.register(this)
@@ -78,7 +83,8 @@ class SakFerdigLoeser(
 
         val sakId = DataFelt.SAK_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
+        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, melding)
+            ?: Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.sakId(sakId),
@@ -106,7 +112,7 @@ class SakFerdigLoeser(
             Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
             DataFelt.SAK_ID to sakId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+            Key.UUID to transaksjonId.toJson()
         )
 
         logger.info("Sak ferdigstilt.")

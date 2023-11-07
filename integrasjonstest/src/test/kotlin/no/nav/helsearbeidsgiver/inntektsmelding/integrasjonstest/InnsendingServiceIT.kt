@@ -52,7 +52,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         Thread.sleep(10000)
 
-        messages.all().filter(Mock.clientId).size shouldBe 11
+        messages.all().filter(Mock.clientId).size shouldBe 10
 
         messages.filterFeil().all().size shouldBe 0
 

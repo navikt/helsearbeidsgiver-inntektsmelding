@@ -33,6 +33,6 @@ fun <T : Message> JsonElement.toDomeneMessage(validation: River.PacketValidation
         Event.packetValidator.validate(jsonMessage)
         Event.create(jsonMessage) as T
     } else {
-        throw RuntimeException("Message skall vare enten EVENT, DATA,BEHOV eller Fail ${jsonMessage.toJson()}")
+        throw RuntimeException("Message må være EVENT, DATA, BEHOV eller FAIL ${jsonMessage.toJson()}")
     }
 }

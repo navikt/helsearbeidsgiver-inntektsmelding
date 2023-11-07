@@ -41,9 +41,9 @@ class SakFerdigLoeser(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name
                 )
                 it.requireKeys(
-                    DataFelt.SAK_ID,
+                    Key.UUID,
                     Key.FORESPOERSEL_ID,
-                    Key.TRANSACTION_ORIGIN
+                    DataFelt.SAK_ID
                 )
             }
         }.register(this)
@@ -78,7 +78,7 @@ class SakFerdigLoeser(
 
         val sakId = DataFelt.SAK_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.sakId(sakId),
@@ -96,7 +96,7 @@ class SakFerdigLoeser(
             agNotifikasjonKlient.nyStatusSak(
                 id = sakId,
                 status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt"
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
             )
         }.also {
             requestTimer.observeDuration()
@@ -106,7 +106,7 @@ class SakFerdigLoeser(
             Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
             DataFelt.SAK_ID to sakId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+            Key.UUID to transaksjonId.toJson()
         )
 
         logger.info("Sak ferdigstilt.")

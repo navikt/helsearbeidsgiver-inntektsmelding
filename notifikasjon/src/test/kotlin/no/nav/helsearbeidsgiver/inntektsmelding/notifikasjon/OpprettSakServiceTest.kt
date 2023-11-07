@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class OpprettSakTest {
+class OpprettSakServiceTest {
 
     val testRapid = TestRapid()
     val testRedis = MockRedisStore()
@@ -23,29 +23,36 @@ class OpprettSakTest {
         val foresporselId = UUID.randomUUID()
         val message = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
+                Key.EVENT_NAME.str to EventName.SAK_OPPRETT_REQUESTED.name,
                 DataFelt.ORGNRUNDERENHET.str to "123456",
                 Key.IDENTITETSNUMMER.str to "123456789",
                 Key.FORESPOERSEL_ID.str to foresporselId
             )
         )
 
-        OpprettSak(testRapid, testRedis)
+        OpprettSakService(testRapid, testRedis)
 
         testRapid.sendTestMessage(
             message.toJson()
         )
         val uuid = testRedis.get("uuid").orEmpty()
         println("Fant uuid: $uuid")
-        assertNotNull(testRedis.get(RedisKey.of(uuid, EventName.FORESPØRSEL_LAGRET)))
+        assertNotNull(testRedis.get(RedisKey.of(uuid, EventName.SAK_OPPRETT_REQUESTED)))
         val feilmelding = JsonMessage.newMessage(
             mapOf(
-                Key.EVENT_NAME.str to EventName.FORESPØRSEL_LAGRET.name,
+                Key.EVENT_NAME.str to EventName.SAK_OPPRETT_REQUESTED.name,
                 Key.FORESPOERSEL_ID.str to foresporselId,
                 Key.UUID.str to uuid,
-                Key.FAIL.str to Behov.create(EventName.FORESPØRSEL_LAGRET, BehovType.FULLT_NAVN, foresporselId.toString(), mapOf(Key.UUID to uuid)).createFail(
-                    "Klarte ikke hente navn"
-                )
+                Key.FAIL.str to
+                    Behov.create(
+                        EventName.SAK_OPPRETT_REQUESTED,
+                        BehovType.FULLT_NAVN,
+                        foresporselId.toString(),
+                        mapOf(Key.UUID to uuid)
+                    )
+                        .createFail(
+                            "Klarte ikke hente navn"
+                        )
                 // Key.FAIL.str to "Klarte ikke hente navn" -> Dette knekker StatefullEventListener.isFailMelding()
             )
         )

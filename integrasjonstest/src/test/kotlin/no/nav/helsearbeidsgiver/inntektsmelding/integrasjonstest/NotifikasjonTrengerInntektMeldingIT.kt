@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -34,7 +33,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         } returns Mock.SAK_ID
 
         publish(
-            Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
+            Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
@@ -42,7 +41,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         Thread.sleep(10000)
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(BehovType.FULLT_NAVN)
             .first()
             .fromJsonMapOnlyKeys()
@@ -51,7 +50,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(DataFelt.ARBEIDSTAKER_INFORMASJON)
             .first()
             .fromJsonMapOnlyDatafelter()
@@ -61,7 +60,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                     .shouldNotBeNull()
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(BehovType.OPPRETT_SAK)
             .first()
             .fromJsonMapOnlyKeys()
@@ -69,7 +68,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(DataFelt.SAK_ID)
             .first()
             .also {
@@ -97,34 +96,29 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         } returns Mock.OPPGAVE_ID
 
         publish(
-            Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
+            Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
         Thread.sleep(8000)
 
-        var transaksjonsId: String
-
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
             .filter(BehovType.OPPRETT_OPPGAVE)
+            .all()
+            .also { it.size shouldBe 1 }
             .first()
             .also { msg ->
                 val msgOnlyKeys = msg.fromJsonMapOnlyKeys()
 
-                msgOnlyKeys[Key.UUID]
-                    .shouldNotBeNull()
-                    .fromJsonToString()
-                    .also { id -> transaksjonsId = id }
-
                 msgOnlyKeys[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-
+                msgOnlyKeys[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
                 val orgnr = msg.fromJsonMapOnlyDatafelter()[DataFelt.ORGNRUNDERENHET]?.fromJsonToString()
 
                 orgnr shouldBe Mock.ORGNR
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
             .filter(BehovType.PERSISTER_OPPGAVE_ID)
             .first()
             .also {
@@ -137,7 +131,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                 val msgKeyValues = it.fromJsonMapOnlyKeys()
 
                 msgKeyValues[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                msgKeyValues[Key.UUID]?.fromJsonToString() shouldBe transaksjonsId
             }
 
         messages.filter(EventName.OPPGAVE_LAGRET)
@@ -148,8 +141,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
                     ?.fromJsonToString()
 
                 oppgaveId shouldBe Mock.OPPGAVE_ID
-
-                it.fromJsonMapOnlyKeys() shouldNotContainKey Key.UUID
             }
     }
 

@@ -24,7 +24,6 @@ enum class Key(override val str: String) : IKey {
     INITIATE_ID("initiateId"),
     UUID("uuid"),
     CLIENT_ID("client_id"),
-    TRANSACTION_ORIGIN("transaction_origin"),
     FORESPOERSEL_ID("forespoerselId"),
     JOURNALPOST_ID("journalpostId"),
     DATA("data"),

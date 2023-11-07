@@ -92,7 +92,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
                             JsonMessage.newMessage(
                                 mapOf(
                                     Key.EVENT_NAME.str to EventName.FORESPOERSEL_BESVART,
-                                    Key.TRANSACTION_ORIGIN.str to transaksjonsId,
+                                    Key.UUID.str to transaksjonsId,
                                     Key.FORESPOERSEL_ID.str to forespoerselId,
                                     DataFelt.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, DataFelt.SAK_ID))!!
                                 )

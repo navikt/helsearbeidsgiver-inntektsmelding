@@ -30,7 +30,7 @@ import java.util.UUID
 
 class ForespoerselMottattLoeserTest : FunSpec({
     val testRapid = TestRapid()
-    val mockPriProducer = mockk<PriProducer<JsonElement>>(relaxed = true)
+    val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
     ForespoerselMottattLoeser(testRapid, mockPriProducer)
 
@@ -75,7 +75,7 @@ class ForespoerselMottattLoeserTest : FunSpec({
 
         verifySequence {
             mockPriProducer.send(
-                withArg {
+                withArg<JsonElement> {
                     it.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
                 }
             )
@@ -92,7 +92,7 @@ private data class Published(
     val orgnrUnderenhet: String,
     val identitetsnummer: String,
     val forespoerselId: UUID,
-    @SerialName("transaction_origin")
+    @SerialName("uuid")
     val transaksjonId: UUID
 ) {
     companion object {

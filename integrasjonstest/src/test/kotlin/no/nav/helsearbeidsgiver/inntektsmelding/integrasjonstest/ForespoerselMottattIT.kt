@@ -48,7 +48,7 @@ class ForespoerselMottattIT : EndToEndTest() {
                 it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
                 it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                it[Key.TRANSACTION_ORIGIN]?.fromJson(UuidSerializer) shouldBe Mock.transaksjonId
+                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe Mock.transaksjonId
             }
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)

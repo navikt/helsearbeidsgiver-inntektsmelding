@@ -31,7 +31,6 @@ class Event(val event: EventName, val forespoerselId: String? = null, private va
             it.rejectKey(Key.LØSNING.str)
             // midlertidig, generelt det bør vare reject
             it.interestedIn(Key.UUID.str)
-            it.interestedIn(Key.TRANSACTION_ORIGIN.str)
             it.interestedIn(Key.CLIENT_ID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }

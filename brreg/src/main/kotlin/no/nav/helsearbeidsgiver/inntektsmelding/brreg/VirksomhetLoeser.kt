@@ -76,7 +76,7 @@ class VirksomhetLoeser(
             publishData(behov.createData(mapOf(DataFelt.VIRKSOMHET to navn)))
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")
-            publishFail(behov.createFail("Ugyldig virksomhet $orgnr"))
+            publishFail(behov.createFail("Fant ikke virksomhet"))
         } catch (ex: Exception) {
             logger.error("Det oppstod en feil ved henting for $orgnr")
             sikkerLogger.error("Det oppstod en feil ved henting for orgnr $orgnr: ", ex)

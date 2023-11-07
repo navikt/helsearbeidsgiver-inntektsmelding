@@ -22,7 +22,7 @@ import java.time.LocalDate
 private const val FORKLARING_ENDRING = "Forklaring for endring"
 class PdfDokument(val dokument: Inntektsmelding) {
 
-    private val pdf = PdfBuilder(bodySize = 20) // Setter skriftstørrelsen på labels og text
+    private val pdf = PdfBuilder(bodySize = 20, topText = "Innsendt: ${dokument.tidspunkt.toNorsk()}") // Setter skriftstørrelsen på labels og text
     private var y = 0
     private val KOLONNE_EN = 0
     private val KOLONNE_TO = 420
@@ -252,7 +252,7 @@ class PdfDokument(val dokument: Inntektsmelding) {
         // addLabel("Dato siste bonus", datoBonus.toNorsk())
     }
     private fun addFerietrekk() {
-        addLabel(FORKLARING_ENDRING, "Ferietrekk")
+        addLabel(FORKLARING_ENDRING, "Ferietrekk/Utbetaling av feriepenger")
     }
 
     private fun addRefusjon() {

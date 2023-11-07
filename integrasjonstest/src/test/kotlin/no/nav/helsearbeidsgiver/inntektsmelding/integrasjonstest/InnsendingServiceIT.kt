@@ -3,7 +3,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -29,6 +31,15 @@ class InnsendingServiceIT : EndToEndTest() {
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
+        coEvery {
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+        } returns OpprettOgFerdigstillResponse(
+            journalpostId = "journalpost-id-sukkerspinn",
+            journalpostFerdigstilt = true,
+            melding = "Ha en brillefin dag!",
+            dokumenter = emptyList()
+        )
+
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
@@ -42,6 +53,8 @@ class InnsendingServiceIT : EndToEndTest() {
         Thread.sleep(10000)
 
         messages.all().filter(Mock.clientId).size shouldBe 10
+
+        messages.filterFeil().all().size shouldBe 0
 
         val innsendingStr = redisStore.get(Mock.clientId.toString()).shouldNotBeNull()
         innsendingStr.length shouldBeGreaterThan 2
@@ -74,18 +87,13 @@ private fun List<JsonElement>.filter(clientId: UUID): List<JsonElement> {
                 transaksjonId = msg[Key.UUID]?.fromJson(UuidSerializer)
             }
 
-            val uuid = listOfNotNull(
-                msg[Key.UUID],
-                msg[Key.TRANSACTION_ORIGIN]
-            )
-                .firstOrNull()
-                .shouldNotBeNull()
-                .fromJson(UuidSerializer)
+            val uuid = msg[Key.UUID]?.fromJson(UuidSerializer)
 
             val innsendingStartetEllerImMottatt = eventName == EventName.INSENDING_STARTED ||
                 (eventName == EventName.INNTEKTSMELDING_MOTTATT && !msg.contains(Key.BEHOV))
 
-            uuid == transaksjonId &&
+            uuid != null &&
+                uuid == transaksjonId &&
                 innsendingStartetEllerImMottatt &&
                 !msg.contains(Key.LØSNING)
         }

@@ -27,6 +27,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import org.valiktor.ConstraintViolationException
 import java.util.UUID
@@ -43,7 +44,15 @@ fun RouteExtra.innsendingRoute() {
 
             if (forespoerselId != null) {
                 try {
-                    val request = call.receiveText().fromJson(Innsending.serializer())
+                    val request = call.receiveText()
+                        .parseJson()
+                        .also { json ->
+                            "Mottok innsending med forespørselId: $forespoerselId".let {
+                                logger.info(it)
+                                sikkerLogger.info("$it og request:\n$json")
+                            }
+                        }
+                        .fromJson(Innsending.serializer())
                         .let {
                             // TODO gjør denne sjekken ved opprettelse
                             if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
@@ -90,11 +99,6 @@ fun RouteExtra.innsendingRoute() {
                                 it
                             }
                         }
-
-                    "Mottok innsending med forespørselId: $forespoerselId".let {
-                        logger.info(it)
-                        sikkerLogger.info("$it og request:\n$request")
-                    }
 
                     authorize(
                         forespoerselId = forespoerselId,

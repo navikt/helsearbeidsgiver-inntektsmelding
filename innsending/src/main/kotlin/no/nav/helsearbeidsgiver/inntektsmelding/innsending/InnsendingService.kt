@@ -154,9 +154,9 @@ class InnsendingService(
 
         rapid.publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].toJsonElement(),
-            Key.TRANSACTION_ORIGIN to uuid.toJson(),
-            DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson()
+            Key.UUID to uuid.toJson(),
+            DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson(),
+            DataFelt.INNTEKTSMELDING_DOKUMENT to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].toJsonElement()
         )
             .also {
                 logger.info("Submitting INNTEKTSMELDING_MOTTATT")

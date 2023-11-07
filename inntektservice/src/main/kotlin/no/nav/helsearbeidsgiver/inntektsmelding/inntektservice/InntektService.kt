@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektData
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
@@ -75,7 +74,6 @@ class InntektService(
         if (forespoerselId == null) {
             sikkerLogger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
             logger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
-            publishFail(message.createFail("Mangler forespørselId"))
             return
         }
         MdcUtils.withLogFields(
@@ -110,8 +108,8 @@ class InntektService(
                         val forespoersel = forspoerselKey.read()?.fromJson(TrengerInntekt.serializer())
                         val skjaeringstidspunkt = RedisKey.of(transaksjonId.toString(), DataFelt.SKJAERINGSTIDSPUNKT).read()
                         if (forespoersel == null || skjaeringstidspunkt == null) {
+                            logger.error("Klarte ikke å finne forespørsel eller skjæringstidspunkt i Redis!")
                             sikkerLogger.error("Klarte ikke å finne data i Redis - forespørsel: $forespoersel og skjæringstidspunkt $skjaeringstidspunkt")
-                            publishFail(message.createFail("Klarte ikke å finne forespørsel eller skjæringstidspunkt i Redis!"))
                             return
                         }
 
@@ -238,9 +236,6 @@ class InntektService(
         return transaction ?: Transaction.InProgress
     }
 
-    private fun publishFail(fail: Fail) {
-        rapid.publish(fail.toJsonMessage().toJson())
-    }
     private fun RedisKey.write(json: JsonElement) {
         redisStore.set(this, json.toString())
     }

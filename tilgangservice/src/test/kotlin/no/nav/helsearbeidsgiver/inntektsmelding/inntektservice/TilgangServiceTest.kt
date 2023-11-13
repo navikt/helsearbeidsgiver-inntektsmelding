@@ -33,7 +33,7 @@ class TilgangServiceTest {
             forespørselId = null
         )
         val transaction = service.onError(feil)
-        assertTrue(transaction is Transaction.Terminate)
+        assertTrue(transaction == Transaction.TERMINATE)
         service.terminate(feil)
     }
 }

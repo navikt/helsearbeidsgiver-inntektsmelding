@@ -27,14 +27,14 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         val transaction: Transaction = determineTransactionState(packet)
 
         when (transaction) {
-            is Transaction.New -> {
+            Transaction.NEW -> {
                 initialTransactionState(packet)
                 dispatchBehov(packet, transaction)
             }
-            is Transaction.InProgress -> dispatchBehov(packet, transaction)
-            is Transaction.Finalize -> finalize(packet)
-            is Transaction.Terminate -> terminate(transaction.fail)
-            is Transaction.NotActive -> return
+            Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
+            Transaction.FINALIZE -> finalize(packet)
+            Transaction.TERMINATE -> terminate(packet.toFeilMessage())
+            Transaction.NOT_ACTIVE -> return
         }
     }
 
@@ -53,7 +53,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         return when {
             value.isNullOrEmpty() -> {
                 if (!isEventMelding(message)) {
-                    Transaction.NotActive
+                    Transaction.NOT_ACTIVE
                 } else {
                     val clientId = message[Key.CLIENT_ID.str]
                         .takeUnless(JsonNode::isMissingOrNull)
@@ -62,11 +62,11 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
 
                     redisStore.set(eventKey, clientId)
 
-                    Transaction.New
+                    Transaction.NEW
                 }
             }
-            isDataCollected(transactionId) -> Transaction.Finalize
-            else -> Transaction.InProgress
+            isDataCollected(transactionId) -> Transaction.FINALIZE
+            else -> Transaction.IN_PROGRESS
         }
     }
 
@@ -97,7 +97,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
     open fun initialTransactionState(message: JsonMessage) {}
 
     open fun onError(feil: Fail): Transaction {
-        return Transaction.Terminate(feil)
+        return Transaction.TERMINATE
     }
 
     fun withFailKanal(failKanalSupplier: (t: CompositeEventListener) -> FailKanal): CompositeEventListener {

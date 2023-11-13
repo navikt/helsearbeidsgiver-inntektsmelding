@@ -88,7 +88,7 @@ class SpinnService(
             Log.forespoerselId(forespoerselId)
         ) {
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
-            if (transaction is Transaction.New) {
+            if (transaction == Transaction.NEW) {
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),

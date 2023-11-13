@@ -44,7 +44,7 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transaksjonsId = message[Key.UUID.str].asText()
         val forespørselId = redisStore.get(transaksjonsId + Key.FORESPOERSEL_ID.str)!!
-        if (transaction is Transaction.New) {
+        if (transaction == Transaction.NEW) {
             rapidsConnection.publish(
                 JsonMessage.newMessage(
                     mapOf(
@@ -57,7 +57,7 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
                     )
                 ).toJson()
             )
-        } else if (transaction is Transaction.InProgress) {
+        } else if (transaction == Transaction.IN_PROGRESS) {
             if (isDataCollected(*steg3(transaksjonsId))) {
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
@@ -110,9 +110,9 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
         if (feil.behov == BehovType.FULLT_NAVN) {
             val fulltNavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
             redisStore.set(fulltNavnKey, PersonDato("Ukjent person", null, "").toJsonStr(PersonDato.serializer()))
-            return Transaction.InProgress
+            return Transaction.IN_PROGRESS
         }
-        return Transaction.Terminate(feil)
+        return Transaction.TERMINATE
     }
 
     fun steg2(transactionId: String) = arrayOf(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON))

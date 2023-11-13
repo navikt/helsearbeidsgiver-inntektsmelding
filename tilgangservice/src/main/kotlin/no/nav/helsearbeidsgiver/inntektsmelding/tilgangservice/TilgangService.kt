@@ -83,7 +83,7 @@ class TilgangService(
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
             when (transaction) {
-                is Transaction.New -> {
+                Transaction.NEW -> {
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.HENT_IM_ORGNR.toJson(),
@@ -99,7 +99,7 @@ class TilgangService(
                         }
                 }
 
-                is Transaction.InProgress -> {
+                Transaction.IN_PROGRESS -> {
                     val orgnrKey = RedisKey.of(transaksjonId.toString(), DataFelt.ORGNRUNDERENHET)
 
                     if (isDataCollected(orgnrKey)) {
@@ -222,7 +222,7 @@ class TilgangService(
             feilKey.write(feilReport)
         }
 
-        return Transaction.Terminate(feil)
+        return Transaction.TERMINATE
     }
 
     private fun RedisKey.write(json: JsonElement) {

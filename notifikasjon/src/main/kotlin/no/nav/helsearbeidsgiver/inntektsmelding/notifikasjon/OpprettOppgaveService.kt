@@ -46,7 +46,7 @@ class OpprettOppgaveService(
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transaksjonsId = message[Key.UUID.str].asText()
         val forespørselId = redisStore.get(transaksjonsId + Key.FORESPOERSEL_ID.str)!!
-        if (transaction is Transaction.New) {
+        if (transaction == Transaction.NEW) {
             rapidsConnection.publish(
                 JsonMessage.newMessage(
                     mapOf(
@@ -88,8 +88,8 @@ class OpprettOppgaveService(
         if (feil.behov == BehovType.VIRKSOMHET) {
             val virksomhetKey = "${feil.uuid}${DataFelt.VIRKSOMHET.str}"
             redisStore.set(virksomhetKey, "Arbeidsgiver")
-            return Transaction.Finalize
+            return Transaction.FINALIZE
         }
-        return Transaction.Terminate(feil)
+        return Transaction.TERMINATE
     }
 }

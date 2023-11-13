@@ -71,15 +71,15 @@ class InnsendingService(
         if (feil.behov == BehovType.VIRKSOMHET) {
             val virksomhetKey = "${feil.uuid}${DataFelt.VIRKSOMHET}"
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
-            return Transaction.InProgress
+            return Transaction.IN_PROGRESS
         } else if (feil.behov == BehovType.FULLT_NAVN) {
             val arbeidstakerFulltnavnKey = "${feil.uuid}${DataFelt.ARBEIDSTAKER_INFORMASJON.str}"
             val arbeidsgiverFulltnavnKey = "${feil.uuid}${DataFelt.ARBEIDSGIVER_INFORMASJON.str}"
             redisStore.set(arbeidstakerFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             redisStore.set(arbeidsgiverFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
-            return Transaction.InProgress
+            return Transaction.IN_PROGRESS
         }
-        return Transaction.Terminate(feil)
+        return Transaction.TERMINATE
     }
 
     override fun terminate(fail: Fail) {
@@ -89,7 +89,7 @@ class InnsendingService(
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid: String = message[Key.UUID.str].asText()
         when (transaction) {
-            is Transaction.New -> {
+            Transaction.NEW -> {
                 logger.info("InnsendingService: emitting behov Virksomhet")
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
@@ -116,7 +116,7 @@ class InnsendingService(
                 )
             }
 
-            is Transaction.InProgress -> {
+            Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(message[Key.UUID.str].asText()))) {
                     val arbeidstakerRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java)
                     val arbeidsgiverRedis = redisStore.get(RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_INFORMASJON), PersonDato::class.java)

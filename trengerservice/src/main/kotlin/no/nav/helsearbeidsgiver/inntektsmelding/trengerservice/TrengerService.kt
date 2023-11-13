@@ -73,7 +73,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             val feilReport: FeilReport = redisStore.get(feilKey)?.fromJson(FeilReport.serializer()) ?: FeilReport()
             feilReport.feil.add(feilmelding)
             redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
-            return Transaction.Terminate(feil)
+            return Transaction.TERMINATE
         } else if (feil.behov == BehovType.VIRKSOMHET) {
             feilmelding = Feilmelding("Vi klarte ikke å hente virksomhet navn.", datafelt = DataFelt.VIRKSOMHET)
             redisStore.set(RedisKey.of(uuid, DataFelt.VIRKSOMHET), "Ukjent navn")
@@ -94,13 +94,13 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             feilReport.feil.add(feilmelding)
             redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
         }
-        return Transaction.InProgress
+        return Transaction.IN_PROGRESS
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText()
         sikkerLogger.info("Dispatcher for $uuid with trans state $transaction")
-        if (transaction is Transaction.New) {
+        if (transaction == Transaction.NEW) {
             sikkerLogger.info("Dispatcher HENT_TRENGER_IM for $uuid")
             sikkerLogger.info("${simpleName()} Dispatcher HENT_TRENGER_IM for $uuid")
             val agFnr = message[Key.ARBEIDSGIVER_ID.str].asText()
@@ -111,7 +111,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson(),
                 Key.UUID to uuid.toJson()
             )
-        } else if (transaction is Transaction.InProgress) {
+        } else if (transaction == Transaction.IN_PROGRESS) {
             message.interestedIn(DataFelt.FORESPOERSEL_SVAR.str)
             if (isDataCollected(*step1data(uuid)) && !message[DataFelt.FORESPOERSEL_SVAR.str].isMissingNode) {
                 val forespoersel = redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())

@@ -27,7 +27,7 @@ class InntektServiceTest {
             forespørselId = null
         )
         val transaction = service.onError(feil)
-        assertEquals(Transaction.InProgress, transaction)
+        assertEquals(Transaction.IN_PROGRESS, transaction)
         service.terminate(feil) // skal ikke kaste exception..
     }
 }

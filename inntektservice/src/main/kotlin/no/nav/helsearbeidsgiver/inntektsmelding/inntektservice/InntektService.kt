@@ -85,7 +85,7 @@ class InntektService(
             sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
             when (transaction) {
-                is Transaction.New -> {
+                Transaction.NEW -> {
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
@@ -101,7 +101,7 @@ class InntektService(
                         }
                 }
 
-                is Transaction.InProgress -> {
+                Transaction.IN_PROGRESS -> {
                     val forspoerselKey = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_SVAR)
 
                     if (isDataCollected(forspoerselKey)) {
@@ -202,7 +202,7 @@ class InntektService(
             BehovType.HENT_TRENGER_IM -> {
                 val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, DataFelt.FORESPOERSEL_SVAR)
 
-                feilmelding to Transaction.Terminate(feil)
+                feilmelding to Transaction.TERMINATE
             }
             BehovType.INNTEKT -> {
                 val feilmelding = Feilmelding(
@@ -233,7 +233,7 @@ class InntektService(
             feilKey.write(feilReport)
         }
 
-        return transaction ?: Transaction.InProgress
+        return transaction ?: Transaction.IN_PROGRESS
     }
 
     private fun RedisKey.write(json: JsonElement) {

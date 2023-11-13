@@ -47,7 +47,7 @@ class KvitteringService(
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transactionId: String = message[Key.UUID.str].asText()
-        if (transaction is Transaction.New) {
+        if (transaction == Transaction.NEW) {
             val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
             logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
             val msg = JsonMessage.newMessage(

@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangService
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

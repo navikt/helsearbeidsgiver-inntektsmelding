@@ -42,7 +42,8 @@ class InnsendingService(
                     DataFelt.ARBEIDSFORHOLD.str,
                     DataFelt.INNTEKTSMELDING_DOKUMENT.str,
                     DataFelt.ARBEIDSGIVER_INFORMASJON.str,
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str
+                    DataFelt.ARBEIDSTAKER_INFORMASJON.str,
+                    DataFelt.DUPLIKAT_IM.str
                 ),
                 event,
                 it,
@@ -78,12 +79,17 @@ class InnsendingService(
             redisStore.set(arbeidstakerFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             redisStore.set(arbeidsgiverFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             return Transaction.IN_PROGRESS
+        } else if (feil.behov == BehovType.PERSISTER_IM) {
+            logger.error("InnsendingService: feil ved persistering av inntektsmelding: ${feil.feilmelding}")
+            return Transaction.TERMINATE
         }
         return Transaction.TERMINATE
     }
 
     override fun terminate(message: JsonMessage) {
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
+        val uuid: String = message[Key.UUID.str].asText()
+        val clientId = redisStore.get(RedisKey.of(uuid, event))
+        redisStore.set(clientId!!, message[Key.FAIL.str].asText())
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -151,17 +157,19 @@ class InnsendingService(
         redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
         logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
-
-        rapid.publish(
-            Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-            Key.UUID to uuid.toJson(),
-            DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].toJsonElement()
-        )
-            .also {
-                logger.info("Submitting INNTEKTSMELDING_MOTTATT")
-                sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT ${it.toPretty()}")
-            }
+        val erDuplikat = message[DataFelt.DUPLIKAT_IM.str].asBoolean()
+        if (!erDuplikat) {
+            rapid.publish(
+                Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+                Key.UUID to uuid.toJson(),
+                DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson(),
+                DataFelt.INNTEKTSMELDING_DOKUMENT to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].toJsonElement()
+            )
+                .also {
+                    logger.info("Submitting INNTEKTSMELDING_MOTTATT")
+                    sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT ${it.toPretty()}")
+                }
+        }
     }
 
     private fun step1data(uuid: String): Array<RedisKey> = arrayOf(

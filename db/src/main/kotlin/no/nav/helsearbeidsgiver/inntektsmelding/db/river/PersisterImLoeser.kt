@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
@@ -16,7 +15,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.inntektsmelding.db.erLik
+import no.nav.helsearbeidsgiver.inntektsmelding.db.erDuplikatAv
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -52,16 +51,20 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             val arbeidsgiverInfo = behov[DataFelt.ARBEIDSGIVER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
             val fulltNavn = arbeidstakerInfo.navn
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
-            val innsending = behov[DataFelt.INNTEKTSMELDING].toString().fromJson(Innsending.serializer())
+            val innsending = behov[DataFelt.INNTEKTSMELDING].asText().fromJson(Innsending.serializer())
             val inntektsmelding = mapInntektsmelding(innsending, fulltNavn, arbeidsgiver, arbeidsgiverInfo.navn)
             val sisteIm = repository.hentNyeste(behov.forespoerselId!!)
-            val erDuplikat: Boolean = sisteIm?.erLik(inntektsmelding)!!.getOrDefault(false)
-            repository.lagreInntektsmelding(behov.forespoerselId!!, inntektsmelding)
-            sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: ${behov.forespoerselId}")
+            val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false
+            if (erDuplikat) {
+                sikkerLogger.warn("Fant duplikat av inntektsmelding for forespoerselId: ${behov.forespoerselId}")
+            } else {
+                repository.lagreInntektsmelding(behov.forespoerselId!!, inntektsmelding)
+                sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: ${behov.forespoerselId}")
+            }
             behov.createData(
                 mapOf(
                     DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()).toJsonNode(),
-                    DataFelt.DUPLIKAT_IM to erDuplikat
+                    DataFelt.ER_DUPLIKAT_IM to erDuplikat
                 )
             ).also {
                 publishData(it)

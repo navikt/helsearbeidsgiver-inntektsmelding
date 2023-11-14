@@ -1,22 +1,31 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.NaturalytelseKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -42,30 +51,8 @@ class PersisterImLoeserTest {
             repository.lagreInntektsmelding(any(), any())
         } returns Unit
 
-        val request = Innsending(
-            "",
-            "",
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            LocalDate.now(),
-            emptyList(),
-            Inntekt(
-                bekreftet = true,
-                500.0,
-                Bonus(),
-                true
-            ),
-            FullLoennIArbeidsgiverPerioden(
-                true
-            ),
-            Refusjon(
-                true
-            ),
-            emptyList(),
-            AarsakInnsending.NY,
-            true
-        )
+        coEvery { repository.hentNyeste(any()) } returns null
+
         coEvery { repository.hentNyeste(any()) } returns null
 
         sendMelding(
@@ -75,47 +62,24 @@ class PersisterImLoeserTest {
                     Key.BEHOV.str to BehovType.PERSISTER_IM.name,
                     DataFelt.VIRKSOMHET.str to "Test Virksomhet",
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
+                    DataFelt.ARBEIDSGIVER_INFORMASJON.str to PersonDato("Test person", null, ""),
                     Key.UUID.str to "uuid",
-                    DataFelt.INNTEKTSMELDING.str to request
+                    DataFelt.INNTEKTSMELDING.str to Mock.innsending.toJsonStr(Innsending.serializer())
                 )
             )
         )
+
+        coVerify(exactly = 1) {
+            repository.lagreInntektsmelding(any(), any())
+        }
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
         Assertions.assertNotNull(message.path(DataFelt.INNTEKTSMELDING.str).asText())
     }
 
     @Test
-    fun `skal publisere feil ved duplikat`() {
-        coEvery {
-            repository.lagreInntektsmelding(any(), any())
-        } returns Unit
-
-        val request = Innsending(
-            "",
-            "",
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            LocalDate.now(),
-            emptyList(),
-            Inntekt(
-                bekreftet = true,
-                500.0,
-                Bonus(),
-                true
-            ),
-            FullLoennIArbeidsgiverPerioden(
-                true
-            ),
-            Refusjon(
-                true
-            ),
-            emptyList(),
-            AarsakInnsending.NY,
-            true
-        )
-        coEvery { repository.hentNyeste(any()) } returns mapInntektsmelding(request, "Test person", "Test Virksomhet", "")
+    fun `ikke lagre ved duplikat`() {
+        coEvery { repository.hentNyeste(any()) } returns Mock.inntektsmelding
 
         sendMelding(
             JsonMessage.newMessage(
@@ -124,15 +88,62 @@ class PersisterImLoeserTest {
                     Key.BEHOV.str to BehovType.PERSISTER_IM.name,
                     DataFelt.VIRKSOMHET.str to "Test Virksomhet",
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
+                    DataFelt.ARBEIDSGIVER_INFORMASJON.str to PersonDato("Test person", null, ""),
                     Key.UUID.str to "uuid",
-                    DataFelt.INNTEKTSMELDING.str to request
+                    DataFelt.INNTEKTSMELDING.str to Mock.innsending.toJsonStr(Innsending.serializer())
                 )
             )
         )
+
+        coVerify(exactly = 0) {
+            repository.lagreInntektsmelding(any(), any())
+        }
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
-        Assertions.assertNotNull(message.path(Key.FAIL.str).asText())
-        // Assertions.assertEquals("Duplikat Inntektsmelding", message.path(Key.FAIL.str).asText())
-        Assertions.assertEquals("", message.path(DataFelt.INNTEKTSMELDING.str).asText())
+        Assertions.assertTrue(message.path(DataFelt.ER_DUPLIKAT_IM.str).asBoolean())
+    }
+
+    object Mock {
+        val innsending = Innsending(
+            orgnrUnderenhet = "orgnr-bål",
+            identitetsnummer = "fnr-fredrik",
+            behandlingsdager = listOf(LocalDate.now().plusDays(5)),
+            egenmeldingsperioder = listOf(
+                Periode(
+                    fom = LocalDate.now(),
+                    tom = LocalDate.now().plusDays(2)
+                )
+            ),
+            arbeidsgiverperioder = emptyList(),
+            bestemmendeFraværsdag = LocalDate.now(),
+            fraværsperioder = emptyList(),
+            inntekt = Inntekt(
+                bekreftet = true,
+                beregnetInntekt = 32100.0,
+                endringÅrsak = null,
+                manueltKorrigert = false
+            ),
+            fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
+                utbetalerFullLønn = true,
+                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert
+            ),
+            refusjon = Refusjon(
+                utbetalerHeleEllerDeler = true,
+                refusjonPrMnd = 200.0,
+                refusjonOpphører = LocalDate.now()
+            ),
+            naturalytelser = listOf(
+                Naturalytelse(
+                    naturalytelse = NaturalytelseKode.KOSTDOEGN,
+                    dato = LocalDate.now(),
+                    beløp = 300.0
+                )
+            ),
+            årsakInnsending = AarsakInnsending.ENDRING,
+            bekreftOpplysninger = true
+        )
+        val arbeidstaker = PersonDato("Test person", null, innsending.identitetsnummer)
+        val arbeidsgiver = PersonDato("Test person", null, innsending.identitetsnummer)
+        val inntektsmelding = mapInntektsmelding(innsending, "Test person", "Test Virksomhet", "")
     }
 }

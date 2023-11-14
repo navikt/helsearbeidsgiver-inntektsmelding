@@ -40,14 +40,5 @@ fun mapInntektsmelding(
 
 class UgyldigFormatException(ex: Exception) : Exception(ex)
 
-fun Inntektsmelding.erLik(im: Inntektsmelding): Result<Boolean> {
-    val mL = mutableListOf<Exception>()
-    this::class.memberProperties.forEach() { prop ->
-        val thisValue = prop.getter.call(this)
-        val imValue = prop.getter.call(im)
-        if (thisValue !is OffsetDateTime && thisValue != imValue) {
-            mL.add(Exception("Inntektsmelding er ulik for property ${prop.name}:\n$thisValue\n$imValue"))
-        }
-    }
-    return if (mL.isEmpty()) Result.success(true) else Result.failure(mL.first())
-}
+fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =
+    this == other.copy(tidspunkt = tidspunkt)

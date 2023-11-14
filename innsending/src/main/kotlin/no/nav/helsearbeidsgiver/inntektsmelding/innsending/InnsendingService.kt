@@ -43,7 +43,7 @@ class InnsendingService(
                     DataFelt.INNTEKTSMELDING_DOKUMENT.str,
                     DataFelt.ARBEIDSGIVER_INFORMASJON.str,
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str,
-                    DataFelt.DUPLIKAT_IM.str
+                    //DataFelt.ER_DUPLIKAT_IM.str
                 ),
                 event,
                 it,
@@ -150,10 +150,10 @@ class InnsendingService(
         val clientId = redisStore.get(RedisKey.of(uuid, event))
         logger.info("publiserer under clientID $clientId")
         redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
-        logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
-        logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
-        val erDuplikat = message[DataFelt.DUPLIKAT_IM.str].asBoolean()
+        val erDuplikat = message[DataFelt.ER_DUPLIKAT_IM.str].asBoolean()
         if (!erDuplikat) {
+            logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
+            logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
             rapid.publish(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.UUID to uuid.toJson(),

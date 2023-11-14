@@ -15,10 +15,14 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
 abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
+
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     abstract val event: EventName
     private lateinit var dataKanal: StatefullDataKanal
@@ -43,7 +47,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         // vi trenger også clientID for correlation
         val transactionId = message[Key.UUID.str].asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
-            sikkerLogger().error("Feilmelding er\n${message.toPretty()}")
+            sikkerLogger.error("Feilmelding er\n${message.toPretty()}")
             return onError(message.toFeilMessage())
         }
 
@@ -53,6 +57,10 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         return when {
             value.isNullOrEmpty() -> {
                 if (!isEventMelding(message)) {
+                    "Servicen er inaktiv for gitt event. Mest sannsynlig skyldes dette timeout av Redis-verdier.".also {
+                        logger.error(it)
+                        sikkerLogger.error(it)
+                    }
                     Transaction.NOT_ACTIVE
                 } else {
                     val clientId = message[Key.CLIENT_ID.str]

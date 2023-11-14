@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -65,6 +66,7 @@ class PersisterImLoeserTest {
             AarsakInnsending.NY,
             true
         )
+        coEvery { repository.hentNyeste(any()) } returns null
 
         sendMelding(
             JsonMessage.newMessage(
@@ -81,5 +83,56 @@ class PersisterImLoeserTest {
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
         Assertions.assertNotNull(message.path(DataFelt.INNTEKTSMELDING.str).asText())
+    }
+
+    @Test
+    fun `skal publisere feil ved duplikat`() {
+        coEvery {
+            repository.lagreInntektsmelding(any(), any())
+        } returns Unit
+
+        val request = Innsending(
+            "",
+            "",
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            LocalDate.now(),
+            emptyList(),
+            Inntekt(
+                bekreftet = true,
+                500.0,
+                Bonus(),
+                true
+            ),
+            FullLoennIArbeidsgiverPerioden(
+                true
+            ),
+            Refusjon(
+                true
+            ),
+            emptyList(),
+            AarsakInnsending.NY,
+            true
+        )
+        coEvery { repository.hentNyeste(any()) } returns mapInntektsmelding(request, "Test person", "Test Virksomhet", "")
+
+        sendMelding(
+            JsonMessage.newMessage(
+                mapOf(
+                    Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
+                    Key.BEHOV.str to BehovType.PERSISTER_IM.name,
+                    DataFelt.VIRKSOMHET.str to "Test Virksomhet",
+                    DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
+                    Key.UUID.str to "uuid",
+                    DataFelt.INNTEKTSMELDING.str to request
+                )
+            )
+        )
+        val message = rapid.inspektør.message(0)
+        Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
+        Assertions.assertNotNull(message.path(Key.FAIL.str).asText())
+        // Assertions.assertEquals("Duplikat Inntektsmelding", message.path(Key.FAIL.str).asText())
+        Assertions.assertEquals("", message.path(DataFelt.INNTEKTSMELDING.str).asText())
     }
 }

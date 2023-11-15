@@ -3,12 +3,10 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
@@ -21,11 +19,9 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -50,11 +46,7 @@ class PersisterImLoeserTest {
         coEvery {
             repository.lagreInntektsmelding(any(), any())
         } returns Unit
-
         coEvery { repository.hentNyeste(any()) } returns null
-
-        coEvery { repository.hentNyeste(any()) } returns null
-
         sendMelding(
             JsonMessage.newMessage(
                 mapOf(
@@ -64,7 +56,7 @@ class PersisterImLoeserTest {
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
                     DataFelt.ARBEIDSGIVER_INFORMASJON.str to PersonDato("Test person", null, ""),
                     Key.UUID.str to "uuid",
-                    DataFelt.INNTEKTSMELDING.str to Mock.innsending.toJsonStr(Innsending.serializer())
+                    DataFelt.INNTEKTSMELDING.str to Mock.innsending
                 )
             )
         )
@@ -75,12 +67,12 @@ class PersisterImLoeserTest {
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
         Assertions.assertNotNull(message.path(DataFelt.INNTEKTSMELDING.str).asText())
+        Assertions.assertFalse(message.path(DataFelt.ER_DUPLIKAT_IM.str).asBoolean())
     }
 
     @Test
     fun `ikke lagre ved duplikat`() {
         coEvery { repository.hentNyeste(any()) } returns Mock.inntektsmelding
-
         sendMelding(
             JsonMessage.newMessage(
                 mapOf(
@@ -90,7 +82,7 @@ class PersisterImLoeserTest {
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
                     DataFelt.ARBEIDSGIVER_INFORMASJON.str to PersonDato("Test person", null, ""),
                     Key.UUID.str to "uuid",
-                    DataFelt.INNTEKTSMELDING.str to Mock.innsending.toJsonStr(Innsending.serializer())
+                    DataFelt.INNTEKTSMELDING.str to Mock.innsending
                 )
             )
         )
@@ -144,6 +136,6 @@ class PersisterImLoeserTest {
         )
         val arbeidstaker = PersonDato("Test person", null, innsending.identitetsnummer)
         val arbeidsgiver = PersonDato("Test person", null, innsending.identitetsnummer)
-        val inntektsmelding = mapInntektsmelding(innsending, "Test person", "Test Virksomhet", "")
+        val inntektsmelding = mapInntektsmelding(innsending, arbeidstaker.navn, "Test Virksomhet", arbeidsgiver.navn)
     }
 }

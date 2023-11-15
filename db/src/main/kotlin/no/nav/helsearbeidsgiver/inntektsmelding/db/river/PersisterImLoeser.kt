@@ -51,7 +51,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             val arbeidsgiverInfo = behov[DataFelt.ARBEIDSGIVER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
             val fulltNavn = arbeidstakerInfo.navn
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
-            val innsending = behov[DataFelt.INNTEKTSMELDING].asText().fromJson(Innsending.serializer())
+            val innsending = behov[DataFelt.INNTEKTSMELDING].toJsonElement().fromJson(Innsending.serializer())
             val inntektsmelding = mapInntektsmelding(innsending, fulltNavn, arbeidsgiver, arbeidsgiverInfo.navn)
             val sisteIm = repository.hentNyeste(behov.forespoerselId!!)
             val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false

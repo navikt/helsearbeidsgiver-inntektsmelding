@@ -43,7 +43,7 @@ class InnsendingService(
                     DataFelt.INNTEKTSMELDING_DOKUMENT.str,
                     DataFelt.ARBEIDSGIVER_INFORMASJON.str,
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str,
-                    //DataFelt.ER_DUPLIKAT_IM.str
+                    DataFelt.ER_DUPLIKAT_IM.str
                 ),
                 event,
                 it,

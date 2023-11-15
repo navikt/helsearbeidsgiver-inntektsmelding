@@ -2,9 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
-import java.time.OffsetDateTime
 import java.time.ZonedDateTime
-import kotlin.reflect.full.memberProperties
 
 fun mapInntektsmelding(
     request: Innsending,

@@ -74,6 +74,13 @@ class InnsendingIT : EndToEndTest() {
                 // Ble lagret i databasen
                 it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
             }
+        messages.filter(EventName.INSENDING_STARTED)
+            .filter(DataFelt.ER_DUPLIKAT_IM)
+            .first()
+            .toMap()
+            .also {
+                it[DataFelt.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe false
+            }
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
             .first()
@@ -165,10 +172,15 @@ class InnsendingIT : EndToEndTest() {
             DataFelt.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
 
-        Thread.sleep(25000)
+        Thread.sleep(10000)
 
         messages.filter(EventName.INSENDING_STARTED)
-            .all()
+            .filter(DataFelt.ER_DUPLIKAT_IM)
+            .first()
+            .toMap()
+            .also {
+                it[DataFelt.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe true
+            }
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT).all() shouldHaveSize 0
 

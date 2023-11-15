@@ -34,6 +34,6 @@ class TilgangServiceTest {
         )
         val transaction = service.onError(feil)
         assertEquals(Transaction.TERMINATE, transaction)
-        service.terminate(feil.toJsonMessage())
+        service.terminate(feil)
     }
 }

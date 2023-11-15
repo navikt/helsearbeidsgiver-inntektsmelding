@@ -147,8 +147,8 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
         )
     }
 
-    override fun terminate(message: JsonMessage) {
-        sikkerLogger.error("Terminerer flyt med transaksjon-ID '${message[Key.UUID.str].asText()}'")
+    override fun terminate(fail: Fail) {
+        sikkerLogger.error("Terminerer flyt med transaksjon-ID '${fail.uuid}'")
     }
 
     override fun onError(feil: Fail): Transaction {

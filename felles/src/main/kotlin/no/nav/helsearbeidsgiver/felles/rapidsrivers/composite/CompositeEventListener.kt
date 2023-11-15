@@ -37,7 +37,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
             }
             Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
             Transaction.FINALIZE -> finalize(packet)
-            Transaction.TERMINATE -> terminate(packet)
+            Transaction.TERMINATE -> terminate(packet.toFeilMessage())
             Transaction.NOT_ACTIVE -> return
         }
     }
@@ -101,7 +101,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
 
     abstract fun dispatchBehov(message: JsonMessage, transaction: Transaction)
     abstract fun finalize(message: JsonMessage)
-    abstract fun terminate(message: JsonMessage)
+    abstract fun terminate(fail: Fail)
     open fun initialTransactionState(message: JsonMessage) {}
 
     open fun onError(feil: Fail): Transaction {

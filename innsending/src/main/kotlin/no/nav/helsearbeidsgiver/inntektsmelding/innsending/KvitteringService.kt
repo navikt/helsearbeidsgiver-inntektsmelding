@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
@@ -77,10 +78,8 @@ class KvitteringService(
         redisStore.set(clientId!!, im)
     }
 
-    override fun terminate(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText()
-        val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
-        logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
-        redisStore.set(transaksjonsId, message[Key.FAIL.str].asText())
+    override fun terminate(fail: Fail) {
+        logger.info("Terminate kvittering med forespoerselId=${fail.forespørselId} og transaksjonsId ${fail.uuid}")
+        redisStore.set(fail.uuid!!, fail.feilmelding)
     }
 }

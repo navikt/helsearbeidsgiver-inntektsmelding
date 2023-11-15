@@ -102,8 +102,8 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
         )
     }
 
-    override fun terminate(message: JsonMessage) {
-        redisStore.set(message[Key.UUID.str].asText(), message[Key.FAIL.str].asText())
+    override fun terminate(fail: Fail) {
+        redisStore.set(fail.uuid!!, fail.feilmelding)
     }
 
     override fun onError(feil: Fail): Transaction {

@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -142,12 +143,9 @@ class SpinnService(
         }
     }
 
-    override fun terminate(message: JsonMessage) {
-        val json = message.toJsonMap()
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
+    override fun terminate(fail: Fail) {
         MdcUtils.withLogFields(
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(fail.uuid.let(UUID::fromString))
         ) {
             sikkerLogger.error("$event terminert.")
         }

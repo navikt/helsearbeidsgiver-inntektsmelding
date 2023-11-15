@@ -171,19 +171,15 @@ class InntektService(
         }
     }
 
-    override fun terminate(message: JsonMessage) {
-        val json = message.toJsonMap()
-
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
-        val clientId = RedisKey.of(transaksjonId.toString(), event)
+    override fun terminate(fail: Fail) {
+        val clientId = RedisKey.of(fail.uuid!!, event)
             .read()
             ?.let(UUID::fromString)
         if (clientId == null) {
-            sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
-            logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
+            sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.uuid} i Redis")
+            logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.uuid} i Redis")
         }
-        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding("")).read()
+        val feil = RedisKey.of(fail.uuid!!, Feilmelding("")).read()
 
         val feilResponse = InntektData(
             feil = feil?.fromJson(FeilReport.serializer())
@@ -191,7 +187,7 @@ class InntektService(
             .toJson(InntektData.serializer())
 
         RedisKey.of(clientId.toString()).write(feilResponse)
-        val logFields = loggFelterNotNull(transaksjonId, clientId)
+        val logFields = loggFelterNotNull(fail.uuid.let(UUID::fromString), clientId)
         MdcUtils.withLogFields(
             *logFields
         ) {

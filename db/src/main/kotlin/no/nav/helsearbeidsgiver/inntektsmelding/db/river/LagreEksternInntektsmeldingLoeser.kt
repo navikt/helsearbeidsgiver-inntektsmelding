@@ -45,7 +45,7 @@ class LagreEksternInntektsmeldingLoeser(
             Log.behov(behov.behov)
         ) {
             logger.info("Mottok behov ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name}")
-            sikkerLogger.info("Mottok behov:\n${behov.toJsonMessage().toPretty()}")
+            sikkerLogger.info("Mottok behov:\n${behov.jsonMessage.toPretty()}")
             val eksternInntektsmelding = behov[DataFelt.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer())
             if (eksternInntektsmelding == null) {
                 logger.error("Fant ingen EksternInntektsmelding")

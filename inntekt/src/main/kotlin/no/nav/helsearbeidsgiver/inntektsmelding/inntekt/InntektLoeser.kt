@@ -55,7 +55,7 @@ class InntektLoeser(
 
     override fun onBehov(behov: Behov) {
         logger.info("Mottok melding med behov '${BehovType.INNTEKT}'.")
-        sikkerLogger.info("Mottok melding:\n${behov.toJsonMessage().toPretty()}")
+        sikkerLogger.info("Mottok melding:\n${behov.jsonMessage.toPretty()}")
 
         MdcUtils.withLogFields(
             Log.klasse(this),

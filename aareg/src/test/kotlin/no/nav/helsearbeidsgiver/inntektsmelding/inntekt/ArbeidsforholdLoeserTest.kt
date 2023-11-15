@@ -17,13 +17,16 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
+import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.ArbeidsforholdLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -41,39 +44,36 @@ class ArbeidsforholdLoeserTest : FunSpec({
     }
 
     test("ved innkommende behov så hentes og publiseres arbeidsforhold fra aareg") {
+        val expectedUuid = UUID.randomUUID()
+
         val expected = Data.create(
-            EventName.INSENDING_STARTED,
-            UUID.randomUUID(),
-            mapOf(
+            event = EventName.INSENDING_STARTED,
+            uuid = expectedUuid,
+            map = mapOf(
                 DataFelt.ARBEIDSFORHOLD to no.nav.helsearbeidsgiver.felles.Data(
                     mockKlientArbeidsforhold().tilArbeidsforhold().let(::listOf)
                 )
             )
-        ).toJsonMessage()
-            .also {
-                Data.packetValidator.validate(it)
-                it.interestedIn(DataFelt.ARBEIDSFORHOLD.str)
-            }.let {
-                Data.create(it)
-            }
+        )
+            .jsonMessage
+            .toJsonMap()
 
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
 
         testRapid.sendJson(
-            Key.EVENT_NAME to expected.event.toJson(),
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-            Key.UUID to expected.uuid().toJson()
+            Key.UUID to expectedUuid.toJson()
         )
 
-        val actual = testRapid.firstMessage().toDomeneMessage<Data>() {
-            it.interestedIn(DataFelt.ARBEIDSFORHOLD.str)
-        }
+        val actual = testRapid.firstMessage().toMap()
 
-        coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.uuid()) }
+        coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expectedUuid.toString()) }
         testRapid.inspektør.size shouldBeExactly 1
-        actual.uuid() shouldBe expected.uuid()
-        actual.event shouldBe expected.event
+
+        actual[Key.UUID]?.fromJson(UuidSerializer) shouldBe expectedUuid
+        actual[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.INSENDING_STARTED
         actual[DataFelt.ARBEIDSFORHOLD] shouldBe expected[DataFelt.ARBEIDSFORHOLD]
     }
 
@@ -95,7 +95,7 @@ class ArbeidsforholdLoeserTest : FunSpec({
             Key.UUID to expected.uuid!!.toJson()
         )
 
-        val actual = testRapid.firstMessage().toDomeneMessage<Fail>()
+        val actual = testRapid.firstMessage().readFail()
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.uuid.toString()) }
         testRapid.inspektør.size shouldBeExactly 1

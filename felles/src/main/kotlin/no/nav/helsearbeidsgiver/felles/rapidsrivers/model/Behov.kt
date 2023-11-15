@@ -11,14 +11,13 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
-import java.lang.IllegalArgumentException
 
 class Behov(
     val event: EventName,
     val behov: BehovType,
     val forespoerselId: String?,
-    private val jsonMessage: JsonMessage
-) : Message, TxMessage {
+    val jsonMessage: JsonMessage
+) : TxMessage {
 
     init {
         packetValidator.validate(jsonMessage)
@@ -69,12 +68,7 @@ class Behov(
         }
     }
 
-    override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
-
-    override operator fun set(key: IKey, value: Any) {
-        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
-        jsonMessage[key.str] = value
-    }
+    operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
 
     fun createData(map: Map<DataFelt, Any>): Data {
         val forespoerselID = this[Key.FORESPOERSEL_ID]
@@ -127,8 +121,4 @@ class Behov(
     }
 
     override fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
-
-    override fun toJsonMessage(): JsonMessage {
-        return this.jsonMessage
-    }
 }

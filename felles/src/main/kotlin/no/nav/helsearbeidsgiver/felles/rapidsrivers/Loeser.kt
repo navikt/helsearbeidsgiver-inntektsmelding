@@ -37,7 +37,7 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     // Alle løser som publiserer Behov vil få kunskap om nedstrøms løserne.
     // i tilleg gjenbruktbarhet av løseren vil vare betydelig redusert
     fun publishBehov(behov: Behov) {
-        behov.toJsonMessage()
+        behov.jsonMessage
             .also {
                 rapidsConnection.publish(it.toJson())
             }.also {
@@ -47,7 +47,7 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     fun publishEvent(event: Event) {
-        event.toJsonMessage()
+        event.jsonMessage
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
                 logger.info("Publiserte event for eventname ${event.event} and uuid ${event.uuid()}'.")
@@ -56,7 +56,7 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     fun publishData(data: Data) {
-        data.toJsonMessage()
+        data.jsonMessage
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
                 logger.info("Publiserte data for eventname ${data.event.name} and uuid ${data.uuid()}'.")
@@ -65,7 +65,7 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     fun publishFail(fail: Fail) {
-        fail.toJsonMessage()
+        fail.jsonMessage
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
                 logger.info("Publiserte feil for eventname ${fail.event.name} and '${fail.behov?.name}'.")

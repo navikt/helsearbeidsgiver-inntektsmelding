@@ -52,24 +52,30 @@ class OpprettOppgaveLoeser(
         virksomhetnavn: String
     ): String {
         val requestTimer = Metrics.requestLatency.labels("opprettOppgave").startTimer()
-        return runBlocking {
-            arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
-                eksternId = forespørselId,
-                lenke = "$linkUrl/im-dialog/$forespørselId",
-                tekst = "Send inn inntektsmelding",
-                virksomhetsnummer = orgnr,
-                merkelapp = "Inntektsmelding",
-                tidspunkt = null,
-                grupperingsid = forespørselId,
-                varslingTittel = "Nav trenger inntektsmelding",
-                varslingInnhold = """$virksomhetnavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger
+        return try {
+            runBlocking {
+                arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
+                    eksternId = forespørselId,
+                    lenke = "$linkUrl/im-dialog/$forespørselId",
+                    tekst = "Send inn inntektsmelding",
+                    virksomhetsnummer = orgnr,
+                    merkelapp = "Inntektsmelding",
+                    tidspunkt = null,
+                    grupperingsid = forespørselId,
+                    varslingTittel = "Nav trenger inntektsmelding",
+                    varslingInnhold = """$virksomhetnavn - orgnr $orgnr: En av dine ansatte har søkt om sykepenger
                     og vi trenger inntektsmelding for å behandle søknaden.
                     Logg inn på Min side – arbeidsgiver hos NAV.
                     Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,
                     og trenger ikke sende inn via Min side – arbeidsgiver."""
-            )
-        }.also {
-            requestTimer.observeDuration()
+                )
+            }.also {
+                requestTimer.observeDuration()
+            }
+        } catch (e: Exception) {
+            sikkerLogger.error("Feil ved kall til opprett Oppgave for $forespørselId!", e)
+            logger.error("Feil ved kall til opprett Oppgave for $forespørselId!")
+            return ""
         }
     }
 }

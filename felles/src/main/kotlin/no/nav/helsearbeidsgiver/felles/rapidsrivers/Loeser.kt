@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
-    private val logger = logger()
+    val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     init {

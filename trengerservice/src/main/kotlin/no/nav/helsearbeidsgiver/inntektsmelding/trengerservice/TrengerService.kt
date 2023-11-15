@@ -194,7 +194,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
     }
 
     override fun terminate(fail: Fail) {
-        sikkerLogger.info("terminate transaction id ${fail.uuid} with evenname ${fail.eventName}")
+        sikkerLogger.info("terminate transaction id ${fail.uuid} with eventname ${fail.eventName}")
         val clientId: String? = redisStore.get(RedisKey.of(fail.uuid!!, fail.eventName!!))
         // @TODO kan vare smartere her. Kan definere feilmeldingen i Feil message istedenfor å hardkode det i TrengerService. Vi også ikke trenger å sende alle andre ikke kritiske feilmeldinger hvis vi har noe kritisk
         val feilReport: FeilReport = redisStore.get(RedisKey.of(uuid = fail.uuid!!, Feilmelding("")))!!.fromJson(FeilReport.serializer())

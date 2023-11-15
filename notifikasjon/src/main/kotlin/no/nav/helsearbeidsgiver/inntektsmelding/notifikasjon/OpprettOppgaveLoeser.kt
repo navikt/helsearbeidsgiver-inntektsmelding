@@ -4,11 +4,13 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNyOppgaveException
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 class OpprettOppgaveLoeser(
     rapidsConnection: RapidsConnection,
@@ -16,6 +18,7 @@ class OpprettOppgaveLoeser(
     private val linkUrl: String
 ) : Loeser(rapidsConnection) {
 
+    private val logger = logger()
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
@@ -72,7 +75,7 @@ class OpprettOppgaveLoeser(
             }.also {
                 requestTimer.observeDuration()
             }
-        } catch (e: Exception) {
+        } catch (e: OpprettNyOppgaveException) {
             sikkerLogger.error("Feil ved kall til opprett Oppgave for $forespørselId!", e)
             logger.error("Feil ved kall til opprett Oppgave for $forespørselId!")
             return ""

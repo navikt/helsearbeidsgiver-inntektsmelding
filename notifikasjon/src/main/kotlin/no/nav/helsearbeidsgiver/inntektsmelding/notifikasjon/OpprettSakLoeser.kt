@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -23,7 +24,7 @@ class OpprettSakLoeser(
     private val linkUrl: String
 ) : Loeser(rapidsConnection) {
 
-
+    private val logger = logger()
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_SAK.name)

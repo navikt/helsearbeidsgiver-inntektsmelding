@@ -7,9 +7,12 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -18,13 +21,41 @@ class OpprettOppgaveServiceTest {
 
     private val rapid = TestRapid()
     private val redisStore = MockRedisStore()
+    val service: OpprettOppgaveService
     init {
-        OpprettOppgaveService(rapid, redisStore)
+        service = OpprettOppgaveService(rapid, redisStore)
     }
 
     @BeforeEach
     fun resetRapid() {
         rapid.reset()
+    }
+
+    @Test
+    fun `erFeilMelding`() {
+        val rapidAndRiverFail = no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.create(
+            event = EventName.OPPGAVE_OPPRETT_REQUESTED,
+            feilmelding = "OpprettOppgave feilet",
+            uuid = UUID.randomUUID().toString()
+        )
+        assertEquals(Transaction.TERMINATE, service.determineTransactionState(rapidAndRiverFail.toJsonMessage()))
+        assertTrue(service.isFailMelding(rapidAndRiverFail.toJsonMessage()))
+        val fellesDeprecatedFail = Fail(
+            eventName = EventName.OPPGAVE_OPPRETT_REQUESTED,
+            behov = null,
+            feilmelding = "FEIL",
+            data = null, // mapOf(DataFelt.ORGNRUNDERENHET to "123456789".toJson(), DataFelt.FORESPOERSEL_ID to "123".toJson()),
+            uuid = UUID.randomUUID().toString(),
+            forespørselId = UUID.randomUUID().toString()
+        ).toJsonMessage()
+        assertEquals(Transaction.TERMINATE, service.determineTransactionState(fellesDeprecatedFail))
+        assertTrue(service.isFailMelding(fellesDeprecatedFail))
+        val failFraBehov = Behov.create(
+            event = EventName.OPPGAVE_OPPRETT_REQUESTED,
+            behov = BehovType.OPPRETT_OPPGAVE,
+            forespoerselId = "987654321"
+        ).createFail("Uff")
+        assertTrue(service.isFailMelding(failFraBehov.toJsonMessage()))
     }
 
     @Test

@@ -39,6 +39,7 @@ class OpprettOppgaveLoeser(
         )
         if (oppgaveId.isNullOrBlank()) {
             publishFail(behov.createFail("OpprettOppgave feilet"))
+            // evt: publishFail(Fail.create(event = behov.event, feilmelding = "OpprettOppgave feilet", uuid = behov.uuid()))
             return
         }
 

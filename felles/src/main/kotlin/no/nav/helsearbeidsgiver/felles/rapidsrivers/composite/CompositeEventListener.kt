@@ -78,12 +78,14 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         }
     }
 
-    private fun isFailMelding(jsonMessage: JsonMessage): Boolean {
+    fun isFailMelding(jsonMessage: JsonMessage): Boolean {
         return try {
-            !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
+            !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty) ||
+                jsonMessage[Key.FAIL.str].toString().isNotEmpty()
         } catch (e: NoSuchFieldError) {
             false
         } catch (e: IllegalArgumentException) {
+            sikkerLogger.error("IllegalArgument ved lesing av jsonMessage", e)
             false
         }
     }

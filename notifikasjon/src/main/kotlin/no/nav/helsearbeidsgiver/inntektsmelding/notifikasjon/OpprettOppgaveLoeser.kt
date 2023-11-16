@@ -37,6 +37,10 @@ class OpprettOppgaveLoeser(
             behov[DataFelt.ORGNRUNDERENHET].asText(),
             behov[DataFelt.VIRKSOMHET].asText()
         )
+        if (oppgaveId.isBlank()) {
+            publishFail(behov.createFail("OpprettOppgave feilet"))
+            return
+        }
 
         behov.createBehov(
             BehovType.PERSISTER_OPPGAVE_ID,

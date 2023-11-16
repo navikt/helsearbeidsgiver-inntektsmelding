@@ -130,6 +130,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             )
         )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
+        coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns "123456"
 
         mockPriProducer.apply {
             // Må bare returnere en Result med gyldig JSON

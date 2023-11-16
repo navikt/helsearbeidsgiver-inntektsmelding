@@ -37,7 +37,7 @@ class OpprettOppgaveLoeser(
             behov[DataFelt.ORGNRUNDERENHET].asText(),
             behov[DataFelt.VIRKSOMHET].asText()
         )
-        if (oppgaveId.isBlank()) {
+        if (oppgaveId.isNullOrBlank()) {
             publishFail(behov.createFail("OpprettOppgave feilet"))
             return
         }
@@ -57,7 +57,7 @@ class OpprettOppgaveLoeser(
         forespørselId: String,
         orgnr: String,
         virksomhetnavn: String
-    ): String {
+    ): String? {
         val requestTimer = Metrics.requestLatency.labels("opprettOppgave").startTimer()
         return try {
             runBlocking {
@@ -80,9 +80,9 @@ class OpprettOppgaveLoeser(
                 requestTimer.observeDuration()
             }
         } catch (e: OpprettNyOppgaveException) {
-            sikkerLogger.error("Feil ved kall til opprett Oppgave for $forespørselId!", e)
-            logger.error("Feil ved kall til opprett Oppgave for $forespørselId!")
-            return ""
+            sikkerLogger.error("Feil ved kall til opprett oppgave for $forespørselId!", e)
+            logger.error("Feil ved kall til opprett oppgave for $forespørselId!")
+            return null
         }
     }
 }

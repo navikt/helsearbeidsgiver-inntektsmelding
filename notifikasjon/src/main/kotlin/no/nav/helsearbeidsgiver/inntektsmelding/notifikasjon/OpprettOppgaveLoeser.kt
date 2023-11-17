@@ -29,7 +29,15 @@ class OpprettOppgaveLoeser(
     override fun onBehov(behov: Behov) {
         val forespoerselId = behov.forespoerselId
         if (forespoerselId.isNullOrBlank()) {
-            publishFail(behov.createFail("Mangler forespørselId"))
+            val feil = no.nav.helsearbeidsgiver.felles.Fail(
+                eventName = behov.event,
+                behov = behov.behov,
+                feilmelding = "Mangler forespørselId",
+                data = null,
+                uuid = behov.uuid(),
+                forespørselId = forespoerselId
+            ).toJsonMessage().toJson()
+            rapidsConnection.publish(feil)
             return
         }
         val oppgaveId = opprettOppgave(
@@ -38,7 +46,15 @@ class OpprettOppgaveLoeser(
             behov[DataFelt.VIRKSOMHET].asText()
         )
         if (oppgaveId.isNullOrBlank()) {
-            publishFail(behov.createFail("OpprettOppgave feilet"))
+            val feil = no.nav.helsearbeidsgiver.felles.Fail(
+                eventName = behov.event,
+                behov = behov.behov,
+                feilmelding = "Feilet ved opprett oppgave",
+                data = null,
+                uuid = behov.uuid(),
+                forespørselId = forespoerselId
+            ).toJsonMessage().toJson()
+            rapidsConnection.publish(feil)
             return
         }
 

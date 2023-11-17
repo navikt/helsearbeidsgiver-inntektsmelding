@@ -7,10 +7,14 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -18,13 +22,49 @@ class OpprettOppgaveServiceTest {
 
     private val rapid = TestRapid()
     private val redisStore = MockRedisStore()
-    init {
-        OpprettOppgaveService(rapid, redisStore)
-    }
+    private val service = OpprettOppgaveService(rapid, redisStore)
 
     @BeforeEach
     fun resetRapid() {
         rapid.reset()
+    }
+
+    @Test
+    fun `erFeilMelding`() {
+        val fellesDeprecatedFail = Fail(
+            eventName = EventName.OPPGAVE_OPPRETT_REQUESTED,
+            behov = BehovType.OPPRETT_OPPGAVE,
+            feilmelding = "FEIL",
+            data = null,
+            uuid = UUID.randomUUID().toString(),
+            forespørselId = UUID.randomUUID().toString()
+        ).toJsonMessage()
+        assertEquals(Transaction.TERMINATE, service.determineTransactionState(fellesDeprecatedFail))
+        assertTrue(service.isFailMelding(fellesDeprecatedFail))
+    }
+
+    @Disabled("Enable om vi begynner å bruke ny Fail-objekt sammen med CompositeEventListener")
+    @Test
+    fun `feil fra behov tolkes som feil av service`() {
+        val failFraBehov = Behov.create(
+            event = EventName.OPPGAVE_OPPRETT_REQUESTED,
+            behov = BehovType.OPPRETT_OPPGAVE,
+            forespoerselId = "987654321"
+        ).createFail("Uff")
+        assertTrue(service.isFailMelding(failFraBehov.toJsonMessage()))
+    }
+
+    @Disabled("Enable om vi begynner å bruke ny Fail-objekt sammen med CompositeEventListener")
+    @Test
+    fun `feil fra rapid and rivers-model tolkes som feil av service`() {
+        val rapidAndRiverFail = no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.create(
+            behov = BehovType.OPPRETT_OPPGAVE,
+            event = EventName.OPPGAVE_OPPRETT_REQUESTED,
+            feilmelding = "OpprettOppgave feilet",
+            uuid = UUID.randomUUID().toString()
+        )
+        assertEquals(Transaction.TERMINATE, service.determineTransactionState(rapidAndRiverFail.toJsonMessage()))
+        assertTrue(service.isFailMelding(rapidAndRiverFail.toJsonMessage()))
     }
 
     @Test

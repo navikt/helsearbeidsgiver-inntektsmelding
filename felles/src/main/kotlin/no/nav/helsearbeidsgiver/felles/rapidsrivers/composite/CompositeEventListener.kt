@@ -78,7 +78,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         }
     }
 
-    private fun isFailMelding(jsonMessage: JsonMessage): Boolean {
+    fun isFailMelding(jsonMessage: JsonMessage): Boolean { // TODO: Denne funker bare for felles.Fail-objektet
         return try {
             !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
         } catch (e: NoSuchFieldError) {

@@ -4,8 +4,10 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakException
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
@@ -39,21 +41,27 @@ class OpprettSakLoeser(
         orgnr: String,
         navn: String,
         foedselsdato: LocalDate?
-    ): String {
+    ): String? {
         val formattertFoedselsdato = foedselsdato?.format(birthDateFormatter) ?: "Ukjent"
         val requestTimer = Metrics.requestLatency.labels("opprettSak").startTimer()
-        return runBlocking {
-            arbeidsgiverNotifikasjonKlient.opprettNySak(
-                grupperingsid = forespoerselId,
-                merkelapp = "Inntektsmelding",
-                virksomhetsnummer = orgnr,
-                tittel = "Inntektsmelding for $navn: f. $formattertFoedselsdato",
-                lenke = "$linkUrl/im-dialog/$forespoerselId",
-                statusTekst = "NAV trenger inntektsmelding",
-                harddeleteOm = "P5M"
-            )
-        }.also {
-            requestTimer.observeDuration()
+        return try {
+            runBlocking {
+                arbeidsgiverNotifikasjonKlient.opprettNySak(
+                    grupperingsid = forespoerselId,
+                    merkelapp = "Inntektsmelding",
+                    virksomhetsnummer = orgnr,
+                    tittel = "Inntektsmelding for $navn: f. $formattertFoedselsdato",
+                    lenke = "$linkUrl/im-dialog/$forespoerselId",
+                    statusTekst = "NAV trenger inntektsmelding",
+                    harddeleteOm = "P5M"
+                )
+            }.also {
+                requestTimer.observeDuration()
+            }
+        } catch (e: OpprettNySakException) {
+            sikkerLogger.error("Feil ved kall til opprett sak for $forespoerselId!", e)
+            logger.error("Feil ved kall til opprett sak for $forespoerselId!")
+            return null
         }
     }
 
@@ -72,8 +80,13 @@ class OpprettSakLoeser(
             navn = personDato.navn,
             foedselsdato = personDato.fødselsdato
         )
-        logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
-        behov.createData(mapOf(DataFelt.SAK_ID to sakId)).also { publishData(it) }
-        sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=${behov.forespoerselId}")
+        if (sakId.isNullOrBlank()) {
+            val feil = Fail(behov.event, behov.behov, "Opprett sak feilet", null, behov.uuid(), behov.forespoerselId)
+            rapidsConnection.publish(feil.toJsonMessage().toJson())
+        } else {
+            logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
+            behov.createData(mapOf(DataFelt.SAK_ID to sakId)).also { publishData(it) }
+            sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=${behov.forespoerselId}")
+        }
     }
 }

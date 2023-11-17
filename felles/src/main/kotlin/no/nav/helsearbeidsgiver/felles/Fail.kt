@@ -21,13 +21,15 @@ data class Fail(
     val forespørselId: String?
 ) {
     fun toJsonMessage(): JsonMessage {
-        return JsonMessage.newMessage(
+        val msg = JsonMessage.newMessage(
             mapOfNotNull(
                 Key.EVENT_NAME.str to eventName?.name,
                 Key.FAIL.str to this,
                 Key.UUID.str to this.uuid
             )
         )
+        msg.interestedIn(Key.EVENT_NAME.str, Key.FAIL.str, Key.UUID.str, Key.FORESPOERSEL_ID.str, Key.FAILED_BEHOV.str)
+        return msg
     }
 }
 

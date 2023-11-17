@@ -22,10 +22,7 @@ class OpprettOppgaveServiceTest {
 
     private val rapid = TestRapid()
     private val redisStore = MockRedisStore()
-    val service: OpprettOppgaveService
-    init {
-        service = OpprettOppgaveService(rapid, redisStore)
-    }
+    private val service = OpprettOppgaveService(rapid, redisStore)
 
     @BeforeEach
     fun resetRapid() {
@@ -38,7 +35,7 @@ class OpprettOppgaveServiceTest {
             eventName = EventName.OPPGAVE_OPPRETT_REQUESTED,
             behov = BehovType.OPPRETT_OPPGAVE,
             feilmelding = "FEIL",
-            data = null, // mapOf(DataFelt.ORGNRUNDERENHET to "123456789".toJson(), DataFelt.FORESPOERSEL_ID to "123".toJson()),
+            data = null,
             uuid = UUID.randomUUID().toString(),
             forespørselId = UUID.randomUUID().toString()
         ).toJsonMessage()

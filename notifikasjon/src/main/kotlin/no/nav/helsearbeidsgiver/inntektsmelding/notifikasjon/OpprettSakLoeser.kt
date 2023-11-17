@@ -59,8 +59,8 @@ class OpprettSakLoeser(
                 requestTimer.observeDuration()
             }
         } catch (e: OpprettNySakException) {
-            sikkerLogger.error("Feil ved kall til opprett oppgave for $forespoerselId!", e)
-            logger.error("Feil ved kall til opprett oppgave for $forespoerselId!")
+            sikkerLogger.error("Feil ved kall til opprett sak for $forespoerselId!", e)
+            logger.error("Feil ved kall til opprett sak for $forespoerselId!")
             return null
         }
     }

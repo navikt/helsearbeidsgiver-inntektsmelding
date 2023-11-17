@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakException
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
@@ -80,7 +81,8 @@ class OpprettSakLoeser(
             foedselsdato = personDato.fødselsdato
         )
         if (sakId.isNullOrBlank()) {
-            publishFail(behov.createFail("Opprett sak feilet"))
+            val feil = Fail(behov.event, behov.behov, "Opprett sak feilet", null, behov.uuid(), behov.forespoerselId)
+            rapidsConnection.publish(feil.toJsonMessage().toJson()) // TODO: Fiks feilhåndtering
         } else {
             logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
             behov.createData(mapOf(DataFelt.SAK_ID to sakId)).also { publishData(it) }

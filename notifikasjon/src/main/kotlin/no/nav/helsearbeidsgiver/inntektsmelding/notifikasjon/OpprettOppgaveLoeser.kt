@@ -38,8 +38,15 @@ class OpprettOppgaveLoeser(
             behov[DataFelt.VIRKSOMHET].asText()
         )
         if (oppgaveId.isNullOrBlank()) {
-            publishFail(behov.createFail("OpprettOppgave feilet"))
-            // evt: publishFail(Fail.create(event = behov.event, feilmelding = "OpprettOppgave feilet", uuid = behov.uuid()))
+            val feil = no.nav.helsearbeidsgiver.felles.Fail(
+                eventName = behov.event,
+                behov = behov.behov,
+                feilmelding = "Feilet ved opprett oppgave",
+                data = null,
+                uuid = behov.uuid(),
+                forespørselId = forespoerselId
+            ).toJsonMessage()
+            rapidsConnection.publish(feil.toJson())
             return
         }
 

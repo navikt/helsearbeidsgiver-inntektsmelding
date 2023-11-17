@@ -118,7 +118,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                     mellomnavn = null,
                     etternavn = "Betjent"
                 ),
-                foedselsdato = 28.mai
+                foedselsdato = 28.mai,
+                ident = "fnr-bjarne"
             ),
             FullPerson(
                 navn = PersonNavn(
@@ -126,7 +127,8 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                     mellomnavn = null,
                     etternavn = "Mekker"
                 ),
-                foedselsdato = 6.august
+                foedselsdato = 6.august,
+                ident = "fnr-max"
             )
         )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
@@ -153,7 +155,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
             createAareg(mockk(relaxed = true))
             createAltinn(altinnClient)
-            createBrreg(brregClient, true)
+            createBrreg(brregClient, false)
             createDb(database, imRepository, forespoerselRepository)
             createDistribusjon(mockk(relaxed = true))
             createForespoerselBesvartFraSimba()

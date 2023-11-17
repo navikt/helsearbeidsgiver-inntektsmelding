@@ -82,7 +82,7 @@ class OpprettSakLoeser(
         )
         if (sakId.isNullOrBlank()) {
             val feil = Fail(behov.event, behov.behov, "Opprett sak feilet", null, behov.uuid(), behov.forespoerselId)
-            rapidsConnection.publish(feil.toJsonMessage().toJson()) // TODO: Fiks feilhåndtering
+            rapidsConnection.publish(feil.toJsonMessage().toJson())
         } else {
             logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
             behov.createData(mapOf(DataFelt.SAK_ID to sakId)).also { publishData(it) }

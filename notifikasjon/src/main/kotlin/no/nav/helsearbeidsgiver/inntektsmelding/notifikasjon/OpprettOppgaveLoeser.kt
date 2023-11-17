@@ -53,8 +53,8 @@ class OpprettOppgaveLoeser(
                 data = null,
                 uuid = behov.uuid(),
                 forespørselId = forespoerselId
-            ).toJsonMessage()
-            rapidsConnection.publish(feil.toJson())
+            ).toJsonMessage().toJson()
+            rapidsConnection.publish(feil)
             return
         }
 

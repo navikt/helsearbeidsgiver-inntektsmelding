@@ -46,7 +46,7 @@ class OpprettOppgaveServiceTest {
         assertTrue(service.isFailMelding(fellesDeprecatedFail))
     }
 
-    @Disabled
+    @Disabled("Enable om vi begynner å bruke ny Fail-objekt sammen med CompositeEventListener")
     @Test
     fun `feil fra behov tolkes som feil av service`() {
         val failFraBehov = Behov.create(
@@ -57,7 +57,7 @@ class OpprettOppgaveServiceTest {
         assertTrue(service.isFailMelding(failFraBehov.toJsonMessage()))
     }
 
-    @Disabled
+    @Disabled("Enable om vi begynner å bruke ny Fail-objekt sammen med CompositeEventListener")
     @Test
     fun `feil fra rapid and rivers-model tolkes som feil av service`() {
         val rapidAndRiverFail = no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.create(

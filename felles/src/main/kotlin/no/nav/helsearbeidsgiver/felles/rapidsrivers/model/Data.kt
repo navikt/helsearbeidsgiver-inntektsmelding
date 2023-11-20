@@ -1,18 +1,15 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
-import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
-import java.lang.IllegalArgumentException
 import java.util.UUID
 
-class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message, TxMessage {
+class Data(val event: EventName, val jsonMessage: JsonMessage) : TxMessage {
 
     init {
         packetValidator.validate(jsonMessage)
@@ -36,16 +33,5 @@ class Data(val event: EventName, private val jsonMessage: JsonMessage) : Message
         }
     }
 
-    override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
-
-    override operator fun set(key: IKey, value: Any) {
-        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
-        jsonMessage[key.str] = value
-    }
-
     override fun uuid(): String = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
-
-    override fun toJsonMessage(): JsonMessage {
-        return this.jsonMessage
-    }
 }

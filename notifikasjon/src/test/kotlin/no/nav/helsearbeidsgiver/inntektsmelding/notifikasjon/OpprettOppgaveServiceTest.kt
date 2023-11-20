@@ -51,7 +51,7 @@ class OpprettOppgaveServiceTest {
             behov = BehovType.OPPRETT_OPPGAVE,
             forespoerselId = "987654321"
         ).createFail("Uff")
-        assertTrue(service.isFailMelding(failFraBehov.toJsonMessage()))
+        assertTrue(service.isFailMelding(failFraBehov.jsonMessage))
     }
 
     @Disabled("Enable om vi begynner å bruke ny Fail-objekt sammen med CompositeEventListener")
@@ -63,8 +63,8 @@ class OpprettOppgaveServiceTest {
             feilmelding = "OpprettOppgave feilet",
             uuid = UUID.randomUUID().toString()
         )
-        assertEquals(Transaction.TERMINATE, service.determineTransactionState(rapidAndRiverFail.toJsonMessage()))
-        assertTrue(service.isFailMelding(rapidAndRiverFail.toJsonMessage()))
+        assertEquals(Transaction.TERMINATE, service.determineTransactionState(rapidAndRiverFail.jsonMessage))
+        assertTrue(service.isFailMelding(rapidAndRiverFail.jsonMessage))
     }
 
     @Test

@@ -53,7 +53,7 @@ class KvitteringServiceTest {
             )
         )
         testRapid.reset()
-        testRapid.sendTestMessage(behov.createData(mapOf(DataFelt.INNTEKTSMELDING_DOKUMENT to im)).toJsonMessage().toJson())
+        testRapid.sendTestMessage(behov.createData(mapOf(DataFelt.INNTEKTSMELDING_DOKUMENT to im)).jsonMessage.toJson())
         assertEquals(im, redisStore.get(uuid + DataFelt.INNTEKTSMELDING_DOKUMENT))
     }
 }

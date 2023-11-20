@@ -2,10 +2,10 @@ kafkaPool: nav-dev
 azure:
   enabled: true
 env:
-  - name: PROXY_SCOPE
-    value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+  - name: SPINN_SCOPE
+    value: "api://dev-fss.helsearbeidsgiver.syfoinntektsmelding/.default"
   - name: SPINN_API_URL
-    value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/syfoinntektsmelding"
+    value: "https://syfoinntektsmelding.dev-fss-pub.nais.io/api/v1/inntektsmelding"
   - name: REDIS_URL
     value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
 apps:

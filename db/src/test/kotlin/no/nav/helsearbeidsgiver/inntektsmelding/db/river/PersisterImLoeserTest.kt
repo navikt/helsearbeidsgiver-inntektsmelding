@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.ZonedDateTime
 
 class PersisterImLoeserTest {
 
@@ -72,7 +73,7 @@ class PersisterImLoeserTest {
 
     @Test
     fun `ikke lagre ved duplikat`() {
-        coEvery { repository.hentNyeste(any()) } returns Mock.inntektsmelding
+        coEvery { repository.hentNyeste(any()) } returns Mock.inntektsmelding.copy(tidspunkt = ZonedDateTime.now().minusHours(1).toOffsetDateTime())
         sendMelding(
             JsonMessage.newMessage(
                 mapOf(
@@ -80,9 +81,9 @@ class PersisterImLoeserTest {
                     Key.BEHOV.str to BehovType.PERSISTER_IM.name,
                     DataFelt.VIRKSOMHET.str to "Test Virksomhet",
                     DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
-                    DataFelt.ARBEIDSGIVER_INFORMASJON.str to PersonDato("Test person", null, ""),
+                    DataFelt.ARBEIDSGIVER_INFORMASJON.str to PersonDato("Test person 2", null, ""),
                     Key.UUID.str to "uuid",
-                    DataFelt.INNTEKTSMELDING.str to Mock.innsending
+                    DataFelt.INNTEKTSMELDING.str to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING)
                 )
             )
         )
@@ -131,7 +132,7 @@ class PersisterImLoeserTest {
                     beløp = 300.0
                 )
             ),
-            årsakInnsending = AarsakInnsending.ENDRING,
+            årsakInnsending = AarsakInnsending.NY,
             bekreftOpplysninger = true
         )
         val arbeidstaker = PersonDato("Test person", null, innsending.identitetsnummer)

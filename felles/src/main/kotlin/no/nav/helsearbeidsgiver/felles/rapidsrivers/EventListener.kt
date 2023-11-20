@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
 
 abstract class EventListener(val rapidsConnection: RapidsConnection) : River.PacketListener {
@@ -47,10 +46,6 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
         rapidsConnection.publish(message.toJson())
     }
 
-    fun publishBehov(behov: Behov) {
-        rapidsConnection.publish(behov.toJsonMessage().toJson())
-    }
-
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val event = Event.create(packet)
@@ -67,6 +62,6 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
         rapidsConnection.publish(fail.toJsonMessage().toJson())
     }
     fun publishFail(fail: no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail) {
-        rapidsConnection.publish(fail.toJsonMessage().toJson())
+        rapidsConnection.publish(fail.jsonMessage.toJson())
     }
 }

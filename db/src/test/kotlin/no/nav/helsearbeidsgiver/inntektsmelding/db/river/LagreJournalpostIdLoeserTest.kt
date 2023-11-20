@@ -11,8 +11,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
+import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
@@ -84,7 +83,7 @@ class LagreJournalpostIdLoeserTest {
         assertNotNull(feilmelding)
     }
 
-    private fun getFeil(index: Int) = testRapid.inspektør.message(index).toJsonElement().toDomeneMessage<Fail>().feilmelding
+    private fun getFeil(index: Int) = testRapid.inspektør.message(index).toJsonElement().readFail().feilmelding
 
     private fun journalpostLagretFraRapid(index: Int): JsonNode {
         val message = testRapid.inspektør.message(index)

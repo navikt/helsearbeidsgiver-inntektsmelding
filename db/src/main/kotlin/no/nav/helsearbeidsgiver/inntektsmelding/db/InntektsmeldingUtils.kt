@@ -39,4 +39,4 @@ fun mapInntektsmelding(
 class UgyldigFormatException(ex: Exception) : Exception(ex)
 
 fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =
-    this == other.copy(tidspunkt = tidspunkt)
+    this == other.copy(tidspunkt = tidspunkt, årsakInnsending = årsakInnsending, innsenderNavn = innsenderNavn)

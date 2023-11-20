@@ -60,11 +60,9 @@ class SakFerdigLoeser(
                 json.haandterMelding(context)
             }
                 .onFailure { e ->
-                    "Ukjent feil. Republiserer melding.".also {
+                    "Ukjent feil.".also {
                         logger.error("$it Se sikker logg for mer info.")
                         sikkerLogger.error(it, e)
-
-                        json.republiser(context)
                     }
                 }
         }
@@ -110,9 +108,5 @@ class SakFerdigLoeser(
         )
 
         logger.info("Sak ferdigstilt.")
-    }
-
-    private fun JsonElement.republiser(context: MessageContext) {
-        context.publish(toString())
     }
 }

@@ -50,11 +50,9 @@ class NotifikasjonHentIdLoeser(
                 loesBehov(behov)
             }
                 .onFailure { e ->
-                    "Ukjent feil. Republiserer melding.".also {
+                    "Ukjent feil.".also {
                         logger.error("$it Se sikker logg for mer info.")
                         sikkerLogger.error(it, e)
-
-                        publishBehov(behov)
                     }
                 }
         }

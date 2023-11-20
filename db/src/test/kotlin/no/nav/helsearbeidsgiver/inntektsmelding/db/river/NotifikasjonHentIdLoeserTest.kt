@@ -23,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -73,55 +72,5 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
             mockForespoerselRepo.hentSakId(any())
             mockForespoerselRepo.hentOppgaveId(any())
         }
-    }
-
-    xtest("Dersom sak eller oppgave-ID ikke finnes så republiseres den innkommende meldingen") {
-        val expectedRepublisert = mapOf(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
-            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
-        )
-
-        every { mockForespoerselRepo.hentSakId(any()) } returns null
-        every { mockForespoerselRepo.hentOppgaveId(any()) } returns null
-
-        testRapid.sendJson(
-            *expectedRepublisert.toList().toTypedArray()
-        )
-
-        val actual = testRapid.firstMessage()
-            .fromJsonMapFiltered(Key.serializer())
-            // Fjern nøkler vi ikke bryr oss om, som '@id'
-            .filterKeys { expectedRepublisert.containsKey(it) }
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        actual shouldBe expectedRepublisert
-    }
-
-    test("Ved ukjent feil så republiseres den innkommende meldingen") {
-        val expectedRepublisert = mapOf(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
-            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
-        )
-
-        every { mockForespoerselRepo.hentSakId(any()) } returns "en id for sak"
-        every { mockForespoerselRepo.hentOppgaveId(any()) } throws RuntimeException("oppgaveId får du fikse sjæl!")
-
-        testRapid.sendJson(
-            *expectedRepublisert.toList().toTypedArray()
-        )
-
-        val actual = testRapid.firstMessage()
-            .fromJsonMapFiltered(Key.serializer())
-            // Fjern nøkler vi ikke bryr oss om, som '@id'
-            .filterKeys { expectedRepublisert.containsKey(it) }
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        actual shouldBe expectedRepublisert
     }
 })

@@ -179,7 +179,7 @@ class PdfDokument(val dokument: Inntektsmelding) {
 
     private fun addInntekt() {
         addSection("Beregnet månedslønn")
-        addLabel("Registrert inntekt (per ${dokument.tidspunkt.toLocalDate().toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
+        addLabel("Registrert inntekt (per ${dokument.bestemmendeFraværsdag.toNorsk()})", dokument.beregnetInntekt.toNorsk() + " kr/måned")
         val endringsårsak = dokument.inntekt?.endringÅrsak
         when (endringsårsak) {
             null -> return // trenger ikke sende inn årsak...

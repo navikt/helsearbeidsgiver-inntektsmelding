@@ -8,7 +8,7 @@ object Env {
 
     val azureOAuthEnvironment =
         AzureOAuth2Environment(
-            scope = "PROXY_SCOPE".fromEnv(),
+            scope = "SPINN_SCOPE".fromEnv(),
             azureWellKnownUrl = "AZURE_APP_WELL_KNOWN_URL".fromEnv(),
             azureTokenEndpointUrl = "AZURE_OPENID_CONFIG_TOKEN_ENDPOINT".fromEnv(),
             azureAppClientID = "AZURE_APP_CLIENT_ID".fromEnv(),

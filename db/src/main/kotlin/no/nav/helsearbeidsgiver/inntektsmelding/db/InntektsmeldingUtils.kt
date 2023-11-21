@@ -18,10 +18,13 @@ fun mapInntektsmelding(
             virksomhetNavn = arbeidsgiver,
             behandlingsdager = request.behandlingsdager,
             egenmeldingsperioder = request.egenmeldingsperioder,
+            // NB!: Nå settes også 'inntektsdato' med 'request.bestemmendeFraværsdag'.
+            // Dette fordi 'request.bestemmendeFraværsdag' egentlig inneholder inntektsdato og ikke bestemmende fraværsdag. Utbedring kommer.
             bestemmendeFraværsdag = request.bestemmendeFraværsdag,
             fraværsperioder = request.fraværsperioder,
             arbeidsgiverperioder = request.arbeidsgiverperioder,
             beregnetInntekt = request.inntekt.beregnetInntekt,
+            inntektsdato = request.bestemmendeFraværsdag,
             inntekt = request.inntekt,
             fullLønnIArbeidsgiverPerioden = request.fullLønnIArbeidsgiverPerioden,
             refusjon = request.refusjon,

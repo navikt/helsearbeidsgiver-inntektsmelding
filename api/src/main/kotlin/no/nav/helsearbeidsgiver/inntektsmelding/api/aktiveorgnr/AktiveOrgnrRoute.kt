@@ -15,6 +15,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.hentIdentitetsnummerFraLoginToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 
 fun Route.aktiveOrgnrRoute(
     connection: RapidsConnection,
@@ -28,7 +30,8 @@ fun Route.aktiveOrgnrRoute(
 
             try {
                 val clientId = aktiveOrgnrProducer.publish(arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
-                call.respond(HttpStatusCode.Created, "{}")
+                val resultat = redis.hent(clientId).fromJson(AktiveOrgnrResponse.serializer())
+                call.respond(HttpStatusCode.Created, resultat.toJson(AktiveOrgnrResponse.serializer()))
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout mot redis ved henting av aktive orgnr")
                 call.respond(HttpStatusCode.InternalServerError, "{}")

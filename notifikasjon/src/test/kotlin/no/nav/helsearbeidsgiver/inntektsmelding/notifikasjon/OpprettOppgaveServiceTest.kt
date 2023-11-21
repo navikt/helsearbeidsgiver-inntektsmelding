@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
+import io.mockk.clearAllMocks
+import io.mockk.every
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -9,8 +11,10 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -21,12 +25,15 @@ import java.util.UUID
 class OpprettOppgaveServiceTest {
 
     private val rapid = TestRapid()
-    private val redisStore = MockRedisStore()
-    private val service = OpprettOppgaveService(rapid, redisStore)
+    private val mockRedis = MockRedis()
+
+    private val service = OpprettOppgaveService(rapid, mockRedis.store)
 
     @BeforeEach
-    fun resetRapid() {
+    fun setup() {
         rapid.reset()
+        clearAllMocks()
+        mockRedis.setup()
     }
 
     @Test
@@ -69,25 +76,32 @@ class OpprettOppgaveServiceTest {
 
     @Test
     fun `skal publisere to behov`() {
-        rapid.sendTestMessage(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
-                    Key.UUID.str to UUID.randomUUID(),
-                    DataFelt.ORGNRUNDERENHET.str to "123456789",
-                    Key.FORESPOERSEL_ID.str to "987654321"
-                )
-            ).toJson()
-        )
-        val generertForespoerselId = redisStore.get("uuid")
+        val transaksjonId = randomUuid()
+        val forespoerselId = "987654321"
+
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns transaksjonId
+
+            rapid.sendTestMessage(
+                JsonMessage.newMessage(
+                    mapOf(
+                        Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
+                        Key.UUID.str to UUID.randomUUID(),
+                        DataFelt.ORGNRUNDERENHET.str to "123456789",
+                        Key.FORESPOERSEL_ID.str to forespoerselId
+                    )
+                ).toJson()
+            )
+        }
+
         rapid.sendTestMessage(
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
                     Key.DATA.str to "",
                     DataFelt.VIRKSOMHET.str to "TestBedrift A/S",
-                    Key.FORESPOERSEL_ID.str to generertForespoerselId!!,
-                    Key.UUID.str to generertForespoerselId
+                    Key.FORESPOERSEL_ID.str to forespoerselId,
+                    Key.UUID.str to transaksjonId
                 )
             ).toJson()
         )
@@ -99,17 +113,24 @@ class OpprettOppgaveServiceTest {
 
     @Test
     fun `skal fortsette selv om vi mottar feil fra hent virksomhetnavn`() {
-        rapid.sendTestMessage(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
-                    Key.UUID.str to UUID.randomUUID(),
-                    DataFelt.ORGNRUNDERENHET.str to "123456789",
-                    Key.FORESPOERSEL_ID.str to "987654321"
-                )
-            ).toJson()
-        )
-        val generertForespoerselId = redisStore.get("uuid")
+        val transaksjonId = randomUuid()
+        val forespoerselId = "987654321"
+
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns transaksjonId
+
+            rapid.sendTestMessage(
+                JsonMessage.newMessage(
+                    mapOf(
+                        Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
+                        Key.UUID.str to UUID.randomUUID(),
+                        DataFelt.ORGNRUNDERENHET.str to "123456789",
+                        Key.FORESPOERSEL_ID.str to forespoerselId
+                    )
+                ).toJson()
+            )
+        }
+
         val feil = Fail(
             EventName.OPPGAVE_OPPRETT_REQUESTED,
             BehovType.VIRKSOMHET,
@@ -117,8 +138,8 @@ class OpprettOppgaveServiceTest {
             mapOf(
                 DataFelt.ORGNRUNDERENHET to "123456789".toJson()
             ),
-            generertForespoerselId,
-            generertForespoerselId
+            transaksjonId.toString(),
+            forespoerselId
         ).toJsonMessage().toJson()
         rapid.sendTestMessage(feil)
         val behov = rapid.inspektør.message(0)

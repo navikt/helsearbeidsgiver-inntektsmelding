@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.verify
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
@@ -13,7 +14,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -25,13 +27,14 @@ import no.nav.helsearbeidsgiver.utils.test.date.januar
 class SpinnServiceTest : FunSpec({
     val testRapid = TestRapid()
 
-    val testRedis = MockRedisStore()
+    val mockRedis = MockRedis()
 
-    SpinnService(testRapid, testRedis)
+    SpinnService(testRapid, mockRedis.store)
 
     beforeEach {
         testRapid.reset()
         clearAllMocks()
+        mockRedis.setup()
     }
 
     test("Publiser nytt behov med inntektsmeldingId ved nytt event") {
@@ -52,8 +55,6 @@ class SpinnServiceTest : FunSpec({
 
     test("EksternInntektsmelding blir skrevet til redis") {
 
-        testRedis.set("${Mock.transaksjonsId}${DataFelt.FORESPOERSEL_ID.str}", Mock.forespoerselId.toString())
-
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
             Key.DATA to "".toJson(),
@@ -62,9 +63,13 @@ class SpinnServiceTest : FunSpec({
             DataFelt.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
             DataFelt.EKSTERN_INNTEKTSMELDING to Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
         )
-        testRedis.get(Mock.transaksjonsId.toString() + DataFelt.EKSTERN_INNTEKTSMELDING.str) shouldBe Mock.eksternInntektsmelding.toJsonStr(
-            EksternInntektsmelding.serializer()
-        )
+
+        verify {
+            mockRedis.store.set(
+                RedisKey.of(Mock.transaksjonsId, DataFelt.EKSTERN_INNTEKTSMELDING),
+                Mock.eksternInntektsmelding.toJsonStr(EksternInntektsmelding.serializer())
+            )
+        }
     }
 })
 

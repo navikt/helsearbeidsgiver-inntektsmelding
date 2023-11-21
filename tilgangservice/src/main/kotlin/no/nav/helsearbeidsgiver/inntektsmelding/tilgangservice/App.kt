@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -15,7 +14,7 @@ fun main() {
         .start()
 }
 
-fun RapidsConnection.createTilgangService(redisStore: IRedisStore): RapidsConnection =
+fun RapidsConnection.createTilgangService(redisStore: RedisStore): RapidsConnection =
     also {
         logger.info("Starter ${TilgangService::class.simpleName}...")
         TilgangService(this, redisStore)

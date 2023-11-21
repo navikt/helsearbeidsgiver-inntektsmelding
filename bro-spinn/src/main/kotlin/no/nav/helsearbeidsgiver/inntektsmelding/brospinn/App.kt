@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -27,13 +26,13 @@ fun RapidsConnection.createEksternInntektsmeldingLoeser(spinnKlient: SpinnKlient
         EksternInntektsmeldingLoeser(this, spinnKlient)
     }
 
-fun RapidsConnection.createSpinnService(redisStore: IRedisStore): RapidsConnection =
+fun RapidsConnection.createSpinnService(redisStore: RedisStore): RapidsConnection =
     also {
         logger.info("Starter ${SpinnService::class.simpleName}...")
         SpinnService(this, redisStore)
     }
 
-fun buildRedisStore(): IRedisStore {
+fun buildRedisStore(): RedisStore {
     return RedisStore(Env.redisUrl)
 }
 

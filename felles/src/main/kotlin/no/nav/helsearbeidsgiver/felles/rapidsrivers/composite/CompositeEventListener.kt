@@ -11,8 +11,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -20,7 +20,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
-abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
+abstract class CompositeEventListener(open val redisStore: RedisStore) : River.PacketListener {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -129,6 +129,6 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         return this
     }
 
-    open fun isDataCollected(uuid: UUID): Boolean = dataKanal.isAllDataCollected(RedisKey.of(uuid))
+    open fun isDataCollected(uuid: UUID): Boolean = dataKanal.isAllDataCollected(uuid)
     open fun isDataCollected(vararg keys: RedisKey): Boolean = dataKanal.isDataCollected(*keys)
 }

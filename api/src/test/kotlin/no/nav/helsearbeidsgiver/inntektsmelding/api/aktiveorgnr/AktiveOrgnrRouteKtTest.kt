@@ -27,7 +27,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     fun `skal godta og returnere liste med organisasjoner`() = testApi {
         mockTilgang(Tilgang.HAR_TILGANG)
         val requestBody = """
-            {"fnr":"test-fnr"}
+            {"identitetsnummer":"test-fnr"}
         """
         val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
         assertEquals(HttpStatusCode.Created, response.status)
@@ -37,28 +37,20 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     @Test
     fun `test request data`() {
         val requestBody = """
-            {"fnr":"test-fnr"}
+            {"identitetsnummer":"test-fnr"}
         """.removeJsonWhitespace()
         val requestObj = requestBody.fromJson(AktiveOrgnrRequest.serializer())
-        assertEquals("test-fnr", requestObj.fnr)
+        assertEquals("test-fnr", requestObj.identitetsnummer)
     }
-
-
-
-
-
-
-
-
 
     private object Mock {
         val forespoerselId: UUID = UUID.randomUUID()
 
         val expectedResponseBody = """
             {
-                "organisasjoner": [{"orgnr": "test-orgnr", "orgnavn": "test-orgnavn"}],
+                "organisasjoner": [{"orgnrUnderenhet": "test-orgnr", "orgnavn": "test-orgnavn"}],
                 "arbeidstaker": {
-                    "fnr" : "test-fnr",
+                    "identitetsnummer" : "test-fnr",
                     "navn": "Test Person"
                 }
             }

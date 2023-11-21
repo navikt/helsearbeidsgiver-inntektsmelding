@@ -99,7 +99,7 @@ fun Application.apiModule(rapid: RapidsConnection) {
                     innsendingRoute()
                     kvitteringRoute()
                 }
-                aktiveOrgnrRoute()
+                aktiveOrgnrRoute(rapid, redisPoller)
             }
         }
     }

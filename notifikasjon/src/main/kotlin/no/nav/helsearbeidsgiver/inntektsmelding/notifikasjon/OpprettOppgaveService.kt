@@ -14,6 +14,9 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventList
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import java.util.UUID
 
 class OpprettOppgaveService(
     private val rapidsConnection: RapidsConnection,
@@ -44,8 +47,8 @@ class OpprettOppgaveService(
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
     }
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
-        val transaksjonsId = message[Key.UUID.str].asText()
-        val forespørselId = redisStore.get(transaksjonsId + Key.FORESPOERSEL_ID.str)!!
+        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
+        val forespoerselId = redisStore.get(RedisKey.of(transaksjonsId, Key.FORESPOERSEL_ID))!!
         if (transaction == Transaction.NEW) {
             rapidsConnection.publish(
                 JsonMessage.newMessage(
@@ -53,7 +56,7 @@ class OpprettOppgaveService(
                         Key.EVENT_NAME.str to event.name,
                         Key.UUID.str to transaksjonsId,
                         Key.BEHOV.str to BehovType.VIRKSOMHET.name,
-                        Key.FORESPOERSEL_ID.str to forespørselId,
+                        Key.FORESPOERSEL_ID.str to forespoerselId,
                         DataFelt.ORGNRUNDERENHET.str to message[DataFelt.ORGNRUNDERENHET.str]
                     )
                 ).toJson()
@@ -62,7 +65,7 @@ class OpprettOppgaveService(
     }
 
     override fun finalize(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText()
+        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
         val virksomhetnavn = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.VIRKSOMHET))
         val orgnr = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.ORGNRUNDERENHET))
         val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
@@ -81,12 +84,25 @@ class OpprettOppgaveService(
     }
 
     override fun terminate(fail: Fail) {
-        redisStore.set(fail.uuid!!, fail.feilmelding)
+        val transaksjonId = fail.uuid!!.let(UUID::fromString)
+
+        val clientId = redisStore.get(RedisKey.of(transaksjonId, event))
+            ?.let(UUID::fromString)
+
+        if (clientId == null) {
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId)
+            ) {
+                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespørselId}")
+            }
+        } else {
+            redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+        }
     }
 
     override fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = "${feil.uuid}${DataFelt.VIRKSOMHET.str}"
+            val virksomhetKey = RedisKey.of(feil.uuid!!.let(UUID::fromString), DataFelt.VIRKSOMHET)
             redisStore.set(virksomhetKey, "Arbeidsgiver")
             return Transaction.FINALIZE
         }

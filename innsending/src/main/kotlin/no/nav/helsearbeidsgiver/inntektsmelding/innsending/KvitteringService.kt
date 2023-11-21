@@ -17,9 +17,12 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventList
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
+import java.util.UUID
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
 class KvitteringService(
@@ -66,8 +69,8 @@ class KvitteringService(
     }
 
     override fun finalize(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText()
-        val clientId = redisStore.get(RedisKey.of(transaksjonsId, event))
+        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
+        val clientId = redisStore.get(RedisKey.of(transaksjonsId, event))!!.let(UUID::fromString)
         // TODO: Skriv bort fra empty payload hvis mulig
         val im = InnsendtInntektsmelding(
             message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText().let { if (it != "{}") it.fromJson(Inntektsmelding.serializer()) else null },
@@ -75,11 +78,24 @@ class KvitteringService(
         ).toJsonStr(InnsendtInntektsmelding.serializer())
 
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
-        redisStore.set(clientId!!, im)
+        redisStore.set(RedisKey.of(clientId), im)
     }
 
     override fun terminate(fail: Fail) {
-        logger.info("Terminate kvittering med forespoerselId=${fail.forespørselId} og transaksjonsId ${fail.uuid}")
-        redisStore.set(fail.uuid!!, fail.feilmelding)
+        val transaksjonId = fail.uuid!!.let(UUID::fromString)
+
+        val clientId = redisStore.get(RedisKey.of(transaksjonId, event))
+            ?.let(UUID::fromString)
+
+        if (clientId == null) {
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId)
+            ) {
+                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespørselId}")
+            }
+        } else {
+            logger.info("Terminate kvittering med forespoerselId=${fail.forespørselId} og transaksjonsId ${fail.uuid}")
+            redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+        }
     }
 }

@@ -90,7 +90,7 @@ class TrengerIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transactionId
             }
 
-        val trengerResultatJson = redisStore.get(RedisKey.of(Mock.clientId.toString()))
+        val trengerResultatJson = redisStore.get(RedisKey.of(Mock.clientId))
         println("In test $trengerResultatJson")
         val objekt = trengerResultatJson?.fromJson(TrengerData.serializer())
         println(objekt)

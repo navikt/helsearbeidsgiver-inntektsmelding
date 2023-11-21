@@ -63,7 +63,7 @@ class SpinnService(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
             "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
@@ -72,7 +72,7 @@ class SpinnService(
             }
             return
         }
-        val spinnImId = RedisKey.of(transaksjonId.toString(), DataFelt.SPINN_INNTEKTSMELDING_ID)
+        val spinnImId = RedisKey.of(transaksjonId, DataFelt.SPINN_INNTEKTSMELDING_ID)
             .read()?.let(UUID::fromString)
         if (spinnImId == null) {
             "Klarte ikke finne spinnImId for transaksjon $transaksjonId i Redis.".also {
@@ -108,7 +108,7 @@ class SpinnService(
         val json = message.toJsonMap()
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val eksternInntektsmelding = DataFelt.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), json)
-        val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (
             forespoerselId != null &&

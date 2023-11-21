@@ -12,6 +12,5 @@ data class AktiveOrgnrResponse(
 @Serializable
 data class GyldigUnderenhet(
     val orgnrUnderenhet: String,
-    val virksomhetsnavn: String,
+    val virksomhetsnavn: String
 )
-

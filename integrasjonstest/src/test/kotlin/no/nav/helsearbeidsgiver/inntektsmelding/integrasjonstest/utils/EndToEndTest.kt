@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
+import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
@@ -169,6 +170,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createPdl(pdlKlient)
             createEksternInntektsmeldingLoeser(spinnKlient)
             createSpinnService(redisStore)
+            createAktiveOrgnrService(redisStore)
         }
             .register(this)
 

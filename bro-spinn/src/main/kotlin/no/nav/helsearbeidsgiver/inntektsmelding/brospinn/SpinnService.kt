@@ -47,7 +47,7 @@ class SpinnService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.EKSTERN_INNTEKTSMELDING.str
+                    DataFelt.EKSTERN_INNTEKTSMELDING
                 ),
                 eventName = event,
                 mainListener = it,
@@ -55,7 +55,7 @@ class SpinnService(
                 redisStore = redisStore
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.SPINN_INNTEKTSMELDING_ID.str), it, rapid) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID, DataFelt.SPINN_INNTEKTSMELDING_ID), it, rapid) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {

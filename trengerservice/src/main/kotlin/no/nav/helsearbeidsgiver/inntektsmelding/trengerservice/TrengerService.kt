@@ -41,11 +41,11 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         withDataKanal {
             StatefullDataKanal(
                 listOf(
-                    DataFelt.FORESPOERSEL_SVAR.str,
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str,
-                    DataFelt.ARBEIDSGIVER_INFORMASJON.str,
-                    DataFelt.VIRKSOMHET.str,
-                    DataFelt.INNTEKT.str
+                    DataFelt.FORESPOERSEL_SVAR,
+                    DataFelt.ARBEIDSTAKER_INFORMASJON,
+                    DataFelt.ARBEIDSGIVER_INFORMASJON,
+                    DataFelt.VIRKSOMHET,
+                    DataFelt.INNTEKT
                 ).toTypedArray(),
                 event,
                 it,
@@ -57,7 +57,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             StatefullEventListener(
                 redisStore,
                 event,
-                listOf(DataFelt.FORESPOERSEL_ID.str, Key.ARBEIDSGIVER_ID.str).toTypedArray(),
+                listOf(DataFelt.FORESPOERSEL_ID, Key.ARBEIDSGIVER_ID).toTypedArray(),
                 it,
                 rapidsConnection
             )

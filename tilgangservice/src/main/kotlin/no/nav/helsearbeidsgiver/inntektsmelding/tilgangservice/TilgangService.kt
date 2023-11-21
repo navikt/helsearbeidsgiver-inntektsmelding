@@ -49,8 +49,8 @@ class TilgangService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.ORGNRUNDERENHET.str,
-                    DataFelt.TILGANG.str
+                    DataFelt.ORGNRUNDERENHET,
+                    DataFelt.TILGANG
                 ),
                 eventName = event,
                 mainListener = it,
@@ -58,7 +58,7 @@ class TilgangService(
                 redisStore = redisStore
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.FNR.str), it, rapid) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID, DataFelt.FNR), it, rapid) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {

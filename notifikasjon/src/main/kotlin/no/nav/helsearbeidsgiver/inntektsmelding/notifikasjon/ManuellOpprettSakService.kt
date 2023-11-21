@@ -29,7 +29,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(Key.FORESPOERSEL_ID.str, Key.UUID.str),
+                arrayOf(Key.FORESPOERSEL_ID, Key.UUID),
                 this,
                 rapidsConnection
             )
@@ -37,10 +37,10 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
         withDataKanal {
             StatefullDataKanal(
                 arrayOf(
-                    DataFelt.FORESPOERSEL_SVAR.str,
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str,
-                    DataFelt.SAK_ID.str,
-                    DataFelt.PERSISTERT_SAK_ID.str
+                    DataFelt.FORESPOERSEL_SVAR,
+                    DataFelt.ARBEIDSTAKER_INFORMASJON,
+                    DataFelt.SAK_ID,
+                    DataFelt.PERSISTERT_SAK_ID
                 ),
                 event,
                 this,

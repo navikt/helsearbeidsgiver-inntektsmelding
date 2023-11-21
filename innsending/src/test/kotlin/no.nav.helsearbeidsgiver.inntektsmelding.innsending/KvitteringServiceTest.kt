@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,8 +36,7 @@ class KvitteringServiceTest {
         )
 
         testRapid.sendTestMessage(packet.toJson())
-        val uuid = redisStore.get("uuid") // finn den genererte uuid'en fra service
-        println("Fant uuid: $uuid")
+        val uuid = randomUuid().toString()
 
         val im = "inntektsmelding_FTW"
         val behov = Behov(

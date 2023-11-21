@@ -38,12 +38,12 @@ class InnsendingService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.VIRKSOMHET.str,
-                    DataFelt.ARBEIDSFORHOLD.str,
-                    DataFelt.INNTEKTSMELDING_DOKUMENT.str,
-                    DataFelt.ARBEIDSGIVER_INFORMASJON.str,
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str,
-                    DataFelt.ER_DUPLIKAT_IM.str
+                    DataFelt.VIRKSOMHET,
+                    DataFelt.ARBEIDSFORHOLD,
+                    DataFelt.INNTEKTSMELDING_DOKUMENT,
+                    DataFelt.ARBEIDSGIVER_INFORMASJON,
+                    DataFelt.ARBEIDSTAKER_INFORMASJON,
+                    DataFelt.ER_DUPLIKAT_IM
                 ),
                 event,
                 it,
@@ -56,11 +56,11 @@ class InnsendingService(
                 redisStore,
                 event,
                 arrayOf(
-                    DataFelt.FORESPOERSEL_ID.str,
-                    DataFelt.ORGNRUNDERENHET.str,
-                    DataFelt.INNTEKTSMELDING.str,
-                    Key.ARBEIDSGIVER_ID.str,
-                    Key.IDENTITETSNUMMER.str
+                    DataFelt.FORESPOERSEL_ID,
+                    DataFelt.ORGNRUNDERENHET,
+                    DataFelt.INNTEKTSMELDING,
+                    Key.ARBEIDSGIVER_ID,
+                    Key.IDENTITETSNUMMER
                 ),
                 it,
                 rapid

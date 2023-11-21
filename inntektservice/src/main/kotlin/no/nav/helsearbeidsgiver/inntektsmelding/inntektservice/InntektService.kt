@@ -51,8 +51,8 @@ class InntektService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.FORESPOERSEL_SVAR.str,
-                    DataFelt.INNTEKT.str
+                    DataFelt.FORESPOERSEL_SVAR,
+                    DataFelt.INNTEKT
                 ),
                 eventName = event,
                 mainListener = it,
@@ -60,7 +60,7 @@ class InntektService(
                 redisStore = redisStore
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.SKJAERINGSTIDSPUNKT.str), it, rapid) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID, DataFelt.SKJAERINGSTIDSPUNKT), it, rapid) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {

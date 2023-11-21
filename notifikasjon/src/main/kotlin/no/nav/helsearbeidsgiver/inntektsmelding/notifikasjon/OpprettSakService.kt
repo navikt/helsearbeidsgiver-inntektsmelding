@@ -25,14 +25,14 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.IDENTITETSNUMMER.str, Key.FORESPOERSEL_ID.str, Key.UUID.str),
+                arrayOf(DataFelt.ORGNRUNDERENHET, Key.IDENTITETSNUMMER, Key.FORESPOERSEL_ID, Key.UUID),
                 this,
                 rapidsConnection
             )
         }
         withDataKanal {
             StatefullDataKanal(
-                arrayOf(DataFelt.ARBEIDSTAKER_INFORMASJON.str, DataFelt.SAK_ID.str, DataFelt.PERSISTERT_SAK_ID.str),
+                arrayOf(DataFelt.ARBEIDSTAKER_INFORMASJON, DataFelt.SAK_ID, DataFelt.PERSISTERT_SAK_ID),
                 event,
                 this,
                 rapidsConnection,

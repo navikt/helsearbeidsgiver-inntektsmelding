@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
@@ -10,9 +11,10 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 class StatefullDataKanal(
-    private val dataFelter: Array<String>,
+    private val dataFelter: Array<DataFelt>,
     override val eventName: EventName,
     private val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,
@@ -50,18 +52,29 @@ class StatefullDataKanal(
 
     private fun collectData(message: JsonMessage): Boolean {
         // putt alle mottatte datafelter fra pakke i redis
-        dataFelter.filter { dataFelt ->
-            !message[dataFelt].isMissingNode
-        }.map { dataFelt ->
-            Pair(dataFelt, message[dataFelt])
-        }.ifEmpty {
-            return false
-        }.forEach {
-                data ->
-            val str = if (data.second.isTextual) { data.second.asText() } else data.second.toString()
-            redisStore.set(message[Key.UUID.str].asText() + data.first, str)
+        val dataMap = dataFelter.filter { dataFelt ->
+            !message[dataFelt.str].isMissingNode
         }
-        return true
+            .associateWith {
+                message[it.str]
+            }
+            .onEach { (dataFelt, data) ->
+                // TODO denne bør fjernes, all data bør behandles likt
+                val dataAsString =
+                    if (data.isTextual) {
+                        data.asText()
+                    } else {
+                        data.toString()
+                    }
+
+                val transaksjonId = message[Key.UUID.str].asText().let(UUID::fromString)
+
+                val dataKey = RedisKey.of(transaksjonId, dataFelt)
+
+                redisStore.set(dataKey, dataAsString)
+            }
+
+        return dataMap.isNotEmpty()
     }
 
     fun isAllDataCollected(key: RedisKey): Boolean {
@@ -70,6 +83,7 @@ class StatefullDataKanal(
         return numKeysInRedis == dataFelter.size.toLong()
     }
     fun isDataCollected(vararg keys: RedisKey): Boolean {
-        return redisStore.exist(*keys) == keys.size.toLong()
+        val keysAsString = keys.map { it.toString() }.toTypedArray()
+        return redisStore.exist(*keysAsString) == keys.size.toLong()
     }
 }

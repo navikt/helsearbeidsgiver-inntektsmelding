@@ -32,11 +32,11 @@ class KvitteringService(
     private val logger = logger()
 
     init {
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID.str), this, rapidsConnection) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID), this, rapidsConnection) }
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
         withDataKanal {
             StatefullDataKanal(
-                arrayOf(DataFelt.INNTEKTSMELDING_DOKUMENT.str, DataFelt.EKSTERN_INNTEKTSMELDING.str),
+                arrayOf(DataFelt.INNTEKTSMELDING_DOKUMENT, DataFelt.EKSTERN_INNTEKTSMELDING),
                 event,
                 this,
                 rapidsConnection,

@@ -27,14 +27,14 @@ class OpprettOppgaveService(
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(DataFelt.ORGNRUNDERENHET.str, Key.FORESPOERSEL_ID.str, Key.UUID.str),
+                arrayOf(DataFelt.ORGNRUNDERENHET, Key.FORESPOERSEL_ID, Key.UUID),
                 this,
                 rapidsConnection
             )
         }
         withDataKanal {
             StatefullDataKanal(
-                arrayOf(DataFelt.VIRKSOMHET.str),
+                arrayOf(DataFelt.VIRKSOMHET),
                 event,
                 this,
                 rapidsConnection,

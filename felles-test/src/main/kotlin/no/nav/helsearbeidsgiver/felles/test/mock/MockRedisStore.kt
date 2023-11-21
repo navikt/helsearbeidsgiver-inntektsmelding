@@ -24,7 +24,7 @@ class MockRedisStore : IRedisStore {
 
     override fun set(key: RedisKey, value: String, ttl: Long) {
         println("Setter inn: $key -> $value")
-        store.put(key.toString(), value)
+        set(key.toString(), value)
     }
 
     override fun set(key: RedisKey, value: JsonNode, ttl: Long) {

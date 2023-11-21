@@ -72,7 +72,7 @@ class DataKanalTest {
 
     @Test
     fun `Test DATA collection, Primitive`() {
-        val testFelter = arrayOf("TESTFELT1", "TESTFELT2")
+        val testFelter = arrayOf(DataFelt.FNR, DataFelt.INNTEKT)
         StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, redis)
         val uuid = UUID.randomUUID().toString()
         testRapid.sendTestMessage(
@@ -81,12 +81,12 @@ class DataKanalTest {
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
                     Key.UUID.str to uuid,
                     Key.DATA.str to "",
-                    "TESTFELT1" to "mytestfield"
+                    DataFelt.FNR.str to "mytestfield"
                 )
             ).toJson()
         )
-        Assertions.assertEquals("mytestfield", redis.get(uuid + "TESTFELT1"))
-        Assertions.assertNull(redis.get(uuid + "TESTFELT2"))
+        Assertions.assertEquals("mytestfield", redis.get(uuid + DataFelt.FNR.str))
+        Assertions.assertNull(redis.get(uuid + DataFelt.INNTEKT.str))
 
         testRapid.sendTestMessage(
             JsonMessage.newMessage(
@@ -94,17 +94,17 @@ class DataKanalTest {
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
                     Key.UUID.str to uuid,
                     Key.DATA.str to "",
-                    "TESTFELT2" to "mytestfield2"
+                    DataFelt.INNTEKT.str to "mytestfield2"
                 )
             ).toJson()
         )
-        Assertions.assertEquals("mytestfield", redis.get(uuid + "TESTFELT1"))
-        Assertions.assertEquals("mytestfield2", redis.get(uuid + "TESTFELT2"))
+        Assertions.assertEquals("mytestfield", redis.get(uuid + DataFelt.FNR.str))
+        Assertions.assertEquals("mytestfield2", redis.get(uuid + DataFelt.INNTEKT.str))
     }
 
     @Test
     fun `Test DATA collection, Object`() {
-        val testFelter = arrayOf(DataFelt.ARBEIDSGIVER_INFORMASJON.str, "TESTFELT")
+        val testFelter = arrayOf(DataFelt.ARBEIDSGIVER_INFORMASJON)
         StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, redis)
         val uuid = UUID.randomUUID().toString()
 

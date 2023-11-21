@@ -28,6 +28,10 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
     private lateinit var dataKanal: StatefullDataKanal
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         val transaction: Transaction = determineTransactionState(packet)
 
         when (transaction) {

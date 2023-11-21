@@ -29,6 +29,7 @@ class Fail(
             it.demandKey(Key.FAIL.str)
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FAILED_BEHOV.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
 
         fun create(event: EventName, behov: BehovType? = null, feilmelding: String, uuid: String? = null, data: Map<IKey, Any> = emptyMap()): Fail {

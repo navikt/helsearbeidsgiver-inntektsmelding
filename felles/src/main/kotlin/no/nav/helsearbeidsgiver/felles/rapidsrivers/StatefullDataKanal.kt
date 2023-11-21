@@ -34,6 +34,10 @@ class StatefullDataKanal(
     }
 
     override fun onData(packet: JsonMessage) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger().warn("Mangler forespørselId!")
+            sikkerLogger().warn("Mangler forespørselId!")
+        }
         if (packet[Key.UUID.str].asText().isNullOrEmpty()) {
             sikkerLogger().error("TransaksjonsID er ikke initialisert for\n${packet.toPretty()}")
             rapidsConnection.publish(

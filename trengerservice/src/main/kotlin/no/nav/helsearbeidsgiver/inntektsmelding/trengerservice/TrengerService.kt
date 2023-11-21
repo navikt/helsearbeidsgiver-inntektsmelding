@@ -25,11 +25,13 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
@@ -180,7 +182,11 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             ?.let(UUID::fromString)
 
         if (clientId == null) {
-            sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId)
+            ) {
+                sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
+            }
         } else {
             val foresporselSvar = redisStore.get(RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
             val inntekt = redisStore.get(RedisKey.of(transaksjonId, DataFelt.INNTEKT))?.fromJson(Inntekt.serializer())

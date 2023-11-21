@@ -14,6 +14,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventList
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 class OpprettOppgaveService(
@@ -88,7 +90,11 @@ class OpprettOppgaveService(
             ?.let(UUID::fromString)
 
         if (clientId == null) {
-            sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis.")
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId)
+            ) {
+                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespørselId}")
+            }
         } else {
             redisStore.set(RedisKey.of(clientId), fail.feilmelding)
         }

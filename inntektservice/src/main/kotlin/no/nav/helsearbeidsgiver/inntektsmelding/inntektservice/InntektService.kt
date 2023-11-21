@@ -181,8 +181,12 @@ class InntektService(
             ?.let(UUID::fromString)
 
         if (clientId == null) {
-            sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
-            logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId)
+            ) {
+                sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
+                logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
+            }
         } else {
             val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 

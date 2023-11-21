@@ -18,11 +18,13 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
@@ -95,7 +97,11 @@ class InnsendingService(
             ?.let(UUID::fromString)
 
         if (clientId == null) {
-            sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis.")
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId)
+            ) {
+                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespørselId}")
+            }
         } else {
             redisStore.set(RedisKey.of(clientId), fail.feilmelding)
         }

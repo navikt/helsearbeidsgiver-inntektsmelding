@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.toFeilMessage
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.util.UUID
 
 abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
 
@@ -43,13 +44,14 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
     }
 
     fun determineTransactionState(message: JsonMessage): Transaction {
-        // event bør ikke ha UUID men dette er ikke konsistent akkuratt nå så midlertidig blir det sånn til vi får det konsistent.
-        // vi trenger også clientID for correlation
-        val transactionId = message[Key.UUID.str].asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
             sikkerLogger.error("Feilmelding er\n${message.toPretty()}")
             return onError(message.toFeilMessage())
         }
+
+        // event bør ikke ha UUID men dette er ikke konsistent akkuratt nå så midlertidig blir det sånn til vi får det konsistent.
+        // vi trenger også clientID for correlation
+        val transactionId: UUID = message[Key.UUID.str].asText().let(UUID::fromString)
 
         val eventKey = RedisKey.of(transactionId, event)
         val value = redisStore.get(eventKey)
@@ -68,7 +70,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
                         ?.asText()
                         .orDefault(transactionId)
 
-                    redisStore.set(eventKey, clientId)
+                    redisStore.set(eventKey, clientId.toString())
 
                     Transaction.NEW
                 }
@@ -123,6 +125,6 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         return this
     }
 
-    open fun isDataCollected(uuid: String): Boolean = dataKanal.isAllDataCollected(RedisKey.of(uuid))
+    open fun isDataCollected(uuid: UUID): Boolean = dataKanal.isAllDataCollected(RedisKey.of(uuid))
     open fun isDataCollected(vararg keys: RedisKey): Boolean = dataKanal.isDataCollected(*keys)
 }

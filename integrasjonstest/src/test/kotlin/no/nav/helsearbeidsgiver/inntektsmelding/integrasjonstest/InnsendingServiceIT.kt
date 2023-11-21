@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -56,7 +57,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         messages.filterFeil().all().size shouldBe 0
 
-        val innsendingStr = redisStore.get(Mock.clientId.toString()).shouldNotBeNull()
+        val innsendingStr = redisStore.get(RedisKey.of(Mock.clientId)).shouldNotBeNull()
         innsendingStr.length shouldBeGreaterThan 2
     }
 

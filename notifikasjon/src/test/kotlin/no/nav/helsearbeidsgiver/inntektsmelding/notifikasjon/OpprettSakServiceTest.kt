@@ -35,7 +35,7 @@ class OpprettSakServiceTest {
         testRapid.sendTestMessage(
             message.toJson()
         )
-        val uuid = testRedis.get("uuid").orEmpty()
+        val uuid = testRedis.get("uuid").orEmpty().let(UUID::fromString)
         println("Fant uuid: $uuid")
         assertNotNull(testRedis.get(RedisKey.of(uuid, EventName.SAK_OPPRETT_REQUESTED)))
         val feilmelding = JsonMessage.newMessage(
@@ -59,6 +59,6 @@ class OpprettSakServiceTest {
         testRapid.sendTestMessage(
             feilmelding.toJson()
         )
-        assertNotNull(testRedis.get(RedisKey.of(uuid + "arbeidstakerInformasjon")))
+        assertNotNull(testRedis.get(RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON)))
     }
 }

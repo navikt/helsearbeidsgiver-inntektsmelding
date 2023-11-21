@@ -8,12 +8,15 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class EventListener(val rapidsConnection: RapidsConnection) : River.PacketListener {
 
     abstract val event: EventName
     lateinit var forespørselId: String
-
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
     init {
         configureAsListener(
             River(rapidsConnection).apply {
@@ -47,6 +50,10 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
         val event = Event.create(packet)
         onEvent(packet)

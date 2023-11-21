@@ -75,6 +75,10 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Mottok melding med behov '${packet[Key.BEHOV.str].asText()}'.")
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         sikkerLogger.info("Mottok melding:\n${packet.toPretty()}")
         if (!packet[Key.BEHOV.str].isArray) {
             val behov = Behov.create(packet)

@@ -22,6 +22,7 @@ class Data(val event: EventName, val jsonMessage: JsonMessage) : TxMessage {
             it.demandKey(Key.DATA.str)
             it.rejectKey(Key.FAIL.str)
             it.interestedIn(Key.UUID.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
 
         fun create(event: EventName, uuid: UUID, map: Map<DataFelt, Any> = emptyMap()): Data {

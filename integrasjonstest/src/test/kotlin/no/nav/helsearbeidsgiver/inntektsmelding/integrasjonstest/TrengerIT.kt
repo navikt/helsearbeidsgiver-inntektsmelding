@@ -34,8 +34,6 @@ class TrengerIT : EndToEndTest() {
             DataFelt.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
         )
 
-        waitForMessages(10000)
-
         messages.filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
             .first()

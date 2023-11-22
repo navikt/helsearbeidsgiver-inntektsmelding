@@ -34,8 +34,6 @@ class ForespoerselMottattIT : EndToEndTest() {
                 Pri.Key.FNR to Mock.FNR.toJson(),
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
             )
-
-            waitForMessages(8000)
         }
 
         messages.filter(EventName.FORESPØRSEL_MOTTATT)

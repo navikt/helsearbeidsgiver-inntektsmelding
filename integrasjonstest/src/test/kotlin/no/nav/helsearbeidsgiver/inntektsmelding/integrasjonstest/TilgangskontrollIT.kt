@@ -43,8 +43,6 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `skal få tilgang`() {
         tilgangProducer.publish(Mock.forespoerselIdMedTilgang, Mock.INNLOGGET_FNR)
 
-        Thread.sleep(6000)
-
         val result = messages.filter(EventName.TILGANG_REQUESTED)
             .filter(DataFelt.TILGANG)
             .first()
@@ -61,8 +59,6 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `skal bli nektet tilgang`() {
         tilgangProducer.publish(Mock.forespoerselIdUtenTilgang, Mock.INNLOGGET_FNR)
 
-        Thread.sleep(4000)
-
         val result = messages.filter(EventName.TILGANG_REQUESTED)
             .filter(DataFelt.TILGANG)
             .first()
@@ -78,8 +74,6 @@ class TilgangskontrollIT : EndToEndTest() {
     @Test
     fun `skal få melding om at forespørsel ikke finnes`() {
         tilgangProducer.publish(Mock.forespoerselIdFinnesIkke, Mock.INNLOGGET_FNR)
-
-        Thread.sleep(4000)
 
         val result = messages.filter(EventName.TILGANG_REQUESTED)
             .filterFeil()

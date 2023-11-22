@@ -40,8 +40,6 @@ class KvitteringIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_GYLDIG.toJson()
         )
 
-        Thread.sleep(5000)
-
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
             .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
@@ -73,8 +71,6 @@ class KvitteringIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_GYLDIG.toJson()
         )
 
-        Thread.sleep(5000)
-
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
             .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
@@ -99,8 +95,6 @@ class KvitteringIT : EndToEndTest() {
             Key.CLIENT_ID to clientId.toJson(),
             Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_UGYLDIG.toJson()
         )
-
-        Thread.sleep(5000)
 
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)

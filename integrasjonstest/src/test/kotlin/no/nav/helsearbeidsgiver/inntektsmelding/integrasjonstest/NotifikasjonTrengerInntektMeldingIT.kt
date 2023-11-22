@@ -39,8 +39,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        Thread.sleep(10000)
-
         messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(BehovType.FULLT_NAVN)
             .first()
@@ -101,8 +99,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        Thread.sleep(8000)
-
         messages.filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
             .filter(BehovType.OPPRETT_OPPGAVE)
             .all()
@@ -157,8 +153,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        Thread.sleep(10000)
-
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
             .first()
@@ -174,8 +168,6 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             Key.UUID to transactionId.toJson(),
             DataFelt.FORESPOERSEL_SVAR to mockTrengerInntekt().copy(fnr = Mock.FNR, orgnr = Mock.ORGNR).toJson(TrengerInntekt.serializer())
         )
-
-        Thread.sleep(8000)
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.FULLT_NAVN)

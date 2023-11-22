@@ -64,8 +64,6 @@ class InnsendingIT : EndToEndTest() {
             DataFelt.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
 
-        Thread.sleep(10000)
-
         messages.filter(EventName.INSENDING_STARTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
             .first()
@@ -171,8 +169,6 @@ class InnsendingIT : EndToEndTest() {
             Key.ARBEIDSGIVER_ID to "fnr-max".toJson(),
             DataFelt.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
-
-        Thread.sleep(10000)
 
         messages.filter(EventName.INSENDING_STARTED)
             .filter(DataFelt.ER_DUPLIKAT_IM)

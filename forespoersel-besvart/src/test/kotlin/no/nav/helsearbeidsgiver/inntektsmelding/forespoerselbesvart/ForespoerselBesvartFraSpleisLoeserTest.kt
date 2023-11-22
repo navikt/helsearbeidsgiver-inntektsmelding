@@ -66,8 +66,8 @@ class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
 
         verifySequence {
             mockPriProducer.send(
-                withArg<JsonElement> {
-                    it.toMap() shouldBe expectedRepublisert
+                withArg<JsonElement> { json ->
+                    json.toMap().filterKeys { it is Pri.Key } shouldBe expectedRepublisert
                 }
             )
         }

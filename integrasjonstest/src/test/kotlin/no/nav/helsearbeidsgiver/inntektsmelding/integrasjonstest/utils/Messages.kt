@@ -11,7 +11,6 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
@@ -59,7 +58,7 @@ value class Messages(
         filter { msg ->
             val dataFunnet = utenDataKey || msg.toMap().contains(Key.DATA)
 
-            val datafeltFunnet = msg.fromJsonMapFiltered(DataFelt.serializer()).contains(dataFelt)
+            val datafeltFunnet = msg.toMap().contains(dataFelt)
 
             dataFunnet && datafeltFunnet
         }

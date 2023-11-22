@@ -13,9 +13,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
@@ -26,7 +24,7 @@ class MessagesTest : FunSpec({
 
         val funnetMelding = Mock.meldingerMedBehov.filter(expectedEventName).firstAsMap()
 
-        val actualEventName = funnetMelding.fromJsonMapOnlyKeys()[Key.EVENT_NAME]?.fromJson(EventName.serializer())
+        val actualEventName = funnetMelding.toMap()[Key.EVENT_NAME]?.fromJson(EventName.serializer())
 
         actualEventName shouldBe expectedEventName
     }
@@ -44,7 +42,7 @@ class MessagesTest : FunSpec({
         ) { expectedBehovType ->
             val funnetMelding = Mock.meldingerMedBehov.filter(expectedBehovType).firstAsMap()
 
-            funnetMelding.fromJsonMapOnlyKeys().let {
+            funnetMelding.toMap().let {
                 val behovJson = it[Key.BEHOV].shouldNotBeNull()
 
                 behovJson.fromJson(BehovType.serializer().list()) shouldContain expectedBehovType
@@ -61,9 +59,8 @@ class MessagesTest : FunSpec({
     test("finner korrekt melding for datafelt") {
         val funnetMelding = Mock.meldingerMedDatafelt.filter(DataFelt.VIRKSOMHET).firstAsMap()
 
-        funnetMelding.fromJsonMapOnlyKeys() shouldContainKey Key.DATA
-
-        funnetMelding.fromJsonMapFiltered(DataFelt.serializer()).let {
+        funnetMelding.toMap().also {
+            it shouldContainKey Key.DATA
             it[DataFelt.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
         }
     }

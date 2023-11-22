@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.junit.jupiter.api.BeforeAll
@@ -47,8 +46,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
         val result = messages.filter(EventName.TILGANG_REQUESTED)
             .filter(DataFelt.TILGANG)
-            .first()
-            .toMap()
+            .firstAsMap()
 
         val tilgang = result[DataFelt.TILGANG]
             .shouldNotBeNull()
@@ -65,8 +63,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
         val result = messages.filter(EventName.TILGANG_REQUESTED)
             .filter(DataFelt.TILGANG)
-            .first()
-            .toMap()
+            .firstAsMap()
 
         val tilgang = result[DataFelt.TILGANG]
             .shouldNotBeNull()
@@ -83,8 +80,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
         val result = messages.filter(EventName.TILGANG_REQUESTED)
             .filterFeil()
-            .first()
-            .toMap()
+            .firstAsMap()
 
         val feilmelding = result[Key.FAIL]
             .shouldNotBeNull()

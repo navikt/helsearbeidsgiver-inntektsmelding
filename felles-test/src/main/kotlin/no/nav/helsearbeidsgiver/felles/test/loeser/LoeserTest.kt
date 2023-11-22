@@ -8,11 +8,12 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.loesning
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.loeser.Loeser
 import no.nav.helsearbeidsgiver.felles.loeser.Løsning
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMap
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -37,7 +38,7 @@ abstract class LoeserTest {
     ) {
         companion object {
             fun <T : Any> JsonElement.toLoeserAnswer(tSerializer: KSerializer<T>): LoeserAnswer<T> =
-                fromJsonMapOnlyKeys()
+                toMap()
                     .let {
                         val behov = behov(it)
                         LoeserAnswer(
@@ -47,20 +48,20 @@ abstract class LoeserTest {
                         )
                     }
 
-            private fun behov(json: Map<Key, JsonElement>): BehovType =
+            private fun behov(json: Map<IKey, JsonElement>): BehovType =
                 json[Key.BEHOV]
                     .shouldNotBeNull()
                     .fromJson(BehovType.serializer().list())
                     .shouldNotBeEmpty()
                     .first()
 
-            private fun initiateId(json: Map<Key, JsonElement>): UUID =
+            private fun initiateId(json: Map<IKey, JsonElement>): UUID =
                 json[Key.INITIATE_ID]
                     .shouldNotBeNull()
                     .fromJson(UuidSerializer)
 
             private fun <T : Any> loesning(
-                json: Map<Key, JsonElement>,
+                json: Map<IKey, JsonElement>,
                 behovType: BehovType,
                 tSerializer: KSerializer<T>
             ): Løsning<T> =

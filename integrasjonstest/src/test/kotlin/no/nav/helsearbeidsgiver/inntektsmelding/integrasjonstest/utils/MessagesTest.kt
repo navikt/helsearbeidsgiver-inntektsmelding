@@ -24,7 +24,7 @@ class MessagesTest : FunSpec({
     test("finner korrekt melding for event") {
         val expectedEventName = EventName.TRENGER_REQUESTED
 
-        val funnetMelding = Mock.meldingerMedBehov.filter(expectedEventName).first()
+        val funnetMelding = Mock.meldingerMedBehov.filter(expectedEventName).firstAsMap()
 
         val actualEventName = funnetMelding.fromJsonMapOnlyKeys()[Key.EVENT_NAME]?.fromJson(EventName.serializer())
 
@@ -42,7 +42,7 @@ class MessagesTest : FunSpec({
             BehovType.FULLT_NAVN,
             BehovType.VIRKSOMHET
         ) { expectedBehovType ->
-            val funnetMelding = Mock.meldingerMedBehov.filter(expectedBehovType).first()
+            val funnetMelding = Mock.meldingerMedBehov.filter(expectedBehovType).firstAsMap()
 
             funnetMelding.fromJsonMapOnlyKeys().let {
                 val behovJson = it[Key.BEHOV].shouldNotBeNull()
@@ -59,7 +59,7 @@ class MessagesTest : FunSpec({
     }
 
     test("finner korrekt melding for datafelt") {
-        val funnetMelding = Mock.meldingerMedDatafelt.filter(DataFelt.VIRKSOMHET).first()
+        val funnetMelding = Mock.meldingerMedDatafelt.filter(DataFelt.VIRKSOMHET).firstAsMap()
 
         funnetMelding.fromJsonMapOnlyKeys() shouldContainKey Key.DATA
 

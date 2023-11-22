@@ -109,6 +109,7 @@ class InnsendingService(
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val transaksjonId = message[Key.UUID.str].asText().let(UUID::fromString)
+        val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText().let(UUID::fromString)
         when (transaction) {
             Transaction.NEW -> {
                 logger.info("InnsendingService: emitting behov Virksomhet")
@@ -116,7 +117,8 @@ class InnsendingService(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                     DataFelt.ORGNRUNDERENHET to message[DataFelt.ORGNRUNDERENHET.str].asText().toJson(),
-                    Key.UUID to transaksjonId.toJson()
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson()
                 )
 
                 logger.info("InnsendingService: emitting behov ARBEIDSFORHOLD")
@@ -124,7 +126,8 @@ class InnsendingService(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
                     Key.IDENTITETSNUMMER to message[Key.IDENTITETSNUMMER.str].asText().toJson(),
-                    Key.UUID to transaksjonId.toJson()
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson()
                 )
 
                 logger.info("InnsendingService: emitting behov FULLT_NAVN")
@@ -133,7 +136,8 @@ class InnsendingService(
                     Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
                     Key.IDENTITETSNUMMER to message[Key.IDENTITETSNUMMER.str].asText().toJson(),
                     Key.ARBEIDSGIVER_ID to message[Key.ARBEIDSGIVER_ID.str].asText().toJson(),
-                    Key.UUID to transaksjonId.toJson()
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson()
                 )
             }
 
@@ -153,7 +157,7 @@ class InnsendingService(
                             arbeidsgiverRedis ?: personIkkeFunnet(message[Key.ARBEIDSGIVER_ID.str].asText())
                             ).toJson(PersonDato.serializer()),
                         DataFelt.INNTEKTSMELDING to redisStore.get(RedisKey.of(transaksjonId, DataFelt.INNTEKTSMELDING))!!.parseJson(),
-                        Key.FORESPOERSEL_ID to redisStore.get(RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID))!!.toJson(),
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                         Key.UUID to transaksjonId.toJson()
                     )
                 }
@@ -167,6 +171,7 @@ class InnsendingService(
 
     override fun finalize(message: JsonMessage) {
         val uuid = message[Key.UUID.str].asText().let(UUID::fromString)
+        val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText().let(UUID::fromString)
         val clientId = redisStore.get(RedisKey.of(uuid, event))?.let(UUID::fromString)
         logger.info("publiserer under clientID $clientId")
         redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
@@ -177,7 +182,7 @@ class InnsendingService(
             rapid.publish(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.UUID to uuid.toJson(),
-                DataFelt.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, DataFelt.FORESPOERSEL_ID))!!.toJson(),
+                DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
                 DataFelt.INNTEKTSMELDING_DOKUMENT to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].toJsonElement()
             )
                 .also {

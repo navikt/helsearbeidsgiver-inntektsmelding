@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
@@ -15,7 +14,7 @@ fun main() {
         .start()
 }
 
-fun RapidsConnection.createTrengerService(redisStore: IRedisStore): RapidsConnection =
+fun RapidsConnection.createTrengerService(redisStore: RedisStore): RapidsConnection =
     also {
         logger.info("Starter ${TrengerService::class.simpleName}...")
         TrengerService(this, redisStore)

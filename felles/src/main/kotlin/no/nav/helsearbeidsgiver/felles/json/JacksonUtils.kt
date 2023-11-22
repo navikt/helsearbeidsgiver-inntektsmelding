@@ -13,6 +13,7 @@ private val objectMapper = customObjectMapper()
 fun JsonElement.toJsonNode(): JsonNode =
     toString().let(objectMapper::readTree)
 
+// TODO slett
 object Jackson {
     val objectMapper = customObjectMapper()
 

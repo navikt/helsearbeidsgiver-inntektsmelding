@@ -7,14 +7,14 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.lang.IllegalStateException
 
 class StatefullEventListener(
-    val redisStore: IRedisStore,
+    val redisStore: RedisStore,
     override val event: EventName,
     private val dataFelter: Array<IKey>,
     private val mainListener: River.PacketListener,
@@ -22,6 +22,8 @@ class StatefullEventListener(
 ) : EventListener(
     rapidsConnection
 ) {
+    private val sikkerLogger = sikkerLogger()
+
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.interestedIn(*dataFelter)
@@ -55,7 +57,7 @@ class StatefullEventListener(
     }
 
     override fun onEvent(packet: JsonMessage) {
-        sikkerLogger().info("Statefull event listener for event ${event.name} med packet \n${packet.toPretty()}")
+        sikkerLogger.info("Statefull event listener for event ${event.name} med packet \n${packet.toPretty()}")
         collectData(packet)
         mainListener.onPacket(packet, rapidsConnection)
     }

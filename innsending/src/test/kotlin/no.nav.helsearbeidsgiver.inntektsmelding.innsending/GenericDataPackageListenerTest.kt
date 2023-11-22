@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
-import io.mockk.every
+import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -11,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -22,33 +23,33 @@ class GenericDataPackageListenerTest {
         FELT
     }
 
-    private var mockListener: River.PacketListener = mockk()
+    private var mockListener = mockk<River.PacketListener>(relaxed = true)
 
-    private lateinit var dataListener: StatefullDataKanal
-
-    private val redisStore = mockk<RedisStore>()
+    private val mockRedis = MockRedis()
 
     private val testRapid: TestRapid = TestRapid()
 
-    @BeforeEach
-    fun beforeAll() {
-        dataListener = StatefullDataKanal(
-            arrayOf(DataFelt.FNR),
+    init {
+        StatefullDataKanal(
+            arrayOf(DataFelt.FNR, DataFelt.INNTEKT),
             EventName.INSENDING_STARTED,
             mockListener,
             testRapid,
-            redisStore
+            mockRedis.store
         )
+    }
+
+    @BeforeEach
+    fun setup() {
+        testRapid.reset()
+        clearAllMocks()
+        mockRedis.setup()
     }
 
     @Test
     fun `Listener fanger data`() {
-        every { mockListener.onPacket(any(), any()) } answers {
-            val jsonMessages: JsonMessage = it.invocation.args[0] as JsonMessage
-            assert(jsonMessages[DataFelt.FNR.str].asText() == "Hello")
-        }
-        every { redisStore.set(any<RedisKey>(), any<String>(), 60L) } returns Unit
         val uuid: UUID = UUID.randomUUID()
+
         testRapid.sendTestMessage(
             JsonMessage.newMessage(
                 mapOf(
@@ -60,9 +61,15 @@ class GenericDataPackageListenerTest {
                 )
             ).toJson()
         )
+
         verify(exactly = 1) {
-            redisStore.set(RedisKey.of(uuid, DataFelt.FNR), "Hello", 60L)
-            mockListener.onPacket(any(), any())
+            mockRedis.store.set(RedisKey.of(uuid, DataFelt.FNR), "Hello")
+            mockListener.onPacket(
+                withArg {
+                    it[DataFelt.FNR.str].asText() shouldBe "Hello"
+                },
+                any()
+            )
         }
     }
 
@@ -80,7 +87,7 @@ class GenericDataPackageListenerTest {
             ).toJson()
         )
         verify(exactly = 0) {
-            redisStore.set(any<String>(), any())
+            mockRedis.store.set(any(), any())
             mockListener.onPacket(any(), any())
         }
     }

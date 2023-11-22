@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 
 class Fail(
     val event: EventName,
@@ -15,7 +14,7 @@ class Fail(
     val feilmelding: String,
     val uuid: String? = null,
     val jsonMessage: JsonMessage
-) : TxMessage {
+) {
 
     init {
         packetValidator.validate(jsonMessage)
@@ -64,9 +63,5 @@ class Fail(
                 jsonMessage
             )
         }
-    }
-
-    override fun uuid(): String {
-        return uuid.orEmpty()
     }
 }

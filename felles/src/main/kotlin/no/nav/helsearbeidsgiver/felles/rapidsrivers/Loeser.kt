@@ -50,7 +50,7 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
         event.jsonMessage
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
-                logger.info("Publiserte event for eventname ${event.event} and uuid ${event.uuid()}'.")
+                logger.info("Publiserte event for eventname ${event.event} and uuid ${event.jsonMessage[Key.UUID.str].asText()}'.")
                 sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
             }
     }
@@ -59,7 +59,7 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
         data.jsonMessage
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
-                logger.info("Publiserte data for eventname ${data.event.name} and uuid ${data.uuid()}'.")
+                logger.info("Publiserte data for eventname ${data.event.name} and uuid ${data.jsonMessage[Key.UUID.str].asText()}'.")
                 sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
             }
     }

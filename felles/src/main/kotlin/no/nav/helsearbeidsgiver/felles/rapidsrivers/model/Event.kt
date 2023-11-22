@@ -6,19 +6,14 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
-import java.util.UUID
 
 class Event(
     val event: EventName,
     val forespoerselId: String? = null,
     val jsonMessage: JsonMessage,
     val clientId: String? = null
-) : TxMessage {
-
-    @Transient var uuid: String? = null
-
+) {
     init {
         packetValidator.validate(jsonMessage)
         jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
@@ -50,19 +45,4 @@ class Event(
             return Event(event, forespoerselId, jsonMessage, clientID)
         }
     }
-
-    fun createFail(feilmelding: String, data: Map<IKey, Any> = emptyMap()): Fail {
-        val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str]
-        return Fail.create(
-            event,
-            null,
-            feilmelding,
-            data = mapOfNotNull(
-                Key.UUID to this.uuid().takeUnless { it.isBlank() },
-                Key.FORESPOERSEL_ID to forespoerselID
-            ) + data.mapKeys { it.key }
-        )
-    }
-
-    override fun uuid() = this.uuid.orEmpty()
 }

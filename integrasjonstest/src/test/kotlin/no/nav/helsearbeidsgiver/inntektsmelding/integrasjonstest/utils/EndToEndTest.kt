@@ -68,15 +68,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     private val logger = logger()
 
     private val rapid by lazy {
-        RapidApplication.create(
-            mapOf(
-                "KAFKA_RAPID_TOPIC" to topic,
-                "KAFKA_CREATE_TOPICS" to topic,
-                "RAPID_APP_NAME" to "HAG",
-                "KAFKA_BOOTSTRAP_SERVERS" to kafkaContainer.bootstrapServers,
-                "KAFKA_CONSUMER_GROUP_ID" to "HAG"
-            )
-        )
+        ImTestRapid()
     }
 
     private val database by lazy {
@@ -188,6 +180,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
         rapid.stop()
+        rapid.reset()
         thread.interrupt()
         logger.info("Stopped")
     }

@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
@@ -19,27 +19,31 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
 class PersisterImLoeserTest {
 
-    private val rapid = TestRapid()
-    private var løser: PersisterImLoeser
+    private val testRapid = TestRapid()
     private val repository = mockk<InntektsmeldingRepository>()
 
     init {
-        løser = PersisterImLoeser(rapid, repository)
+        PersisterImLoeser(testRapid, repository)
     }
 
-    private fun sendMelding(melding: JsonMessage) {
-        rapid.reset()
-        rapid.sendTestMessage(melding.toJson())
+    @BeforeEach
+    fun setup() {
+        testRapid.reset()
+        clearAllMocks()
     }
 
     @Test
@@ -48,24 +52,21 @@ class PersisterImLoeserTest {
             repository.lagreInntektsmelding(any(), any())
         } returns Unit
         coEvery { repository.hentNyeste(any()) } returns null
-        sendMelding(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                    Key.BEHOV.str to BehovType.PERSISTER_IM.name,
-                    DataFelt.VIRKSOMHET.str to "Test Virksomhet",
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
-                    DataFelt.ARBEIDSGIVER_INFORMASJON.str to PersonDato("Test person", null, ""),
-                    Key.UUID.str to "uuid",
-                    DataFelt.INNTEKTSMELDING.str to Mock.innsending
-                )
-            )
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
+            Key.UUID to randomUuid().toJson(),
+            Key.FORESPOERSEL_ID to randomUuid().toJson(),
+            DataFelt.VIRKSOMHET to "Test Virksomhet".toJson(),
+            DataFelt.ARBEIDSTAKER_INFORMASJON to PersonDato("Test person", null, "").toJson(PersonDato.serializer()),
+            DataFelt.ARBEIDSGIVER_INFORMASJON to PersonDato("Test person", null, "").toJson(PersonDato.serializer()),
+            DataFelt.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
 
         coVerify(exactly = 1) {
             repository.lagreInntektsmelding(any(), any())
         }
-        val message = rapid.inspektør.message(0)
+        val message = testRapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
         Assertions.assertNotNull(message.path(DataFelt.INNTEKTSMELDING.str).asText())
         Assertions.assertFalse(message.path(DataFelt.ER_DUPLIKAT_IM.str).asBoolean())
@@ -74,24 +75,21 @@ class PersisterImLoeserTest {
     @Test
     fun `ikke lagre ved duplikat`() {
         coEvery { repository.hentNyeste(any()) } returns Mock.inntektsmelding.copy(tidspunkt = ZonedDateTime.now().minusHours(1).toOffsetDateTime())
-        sendMelding(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
-                    Key.BEHOV.str to BehovType.PERSISTER_IM.name,
-                    DataFelt.VIRKSOMHET.str to "Test Virksomhet",
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str to PersonDato("Test person", null, ""),
-                    DataFelt.ARBEIDSGIVER_INFORMASJON.str to PersonDato("Test person 2", null, ""),
-                    Key.UUID.str to "uuid",
-                    DataFelt.INNTEKTSMELDING.str to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING)
-                )
-            )
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
+            Key.UUID to randomUuid().toJson(),
+            Key.FORESPOERSEL_ID to randomUuid().toJson(),
+            DataFelt.VIRKSOMHET to "Test Virksomhet".toJson(),
+            DataFelt.ARBEIDSTAKER_INFORMASJON to PersonDato("Test person", null, "").toJson(PersonDato.serializer()),
+            DataFelt.ARBEIDSGIVER_INFORMASJON to PersonDato("Test person 2", null, "").toJson(PersonDato.serializer()),
+            DataFelt.INNTEKTSMELDING to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING).toJson(Innsending.serializer())
         )
 
         coVerify(exactly = 0) {
             repository.lagreInntektsmelding(any(), any())
         }
-        val message = rapid.inspektør.message(0)
+        val message = testRapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
         Assertions.assertTrue(message.path(DataFelt.ER_DUPLIKAT_IM.str).asBoolean())
     }
@@ -135,8 +133,9 @@ class PersisterImLoeserTest {
             årsakInnsending = AarsakInnsending.NY,
             bekreftOpplysninger = true
         )
-        val arbeidstaker = PersonDato("Test person", null, innsending.identitetsnummer)
-        val arbeidsgiver = PersonDato("Test person", null, innsending.identitetsnummer)
+
+        private val arbeidstaker = PersonDato("Test person", null, innsending.identitetsnummer)
+        private val arbeidsgiver = PersonDato("Test person", null, innsending.identitetsnummer)
         val inntektsmelding = mapInntektsmelding(innsending, arbeidstaker.navn, "Test Virksomhet", arbeidsgiver.navn)
     }
 }

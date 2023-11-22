@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 
 class Behov(
@@ -17,7 +16,7 @@ class Behov(
     val behov: BehovType,
     val forespoerselId: String?,
     val jsonMessage: JsonMessage
-) : TxMessage {
+) {
 
     init {
         packetValidator.validate(jsonMessage)
@@ -120,5 +119,5 @@ class Behov(
         return Event.create(event, forespoerselId, data)
     }
 
-    override fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
+    fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
 }

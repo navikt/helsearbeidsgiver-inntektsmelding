@@ -50,7 +50,7 @@ class AltinnLoeserTest : FunSpec({
         val expectedPublished = mapOf<IKey, JsonElement>(
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
             Key.DATA to "".toJson(),
-            DataFelt.ARBEIDSFORHOLD to mockAltinnOrganisasjonSet().toJson(AltinnOrganisasjon.serializer().set())
+            DataFelt.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().toJson(AltinnOrganisasjon.serializer().set())
         )
 
         testRapid.sendJson(

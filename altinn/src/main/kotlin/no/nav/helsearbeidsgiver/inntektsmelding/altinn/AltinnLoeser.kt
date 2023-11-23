@@ -43,7 +43,7 @@ class AltinnLoeser(
         return mapOf(
             Key.BEHOV to behovType.toJson(),
             Key.DATA to "".toJson(),
-            DataFelt.ARBEIDSFORHOLD to rettigheter.toJson(AltinnOrganisasjon.serializer().set())
+            DataFelt.ORG_RETTIGHETER to rettigheter.toJson(AltinnOrganisasjon.serializer().set())
         )
     }
 }

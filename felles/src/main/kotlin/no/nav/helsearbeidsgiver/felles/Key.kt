@@ -53,6 +53,7 @@ enum class DataFelt(override val str: String) : IKey {
     PERSISTERT_SAK_ID("persistert_sak_id"),
     OPPGAVE_ID("oppgave_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
+    ORG_RETTIGHETER("org_rettigheter"),
     FORESPOERSEL_ID("forespoerselId"),
     INNTEKTSMELDING("inntektsmelding"),
     FORESPOERSEL_SVAR("forespoersel-svar"),

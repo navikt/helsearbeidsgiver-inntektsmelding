@@ -13,7 +13,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNames
-import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -127,7 +126,6 @@ private data class PublishedFeil(
                 fail = mapOf(
                     Fail::behov.name to BehovType.HENT_TRENGER_IM.toJson(),
                     Fail::feilmelding.name to feilmelding.toJson(),
-                    Fail::data.name to JsonNull,
                     Fail::uuid.name to transaksjonId.toJson(),
                     Fail::forespørselId.name to forespoerselSvar.forespoerselId.toJson()
                 ),

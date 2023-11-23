@@ -32,7 +32,7 @@ import java.util.UUID
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLoeser(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer<JsonElement>
+    private val priProducer: PriProducer
 ) : River.PacketListener {
 
     private val logger = logger()
@@ -58,6 +58,10 @@ class ForespoerselMottattLoeser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         val json = packet.toJson().parseJson()
 
         val transaksjonId = randomUuid()
@@ -102,7 +106,7 @@ class ForespoerselMottattLoeser(
                 DataFelt.ORGNRUNDERENHET to orgnr.toJson(),
                 Key.IDENTITETSNUMMER to fnr.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+                Key.UUID to transaksjonId.toJson()
             )
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")

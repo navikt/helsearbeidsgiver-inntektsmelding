@@ -37,6 +37,10 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
     abstract fun haandterFeil(json: JsonElement)
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         val json = packet.toJson().parseJson()
 
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
@@ -74,7 +78,7 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
                 Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
-                Key.TRANSACTION_ORIGIN to melding.transaksjonId.toJson()
+                Key.UUID to melding.transaksjonId.toJson()
             )
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")

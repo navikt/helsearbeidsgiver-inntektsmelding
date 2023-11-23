@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -17,7 +16,7 @@ fun main() {
         .start()
 }
 
-fun RapidsConnection.createInnsending(redisStore: IRedisStore): RapidsConnection =
+fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection =
     also {
         logger.info("Starter ${InnsendingService::class.simpleName}...")
         InnsendingService(this, redisStore)
@@ -26,7 +25,7 @@ fun RapidsConnection.createInnsending(redisStore: IRedisStore): RapidsConnection
         KvitteringService(this, redisStore)
     }
 
-fun buildRedisStore(environment: Environment): IRedisStore {
+fun buildRedisStore(environment: Environment): RedisStore {
     sikkerLogger.info("Redis url er " + environment.redisUrl)
     return RedisStore(environment.redisUrl)
 }

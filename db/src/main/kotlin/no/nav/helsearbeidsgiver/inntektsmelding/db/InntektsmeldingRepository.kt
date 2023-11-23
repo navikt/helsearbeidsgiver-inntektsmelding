@@ -14,6 +14,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
+import java.util.UUID
 
 class InntektsmeldingRepository(private val db: Database) {
 
@@ -38,12 +39,13 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun hentNyeste(forespørselId: String): Inntektsmelding? {
+    fun hentNyeste(forespoerselId: UUID): Inntektsmelding? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
-            InntektsmeldingEntitet.run {
-                select { (forespoerselId eq forespørselId) and dokument.isNotNull() }.orderBy(innsendt, SortOrder.DESC)
+            InntektsmeldingEntitet.select {
+                (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull()
             }
+                .orderBy(innsendt, SortOrder.DESC)
                 .firstOrNull()
                 ?.getOrNull(InntektsmeldingEntitet.dokument)
         }.also {
@@ -67,11 +69,11 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun oppdaterJournalpostId(journalpostId: String, forespørselId: String) {
+    fun oppdaterJournalpostId(journalpostId: String, forespoerselId: UUID) {
         val requestTimer = requestLatency.labels("oppdaterJournalpostId").startTimer()
         transaction(db) {
             InntektsmeldingEntitet.update(
-                where = { (InntektsmeldingEntitet.forespoerselId eq forespørselId) and (InntektsmeldingEntitet.journalpostId eq null) }
+                where = { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and (InntektsmeldingEntitet.journalpostId eq null) }
             ) {
                 it[InntektsmeldingEntitet.journalpostId] = journalpostId
             }

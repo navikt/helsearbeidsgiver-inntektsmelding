@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -40,20 +39,18 @@ class ForespoerselMottattIT : EndToEndTest() {
 
         messages.filter(EventName.FORESPØRSEL_MOTTATT)
             .filter(BehovType.LAGRE_FORESPOERSEL)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_MOTTATT
                 it[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.LAGRE_FORESPOERSEL
                 it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
                 it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                it[Key.TRANSACTION_ORIGIN]?.fromJson(UuidSerializer) shouldBe Mock.transaksjonId
+                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe Mock.transaksjonId
             }
 
         messages.filter(EventName.FORESPØRSEL_LAGRET)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 it shouldNotContainKey Key.BEHOV
                 it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_LAGRET

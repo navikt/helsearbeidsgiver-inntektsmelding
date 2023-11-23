@@ -12,20 +12,20 @@ import io.mockk.verifySequence
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
 class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
     val testRapid = TestRapid()
-    val mockPriProducer = mockk<PriProducer<JsonElement>>(relaxed = true)
+    val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
     ForespoerselBesvartFraSpleisLoeser(testRapid, mockPriProducer)
 
@@ -66,8 +66,8 @@ class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
 
         verifySequence {
             mockPriProducer.send(
-                withArg {
-                    it.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
+                withArg<JsonElement> { json ->
+                    json.toMap().filterKeys { it is Pri.Key } shouldBe expectedRepublisert
                 }
             )
         }

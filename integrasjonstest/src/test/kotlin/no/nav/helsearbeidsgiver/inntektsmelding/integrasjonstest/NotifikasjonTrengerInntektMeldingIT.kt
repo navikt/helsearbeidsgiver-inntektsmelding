@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -12,8 +11,6 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyDatafelter
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
@@ -34,7 +31,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         } returns Mock.SAK_ID
 
         publish(
-            Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
+            Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
@@ -42,49 +39,45 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         Thread.sleep(10000)
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(BehovType.FULLT_NAVN)
-            .first()
-            .fromJsonMapOnlyKeys()
+            .firstAsMap()
             .also {
                 it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(DataFelt.ARBEIDSTAKER_INFORMASJON)
-            .first()
-            .fromJsonMapOnlyDatafelter()
+            .firstAsMap()
             .also {
                 it[DataFelt.ARBEIDSTAKER_INFORMASJON]
                     ?.fromJson(PersonDato.serializer())
                     .shouldNotBeNull()
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(BehovType.OPPRETT_SAK)
-            .first()
-            .fromJsonMapOnlyKeys()
+            .firstAsMap()
             .also {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(DataFelt.SAK_ID)
-            .first()
+            .firstAsMap()
             .also {
-                val sakId = it.fromJsonMapOnlyDatafelter()[DataFelt.SAK_ID]?.fromJsonToString()
+                val sakId = it[DataFelt.SAK_ID]?.fromJsonToString()
 
                 sakId shouldBe Mock.SAK_ID
 
-                val forespoerselId = it.fromJsonMapOnlyKeys()[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
+                val forespoerselId = it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
 
                 forespoerselId shouldBe Mock.forespoerselId
             }
 
         messages.filter(EventName.SAK_OPPRETTET)
-            .first()
-            .fromJsonMapOnlyDatafelter()
+            .firstAsMap()
             .also {
                 it[DataFelt.SAK_ID]?.fromJsonToString() shouldBe Mock.SAK_ID
             }
@@ -97,59 +90,45 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
         } returns Mock.OPPGAVE_ID
 
         publish(
-            Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.toJson(),
+            Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
         Thread.sleep(8000)
 
-        var transaksjonsId: String
-
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
             .filter(BehovType.OPPRETT_OPPGAVE)
+            .all()
+            .also { it.size shouldBe 1 }
             .first()
-            .also { msg ->
-                val msgOnlyKeys = msg.fromJsonMapOnlyKeys()
+            .toMap()
+            .also {
+                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
+                it[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
 
-                msgOnlyKeys[Key.UUID]
-                    .shouldNotBeNull()
-                    .fromJsonToString()
-                    .also { id -> transaksjonsId = id }
-
-                msgOnlyKeys[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-
-                val orgnr = msg.fromJsonMapOnlyDatafelter()[DataFelt.ORGNRUNDERENHET]?.fromJsonToString()
+                val orgnr = it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString()
 
                 orgnr shouldBe Mock.ORGNR
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages.filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
             .filter(BehovType.PERSISTER_OPPGAVE_ID)
-            .first()
+            .firstAsMap()
             .also {
-                val oppgaveId = it.fromJsonMapOnlyDatafelter()
-                    .get(DataFelt.OPPGAVE_ID)
-                    ?.fromJsonToString()
+                val oppgaveId = it[DataFelt.OPPGAVE_ID]?.fromJsonToString()
 
                 oppgaveId shouldBe Mock.OPPGAVE_ID
 
-                val msgKeyValues = it.fromJsonMapOnlyKeys()
-
-                msgKeyValues[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                msgKeyValues[Key.UUID]?.fromJsonToString() shouldBe transaksjonsId
+                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
         messages.filter(EventName.OPPGAVE_LAGRET)
-            .first()
+            .firstAsMap()
             .also {
-                val oppgaveId = it.fromJsonMapOnlyDatafelter()
-                    .get(DataFelt.OPPGAVE_ID)
-                    ?.fromJsonToString()
+                val oppgaveId = it[DataFelt.OPPGAVE_ID]?.fromJsonToString()
 
                 oppgaveId shouldBe Mock.OPPGAVE_ID
-
-                it.fromJsonMapOnlyKeys() shouldNotContainKey Key.UUID
             }
     }
 
@@ -170,8 +149,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
                 transactionId = it[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
@@ -188,8 +166,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.FULLT_NAVN)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
@@ -197,8 +174,7 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(DataFelt.ARBEIDSTAKER_INFORMASJON)
-            .first()
-            .fromJsonMapOnlyDatafelter()
+            .firstAsMap()
             .also {
                 it[DataFelt.ARBEIDSTAKER_INFORMASJON]
                     ?.fromJson(PersonDato.serializer())
@@ -207,28 +183,26 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.OPPRETT_SAK)
-            .first()
-            .fromJsonMapOnlyKeys()
+            .firstAsMap()
             .also {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(DataFelt.SAK_ID)
-            .first()
+            .firstAsMap()
             .also {
-                val sakId = it.fromJsonMapOnlyDatafelter()[DataFelt.SAK_ID]?.fromJsonToString()
+                val sakId = it[DataFelt.SAK_ID]?.fromJsonToString()
 
                 sakId shouldBe Mock.SAK_ID
 
-                val forespoerselId = it.fromJsonMapOnlyKeys()[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
+                val forespoerselId = it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
 
                 forespoerselId shouldBe Mock.forespoerselId
             }
 
         messages.filter(EventName.SAK_OPPRETTET)
-            .first()
-            .fromJsonMapOnlyDatafelter()
+            .firstAsMap()
             .also {
                 it[DataFelt.SAK_ID]?.fromJsonToString() shouldBe Mock.SAK_ID
             }

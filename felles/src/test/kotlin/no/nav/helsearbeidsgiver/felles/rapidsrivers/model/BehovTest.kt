@@ -30,7 +30,7 @@ class BehovTest {
         )
         val feilmelding = "feilmelding"
         val fail = behov.createFail(feilmelding)
-        val message = fail.toJsonMessage()
+        val message = fail.jsonMessage
         println(message.toJson())
         assertFalse(message[Key.FAIL.str].isNull)
         assertEquals(feilmelding, message[Key.FAIL.str].asText())

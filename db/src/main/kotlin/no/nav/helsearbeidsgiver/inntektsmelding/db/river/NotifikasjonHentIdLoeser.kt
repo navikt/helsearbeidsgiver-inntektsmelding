@@ -35,8 +35,8 @@ class NotifikasjonHentIdLoeser(
                 Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.name
             )
             it.requireKeys(
-                Key.FORESPOERSEL_ID,
-                Key.TRANSACTION_ORIGIN
+                Key.UUID,
+                Key.FORESPOERSEL_ID
             )
         }
 
@@ -50,11 +50,9 @@ class NotifikasjonHentIdLoeser(
                 loesBehov(behov)
             }
                 .onFailure { e ->
-                    "Ukjent feil. Republiserer melding.".also {
+                    "Ukjent feil.".also {
                         logger.error("$it Se sikker logg for mer info.")
                         sikkerLogger.error(it, e)
-
-                        publishBehov(behov)
                     }
                 }
         }
@@ -91,7 +89,7 @@ class NotifikasjonHentIdLoeser(
                 DataFelt.SAK_ID to sakId.toJson(),
                 DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
                 Key.FORESPOERSEL_ID to behov.forespoerselId!!.toJson(),
-                Key.TRANSACTION_ORIGIN to behov[Key.TRANSACTION_ORIGIN].asText().toJson()
+                Key.UUID to behov[Key.UUID].asText().toJson()
             )
         } else if (oppgaveId != null) {
             logger.warn("Fant ikke sakId, ferdigstiller kun oppgave for ${behov.forespoerselId}!")
@@ -99,7 +97,7 @@ class NotifikasjonHentIdLoeser(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
                 Key.FORESPOERSEL_ID to behov.forespoerselId!!.toJson(),
-                Key.TRANSACTION_ORIGIN to behov[Key.TRANSACTION_ORIGIN].asText().toJson()
+                Key.UUID to behov[Key.UUID].asText().toJson()
             )
         } else {
             "Klarte ikke hente notifikasjons-ID-er. Begge er 'null'.".also {

@@ -6,8 +6,8 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -17,8 +17,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -34,7 +34,7 @@ private const val AVSENDER_NAV_NO = "NAV_NO"
 
 class SpinnService(
     private val rapid: RapidsConnection,
-    override val redisStore: IRedisStore
+    override val redisStore: RedisStore
 ) : CompositeEventListener(redisStore) {
 
     private val logger = logger()
@@ -47,7 +47,7 @@ class SpinnService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.EKSTERN_INNTEKTSMELDING.str
+                    DataFelt.EKSTERN_INNTEKTSMELDING
                 ),
                 eventName = event,
                 mainListener = it,
@@ -55,7 +55,7 @@ class SpinnService(
                 redisStore = redisStore
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.SPINN_INNTEKTSMELDING_ID.str), it, rapid) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID, DataFelt.SPINN_INNTEKTSMELDING_ID), it, rapid) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -63,16 +63,22 @@ class SpinnService(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
-            publishFail(message)
+            "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
             return
         }
-        val spinnImId = RedisKey.of(transaksjonId.toString(), DataFelt.SPINN_INNTEKTSMELDING_ID)
+        val spinnImId = RedisKey.of(transaksjonId, DataFelt.SPINN_INNTEKTSMELDING_ID)
             .read()?.let(UUID::fromString)
         if (spinnImId == null) {
-            publishFail(message)
+            "Klarte ikke finne spinnImId for transaksjon $transaksjonId i Redis.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
             return
         }
         MdcUtils.withLogFields(
@@ -98,15 +104,11 @@ class SpinnService(
         }
     }
 
-    private fun publishFail(message: JsonMessage) {
-        rapid.publish(message.createFail("Kunne ikke lese data fra Redis!").toJsonMessage().toJson())
-    }
-
     override fun finalize(message: JsonMessage) {
         val json = message.toJsonMap()
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val eksternInntektsmelding = DataFelt.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), json)
-        val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (
             forespoerselId != null &&
@@ -141,12 +143,9 @@ class SpinnService(
         }
     }
 
-    override fun terminate(message: JsonMessage) {
-        val json = message.toJsonMap()
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
+    override fun terminate(fail: Fail) {
         MdcUtils.withLogFields(
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(fail.uuid.let(UUID::fromString))
         ) {
             sikkerLogger.error("$event terminert.")
         }

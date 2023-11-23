@@ -5,7 +5,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -13,8 +13,8 @@ import java.util.UUID
 
 class TilgangServiceTest {
 
-    val mockRedisStore = MockRedisStore()
-    val testRapid = TestRapid()
+    private val testRapid = TestRapid()
+    private val mockRedis = MockRedis()
 
     @Test
     fun testOnError() {
@@ -23,7 +23,7 @@ class TilgangServiceTest {
         // problemet som en IllegalArgumentException i .terminate()
         // Kanskje bør uuid enforces til ikke-null i Fail?
 
-        val service = TilgangService(testRapid, mockRedisStore)
+        val service = TilgangService(testRapid, mockRedis.store)
         val feil = Fail(
             eventName = EventName.TILGANG_REQUESTED,
             behov = BehovType.TILGANGSKONTROLL,
@@ -34,6 +34,6 @@ class TilgangServiceTest {
         )
         val transaction = service.onError(feil)
         assertEquals(Transaction.TERMINATE, transaction)
-        service.terminate(feil.toJsonMessage())
+        service.terminate(feil)
     }
 }

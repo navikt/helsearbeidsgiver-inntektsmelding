@@ -1,23 +1,19 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
-import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
-import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
-import java.lang.IllegalArgumentException
-import java.util.UUID
 
-class Event(val event: EventName, val forespoerselId: String? = null, private val jsonMessage: JsonMessage, val clientId: String? = null) : Message, TxMessage {
-
-    @Transient var uuid: String? = null
-
+class Event(
+    val event: EventName,
+    val forespoerselId: String? = null,
+    val jsonMessage: JsonMessage,
+    val clientId: String? = null
+) {
     init {
         packetValidator.validate(jsonMessage)
         jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
@@ -31,7 +27,6 @@ class Event(val event: EventName, val forespoerselId: String? = null, private va
             it.rejectKey(Key.LØSNING.str)
             // midlertidig, generelt det bør vare reject
             it.interestedIn(Key.UUID.str)
-            it.interestedIn(Key.TRANSACTION_ORIGIN.str)
             it.interestedIn(Key.CLIENT_ID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
@@ -49,49 +44,5 @@ class Event(val event: EventName, val forespoerselId: String? = null, private va
             val forespoerselId = jsonMessage[Key.FORESPOERSEL_ID.str].takeUnless { it.isMissingOrNull() }?.asText()
             return Event(event, forespoerselId, jsonMessage, clientID)
         }
-    }
-
-    override operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
-
-    override operator fun set(key: IKey, value: Any) {
-        if (key == Key.EVENT_NAME || key == Key.BEHOV || key == Key.CLIENT_ID) throw IllegalArgumentException("Set ${key.str} er ikke tillat. ")
-        jsonMessage[key.str] = value
-    }
-
-    fun createBehov(behov: BehovType, map: Map<DataFelt, Any>): Behov {
-        val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str].takeUnless { it.isMissingOrNull() }
-        uuid = uuid ?: UUID.randomUUID().toString()
-        return Behov(
-            event,
-            behov,
-            this.forespoerselId,
-            JsonMessage.newMessage(
-                event.name,
-                mapOfNotNull(
-                    Key.BEHOV.str to behov.name,
-                    Key.UUID.str to this.uuid,
-                    Key.FORESPOERSEL_ID.str to forespoerselID
-                ) + map.mapKeys { it.key.str }
-            )
-        )
-    }
-
-    fun createFail(feilmelding: String, data: Map<IKey, Any> = emptyMap()): Fail {
-        val forespoerselID = this[Key.FORESPOERSEL_ID]
-        return Fail.create(
-            event,
-            null,
-            feilmelding,
-            data = mapOfNotNull(
-                Key.UUID to this.uuid().takeUnless { it.isBlank() },
-                Key.FORESPOERSEL_ID to forespoerselID
-            ) + data.mapKeys { it.key }
-        )
-    }
-
-    override fun uuid() = this.uuid.orEmpty()
-
-    override fun toJsonMessage(): JsonMessage {
-        return this.jsonMessage
     }
 }

@@ -41,15 +41,19 @@ class SakFerdigLoeser(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name
                 )
                 it.requireKeys(
-                    DataFelt.SAK_ID,
+                    Key.UUID,
                     Key.FORESPOERSEL_ID,
-                    Key.TRANSACTION_ORIGIN
+                    DataFelt.SAK_ID
                 )
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         val json = packet.toJson().parseJson()
 
         MdcUtils.withLogFields(
@@ -60,11 +64,9 @@ class SakFerdigLoeser(
                 json.haandterMelding(context)
             }
                 .onFailure { e ->
-                    "Ukjent feil. Republiserer melding.".also {
+                    "Ukjent feil.".also {
                         logger.error("$it Se sikker logg for mer info.")
                         sikkerLogger.error(it, e)
-
-                        json.republiser(context)
                     }
                 }
         }
@@ -78,7 +80,7 @@ class SakFerdigLoeser(
 
         val sakId = DataFelt.SAK_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.sakId(sakId),
@@ -96,7 +98,7 @@ class SakFerdigLoeser(
             agNotifikasjonKlient.nyStatusSak(
                 id = sakId,
                 status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt"
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
             )
         }.also {
             requestTimer.observeDuration()
@@ -106,13 +108,9 @@ class SakFerdigLoeser(
             Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
             DataFelt.SAK_ID to sakId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+            Key.UUID to transaksjonId.toJson()
         )
 
         logger.info("Sak ferdigstilt.")
-    }
-
-    private fun JsonElement.republiser(context: MessageContext) {
-        context.publish(toString())
     }
 }

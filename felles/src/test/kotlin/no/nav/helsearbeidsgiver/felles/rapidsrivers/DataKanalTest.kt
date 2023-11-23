@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
+import io.mockk.clearAllMocks
+import io.mockk.verify
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -10,23 +12,30 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import org.junit.jupiter.api.Assertions
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class DataKanalTest {
 
-    val testRapid: TestRapid = TestRapid()
+    private val testRapid: TestRapid = TestRapid()
 
-    val redis = MockRedisStore()
+    private val mockRedis = MockRedis()
 
-    val dummyListener = object : River.PacketListener {
-        override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        }
+    private val dummyListener = object : River.PacketListener {
+        override fun onPacket(packet: JsonMessage, context: MessageContext) {}
+    }
+
+    @BeforeEach
+    fun setup() {
+        testRapid.reset()
+        clearAllMocks()
+        mockRedis.setup()
     }
 
     @Test
@@ -72,21 +81,26 @@ class DataKanalTest {
 
     @Test
     fun `Test DATA collection, Primitive`() {
-        val testFelter = arrayOf("TESTFELT1", "TESTFELT2")
-        StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, redis)
-        val uuid = UUID.randomUUID().toString()
+        val testFelter = arrayOf(DataFelt.FNR, DataFelt.INNTEKT)
+        StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, mockRedis.store)
+        val uuid = UUID.randomUUID()
         testRapid.sendTestMessage(
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
                     Key.UUID.str to uuid,
                     Key.DATA.str to "",
-                    "TESTFELT1" to "mytestfield"
+                    DataFelt.FNR.str to "mytestfield"
                 )
             ).toJson()
         )
-        Assertions.assertEquals("mytestfield", redis.get(uuid + "TESTFELT1"))
-        Assertions.assertNull(redis.get(uuid + "TESTFELT2"))
+
+        verify {
+            mockRedis.store.set(RedisKey.of(uuid, DataFelt.FNR), "mytestfield")
+        }
+        verify(exactly = 0) {
+            mockRedis.store.set(RedisKey.of(uuid, DataFelt.INNTEKT), any())
+        }
 
         testRapid.sendTestMessage(
             JsonMessage.newMessage(
@@ -94,30 +108,34 @@ class DataKanalTest {
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
                     Key.UUID.str to uuid,
                     Key.DATA.str to "",
-                    "TESTFELT2" to "mytestfield2"
+                    DataFelt.INNTEKT.str to "mytestfield2"
                 )
             ).toJson()
         )
-        Assertions.assertEquals("mytestfield", redis.get(uuid + "TESTFELT1"))
-        Assertions.assertEquals("mytestfield2", redis.get(uuid + "TESTFELT2"))
+
+        verify {
+            mockRedis.store.set(RedisKey.of(uuid, DataFelt.FNR), "mytestfield")
+            mockRedis.store.set(RedisKey.of(uuid, DataFelt.INNTEKT), "mytestfield2")
+        }
     }
 
     @Test
     fun `Test DATA collection, Object`() {
-        val testFelter = arrayOf(DataFelt.ARBEIDSGIVER_INFORMASJON.str, "TESTFELT")
-        StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, redis)
-        val uuid = UUID.randomUUID().toString()
+        val testFelter = arrayOf(DataFelt.ARBEIDSGIVER_INFORMASJON)
+        StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, mockRedis.store)
+        val uuid = UUID.randomUUID()
+        val personDato = PersonDato("X", null, "")
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.UUID to uuid.toJson(),
             Key.DATA to "".toJson(),
-            DataFelt.ARBEIDSGIVER_INFORMASJON to PersonDato("X", null, "").toJson(PersonDato.serializer())
+            DataFelt.ARBEIDSGIVER_INFORMASJON to personDato.toJson(PersonDato.serializer())
         )
 
-        val personDato = redis.get(uuid + DataFelt.ARBEIDSGIVER_INFORMASJON.str)?.fromJson(PersonDato.serializer())
-
-        Assertions.assertEquals("X", personDato?.navn)
+        verify {
+            mockRedis.store.set(RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_INFORMASJON), personDato.toJsonStr(PersonDato.serializer()))
+        }
     }
 }
 

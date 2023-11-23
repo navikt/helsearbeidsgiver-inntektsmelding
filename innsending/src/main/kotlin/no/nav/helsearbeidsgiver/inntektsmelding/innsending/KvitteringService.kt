@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
@@ -14,16 +15,19 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
+import java.util.UUID
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
 class KvitteringService(
     private val rapidsConnection: RapidsConnection,
-    override val redisStore: IRedisStore
+    override val redisStore: RedisStore
 ) : CompositeEventListener(redisStore) {
 
     override val event: EventName = EventName.KVITTERING_REQUESTED
@@ -31,11 +35,11 @@ class KvitteringService(
     private val logger = logger()
 
     init {
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID.str), this, rapidsConnection) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID), this, rapidsConnection) }
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
         withDataKanal {
             StatefullDataKanal(
-                arrayOf(DataFelt.INNTEKTSMELDING_DOKUMENT.str, DataFelt.EKSTERN_INNTEKTSMELDING.str),
+                arrayOf(DataFelt.INNTEKTSMELDING_DOKUMENT, DataFelt.EKSTERN_INNTEKTSMELDING),
                 event,
                 this,
                 rapidsConnection,
@@ -65,8 +69,8 @@ class KvitteringService(
     }
 
     override fun finalize(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText()
-        val clientId = redisStore.get(RedisKey.of(transaksjonsId, event))
+        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
+        val clientId = redisStore.get(RedisKey.of(transaksjonsId, event))!!.let(UUID::fromString)
         // TODO: Skriv bort fra empty payload hvis mulig
         val im = InnsendtInntektsmelding(
             message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText().let { if (it != "{}") it.fromJson(Inntektsmelding.serializer()) else null },
@@ -74,13 +78,24 @@ class KvitteringService(
         ).toJsonStr(InnsendtInntektsmelding.serializer())
 
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")
-        redisStore.set(clientId!!, im)
+        redisStore.set(RedisKey.of(clientId), im)
     }
 
-    override fun terminate(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText()
-        val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
-        logger.info("Terminate kvittering med forespoerselId=$forespoerselId og transaksjonsId $transaksjonsId")
-        redisStore.set(transaksjonsId, message[Key.FAIL.str].asText())
+    override fun terminate(fail: Fail) {
+        val transaksjonId = fail.uuid!!.let(UUID::fromString)
+
+        val clientId = redisStore.get(RedisKey.of(transaksjonId, event))
+            ?.let(UUID::fromString)
+
+        if (clientId == null) {
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId)
+            ) {
+                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespørselId}")
+            }
+        } else {
+            logger.info("Terminate kvittering med forespoerselId=${fail.forespørselId} og transaksjonsId ${fail.uuid}")
+            redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+        }
     }
 }

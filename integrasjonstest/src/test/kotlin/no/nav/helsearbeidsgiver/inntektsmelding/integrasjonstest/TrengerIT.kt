@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -38,8 +37,7 @@ class TrengerIT : EndToEndTest() {
 
         messages.filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
-            .first()
-            .fromJsonMapOnlyKeys()
+            .firstAsMap()
             .let {
                 // Ble lagret i databasen
                 transactionId = it[Key.UUID].shouldNotBeNull().fromJson(UuidSerializer)
@@ -56,8 +54,7 @@ class TrengerIT : EndToEndTest() {
 
         messages.filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
-            .first()
-            .fromJsonMapOnlyKeys()
+            .firstAsMap()
             .let {
                 // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transactionId
@@ -65,8 +62,7 @@ class TrengerIT : EndToEndTest() {
 
         messages.filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.VIRKSOMHET)
-            .first()
-            .fromJsonMapOnlyKeys()
+            .firstAsMap()
             .let {
                 // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transactionId
@@ -74,8 +70,7 @@ class TrengerIT : EndToEndTest() {
 
         messages.filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.FULLT_NAVN)
-            .first()
-            .fromJsonMapOnlyKeys()
+            .firstAsMap()
             .let {
                 // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transactionId
@@ -83,14 +78,13 @@ class TrengerIT : EndToEndTest() {
 
         messages.filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.INNTEKT)
-            .first()
-            .fromJsonMapOnlyKeys()
+            .firstAsMap()
             .let {
                 // Ble lagret i databasen
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transactionId
             }
 
-        val trengerResultatJson = redisStore.get(RedisKey.of(Mock.clientId.toString()))
+        val trengerResultatJson = redisStore.get(RedisKey.of(Mock.clientId))
         println("In test $trengerResultatJson")
         val objekt = trengerResultatJson?.fromJson(TrengerData.serializer())
         println(objekt)

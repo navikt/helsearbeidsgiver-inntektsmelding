@@ -17,7 +17,7 @@ data class Published(
     @SerialName("@behov")
     val behov: BehovType,
     val forespoerselId: UUID,
-    @SerialName("transaction_origin")
+    @SerialName("uuid")
     val transaksjonId: UUID
 ) {
     companion object {

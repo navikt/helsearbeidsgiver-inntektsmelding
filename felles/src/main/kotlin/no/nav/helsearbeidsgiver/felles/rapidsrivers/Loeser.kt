@@ -37,7 +37,7 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     // Alle løser som publiserer Behov vil få kunskap om nedstrøms løserne.
     // i tilleg gjenbruktbarhet av løseren vil vare betydelig redusert
     fun publishBehov(behov: Behov) {
-        behov.toJsonMessage()
+        behov.jsonMessage
             .also {
                 rapidsConnection.publish(it.toJson())
             }.also {
@@ -47,25 +47,25 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     fun publishEvent(event: Event) {
-        event.toJsonMessage()
+        event.jsonMessage
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
-                logger.info("Publiserte event for eventname ${event.event} and uuid ${event.uuid()}'.")
+                logger.info("Publiserte event for eventname ${event.event} and uuid ${event.jsonMessage[Key.UUID.str].asText()}'.")
                 sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
             }
     }
 
     fun publishData(data: Data) {
-        data.toJsonMessage()
+        data.jsonMessage
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
-                logger.info("Publiserte data for eventname ${data.event.name} and uuid ${data.uuid()}'.")
+                logger.info("Publiserte data for eventname ${data.event.name} and uuid ${data.jsonMessage[Key.UUID.str].asText()}'.")
                 sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
             }
     }
 
     fun publishFail(fail: Fail) {
-        fail.toJsonMessage()
+        fail.jsonMessage
             .also { rapidsConnection.publish(it.toJson()) }
             .also {
                 logger.info("Publiserte feil for eventname ${fail.event.name} and '${fail.behov?.name}'.")
@@ -75,6 +75,10 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Mottok melding med behov '${packet[Key.BEHOV.str].asText()}'.")
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         sikkerLogger.info("Mottok melding:\n${packet.toPretty()}")
         if (!packet[Key.BEHOV.str].isArray) {
             val behov = Behov.create(packet)

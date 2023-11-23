@@ -3,51 +3,54 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import java.util.UUID
 
-sealed class RedisKey(open val uuid: String) {
+sealed class RedisKey {
+    abstract val uuid: UUID
     abstract override fun toString(): String
 
     companion object {
-        fun of(uuid: String, dataFelt: DataFelt): RedisKey {
-            return DataKey(uuid, dataFelt)
-        }
+        fun of(uuid: UUID): RedisKey =
+            ClientKey(uuid)
 
-        fun of(uuid: String): RedisKey {
-            return ClientKey(uuid)
-        }
+        fun of(uuid: UUID, eventname: EventName): RedisKey =
+            TransactionKey(uuid, eventname)
 
-        fun of(uuid: String, eventname: EventName): RedisKey {
-            return TransactionKey(uuid, eventname)
-        }
+        fun of(uuid: UUID, key: Key): RedisKey =
+            KeyKey(uuid, key)
+
+        fun of(uuid: UUID, dataFelt: DataFelt): RedisKey =
+            DataKey(uuid, dataFelt)
 
         // @TODO ikke bra nok
-        fun of(uuid: String, feilMelding: Feilmelding): RedisKey {
-            return FeilKey(uuid, feilMelding)
-        }
+        fun of(uuid: UUID, feilMelding: Feilmelding): RedisKey =
+            FeilKey(uuid, feilMelding)
     }
 }
 
-private data class DataKey(override val uuid: String, val datafelt: DataFelt) : RedisKey(uuid) {
-    override fun toString(): String {
-        return uuid + datafelt.str
-    }
+private data class KeyKey(override val uuid: UUID, val key: Key) : RedisKey() {
+    override fun toString(): String =
+        uuid.toString() + key.str
 }
 
-private data class TransactionKey(override val uuid: String, val eventName: EventName) : RedisKey(uuid) {
-    override fun toString(): String {
-        return uuid + eventName.name
-    }
+private data class DataKey(override val uuid: UUID, val datafelt: DataFelt) : RedisKey() {
+    override fun toString(): String =
+        uuid.toString() + datafelt.str
 }
 
-private data class ClientKey(override val uuid: String) : RedisKey(uuid) {
-    override fun toString(): String {
-        return uuid
-    }
+private data class TransactionKey(override val uuid: UUID, val eventName: EventName) : RedisKey() {
+    override fun toString(): String =
+        uuid.toString() + eventName.name
 }
 
-private data class FeilKey(override val uuid: String, val feilMeldingClass: Feilmelding) : RedisKey(uuid) {
-    override fun toString(): String {
-        return uuid + feilMeldingClass.simpleName()
-    }
+private data class ClientKey(override val uuid: UUID) : RedisKey() {
+    override fun toString(): String =
+        uuid.toString()
+}
+
+private data class FeilKey(override val uuid: UUID, val feilMeldingClass: Feilmelding) : RedisKey() {
+    override fun toString(): String =
+        uuid.toString() + feilMeldingClass.simpleName()
 }

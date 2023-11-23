@@ -13,9 +13,8 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
-import no.nav.helsearbeidsgiver.felles.test.json.toDomeneMessage
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -56,7 +55,7 @@ class JournalfoerInntektsmeldingLoeserTest {
             Key.UUID to "uuid-557".toJson()
         )
 
-        val fail = testRapid.firstMessage().toDomeneMessage<Fail>()
+        val fail = testRapid.firstMessage().readFail()
 
         assertEquals(forventetFeilmelding, fail.feilmelding)
     }
@@ -80,7 +79,7 @@ class JournalfoerInntektsmeldingLoeserTest {
         )
 
         val publisert = testRapid.firstMessage()
-            .fromJsonMapOnlyKeys()
+            .toMap()
             .mapValues { (_, value) -> value.fromJson(String.serializer()) }
 
         assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, publisert[Key.BEHOV])
@@ -96,7 +95,7 @@ class JournalfoerInntektsmeldingLoeserTest {
             DataFelt.INNTEKTSMELDING_DOKUMENT to "xyz".toJson(),
             Key.UUID to "uuid-549".toJson()
         )
-        val fail = testRapid.firstMessage().toDomeneMessage<Fail>()
+        val fail = testRapid.firstMessage().readFail()
         assertTrue(fail.feilmelding.isNotEmpty())
     }
 }

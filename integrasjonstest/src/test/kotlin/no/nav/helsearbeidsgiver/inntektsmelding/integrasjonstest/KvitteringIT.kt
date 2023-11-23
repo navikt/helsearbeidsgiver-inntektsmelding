@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -46,8 +45,7 @@ class KvitteringIT : EndToEndTest() {
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
             .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 // Skal finne inntektsmeldingdokumentet
                 val imDokument = it[DataFelt.INNTEKTSMELDING_DOKUMENT]
@@ -79,8 +77,7 @@ class KvitteringIT : EndToEndTest() {
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
             .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 it[DataFelt.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng
                 val eIm = it[DataFelt.EKSTERN_INNTEKTSMELDING]
@@ -106,8 +103,7 @@ class KvitteringIT : EndToEndTest() {
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
             .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 // Skal ikke finne inntektsmeldingdokument - men en dummy payload
                 it[DataFelt.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng

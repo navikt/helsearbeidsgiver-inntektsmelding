@@ -1,23 +1,25 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import com.fasterxml.jackson.databind.JsonNode
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.json.readFail
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -25,7 +27,6 @@ import java.util.UUID
 class LagreJournalpostIdLoeserTest {
 
     private val testRapid = TestRapid()
-    private val BEHOV = BehovType.LAGRE_JOURNALPOST_ID
     private val inntektsmeldingRepo = mockk<InntektsmeldingRepository>()
 
     init {
@@ -45,12 +46,16 @@ class LagreJournalpostIdLoeserTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
-            Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
+            Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
-        val message: JsonNode = journalpostLagretFraRapid(0) // Event sendes ut først, deretter løsning
-        assertNotNull(message.path(Key.JOURNALPOST_ID.name).asText())
+
+        val publisert = testRapid.firstMessage().toMap()
+
+        Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INNTEKTSMELDING_JOURNALFOERT
+        Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert).shouldNotBeNull()
     }
 
     @Test
@@ -59,12 +64,15 @@ class LagreJournalpostIdLoeserTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
-            Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
+            Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "".toJson()
         )
-        val feil = getFeil(0)
-        assertNotNull(feil)
+
+        val feilmelding = testRapid.firstMessage().readFail().feilmelding
+
+        feilmelding.shouldNotBeNull()
     }
 
     @Test
@@ -75,19 +83,14 @@ class LagreJournalpostIdLoeserTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(EventName.serializer()),
-            Key.BEHOV to BEHOV.toJson(BehovType.serializer()),
+            Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(BehovType.serializer()),
             Key.UUID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to "123".toJson()
         )
-        val feilmelding = getFeil(0)
-        assertNotNull(feilmelding)
-    }
 
-    private fun getFeil(index: Int) = testRapid.inspektør.message(index).toJsonElement().readFail().feilmelding
+        val feilmelding = testRapid.firstMessage().readFail().feilmelding
 
-    private fun journalpostLagretFraRapid(index: Int): JsonNode {
-        val message = testRapid.inspektør.message(index)
-        assertEquals(message.path(Key.EVENT_NAME.str).asText(), EventName.INNTEKTSMELDING_JOURNALFOERT.name)
-        return message
+        feilmelding.shouldNotBeNull()
     }
 }

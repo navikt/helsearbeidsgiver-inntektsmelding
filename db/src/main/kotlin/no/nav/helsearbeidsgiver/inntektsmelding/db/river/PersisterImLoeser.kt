@@ -21,17 +21,17 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 class PersisterImLoeser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Loeser(rapidsConnection) {
 
-    private val PERSISTER_IM = BehovType.PERSISTER_IM
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to PERSISTER_IM.name
+                Key.BEHOV to BehovType.PERSISTER_IM.name
             )
             it.interestedIn(
                 DataFelt.INNTEKTSMELDING,
@@ -43,7 +43,9 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
         }
 
     override fun onBehov(behov: Behov) {
-        logger.info("Løser behov $PERSISTER_IM med id ${behov.forespoerselId}")
+        val forespoerselId = behov.forespoerselId!!.let(UUID::fromString)
+
+        logger.info("Løser behov ${BehovType.PERSISTER_IM} med id $forespoerselId")
         try {
             val arbeidsgiver = behov[DataFelt.VIRKSOMHET].asText()
             sikkerLogger.info("Fant arbeidsgiver: $arbeidsgiver")
@@ -53,13 +55,13 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
             val innsending = behov[DataFelt.INNTEKTSMELDING].toJsonElement().fromJson(Innsending.serializer())
             val inntektsmelding = mapInntektsmelding(innsending, fulltNavn, arbeidsgiver, arbeidsgiverInfo.navn)
-            val sisteIm = repository.hentNyeste(behov.forespoerselId!!)
+            val sisteIm = repository.hentNyeste(forespoerselId)
             val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false
             if (erDuplikat) {
-                sikkerLogger.warn("Fant duplikat av inntektsmelding for forespoerselId: ${behov.forespoerselId}")
+                sikkerLogger.warn("Fant duplikat av inntektsmelding for forespoerselId: $forespoerselId")
             } else {
                 repository.lagreInntektsmelding(behov.forespoerselId!!, inntektsmelding)
-                sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: ${behov.forespoerselId}")
+                sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: $forespoerselId")
             }
             behov.createData(
                 mapOf(
@@ -70,9 +72,9 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 publishData(it)
             }
         } catch (ex: Exception) {
-            logger.error("Klarte ikke persistere: ${behov.forespoerselId}")
-            sikkerLogger.error("Klarte ikke persistere: ${behov.forespoerselId}", ex)
-            behov.createFail("Klarte ikke persistere: ${behov.forespoerselId}").also { publishFail(it) }
+            logger.error("Klarte ikke persistere: $forespoerselId")
+            sikkerLogger.error("Klarte ikke persistere: $forespoerselId", ex)
+            behov.createFail("Klarte ikke persistere: $forespoerselId").also { publishFail(it) }
         }
     }
 }

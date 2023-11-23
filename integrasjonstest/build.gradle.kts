@@ -58,4 +58,5 @@ dependencies {
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
+    testImplementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
 }

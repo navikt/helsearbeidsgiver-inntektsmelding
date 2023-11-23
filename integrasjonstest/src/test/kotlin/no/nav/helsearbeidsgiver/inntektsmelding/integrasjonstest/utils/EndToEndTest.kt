@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
@@ -104,6 +105,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val spinnKlient = mockk<SpinnKlient>()
     val brregClient = mockk<BrregClient>(relaxed = true)
     val mockPriProducer = mockk<PriProducer>()
+    val aaregClient = mockk<AaregClient>(relaxed = true)
 
     private val pdlKlient = mockk<PdlClient>()
 
@@ -154,7 +156,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createTilgangService(redisStore)
             createTrengerService(redisStore)
 
-            createAareg(mockk(relaxed = true))
+            createAareg(aaregClient)
             createAltinn(altinnClient)
             createBrreg(brregClient, false)
             createDb(database, imRepository, forespoerselRepository)

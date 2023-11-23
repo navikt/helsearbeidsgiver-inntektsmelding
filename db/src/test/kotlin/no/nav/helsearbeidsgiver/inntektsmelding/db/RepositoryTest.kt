@@ -6,6 +6,7 @@ import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.ForespoerselEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database
@@ -73,31 +74,31 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             ForespoerselEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val UUID = "abc-123"
+        val UUID = randomUuid()
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
 
-        foresporselRepo.lagreForespoersel(UUID, ORGNR)
-        inntektsmeldingRepo.lagreInntektsmelding(UUID, DOK_1)
+        foresporselRepo.lagreForespoersel(UUID.toString(), ORGNR)
+        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), DOK_1)
 
         transaction {
             InntektsmeldingEntitet.select {
                 all(
-                    InntektsmeldingEntitet.forespoerselId eq UUID,
+                    InntektsmeldingEntitet.forespoerselId eq UUID.toString(),
                     InntektsmeldingEntitet.dokument eq DOK_1
                 )
             }.single()
         }
         // lagre varianter:
-        inntektsmeldingRepo.lagreInntektsmelding(UUID, INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA)
+        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA)
         val im = inntektsmeldingRepo.hentNyeste(UUID)
         im shouldBe INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA
 
-        inntektsmeldingRepo.lagreInntektsmelding(UUID, INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA)
+        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA)
         val im2 = inntektsmeldingRepo.hentNyeste(UUID)
         im2?.forespurtData shouldNotBe(null)
         im2?.forespurtData shouldBe INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.forespurtData
 
-        inntektsmeldingRepo.lagreInntektsmelding(UUID, INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.copy(fullLønnIArbeidsgiverPerioden = null))
+        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.copy(fullLønnIArbeidsgiverPerioden = null))
         val im3 = inntektsmeldingRepo.hentNyeste(UUID)
         im3?.fullLønnIArbeidsgiverPerioden shouldBe null
     }
@@ -131,14 +132,14 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val UUID = "abc-456"
+        val UUID = randomUuid()
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
         val JOURNALPOST_1 = "jp-1"
 
-        foresporselRepo.lagreForespoersel(UUID, ORGNR)
-        inntektsmeldingRepo.lagreInntektsmelding(UUID, DOK_1)
+        foresporselRepo.lagreForespoersel(UUID.toString(), ORGNR)
+        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), DOK_1)
         inntektsmeldingRepo.oppdaterJournalpostId(JOURNALPOST_1, UUID)
-        val record = testRepo.hentRecordFraInntektsmelding(UUID)
+        val record = testRepo.hentRecordFraInntektsmelding(UUID.toString())
         record.shouldNotBeNull()
         val journalPostId = record.getOrNull(InntektsmeldingEntitet.journalpostId)
         journalPostId.shouldNotBeNull()

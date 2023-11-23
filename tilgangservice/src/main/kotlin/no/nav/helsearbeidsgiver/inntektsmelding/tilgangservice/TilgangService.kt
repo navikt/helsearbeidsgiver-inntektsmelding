@@ -20,8 +20,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -36,7 +36,7 @@ import java.util.UUID
 
 class TilgangService(
     private val rapid: RapidsConnection,
-    override val redisStore: IRedisStore
+    override val redisStore: RedisStore
 ) : CompositeEventListener(redisStore) {
 
     private val logger = logger()
@@ -49,8 +49,8 @@ class TilgangService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.ORGNRUNDERENHET.str,
-                    DataFelt.TILGANG.str
+                    DataFelt.ORGNRUNDERENHET,
+                    DataFelt.TILGANG
                 ),
                 eventName = event,
                 mainListener = it,
@@ -58,7 +58,7 @@ class TilgangService(
                 redisStore = redisStore
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.FNR.str), it, rapid) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID, DataFelt.FNR), it, rapid) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -66,75 +66,79 @@ class TilgangService(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
             "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
                 logger.error(it)
                 sikkerLogger.error(it)
             }
-            return
+        } else {
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId),
+                Log.forespoerselId(forespoerselId)
+            ) {
+                dispatch(transaction, transaksjonId, forespoerselId)
+            }
         }
-        val fields = loggFelterNotNull(transaksjonId, forespoerselId)
+    }
 
-        MdcUtils.withLogFields(
-            *fields
-        ) {
-            sikkerLogger.info("Prosesserer transaksjon $transaction.")
+    private fun dispatch(transaction: Transaction, transaksjonId: UUID, forespoerselId: UUID) {
+        sikkerLogger.info("Prosesserer transaksjon $transaction.")
 
-            when (transaction) {
-                Transaction.NEW -> {
+        when (transaction) {
+            Transaction.NEW -> {
+                rapid.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to BehovType.HENT_IM_ORGNR.toJson(),
+                    DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.UUID to transaksjonId.toJson()
+                )
+                    .also {
+                        MdcUtils.withLogFields(
+                            Log.behov(BehovType.HENT_IM_ORGNR)
+                        ) {
+                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                        }
+                    }
+            }
+
+            Transaction.IN_PROGRESS -> {
+                val orgnrKey = RedisKey.of(transaksjonId, DataFelt.ORGNRUNDERENHET)
+
+                if (isDataCollected(orgnrKey)) {
+                    val orgnr = orgnrKey.read()
+
+                    val fnr = RedisKey.of(transaksjonId, DataFelt.FNR)
+                        .read()
+                    if (orgnr == null || fnr == null) {
+                        "Klarte ikke lese orgnr og / eller fnr fra Redis.".also {
+                            logger.error(it)
+                            sikkerLogger.error(it)
+                        }
+                        return
+                    }
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
-                        Key.BEHOV to BehovType.HENT_IM_ORGNR.toJson(),
-                        DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                        DataFelt.ORGNRUNDERENHET to orgnr.toJson(),
+                        DataFelt.FNR to fnr.toJson(),
                         Key.UUID to transaksjonId.toJson()
                     )
                         .also {
                             MdcUtils.withLogFields(
-                                Log.behov(BehovType.HENT_IM_ORGNR)
+                                Log.behov(BehovType.TILGANGSKONTROLL)
                             ) {
                                 sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                             }
                         }
+                } else {
+                    sikkerLogger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")
                 }
+            }
 
-                Transaction.IN_PROGRESS -> {
-                    val orgnrKey = RedisKey.of(transaksjonId.toString(), DataFelt.ORGNRUNDERENHET)
-
-                    if (isDataCollected(orgnrKey)) {
-                        val orgnr = orgnrKey.read()
-
-                        val fnr = RedisKey.of(transaksjonId.toString(), DataFelt.FNR)
-                            .read()
-                        if (orgnr == null || fnr == null) {
-                            "Klarte ikke lese orgnr og / eller fnr fra Redis.".also {
-                                logger.error(it)
-                                sikkerLogger.error(it)
-                            }
-                            return
-                        }
-                        rapid.publish(
-                            Key.EVENT_NAME to event.toJson(),
-                            Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                            DataFelt.ORGNRUNDERENHET to orgnr.toJson(),
-                            DataFelt.FNR to fnr.toJson(),
-                            Key.UUID to transaksjonId.toJson()
-                        )
-                            .also {
-                                MdcUtils.withLogFields(
-                                    Log.behov(BehovType.TILGANGSKONTROLL)
-                                ) {
-                                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                                }
-                            }
-                    } else {
-                        sikkerLogger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")
-                    }
-                }
-                else -> {
-                    sikkerLogger.error("Støtte på forutsett transaksjonstype: $transaction")
-                }
+            else -> {
+                sikkerLogger.error("Støtte på forutsett transaksjonstype: $transaction")
             }
         }
     }
@@ -144,59 +148,64 @@ class TilgangService(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val clientId = RedisKey.of(transaksjonId.toString(), event)
+        val clientId = RedisKey.of(transaksjonId, event)
             .read()?.let(UUID::fromString)
+
         if (clientId == null) {
             sikkerLogger.error("Kunne ikke lese clientId for $transaksjonId fra Redis")
-        }
+        } else {
+            val tilgang = RedisKey.of(transaksjonId, DataFelt.TILGANG).read()
+            val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 
-        val tilgang = RedisKey.of(transaksjonId.toString(), DataFelt.TILGANG).read()
-        val feil = RedisKey.of(transaksjonId.toString(), Feilmelding("")).read()
+            val tilgangJson = TilgangData(
+                tilgang = tilgang?.fromJson(Tilgang.serializer()),
+                feil = feil?.fromJson(FeilReport.serializer())
+            )
+                .toJson(TilgangData.serializer())
 
-        val tilgangJson = TilgangData(
-            tilgang = tilgang?.fromJson(Tilgang.serializer()),
-            feil = feil?.fromJson(FeilReport.serializer())
-        )
-            .toJson(TilgangData.serializer())
+            RedisKey.of(clientId).write(tilgangJson)
 
-        RedisKey.of(clientId.toString()).write(tilgangJson)
-
-        val logFields = loggFelterNotNull(transaksjonId, clientId)
-
-        MdcUtils.withLogFields(
-            *logFields
-        ) {
-            sikkerLogger.info("$event fullført.")
+            MdcUtils.withLogFields(
+                Log.clientId(clientId),
+                Log.transaksjonId(transaksjonId)
+            ) {
+                sikkerLogger.info("$event fullført.")
+            }
         }
     }
 
     override fun terminate(fail: Fail) {
-        val clientId = RedisKey.of(fail.uuid!!, event)
+        val transaksjonId = fail.uuid!!.let(UUID::fromString)
+
+        val clientId = RedisKey.of(transaksjonId, event)
             .read()
             ?.let(UUID::fromString)
 
-        val feil = RedisKey.of(fail.uuid!!, Feilmelding(""))
+        val feil = RedisKey.of(transaksjonId, Feilmelding(""))
             .read()
 
         val feilResponse = TilgangData(
             feil = feil?.fromJson(FeilReport.serializer())
         )
             .toJson(TilgangData.serializer())
-        if (clientId == null) {
-            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne ${fail.uuid} i redis!")
-        }
-        RedisKey.of(clientId.toString()).write(feilResponse)
 
-        val logFields = loggFelterNotNull(fail.uuid!!.let(UUID::fromString), clientId)
-        MdcUtils.withLogFields(
-            *logFields
-        ) {
-            sikkerLogger.error("$event terminert.")
+        if (clientId == null) {
+            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne $transaksjonId i redis!")
+        } else {
+            RedisKey.of(clientId).write(feilResponse)
+
+            MdcUtils.withLogFields(
+                Log.clientId(clientId),
+                Log.transaksjonId(transaksjonId)
+            ) {
+                sikkerLogger.error("$event terminert.")
+            }
         }
     }
 
     override fun onError(feil: Fail): Transaction {
-        val transaksjonId = feil.uuid ?: throw IllegalStateException("Feil mangler transaksjon-ID.")
+        val transaksjonId = feil.uuid?.let(UUID::fromString)
+            ?: throw IllegalStateException("Feil mangler transaksjon-ID.")
 
         val manglendeDatafelt = when (feil.behov) {
             BehovType.HENT_IM_ORGNR -> DataFelt.ORGNRUNDERENHET
@@ -231,24 +240,4 @@ class TilgangService(
 
     private fun RedisKey.read(): String? =
         redisStore.get(this)
-
-    // Veldig stygt, ta med clientId i loggfelter når den eksisterer
-    // TODO: skriv heller om MDCUtils.log. Fjern dette...
-    private fun loggFelterNotNull(
-        transaksjonId: UUID,
-        clientId: UUID?
-    ): Array<Pair<String, String>> {
-        val logs = arrayOf(
-            Log.klasse(this),
-            Log.event(event),
-            Log.transaksjonId(transaksjonId)
-        )
-        val logFields = clientId?.let {
-            logs +
-                arrayOf(
-                    Log.clientId(clientId)
-                )
-        } ?: logs
-        return logFields
-    }
 }

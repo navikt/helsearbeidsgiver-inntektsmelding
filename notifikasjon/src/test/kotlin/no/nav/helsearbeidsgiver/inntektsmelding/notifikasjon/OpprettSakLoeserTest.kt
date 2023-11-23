@@ -15,11 +15,10 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID
@@ -61,9 +60,9 @@ class OpprettSakLoeserTest : FunSpec({
 
         val resultat = testRapid.firstMessage()
 
-        resultat.fromJsonMapOnlyKeys() shouldContainKey Key.DATA
+        resultat.toMap() shouldContainKey Key.DATA
 
-        resultat.fromJsonMapFiltered(DataFelt.serializer()).let {
+        resultat.toMap().let {
             val actualSakId = it[DataFelt.SAK_ID]?.fromJson(String.serializer())
             actualSakId shouldBe expectedSakId
         }
@@ -95,7 +94,7 @@ class OpprettSakLoeserTest : FunSpec({
 
         val resultat = testRapid.firstMessage()
 
-        resultat.fromJsonMapOnlyKeys() shouldContainKey Key.FAIL
+        resultat.toMap() shouldContainKey Key.FAIL
     }
 })
 

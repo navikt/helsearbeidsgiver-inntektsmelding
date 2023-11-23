@@ -9,11 +9,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) : Loeser(rapidsConnection) {
-
-    private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {

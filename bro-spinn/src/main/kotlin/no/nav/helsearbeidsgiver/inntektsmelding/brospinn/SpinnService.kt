@@ -17,8 +17,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -34,7 +34,7 @@ private const val AVSENDER_NAV_NO = "NAV_NO"
 
 class SpinnService(
     private val rapid: RapidsConnection,
-    override val redisStore: IRedisStore
+    override val redisStore: RedisStore
 ) : CompositeEventListener(redisStore) {
 
     private val logger = logger()
@@ -47,7 +47,7 @@ class SpinnService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.EKSTERN_INNTEKTSMELDING.str
+                    DataFelt.EKSTERN_INNTEKTSMELDING
                 ),
                 eventName = event,
                 mainListener = it,
@@ -55,7 +55,7 @@ class SpinnService(
                 redisStore = redisStore
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID.str, DataFelt.SPINN_INNTEKTSMELDING_ID.str), it, rapid) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID, DataFelt.SPINN_INNTEKTSMELDING_ID), it, rapid) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -63,7 +63,7 @@ class SpinnService(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
             "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
@@ -72,7 +72,7 @@ class SpinnService(
             }
             return
         }
-        val spinnImId = RedisKey.of(transaksjonId.toString(), DataFelt.SPINN_INNTEKTSMELDING_ID)
+        val spinnImId = RedisKey.of(transaksjonId, DataFelt.SPINN_INNTEKTSMELDING_ID)
             .read()?.let(UUID::fromString)
         if (spinnImId == null) {
             "Klarte ikke finne spinnImId for transaksjon $transaksjonId i Redis.".also {
@@ -108,7 +108,7 @@ class SpinnService(
         val json = message.toJsonMap()
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val eksternInntektsmelding = DataFelt.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), json)
-        val forespoerselId = RedisKey.of(transaksjonId.toString(), DataFelt.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (
             forespoerselId != null &&

@@ -14,12 +14,13 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
-class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, override val redisStore: IRedisStore) : CompositeEventListener(redisStore) {
+class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
     override val event: EventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED
 
     private val sikkerLogger = sikkerLogger()
@@ -29,7 +30,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(Key.FORESPOERSEL_ID.str, Key.UUID.str),
+                arrayOf(Key.FORESPOERSEL_ID, Key.UUID),
                 this,
                 rapidsConnection
             )
@@ -37,10 +38,10 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
         withDataKanal {
             StatefullDataKanal(
                 arrayOf(
-                    DataFelt.FORESPOERSEL_SVAR.str,
-                    DataFelt.ARBEIDSTAKER_INFORMASJON.str,
-                    DataFelt.SAK_ID.str,
-                    DataFelt.PERSISTERT_SAK_ID.str
+                    DataFelt.FORESPOERSEL_SVAR,
+                    DataFelt.ARBEIDSTAKER_INFORMASJON,
+                    DataFelt.SAK_ID,
+                    DataFelt.PERSISTERT_SAK_ID
                 ),
                 event,
                 this,
@@ -52,8 +53,8 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
-        val transaksjonsId = message[Key.UUID.str].asText()
-        val forespoerselId = redisStore.get(transaksjonsId + Key.FORESPOERSEL_ID.str)!!
+        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
+        val forespoerselId = redisStore.get(RedisKey.of(transaksjonsId, Key.FORESPOERSEL_ID))!!
         if (transaction == Transaction.NEW) {
             rapidsConnection.publish(
                 JsonMessage.newMessage(
@@ -66,7 +67,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
                 ).toJson()
             )
         } else if (transaction == Transaction.IN_PROGRESS) {
-            val forespoersel = redisStore.get(transaksjonsId + DataFelt.FORESPOERSEL_SVAR.str)?.fromJson(TrengerInntekt.serializer())
+            val forespoersel = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
 
             if (forespoersel == null) {
                 sikkerLogger.error("Fant ikke forespørsel '$forespoerselId' i redis-cache. transaksjonId='$transaksjonsId'")
@@ -101,7 +102,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
                     }
                 }
                 isDataCollected(*steg3(transaksjonsId)) -> {
-                    val arbeidstakerRedis = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.ARBEIDSTAKER_INFORMASJON), PersonDato::class.java)
+                    val arbeidstakerRedis = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.ARBEIDSTAKER_INFORMASJON))?.fromJson(PersonDato.serializer())
                     rapidsConnection.publish(
                         JsonMessage.newMessage(
                             mapOf(
@@ -135,7 +136,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
     }
 
     override fun finalize(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText()
+        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(
@@ -156,7 +157,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
         return Transaction.TERMINATE
     }
 
-    private fun steg2(transactionId: String) = arrayOf(RedisKey.of(transactionId, DataFelt.FORESPOERSEL_SVAR))
-    private fun steg3(transactionId: String) = arrayOf(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON))
-    private fun steg4(transactionId: String) = arrayOf(RedisKey.of(transactionId, DataFelt.SAK_ID))
+    private fun steg2(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, DataFelt.FORESPOERSEL_SVAR))
+    private fun steg3(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON))
+    private fun steg4(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, DataFelt.SAK_ID))
 }

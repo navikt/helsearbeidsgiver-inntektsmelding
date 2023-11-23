@@ -99,7 +99,7 @@ class ArbeidsforholdLoeserTest : FunSpec({
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.uuid.toString()) }
         testRapid.inspektør.size shouldBeExactly 1
-        actual.uuid() shouldBe expected.uuid()
+        actual.uuid shouldBe expected.uuid
         actual.behov shouldBe expected.behov
         actual.feilmelding shouldBe expected.feilmelding
     }

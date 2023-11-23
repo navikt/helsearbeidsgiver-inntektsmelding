@@ -32,7 +32,7 @@ internal class PacketSolver(
                 validate { packet ->
                     packet.demandAll(Key.BEHOV.str, loeser.behovType)
                     packet.rejectKey(Key.LØSNING.str)
-                    packet.interestedIn(Key.INITIATE_ID.str)
+                    packet.interestedIn(Key.INITIATE_ID.str, Key.FORESPOERSEL_ID.str)
 
                     loeser.behovReadingKeys.forEach { packet.requireKey(it.str) }
                 }

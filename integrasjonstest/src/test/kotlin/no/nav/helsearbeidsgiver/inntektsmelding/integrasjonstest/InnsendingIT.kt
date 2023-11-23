@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
@@ -66,23 +65,20 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.INSENDING_STARTED)
             .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 // Ble lagret i databasen
                 it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
             }
         messages.filter(EventName.INSENDING_STARTED)
             .filter(DataFelt.ER_DUPLIKAT_IM)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 it[DataFelt.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe false
             }
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 // EVENT: Mottatt inntektsmelding
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
@@ -90,8 +86,7 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
             .filter(BehovType.JOURNALFOER)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 // Journalført i dokarkiv
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
@@ -99,8 +94,7 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 // Journalført i dokarkiv
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
@@ -108,8 +102,7 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 it shouldContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
@@ -118,8 +111,7 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .filter(BehovType.DISTRIBUER_IM)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 // Be om å distribuere
                 it shouldContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
@@ -127,8 +119,7 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 // Verifiser at inntektsmelding er distribuert på ekstern kafka
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
@@ -172,8 +163,7 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.INSENDING_STARTED)
             .filter(DataFelt.ER_DUPLIKAT_IM)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 it[DataFelt.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe true
             }
@@ -188,8 +178,7 @@ class InnsendingIT : EndToEndTest() {
     private fun bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak() {
         messages.filter(EventName.FORESPOERSEL_BESVART)
             .filter(BehovType.NOTIFIKASJON_HENT_ID)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
             }
@@ -197,8 +186,7 @@ class InnsendingIT : EndToEndTest() {
         messages.filter(EventName.FORESPOERSEL_BESVART)
             .filter(DataFelt.SAK_ID, utenDataKey = true)
             .filter(DataFelt.OPPGAVE_ID, utenDataKey = true)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 DataFelt.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
@@ -206,16 +194,14 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.SAK_FERDIGSTILT)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 DataFelt.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
         messages.filter(EventName.OPPGAVE_FERDIGSTILT)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 DataFelt.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID

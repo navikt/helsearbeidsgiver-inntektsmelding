@@ -11,7 +11,8 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -20,6 +21,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.LocalDateTime
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -42,12 +44,13 @@ class InnsendingServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
-            DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer()),
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
             Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+            DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
         )
 
         // TODO: Bytter fra 10 til 9 undersøk nærmere hvorfor ikke 10 meldinger dukker opp.
@@ -55,7 +58,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
         messages.filterFeil().all().size shouldBe 0
 
-        val innsendingStr = redisStore.get(Mock.clientId.toString()).shouldNotBeNull()
+        val innsendingStr = redisStore.get(RedisKey.of(Mock.clientId)).shouldNotBeNull()
         innsendingStr.length shouldBeGreaterThan 2
     }
 
@@ -74,7 +77,7 @@ class InnsendingServiceIT : EndToEndTest() {
 private fun List<JsonElement>.filter(clientId: UUID): List<JsonElement> {
     var transaksjonId: UUID? = null
     return filter {
-        val msg = it.fromJsonMapOnlyKeys()
+        val msg = it.toMap()
 
         val msgClientId = msg[Key.CLIENT_ID]?.fromJson(UuidSerializer)
         if (msgClientId == clientId) {

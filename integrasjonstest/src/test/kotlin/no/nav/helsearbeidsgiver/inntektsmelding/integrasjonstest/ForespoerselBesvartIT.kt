@@ -50,8 +50,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
             .filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldingId
             }
@@ -75,8 +74,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
     private fun bekreftForventedeMeldinger() {
         messages.filter(EventName.FORESPOERSEL_BESVART)
             .filter(BehovType.NOTIFIKASJON_HENT_ID)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.NOTIFIKASJON_HENT_ID

@@ -10,6 +10,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Serializable
+data class ArbeidsforholdListe(
+    val arbeidsforhold: List<Arbeidsforhold>
+)
+
+@Serializable
 data class Arbeidsforhold(
     val arbeidsgiver: Arbeidsgiver,
     val ansettelsesperiode: Ansettelsesperiode,

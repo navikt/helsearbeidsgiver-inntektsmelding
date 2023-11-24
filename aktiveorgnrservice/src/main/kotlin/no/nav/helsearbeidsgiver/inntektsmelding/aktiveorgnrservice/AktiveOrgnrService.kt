@@ -4,6 +4,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.ArbeidsforholdListe
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -27,6 +28,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.time.LocalDate
 import java.util.UUID
 
 class AktiveOrgnrService(
@@ -59,7 +61,6 @@ class AktiveOrgnrService(
 
         when (transaction) {
             Transaction.NEW -> {
-
                 /* TODO: Hent rettigheter fra altinn
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
@@ -80,12 +81,32 @@ class AktiveOrgnrService(
             }
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(transaksjonId))) {
-                    rapid.publish(
-                        Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-                        Key.DATA to "".toJson(),
-                        Key.UUID to transaksjonId.toJson(),
-                        DataFelt.ORGNRUNDERENHET to "test-orgnr".toJson()
-                    )
+                    val arbeidsforholdListe = RedisKey.of(transaksjonId, DataFelt.ARBEIDSFORHOLD).read()
+                    if (arbeidsforholdListe != null) {
+
+                        //TODO: hent arbeidsgivere fra altinn respons
+                        val arbeidsgivere =
+                            arbeidsforholdListe
+                                .fromJson(ArbeidsforholdListe.serializer())
+                                .arbeidsforhold
+                                .medOrgnr(
+                                    "810007702",
+                                    "810007842",
+                                    "810008032",
+                                    "810007982"
+                                )
+                                .orgnrMedAktivtArbeidsforhold(
+                                    LocalDate.of(2018, 1, 5)
+                                )
+
+                        // TODO: hent virksomhetsnavn fra brreg
+                        rapid.publish(
+                            Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
+                            Key.DATA to "".toJson(),
+                            Key.UUID to transaksjonId.toJson(),
+                            DataFelt.ORGNRUNDERENHET to arbeidsgivere.first().toJson()
+                        )
+                    }
                 }
             }
             else -> {

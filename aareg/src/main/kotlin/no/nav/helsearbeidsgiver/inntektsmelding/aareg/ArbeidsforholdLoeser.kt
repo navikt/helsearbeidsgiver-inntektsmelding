@@ -8,8 +8,8 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.ArbeidsforholdListe
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Data
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -53,15 +53,13 @@ class ArbeidsforholdLoeser(
 
             logger.info("Løser behov $behovType med transaksjon-ID $transaksjonId")
 
-            val arbeidsforhold = hentArbeidsforhold(identitetsnummer, transaksjonId)
+            val arbeidsforhold = hentArbeidsforhold(identitetsnummer, transaksjonId)?.let { ArbeidsforholdListe(it) }
 
             if (arbeidsforhold != null) {
                 publishData(
                     behov.createData(
                         mapOf(
-                            DataFelt.ARBEIDSFORHOLD to (
-                                Data(arbeidsforhold)
-                                )
+                            DataFelt.ARBEIDSFORHOLD to arbeidsforhold
                         )
                     )
                 )

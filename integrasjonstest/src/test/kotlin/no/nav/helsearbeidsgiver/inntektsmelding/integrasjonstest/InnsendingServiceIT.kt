@@ -1,15 +1,21 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -53,14 +59,113 @@ class InnsendingServiceIT : EndToEndTest() {
             DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
         )
 
-        // TODO: Bytter fra 10 til 9 undersøk nærmere hvorfor ikke 10 meldinger dukker opp.
-        messages.all().filter(Mock.clientId).size shouldBe 9
+        Thread.sleep(10000)
 
+        // Alle transaksjonId skal være like. Finn første og beste som sammenligningsgrunnlag.
+        val transaksjonId = messages.all()
+            .firstNotNullOf {
+                it.toMap()[Key.UUID]
+            }
+            .fromJson(UuidSerializer)
+
+        // Data hentet
+        messages.filter(EventName.INSENDING_STARTED)
+            .filter(DataFelt.VIRKSOMHET)
+            .firstAsMap()
+            .verifiserTransaksjonId(transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                it shouldContainKey Key.DATA
+                it[DataFelt.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
+            }
+
+        // Data hentet
+        messages.filter(EventName.INSENDING_STARTED)
+            .filter(DataFelt.ARBEIDSFORHOLD)
+            .firstAsMap()
+            .verifiserTransaksjonId(transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                it shouldContainKey Key.DATA
+                it[DataFelt.ARBEIDSFORHOLD].shouldNotBeNull()
+            }
+
+        // Data hentet
+        messages.filter(EventName.INSENDING_STARTED)
+            .filter(DataFelt.ARBEIDSTAKER_INFORMASJON)
+            .filter(DataFelt.ARBEIDSGIVER_INFORMASJON)
+            .firstAsMap()
+            .verifiserTransaksjonId(transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                it shouldContainKey Key.DATA
+
+                shouldNotThrowAny {
+                    it[DataFelt.ARBEIDSTAKER_INFORMASJON].shouldNotBeNull()
+                        .fromJson(PersonDato.serializer())
+
+                    it[DataFelt.ARBEIDSGIVER_INFORMASJON].shouldNotBeNull()
+                        .fromJson(PersonDato.serializer())
+                }
+            }
+
+        // Inntektsmelding lagret
+        messages.filter(EventName.INSENDING_STARTED)
+            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .filter(DataFelt.ER_DUPLIKAT_IM)
+            .firstAsMap()
+            .verifiserTransaksjonId(transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                it shouldContainKey Key.DATA
+
+                shouldNotThrowAny {
+                    it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                        .fromJson(Inntektsmelding.serializer())
+
+                    it[DataFelt.ER_DUPLIKAT_IM].shouldNotBeNull()
+                        .fromJson(Boolean.serializer())
+                }
+            }
+
+        // Siste melding fra service
+        messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
+            .firstAsMap()
+            .verifiserTransaksjonId(transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                shouldNotThrowAny {
+                    it[Key.UUID].shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    it[DataFelt.FORESPOERSEL_ID].shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                        .fromJson(Inntektsmelding.serializer())
+                }
+            }
+
+        // Ingen feil
         messages.filterFeil().all().size shouldBe 0
 
-        val innsendingStr = redisStore.get(RedisKey.of(Mock.clientId)).shouldNotBeNull()
-        innsendingStr.length shouldBeGreaterThan 2
+        // API besvart gjennom redis
+        shouldNotThrowAny {
+            redisStore.get(RedisKey.of(Mock.clientId))
+                .shouldNotBeNull()
+                .fromJson(Inntektsmelding.serializer())
+        }
     }
+
+    private fun Map<IKey, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<IKey, JsonElement> =
+        also {
+            Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+        }
+
+    private fun Map<IKey, JsonElement>.verifiserForespoerselId(): Map<IKey, JsonElement> =
+        also {
+            Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
+        }
 
     private object Mock {
         const val ORGNR = "stolt-krakk"
@@ -69,35 +174,7 @@ class InnsendingServiceIT : EndToEndTest() {
         const val SAK_ID = "tjukk-kalender"
         const val OPPGAVE_ID = "kunstig-demon"
 
-        val forespoerselId = randomUuid()
         val clientId = randomUuid()
-    }
-}
-
-private fun List<JsonElement>.filter(clientId: UUID): List<JsonElement> {
-    var transaksjonId: UUID? = null
-    return filter {
-        val msg = it.toMap()
-
-        val msgClientId = msg[Key.CLIENT_ID]?.fromJson(UuidSerializer)
-        if (msgClientId == clientId) {
-            true
-        } else {
-            val eventName = msg[Key.EVENT_NAME]?.fromJson(EventName.serializer()).shouldNotBeNull()
-
-            if (transaksjonId == null && (eventName == EventName.INSENDING_STARTED && msg.contains(Key.BEHOV))) {
-                transaksjonId = msg[Key.UUID]?.fromJson(UuidSerializer)
-            }
-
-            val uuid = msg[Key.UUID]?.fromJson(UuidSerializer)
-
-            val innsendingStartetEllerImMottatt = eventName == EventName.INSENDING_STARTED ||
-                (eventName == EventName.INNTEKTSMELDING_MOTTATT && !msg.contains(Key.BEHOV))
-
-            uuid != null &&
-                uuid == transaksjonId &&
-                innsendingStartetEllerImMottatt &&
-                !msg.contains(Key.LØSNING)
-        }
+        val forespoerselId = randomUuid()
     }
 }

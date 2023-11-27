@@ -4,7 +4,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
@@ -39,7 +38,7 @@ class KvitteringService(
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
         withDataKanal {
             StatefullDataKanal(
-                arrayOf(DataFelt.INNTEKTSMELDING_DOKUMENT, DataFelt.EKSTERN_INNTEKTSMELDING),
+                arrayOf(Key.INNTEKTSMELDING_DOKUMENT, Key.EKSTERN_INNTEKTSMELDING),
                 event,
                 this,
                 rapidsConnection,
@@ -73,8 +72,8 @@ class KvitteringService(
         val clientId = redisStore.get(RedisKey.of(transaksjonsId, event))!!.let(UUID::fromString)
         // TODO: Skriv bort fra empty payload hvis mulig
         val im = InnsendtInntektsmelding(
-            message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].asText().let { if (it != "{}") it.fromJson(Inntektsmelding.serializer()) else null },
-            message[DataFelt.EKSTERN_INNTEKTSMELDING.str].asText().let { if (it != "{}") it.fromJson(EksternInntektsmelding.serializer()) else null }
+            message[Key.INNTEKTSMELDING_DOKUMENT.str].asText().let { if (it != "{}") it.fromJson(Inntektsmelding.serializer()) else null },
+            message[Key.EKSTERN_INNTEKTSMELDING.str].asText().let { if (it != "{}") it.fromJson(EksternInntektsmelding.serializer()) else null }
         ).toJsonStr(InnsendtInntektsmelding.serializer())
 
         logger.info("Finalize kvittering med transaksjonsId=$transaksjonsId")

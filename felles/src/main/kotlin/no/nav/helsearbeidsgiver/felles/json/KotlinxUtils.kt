@@ -5,7 +5,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
@@ -24,13 +23,9 @@ fun EventName.toJson(): JsonElement =
 fun BehovType.toJson(): JsonElement =
     toJson(BehovType.serializer())
 
-fun DataFelt.toJson(): JsonElement =
-    toJson(DataFelt.serializer())
-
 fun JsonElement.toMap(): Map<IKey, JsonElement> =
     listOf(
         Key.serializer(),
-        DataFelt.serializer(),
         Pri.Key.serializer()
     )
         .fold(emptyMap()) { jsonMap, keySerializer ->

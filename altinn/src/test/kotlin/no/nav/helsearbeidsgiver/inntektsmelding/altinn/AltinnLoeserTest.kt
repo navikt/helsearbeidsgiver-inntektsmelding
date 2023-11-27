@@ -15,7 +15,6 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
@@ -51,7 +50,7 @@ class AltinnLoeserTest : FunSpec({
         val expectedPublished = mapOf<IKey, JsonElement>(
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
             Key.DATA to "".toJson(),
-            DataFelt.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().toJson(AltinnOrganisasjon.serializer().set())
+            Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().toJson(AltinnOrganisasjon.serializer().set())
         )
 
         testRapid.sendJson(

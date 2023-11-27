@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNyOppgaveException
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -22,8 +21,8 @@ class OpprettOppgaveLoeser(
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)
-            it.requireKey(DataFelt.ORGNRUNDERENHET.str)
-            it.requireKey(DataFelt.VIRKSOMHET.str)
+            it.requireKey(Key.ORGNRUNDERENHET.str)
+            it.requireKey(Key.VIRKSOMHET.str)
         }
 
     override fun onBehov(behov: Behov) {
@@ -42,8 +41,8 @@ class OpprettOppgaveLoeser(
         }
         val oppgaveId = opprettOppgave(
             forespoerselId,
-            behov[DataFelt.ORGNRUNDERENHET].asText(),
-            behov[DataFelt.VIRKSOMHET].asText()
+            behov[Key.ORGNRUNDERENHET].asText(),
+            behov[Key.VIRKSOMHET].asText()
         )
         if (oppgaveId.isNullOrBlank()) {
             val feil = no.nav.helsearbeidsgiver.felles.Fail(
@@ -61,8 +60,8 @@ class OpprettOppgaveLoeser(
         behov.createBehov(
             BehovType.PERSISTER_OPPGAVE_ID,
             mapOf(
-                DataFelt.ORGNRUNDERENHET to behov[DataFelt.ORGNRUNDERENHET].asText(),
-                DataFelt.OPPGAVE_ID to oppgaveId
+                Key.ORGNRUNDERENHET to behov[Key.ORGNRUNDERENHET].asText(),
+                Key.OPPGAVE_ID to oppgaveId
             )
         ).also { publishBehov(it) }
 

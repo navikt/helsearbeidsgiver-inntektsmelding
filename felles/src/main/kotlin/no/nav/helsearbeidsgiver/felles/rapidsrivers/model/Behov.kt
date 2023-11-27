@@ -5,9 +5,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 
@@ -38,7 +36,7 @@ class Behov(
             event: EventName,
             behov: BehovType,
             forespoerselId: String,
-            map: Map<IKey, Any> = emptyMap(),
+            map: Map<Key, Any> = emptyMap(),
             packetValidation: River.PacketValidation = River.PacketValidation { }
         ): Behov {
             return Behov(
@@ -67,9 +65,9 @@ class Behov(
         }
     }
 
-    operator fun get(key: IKey): JsonNode = jsonMessage[key.str]
+    operator fun get(key: Key): JsonNode = jsonMessage[key.str]
 
-    fun createData(map: Map<DataFelt, Any>): Data {
+    fun createData(map: Map<Key, Any>): Data {
         val forespoerselID = this[Key.FORESPOERSEL_ID]
         return Data(
             event,
@@ -84,7 +82,7 @@ class Behov(
         )
     }
 
-    fun createFail(feilmelding: String, data: Map<IKey, Any> = emptyMap()): Fail {
+    fun createFail(feilmelding: String, data: Map<Key, Any> = emptyMap()): Fail {
         val forespoerselID = this[Key.FORESPOERSEL_ID]
 
         return Fail.create(
@@ -99,7 +97,7 @@ class Behov(
         )
     }
 
-    fun createBehov(behov: BehovType, data: Map<IKey, Any>): Behov {
+    fun createBehov(behov: BehovType, data: Map<Key, Any>): Behov {
         return Behov(
             this.event,
             behov,
@@ -115,7 +113,7 @@ class Behov(
         )
     }
 
-    fun createEvent(event: EventName, data: Map<IKey, Any>): Event {
+    fun createEvent(event: EventName, data: Map<Key, Any>): Event {
         return Event.create(event, forespoerselId, data)
     }
 

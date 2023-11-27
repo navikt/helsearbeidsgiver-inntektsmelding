@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 
 class Fail(
@@ -31,7 +30,7 @@ class Fail(
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
 
-        fun create(event: EventName, behov: BehovType? = null, feilmelding: String, uuid: String? = null, data: Map<IKey, Any> = emptyMap()): Fail {
+        fun create(event: EventName, behov: BehovType? = null, feilmelding: String, uuid: String? = null, data: Map<Key, Any> = emptyMap()): Fail {
             return Fail(
                 event,
                 behov,

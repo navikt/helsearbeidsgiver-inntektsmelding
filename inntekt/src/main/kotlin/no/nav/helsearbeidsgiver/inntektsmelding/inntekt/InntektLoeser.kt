@@ -5,7 +5,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Fnr
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
@@ -46,9 +45,9 @@ class InntektLoeser(
             )
             it.interestedIn(
                 Key.UUID,
-                DataFelt.ORGNRUNDERENHET,
-                DataFelt.FNR,
-                DataFelt.SKJAERINGSTIDSPUNKT
+                Key.ORGNRUNDERENHET,
+                Key.FNR,
+                Key.SKJAERINGSTIDSPUNKT
             )
             it.rejectKeys(Key.LØSNING)
         }
@@ -95,7 +94,7 @@ class InntektLoeser(
                 publishData(
                     behov.createData(
                         mapOf(
-                            DataFelt.INNTEKT to inntekt
+                            Key.INNTEKT to inntekt
                         )
                     )
                 )
@@ -128,9 +127,9 @@ class InntektLoeser(
 private fun LocalDate.minusMaaneder(maanederTilbake: Long): YearMonth =
     toYearMonth().minusMonths(maanederTilbake)
 
-private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(this[DataFelt.SKJAERINGSTIDSPUNKT].asText())
-private fun Behov.fnr(): Fnr = Fnr(this[DataFelt.FNR].asText())
-private fun Behov.orgnr(): Orgnr = Orgnr(this[DataFelt.ORGNRUNDERENHET].asText())
+private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(this[Key.SKJAERINGSTIDSPUNKT].asText())
+private fun Behov.fnr(): Fnr = Fnr(this[Key.FNR].asText())
+private fun Behov.orgnr(): Orgnr = Orgnr(this[Key.ORGNRUNDERENHET].asText())
 
 private fun Behov.validate() {
     this.skjaeringstidspunkt()

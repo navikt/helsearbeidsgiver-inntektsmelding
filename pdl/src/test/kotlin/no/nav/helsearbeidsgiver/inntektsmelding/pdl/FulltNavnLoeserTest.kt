@@ -9,7 +9,6 @@ import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -57,12 +56,12 @@ class FulltNavnLoeserTest {
 
         val publisert = testRapid.firstMessage().toMap()
 
-        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON]
+        publisert[Key.ARBEIDSTAKER_INFORMASJON]
             .shouldNotBeNull()
             .fromJson(PersonDato.serializer())
             .navn
             .shouldBe("Ola Normann")
-        publisert[DataFelt.ARBEIDSGIVER_INFORMASJON]
+        publisert[Key.ARBEIDSGIVER_INFORMASJON]
             .shouldNotBeNull()
             .fromJson(PersonDato.serializer())
             .ident
@@ -81,8 +80,8 @@ class FulltNavnLoeserTest {
 
         val publisert = testRapid.firstMessage().toMap()
 
-        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON].shouldBeNull()
-        publisert[DataFelt.ARBEIDSGIVER_INFORMASJON].shouldBeNull()
+        publisert[Key.ARBEIDSTAKER_INFORMASJON].shouldBeNull()
+        publisert[Key.ARBEIDSGIVER_INFORMASJON].shouldBeNull()
 
         publisert[Key.FAIL].shouldNotBeNull()
     }
@@ -108,12 +107,12 @@ class FulltNavnLoeserTest {
 
         val publisert = testRapid.firstMessage().toMap()
 
-        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON]
+        publisert[Key.ARBEIDSTAKER_INFORMASJON]
             .shouldNotBeNull()
             .fromJson(PersonDato.serializer())
             .navn
             .shouldBe("Ola Normann")
-        publisert[DataFelt.ARBEIDSGIVER_INFORMASJON]
+        publisert[Key.ARBEIDSGIVER_INFORMASJON]
             .shouldNotBeNull()
             .fromJson(PersonDato.serializer())
             .navn
@@ -141,12 +140,12 @@ class FulltNavnLoeserTest {
 
         val publisert = testRapid.firstMessage().toMap()
 
-        publisert[DataFelt.ARBEIDSTAKER_INFORMASJON]
+        publisert[Key.ARBEIDSTAKER_INFORMASJON]
             .shouldNotBeNull()
             .fromJson(PersonDato.serializer())
             .navn
             .shouldBe("")
-        publisert[DataFelt.ARBEIDSGIVER_INFORMASJON]
+        publisert[Key.ARBEIDSGIVER_INFORMASJON]
             .shouldNotBeNull()
             .fromJson(PersonDato.serializer())
             .navn

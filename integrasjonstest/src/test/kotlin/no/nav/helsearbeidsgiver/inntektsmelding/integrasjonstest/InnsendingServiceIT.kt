@@ -10,7 +10,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
@@ -53,10 +52,10 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            DataFelt.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
+            Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
             Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
-            DataFelt.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
+            Key.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
         )
 
         Thread.sleep(10000)
@@ -70,30 +69,30 @@ class InnsendingServiceIT : EndToEndTest() {
 
         // Data hentet
         messages.filter(EventName.INSENDING_STARTED)
-            .filter(DataFelt.VIRKSOMHET)
+            .filter(Key.VIRKSOMHET)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
                 it shouldContainKey Key.DATA
-                it[DataFelt.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
+                it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
             }
 
         // Data hentet
         messages.filter(EventName.INSENDING_STARTED)
-            .filter(DataFelt.ARBEIDSFORHOLD)
+            .filter(Key.ARBEIDSFORHOLD)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
                 it shouldContainKey Key.DATA
-                it[DataFelt.ARBEIDSFORHOLD].shouldNotBeNull()
+                it[Key.ARBEIDSFORHOLD].shouldNotBeNull()
             }
 
         // Data hentet
         messages.filter(EventName.INSENDING_STARTED)
-            .filter(DataFelt.ARBEIDSTAKER_INFORMASJON)
-            .filter(DataFelt.ARBEIDSGIVER_INFORMASJON)
+            .filter(Key.ARBEIDSTAKER_INFORMASJON)
+            .filter(Key.ARBEIDSGIVER_INFORMASJON)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
@@ -101,18 +100,18 @@ class InnsendingServiceIT : EndToEndTest() {
                 it shouldContainKey Key.DATA
 
                 shouldNotThrowAny {
-                    it[DataFelt.ARBEIDSTAKER_INFORMASJON].shouldNotBeNull()
+                    it[Key.ARBEIDSTAKER_INFORMASJON].shouldNotBeNull()
                         .fromJson(PersonDato.serializer())
 
-                    it[DataFelt.ARBEIDSGIVER_INFORMASJON].shouldNotBeNull()
+                    it[Key.ARBEIDSGIVER_INFORMASJON].shouldNotBeNull()
                         .fromJson(PersonDato.serializer())
                 }
             }
 
         // Inntektsmelding lagret
         messages.filter(EventName.INSENDING_STARTED)
-            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
-            .filter(DataFelt.ER_DUPLIKAT_IM)
+            .filter(Key.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
@@ -120,10 +119,10 @@ class InnsendingServiceIT : EndToEndTest() {
                 it shouldContainKey Key.DATA
 
                 shouldNotThrowAny {
-                    it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                    it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
                         .fromJson(Inntektsmelding.serializer())
 
-                    it[DataFelt.ER_DUPLIKAT_IM].shouldNotBeNull()
+                    it[Key.ER_DUPLIKAT_IM].shouldNotBeNull()
                         .fromJson(Boolean.serializer())
                 }
             }
@@ -138,10 +137,10 @@ class InnsendingServiceIT : EndToEndTest() {
                     it[Key.UUID].shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[DataFelt.FORESPOERSEL_ID].shouldNotBeNull()
+                    it[Key.FORESPOERSEL_ID].shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                    it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
                         .fromJson(Inntektsmelding.serializer())
                 }
             }

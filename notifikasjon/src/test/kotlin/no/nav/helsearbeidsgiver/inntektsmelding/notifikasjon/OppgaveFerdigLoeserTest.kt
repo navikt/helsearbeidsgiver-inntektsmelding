@@ -13,7 +13,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -40,7 +39,7 @@ class OppgaveFerdigLoeserTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            DataFelt.OPPGAVE_ID to expected.oppgaveId.toJson(),
+            Key.OPPGAVE_ID to expected.oppgaveId.toJson(),
             Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
             Key.UUID to expected.transaksjonId.toJson()
         )

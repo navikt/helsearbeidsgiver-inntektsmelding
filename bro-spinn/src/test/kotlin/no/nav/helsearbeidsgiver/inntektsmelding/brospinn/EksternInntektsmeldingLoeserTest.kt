@@ -9,7 +9,6 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -74,7 +73,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-                DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+                Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
             )
         }
 
@@ -94,7 +93,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-                DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+                Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
             )
         }
 
@@ -103,7 +102,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         testRapid.inspektør.size shouldBeExactly 1
 
         Key.EVENT_NAME.lesOrNull(EventName.serializer(), actual) shouldBe EventName.FORESPOERSEL_BESVART
-        DataFelt.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), actual) shouldBe eksternInntektsmelding
+        Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), actual) shouldBe eksternInntektsmelding
     }
 
     test("Hvis request timer ut blir feil publisert") {
@@ -115,7 +114,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-                DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+                Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
             )
         }
 

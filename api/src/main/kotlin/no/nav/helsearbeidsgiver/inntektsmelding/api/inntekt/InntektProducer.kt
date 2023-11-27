@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt
 
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -34,8 +33,8 @@ class InntektProducer(
             rapid.publish(
                 Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
                 Key.CLIENT_ID to clientId.toJson(),
-                DataFelt.FORESPOERSEL_ID to request.forespoerselId.toJson(),
-                DataFelt.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson()
+                Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
+                Key.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson()
             )
                 .also { json ->
                     "Publiserte request om inntekt.".let {

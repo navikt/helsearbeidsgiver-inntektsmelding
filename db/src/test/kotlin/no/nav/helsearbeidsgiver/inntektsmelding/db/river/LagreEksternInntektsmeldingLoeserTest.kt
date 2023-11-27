@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -38,7 +37,7 @@ class LagreEksternInntektsmeldingLoeserTest {
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
             Key.UUID to randomUuid().toJson(),
-            DataFelt.EKSTERN_INNTEKTSMELDING to eksterninntektsmelding.toJson(EksternInntektsmelding.serializer()),
+            Key.EKSTERN_INNTEKTSMELDING to eksterninntektsmelding.toJson(EksternInntektsmelding.serializer()),
             Key.FORESPOERSEL_ID to randomUuid().toJson()
 
         )

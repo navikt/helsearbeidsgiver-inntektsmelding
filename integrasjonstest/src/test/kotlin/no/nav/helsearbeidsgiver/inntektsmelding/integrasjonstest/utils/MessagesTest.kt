@@ -10,7 +10,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -57,16 +56,16 @@ class MessagesTest : FunSpec({
     }
 
     test("finner korrekt melding for datafelt") {
-        val funnetMelding = Mock.meldingerMedDatafelt.filter(DataFelt.VIRKSOMHET).firstAsMap()
+        val funnetMelding = Mock.meldingerMedDatafelt.filter(Key.VIRKSOMHET).firstAsMap()
 
         funnetMelding.also {
             it shouldContainKey Key.DATA
-            it[DataFelt.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
+            it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
         }
     }
 
     test("finner ikke manglende melding for datafelt") {
-        Mock.meldingerMedDatafelt.filter(DataFelt.ARBEIDSFORHOLD)
+        Mock.meldingerMedDatafelt.filter(Key.ARBEIDSFORHOLD)
             .all()
             .shouldBeEmpty()
     }
@@ -91,7 +90,7 @@ private object Mock {
 
     private fun datafelt(): Map<String, JsonElement> =
         mapOf(
-            DataFelt.VIRKSOMHET.str to ORGNR.toJson()
+            Key.VIRKSOMHET.str to ORGNR.toJson()
         )
 
     private fun JsonElement.toMessages(): Messages =

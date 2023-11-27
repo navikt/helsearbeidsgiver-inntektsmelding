@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
@@ -14,7 +13,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class StatefullDataKanal(
-    private val dataFelter: Array<DataFelt>,
+    private val dataFelter: Array<Key>,
     override val eventName: EventName,
     private val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection,

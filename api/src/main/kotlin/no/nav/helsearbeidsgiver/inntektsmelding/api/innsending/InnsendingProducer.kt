@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -29,10 +28,10 @@ class InnsendingProducer(
             Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to clientId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            DataFelt.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
+            Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
             Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),
             Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson(),
-            DataFelt.INNTEKTSMELDING to request.toJson(Innsending.serializer())
+            Key.INNTEKTSMELDING to request.toJson(Innsending.serializer())
         )
             .also {
                 logger.info("Publiserte til kafka forespørselId: $forespoerselId og clientId=$clientId")

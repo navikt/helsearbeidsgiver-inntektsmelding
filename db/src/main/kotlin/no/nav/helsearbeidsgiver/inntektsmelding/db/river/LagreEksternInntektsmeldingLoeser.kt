@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -32,7 +31,7 @@ class LagreEksternInntektsmeldingLoeser(
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name)
             it.requireKey(Key.UUID.str)
-            it.interestedIn(DataFelt.EKSTERN_INNTEKTSMELDING)
+            it.interestedIn(Key.EKSTERN_INNTEKTSMELDING)
         }
     }
     override fun onBehov(behov: Behov) {
@@ -46,7 +45,7 @@ class LagreEksternInntektsmeldingLoeser(
         ) {
             logger.info("Mottok behov ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name}")
             sikkerLogger.info("Mottok behov:\n${behov.jsonMessage.toPretty()}")
-            val eksternInntektsmelding = behov[DataFelt.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer())
+            val eksternInntektsmelding = behov[Key.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer())
             if (eksternInntektsmelding == null) {
                 logger.error("Fant ingen EksternInntektsmelding")
                 sikkerLogger.error("Fant ingen EksternInntektsmelding")

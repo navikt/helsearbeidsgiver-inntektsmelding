@@ -13,7 +13,6 @@ import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -50,7 +49,7 @@ class ArbeidsforholdLoeserTest : FunSpec({
             event = EventName.INSENDING_STARTED,
             uuid = expectedUuid,
             map = mapOf(
-                DataFelt.ARBEIDSFORHOLD to no.nav.helsearbeidsgiver.felles.Data(
+                Key.ARBEIDSFORHOLD to no.nav.helsearbeidsgiver.felles.Data(
                     mockKlientArbeidsforhold().tilArbeidsforhold().let(::listOf)
                 )
             )
@@ -74,7 +73,7 @@ class ArbeidsforholdLoeserTest : FunSpec({
 
         actual[Key.UUID]?.fromJson(UuidSerializer) shouldBe expectedUuid
         actual[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.INSENDING_STARTED
-        actual[DataFelt.ARBEIDSFORHOLD] shouldBe expected[DataFelt.ARBEIDSFORHOLD]
+        actual[Key.ARBEIDSFORHOLD] shouldBe expected[Key.ARBEIDSFORHOLD]
     }
 
     test("ved feil fra aareg så publiseres løsning med feilmelding") {

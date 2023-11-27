@@ -83,8 +83,7 @@ class AktiveOrgnrService(
                 if (isDataCollected(*step1data(transaksjonId))) {
                     val arbeidsforholdListe = RedisKey.of(transaksjonId, DataFelt.ARBEIDSFORHOLD).read()
                     if (arbeidsforholdListe != null) {
-
-                        //TODO: hent arbeidsgivere fra altinn respons
+                        // TODO: hent arbeidsgivere fra altinn respons
                         val arbeidsgivere =
                             arbeidsforholdListe
                                 .fromJson(ArbeidsforholdListe.serializer())

@@ -12,6 +12,7 @@ import io.mockk.mockk
 import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.aareg.AaregClient
+import no.nav.helsearbeidsgiver.felles.ArbeidsforholdListe
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -50,7 +51,7 @@ class ArbeidsforholdLoeserTest : FunSpec({
             event = EventName.INSENDING_STARTED,
             uuid = expectedUuid,
             map = mapOf(
-                DataFelt.ARBEIDSFORHOLD to no.nav.helsearbeidsgiver.felles.Data(
+                DataFelt.ARBEIDSFORHOLD to ArbeidsforholdListe(
                     mockKlientArbeidsforhold().tilArbeidsforhold().let(::listOf)
                 )
             )

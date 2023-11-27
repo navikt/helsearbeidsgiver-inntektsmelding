@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.loeser.Løsning
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
@@ -18,9 +17,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 
 fun JsonNode.toJsonElement(): JsonElement =
     toString().parseJson()
-
-fun <T : Any> KSerializer<T>.loesning(): KSerializer<Løsning<T>> =
-    Løsning.serializer(this)
 
 fun EventName.toJson(): JsonElement =
     toJson(EventName.serializer())
@@ -47,3 +43,10 @@ fun <K : IKey, T : Any> K.lesOrNull(serializer: KSerializer<T>, melding: Map<K, 
 fun <K : IKey, T : Any> K.les(serializer: KSerializer<T>, melding: Map<K, JsonElement>): T =
     lesOrNull(serializer, melding)
         ?: throw IllegalArgumentException("Felt '$this' mangler i JSON-map.")
+
+fun <K : IKey, T : Any> K.krev(krav: T, serializer: KSerializer<T>, melding: Map<K, JsonElement>): T =
+    les(serializer, melding).also {
+        if (it != krav) {
+            throw IllegalArgumentException("Nøkkel '$this' har verdi '$it', som ikke matcher med påkrevd verdi '$krav'.")
+        }
+    }

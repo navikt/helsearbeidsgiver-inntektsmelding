@@ -1,45 +1,53 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
-import io.prometheus.client.Summary
-import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.loeser.Loeser
+import no.nav.helsearbeidsgiver.felles.json.krev
+import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
+data class Melding(
+    val eventName: EventName,
+    val behovType: BehovType,
+    val identitetsnummer: String
+)
+
 class AltinnLoeser(
     private val altinnClient: AltinnClient
-) : Loeser<Set<AltinnOrganisasjon>>() {
-    override val behovType = BehovType.ARBEIDSGIVERE
-
-    lateinit var identitetsnummer: Behov.() -> String
-    private val requestLatency = Summary.build()
-        .name("simba_altinn_hent_rettighet_organisasjoner_latency_seconds")
-        .help("altinn hentrettighetOrganisasjoner latency in seconds")
-        .register()
-
+) : ObjectRiver<Melding>() {
     init {
         start()
     }
 
-    override fun BehovReader.createReaders() {
-        identitetsnummer = readFn(Key.IDENTITETSNUMMER)
-    }
+    override fun les(json: Map<IKey, JsonElement>): Melding =
+        Melding(
+            eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
+            behovType = Key.BEHOV.krev(BehovType.ARBEIDSGIVERE, BehovType.serializer(), json),
+            identitetsnummer = Key.IDENTITETSNUMMER.les(String.serializer(), json)
+        )
 
-    override fun Behov.løs(): Set<AltinnOrganisasjon> {
-        val requestTimer = requestLatency.startTimer()
-        runBlocking {
-            altinnClient.hentRettighetOrganisasjoner(identitetsnummer())
-        }.also {
-            requestTimer.observeDuration()
-            return it
+    override fun Melding.haandter(): Map<IKey, JsonElement> {
+        val rettigheter = Metrics.altinnRequest.recordTime {
+            altinnClient.hentRettighetOrganisasjoner(identitetsnummer)
         }
-    }
 
-    override fun Set<AltinnOrganisasjon>.toJson(): JsonElement =
-        toJson(AltinnOrganisasjon.serializer().set())
+        return mapOf(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.BEHOV to behovType.toJson(),
+            Key.DATA to "".toJson(),
+            DataFelt.ORG_RETTIGHETER to rettigheter.toJson(AltinnOrganisasjon.serializer().set())
+        )
+    }
 }

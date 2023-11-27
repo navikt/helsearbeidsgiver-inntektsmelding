@@ -4,12 +4,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.json.loesning
-import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
@@ -21,8 +18,8 @@ import java.util.UUID
 
 class RedisPollerTest {
     private val key = UUID.randomUUID()
-    private val løsningSuccess = "noe data".toLøsningSuccess().toJson(String.serializer().loesning())
-    private val gyldigRedisInnhold = løsningSuccess.toString()
+    private val noeData = "noe data".toJson()
+    private val gyldigRedisInnhold = noeData.toString()
 
     @Test
     fun `skal finne med tillatt antall forsøk`() {
@@ -32,7 +29,7 @@ class RedisPollerTest {
             redisPoller.hent(key, 5, 0)
         }
 
-        json shouldBe løsningSuccess
+        json shouldBe noeData
     }
 
     @Test

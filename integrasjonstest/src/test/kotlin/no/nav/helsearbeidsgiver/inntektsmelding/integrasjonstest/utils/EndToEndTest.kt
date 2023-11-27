@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -192,7 +192,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         logger.info("Stopped")
     }
 
-    fun publish(vararg messageFields: Pair<Key, JsonElement>) {
+    fun publish(vararg messageFields: Pair<IKey, JsonElement>) {
         rapid.publish(*messageFields).also {
             println("Publiserte melding: $it")
         }

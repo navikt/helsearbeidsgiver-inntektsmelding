@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.DataFelt
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -54,6 +55,7 @@ class AltinnLoeserTest : FunSpec({
         )
 
         testRapid.sendJson(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
             Key.IDENTITETSNUMMER to mockId.toJson()
         )
@@ -68,6 +70,7 @@ class AltinnLoeserTest : FunSpec({
         val mockId = "small-jack-gold"
 
         testRapid.sendJson(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
             Key.IDENTITETSNUMMER to mockId.toJson()
         )
@@ -79,6 +82,7 @@ class AltinnLoeserTest : FunSpec({
 
     test("ufullstendig melding aktiverer ikke river") {
         testRapid.sendJson(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson()
         )
 

@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdListe
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -40,13 +39,13 @@ class AktiveOrgnrService(
     override val event: EventName = EventName.AKTIVE_ORGNR_REQUESTED
     init {
         withEventListener {
-            StatefullEventListener(redisStore, event, arrayOf(DataFelt.FNR, DataFelt.ARBEIDSGIVER_FNR), it, rapid)
+            StatefullEventListener(redisStore, event, arrayOf(Key.FNR, Key.ARBEIDSGIVER_FNR), it, rapid)
         }
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.ARBEIDSFORHOLD,
-                    DataFelt.ORGNRUNDERENHET
+                    Key.ARBEIDSFORHOLD,
+                    Key.ORGNRUNDERENHET
                 ),
                 eventName = event,
                 mainListener = it,
@@ -69,7 +68,7 @@ class AktiveOrgnrService(
                     Key.UUID to transaksjonId.toJson()
                 )*/
                 // TODO: Skriv om denne
-                json[DataFelt.ARBEIDSGIVER_FNR]!!.fromJson(String.serializer())?.toJson()?.also {
+                json[Key.ARBEIDSGIVER_FNR]!!.fromJson(String.serializer())?.toJson()?.also {
                     // Hent arbeidsforhold fra aareg
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
@@ -81,7 +80,7 @@ class AktiveOrgnrService(
             }
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(transaksjonId))) {
-                    val arbeidsforholdListe = RedisKey.of(transaksjonId, DataFelt.ARBEIDSFORHOLD).read()
+                    val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()
                     if (arbeidsforholdListe != null) {
                         // TODO: hent arbeidsgivere fra altinn respons
                         val arbeidsgivere =
@@ -103,7 +102,7 @@ class AktiveOrgnrService(
                             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                             Key.DATA to "".toJson(),
                             Key.UUID to transaksjonId.toJson(),
-                            DataFelt.ORGNRUNDERENHET to arbeidsgivere.first().toJson()
+                            Key.ORGNRUNDERENHET to arbeidsgivere.first().toJson()
                         )
                     }
                 }
@@ -150,7 +149,7 @@ class AktiveOrgnrService(
     }
 
     private fun step1data(uuid: UUID): Array<RedisKey> = arrayOf(
-        RedisKey.of(uuid, DataFelt.ARBEIDSFORHOLD)
+        RedisKey.of(uuid, Key.ARBEIDSFORHOLD)
     )
 
     private fun RedisKey.read(): String? =

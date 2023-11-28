@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -31,8 +30,8 @@ class AktiveOrgnrProducer(
             rapid.publish(
                 Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                 Key.CLIENT_ID to clientId.toJson(),
-                DataFelt.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
-                DataFelt.FNR to arbeidstagerFnr.toJson()
+                Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson(),
+                Key.FNR to arbeidstagerFnr.toJson()
             )
                 .also { json ->
                     "Publiserte request om aktiveorgnr.".let {

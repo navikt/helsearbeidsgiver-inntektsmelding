@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -29,8 +28,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
-            DataFelt.FNR to Mock.FNR.toJson(),
-            DataFelt.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
+            Key.FNR to Mock.FNR.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
         )
 
         Thread.sleep(10000)

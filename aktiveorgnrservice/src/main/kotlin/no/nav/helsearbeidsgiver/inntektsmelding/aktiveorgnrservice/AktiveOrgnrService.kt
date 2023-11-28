@@ -45,6 +45,7 @@ class AktiveOrgnrService(
             StatefullDataKanal(
                 dataFelter = arrayOf(
                     Key.ARBEIDSFORHOLD,
+                    // Key.ORG_RETTIGHETER,
                     Key.ORGNRUNDERENHET
                 ),
                 eventName = event,
@@ -64,9 +65,9 @@ class AktiveOrgnrService(
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
-                    Key.IDENTITETSNUMMER to json[DataFelt.ARBEIDSGIVER_FNR].toString().toJson(),
+                    Key.IDENTITETSNUMMER to json[Key.ARBEIDSGIVER_FNR].toString().toJson(),
                     Key.UUID to transaksjonId.toJson()
-                )*/
+                ) */
                 // TODO: Skriv om denne
                 json[Key.ARBEIDSGIVER_FNR]!!.fromJson(String.serializer())?.toJson()?.also {
                     // Hent arbeidsforhold fra aareg
@@ -150,6 +151,7 @@ class AktiveOrgnrService(
 
     private fun step1data(uuid: UUID): Array<RedisKey> = arrayOf(
         RedisKey.of(uuid, Key.ARBEIDSFORHOLD)
+        // RedisKey.of(uuid, Key.ORG_RETTIGHETER)
     )
 
     private fun RedisKey.read(): String? =

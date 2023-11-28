@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerData
@@ -30,7 +29,7 @@ class TrengerIT : EndToEndTest() {
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(UuidSerializer),
             Key.ARBEIDSGIVER_ID to "12345678910".toJson(),
-            DataFelt.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
         )
 
         waitForMessages(10000)
@@ -47,7 +46,7 @@ class TrengerIT : EndToEndTest() {
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to transactionId.toJson(),
-            DataFelt.FORESPOERSEL_SVAR to mockTrengerInntekt().toJson(TrengerInntekt.serializer())
+            Key.FORESPOERSEL_SVAR to mockTrengerInntekt().toJson(TrengerInntekt.serializer())
         )
 
         waitForMessages(12000)

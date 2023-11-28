@@ -5,7 +5,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -39,7 +38,7 @@ class TrengerForespoerselLoeser(
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.name
             )
             msg.require(
-                DataFelt.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) },
+                Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) },
                 Key.UUID to { it.fromJson(UuidSerializer) }
             )
         }

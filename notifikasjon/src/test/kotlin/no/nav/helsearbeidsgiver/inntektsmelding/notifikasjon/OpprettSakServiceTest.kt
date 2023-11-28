@@ -6,7 +6,6 @@ import io.mockk.verify
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -44,7 +43,7 @@ class OpprettSakServiceTest {
             mapOf(
                 Key.EVENT_NAME.str to EventName.SAK_OPPRETT_REQUESTED.name,
                 Key.CLIENT_ID.str to UUID.randomUUID(),
-                DataFelt.ORGNRUNDERENHET.str to "123456",
+                Key.ORGNRUNDERENHET.str to "123456",
                 Key.IDENTITETSNUMMER.str to "123456789",
                 Key.FORESPOERSEL_ID.str to foresporselId
             )
@@ -82,7 +81,7 @@ class OpprettSakServiceTest {
 
         verify {
             mockRedis.store.set(
-                RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON),
+                RedisKey.of(uuid, Key.ARBEIDSTAKER_INFORMASJON),
                 PersonDato("Ukjent person", null, "").toJsonStr(PersonDato.serializer())
             )
         }

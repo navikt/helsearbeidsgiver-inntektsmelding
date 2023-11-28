@@ -8,7 +8,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -62,18 +61,18 @@ class VirksomhetLoeser(
                 Key.BEHOV to BEHOV.name
             )
             it.requireKeys(
-                DataFelt.ORGNRUNDERENHET,
+                Key.ORGNRUNDERENHET,
                 Key.UUID
             )
         }
 
     override fun onBehov(behov: Behov) {
         logger.info("Løser behov $BEHOV med uuid ${behov.uuid()}")
-        val orgnr = behov[DataFelt.ORGNRUNDERENHET].asText()
+        val orgnr = behov[Key.ORGNRUNDERENHET].asText()
         try {
             val navn = hentVirksomhet(orgnr)
             logger.info("Fant $navn for $orgnr")
-            publishData(behov.createData(mapOf(DataFelt.VIRKSOMHET to navn)))
+            publishData(behov.createData(mapOf(Key.VIRKSOMHET to navn)))
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")
             publishFail(behov.createFail("Fant ikke virksomhet"))

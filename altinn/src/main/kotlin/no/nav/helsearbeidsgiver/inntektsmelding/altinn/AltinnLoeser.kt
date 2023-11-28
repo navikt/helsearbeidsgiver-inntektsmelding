@@ -5,7 +5,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
@@ -47,7 +46,7 @@ class AltinnLoeser(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
             Key.DATA to "".toJson(),
-            DataFelt.ORG_RETTIGHETER to rettigheter.toJson(AltinnOrganisasjon.serializer().set())
+            Key.ORG_RETTIGHETER to rettigheter.toJson(AltinnOrganisasjon.serializer().set())
         )
     }
 }

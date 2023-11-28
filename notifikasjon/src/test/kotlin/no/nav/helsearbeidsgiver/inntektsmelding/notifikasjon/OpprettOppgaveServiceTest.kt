@@ -5,7 +5,6 @@ import io.mockk.every
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -87,7 +86,7 @@ class OpprettOppgaveServiceTest {
                     mapOf(
                         Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
                         Key.UUID.str to UUID.randomUUID(),
-                        DataFelt.ORGNRUNDERENHET.str to "123456789",
+                        Key.ORGNRUNDERENHET.str to "123456789",
                         Key.FORESPOERSEL_ID.str to forespoerselId
                     )
                 ).toJson()
@@ -99,7 +98,7 @@ class OpprettOppgaveServiceTest {
                 mapOf(
                     Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
                     Key.DATA.str to "",
-                    DataFelt.VIRKSOMHET.str to "TestBedrift A/S",
+                    Key.VIRKSOMHET.str to "TestBedrift A/S",
                     Key.FORESPOERSEL_ID.str to forespoerselId,
                     Key.UUID.str to transaksjonId
                 )
@@ -124,7 +123,7 @@ class OpprettOppgaveServiceTest {
                     mapOf(
                         Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
                         Key.UUID.str to UUID.randomUUID(),
-                        DataFelt.ORGNRUNDERENHET.str to "123456789",
+                        Key.ORGNRUNDERENHET.str to "123456789",
                         Key.FORESPOERSEL_ID.str to forespoerselId
                     )
                 ).toJson()
@@ -136,7 +135,7 @@ class OpprettOppgaveServiceTest {
             BehovType.VIRKSOMHET,
             "Klarte ikke hente virksomhet",
             mapOf(
-                DataFelt.ORGNRUNDERENHET to "123456789".toJson()
+                Key.ORGNRUNDERENHET to "123456789".toJson()
             ),
             transaksjonId.toString(),
             forespoerselId
@@ -146,6 +145,6 @@ class OpprettOppgaveServiceTest {
         assertEquals(BehovType.VIRKSOMHET.name, behov.path(Key.BEHOV.str).asText())
         val behov2 = rapid.inspektør.message(1)
         assertEquals(BehovType.OPPRETT_OPPGAVE.name, behov2[Key.BEHOV.str].asText())
-        assertEquals("Arbeidsgiver", behov2[DataFelt.VIRKSOMHET.str].asText())
+        assertEquals("Arbeidsgiver", behov2[Key.VIRKSOMHET.str].asText())
     }
 }

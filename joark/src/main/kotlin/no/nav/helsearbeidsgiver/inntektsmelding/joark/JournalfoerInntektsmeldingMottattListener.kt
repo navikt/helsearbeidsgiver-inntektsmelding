@@ -4,7 +4,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -29,7 +28,7 @@ class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnecti
         River.PacketValidation {
             it.requireKeys(
                 Key.UUID,
-                DataFelt.INNTEKTSMELDING_DOKUMENT
+                Key.INNTEKTSMELDING_DOKUMENT
             )
         }
 
@@ -51,7 +50,7 @@ class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnecti
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT,
                     Key.BEHOV.str to BehovType.JOURNALFOER,
                     Key.UUID.str to transaksjonId,
-                    DataFelt.INNTEKTSMELDING_DOKUMENT.str to packet[DataFelt.INNTEKTSMELDING_DOKUMENT.str]
+                    Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
                 )
             )
 

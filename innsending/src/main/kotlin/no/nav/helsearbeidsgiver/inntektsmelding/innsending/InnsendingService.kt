@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -43,12 +42,12 @@ class InnsendingService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.VIRKSOMHET,
-                    DataFelt.ARBEIDSFORHOLD,
-                    DataFelt.INNTEKTSMELDING_DOKUMENT,
-                    DataFelt.ARBEIDSGIVER_INFORMASJON,
-                    DataFelt.ARBEIDSTAKER_INFORMASJON,
-                    DataFelt.ER_DUPLIKAT_IM
+                    Key.VIRKSOMHET,
+                    Key.ARBEIDSFORHOLD,
+                    Key.INNTEKTSMELDING_DOKUMENT,
+                    Key.ARBEIDSGIVER_INFORMASJON,
+                    Key.ARBEIDSTAKER_INFORMASJON,
+                    Key.ER_DUPLIKAT_IM
                 ),
                 event,
                 it,
@@ -61,9 +60,9 @@ class InnsendingService(
                 redisStore,
                 event,
                 arrayOf(
-                    DataFelt.FORESPOERSEL_ID,
-                    DataFelt.ORGNRUNDERENHET,
-                    DataFelt.INNTEKTSMELDING,
+                    Key.FORESPOERSEL_ID,
+                    Key.ORGNRUNDERENHET,
+                    Key.INNTEKTSMELDING,
                     Key.ARBEIDSGIVER_ID,
                     Key.IDENTITETSNUMMER
                 ),
@@ -77,12 +76,12 @@ class InnsendingService(
         val transaksjonId = feil.uuid!!.let(UUID::fromString)
 
         if (feil.behov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = RedisKey.of(transaksjonId, DataFelt.VIRKSOMHET)
+            val virksomhetKey = RedisKey.of(transaksjonId, Key.VIRKSOMHET)
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
             return Transaction.IN_PROGRESS
         } else if (feil.behov == BehovType.FULLT_NAVN) {
-            val arbeidstakerFulltnavnKey = RedisKey.of(transaksjonId, DataFelt.ARBEIDSTAKER_INFORMASJON)
-            val arbeidsgiverFulltnavnKey = RedisKey.of(transaksjonId, DataFelt.ARBEIDSGIVER_INFORMASJON)
+            val arbeidstakerFulltnavnKey = RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
+            val arbeidsgiverFulltnavnKey = RedisKey.of(transaksjonId, Key.ARBEIDSGIVER_INFORMASJON)
             redisStore.set(arbeidstakerFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             redisStore.set(arbeidsgiverFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             return Transaction.IN_PROGRESS
@@ -116,7 +115,7 @@ class InnsendingService(
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                    DataFelt.ORGNRUNDERENHET to message[DataFelt.ORGNRUNDERENHET.str].asText().toJson(),
+                    Key.ORGNRUNDERENHET to message[Key.ORGNRUNDERENHET.str].asText().toJson(),
                     Key.UUID to transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson()
                 )
@@ -143,20 +142,20 @@ class InnsendingService(
 
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(transaksjonId))) {
-                    val arbeidstakerRedis = redisStore.get(RedisKey.of(transaksjonId, DataFelt.ARBEIDSTAKER_INFORMASJON))?.fromJson(PersonDato.serializer())
-                    val arbeidsgiverRedis = redisStore.get(RedisKey.of(transaksjonId, DataFelt.ARBEIDSGIVER_INFORMASJON))?.fromJson(PersonDato.serializer())
+                    val arbeidstakerRedis = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON))?.fromJson(PersonDato.serializer())
+                    val arbeidsgiverRedis = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSGIVER_INFORMASJON))?.fromJson(PersonDato.serializer())
                     logger.info("InnsendingService: emitting behov PERSISTER_IM")
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
-                        DataFelt.VIRKSOMHET to redisStore.get(RedisKey.of(transaksjonId, DataFelt.VIRKSOMHET)).orDefault("Ukjent virksomhet").toJson(),
-                        DataFelt.ARBEIDSTAKER_INFORMASJON to (
+                        Key.VIRKSOMHET to redisStore.get(RedisKey.of(transaksjonId, Key.VIRKSOMHET)).orDefault("Ukjent virksomhet").toJson(),
+                        Key.ARBEIDSTAKER_INFORMASJON to (
                             arbeidstakerRedis ?: personIkkeFunnet(message[Key.IDENTITETSNUMMER.str].asText())
                             ).toJson(PersonDato.serializer()),
-                        DataFelt.ARBEIDSGIVER_INFORMASJON to (
+                        Key.ARBEIDSGIVER_INFORMASJON to (
                             arbeidsgiverRedis ?: personIkkeFunnet(message[Key.ARBEIDSGIVER_ID.str].asText())
                             ).toJson(PersonDato.serializer()),
-                        DataFelt.INNTEKTSMELDING to redisStore.get(RedisKey.of(transaksjonId, DataFelt.INNTEKTSMELDING))!!.parseJson(),
+                        Key.INNTEKTSMELDING to redisStore.get(RedisKey.of(transaksjonId, Key.INNTEKTSMELDING))!!.parseJson(),
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                         Key.UUID to transaksjonId.toJson()
                     )
@@ -174,16 +173,16 @@ class InnsendingService(
         val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText().let(UUID::fromString)
         val clientId = redisStore.get(RedisKey.of(uuid, event))?.let(UUID::fromString)
         logger.info("publiserer under clientID $clientId")
-        redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT))!!)
-        val erDuplikat = message[DataFelt.ER_DUPLIKAT_IM.str].asBoolean()
+        redisStore.set(RedisKey.of(clientId!!), redisStore.get(RedisKey.of(uuid, Key.INNTEKTSMELDING_DOKUMENT))!!)
+        val erDuplikat = message[Key.ER_DUPLIKAT_IM.str].asBoolean()
         if (!erDuplikat) {
             logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $uuid")
             logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
             rapid.publish(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.UUID to uuid.toJson(),
-                DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
-                DataFelt.INNTEKTSMELDING_DOKUMENT to message[DataFelt.INNTEKTSMELDING_DOKUMENT.str].toJsonElement()
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.INNTEKTSMELDING_DOKUMENT to message[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement()
             )
                 .also {
                     logger.info("Submitting INNTEKTSMELDING_MOTTATT")
@@ -193,10 +192,10 @@ class InnsendingService(
     }
 
     private fun step1data(uuid: UUID): Array<RedisKey> = arrayOf(
-        RedisKey.of(uuid, DataFelt.VIRKSOMHET),
-        RedisKey.of(uuid, DataFelt.ARBEIDSFORHOLD),
-        RedisKey.of(uuid, DataFelt.ARBEIDSTAKER_INFORMASJON),
-        RedisKey.of(uuid, DataFelt.ARBEIDSGIVER_INFORMASJON)
+        RedisKey.of(uuid, Key.VIRKSOMHET),
+        RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
+        RedisKey.of(uuid, Key.ARBEIDSTAKER_INFORMASJON),
+        RedisKey.of(uuid, Key.ARBEIDSGIVER_INFORMASJON)
     )
 
     private fun personIkkeFunnet(ident: String = "") = PersonDato(

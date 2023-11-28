@@ -4,7 +4,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 
@@ -31,7 +30,7 @@ class Event(
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
 
-        fun create(event: EventName, forespoerselId: String?, map: Map<IKey, Any> = emptyMap()): Event {
+        fun create(event: EventName, forespoerselId: String?, map: Map<Key, Any> = emptyMap()): Event {
             return Event(
                 event,
                 forespoerselId,

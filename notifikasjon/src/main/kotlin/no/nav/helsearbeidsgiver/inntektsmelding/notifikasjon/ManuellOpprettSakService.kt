@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -38,10 +37,10 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
         withDataKanal {
             StatefullDataKanal(
                 arrayOf(
-                    DataFelt.FORESPOERSEL_SVAR,
-                    DataFelt.ARBEIDSTAKER_INFORMASJON,
-                    DataFelt.SAK_ID,
-                    DataFelt.PERSISTERT_SAK_ID
+                    Key.FORESPOERSEL_SVAR,
+                    Key.ARBEIDSTAKER_INFORMASJON,
+                    Key.SAK_ID,
+                    Key.PERSISTERT_SAK_ID
                 ),
                 event,
                 this,
@@ -67,7 +66,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
                 ).toJson()
             )
         } else if (transaction == Transaction.IN_PROGRESS) {
-            val forespoersel = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
+            val forespoersel = redisStore.get(RedisKey.of(transaksjonsId, Key.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
 
             if (forespoersel == null) {
                 sikkerLogger.error("Fant ikke forespørsel '$forespoerselId' i redis-cache. transaksjonId='$transaksjonsId'")
@@ -83,7 +82,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
                                 Key.UUID.str to transaksjonsId,
                                 Key.BEHOV.str to BehovType.PERSISTER_SAK_ID.name,
                                 Key.FORESPOERSEL_ID.str to forespoerselId,
-                                DataFelt.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, DataFelt.SAK_ID))!!
+                                Key.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, Key.SAK_ID))!!
                             )
                         ).toJson()
                     )
@@ -95,14 +94,14 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
                                     Key.EVENT_NAME.str to EventName.FORESPOERSEL_BESVART,
                                     Key.UUID.str to transaksjonsId,
                                     Key.FORESPOERSEL_ID.str to forespoerselId,
-                                    DataFelt.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, DataFelt.SAK_ID))!!
+                                    Key.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, Key.SAK_ID))!!
                                 )
                             ).toJson()
                         )
                     }
                 }
                 isDataCollected(*steg3(transaksjonsId)) -> {
-                    val arbeidstakerRedis = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.ARBEIDSTAKER_INFORMASJON))?.fromJson(PersonDato.serializer())
+                    val arbeidstakerRedis = redisStore.get(RedisKey.of(transaksjonsId, Key.ARBEIDSTAKER_INFORMASJON))?.fromJson(PersonDato.serializer())
                     rapidsConnection.publish(
                         JsonMessage.newMessage(
                             mapOf(
@@ -110,9 +109,9 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
                                 Key.UUID.str to transaksjonsId,
                                 Key.BEHOV.str to BehovType.OPPRETT_SAK,
                                 Key.FORESPOERSEL_ID.str to forespoerselId,
-                                DataFelt.ORGNRUNDERENHET.str to forespoersel.orgnr,
+                                Key.ORGNRUNDERENHET.str to forespoersel.orgnr,
                                 // @TODO this transformation is not nessesary. StatefullDataKanal should be fixed to use Tree
-                                DataFelt.ARBEIDSTAKER_INFORMASJON.str to arbeidstakerRedis!!
+                                Key.ARBEIDSTAKER_INFORMASJON.str to arbeidstakerRedis!!
                             )
                         ).toJson()
                     )
@@ -142,7 +141,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
                 mapOf(
                     Key.EVENT_NAME.str to EventName.SAK_OPPRETTET.name,
                     Key.FORESPOERSEL_ID.str to message[Key.FORESPOERSEL_ID.str],
-                    DataFelt.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, DataFelt.SAK_ID))!!
+                    Key.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, Key.SAK_ID))!!
                 )
             ).toJson()
         )
@@ -157,7 +156,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
         return Transaction.TERMINATE
     }
 
-    private fun steg2(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, DataFelt.FORESPOERSEL_SVAR))
-    private fun steg3(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON))
-    private fun steg4(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, DataFelt.SAK_ID))
+    private fun steg2(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, Key.FORESPOERSEL_SVAR))
+    private fun steg3(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, Key.ARBEIDSTAKER_INFORMASJON))
+    private fun steg4(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, Key.SAK_ID))
 }

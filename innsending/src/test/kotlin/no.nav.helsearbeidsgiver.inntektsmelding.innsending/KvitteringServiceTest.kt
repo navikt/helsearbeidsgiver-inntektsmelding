@@ -5,7 +5,6 @@ import io.mockk.verify
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -61,10 +60,10 @@ class KvitteringServiceTest {
         )
 
         testRapid.reset()
-        testRapid.sendTestMessage(behov.createData(mapOf(DataFelt.INNTEKTSMELDING_DOKUMENT to im)).jsonMessage.toJson())
+        testRapid.sendTestMessage(behov.createData(mapOf(Key.INNTEKTSMELDING_DOKUMENT to im)).jsonMessage.toJson())
 
         verify {
-            mockRedis.store.set(RedisKey.of(uuid, DataFelt.INNTEKTSMELDING_DOKUMENT), im)
+            mockRedis.store.set(RedisKey.of(uuid, Key.INNTEKTSMELDING_DOKUMENT), im)
         }
     }
 }

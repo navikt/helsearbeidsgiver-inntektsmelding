@@ -12,7 +12,6 @@ import io.mockk.verifySequence
 import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -45,15 +44,15 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
             UUID.randomUUID().toString(),
             mapOf(
                 Key.UUID to UUID.randomUUID(),
-                DataFelt.OPPGAVE_ID to "syngende-hemul",
-                DataFelt.SAK_ID to "skuffet-apokalypse"
+                Key.OPPGAVE_ID to "syngende-hemul",
+                Key.SAK_ID to "skuffet-apokalypse"
             )
         ) {
-            it.interestedIn(DataFelt.OPPGAVE_ID, DataFelt.SAK_ID, Key.UUID)
+            it.interestedIn(Key.OPPGAVE_ID, Key.SAK_ID, Key.UUID)
         }
 
-        every { mockForespoerselRepo.hentSakId(any()) } returns expected[DataFelt.SAK_ID].asText()
-        every { mockForespoerselRepo.hentOppgaveId(any()) } returns expected[DataFelt.OPPGAVE_ID].asText()
+        every { mockForespoerselRepo.hentSakId(any()) } returns expected[Key.SAK_ID].asText()
+        every { mockForespoerselRepo.hentOppgaveId(any()) } returns expected[Key.OPPGAVE_ID].asText()
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),

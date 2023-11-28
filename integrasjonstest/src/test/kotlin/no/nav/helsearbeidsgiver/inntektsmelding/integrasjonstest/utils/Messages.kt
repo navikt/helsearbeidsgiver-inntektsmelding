@@ -5,7 +5,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
@@ -54,7 +53,7 @@ value class Messages(
                 .orDefault(false)
         }
 
-    fun filter(dataFelt: DataFelt, utenDataKey: Boolean = false): Messages =
+    fun filter(dataFelt: Key, utenDataKey: Boolean = false): Messages =
         filter { msg ->
             val dataFunnet = utenDataKey || msg.toMap().contains(Key.DATA)
 

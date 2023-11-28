@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -51,7 +50,7 @@ class JournalfoerInntektsmeldingLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer()),
+            Key.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer()),
             Key.UUID to "uuid-557".toJson()
         )
 
@@ -74,7 +73,7 @@ class JournalfoerInntektsmeldingLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer()),
+            Key.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer()),
             Key.UUID to "uuid-979".toJson()
         )
 
@@ -92,7 +91,7 @@ class JournalfoerInntektsmeldingLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.JOURNALFOER.name.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to "xyz".toJson(),
+            Key.INNTEKTSMELDING_DOKUMENT to "xyz".toJson(),
             Key.UUID to "uuid-549".toJson()
         )
         val fail = testRapid.firstMessage().readFail()

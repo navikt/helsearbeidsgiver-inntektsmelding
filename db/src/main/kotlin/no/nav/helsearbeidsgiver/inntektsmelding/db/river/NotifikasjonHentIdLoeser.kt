@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -86,8 +85,8 @@ class NotifikasjonHentIdLoeser(
         if (sakId != null && oppgaveId != null) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                DataFelt.SAK_ID to sakId.toJson(),
-                DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
+                Key.SAK_ID to sakId.toJson(),
+                Key.OPPGAVE_ID to oppgaveId.toJson(),
                 Key.FORESPOERSEL_ID to behov.forespoerselId!!.toJson(),
                 Key.UUID to behov[Key.UUID].asText().toJson()
             )
@@ -95,7 +94,7 @@ class NotifikasjonHentIdLoeser(
             logger.warn("Fant ikke sakId, ferdigstiller kun oppgave for ${behov.forespoerselId}!")
             rapid.publish(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
+                Key.OPPGAVE_ID to oppgaveId.toJson(),
                 Key.FORESPOERSEL_ID to behov.forespoerselId!!.toJson(),
                 Key.UUID to behov[Key.UUID].asText().toJson()
             )

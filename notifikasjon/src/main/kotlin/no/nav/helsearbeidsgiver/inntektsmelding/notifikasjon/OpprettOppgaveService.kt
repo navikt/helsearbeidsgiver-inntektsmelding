@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -30,14 +29,14 @@ class OpprettOppgaveService(
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(DataFelt.ORGNRUNDERENHET, Key.FORESPOERSEL_ID, Key.UUID),
+                arrayOf(Key.ORGNRUNDERENHET, Key.FORESPOERSEL_ID, Key.UUID),
                 this,
                 rapidsConnection
             )
         }
         withDataKanal {
             StatefullDataKanal(
-                arrayOf(DataFelt.VIRKSOMHET),
+                arrayOf(Key.VIRKSOMHET),
                 event,
                 this,
                 rapidsConnection,
@@ -57,7 +56,7 @@ class OpprettOppgaveService(
                         Key.UUID.str to transaksjonsId,
                         Key.BEHOV.str to BehovType.VIRKSOMHET.name,
                         Key.FORESPOERSEL_ID.str to forespoerselId,
-                        DataFelt.ORGNRUNDERENHET.str to message[DataFelt.ORGNRUNDERENHET.str]
+                        Key.ORGNRUNDERENHET.str to message[Key.ORGNRUNDERENHET.str]
                     )
                 ).toJson()
             )
@@ -66,8 +65,8 @@ class OpprettOppgaveService(
 
     override fun finalize(message: JsonMessage) {
         val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
-        val virksomhetnavn = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.VIRKSOMHET))
-        val orgnr = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.ORGNRUNDERENHET))
+        val virksomhetnavn = redisStore.get(RedisKey.of(transaksjonsId, Key.VIRKSOMHET))
+        val orgnr = redisStore.get(RedisKey.of(transaksjonsId, Key.ORGNRUNDERENHET))
         val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText()
         rapidsConnection.publish(
             JsonMessage.newMessage(
@@ -76,8 +75,8 @@ class OpprettOppgaveService(
                     Key.BEHOV.str to BehovType.OPPRETT_OPPGAVE,
                     Key.UUID.str to transaksjonsId,
                     Key.FORESPOERSEL_ID.str to forespoerselId,
-                    DataFelt.VIRKSOMHET.str to virksomhetnavn!!,
-                    DataFelt.ORGNRUNDERENHET.str to orgnr!!
+                    Key.VIRKSOMHET.str to virksomhetnavn!!,
+                    Key.ORGNRUNDERENHET.str to orgnr!!
                 )
             ).toJson()
         )
@@ -102,7 +101,7 @@ class OpprettOppgaveService(
 
     override fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = RedisKey.of(feil.uuid!!.let(UUID::fromString), DataFelt.VIRKSOMHET)
+            val virksomhetKey = RedisKey.of(feil.uuid!!.let(UUID::fromString), Key.VIRKSOMHET)
             redisStore.set(virksomhetKey, "Arbeidsgiver")
             return Transaction.FINALIZE
         }

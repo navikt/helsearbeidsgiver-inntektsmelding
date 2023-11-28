@@ -4,7 +4,6 @@ import io.kotest.matchers.maps.shouldNotContainKey
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -43,7 +42,7 @@ class ForespoerselMottattIT : EndToEndTest() {
             .also {
                 it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_MOTTATT
                 it[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.LAGRE_FORESPOERSEL
-                it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
+                it[Key.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
                 it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe Mock.transaksjonId
@@ -54,7 +53,7 @@ class ForespoerselMottattIT : EndToEndTest() {
             .also {
                 it shouldNotContainKey Key.BEHOV
                 it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_LAGRET
-                it[DataFelt.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
+                it[Key.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
                 it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }

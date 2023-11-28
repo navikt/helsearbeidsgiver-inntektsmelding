@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakException
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -31,8 +30,8 @@ class OpprettSakLoeser(
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_SAK.name)
-            it.requireKey(DataFelt.ORGNRUNDERENHET.str)
-            it.interestedIn(DataFelt.ARBEIDSTAKER_INFORMASJON.str)
+            it.requireKey(Key.ORGNRUNDERENHET.str)
+            it.interestedIn(Key.ARBEIDSTAKER_INFORMASJON.str)
         }
     }
 
@@ -66,13 +65,13 @@ class OpprettSakLoeser(
     }
 
     private fun hentNavn(behov: Behov): PersonDato {
-        if (behov[DataFelt.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null, "")
-        return behov[DataFelt.ARBEIDSTAKER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
+        if (behov[Key.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null, "")
+        return behov[Key.ARBEIDSTAKER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
     }
 
     override fun onBehov(behov: Behov) {
         logger.info("Skal opprette sak for forespørselId: ${behov.forespoerselId}")
-        val orgnr = behov[DataFelt.ORGNRUNDERENHET].asText()
+        val orgnr = behov[Key.ORGNRUNDERENHET].asText()
         val personDato = hentNavn(behov)
         val sakId = opprettSak(
             forespoerselId = behov.forespoerselId!!,
@@ -85,7 +84,7 @@ class OpprettSakLoeser(
             rapidsConnection.publish(feil.toJsonMessage().toJson())
         } else {
             logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
-            behov.createData(mapOf(DataFelt.SAK_ID to sakId)).also { publishData(it) }
+            behov.createData(mapOf(Key.SAK_ID to sakId)).also { publishData(it) }
             sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=${behov.forespoerselId}")
         }
     }

@@ -3,20 +3,17 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.lang.IllegalStateException
 
 class StatefullEventListener(
     val redisStore: RedisStore,
     override val event: EventName,
-    private val dataFelter: Array<IKey>,
+    private val dataFelter: Array<Key>,
     private val mainListener: River.PacketListener,
     rapidsConnection: RapidsConnection
 ) : EventListener(
@@ -46,13 +43,7 @@ class StatefullEventListener(
                         data.toString()
                     }
 
-                val redisKey = when (dataFelt) {
-                    is Key -> RedisKey.of(transactionId, dataFelt)
-                    is DataFelt -> RedisKey.of(transactionId, dataFelt)
-                    else -> throw IllegalStateException("Feil datatype. Skal aldri skje.")
-                }
-
-                redisStore.set(redisKey, dataAsString)
+                redisStore.set(RedisKey.of(transactionId, dataFelt), dataAsString)
             }
     }
 

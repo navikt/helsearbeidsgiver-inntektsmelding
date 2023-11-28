@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -89,7 +88,7 @@ class LagreJournalpostIdLoeser(
                     EventName.INNTEKTSMELDING_JOURNALFOERT,
                     mapOfNotNull(
                         Key.JOURNALPOST_ID to journalpostId,
-                        DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
+                        Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
                     )
                 )
                     .also { publishEvent(it) }

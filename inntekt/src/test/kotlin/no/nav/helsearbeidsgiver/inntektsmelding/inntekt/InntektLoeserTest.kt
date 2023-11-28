@@ -13,10 +13,8 @@ import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fnr
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
@@ -70,7 +68,7 @@ class InntektLoeserTest : FunSpec({
         val publisert = testRapid.firstMessage().toMap()
 
         publisert shouldContainKey Key.DATA
-        publisert[DataFelt.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe Inntekt(
+        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe Inntekt(
             maanedOversikt = listOf(
                 InntektPerMaaned(
                     maaned = januar(2018),
@@ -104,7 +102,7 @@ class InntektLoeserTest : FunSpec({
         val publisert = testRapid.firstMessage().toMap()
 
         publisert shouldContainKey Key.DATA
-        publisert[DataFelt.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe Inntekt(
+        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe Inntekt(
             maanedOversikt = listOf(
                 InntektPerMaaned(
                     maaned = januar(2018),
@@ -142,7 +140,7 @@ class InntektLoeserTest : FunSpec({
         val publisert = testRapid.firstMessage().toMap()
 
         publisert shouldContainKey Key.DATA
-        publisert[DataFelt.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe Inntekt(
+        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe Inntekt(
             maanedOversikt = listOf(
                 InntektPerMaaned(
                     maaned = januar(2018),
@@ -174,7 +172,7 @@ class InntektLoeserTest : FunSpec({
         publisert shouldContainKey Key.EVENT_NAME
         publisert shouldContainKey Key.DATA
         publisert shouldContainKey Key.UUID
-        publisert shouldContainKey DataFelt.INNTEKT
+        publisert shouldContainKey Key.INNTEKT
     }
 
     test("Kall mot klient bruker korrekte verdier lest fra innkommende melding") {
@@ -215,7 +213,7 @@ class InntektLoeserTest : FunSpec({
 
     test("Feil i innkommende melding gir feilmelding på rapid") {
         mockInnkommendeMelding()
-            .plus(DataFelt.FNR to "ikke et fnr".toJson())
+            .plus(Key.FNR to "ikke et fnr".toJson())
             .let(testRapid::sendJson)
 
         coVerify(exactly = 0) {
@@ -255,12 +253,12 @@ private object Mock {
     val skjaeringstidspunkt = 14.april
 }
 
-private fun mockInnkommendeMelding(): Array<Pair<IKey, JsonElement>> =
+private fun mockInnkommendeMelding(): Array<Pair<Key, JsonElement>> =
     arrayOf(
         Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
         Key.BEHOV to BehovType.INNTEKT.toJson(),
         Key.UUID to Mock.uuid.toJson(),
-        DataFelt.ORGNRUNDERENHET to Mock.orgnr.verdi.toJson(),
-        DataFelt.FNR to Mock.fnr.verdi.toJson(),
-        DataFelt.SKJAERINGSTIDSPUNKT to Mock.skjaeringstidspunkt.toJson()
+        Key.ORGNRUNDERENHET to Mock.orgnr.verdi.toJson(),
+        Key.FNR to Mock.fnr.verdi.toJson(),
+        Key.SKJAERINGSTIDSPUNKT to Mock.skjaeringstidspunkt.toJson()
     )

@@ -16,7 +16,7 @@ data class Fail(
     val behov: BehovType? = null,
     val feilmelding: String,
     @JsonIgnore
-    val data: Map<DataFelt, JsonElement?>? = null,
+    val data: Map<Key, JsonElement?>? = null,
     val uuid: String?,
     val forespørselId: String?
 ) {
@@ -41,7 +41,7 @@ fun JsonMessage.toFeilMessage(): Fail =
             )
         )
 
-fun JsonMessage.createFail(feilmelding: String, data: Map<DataFelt, JsonElement?>? = null, behovType: BehovType? = null): Fail {
+fun JsonMessage.createFail(feilmelding: String, data: Map<Key, JsonElement?>? = null, behovType: BehovType? = null): Fail {
     val behovNode: JsonNode? = this.valueNullable(Key.BEHOV)
     // behovtype trenger å vare definert eksplisit da behov elemente er en List
     val behov: BehovType? = behovType ?: if (behovNode != null) BehovType.valueOf(behovNode.asText()) else null

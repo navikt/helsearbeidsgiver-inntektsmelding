@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -45,7 +44,7 @@ class HentOrgnrLoeser(
                 )
                 it.requireKeys(
                     Key.UUID,
-                    DataFelt.FORESPOERSEL_ID
+                    Key.FORESPOERSEL_ID
                 )
             }
         }.register(this)
@@ -106,7 +105,7 @@ class HentOrgnrLoeser(
             Key.EVENT_NAME to melding.event.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to melding.transaksjonId.toJson(),
-            DataFelt.ORGNRUNDERENHET to orgnr.toJson()
+            Key.ORGNRUNDERENHET to orgnr.toJson()
         )
             .also {
                 logger.info("Publiserte data for '${BehovType.HENT_IM_ORGNR}'.")
@@ -153,7 +152,7 @@ private data class Melding(
                 Melding(
                     event = Key.EVENT_NAME.les(EventName.serializer(), it),
                     transaksjonId = Key.UUID.les(UuidSerializer, it),
-                    forespoerselId = DataFelt.FORESPOERSEL_ID.les(UuidSerializer, it)
+                    forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, it)
                 )
             }
     }

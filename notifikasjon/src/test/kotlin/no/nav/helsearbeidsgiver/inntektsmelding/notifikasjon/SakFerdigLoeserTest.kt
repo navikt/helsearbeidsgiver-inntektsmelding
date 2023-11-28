@@ -14,7 +14,6 @@ import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -41,7 +40,7 @@ class SakFerdigLoeserTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            DataFelt.SAK_ID to expected.sakId.toJson(),
+            Key.SAK_ID to expected.sakId.toJson(),
             Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
             Key.UUID to expected.transaksjonId.toJson()
         )

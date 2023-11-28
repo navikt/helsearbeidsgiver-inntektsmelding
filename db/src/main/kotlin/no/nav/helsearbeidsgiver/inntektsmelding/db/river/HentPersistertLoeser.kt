@@ -4,7 +4,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -57,8 +56,8 @@ class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repos
                 }
                 behov.createData(
                     mapOf(
-                        DataFelt.INNTEKTSMELDING_DOKUMENT to dokument,
-                        DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding
+                        Key.INNTEKTSMELDING_DOKUMENT to dokument,
+                        Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding
                     )
                 )
                     .also {

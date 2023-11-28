@@ -5,7 +5,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -15,7 +14,7 @@ import org.junit.jupiter.api.Test
 class ReadFailKtTest {
     @Test
     fun `Test JsonNode is Fail`() {
-        val event = Fail.create(EventName.TRENGER_REQUESTED, feilmelding = "Feilmelding", data = mapOf(DataFelt.VIRKSOMHET to "My virksomhet"))
+        val event = Fail.create(EventName.TRENGER_REQUESTED, feilmelding = "Feilmelding", data = mapOf(Key.VIRKSOMHET to "My virksomhet"))
         shouldNotThrowAny {
             event.jsonMessage
                 .toJson()

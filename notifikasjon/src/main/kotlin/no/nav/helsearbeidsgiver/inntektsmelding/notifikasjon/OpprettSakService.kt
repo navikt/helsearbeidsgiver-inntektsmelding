@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -29,14 +28,14 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
             StatefullEventListener(
                 redisStore,
                 event,
-                arrayOf(DataFelt.ORGNRUNDERENHET, Key.IDENTITETSNUMMER, Key.FORESPOERSEL_ID, Key.UUID),
+                arrayOf(Key.ORGNRUNDERENHET, Key.IDENTITETSNUMMER, Key.FORESPOERSEL_ID, Key.UUID),
                 this,
                 rapidsConnection
             )
         }
         withDataKanal {
             StatefullDataKanal(
-                arrayOf(DataFelt.ARBEIDSTAKER_INFORMASJON, DataFelt.SAK_ID, DataFelt.PERSISTERT_SAK_ID),
+                arrayOf(Key.ARBEIDSTAKER_INFORMASJON, Key.SAK_ID, Key.PERSISTERT_SAK_ID),
                 event,
                 this,
                 rapidsConnection,
@@ -70,12 +69,12 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
                             Key.UUID.str to transaksjonsId,
                             Key.BEHOV.str to BehovType.PERSISTER_SAK_ID.name,
                             Key.FORESPOERSEL_ID.str to forespoerselId,
-                            DataFelt.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, DataFelt.SAK_ID))!!
+                            Key.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, Key.SAK_ID))!!
                         )
                     ).toJson()
                 )
             } else if (isDataCollected(*steg2(transaksjonsId))) {
-                val arbeidstakerRedis = redisStore.get(RedisKey.of(transaksjonsId, DataFelt.ARBEIDSTAKER_INFORMASJON))?.fromJson(PersonDato.serializer())
+                val arbeidstakerRedis = redisStore.get(RedisKey.of(transaksjonsId, Key.ARBEIDSTAKER_INFORMASJON))?.fromJson(PersonDato.serializer())
                 rapidsConnection.publish(
                     JsonMessage.newMessage(
                         mapOf(
@@ -83,9 +82,9 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
                             Key.UUID.str to transaksjonsId,
                             Key.BEHOV.str to BehovType.OPPRETT_SAK,
                             Key.FORESPOERSEL_ID.str to forespoerselId,
-                            DataFelt.ORGNRUNDERENHET.str to redisStore.get(RedisKey.of(transaksjonsId, DataFelt.ORGNRUNDERENHET))!!,
+                            Key.ORGNRUNDERENHET.str to redisStore.get(RedisKey.of(transaksjonsId, Key.ORGNRUNDERENHET))!!,
                             // @TODO this transformation is not nessesary. StatefullDataKanal should be fixed to use Tree
-                            DataFelt.ARBEIDSTAKER_INFORMASJON.str to arbeidstakerRedis!!
+                            Key.ARBEIDSTAKER_INFORMASJON.str to arbeidstakerRedis!!
                         )
                     ).toJson()
                 )
@@ -100,7 +99,7 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
                 mapOf(
                     Key.EVENT_NAME.str to EventName.SAK_OPPRETTET.name,
                     Key.FORESPOERSEL_ID.str to message[Key.FORESPOERSEL_ID.str],
-                    DataFelt.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, DataFelt.SAK_ID))!!
+                    Key.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, Key.SAK_ID))!!
                 )
             ).toJson()
         )
@@ -125,13 +124,13 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
 
     override fun onError(feil: Fail): Transaction {
         if (feil.behov == BehovType.FULLT_NAVN) {
-            val fulltNavnKey = RedisKey.of(feil.uuid!!.let(UUID::fromString), DataFelt.ARBEIDSTAKER_INFORMASJON)
+            val fulltNavnKey = RedisKey.of(feil.uuid!!.let(UUID::fromString), Key.ARBEIDSTAKER_INFORMASJON)
             redisStore.set(fulltNavnKey, PersonDato("Ukjent person", null, "").toJsonStr(PersonDato.serializer()))
             return Transaction.IN_PROGRESS
         }
         return Transaction.TERMINATE
     }
 
-    fun steg2(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, DataFelt.ARBEIDSTAKER_INFORMASJON))
-    fun steg3(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, DataFelt.SAK_ID))
+    fun steg2(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, Key.ARBEIDSTAKER_INFORMASJON))
+    fun steg3(transactionId: UUID) = arrayOf(RedisKey.of(transactionId, Key.SAK_ID))
 }

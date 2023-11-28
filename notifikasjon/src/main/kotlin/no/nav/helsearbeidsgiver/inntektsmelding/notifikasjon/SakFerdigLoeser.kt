@@ -9,7 +9,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -43,7 +42,7 @@ class SakFerdigLoeser(
                 it.requireKeys(
                     Key.UUID,
                     Key.FORESPOERSEL_ID,
-                    DataFelt.SAK_ID
+                    Key.SAK_ID
                 )
             }
         }.register(this)
@@ -76,9 +75,9 @@ class SakFerdigLoeser(
         logger.info("Mottok melding med event '${EventName.FORESPOERSEL_BESVART}'.")
         sikkerLogger.info("Mottok melding:\n${toPretty()}")
 
-        val melding = fromJsonMapFiltered(Key.serializer()) + fromJsonMapFiltered(DataFelt.serializer())
+        val melding = fromJsonMapFiltered(Key.serializer())
 
-        val sakId = DataFelt.SAK_ID.les(String.serializer(), melding)
+        val sakId = Key.SAK_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
@@ -106,7 +105,7 @@ class SakFerdigLoeser(
 
         context.publish(
             Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
-            DataFelt.SAK_ID to sakId.toJson(),
+            Key.SAK_ID to sakId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.UUID to transaksjonId.toJson()
         )

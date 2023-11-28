@@ -8,7 +8,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
@@ -38,14 +37,14 @@ class DistribusjonLoeser(
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)
-            it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
+            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
             it.requireKey(Key.JOURNALPOST_ID.str)
         }
     }
 
     private fun hentInntektsmeldingDokument(behov: Behov): Inntektsmelding {
         try {
-            val json = behov[DataFelt.INNTEKTSMELDING_DOKUMENT].toString()
+            val json = behov[Key.INNTEKTSMELDING_DOKUMENT].toString()
             return json.fromJson(Inntektsmelding.serializer())
         } catch (ex: Exception) {
             throw DeserialiseringException(ex)
@@ -69,7 +68,7 @@ class DistribusjonLoeser(
                 behov.forespoerselId!!,
                 mapOf(
                     Key.JOURNALPOST_ID to journalpostId,
-                    DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()).toJsonNode()
+                    Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()).toJsonNode()
                 )
             ).also {
                 publishEvent(it)

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
@@ -47,7 +46,7 @@ class SpinnService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.EKSTERN_INNTEKTSMELDING
+                    Key.EKSTERN_INNTEKTSMELDING
                 ),
                 eventName = event,
                 mainListener = it,
@@ -55,7 +54,7 @@ class SpinnService(
                 redisStore = redisStore
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID, DataFelt.SPINN_INNTEKTSMELDING_ID), it, rapid) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID, Key.SPINN_INNTEKTSMELDING_ID), it, rapid) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -63,7 +62,7 @@ class SpinnService(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
             "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
@@ -72,7 +71,7 @@ class SpinnService(
             }
             return
         }
-        val spinnImId = RedisKey.of(transaksjonId, DataFelt.SPINN_INNTEKTSMELDING_ID)
+        val spinnImId = RedisKey.of(transaksjonId, Key.SPINN_INNTEKTSMELDING_ID)
             .read()?.let(UUID::fromString)
         if (spinnImId == null) {
             "Klarte ikke finne spinnImId for transaksjon $transaksjonId i Redis.".also {
@@ -92,8 +91,8 @@ class SpinnService(
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
-                    DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    DataFelt.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
                     Key.UUID to transaksjonId.toJson()
                 )
                     .also {
@@ -107,8 +106,8 @@ class SpinnService(
     override fun finalize(message: JsonMessage) {
         val json = message.toJsonMap()
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
-        val eksternInntektsmelding = DataFelt.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), json)
-        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
+        val eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), json)
+        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (
             forespoerselId != null &&
@@ -119,8 +118,8 @@ class SpinnService(
                 Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
                 Key.UUID to randomUuid().toJson(),
-                DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
-                DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(
                     EksternInntektsmelding.serializer()
                 )
             ).also {

@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
@@ -103,7 +102,7 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
             Key.EVENT_NAME to melding.initiateEvent.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to melding.transaksjonId.toJson(),
-            DataFelt.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
+            Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
         )
             .also {
                 logger.info("Publiserte data for ${BehovType.HENT_TRENGER_IM}.")

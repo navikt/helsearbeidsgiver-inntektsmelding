@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -20,15 +19,15 @@ class PersisterSakLoeser(
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.PERSISTER_SAK_ID.name)
             it.requireKey(Key.FORESPOERSEL_ID.str)
-            it.requireKey(DataFelt.SAK_ID.str)
+            it.requireKey(Key.SAK_ID.str)
         }
     }
 
     override fun onBehov(behov: Behov) {
         sikkerLogger.info("PersisterSakLøser mottok behov med uuid: ${behov.uuid()}")
-        val sakId = behov[DataFelt.SAK_ID].asText()
+        val sakId = behov[Key.SAK_ID].asText()
         repository.oppdaterSakId(behov.forespoerselId!!, sakId)
         sikkerLogger.info("PersisterSakLøser lagred sakId: $sakId for forespoerselId: ${behov.forespoerselId}")
-        behov.createData(mapOf(DataFelt.PERSISTERT_SAK_ID to sakId)).also { publishData(it) }
+        behov.createData(mapOf(Key.PERSISTERT_SAK_ID to sakId)).also { publishData(it) }
     }
 }

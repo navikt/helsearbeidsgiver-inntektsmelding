@@ -7,7 +7,6 @@ import io.mockk.verify
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
@@ -31,7 +30,7 @@ class GenericDataPackageListenerTest {
 
     init {
         StatefullDataKanal(
-            arrayOf(DataFelt.FNR, DataFelt.INNTEKT),
+            arrayOf(Key.FNR, Key.INNTEKT),
             EventName.INSENDING_STARTED,
             mockListener,
             testRapid,
@@ -56,17 +55,17 @@ class GenericDataPackageListenerTest {
                     Key.EVENT_NAME.str to EventName.INSENDING_STARTED.name,
                     Key.DATA.str to "",
                     Key.UUID.str to uuid.toString(),
-                    DataFelt.FNR.str to "Hello",
+                    Key.FNR.str to "Hello",
                     "enAnnenFelt" to "Not captured"
                 )
             ).toJson()
         )
 
         verify(exactly = 1) {
-            mockRedis.store.set(RedisKey.of(uuid, DataFelt.FNR), "Hello")
+            mockRedis.store.set(RedisKey.of(uuid, Key.FNR), "Hello")
             mockListener.onPacket(
                 withArg {
-                    it[DataFelt.FNR.str].asText() shouldBe "Hello"
+                    it[Key.FNR.str].asText() shouldBe "Hello"
                 },
                 any()
             )

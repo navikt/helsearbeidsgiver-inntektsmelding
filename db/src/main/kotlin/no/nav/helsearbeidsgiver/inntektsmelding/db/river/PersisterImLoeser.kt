@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
@@ -34,10 +33,10 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 Key.BEHOV to BehovType.PERSISTER_IM.name
             )
             it.interestedIn(
-                DataFelt.INNTEKTSMELDING,
-                DataFelt.VIRKSOMHET,
-                DataFelt.ARBEIDSTAKER_INFORMASJON,
-                DataFelt.ARBEIDSGIVER_INFORMASJON,
+                Key.INNTEKTSMELDING,
+                Key.VIRKSOMHET,
+                Key.ARBEIDSTAKER_INFORMASJON,
+                Key.ARBEIDSGIVER_INFORMASJON,
                 Key.FORESPOERSEL_ID
             )
         }
@@ -47,13 +46,13 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
 
         logger.info("Løser behov ${BehovType.PERSISTER_IM} med id $forespoerselId")
         try {
-            val arbeidsgiver = behov[DataFelt.VIRKSOMHET].asText()
+            val arbeidsgiver = behov[Key.VIRKSOMHET].asText()
             sikkerLogger.info("Fant arbeidsgiver: $arbeidsgiver")
-            val arbeidstakerInfo = behov[DataFelt.ARBEIDSTAKER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
-            val arbeidsgiverInfo = behov[DataFelt.ARBEIDSGIVER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
+            val arbeidstakerInfo = behov[Key.ARBEIDSTAKER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
+            val arbeidsgiverInfo = behov[Key.ARBEIDSGIVER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
             val fulltNavn = arbeidstakerInfo.navn
             sikkerLogger.info("Fant fulltNavn: $fulltNavn")
-            val innsending = behov[DataFelt.INNTEKTSMELDING].toJsonElement().fromJson(Innsending.serializer())
+            val innsending = behov[Key.INNTEKTSMELDING].toJsonElement().fromJson(Innsending.serializer())
             val inntektsmelding = mapInntektsmelding(innsending, fulltNavn, arbeidsgiver, arbeidsgiverInfo.navn)
             val sisteIm = repository.hentNyeste(forespoerselId)
             val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false
@@ -65,8 +64,8 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             }
             behov.createData(
                 mapOf(
-                    DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()).toJsonNode(),
-                    DataFelt.ER_DUPLIKAT_IM to erDuplikat
+                    Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()).toJsonNode(),
+                    Key.ER_DUPLIKAT_IM to erDuplikat
                 )
             ).also {
                 publishData(it)

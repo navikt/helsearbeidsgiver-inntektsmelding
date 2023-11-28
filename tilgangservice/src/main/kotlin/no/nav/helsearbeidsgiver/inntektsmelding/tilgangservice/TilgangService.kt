@@ -4,7 +4,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.FeilReport
@@ -49,8 +48,8 @@ class TilgangService(
         withDataKanal {
             StatefullDataKanal(
                 dataFelter = arrayOf(
-                    DataFelt.ORGNRUNDERENHET,
-                    DataFelt.TILGANG
+                    Key.ORGNRUNDERENHET,
+                    Key.TILGANG
                 ),
                 eventName = event,
                 mainListener = it,
@@ -58,7 +57,7 @@ class TilgangService(
                 redisStore = redisStore
             )
         }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(DataFelt.FORESPOERSEL_ID, DataFelt.FNR), it, rapid) }
+        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID, Key.FNR), it, rapid) }
     }
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
@@ -66,7 +65,7 @@ class TilgangService(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val forespoerselId = RedisKey.of(transaksjonId, DataFelt.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID)
             .read()?.let(UUID::fromString)
         if (forespoerselId == null) {
             "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
@@ -91,7 +90,7 @@ class TilgangService(
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.HENT_IM_ORGNR.toJson(),
-                    DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to transaksjonId.toJson()
                 )
                     .also {
@@ -104,12 +103,12 @@ class TilgangService(
             }
 
             Transaction.IN_PROGRESS -> {
-                val orgnrKey = RedisKey.of(transaksjonId, DataFelt.ORGNRUNDERENHET)
+                val orgnrKey = RedisKey.of(transaksjonId, Key.ORGNRUNDERENHET)
 
                 if (isDataCollected(orgnrKey)) {
                     val orgnr = orgnrKey.read()
 
-                    val fnr = RedisKey.of(transaksjonId, DataFelt.FNR)
+                    val fnr = RedisKey.of(transaksjonId, Key.FNR)
                         .read()
                     if (orgnr == null || fnr == null) {
                         "Klarte ikke lese orgnr og / eller fnr fra Redis.".also {
@@ -121,8 +120,8 @@ class TilgangService(
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                        DataFelt.ORGNRUNDERENHET to orgnr.toJson(),
-                        DataFelt.FNR to fnr.toJson(),
+                        Key.ORGNRUNDERENHET to orgnr.toJson(),
+                        Key.FNR to fnr.toJson(),
                         Key.UUID to transaksjonId.toJson()
                     )
                         .also {
@@ -154,7 +153,7 @@ class TilgangService(
         if (clientId == null) {
             sikkerLogger.error("Kunne ikke lese clientId for $transaksjonId fra Redis")
         } else {
-            val tilgang = RedisKey.of(transaksjonId, DataFelt.TILGANG).read()
+            val tilgang = RedisKey.of(transaksjonId, Key.TILGANG).read()
             val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 
             val tilgangJson = TilgangData(
@@ -208,8 +207,8 @@ class TilgangService(
             ?: throw IllegalStateException("Feil mangler transaksjon-ID.")
 
         val manglendeDatafelt = when (feil.behov) {
-            BehovType.HENT_IM_ORGNR -> DataFelt.ORGNRUNDERENHET
-            BehovType.TILGANGSKONTROLL -> DataFelt.TILGANG
+            BehovType.HENT_IM_ORGNR -> Key.ORGNRUNDERENHET
+            BehovType.TILGANGSKONTROLL -> Key.TILGANG
             else -> null
         }
 

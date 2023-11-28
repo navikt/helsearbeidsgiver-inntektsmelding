@@ -13,17 +13,11 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.loeser.toLøsningSuccess
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 
 class KotlinxUtilsKtTest : FunSpec({
@@ -56,35 +50,13 @@ class KotlinxUtilsKtTest : FunSpec({
         }
     }
 
-    context("løsning") {
-        val loesning = "gninsøl".toLøsningSuccess()
-        val loesningJson = """
-            {
-                "løsningType": "SUCCESS",
-                "resultat": "gninsøl"
-            }
-        """.removeJsonWhitespace()
-
-        val testSerializer = String.serializer().loesning()
-
-        test("serialiserer korrekt") {
-            loesning.toJsonStr(testSerializer) shouldBe loesningJson
-        }
-
-        test("deserialiserer korrekt") {
-            loesningJson.fromJson(testSerializer) shouldBe loesning
-        }
-    }
-
     context("toMap") {
         withData(
             mapOf<String, Map<IKey, String>>(
                 "inneholder bare Key" to mapOf(Key.EVENT_NAME to "testevent"),
-                "inneholder bare DataFelt" to mapOf(DataFelt.TRENGER_INNTEKT to "masse info"),
                 "inneholder bare Pri.Key" to mapOf(Pri.Key.NOTIS to "husk å drikke vann"),
-                "inneholder Key, DataFelt og Pri.Key" to mapOf(
+                "inneholder Key og Pri.Key" to mapOf(
                     Key.EVENT_NAME to "testevent",
-                    DataFelt.TRENGER_INNTEKT to "masse info",
                     Pri.Key.NOTIS to "husk å drikke vann"
                 )
             )
@@ -104,7 +76,6 @@ class KotlinxUtilsKtTest : FunSpec({
         withData(
             mapOf<String, Row2<IKey, String>>(
                 "Key leses" to row(Key.EVENT_NAME, "testevent"),
-                "DataFelt leses" to row(DataFelt.TRENGER_INNTEKT, "masse info"),
                 "Pri.Key leses" to row(Pri.Key.NOTIS, "husk å drikke vann")
             )
         ) { (key, expectedValue) ->
@@ -115,15 +86,13 @@ class KotlinxUtilsKtTest : FunSpec({
             actualValue shouldBe expectedValue
         }
 
-        test("Key, DataFelt og Pri.Key leses fra samme map") {
+        test("Key og Pri.Key leses fra samme map") {
             val jsonMap = mapOf(
                 Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                DataFelt.TRENGER_INNTEKT to mockTrengerInntekt().toJson(TrengerInntekt.serializer()),
                 Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer())
             )
 
             Key.EVENT_NAME.les(EventName.serializer(), jsonMap) shouldBe EventName.TRENGER_REQUESTED
-            DataFelt.TRENGER_INNTEKT.les(TrengerInntekt.serializer(), jsonMap) shouldBe mockTrengerInntekt()
             Pri.Key.NOTIS.les(Pri.NotisType.serializer(), jsonMap) shouldBe Pri.NotisType.FORESPØRSEL_MOTTATT
         }
 

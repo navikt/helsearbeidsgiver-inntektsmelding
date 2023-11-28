@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
@@ -49,7 +48,7 @@ class JournalfoerInntektsmeldingLoeser(
         return River.PacketValidation {
             it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
             it.demandValue(Key.BEHOV.str, JOURNALFOER_BEHOV.name)
-            it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
+            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
         }
     }
 
@@ -57,7 +56,7 @@ class JournalfoerInntektsmeldingLoeser(
         logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid ${behov.uuid()}")
         var inntektsmelding: Inntektsmelding? = null
         try {
-            inntektsmelding = mapInntektsmeldingDokument(behov[DataFelt.INNTEKTSMELDING_DOKUMENT])
+            inntektsmelding = mapInntektsmeldingDokument(behov[Key.INNTEKTSMELDING_DOKUMENT])
             sikkerLogger.info("Skal journalføre: $inntektsmelding")
             val journalpostId = opprettOgFerdigstillJournalpost(behov.uuid(), inntektsmelding)
             sikkerLogger.info("Journalførte inntektsmelding journalpostid: $journalpostId")
@@ -76,7 +75,7 @@ class JournalfoerInntektsmeldingLoeser(
                 behov.createFail(
                     "Feil format i Inntektsmelding",
                     mapOfNotNull(
-                        DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
+                        Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
                     )
                 )
             )
@@ -86,7 +85,7 @@ class JournalfoerInntektsmeldingLoeser(
                 behov.createFail(
                     "Klarte ikke journalføre",
                     mapOfNotNull(
-                        DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
+                        Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
                     )
                 )
             )

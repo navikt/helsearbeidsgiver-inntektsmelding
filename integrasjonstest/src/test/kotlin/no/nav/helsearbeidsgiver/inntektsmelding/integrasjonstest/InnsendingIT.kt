@@ -10,7 +10,6 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -57,26 +56,26 @@ class InnsendingIT : EndToEndTest() {
             Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            DataFelt.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
+            Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
             Key.IDENTITETSNUMMER to Mock.innsending.identitetsnummer.toJson(),
             Key.ARBEIDSGIVER_ID to Mock.innsending.identitetsnummer.toJson(),
-            DataFelt.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+            Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
 
         Thread.sleep(10000)
 
         messages.filter(EventName.INSENDING_STARTED)
-            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .firstAsMap()
             .also {
                 // Ble lagret i databasen
-                it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
             }
         messages.filter(EventName.INSENDING_STARTED)
-            .filter(DataFelt.ER_DUPLIKAT_IM)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
-                it[DataFelt.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe false
+                it[Key.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe false
             }
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
@@ -106,7 +105,7 @@ class InnsendingIT : EndToEndTest() {
         messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
             .also {
-                it shouldContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
+                it shouldContainKey Key.INNTEKTSMELDING_DOKUMENT
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
@@ -116,7 +115,7 @@ class InnsendingIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 // Be om å distribuere
-                it shouldContainKey DataFelt.INNTEKTSMELDING_DOKUMENT
+                it shouldContainKey Key.INNTEKTSMELDING_DOKUMENT
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
             }
 
@@ -126,7 +125,7 @@ class InnsendingIT : EndToEndTest() {
                 // Verifiser at inntektsmelding er distribuert på ekstern kafka
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
 
-                it[DataFelt.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
             }
 
         bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak()
@@ -157,19 +156,19 @@ class InnsendingIT : EndToEndTest() {
             Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            DataFelt.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
+            Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
             Key.IDENTITETSNUMMER to "fnr-bjarne".toJson(),
             Key.ARBEIDSGIVER_ID to "fnr-max".toJson(),
-            DataFelt.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+            Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
 
         Thread.sleep(10000)
 
         messages.filter(EventName.INSENDING_STARTED)
-            .filter(DataFelt.ER_DUPLIKAT_IM)
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
-                it[DataFelt.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe true
+                it[Key.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe true
             }
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT).all() shouldHaveSize 0
@@ -188,27 +187,27 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.FORESPOERSEL_BESVART)
-            .filter(DataFelt.SAK_ID, utenDataKey = true)
-            .filter(DataFelt.OPPGAVE_ID, utenDataKey = true)
+            .filter(Key.SAK_ID, utenDataKey = true)
+            .filter(Key.OPPGAVE_ID, utenDataKey = true)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                DataFelt.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
-                DataFelt.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
+                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
 
         messages.filter(EventName.SAK_FERDIGSTILT)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                DataFelt.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
         messages.filter(EventName.OPPGAVE_FERDIGSTILT)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                DataFelt.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
+                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
     }
 

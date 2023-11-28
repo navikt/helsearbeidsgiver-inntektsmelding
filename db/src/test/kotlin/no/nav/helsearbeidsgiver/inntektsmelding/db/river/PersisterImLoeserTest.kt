@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.NaturalytelseKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -57,10 +56,10 @@ class PersisterImLoeserTest {
             Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
             Key.UUID to randomUuid().toJson(),
             Key.FORESPOERSEL_ID to randomUuid().toJson(),
-            DataFelt.VIRKSOMHET to "Test Virksomhet".toJson(),
-            DataFelt.ARBEIDSTAKER_INFORMASJON to PersonDato("Test person", null, "").toJson(PersonDato.serializer()),
-            DataFelt.ARBEIDSGIVER_INFORMASJON to PersonDato("Test person", null, "").toJson(PersonDato.serializer()),
-            DataFelt.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+            Key.VIRKSOMHET to "Test Virksomhet".toJson(),
+            Key.ARBEIDSTAKER_INFORMASJON to PersonDato("Test person", null, "").toJson(PersonDato.serializer()),
+            Key.ARBEIDSGIVER_INFORMASJON to PersonDato("Test person", null, "").toJson(PersonDato.serializer()),
+            Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
 
         coVerify(exactly = 1) {
@@ -68,8 +67,8 @@ class PersisterImLoeserTest {
         }
         val message = testRapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
-        Assertions.assertNotNull(message.path(DataFelt.INNTEKTSMELDING.str).asText())
-        Assertions.assertFalse(message.path(DataFelt.ER_DUPLIKAT_IM.str).asBoolean())
+        Assertions.assertNotNull(message.path(Key.INNTEKTSMELDING.str).asText())
+        Assertions.assertFalse(message.path(Key.ER_DUPLIKAT_IM.str).asBoolean())
     }
 
     @Test
@@ -80,10 +79,10 @@ class PersisterImLoeserTest {
             Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
             Key.UUID to randomUuid().toJson(),
             Key.FORESPOERSEL_ID to randomUuid().toJson(),
-            DataFelt.VIRKSOMHET to "Test Virksomhet".toJson(),
-            DataFelt.ARBEIDSTAKER_INFORMASJON to PersonDato("Test person", null, "").toJson(PersonDato.serializer()),
-            DataFelt.ARBEIDSGIVER_INFORMASJON to PersonDato("Test person 2", null, "").toJson(PersonDato.serializer()),
-            DataFelt.INNTEKTSMELDING to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING).toJson(Innsending.serializer())
+            Key.VIRKSOMHET to "Test Virksomhet".toJson(),
+            Key.ARBEIDSTAKER_INFORMASJON to PersonDato("Test person", null, "").toJson(PersonDato.serializer()),
+            Key.ARBEIDSGIVER_INFORMASJON to PersonDato("Test person 2", null, "").toJson(PersonDato.serializer()),
+            Key.INNTEKTSMELDING to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING).toJson(Innsending.serializer())
         )
 
         coVerify(exactly = 0) {
@@ -91,7 +90,7 @@ class PersisterImLoeserTest {
         }
         val message = testRapid.inspektør.message(0)
         Assertions.assertEquals(EventName.INSENDING_STARTED.name, message.path(Key.EVENT_NAME.str).asText())
-        Assertions.assertTrue(message.path(DataFelt.ER_DUPLIKAT_IM.str).asBoolean())
+        Assertions.assertTrue(message.path(Key.ER_DUPLIKAT_IM.str).asBoolean())
     }
 
     object Mock {

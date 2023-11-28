@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.toUUID
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -32,8 +31,8 @@ class TilgangLoeser(
             it.demandValues(Key.BEHOV to BehovType.TILGANGSKONTROLL.name)
             it.interestedIn(
                 Key.UUID,
-                DataFelt.ORGNRUNDERENHET,
-                DataFelt.FNR
+                Key.ORGNRUNDERENHET,
+                Key.FNR
             )
         }
     }
@@ -59,7 +58,7 @@ class TilgangLoeser(
         val requestTimer = requestLatency.startTimer()
         runCatching {
             runBlocking {
-                altinnClient.harRettighetForOrganisasjon(behov[DataFelt.FNR].asText(), behov[DataFelt.ORGNRUNDERENHET].asText())
+                altinnClient.harRettighetForOrganisasjon(behov[Key.FNR].asText(), behov[Key.ORGNRUNDERENHET].asText())
             }
         }.also {
             requestTimer.observeDuration()
@@ -69,7 +68,7 @@ class TilgangLoeser(
                 publishData(
                     behov.createData(
                         mapOf(
-                            DataFelt.TILGANG to tilgang
+                            Key.TILGANG to tilgang
                         )
                     )
                 )

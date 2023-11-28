@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdListe
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -59,7 +58,7 @@ class ArbeidsforholdLoeser(
                 publishData(
                     behov.createData(
                         mapOf(
-                            DataFelt.ARBEIDSFORHOLD to arbeidsforhold
+                            Key.ARBEIDSFORHOLD to arbeidsforhold
                         )
                     )
                 )

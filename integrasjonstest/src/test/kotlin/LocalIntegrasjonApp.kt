@@ -1,4 +1,3 @@
-import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -12,9 +11,7 @@ import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Data
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
@@ -29,7 +26,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -54,8 +50,7 @@ fun main() {
 //    DummyLoeser(rapid, BehovType.VIRKSOMHET)
     DummyLoeser(rapid, BehovType.FULLT_NAVN)
     // Hvis ønskelig kan man kjøre opp "ekte" løsere med eller uten mocking parallellt, sammen med DummyLøser:
-    val priProducer = mockk<PriProducer<TrengerForespoersel>>()
-    coEvery { priProducer.send(any()) } returns true
+    val priProducer = mockk<PriProducer>(relaxed = true)
     TrengerForespoerselLoeser(rapid, priProducer)
 
     rapid.start()
@@ -88,13 +83,13 @@ class DummyLoeser(
             }
     }
 
-    private fun getData(): Map<IKey, JsonElement> {
+    private fun getData(): Map<Key, JsonElement> {
         val fnr = "123"
         val orgnr = "123"
 
         return when (behov) {
             BehovType.HENT_TRENGER_IM -> mapOf(
-                DataFelt.FORESPOERSEL_SVAR to TrengerInntekt(
+                Key.FORESPOERSEL_SVAR to TrengerInntekt(
                     type = ForespoerselType.KOMPLETT,
                     orgnr = orgnr,
                     fnr = fnr,
@@ -106,10 +101,10 @@ class DummyLoeser(
                 ).toJson(TrengerInntekt.serializer())
             )
             BehovType.VIRKSOMHET -> mapOf(
-                DataFelt.VIRKSOMHET to "Din Bedrift A/S".toJson()
+                Key.VIRKSOMHET to "Din Bedrift A/S".toJson()
             )
             BehovType.FULLT_NAVN -> mapOf(
-                DataFelt.ARBEIDSTAKER_INFORMASJON to
+                Key.ARBEIDSTAKER_INFORMASJON to
                     PersonDato(
                         "Navn navnesen",
                         LocalDate.now(),
@@ -118,7 +113,7 @@ class DummyLoeser(
                         .toJson(
                             PersonDato.serializer()
                         ),
-                DataFelt.ARBEIDSGIVER_INFORMASJON to
+                Key.ARBEIDSGIVER_INFORMASJON to
                     PersonDato(
                         "Arbeidsgiver",
                         LocalDate.now(),
@@ -129,10 +124,10 @@ class DummyLoeser(
                         )
             )
             BehovType.INNTEKT -> mapOf(
-                DataFelt.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer())
+                Key.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer())
             )
             BehovType.ARBEIDSFORHOLD -> mapOf(
-                DataFelt.ARBEIDSFORHOLD to JsonObject(
+                Key.ARBEIDSFORHOLD to JsonObject(
                     mapOf(
                         Data<Unit>::t.name to listOf(
                             Arbeidsforhold(

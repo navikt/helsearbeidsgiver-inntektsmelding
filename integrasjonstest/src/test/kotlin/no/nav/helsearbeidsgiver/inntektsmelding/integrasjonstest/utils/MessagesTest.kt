@@ -10,12 +10,9 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.test.json.fromJsonMapOnlyKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
@@ -24,9 +21,9 @@ class MessagesTest : FunSpec({
     test("finner korrekt melding for event") {
         val expectedEventName = EventName.TRENGER_REQUESTED
 
-        val funnetMelding = Mock.meldingerMedBehov.filter(expectedEventName).first()
+        val funnetMelding = Mock.meldingerMedBehov.filter(expectedEventName).firstAsMap()
 
-        val actualEventName = funnetMelding.fromJsonMapOnlyKeys()[Key.EVENT_NAME]?.fromJson(EventName.serializer())
+        val actualEventName = funnetMelding[Key.EVENT_NAME]?.fromJson(EventName.serializer())
 
         actualEventName shouldBe expectedEventName
     }
@@ -42,9 +39,9 @@ class MessagesTest : FunSpec({
             BehovType.FULLT_NAVN,
             BehovType.VIRKSOMHET
         ) { expectedBehovType ->
-            val funnetMelding = Mock.meldingerMedBehov.filter(expectedBehovType).first()
+            val funnetMelding = Mock.meldingerMedBehov.filter(expectedBehovType).firstAsMap()
 
-            funnetMelding.fromJsonMapOnlyKeys().let {
+            funnetMelding.also {
                 val behovJson = it[Key.BEHOV].shouldNotBeNull()
 
                 behovJson.fromJson(BehovType.serializer().list()) shouldContain expectedBehovType
@@ -59,17 +56,16 @@ class MessagesTest : FunSpec({
     }
 
     test("finner korrekt melding for datafelt") {
-        val funnetMelding = Mock.meldingerMedDatafelt.filter(DataFelt.VIRKSOMHET).first()
+        val funnetMelding = Mock.meldingerMedDatafelt.filter(Key.VIRKSOMHET).firstAsMap()
 
-        funnetMelding.fromJsonMapOnlyKeys() shouldContainKey Key.DATA
-
-        funnetMelding.fromJsonMapFiltered(DataFelt.serializer()).let {
-            it[DataFelt.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
+        funnetMelding.also {
+            it shouldContainKey Key.DATA
+            it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
         }
     }
 
     test("finner ikke manglende melding for datafelt") {
-        Mock.meldingerMedDatafelt.filter(DataFelt.ARBEIDSFORHOLD)
+        Mock.meldingerMedDatafelt.filter(Key.ARBEIDSFORHOLD)
             .all()
             .shouldBeEmpty()
     }
@@ -94,7 +90,7 @@ private object Mock {
 
     private fun datafelt(): Map<String, JsonElement> =
         mapOf(
-            DataFelt.VIRKSOMHET.str to ORGNR.toJson()
+            Key.VIRKSOMHET.str to ORGNR.toJson()
         )
 
     private fun JsonElement.toMessages(): Messages =

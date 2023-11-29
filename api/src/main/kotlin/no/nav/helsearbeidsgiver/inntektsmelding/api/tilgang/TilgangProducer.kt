@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang
 
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -34,8 +33,8 @@ class TilgangProducer(
             rapid.publish(
                 Key.EVENT_NAME to EventName.TILGANG_REQUESTED.toJson(),
                 Key.CLIENT_ID to clientId.toJson(),
-                DataFelt.FORESPOERSEL_ID to forespoerselId.toJson(),
-                DataFelt.FNR to fnr.toJson()
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.FNR to fnr.toJson()
             )
                 .also { json ->
                     "Publiserte request om tilgang.".let {

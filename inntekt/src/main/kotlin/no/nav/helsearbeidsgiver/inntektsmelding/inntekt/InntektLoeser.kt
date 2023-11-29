@@ -5,7 +5,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Fnr
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
@@ -20,7 +19,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.toYearMonth
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -47,16 +45,16 @@ class InntektLoeser(
             )
             it.interestedIn(
                 Key.UUID,
-                DataFelt.ORGNRUNDERENHET,
-                DataFelt.FNR,
-                DataFelt.SKJAERINGSTIDSPUNKT
+                Key.ORGNRUNDERENHET,
+                Key.FNR,
+                Key.SKJAERINGSTIDSPUNKT
             )
             it.rejectKeys(Key.LØSNING)
         }
 
     override fun onBehov(behov: Behov) {
         logger.info("Mottok melding med behov '${BehovType.INNTEKT}'.")
-        sikkerLogger.info("Mottok melding:\n${behov.toJson().toPretty()}")
+        sikkerLogger.info("Mottok melding:\n${behov.jsonMessage.toPretty()}")
 
         MdcUtils.withLogFields(
             Log.klasse(this),
@@ -96,7 +94,7 @@ class InntektLoeser(
                 publishData(
                     behov.createData(
                         mapOf(
-                            DataFelt.INNTEKT to inntekt
+                            Key.INNTEKT to inntekt
                         )
                     )
                 )
@@ -129,9 +127,9 @@ class InntektLoeser(
 private fun LocalDate.minusMaaneder(maanederTilbake: Long): YearMonth =
     toYearMonth().minusMonths(maanederTilbake)
 
-private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(jsonMessage[DataFelt.SKJAERINGSTIDSPUNKT.toString()].asText())
-private fun Behov.fnr(): Fnr = Fnr(jsonMessage[DataFelt.FNR.toString()].asText())
-private fun Behov.orgnr(): Orgnr = Orgnr(jsonMessage[DataFelt.ORGNRUNDERENHET.toString()].asText())
+private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(jsonMessage[Key.SKJAERINGSTIDSPUNKT.toString()].asText())
+private fun Behov.fnr(): Fnr = Fnr(jsonMessage[Key.FNR.toString()].asText())
+private fun Behov.orgnr(): Orgnr = Orgnr(jsonMessage[Key.ORGNRUNDERENHET.toString()].asText())
 
 private fun Behov.validate() {
     this.skjaeringstidspunkt()

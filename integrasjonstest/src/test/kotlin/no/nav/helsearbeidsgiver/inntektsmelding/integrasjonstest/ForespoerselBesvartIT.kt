@@ -6,7 +6,6 @@ import io.mockk.every
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -52,10 +51,9 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
             .filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
-                DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldingId
+                Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldingId
             }
     }
 
@@ -68,7 +66,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to Mock.transaksjonId.toJson()
+            Key.UUID to Mock.transaksjonId.toJson()
         )
 
         waitForMessages(20000)
@@ -79,54 +77,53 @@ class ForespoerselBesvartIT : EndToEndTest() {
     private fun bekreftForventedeMeldinger() {
         messages.filter(EventName.FORESPOERSEL_BESVART)
             .filter(BehovType.NOTIFIKASJON_HENT_ID)
-            .first()
-            .toMap()
+            .firstAsMap()
             .also {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.NOTIFIKASJON_HENT_ID
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.TRANSACTION_ORIGIN.les(UuidSerializer, it) shouldBe Mock.transaksjonId
+                Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
             }
         messages.filter(EventName.FORESPOERSEL_BESVART)
             .all()
             .map(JsonElement::toMap)
             .first {
-                it.containsKey(DataFelt.SAK_ID) &&
-                    it.containsKey(DataFelt.OPPGAVE_ID)
+                it.containsKey(Key.SAK_ID) &&
+                    it.containsKey(Key.OPPGAVE_ID)
             }
             .also {
                 it shouldNotContainKey Key.BEHOV
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.FORESPOERSEL_BESVART
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.TRANSACTION_ORIGIN.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-                DataFelt.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
-                DataFelt.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
+                Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
+                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
 
         messages.filter(EventName.SAK_FERDIGSTILT)
             .all()
             .map(JsonElement::toMap)
             .first {
-                it.containsKey(DataFelt.SAK_ID)
+                it.containsKey(Key.SAK_ID)
             }
             .also {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.SAK_FERDIGSTILT
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.TRANSACTION_ORIGIN.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-                DataFelt.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+                Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
+                Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
         messages.filter(EventName.OPPGAVE_FERDIGSTILT)
             .all()
             .map(JsonElement::toMap)
             .first {
-                it.containsKey(DataFelt.OPPGAVE_ID)
+                it.containsKey(Key.OPPGAVE_ID)
             }
             .also {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.OPPGAVE_FERDIGSTILT
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.TRANSACTION_ORIGIN.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-                DataFelt.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
+                Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
+                Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
     }
 

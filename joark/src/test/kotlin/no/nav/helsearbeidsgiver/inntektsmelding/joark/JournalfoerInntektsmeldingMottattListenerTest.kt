@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -54,8 +53,8 @@ class JournalfoerInntektsmeldingMottattListenerTest {
             JsonMessage.newMessage(
                 mapOf(
                     Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_MOTTATT.name,
-                    Key.UUID.str to "uuid",
-                    DataFelt.INNTEKTSMELDING_DOKUMENT.str to request
+                    Key.UUID.str to UUID.randomUUID(),
+                    Key.INNTEKTSMELDING_DOKUMENT.str to request
                 )
             )
         )

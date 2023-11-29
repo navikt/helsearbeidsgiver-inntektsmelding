@@ -5,11 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.jsonObject
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -46,11 +44,10 @@ class TilgangskontrollIT : EndToEndTest() {
         Thread.sleep(6000)
 
         val result = messages.filter(EventName.TILGANG_REQUESTED)
-            .filter(DataFelt.TILGANG)
-            .first()
-            .toMap()
+            .filter(Key.TILGANG)
+            .firstAsMap()
 
-        val tilgang = result[DataFelt.TILGANG]
+        val tilgang = result[Key.TILGANG]
             .shouldNotBeNull()
             .fromJson(Tilgang.serializer())
 
@@ -64,11 +61,10 @@ class TilgangskontrollIT : EndToEndTest() {
         Thread.sleep(4000)
 
         val result = messages.filter(EventName.TILGANG_REQUESTED)
-            .filter(DataFelt.TILGANG)
-            .first()
-            .toMap()
+            .filter(Key.TILGANG)
+            .firstAsMap()
 
-        val tilgang = result[DataFelt.TILGANG]
+        val tilgang = result[Key.TILGANG]
             .shouldNotBeNull()
             .fromJson(Tilgang.serializer())
 
@@ -83,8 +79,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
         val result = messages.filter(EventName.TILGANG_REQUESTED)
             .filterFeil()
-            .first()
-            .toMap()
+            .firstAsMap()
 
         val feilmelding = result[Key.FAIL]
             .shouldNotBeNull()

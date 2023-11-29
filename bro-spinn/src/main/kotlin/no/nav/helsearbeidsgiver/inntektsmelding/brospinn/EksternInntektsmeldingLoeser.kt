@@ -4,7 +4,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -27,21 +26,21 @@ class EksternInntektsmeldingLoeser(
                 Key.BEHOV to BEHOV.name
             )
             it.interestedIn(
-                DataFelt.SPINN_INNTEKTSMELDING_ID,
+                Key.SPINN_INNTEKTSMELDING_ID,
                 Key.UUID
             )
         }
 
     override fun onBehov(behov: Behov) {
         logger.info("Løser behov $BEHOV med uuid ${behov.uuid()}")
-        val inntektsmeldingId = behov[DataFelt.SPINN_INNTEKTSMELDING_ID]
+        val inntektsmeldingId = behov[Key.SPINN_INNTEKTSMELDING_ID]
         if (inntektsmeldingId.isMissingOrNull() || inntektsmeldingId.asText().isEmpty()) {
             publishFail(behov.createFail("Mangler inntektsmeldingId"))
             return
         }
         try {
             val eksternInntektsmelding = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId.asText())
-            publishData(behov.createData(mapOf(DataFelt.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding)))
+            publishData(behov.createData(mapOf(Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding)))
         } catch (e: SpinnApiException) {
             "Feil ved kall mot spinn api: ${e.message}".also {
                 logger.error(it)

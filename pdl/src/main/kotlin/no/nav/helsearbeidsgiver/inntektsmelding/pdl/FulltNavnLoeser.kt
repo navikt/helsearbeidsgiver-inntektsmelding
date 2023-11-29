@@ -7,7 +7,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -66,8 +65,8 @@ class FulltNavnLoeser(
                 publishData(
                     behov.createData(
                         mapOf(
-                            DataFelt.ARBEIDSTAKER_INFORMASJON to arbeidstakerInfo,
-                            DataFelt.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo
+                            Key.ARBEIDSTAKER_INFORMASJON to arbeidstakerInfo,
+                            Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo
                         )
                     )
                 )

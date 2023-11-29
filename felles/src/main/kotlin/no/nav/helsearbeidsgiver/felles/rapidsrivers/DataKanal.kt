@@ -6,10 +6,14 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 abstract class DataKanal(val rapidsConnection: RapidsConnection) : River.PacketListener {
     abstract val eventName: EventName
 
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
     init {
         configure(
             River(rapidsConnection).apply {
@@ -32,6 +36,10 @@ abstract class DataKanal(val rapidsConnection: RapidsConnection) : River.PacketL
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         onData(packet)
     }
 

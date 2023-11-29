@@ -8,19 +8,19 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisStore
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class InntektServiceTest {
 
-    val mockRedisStore = MockRedisStore()
-    val testRapid = TestRapid()
+    private val testRapid = TestRapid()
+    private val mockRedis = MockRedis()
 
     @Test
     fun terminate() {
-        val service = InntektService(testRapid, mockRedisStore)
+        val service = InntektService(testRapid, mockRedis.store)
         val feil = Fail(
             feilmelding = "ikkeno",
             event = EventName.INNTEKT_REQUESTED,
@@ -33,7 +33,7 @@ class InntektServiceTest {
             )
         )
         val transaction = service.onError(feil)
-        assertEquals(Transaction.InProgress, transaction)
+        assertEquals(Transaction.IN_PROGRESS, transaction)
 
         service.terminate(feil) // skal ikke kaste exception..
     }

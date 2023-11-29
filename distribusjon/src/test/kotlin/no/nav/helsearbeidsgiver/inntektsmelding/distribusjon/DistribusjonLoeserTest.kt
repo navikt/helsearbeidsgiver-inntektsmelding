@@ -7,7 +7,6 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -50,13 +49,13 @@ class DistribusjonLoeserTest {
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
             Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
             Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer())
+            Key.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer())
         )
         val melding = rapid.inspektør.message(0)
         assertNotNull(melding, "Skal publisere event at inntektsmelding er distribuert")
         assertEquals(EventName.INNTEKTSMELDING_DISTRIBUERT.name, melding.get(Key.EVENT_NAME.str).asText())
         assertEquals(JOURNALPOST_ID, melding.get(Key.JOURNALPOST_ID.str).asText())
-        assertNotNull(melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
+        assertNotNull(melding.get(Key.INNTEKTSMELDING_DOKUMENT.str))
         assertNull(melding.get(Key.FAIL.str), "Skal ikke inneholde feil")
     }
 
@@ -69,7 +68,7 @@ class DistribusjonLoeserTest {
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
             Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
             Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to "dummy".toJson()
+            Key.INNTEKTSMELDING_DOKUMENT to "dummy".toJson()
         )
         val publisert = rapid.firstMessage().readFail()
 
@@ -85,7 +84,7 @@ class DistribusjonLoeserTest {
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
             Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
             Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
-            DataFelt.INNTEKTSMELDING_DOKUMENT to "dummy".toJson()
+            Key.INNTEKTSMELDING_DOKUMENT to "dummy".toJson()
         )
 
         val publisert = rapid.firstMessage().readFail()

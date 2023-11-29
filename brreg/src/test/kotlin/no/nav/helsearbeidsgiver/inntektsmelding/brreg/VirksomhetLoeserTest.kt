@@ -11,7 +11,6 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -50,13 +49,13 @@ class VirksomhetLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-            DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
+            Key.ORGNRUNDERENHET to ORGNR.toJson(),
             Key.UUID to UUID.randomUUID().toJson()
         )
 
         val publisert = testRapid.firstMessage().readFail()
 
-        publisert.feilmelding shouldBe "Ugyldig virksomhet $ORGNR"
+        publisert.feilmelding shouldBe "Fant ikke virksomhet"
     }
 
     @Test
@@ -66,13 +65,13 @@ class VirksomhetLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-            DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
+            Key.ORGNRUNDERENHET to ORGNR.toJson(),
             Key.UUID to UUID.randomUUID().toJson()
         )
 
         val publisert = testRapid.firstMessage().toMap()
 
-        publisert[DataFelt.VIRKSOMHET]
+        publisert[Key.VIRKSOMHET]
             .shouldNotBeNull()
             .fromJson(String.serializer())
             .shouldBe(VIRKSOMHET_NAVN)
@@ -83,12 +82,12 @@ class VirksomhetLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-            DataFelt.ORGNRUNDERENHET to ORGNR.toJson(),
+            Key.ORGNRUNDERENHET to ORGNR.toJson(),
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val publisert = testRapid.firstMessage().toMap()
+        val publisert = testRapid.firstMessage()
 
-        publisert[Key.FAIL].shouldNotBeNull()
+        publisert.readFail().feilmelding.shouldBe("Klarte ikke hente virksomhet")
     }
 }

@@ -8,7 +8,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -40,15 +39,19 @@ class OppgaveFerdigLoeser(
                     Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name
                 )
                 it.requireKeys(
-                    DataFelt.OPPGAVE_ID,
+                    Key.UUID,
                     Key.FORESPOERSEL_ID,
-                    Key.TRANSACTION_ORIGIN
+                    Key.OPPGAVE_ID
                 )
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         val json = packet.toJson().parseJson()
 
         MdcUtils.withLogFields(
@@ -59,11 +62,9 @@ class OppgaveFerdigLoeser(
                 json.haandterMelding(context)
             }
                 .onFailure { e ->
-                    "Ukjent feil. Republiserer melding.".also {
+                    "Ukjent feil.".also {
                         logger.error("$it Se sikker logg for mer info.")
                         sikkerLogger.error(it, e)
-
-                        json.republiser(context)
                     }
                 }
         }
@@ -73,11 +74,11 @@ class OppgaveFerdigLoeser(
         logger.info("Mottok melding med event '${EventName.FORESPOERSEL_BESVART}'.")
         sikkerLogger.info("Mottok melding:\n${toPretty()}")
 
-        val melding = fromJsonMapFiltered(Key.serializer()) + fromJsonMapFiltered(DataFelt.serializer())
+        val melding = fromJsonMapFiltered(Key.serializer()) + fromJsonMapFiltered(Key.serializer())
 
-        val oppgaveId = DataFelt.OPPGAVE_ID.les(String.serializer(), melding)
+        val oppgaveId = Key.OPPGAVE_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, melding)
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.oppgaveId(oppgaveId),
@@ -98,15 +99,11 @@ class OppgaveFerdigLoeser(
         }
         context.publish(
             Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
-            DataFelt.OPPGAVE_ID to oppgaveId.toJson(),
+            Key.OPPGAVE_ID to oppgaveId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to transaksjonId.toJson()
+            Key.UUID to transaksjonId.toJson()
         )
 
         logger.info("Oppgave ferdigstilt.")
-    }
-
-    private fun JsonElement.republiser(context: MessageContext) {
-        context.publish(toString())
     }
 }

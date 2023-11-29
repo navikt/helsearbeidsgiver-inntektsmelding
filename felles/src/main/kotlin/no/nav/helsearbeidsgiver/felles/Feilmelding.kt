@@ -10,7 +10,7 @@ data class Data<T>(
 data class Feilmelding(
     val melding: String,
     val status: Int? = null,
-    val datafelt: DataFelt? = null
+    val datafelt: Key? = null
 )
 
 @Serializable

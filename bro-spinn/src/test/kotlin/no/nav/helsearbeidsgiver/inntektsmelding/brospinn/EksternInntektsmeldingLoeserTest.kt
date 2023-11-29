@@ -9,18 +9,17 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
@@ -75,7 +74,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-                DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+                Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
             )
         }
 
@@ -95,7 +94,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-                DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+                Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
             )
         }
 
@@ -103,8 +102,8 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
-        actual[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPOERSEL_BESVART
-        actual[DataFelt.EKSTERN_INNTEKTSMELDING]?.fromJson(EksternInntektsmelding.serializer()) shouldBe eksternInntektsmelding
+        Key.EVENT_NAME.lesOrNull(EventName.serializer(), actual) shouldBe EventName.FORESPOERSEL_BESVART
+        Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), actual) shouldBe eksternInntektsmelding
     }
 
     test("Hvis request timer ut blir feil publisert") {
@@ -116,7 +115,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-                DataFelt.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+                Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
             )
         }
 

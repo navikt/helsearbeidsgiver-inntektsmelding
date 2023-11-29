@@ -6,7 +6,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
-import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.SerialName
@@ -14,14 +13,12 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -42,9 +39,9 @@ class OppgaveFerdigLoeserTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            DataFelt.OPPGAVE_ID to expected.oppgaveId.toJson(),
+            Key.OPPGAVE_ID to expected.oppgaveId.toJson(),
             Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-            Key.TRANSACTION_ORIGIN to expected.transaksjonId.toJson()
+            Key.UUID to expected.transaksjonId.toJson()
         )
 
         val actual = testRapid.firstMessage().fromJson(PublishedOppgave.serializer())
@@ -57,32 +54,6 @@ class OppgaveFerdigLoeserTest : FunSpec({
             mockAgNotifikasjonKlient.oppgaveUtfoert(expected.oppgaveId)
         }
     }
-
-    test("Ved feil så republiseres den innkommende meldingen") {
-        val expectedRepublisert = mapOf(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            DataFelt.OPPGAVE_ID to "utspekulert-banan".toJson(),
-            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-            Key.TRANSACTION_ORIGIN to UUID.randomUUID().toJson()
-        )
-
-        coEvery { mockAgNotifikasjonKlient.oppgaveUtfoert(any()) } throws RuntimeException("fydda!")
-
-        testRapid.sendJson(
-            *expectedRepublisert.toList().toTypedArray()
-        )
-
-        val actual = testRapid.firstMessage()
-            .let {
-                it.fromJsonMapFiltered(Key.serializer()) + it.fromJsonMapFiltered(DataFelt.serializer())
-            }
-            // Fjern nøkler vi ikke bryr oss om, som '@id'
-            .filterKeys { expectedRepublisert.containsKey(it) }
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        actual shouldBe expectedRepublisert
-    }
 })
 
 @Serializable
@@ -92,7 +63,7 @@ private data class PublishedOppgave(
     @SerialName("oppgave_id")
     val oppgaveId: String,
     val forespoerselId: UUID,
-    @SerialName("transaction_origin")
+    @SerialName("uuid")
     val transaksjonId: UUID
 ) {
     companion object {

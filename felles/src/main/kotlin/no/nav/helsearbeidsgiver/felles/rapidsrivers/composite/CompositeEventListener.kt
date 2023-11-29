@@ -11,42 +11,52 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.IRedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.util.UUID
 
-abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.PacketListener {
+abstract class CompositeEventListener(open val redisStore: RedisStore) : River.PacketListener {
+
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     abstract val event: EventName
     private lateinit var dataKanal: StatefullDataKanal
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         val transaction: Transaction = determineTransactionState(packet)
 
         when (transaction) {
-            is Transaction.New -> {
+            Transaction.NEW -> {
                 initialTransactionState(packet)
                 dispatchBehov(packet, transaction)
             }
-            is Transaction.InProgress -> dispatchBehov(packet, transaction)
-            is Transaction.Finalize -> finalize(packet)
-            is Transaction.Terminate -> terminate(transaction.fail)
-            is Transaction.NotActive -> return
+            Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
+            Transaction.FINALIZE -> finalize(packet)
+            Transaction.TERMINATE -> terminate(packet[Key.FAIL.str].toString().fromJson(Fail.serializer()))
+            Transaction.NOT_ACTIVE -> return
         }
     }
 
     fun determineTransactionState(message: JsonMessage): Transaction {
-        // event bør ikke ha UUID men dette er ikke konsistent akkuratt nå så midlertidig blir det sånn til vi får det konsistent.
-        // vi trenger også clientID for correlation
-        val transactionId = message[Key.UUID.str].asText()
         if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
-            sikkerLogger().error("Feilmelding er\n${message.toPretty()}")
+            sikkerLogger.error("Feilmelding er\n${message.toPretty()}")
             val fail = message[Key.FAIL.str].toString().fromJson(Fail.serializer())
             return onError(fail)
         }
+
+        // event bør ikke ha UUID men dette er ikke konsistent akkuratt nå så midlertidig blir det sånn til vi får det konsistent.
+        // vi trenger også clientID for correlation
+        val transactionId: UUID = message[Key.UUID.str].asText().let(UUID::fromString)
 
         val eventKey = RedisKey.of(transactionId, event)
         val value = redisStore.get(eventKey)
@@ -54,24 +64,28 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         return when {
             value.isNullOrEmpty() -> {
                 if (!isEventMelding(message)) {
-                    Transaction.NotActive
+                    "Servicen er inaktiv for gitt event. Mest sannsynlig skyldes dette timeout av Redis-verdier.".also {
+                        logger.error(it)
+                        sikkerLogger.error(it)
+                    }
+                    Transaction.NOT_ACTIVE
                 } else {
                     val clientId = message[Key.CLIENT_ID.str]
                         .takeUnless(JsonNode::isMissingOrNull)
                         ?.asText()
                         .orDefault(transactionId)
 
-                    redisStore.set(eventKey, clientId)
+                    redisStore.set(eventKey, clientId.toString())
 
-                    Transaction.New
+                    Transaction.NEW
                 }
             }
-            isDataCollected(transactionId) -> Transaction.Finalize
-            else -> Transaction.InProgress
+            isDataCollected(transactionId) -> Transaction.FINALIZE
+            else -> Transaction.IN_PROGRESS
         }
     }
 
-    private fun isFailMelding(jsonMessage: JsonMessage): Boolean {
+    fun isFailMelding(jsonMessage: JsonMessage): Boolean { // TODO: Denne funker bare for felles.Fail-objektet
         return try {
             !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
         } catch (e: NoSuchFieldError) {
@@ -98,7 +112,7 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
     open fun initialTransactionState(message: JsonMessage) {}
 
     open fun onError(feil: Fail): Transaction {
-        return Transaction.Terminate(feil)
+        return Transaction.TERMINATE
     }
 
     fun withFailKanal(failKanalSupplier: (t: CompositeEventListener) -> FailKanal): CompositeEventListener {
@@ -116,6 +130,6 @@ abstract class CompositeEventListener(open val redisStore: IRedisStore) : River.
         return this
     }
 
-    open fun isDataCollected(uuid: String): Boolean = dataKanal.isAllDataCollected(RedisKey.of(uuid))
+    open fun isDataCollected(uuid: UUID): Boolean = dataKanal.isAllDataCollected(uuid)
     open fun isDataCollected(vararg keys: RedisKey): Boolean = dataKanal.isDataCollected(*keys)
 }

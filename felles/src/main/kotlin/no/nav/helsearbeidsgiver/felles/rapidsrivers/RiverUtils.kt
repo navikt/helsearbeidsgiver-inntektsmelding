@@ -55,8 +55,12 @@ fun JsonMessage.toJsonMap(): Map<IKey, JsonElement> =
     toJson().parseJson().toMap()
 
 fun MessageContext.publish(vararg messageFields: Pair<IKey, JsonElement>): JsonElement =
+    publish(messageFields.toMap())
+
+fun MessageContext.publish(messageFields: Map<IKey, JsonElement>): JsonElement =
     messageFields
-        .associate { (key, value) -> key.str to value.toJsonNode() }
+        .mapKeys { (key, _) -> key.str }
+        .mapValues { (_, value) -> value.toJsonNode() }
         .let(JsonMessage::newMessage)
         .toJson()
         .also(::publish)

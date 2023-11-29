@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
@@ -37,6 +36,10 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
     abstract fun haandterFeil(json: JsonElement)
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+            logger.warn("Mangler forespørselId!")
+            sikkerLogger.warn("Mangler forespørselId!")
+        }
         val json = packet.toJson().parseJson()
 
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
@@ -74,7 +77,7 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
                 Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
-                Key.TRANSACTION_ORIGIN to melding.transaksjonId.toJson()
+                Key.UUID to melding.transaksjonId.toJson()
             )
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")
@@ -92,7 +95,7 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
                     Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
                     Key.UUID to randomUuid().toJson(),
-                    DataFelt.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson()
+                    Key.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson()
                 ).also {
                     logger.info("Publiserte melding om ekstern avsender")
                     sikkerLogger.info("Publiserte melding om ekstern avsender:\n${it.toPretty()}")

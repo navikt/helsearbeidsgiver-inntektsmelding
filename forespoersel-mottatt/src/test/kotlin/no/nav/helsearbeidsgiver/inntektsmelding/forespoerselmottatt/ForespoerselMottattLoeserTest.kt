@@ -16,13 +16,13 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
@@ -30,7 +30,7 @@ import java.util.UUID
 
 class ForespoerselMottattLoeserTest : FunSpec({
     val testRapid = TestRapid()
-    val mockPriProducer = mockk<PriProducer<JsonElement>>(relaxed = true)
+    val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
     ForespoerselMottattLoeser(testRapid, mockPriProducer)
 
@@ -75,8 +75,8 @@ class ForespoerselMottattLoeserTest : FunSpec({
 
         verifySequence {
             mockPriProducer.send(
-                withArg {
-                    it.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
+                withArg<JsonElement> { json ->
+                    json.toMap().filterKeys { it is Pri.Key } shouldBe expectedRepublisert
                 }
             )
         }
@@ -92,7 +92,7 @@ private data class Published(
     val orgnrUnderenhet: String,
     val identitetsnummer: String,
     val forespoerselId: UUID,
-    @SerialName("transaction_origin")
+    @SerialName("uuid")
     val transaksjonId: UUID
 ) {
     companion object {

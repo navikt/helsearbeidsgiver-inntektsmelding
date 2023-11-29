@@ -8,7 +8,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -53,9 +52,9 @@ class HentPersistertLoeserTest {
         )
         val melding = hentMelding(0)
         assertTrue(melding.contains(Key.DATA.str))
-        assertTrue(melding.contains(DataFelt.INNTEKTSMELDING_DOKUMENT.str))
+        assertTrue(melding.contains(Key.INNTEKTSMELDING_DOKUMENT.str))
         assertDoesNotThrow {
-            melding.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText().fromJson(Inntektsmelding.serializer())
+            melding.get(Key.INNTEKTSMELDING_DOKUMENT.str).asText().fromJson(Inntektsmelding.serializer())
         }
     }
 
@@ -72,9 +71,9 @@ class HentPersistertLoeserTest {
         )
         val melding = hentMelding(0)
         assertTrue(melding.contains(Key.DATA.str))
-        assertTrue(melding.contains(DataFelt.EKSTERN_INNTEKTSMELDING.str))
+        assertTrue(melding.contains(Key.EKSTERN_INNTEKTSMELDING.str))
         assertDoesNotThrow {
-            melding.get(DataFelt.EKSTERN_INNTEKTSMELDING.str).asText().fromJson(EksternInntektsmelding.serializer())
+            melding.get(Key.EKSTERN_INNTEKTSMELDING.str).asText().fromJson(EksternInntektsmelding.serializer())
         }
     }
 
@@ -106,7 +105,7 @@ class HentPersistertLoeserTest {
         )
         val message = hentMelding(0)
         assertTrue(message.contains(Key.DATA.str))
-        assertEquals("{}", message.get(DataFelt.INNTEKTSMELDING_DOKUMENT.str).asText())
+        assertEquals("{}", message.get(Key.INNTEKTSMELDING_DOKUMENT.str).asText())
     }
 
     private fun sendMelding(vararg melding: Pair<Key, JsonElement>) {

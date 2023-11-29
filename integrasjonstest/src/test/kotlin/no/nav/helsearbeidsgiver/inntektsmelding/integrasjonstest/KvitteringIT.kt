@@ -4,12 +4,11 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.json.JsonPrimitive
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -43,21 +42,20 @@ class KvitteringIT : EndToEndTest() {
         Thread.sleep(5000)
 
         messages.filter(EventName.KVITTERING_REQUESTED)
-            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
-            .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
-            .first()
-            .toMap()
+            .filter(Key.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.EKSTERN_INNTEKTSMELDING)
+            .firstAsMap()
             .also {
                 // Skal finne inntektsmeldingdokumentet
-                val imDokument = it[DataFelt.INNTEKTSMELDING_DOKUMENT]
+                val imDokument = it[Key.INNTEKTSMELDING_DOKUMENT]
 
                 imDokument.shouldNotBeNull()
                 imDokument shouldNotBe Mock.tomObjektStreng
 
-                it[DataFelt.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomObjektStreng
+                it[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomObjektStreng
             }
 
-        redisStore.get(clientId.toString()).shouldNotBeNull()
+        redisStore.get(RedisKey.of(clientId)).shouldNotBeNull()
     }
 
     @Test
@@ -76,18 +74,17 @@ class KvitteringIT : EndToEndTest() {
         Thread.sleep(5000)
 
         messages.filter(EventName.KVITTERING_REQUESTED)
-            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
-            .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
-            .first()
-            .toMap()
+            .filter(Key.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.EKSTERN_INNTEKTSMELDING)
+            .firstAsMap()
             .also {
-                it[DataFelt.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng
-                val eIm = it[DataFelt.EKSTERN_INNTEKTSMELDING]
+                it[Key.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng
+                val eIm = it[Key.EKSTERN_INNTEKTSMELDING]
                 eIm.shouldNotBeNull()
                 eIm shouldNotBe Mock.tomObjektStreng
             }
 
-        redisStore.get(clientId.toString()).shouldNotBeNull()
+        redisStore.get(RedisKey.of(clientId)).shouldNotBeNull()
     }
 
     @Test
@@ -103,14 +100,13 @@ class KvitteringIT : EndToEndTest() {
         Thread.sleep(5000)
 
         messages.filter(EventName.KVITTERING_REQUESTED)
-            .filter(DataFelt.INNTEKTSMELDING_DOKUMENT)
-            .filter(DataFelt.EKSTERN_INNTEKTSMELDING)
-            .first()
-            .toMap()
+            .filter(Key.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.EKSTERN_INNTEKTSMELDING)
+            .firstAsMap()
             .also {
                 // Skal ikke finne inntektsmeldingdokument - men en dummy payload
-                it[DataFelt.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng
-                it[DataFelt.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomObjektStreng
+                it[Key.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomObjektStreng
+                it[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomObjektStreng
             }
     }
 

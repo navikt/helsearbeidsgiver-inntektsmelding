@@ -33,11 +33,12 @@ class ForespoerselBesvartFraSimbaLoeser(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name
                 )
                 it.requireKeys(
-                    Key.FORESPOERSEL_ID,
-                    Key.TRANSACTION_ORIGIN
+                    Key.UUID,
+                    Key.FORESPOERSEL_ID
                 )
                 it.rejectKeys(
-                    Key.BEHOV
+                    Key.BEHOV,
+                    Key.DATA
                 )
             }
         }.register(this)
@@ -47,7 +48,7 @@ class ForespoerselBesvartFraSimbaLoeser(
         Melding(
             event = EventName.INNTEKTSMELDING_MOTTATT.name,
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, this),
-            transaksjonId = Key.TRANSACTION_ORIGIN.les(UuidSerializer, this),
+            transaksjonId = Key.UUID.les(UuidSerializer, this),
             spinnInntektsmeldingId = null
         )
 

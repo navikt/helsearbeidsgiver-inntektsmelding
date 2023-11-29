@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -11,10 +10,10 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -32,7 +31,7 @@ class LagreEksternInntektsmeldingLoeser(
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name)
             it.requireKey(Key.UUID.str)
-            it.interestedIn(DataFelt.EKSTERN_INNTEKTSMELDING)
+            it.interestedIn(Key.EKSTERN_INNTEKTSMELDING)
         }
     }
     override fun onBehov(behov: Behov) {
@@ -45,8 +44,8 @@ class LagreEksternInntektsmeldingLoeser(
             Log.behov(behov.behov)
         ) {
             logger.info("Mottok behov ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name}")
-            sikkerLogger.info("Mottok behov:\n${behov.toJson().toPretty()}")
-            val eksternInntektsmelding = behov[DataFelt.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer())
+            sikkerLogger.info("Mottok behov:\n${behov.jsonMessage.toPretty()}")
+            val eksternInntektsmelding = behov[Key.EKSTERN_INNTEKTSMELDING].toString().fromJson(EksternInntektsmelding.serializer())
             if (eksternInntektsmelding == null) {
                 logger.error("Fant ingen EksternInntektsmelding")
                 sikkerLogger.error("Fant ingen EksternInntektsmelding")

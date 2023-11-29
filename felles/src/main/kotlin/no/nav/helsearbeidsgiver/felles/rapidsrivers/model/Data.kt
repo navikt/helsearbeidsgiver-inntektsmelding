@@ -2,12 +2,10 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.TxMessage
 
-class Data(val event: EventName, val jsonMessage: JsonMessage) : TxMessage {
+class Data(val event: EventName, val jsonMessage: JsonMessage) {
 
     init {
         packetValidator.validate(jsonMessage)
@@ -20,12 +18,7 @@ class Data(val event: EventName, val jsonMessage: JsonMessage) : TxMessage {
             it.demandKey(Key.DATA.str)
             it.rejectKey(Key.FAIL.str)
             it.interestedIn(Key.UUID.str)
+            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
     }
-
-    override fun uuid(): String =
-        jsonMessage[Key.UUID.str]
-            .takeUnless { it.isMissingOrNull() }
-            ?.asText()
-            .orEmpty()
 }

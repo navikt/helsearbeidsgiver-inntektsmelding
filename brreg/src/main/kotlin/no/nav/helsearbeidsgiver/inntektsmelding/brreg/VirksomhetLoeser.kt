@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -61,18 +62,42 @@ class VirksomhetLoeser(
                 Key.BEHOV to BEHOV.name
             )
             it.requireKeys(
-                Key.ORGNRUNDERENHET,
                 Key.UUID
+            )
+            it.interestedIn(
+                Key.ORGNRUNDERENHET,
+                Key.ORGNRUNDERENHETER
             )
         }
 
     override fun onBehov(behov: Behov) {
         logger.info("Løser behov $BEHOV med uuid ${behov.uuid()}")
-        val orgnr = behov[Key.ORGNRUNDERENHET].asText()
+        val orgnr: List<String> =
+            if (behov[Key.ORGNRUNDERENHETER].isEmpty) {
+                listOf(
+                    behov[Key.ORGNRUNDERENHET]
+                        .asText()
+                )
+            } else {
+                behov[Key.ORGNRUNDERENHETER]
+                    .map { it.asText() }
+            }
         try {
-            val navn = hentVirksomhet(orgnr)
-            logger.info("Fant $navn for $orgnr")
-            publishData(behov.createData(mapOf(Key.VIRKSOMHET to navn)))
+            val navnListe: Map<String, String> = orgnr
+                .map {
+                    val navn = hentVirksomhet(it)
+                    logger.info("Fant $navn for $orgnr")
+                    it to navn
+                }
+                .toMap()
+            publishData(
+                behov.createData(
+                    mapOf(
+                        Key.VIRKSOMHET to navnListe.values.first(),
+                        Key.VIRKSOMHETER to navnListe
+                    )
+                )
+            )
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")
             publishFail(behov.createFail("Fant ikke virksomhet"))

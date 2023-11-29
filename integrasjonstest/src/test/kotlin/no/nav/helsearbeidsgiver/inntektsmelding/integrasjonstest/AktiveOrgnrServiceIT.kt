@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
+import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -25,6 +26,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     @Test
     fun `Test hente aktive organisasjoner`() {
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
+        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
@@ -65,5 +67,14 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 registrert = 3.januar.kl(6, 30, 40, 50000)
             )
         )
+
+        val altinnOrganisasjonSet =
+            setOf(
+                AltinnOrganisasjon(
+                    navn = "Test organisasjon",
+                    type = "organisasjon",
+                    orgnr = "810007842"
+                )
+            )
     }
 }

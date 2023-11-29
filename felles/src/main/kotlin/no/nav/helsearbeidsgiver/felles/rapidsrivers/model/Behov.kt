@@ -67,6 +67,8 @@ class Behov(
 
     operator fun get(key: Key): JsonNode = jsonMessage[key.str]
 
+    operator fun contains(key: Key): Boolean = jsonMessage[key.str].isMissingOrNull().not()
+
     fun createData(map: Map<Key, Any>): Data {
         val forespoerselID = this[Key.FORESPOERSEL_ID]
         return Data(

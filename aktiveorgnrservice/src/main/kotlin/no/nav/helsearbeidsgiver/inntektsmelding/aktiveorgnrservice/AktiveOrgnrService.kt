@@ -1,7 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
 
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdListe
@@ -46,7 +48,8 @@ class AktiveOrgnrService(
                 dataFelter = arrayOf(
                     Key.ARBEIDSFORHOLD,
                     // Key.ORG_RETTIGHETER,
-                    Key.ORGNRUNDERENHET
+                    Key.ORGNRUNDERENHETER,
+                    Key.VIRKSOMHETER
                 ),
                 eventName = event,
                 mainListener = it,
@@ -80,6 +83,20 @@ class AktiveOrgnrService(
                 }
             }
             Transaction.IN_PROGRESS -> {
+                if (isDataCollected(*step2data(transaksjonId))) {
+                    val virksomheter = RedisKey.of(transaksjonId, Key.VIRKSOMHETER).read()?.let {
+                        Json.decodeFromString<Map<String, String>>(it)
+                    }
+                    if (virksomheter != null) {
+                        rapid.publish(
+                            Key.EVENT_NAME to event.toJson(),
+                            Key.DATA to "".toJson(),
+                            Key.UUID to transaksjonId.toJson(),
+                            Key.ORGNRUNDERENHETER to virksomheter.keys.toList().toJson(String.serializer()),
+                            Key.VIRKSOMHETER to Json.encodeToJsonElement(virksomheter)
+                        )
+                    }
+                }
                 if (isDataCollected(*step1data(transaksjonId))) {
                     val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()
                     if (arbeidsforholdListe != null) {
@@ -100,10 +117,17 @@ class AktiveOrgnrService(
 
                         // TODO: hent virksomhetsnavn fra brreg
                         rapid.publish(
-                            Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
+                            Key.EVENT_NAME to event.toJson(),
                             Key.DATA to "".toJson(),
                             Key.UUID to transaksjonId.toJson(),
                             Key.ORGNRUNDERENHET to arbeidsgivere.first().toJson()
+                        )
+                        rapid.publish(
+                            Key.EVENT_NAME to event.toJson(),
+                            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                            Key.UUID to transaksjonId.toJson(),
+                            Key.ORGNRUNDERENHET to arbeidsgivere.first().toJson(),
+                            Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
                         )
                     }
                 }
@@ -152,6 +176,10 @@ class AktiveOrgnrService(
     private fun step1data(uuid: UUID): Array<RedisKey> = arrayOf(
         RedisKey.of(uuid, Key.ARBEIDSFORHOLD)
         // RedisKey.of(uuid, Key.ORG_RETTIGHETER)
+    )
+
+    private fun step2data(uuid: UUID): Array<RedisKey> = arrayOf(
+        RedisKey.of(uuid, Key.VIRKSOMHETER)
     )
 
     private fun RedisKey.read(): String? =

@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -94,9 +93,7 @@ class OpprettSakLoeser(
                 forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                 utloesendeMelding = utloesendeMelding
             )
-            rapidsConnection.publish(
-                Key.FAIL to fail.toJson(Fail.serializer())
-            )
+            publishFail(fail)
         } else {
             logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
             behov.createData(mapOf(Key.SAK_ID to sakId)).also { publishData(it) }

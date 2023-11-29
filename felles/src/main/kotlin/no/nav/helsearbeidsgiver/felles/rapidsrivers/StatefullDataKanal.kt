@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.Companion.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -51,9 +52,7 @@ class StatefullDataKanal(
                 utloesendeMelding = packet.toJson().parseJson()
             )
 
-            rapidsConnection.publish(
-                Key.FAIL to fail.toJson(Fail.serializer())
-            )
+            rapidsConnection.publish(fail)
         } else if (collectData(packet)) {
             sikkerLogger.info("data collected for event ${eventName.name} med packet\n${packet.toPretty()}")
             mainListener.onPacket(packet, rapidsConnection)

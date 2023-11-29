@@ -11,11 +11,9 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
@@ -44,9 +42,7 @@ class OpprettOppgaveLoeser(
                 forespoerselId = null,
                 utloesendeMelding = utloesendeMelding
             )
-            rapidsConnection.publish(
-                Key.FAIL to fail.toJson(Fail.serializer())
-            )
+            publishFail(fail)
             return
         }
         val oppgaveId = opprettOppgave(
@@ -63,9 +59,7 @@ class OpprettOppgaveLoeser(
                 forespoerselId = forespoerselId.let(UUID::fromString),
                 utloesendeMelding = utloesendeMelding
             )
-            rapidsConnection.publish(
-                Key.FAIL to fail.toJson(Fail.serializer())
-            )
+            publishFail(fail)
             return
         }
 

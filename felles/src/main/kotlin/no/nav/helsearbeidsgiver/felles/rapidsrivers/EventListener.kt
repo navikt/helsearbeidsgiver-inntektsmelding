@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -59,10 +58,4 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
     }
 
     abstract fun onEvent(packet: JsonMessage)
-
-    fun publishFail(fail: Fail) {
-        rapidsConnection.publish(
-            Key.FAIL to fail.toJson(Fail.serializer())
-        )
-    }
 }

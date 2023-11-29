@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.Companion.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -117,18 +118,15 @@ class HentOrgnrLoeser(
         logger.error("$feilmelding Se sikker logg for mer info.")
         sikkerLogger.error(feilmelding, feil)
 
-        val failJson = Fail(
+        val fail = Fail(
             feilmelding = feilmelding,
             event = melding.event,
             transaksjonId = melding.transaksjonId,
             forespoerselId = melding.forespoerselId,
             utloesendeMelding = melding.json
         )
-            .toJson(Fail.serializer())
 
-        publish(
-            Key.FAIL to failJson
-        )
+        publish(fail)
             .also {
                 logger.error("Publiserte feil for ${BehovType.HENT_IM_ORGNR}.")
                 sikkerLogger.error("Publiserte feil:\n${it.toPretty()}")

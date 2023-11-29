@@ -13,11 +13,12 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -49,14 +50,18 @@ class OpprettOppgaveServiceTest {
             ).toJson()
         )
 
-        val failJson = JsonMessage.newMessage(
-            mapOf(
-                Key.FAIL.str to fail.toJson(Fail.serializer()).toJsonNode()
-            )
+        val failMap = mapOf(
+            Key.FAIL.str to fail.toJson(Fail.serializer()),
+            Key.UUID.str to fail.transaksjonId!!.toJson(),
+            Key.FORESPOERSEL_ID.str to fail.forespoerselId!!.toJson()
         )
 
-        assertEquals(Transaction.TERMINATE, service.determineTransactionState(failJson))
-        assertTrue(service.isFailMelding(failJson))
+        val failJsonMessage = JsonMessage.newMessage(
+            failMap.mapValues { (_, value) -> value.toJsonNode() }
+        )
+
+        assertEquals(Transaction.TERMINATE, service.determineTransactionState(failJsonMessage))
+        assertNotNull(service.toFailOrNull(failMap.toJson()))
     }
 
     @Disabled("Enable om vi begynner å bruke ny Fail-objekt sammen med CompositeEventListener")
@@ -65,16 +70,17 @@ class OpprettOppgaveServiceTest {
         val failFraBehov = Behov.create(
             event = EventName.OPPGAVE_OPPRETT_REQUESTED,
             behov = BehovType.OPPRETT_OPPGAVE,
-            forespoerselId = "987654321"
+            forespoerselId = randomUuid().toString()
         ).createFail("Uff")
 
-        val failJson = JsonMessage.newMessage(
-            mapOf(
-                Key.FAIL.str to failFraBehov.toJson(Fail.serializer()).toJsonNode()
-            )
+        val failJson = mapOf(
+            Key.FAIL.str to failFraBehov.toJson(Fail.serializer()),
+            Key.UUID.str to failFraBehov.transaksjonId!!.toJson(),
+            Key.FORESPOERSEL_ID.str to failFraBehov.forespoerselId!!.toJson()
         )
+            .toJson()
 
-        assertTrue(service.isFailMelding(failJson))
+        assertNotNull(service.toFailOrNull(failJson))
     }
 
     @Disabled("Enable om vi begynner å bruke ny Fail-objekt sammen med CompositeEventListener")
@@ -90,46 +96,42 @@ class OpprettOppgaveServiceTest {
             ).toJson()
         )
 
-        val failJson = JsonMessage.newMessage(
-            mapOf(
-                Key.FAIL.str to rapidAndRiverFail.toJson(Fail.serializer()).toJsonNode()
-            )
+        val failMap = mapOf(
+            Key.FAIL.str to rapidAndRiverFail.toJson(Fail.serializer()),
+            Key.UUID.str to rapidAndRiverFail.transaksjonId!!.toJson(),
+            Key.FORESPOERSEL_ID.str to rapidAndRiverFail.forespoerselId!!.toJson()
         )
 
-        assertEquals(Transaction.TERMINATE, service.determineTransactionState(failJson))
-        assertTrue(service.isFailMelding(failJson))
+        val failJsonMessage = JsonMessage.newMessage(
+            failMap.mapValues { (_, value) -> value.toJsonNode() }
+        )
+
+        assertEquals(Transaction.TERMINATE, service.determineTransactionState(failJsonMessage))
+        assertNotNull(service.toFailOrNull(failMap.toJson()))
     }
 
     @Test
     fun `skal publisere to behov`() {
         val transaksjonId = randomUuid()
-        val forespoerselId = "987654321"
+        val forespoerselId = randomUuid()
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
-            rapid.sendTestMessage(
-                JsonMessage.newMessage(
-                    mapOf(
-                        Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
-                        Key.UUID.str to UUID.randomUUID(),
-                        Key.ORGNRUNDERENHET.str to "123456789",
-                        Key.FORESPOERSEL_ID.str to forespoerselId
-                    )
-                ).toJson()
+            rapid.sendJson(
+                Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.ORGNRUNDERENHET to "123456789".toJson()
             )
         }
 
-        rapid.sendTestMessage(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
-                    Key.DATA.str to "",
-                    Key.VIRKSOMHET.str to "TestBedrift A/S",
-                    Key.FORESPOERSEL_ID.str to forespoerselId,
-                    Key.UUID.str to transaksjonId
-                )
-            ).toJson()
+        rapid.sendJson(
+            Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.VIRKSOMHET to "TestBedrift A/S".toJson()
         )
         val behov = rapid.inspektør.message(0)
         assertEquals(BehovType.VIRKSOMHET.name, behov.path(Key.BEHOV.str).asText())
@@ -145,15 +147,11 @@ class OpprettOppgaveServiceTest {
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
-            rapid.sendTestMessage(
-                JsonMessage.newMessage(
-                    mapOf(
-                        Key.EVENT_NAME.str to EventName.OPPGAVE_OPPRETT_REQUESTED,
-                        Key.UUID.str to UUID.randomUUID(),
-                        Key.ORGNRUNDERENHET.str to "123456789",
-                        Key.FORESPOERSEL_ID.str to forespoerselId
-                    )
-                ).toJson()
+            rapid.sendJson(
+                Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.ORGNRUNDERENHET to "123456789".toJson()
             )
         }
 
@@ -168,13 +166,12 @@ class OpprettOppgaveServiceTest {
             ).toJson()
         )
 
-        val failJson = mapOf(
-            Key.FAIL.str to fail.toJson(Fail.serializer())
+        rapid.sendJson(
+            Key.FAIL to fail.toJson(Fail.serializer()),
+            Key.UUID to fail.transaksjonId!!.toJson(),
+            Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
         )
-            .toJson()
-            .toString()
 
-        rapid.sendTestMessage(failJson)
         val behov = rapid.inspektør.message(0)
         assertEquals(BehovType.VIRKSOMHET.name, behov.path(Key.BEHOV.str).asText())
         val behov2 = rapid.inspektør.message(1)

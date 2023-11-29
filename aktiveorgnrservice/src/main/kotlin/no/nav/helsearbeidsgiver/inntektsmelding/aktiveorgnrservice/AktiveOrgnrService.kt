@@ -159,14 +159,19 @@ class AktiveOrgnrService(
             logger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
             terminate(message.createFail("Fant ikke clientId for transaksjonId $transaksjonId i Redis!"))
         }
-
-        val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
-            {
-                "underenheter": [{"orgnrUnderenhet": "test-orgnr", "virksomhetsnavn": "test-orgnavn"}]
-            }
-        """.toJson()
-
-        RedisKey.of(clientId!!).write(GYLDIG_AKTIVE_ORGNR_RESPONSE)
+        val virksomheter = RedisKey.of(transaksjonId, Key.VIRKSOMHETER).read()?.let {
+            Json.decodeFromString<Map<String, String>>(it)
+        }
+        if (virksomheter != null) {
+            val m: List<Map<String, String>> = virksomheter.map {
+                mapOf(
+                    "orgnrUnderenhet" to it.key,
+                    "virksomhetsnavn" to it.value
+                )
+            }.toList()
+            val s = Json.encodeToJsonElement(mapOf("underenheter" to m))
+            RedisKey.of(clientId!!).write(s)
+        }
     }
 
     override fun terminate(fail: Fail) {

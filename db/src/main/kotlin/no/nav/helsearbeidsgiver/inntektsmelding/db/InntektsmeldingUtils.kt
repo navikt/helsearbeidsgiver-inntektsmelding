@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.bestemmendeFravaersdag
 import java.time.ZonedDateTime
 
 fun mapInntektsmelding(
@@ -18,12 +19,15 @@ fun mapInntektsmelding(
             virksomhetNavn = arbeidsgiver,
             behandlingsdager = request.behandlingsdager,
             egenmeldingsperioder = request.egenmeldingsperioder,
-            // NB!: Nå settes også 'inntektsdato' med 'request.bestemmendeFraværsdag'.
-            // Dette fordi 'request.bestemmendeFraværsdag' egentlig inneholder inntektsdato og ikke bestemmende fraværsdag. Utbedring kommer.
-            bestemmendeFraværsdag = request.bestemmendeFraværsdag,
+            bestemmendeFraværsdag = bestemmendeFravaersdag(
+                arbeidsgiverperioder = request.arbeidsgiverperioder,
+                egenmeldingsperioder = request.egenmeldingsperioder,
+                sykmeldingsperioder = request.fraværsperioder
+            ),
             fraværsperioder = request.fraværsperioder,
             arbeidsgiverperioder = request.arbeidsgiverperioder,
             beregnetInntekt = request.inntekt.beregnetInntekt,
+            // NB!: 'request.bestemmendeFraværsdag' inneholder egentlig inntektsdato og ikke bestemmende fraværsdag. Utbedring kommer.
             inntektsdato = request.bestemmendeFraværsdag,
             inntekt = request.inntekt,
             fullLønnIArbeidsgiverPerioden = request.fullLønnIArbeidsgiverPerioden,

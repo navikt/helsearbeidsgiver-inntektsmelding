@@ -7,10 +7,8 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
@@ -24,22 +22,17 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockObject
 
 class AltinnLoeserTest : FunSpec({
     val testRapid = TestRapid()
 
     val mockAltinnClient = mockk<AltinnClient>(relaxed = true)
 
+    AltinnLoeser(mockAltinnClient).connect(testRapid)
+
     beforeEach {
         testRapid.reset()
         clearAllMocks()
-    }
-
-    mockObject(RapidApplication) {
-        every { RapidApplication.create(any()) } returns testRapid
-
-        AltinnLoeser(mockAltinnClient)
     }
 
     test("henter organisasjonsrettigheter med id fra behov") {

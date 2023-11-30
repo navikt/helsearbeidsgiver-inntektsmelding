@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -205,6 +206,23 @@ class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
             .also {
                 it[Key.SAK_ID]?.fromJsonToString() shouldBe Mock.SAK_ID
             }
+    }
+
+    @Test
+    fun `Slett sak loeser test`() {
+        coEvery {
+            arbeidsgiverNotifikasjonKlient.hardDeleteSak(any())
+        } returns Unit
+
+        publish(
+            Key.EVENT_NAME to EventName.MANUELL_SLETT_SAK_REQUESTED.toJson(),
+            Key.BEHOV to BehovType.SLETT_SAK.toJson(),
+            Key.SAK_ID to Mock.SAK_ID.toJson()
+        )
+
+        Thread.sleep(5000)
+        coVerify(exactly = 1) { arbeidsgiverNotifikasjonKlient.hardDeleteSak(Mock.SAK_ID) }
+        messages.all().size shouldBe 1
     }
 
     private object Mock {

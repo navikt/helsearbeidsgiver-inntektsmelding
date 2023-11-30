@@ -26,9 +26,6 @@ data class Melding(
 class AltinnLoeser(
     private val altinnClient: AltinnClient
 ) : ObjectRiver<Melding>() {
-    init {
-        start()
-    }
 
     override fun les(json: Map<IKey, JsonElement>): Melding =
         Melding(

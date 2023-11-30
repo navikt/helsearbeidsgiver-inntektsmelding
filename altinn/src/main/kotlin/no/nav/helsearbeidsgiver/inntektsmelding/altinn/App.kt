@@ -5,8 +5,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.CacheConfig
 import no.nav.helsearbeidsgiver.utils.log.logger
-import java.time.Duration
-import kotlin.time.toKotlinDuration
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = "helsearbeidsgiver-im-altinn".logger()
 
@@ -29,5 +28,5 @@ private fun createAltinnClient(): AltinnClient =
         serviceCode = Env.serviceCode,
         apiGwApiKey = Env.apiGwApiKey,
         altinnApiKey = Env.altinnApiKey,
-        cacheConfig = CacheConfig(Duration.ofMinutes(60).toKotlinDuration(), 100)
+        cacheConfig = CacheConfig(60.minutes, 100)
     )

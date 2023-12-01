@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
+import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -55,6 +56,19 @@ class VirksomhetLoeser(
             virksomhetNav
         } ?: throw FantIkkeVirksomhetException(orgnr)
     }
+    private fun hentVirksomheter(orgnrListe: List<String>): List<Virksomhet> {
+        return runBlocking {
+            val virksomheterNavn: List<Virksomhet>
+            val requestTimer = requestLatency.startTimer()
+            measureTimeMillis {
+                virksomheterNavn = brregClient.hentVirksomheter(orgnrListe)
+            }.also {
+                logger.info("BREG execution took $it")
+                requestTimer.observeDuration()
+            }
+            virksomheterNavn
+        }
+    }
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
@@ -83,13 +97,12 @@ class VirksomhetLoeser(
                     .map { it.asText() }
             }
         try {
-            val navnListe: Map<String, String> = orgnr
-                .map {
-                    val navn = hentVirksomhet(it)
-                    logger.info("Fant $navn for $orgnr")
-                    it to navn
-                }
-                .toMap()
+            val navnListe: Map<String, String> =
+                hentVirksomheter(orgnr)
+                    .map {
+                        it.organisasjonsnummer to it.navn
+                    }
+                    .toMap()
             publishData(
                 behov.createData(
                     mapOf(

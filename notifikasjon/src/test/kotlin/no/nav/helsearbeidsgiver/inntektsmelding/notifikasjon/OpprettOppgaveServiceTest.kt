@@ -98,7 +98,7 @@ class OpprettOppgaveServiceTest {
 
         val failMap = mapOf(
             Key.FAIL.str to rapidAndRiverFail.toJson(Fail.serializer()),
-            Key.UUID.str to rapidAndRiverfail.transaksjonId.toJson(),
+            Key.UUID.str to rapidAndRiverFail.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID.str to rapidAndRiverFail.forespoerselId!!.toJson()
         )
 

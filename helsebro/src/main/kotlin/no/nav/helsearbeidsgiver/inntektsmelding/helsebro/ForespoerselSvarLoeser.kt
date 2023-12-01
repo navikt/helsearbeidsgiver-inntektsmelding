@@ -44,13 +44,13 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
                 msg.demand(
                     Pri.Key.LØSNING to { it.fromJson(ForespoerselSvar.serializer()) }
                 )
-                msg.interestedIn(Key.FORESPOERSEL_ID.str)
+                msg.interestedIn(Pri.Key.FORESPOERSEL_ID.str)
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
+        if (packet[Pri.Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
             logger.warn("Mangler forespørselId!")
             sikkerLogger.warn("Mangler forespørselId!")
         }

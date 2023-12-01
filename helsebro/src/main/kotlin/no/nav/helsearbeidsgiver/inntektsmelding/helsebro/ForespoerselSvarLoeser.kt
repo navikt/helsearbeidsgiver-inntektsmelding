@@ -102,6 +102,7 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
             Key.EVENT_NAME to melding.initiateEvent.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to melding.transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to melding.forespoerselSvar.forespoerselId.toJson(),
             Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
         )
             .also {

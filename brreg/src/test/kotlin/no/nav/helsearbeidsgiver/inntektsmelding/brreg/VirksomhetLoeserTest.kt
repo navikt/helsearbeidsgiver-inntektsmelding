@@ -10,6 +10,7 @@ import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.brreg.BrregClient
+import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -45,6 +46,7 @@ class VirksomhetLoeserTest {
     @Test
     fun `skal håndtere at klient feiler`() {
         coEvery { mockBrregClient.hentVirksomhetNavn(any()) } returns null
+        coEvery { mockBrregClient.hentVirksomheter(any()) } returns emptyList()
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
@@ -55,12 +57,13 @@ class VirksomhetLoeserTest {
 
         val publisert = testRapid.firstMessage()
 
-        publisert.readFail().feilmelding.shouldBe("Fant ikke virksomhet")
+        publisert.readFail().feilmelding shouldBe "Fant ikke virksomhet"
     }
 
     @Test
     fun `skal returnere løsning når gyldige data`() {
         coEvery { mockBrregClient.hentVirksomhetNavn(any()) } returns VIRKSOMHET_NAVN
+        coEvery { mockBrregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = ORGNR, navn = VIRKSOMHET_NAVN))
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
@@ -88,6 +91,6 @@ class VirksomhetLoeserTest {
 
         val publisert = testRapid.firstMessage()
 
-        publisert.readFail().feilmelding.shouldBe("Klarte ikke hente virksomhet")
+        publisert.readFail().feilmelding shouldBe "Klarte ikke hente virksomhet"
     }
 }

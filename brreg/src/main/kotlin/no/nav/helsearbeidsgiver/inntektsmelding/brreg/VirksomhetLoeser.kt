@@ -66,7 +66,7 @@ class VirksomhetLoeser(
                 logger.info("BREG execution took $it")
                 requestTimer.observeDuration()
             }
-            virksomheterNavn
+            virksomheterNavn.ifEmpty { throw FantIkkeVirksomhetException(orgnrListe.toString()) }
         }
     }
 

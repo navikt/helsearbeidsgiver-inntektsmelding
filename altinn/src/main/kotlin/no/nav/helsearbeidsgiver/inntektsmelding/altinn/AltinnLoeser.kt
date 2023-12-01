@@ -16,9 +16,11 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
 
 data class Melding(
     val eventName: EventName,
+    val transactionId: String,
     val behovType: BehovType,
     val identitetsnummer: String
 )
@@ -30,6 +32,7 @@ class AltinnLoeser(
     override fun les(json: Map<IKey, JsonElement>): Melding =
         Melding(
             eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
+            transactionId = Key.UUID.les(String.serializer(), json),
             behovType = Key.BEHOV.krev(BehovType.ARBEIDSGIVERE, BehovType.serializer(), json),
             identitetsnummer = Key.IDENTITETSNUMMER.les(String.serializer(), json)
         )
@@ -38,12 +41,13 @@ class AltinnLoeser(
         val rettigheter = Metrics.altinnRequest.recordTime {
             altinnClient.hentRettighetOrganisasjoner(identitetsnummer)
         }
-
+        val rettigheterForenklet = rettigheter.filter { it.orgnr != null && it.orgnrHovedenhet != null }.map { it.orgnr!! }.toSet()
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to behovType.toJson(),
+            Key.UUID to transactionId.toJson(),
             Key.DATA to "".toJson(),
-            Key.ORG_RETTIGHETER to rettigheter.toJson(AltinnOrganisasjon.serializer().set())
+            Key.ORG_RETTIGHETER to rettigheter.toJson(AltinnOrganisasjon.serializer().set()),
+            Key.ORG_RETTIGHETER_FORENKLET to rettigheterForenklet.toJson(String.serializer().set())
         )
     }
 }

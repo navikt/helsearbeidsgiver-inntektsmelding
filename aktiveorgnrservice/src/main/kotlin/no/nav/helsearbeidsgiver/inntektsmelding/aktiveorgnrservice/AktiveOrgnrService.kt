@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -47,7 +48,7 @@ class AktiveOrgnrService(
             StatefullDataKanal(
                 dataFelter = arrayOf(
                     Key.ARBEIDSFORHOLD,
-                    // Key.ORG_RETTIGHETER,
+                    Key.ORG_RETTIGHETER_FORENKLET,
                     Key.VIRKSOMHETER
                 ),
                 eventName = event,
@@ -63,38 +64,38 @@ class AktiveOrgnrService(
 
         when (transaction) {
             Transaction.NEW -> {
-                /* TODO: Hent rettigheter fra altinn
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
-                    Key.IDENTITETSNUMMER to json[Key.ARBEIDSGIVER_FNR].toString().toJson(),
-                    Key.UUID to transaksjonId.toJson()
-                ) */
-                // TODO: Skriv om denne
-                json[Key.ARBEIDSGIVER_FNR]!!.fromJson(String.serializer())?.toJson()?.also {
-                    // Hent arbeidsforhold fra aareg
+                val arbeidsgiverFnr = json[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
+                val arbeidstakerFnr = json[Key.FNR]?.fromJson(String.serializer())
+                if (arbeidsgiverFnr != null && arbeidstakerFnr != null) {
+                    rapid.publish(
+                        Key.EVENT_NAME to event.toJson(),
+                        Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
+                        Key.IDENTITETSNUMMER to arbeidsgiverFnr.toJson(),
+                        Key.UUID to transaksjonId.toJson()
+                    )
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-                        Key.IDENTITETSNUMMER to it,
+                        Key.IDENTITETSNUMMER to arbeidstakerFnr.toJson(),
                         Key.UUID to transaksjonId.toJson()
                     )
+                } else {
+                    logger.error("Mangler arbeidsgiverFnr eller arbeidstakerFnr.")
                 }
             }
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(transaksjonId))) {
                     val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()
-                    if (arbeidsforholdListe != null) {
+                    val orgrettigheterStr = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER_FORENKLET).read()
+                    val orgrettigheter = orgrettigheterStr?.fromJson(String.serializer().set())
+                    if (arbeidsforholdListe != null && orgrettigheter != null) {
                         // TODO: hent arbeidsgivere fra altinn respons
                         val arbeidsgivere =
                             arbeidsforholdListe
                                 .fromJson(ArbeidsforholdListe.serializer())
                                 .arbeidsforhold
                                 .medOrgnr(
-                                    "810007702",
-                                    "810007842",
-                                    "810008032",
-                                    "810007982"
+                                    *orgrettigheter.toTypedArray()
                                 )
                                 .orgnrMedAktivtArbeidsforhold(
                                     LocalDate.of(2018, 1, 5)
@@ -156,8 +157,8 @@ class AktiveOrgnrService(
     }
 
     private fun step1data(uuid: UUID): Array<RedisKey> = arrayOf(
-        RedisKey.of(uuid, Key.ARBEIDSFORHOLD)
-        // RedisKey.of(uuid, Key.ORG_RETTIGHETER)
+        RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
+        RedisKey.of(uuid, Key.ORG_RETTIGHETER_FORENKLET)
     )
 
     private fun RedisKey.read(): String? =

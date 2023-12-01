@@ -36,7 +36,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
         )
 
-        Thread.sleep(10000)
+        Thread.sleep(15000)
 
         messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
         redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
@@ -79,9 +79,29 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val altinnOrganisasjonSet =
             setOf(
                 AltinnOrganisasjon(
-                    navn = "Test organisasjon",
+                    navn = "ANSTENDIG PIGGSVIN BYDEL",
                     type = "organisasjon",
-                    orgnr = "810007842"
+                    orgnrHovedenhet = "810007702"
+                ),
+                AltinnOrganisasjon(
+                    navn = "ANSTENDIG PIGGSVIN BARNEHAGE",
+                    type = "organisasjon",
+                    orgnr = "810007842",
+                    orgnrHovedenhet = "810007702"
+
+                ),
+                AltinnOrganisasjon(
+                    navn = "ANSTENDIG PIGGSVIN BRANNVESEN",
+                    type = "organisasjon",
+                    orgnr = "810008032",
+                    orgnrHovedenhet = "810007702"
+
+                ),
+                AltinnOrganisasjon(
+                    navn = "ANSTENDIG PIGGSVIN SYKEHJEM",
+                    type = "organisasjon",
+                    orgnr = "810007982",
+                    orgnrHovedenhet = "810007702"
                 )
             )
     }

@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
-import java.util.UUID
 
 class Event(
     val event: EventName,
@@ -13,9 +12,6 @@ class Event(
     val jsonMessage: JsonMessage,
     val clientId: String? = null
 ) {
-    @Transient
-    var uuid: String? = null
-
     init {
         packetValidator.validate(jsonMessage)
         jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)

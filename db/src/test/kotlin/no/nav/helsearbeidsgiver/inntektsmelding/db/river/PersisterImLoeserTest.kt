@@ -152,8 +152,8 @@ class PersisterImLoeserTest {
             bekreftOpplysninger = true
         )
 
-        val arbeidsgiver = PersonDato("Gudrun Arbeidsgiver", null, innsending.identitetsnummer)
-        val arbeidstaker = PersonDato("Toril Arbeidstaker", null, "fnr-gudrun")
+        val arbeidsgiver = PersonDato("Gudrun Arbeidsgiver", null, "fnr-gudrun")
+        val arbeidstaker = PersonDato("Toril Arbeidstaker", null, innsending.identitetsnummer)
 
         val inntektsmelding = mapInntektsmelding(innsending, arbeidstaker.navn, "Test Virksomhet", arbeidsgiver.navn)
     }

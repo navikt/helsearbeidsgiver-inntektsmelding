@@ -14,13 +14,14 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
 data class Melding(
     val eventName: EventName,
-    val transactionId: String,
+    val transactionId: UUID,
     val behovType: BehovType,
     val identitetsnummer: String
 )
@@ -32,7 +33,7 @@ class AltinnLoeser(
     override fun les(json: Map<IKey, JsonElement>): Melding =
         Melding(
             eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-            transactionId = Key.UUID.les(String.serializer(), json),
+            transactionId = Key.UUID.les(UuidSerializer, json),
             behovType = Key.BEHOV.krev(BehovType.ARBEIDSGIVERE, BehovType.serializer(), json),
             identitetsnummer = Key.IDENTITETSNUMMER.les(String.serializer(), json)
         )

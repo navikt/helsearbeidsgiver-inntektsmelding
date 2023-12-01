@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -7,41 +9,75 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class BehovTest {
+class BehovTest : FunSpec({
 
-    val behov = BehovType.FULLT_NAVN
-    val event = EventName.FORESPØRSEL_LAGRET
-
-    @Test
-    fun createFail() {
-        val forespoerselId = UUID.randomUUID()
+    test("Lag Fail med samme transaksjonId") {
 
         val utloesendeMelding = JsonMessage.newMessage(
             mapOf(
-                Key.BEHOV.str to behov,
-                Key.EVENT_NAME.str to event,
+                Key.EVENT_NAME.str to Mock.event,
+                Key.BEHOV.str to Mock.behovType,
+                Key.UUID.str to Mock.transaksjonId.toString(),
+                "snipp" to "snapp"
+            )
+        )
+
+        val behov = Behov(
+            event = Mock.event,
+            behov = Mock.behovType,
+            forespoerselId = Mock.forespoerselId.toString(),
+            jsonMessage = utloesendeMelding
+        )
+
+        val fail = behov.createFail(Mock.feilmelding)
+
+        val expected = Fail(
+            feilmelding = Mock.feilmelding,
+            event = Mock.event,
+            transaksjonId = Mock.transaksjonId,
+            forespoerselId = Mock.forespoerselId,
+            utloesendeMelding = utloesendeMelding.toJson().parseJson()
+        )
+
+        fail shouldBe expected
+    }
+
+    test("Lag Fail med splitter ny transaksjonId") {
+        val utloesendeMelding = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to Mock.event,
+                Key.BEHOV.str to Mock.behovType,
                 "hepp" to "hei"
             )
         )
 
         val behov = Behov(
-            event = event,
-            behov = behov,
-            forespoerselId = forespoerselId.toString(),
+            event = Mock.event,
+            behov = Mock.behovType,
+            forespoerselId = Mock.forespoerselId.toString(),
             jsonMessage = utloesendeMelding
         )
-        val feilmelding = "feilmelding"
-        val fail = behov.createFail(feilmelding)
 
-        fail shouldBe Fail(
-            feilmelding = feilmelding,
-            event = event,
-            transaksjonId = null,
-            forespoerselId = forespoerselId,
+        val fail = behov.createFail(Mock.feilmelding)
+
+        val expected = Fail(
+            feilmelding = Mock.feilmelding,
+            event = Mock.event,
+            transaksjonId = UUID.randomUUID(),
+            forespoerselId = Mock.forespoerselId,
             utloesendeMelding = utloesendeMelding.toJson().parseJson()
         )
+
+        fail.shouldBeEqualToIgnoringFields(expected, Fail::transaksjonId)
     }
+})
+
+private object Mock {
+    val event = EventName.FORESPØRSEL_LAGRET
+    val behovType = BehovType.FULLT_NAVN
+    val transaksjonId = UUID.randomUUID()
+    val forespoerselId = UUID.randomUUID()
+    val feilmelding = "feilmelding"
 }

@@ -52,7 +52,7 @@ class OpprettOppgaveServiceTest {
 
         val failMap = mapOf(
             Key.FAIL.str to fail.toJson(Fail.serializer()),
-            Key.UUID.str to fail.transaksjonId!!.toJson(),
+            Key.UUID.str to fail.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID.str to fail.forespoerselId!!.toJson()
         )
 
@@ -75,7 +75,7 @@ class OpprettOppgaveServiceTest {
 
         val failJson = mapOf(
             Key.FAIL.str to failFraBehov.toJson(Fail.serializer()),
-            Key.UUID.str to failFraBehov.transaksjonId!!.toJson(),
+            Key.UUID.str to failFraBehov.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID.str to failFraBehov.forespoerselId!!.toJson()
         )
             .toJson()
@@ -98,7 +98,7 @@ class OpprettOppgaveServiceTest {
 
         val failMap = mapOf(
             Key.FAIL.str to rapidAndRiverFail.toJson(Fail.serializer()),
-            Key.UUID.str to rapidAndRiverFail.transaksjonId!!.toJson(),
+            Key.UUID.str to rapidAndRiverfail.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID.str to rapidAndRiverFail.forespoerselId!!.toJson()
         )
 
@@ -168,7 +168,7 @@ class OpprettOppgaveServiceTest {
 
         rapid.sendJson(
             Key.FAIL to fail.toJson(Fail.serializer()),
-            Key.UUID to fail.transaksjonId!!.toJson(),
+            Key.UUID to fail.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
         )
 

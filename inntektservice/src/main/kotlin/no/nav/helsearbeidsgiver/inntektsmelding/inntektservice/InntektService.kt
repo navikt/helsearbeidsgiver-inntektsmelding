@@ -175,19 +175,19 @@ class InntektService(
     }
 
     override fun terminate(fail: Fail) {
-        val clientId = RedisKey.of(fail.transaksjonId!!, event)
+        val clientId = RedisKey.of(fail.transaksjonId, event)
             .read()
             ?.let(UUID::fromString)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
-                Log.transaksjonId(fail.transaksjonId!!)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
                 sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
                 logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
             }
         } else {
-            val feil = RedisKey.of(fail.transaksjonId!!, Feilmelding("")).read()
+            val feil = RedisKey.of(fail.transaksjonId, Feilmelding("")).read()
 
             val feilResponse = InntektData(
                 feil = feil?.fromJson(FeilReport.serializer())
@@ -198,7 +198,7 @@ class InntektService(
 
             MdcUtils.withLogFields(
                 Log.clientId(clientId),
-                Log.transaksjonId(fail.transaksjonId!!)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
                 sikkerLogger.error("$event terminert.")
             }
@@ -221,7 +221,7 @@ class InntektService(
                     datafelt = Key.INNTEKT
                 )
 
-                RedisKey.of(feil.transaksjonId!!, Key.INNTEKT).write(JsonObject(emptyMap()))
+                RedisKey.of(feil.transaksjonId, Key.INNTEKT).write(JsonObject(emptyMap()))
 
                 feilmelding to null
             }
@@ -232,7 +232,7 @@ class InntektService(
         if (feilmelding != null) {
             sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
 
-            val feilKey = RedisKey.of(feil.transaksjonId!!, feilmelding)
+            val feilKey = RedisKey.of(feil.transaksjonId, feilmelding)
 
             val feilReport = feilKey.read()
                 ?.fromJson(FeilReport.serializer())

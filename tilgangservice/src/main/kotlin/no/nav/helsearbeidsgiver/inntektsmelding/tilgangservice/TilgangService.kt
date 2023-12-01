@@ -176,11 +176,11 @@ class TilgangService(
     }
 
     override fun terminate(fail: Fail) {
-        val clientId = RedisKey.of(fail.transaksjonId!!, event)
+        val clientId = RedisKey.of(fail.transaksjonId, event)
             .read()
             ?.let(UUID::fromString)
 
-        val feil = RedisKey.of(fail.transaksjonId!!, Feilmelding(""))
+        val feil = RedisKey.of(fail.transaksjonId, Feilmelding(""))
             .read()
 
         val feilResponse = TilgangData(
@@ -195,7 +195,7 @@ class TilgangService(
 
             MdcUtils.withLogFields(
                 Log.clientId(clientId),
-                Log.transaksjonId(fail.transaksjonId!!)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
                 sikkerLogger.error("$event terminert.")
             }
@@ -216,7 +216,7 @@ class TilgangService(
 
             sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
 
-            val feilKey = RedisKey.of(feil.transaksjonId!!, feilmelding)
+            val feilKey = RedisKey.of(feil.transaksjonId, feilmelding)
 
             val feilReport = feilKey.read()
                 ?.fromJson(FeilReport.serializer())

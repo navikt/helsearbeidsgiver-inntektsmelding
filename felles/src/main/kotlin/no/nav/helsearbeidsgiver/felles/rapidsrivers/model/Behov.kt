@@ -7,9 +7,16 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
+
+private val sikkerLogger = sikkerLogger()
 
 class Behov(
     val event: EventName,
@@ -75,14 +82,34 @@ class Behov(
         )
     }
 
-    fun createFail(feilmelding: String): Fail =
-        Fail(
+    fun createFail(feilmelding: String): Fail {
+        val json = jsonMessage.toJson().parseJson()
+        return Fail(
             feilmelding = feilmelding,
             event = event,
-            transaksjonId = uuid().takeUnless { it.isBlank() }?.let(UUID::fromString),
-            forespoerselId = forespoerselId?.takeUnless { it.isBlank() }?.let(UUID::fromString),
-            utloesendeMelding = jsonMessage.toJson().parseJson()
+            transaksjonId = json.toMap()[Key.UUID]
+                ?.fromJson(UuidSerializer)
+                .let {
+                    if (it != null) {
+                        it
+                    } else {
+                        val nyTransaksjonId = UUID.randomUUID()
+
+                        sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$nyTransaksjonId'.\n${json.toPretty()}")
+
+                        nyTransaksjonId
+                    }
+                },
+            forespoerselId = forespoerselId?.takeUnless { it.isBlank() }
+                ?.let(UUID::fromString)
+                .also {
+                    if (it == null) {
+                        sikkerLogger.error("Mangler forespoerselId i Behov.\n${json.toPretty()}")
+                    }
+                },
+            utloesendeMelding = json
         )
+    }
 
     fun createBehov(behov: BehovType, data: Map<Key, Any>): Behov {
         return Behov(

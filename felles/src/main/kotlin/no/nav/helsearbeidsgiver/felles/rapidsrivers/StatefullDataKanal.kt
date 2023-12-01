@@ -5,12 +5,8 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.Companion.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -44,21 +40,11 @@ class StatefullDataKanal(
         }
         if (packet[Key.UUID.str].asText().isNullOrEmpty()) {
             sikkerLogger.error("Transaksjon-ID er ikke initialisert for\n${packet.toPretty()}")
-            val fail = Fail(
-                feilmelding = "TransaksjonsID / UUID kan ikke vare tom da man bruker Composite Service",
-                event = eventName,
-                transaksjonId = UUID.randomUUID(),
-                forespoerselId = packet[Key.FORESPOERSEL_ID.str].asText().runCatching(UUID::fromString).getOrNull(),
-                utloesendeMelding = packet.toJson().parseJson()
-            )
-
-            rapidsConnection.publish(fail)
         } else if (collectData(packet)) {
             sikkerLogger.info("data collected for event ${eventName.name} med packet\n${packet.toPretty()}")
             mainListener.onPacket(packet, rapidsConnection)
         } else {
             sikkerLogger.warn("Mangler data for ${packet.toPretty()}")
-            // @TODO fiks logging logger.warn("Unrecognized package with uuid:" + packet[Key.UUID.str])
         }
     }
 

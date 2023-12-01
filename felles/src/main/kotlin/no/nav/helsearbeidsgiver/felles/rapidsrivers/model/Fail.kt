@@ -22,7 +22,7 @@ private val sikkerLogger = sikkerLogger()
 data class Fail(
     val feilmelding: String,
     val event: EventName,
-    val transaksjonId: UUID?,
+    val transaksjonId: UUID,
     val forespoerselId: UUID?,
     val utloesendeMelding: JsonElement
 ) {
@@ -30,21 +30,19 @@ data class Fail(
         fun MessageContext.publish(fail: Fail): JsonElement =
             publish(
                 Key.FAIL to fail.toJson(serializer()),
-                Key.UUID to fail.transaksjonId.let {
-                    if (it != null) {
-                        it
-                    } else {
-                        sikkerLogger.error("Mangler transaksjonId i Fail som ble forårsaket av\n${fail.utloesendeMelding.toPretty()}")
-                        randomUuid()
-                    }
-                }
-                    .toJson(),
+                Key.UUID to fail.transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to fail.forespoerselId.let {
                     if (it != null) {
                         it
                     } else {
-                        sikkerLogger.error("Mangler forespoerselId i Fail som ble forårsaket av\n${fail.utloesendeMelding.toPretty()}")
-                        randomUuid()
+                        val nyForespoerselId = randomUuid()
+
+                        sikkerLogger.error(
+                            "Mangler forespoerselId i Fail. Erstatter med ny, tilfeldig UUID '$nyForespoerselId'. " +
+                                "Fail ble forårsaket av\n${fail.utloesendeMelding.toPretty()}"
+                        )
+
+                        nyForespoerselId
                     }
                 }
                     .toJson()

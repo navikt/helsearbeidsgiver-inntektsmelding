@@ -144,7 +144,7 @@ class SpinnService(
 
     override fun terminate(fail: Fail) {
         MdcUtils.withLogFields(
-            Log.transaksjonId(fail.transaksjonId!!)
+            Log.transaksjonId(fail.transaksjonId)
         ) {
             sikkerLogger.error("$event terminert.")
         }

@@ -78,12 +78,12 @@ class InnsendingService(
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
 
         if (utloesendeBehov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = RedisKey.of(feil.transaksjonId!!, Key.VIRKSOMHET)
+            val virksomhetKey = RedisKey.of(feil.transaksjonId, Key.VIRKSOMHET)
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
             return Transaction.IN_PROGRESS
         } else if (utloesendeBehov == BehovType.FULLT_NAVN) {
-            val arbeidstakerFulltnavnKey = RedisKey.of(feil.transaksjonId!!, Key.ARBEIDSTAKER_INFORMASJON)
-            val arbeidsgiverFulltnavnKey = RedisKey.of(feil.transaksjonId!!, Key.ARBEIDSGIVER_INFORMASJON)
+            val arbeidstakerFulltnavnKey = RedisKey.of(feil.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
+            val arbeidsgiverFulltnavnKey = RedisKey.of(feil.transaksjonId, Key.ARBEIDSGIVER_INFORMASJON)
             redisStore.set(arbeidstakerFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             redisStore.set(arbeidsgiverFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             return Transaction.IN_PROGRESS
@@ -92,12 +92,12 @@ class InnsendingService(
     }
 
     override fun terminate(fail: Fail) {
-        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId!!, event))
+        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
             ?.let(UUID::fromString)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
-                Log.transaksjonId(fail.transaksjonId!!)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
                 sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
             }

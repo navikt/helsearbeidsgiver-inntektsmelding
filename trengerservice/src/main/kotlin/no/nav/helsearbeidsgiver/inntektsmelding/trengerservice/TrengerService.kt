@@ -78,22 +78,22 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
         var feilmelding: Feilmelding? = null
         if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {
             feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, datafelt = Key.FORESPOERSEL_SVAR)
-            val feilKey = RedisKey.of(feil.transaksjonId!!, feilmelding)
+            val feilKey = RedisKey.of(feil.transaksjonId, feilmelding)
             val feilReport: FeilReport = redisStore.get(feilKey)?.fromJson(FeilReport.serializer()) ?: FeilReport()
             feilReport.feil.add(feilmelding)
             redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
             return Transaction.TERMINATE
         } else if (utloesendeBehov == BehovType.VIRKSOMHET) {
             feilmelding = Feilmelding("Vi klarte ikke å hente virksomhet navn.", datafelt = Key.VIRKSOMHET)
-            redisStore.set(RedisKey.of(feil.transaksjonId!!, Key.VIRKSOMHET), "Ukjent navn")
+            redisStore.set(RedisKey.of(feil.transaksjonId, Key.VIRKSOMHET), "Ukjent navn")
         } else if (utloesendeBehov == BehovType.FULLT_NAVN) {
             feilmelding = Feilmelding("Vi klarte ikke å hente arbeidstaker informasjon.", datafelt = Key.ARBEIDSTAKER_INFORMASJON)
             redisStore.set(
-                RedisKey.of(feil.transaksjonId!!, Key.ARBEIDSTAKER_INFORMASJON),
+                RedisKey.of(feil.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON),
                 PersonDato("Ukjent navn", null, "").toJsonStr(PersonDato.serializer())
             )
             redisStore.set(
-                RedisKey.of(feil.transaksjonId!!, Key.ARBEIDSGIVER_INFORMASJON),
+                RedisKey.of(feil.transaksjonId, Key.ARBEIDSGIVER_INFORMASJON),
                 PersonDato("Ukjent navn", null, "").toJsonStr(PersonDato.serializer())
             )
         } else if (utloesendeBehov == BehovType.INNTEKT) {
@@ -101,10 +101,10 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
                 datafelt = Key.INNTEKT
             )
-            redisStore.set(RedisKey.of(feil.transaksjonId!!, Key.INNTEKT), UNDEFINED_FELT)
+            redisStore.set(RedisKey.of(feil.transaksjonId, Key.INNTEKT), UNDEFINED_FELT)
         }
         if (feilmelding != null) {
-            val feilKey = RedisKey.of(feil.transaksjonId!!, feilmelding)
+            val feilKey = RedisKey.of(feil.transaksjonId, feilmelding)
             val feilReport: FeilReport = redisStore.get(feilKey)?.fromJson(FeilReport.serializer()) ?: FeilReport()
             feilReport.feil.add(feilmelding)
             redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
@@ -230,9 +230,9 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
 
     override fun terminate(fail: Fail) {
         sikkerLogger.info("terminate transaction id ${fail.transaksjonId} with evenname ${fail.event}")
-        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId!!, fail.event))?.let(UUID::fromString)
+        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.let(UUID::fromString)
         // @TODO kan vare smartere her. Kan definere feilmeldingen i Feil message istedenfor å hardkode det i TrengerService. Vi også ikke trenger å sende alle andre ikke kritiske feilmeldinger hvis vi har noe kritisk
-        val feilReport: FeilReport = redisStore.get(RedisKey.of(fail.transaksjonId!!, Feilmelding("")))!!.fromJson(FeilReport.serializer())
+        val feilReport: FeilReport = redisStore.get(RedisKey.of(fail.transaksjonId, Feilmelding("")))!!.fromJson(FeilReport.serializer())
         if (clientId != null) {
             redisStore.set(RedisKey.of(clientId), TrengerData(feilReport = feilReport).toJsonStr(TrengerData.serializer()))
         }

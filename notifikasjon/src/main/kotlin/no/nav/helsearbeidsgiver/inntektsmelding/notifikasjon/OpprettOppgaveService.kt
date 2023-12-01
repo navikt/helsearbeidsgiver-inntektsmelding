@@ -85,12 +85,12 @@ class OpprettOppgaveService(
     }
 
     override fun terminate(fail: Fail) {
-        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId!!, event))
+        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
             ?.let(UUID::fromString)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
-                Log.transaksjonId(fail.transaksjonId!!)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
                 sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
             }
@@ -102,7 +102,7 @@ class OpprettOppgaveService(
     override fun onError(feil: Fail): Transaction {
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
         if (utloesendeBehov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = RedisKey.of(feil.transaksjonId!!, Key.VIRKSOMHET)
+            val virksomhetKey = RedisKey.of(feil.transaksjonId, Key.VIRKSOMHET)
             redisStore.set(virksomhetKey, "Arbeidsgiver")
             return Transaction.FINALIZE
         }

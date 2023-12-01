@@ -13,10 +13,12 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -75,6 +77,24 @@ class OpprettSakLoeser(
     }
 
     override fun onBehov(behov: Behov) {
+        val utloesendeMelding = behov.jsonMessage.toJson().parseJson()
+        val transaksjonId = utloesendeMelding.toMap()[Key.UUID]
+            ?.fromJson(UuidSerializer)
+            .let {
+                if (it != null) {
+                    it
+                } else {
+                    val nyTransaksjonId = UUID.randomUUID()
+
+                    sikkerLogger.error(
+                        "Mangler transaksjonId i ${simpleName()}. Erstatter med ny, tilfeldig UUID '$nyTransaksjonId'." +
+                            "\n${utloesendeMelding.toPretty()}"
+                    )
+
+                    nyTransaksjonId
+                }
+            }
+
         logger.info("Skal opprette sak for forespørselId: ${behov.forespoerselId}")
         val orgnr = behov[Key.ORGNRUNDERENHET].asText()
         val personDato = hentNavn(behov)
@@ -85,11 +105,10 @@ class OpprettSakLoeser(
             foedselsdato = personDato.fødselsdato
         )
         if (sakId.isNullOrBlank()) {
-            val utloesendeMelding = behov.jsonMessage.toJson().parseJson()
             val fail = Fail(
                 feilmelding = "Opprett sak feilet",
                 event = behov.event,
-                transaksjonId = utloesendeMelding.toMap()[Key.UUID]?.fromJson(UuidSerializer),
+                transaksjonId = transaksjonId,
                 forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                 utloesendeMelding = utloesendeMelding
             )

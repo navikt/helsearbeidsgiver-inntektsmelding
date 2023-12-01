@@ -108,12 +108,12 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
     }
 
     override fun terminate(fail: Fail) {
-        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId!!, event))
+        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
             ?.let(UUID::fromString)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
-                Log.transaksjonId(fail.transaksjonId!!)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
                 sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
             }
@@ -125,7 +125,7 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
     override fun onError(feil: Fail): Transaction {
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
         if (utloesendeBehov == BehovType.FULLT_NAVN) {
-            val fulltNavnKey = RedisKey.of(feil.transaksjonId!!, Key.ARBEIDSTAKER_INFORMASJON)
+            val fulltNavnKey = RedisKey.of(feil.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
             redisStore.set(fulltNavnKey, PersonDato("Ukjent person", null, "").toJsonStr(PersonDato.serializer()))
             return Transaction.IN_PROGRESS
         }

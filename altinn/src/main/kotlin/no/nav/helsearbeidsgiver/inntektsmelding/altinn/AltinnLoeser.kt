@@ -47,7 +47,7 @@ class AltinnLoeser(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transactionId.toJson(),
             Key.DATA to "".toJson(),
-            //TODO Bare publiser ett data objekt
+            // TODO Bare publiser ett data objekt
             Key.ORG_RETTIGHETER to rettigheter.toJson(AltinnOrganisasjon.serializer().set()),
             Key.ORG_RETTIGHETER_FORENKLET to rettigheterForenklet.toJson(String.serializer().set())
         )

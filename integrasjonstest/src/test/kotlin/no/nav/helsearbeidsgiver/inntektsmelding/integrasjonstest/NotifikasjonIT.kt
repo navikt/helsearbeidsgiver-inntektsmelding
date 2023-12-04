@@ -22,7 +22,7 @@ import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class NotifikasjonTrengerInntektMeldingIT : EndToEndTest() {
+class NotifikasjonIT : EndToEndTest() {
 
     @Test
     fun `Oppretter og lagrer sak etter at forespørselen er mottatt`() {

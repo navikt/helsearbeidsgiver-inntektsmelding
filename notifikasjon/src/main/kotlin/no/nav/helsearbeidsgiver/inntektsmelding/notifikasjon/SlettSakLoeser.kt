@@ -23,7 +23,7 @@ class SlettSakLoeser(
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.SLETT_SAK.name)
-            it.interestedIn(Key.SAK_ID.str)
+            it.requireKey(Key.SAK_ID.str)
         }
     }
     private fun slettSak(

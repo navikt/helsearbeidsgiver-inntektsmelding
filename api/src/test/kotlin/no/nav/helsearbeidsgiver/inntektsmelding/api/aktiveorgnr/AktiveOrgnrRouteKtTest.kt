@@ -6,7 +6,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
@@ -27,7 +26,6 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
     @Test
     fun `skal godta og returnere liste med organisasjoner`() = testApi {
-        mockTilgang(Tilgang.HAR_TILGANG)
         coEvery {
             anyConstructed<RedisPoller>().getString(any(), any(), any())
         } returns Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE

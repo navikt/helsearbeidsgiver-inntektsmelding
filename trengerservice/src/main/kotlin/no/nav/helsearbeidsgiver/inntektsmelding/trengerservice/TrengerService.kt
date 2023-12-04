@@ -104,6 +104,7 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
 
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val uuid = message[Key.UUID.str].asText().let(UUID::fromString)
+        val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText().let(UUID::fromString)
         sikkerLogger.info("Dispatcher for $uuid with trans state $transaction")
         if (transaction == Transaction.NEW) {
             sikkerLogger.info("Dispatcher HENT_TRENGER_IM for $uuid")
@@ -113,18 +114,18 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
             rapidsConnection.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.FORESPOERSEL_ID to redisStore.get(RedisKey.of(uuid, Key.FORESPOERSEL_ID))!!.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to uuid.toJson()
             )
         } else if (transaction == Transaction.IN_PROGRESS) {
             message.interestedIn(Key.FORESPOERSEL_SVAR.str)
             if (isDataCollected(*step1data(uuid)) && !message[Key.FORESPOERSEL_SVAR.str].isMissingNode) {
                 val forespoersel = redisStore.get(RedisKey.of(uuid, Key.FORESPOERSEL_SVAR))!!.fromJson(TrengerInntekt.serializer())
-
                 sikkerLogger.info("${simpleName()} Dispatcher VIRKSOMHET for $uuid")
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to uuid.toJson(),
                     Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson()
                 )
@@ -132,18 +133,11 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                 rapidsConnection.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to uuid.toJson(),
                     Key.IDENTITETSNUMMER to forespoersel.fnr.toJson(),
                     Key.ARBEIDSGIVER_ID to redisStore.get(RedisKey.of(uuid, Key.ARBEIDSGIVER_FNR)).orEmpty().toJson()
                 )
-                /*
-                rapidsConnection.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-                    Key.UUID to uuid.toJson(),
-                    Key.IDENTITETSNUMMER to forespurtData.fnr.toJson()
-                )
-                */
 
                 val skjaeringstidspunkt = forespoersel.skjaeringstidspunkt
                     ?: finnSkjaeringstidspunkt(forespoersel.egenmeldingsperioder + forespoersel.sykmeldingsperioder)
@@ -153,17 +147,16 @@ class TrengerService(private val rapidsConnection: RapidsConnection, override va
                     rapidsConnection.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.INNTEKT.toJson(),
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                         Key.UUID to uuid.toJson(),
                         Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
                         Key.FNR to forespoersel.fnr.toJson(),
                         Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson()
                     )
                 } else {
-                    val forespoerselId = redisStore.get(RedisKey.of(uuid, Key.FORESPOERSEL_ID))
-
                     "Fant ikke skjaeringstidspunkt å hente inntekt for.".also {
                         sikkerLogger.error("$it forespoersel=$forespoersel")
-                        val feil = Fail(event, BehovType.INNTEKT, it, null, uuid.toString(), forespoerselId)
+                        val feil = Fail(event, BehovType.INNTEKT, it, null, uuid.toString(), forespoerselId.toString())
                         onError(feil)
                     }
                 }

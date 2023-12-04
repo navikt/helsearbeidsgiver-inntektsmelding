@@ -42,11 +42,12 @@ class AltinnLoeser(
         val rettigheter = Metrics.altinnRequest.recordTime {
             altinnClient.hentRettighetOrganisasjoner(identitetsnummer)
         }
-        val rettigheterForenklet = rettigheter.filter { it.orgnr != null && it.orgnrHovedenhet != null }.map { it.orgnr!! }.toSet()
+        val rettigheterForenklet = rettigheter.mapNotNull { it.orgnr }.toSet()
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transactionId.toJson(),
             Key.DATA to "".toJson(),
+            //TODO Bare publiser ett data objekt
             Key.ORG_RETTIGHETER to rettigheter.toJson(AltinnOrganisasjon.serializer().set()),
             Key.ORG_RETTIGHETER_FORENKLET to rettigheterForenklet.toJson(String.serializer().set())
         )

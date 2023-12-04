@@ -1,15 +1,17 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.ArbeidsforholdListe
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
+import no.nav.helsearbeidsgiver.felles.FeilReport
+import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -85,14 +87,15 @@ class AktiveOrgnrService(
             }
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(transaksjonId))) {
-                    val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()
+                    val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(ArbeidsforholdListe.serializer())
                     val orgrettigheterStr = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER_FORENKLET).read()
                     val orgrettigheter = orgrettigheterStr?.fromJson(String.serializer().set())
-                    if (arbeidsforholdListe != null && orgrettigheter != null) {
+                    if (arbeidsforholdListe?.arbeidsforhold.isNullOrEmpty() || orgrettigheter.isNullOrEmpty()) {
+                        terminate(message.createFail("Klarte ikke hente arbeidsforhold"))
+                    } else {
                         // TODO: hent arbeidsgivere fra altinn respons
                         val arbeidsgivere =
-                            arbeidsforholdListe
-                                .fromJson(ArbeidsforholdListe.serializer())
+                            arbeidsforholdListe!!
                                 .arbeidsforhold
                                 .medOrgnr(
                                     *orgrettigheter.toTypedArray()
@@ -100,7 +103,7 @@ class AktiveOrgnrService(
                                 .orgnrMedAktivtArbeidsforhold(
                                     LocalDate.of(2018, 1, 5)
                                 )
-
+                        // TODO Sjekk om arbeidsgivere er tom
                         rapid.publish(
                             Key.EVENT_NAME to event.toJson(),
                             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
@@ -141,19 +144,29 @@ class AktiveOrgnrService(
             Json.decodeFromString<Map<String, String>>(it)
         }
         if (virksomheter != null) {
-            val m: List<Map<String, String>> = virksomheter.map {
-                mapOf(
-                    "orgnrUnderenhet" to it.key,
-                    "virksomhetsnavn" to it.value
+            val gyldigeUnderenheter: List<GyldigUnderenhet> = virksomheter.map {
+                GyldigUnderenhet(
+                    orgnrUnderenhet = it.key,
+                    virksomhetsnavn = it.value
                 )
             }.toList()
-            val s = Json.encodeToJsonElement(mapOf("underenheter" to m))
+            val s = AktiveOrgnrResponse(underenheter = gyldigeUnderenheter).toJson(AktiveOrgnrResponse.serializer())
             RedisKey.of(clientId!!).write(s)
         }
     }
 
     override fun terminate(fail: Fail) {
-        TODO("Not yet implemented")
+        val transaksjonId = Key.UUID.les(UuidSerializer, fail.toJsonMessage().toJsonMap())
+
+        val clientId = RedisKey.of(transaksjonId, event)
+            .read()
+            ?.let(UUID::fromString)
+
+        if (clientId != null) {
+            val m = AktiveOrgnrResponse(underenheter = emptyList(), feilReport = FeilReport(feil = mutableListOf(Feilmelding(melding = fail.feilmelding))))
+            val s = m.toJson(AktiveOrgnrResponse.serializer())
+            RedisKey.of(clientId!!).write(s)
+        }
     }
 
     private fun step1data(uuid: UUID): Array<RedisKey> = arrayOf(
@@ -168,3 +181,15 @@ class AktiveOrgnrService(
         redisStore.set(this, json.toString())
     }
 }
+
+@Serializable
+data class AktiveOrgnrResponse(
+    val underenheter: List<GyldigUnderenhet>,
+    val feilReport: FeilReport? = null
+)
+
+@Serializable
+data class GyldigUnderenhet(
+    val orgnrUnderenhet: String,
+    val virksomhetsnavn: String
+)

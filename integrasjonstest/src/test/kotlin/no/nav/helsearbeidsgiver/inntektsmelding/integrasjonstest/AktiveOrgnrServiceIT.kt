@@ -44,11 +44,37 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
     }
 
+    @Test
+    fun `Aareg kall feiler`() {
+        coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
+        coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
+        coEvery { brregClient.hentVirksomhetNavn("810007842") } returns "ANSTENDIG PIGGSVIN BARNEHAGE"
+        coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
+        publish(
+            Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
+            Key.CLIENT_ID to Mock.clientId.toJson(),
+            Key.FNR to Mock.FNR.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
+        )
+
+        Thread.sleep(15000)
+
+        redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.FEILTET_AKTIVE_ORGNR_RESPONSE
+    }
+
     private object Mock {
 
         val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
             {
                 "underenheter": [{"orgnrUnderenhet": "810007842", "virksomhetsnavn": "ANSTENDIG PIGGSVIN BARNEHAGE"}]
+            }
+        """.trimIndent().removeJsonWhitespace()
+        val FEILTET_AKTIVE_ORGNR_RESPONSE = """
+            {
+                "underenheter": [],
+                "feilReport": {
+                    "feil": [{"melding": "Klarte ikke hente arbeidsforhold"}]
+                 }
             }
         """.trimIndent().removeJsonWhitespace()
         const val ORGNR = "stolt-krakk"

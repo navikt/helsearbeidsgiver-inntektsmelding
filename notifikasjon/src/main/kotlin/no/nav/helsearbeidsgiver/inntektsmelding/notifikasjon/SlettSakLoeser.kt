@@ -35,7 +35,7 @@ class SlettSakLoeser(
             }
             true
         } catch (e: HardDeleteSakException) {
-            sikkerLogger.error("Feil ved sletting av sak $sakId!", e)
+            sikkerLogger.error("Feil ved sletting av sak: $sakId", e)
             false
         }
     }
@@ -43,7 +43,12 @@ class SlettSakLoeser(
     override fun onBehov(behov: Behov) {
         val sakId = behov[Key.SAK_ID].asText()
         slettSak(sakId)
-            .ifTrue { logger.info("Slettet sak $sakId") }
-            .ifFalse { logger.error("Feilet ved sletting av sak $sakId") }
+            .ifTrue {
+                "Slettet sak: $sakId".also {
+                    logger.info(it)
+                    sikkerLogger.info(it)
+                }
+            }
+            .ifFalse { logger.error("Feil ved sletting av sak: $sakId") }
     }
 }

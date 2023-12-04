@@ -48,6 +48,9 @@ fun RapidsConnection.createNotifikasjon(
 
         logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")
         ManuellOpprettSakService(this, redisStore)
+
+        logger.info("Starter ${SlettSakLoeser::class.simpleName}...")
+        SlettSakLoeser(this, arbeidsgiverNotifikasjonKlient)
     }
 
 fun buildClient(environment: Environment): ArbeidsgiverNotifikasjonKlient {

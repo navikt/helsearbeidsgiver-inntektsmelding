@@ -99,10 +99,8 @@ class VirksomhetLoeser(
         try {
             val navnListe: Map<String, String> =
                 hentVirksomheter(orgnr)
-                    .map {
-                        it.organisasjonsnummer to it.navn
-                    }
-                    .toMap()
+                    .associate { it.organisasjonsnummer to it.navn }
+
             publishData(
                 behov.createData(
                     mapOf(

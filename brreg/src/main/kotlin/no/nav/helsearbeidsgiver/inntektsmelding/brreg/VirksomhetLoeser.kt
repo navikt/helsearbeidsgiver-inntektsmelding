@@ -27,6 +27,12 @@ class VirksomhetLoeser(
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
+    private val preprodOrgnr = mapOf(
+        "810007702" to "ANSTENDIG PIGGSVIN BYDEL",
+        "810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE",
+        "810008032" to "ANSTENDIG PIGGSVIN BRANNVESEN",
+        "810007982" to "ANSTENDIG PIGGSVIN SYKEHJEM"
+    )
 
     private val BEHOV = BehovType.VIRKSOMHET
     private val requestLatency = Summary.build()
@@ -34,39 +40,21 @@ class VirksomhetLoeser(
         .help("brreg hent virksomhet latency in seconds")
         .register()
 
-    private fun hentVirksomhet(orgnr: String): String {
-        if (isPreProd) {
-            when (orgnr) {
-                "810007702" -> return "ANSTENDIG PIGGSVIN BYDEL"
-                "810007842" -> return "ANSTENDIG PIGGSVIN BARNEHAGE"
-                "810008032" -> return "ANSTENDIG PIGGSVIN BRANNVESEN"
-                "810007982" -> return "ANSTENDIG PIGGSVIN SYKEHJEM"
-            }
-            return "Ukjent arbeidsgiver"
-        }
-        return runBlocking {
-            val virksomhetNav: String?
-            val requestTimer = requestLatency.startTimer()
-            measureTimeMillis {
-                virksomhetNav = brregClient.hentVirksomhetNavn(orgnr)
-            }.also {
-                logger.info("BREG execution took $it")
-                requestTimer.observeDuration()
-            }
-            virksomhetNav
-        } ?: throw FantIkkeVirksomhetException(orgnr)
-    }
     private fun hentVirksomheter(orgnrListe: List<String>): List<Virksomhet> {
-        return runBlocking {
-            val virksomheterNavn: List<Virksomhet>
-            val requestTimer = requestLatency.startTimer()
-            measureTimeMillis {
-                virksomheterNavn = brregClient.hentVirksomheter(orgnrListe)
-            }.also {
-                logger.info("BREG execution took $it")
-                requestTimer.observeDuration()
+        return if (isPreProd) {
+            orgnrListe.map { orgnr -> Virksomhet(preprodOrgnr.getOrDefault(orgnr, "Ukjent arbeidsgiver"), orgnr) }
+        } else {
+            runBlocking {
+                val virksomheterNavn: List<Virksomhet>
+                val requestTimer = requestLatency.startTimer()
+                measureTimeMillis {
+                    virksomheterNavn = brregClient.hentVirksomheter(orgnrListe)
+                }.also {
+                    logger.info("BREG execution took $it")
+                    requestTimer.observeDuration()
+                }
+                virksomheterNavn.ifEmpty { throw FantIkkeVirksomhetException(orgnrListe.toString()) }
             }
-            virksomheterNavn.ifEmpty { throw FantIkkeVirksomhetException(orgnrListe.toString()) }
         }
     }
 

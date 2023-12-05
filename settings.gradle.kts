@@ -21,3 +21,4 @@ pluginManagement {
         id("org.jmailen.kotlinter") version kotlinterVersion
     }
 }
+

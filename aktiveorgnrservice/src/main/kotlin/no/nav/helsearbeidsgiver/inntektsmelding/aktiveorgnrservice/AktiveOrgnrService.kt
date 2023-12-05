@@ -42,6 +42,7 @@ class AktiveOrgnrService(
     private val sikkerLogger = sikkerLogger()
     private val logger = logger()
     override val event: EventName = EventName.AKTIVE_ORGNR_REQUESTED
+
     init {
         withEventListener {
             StatefullEventListener(redisStore, event, arrayOf(Key.FNR, Key.ARBEIDSGIVER_FNR), it, rapid)
@@ -60,6 +61,7 @@ class AktiveOrgnrService(
             )
         }
     }
+
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
         val json = message.toJsonMap()
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
@@ -82,37 +84,51 @@ class AktiveOrgnrService(
                         Key.UUID to transaksjonId.toJson()
                     )
                 } else {
-                    logger.error("Mangler arbeidsgiverFnr eller arbeidstakerFnr.")
+                    MdcUtils.withLogFields(
+                        Log.klasse(this),
+                        Log.event(event),
+                        Log.transaksjonId(transaksjonId)
+                    ) {
+                        "Mangler arbeidsgiverFnr eller arbeidstakerFnr."
+                            .also {
+                                sikkerLogger.error(it)
+                                logger.error(it)
+                            }
+                        terminate(message.createFail("Feil oppstod"))
+                    }
                 }
             }
+
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(transaksjonId))) {
                     val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(Arbeidsforhold.serializer().list())
                     val orgrettigheter = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER_FORENKLET).read()?.fromJson(String.serializer().set())
-                    if (arbeidsforholdListe.isNullOrEmpty()) {
-                        terminate(message.createFail("Fant ingen aktive arbeidsforhold"))
-                    } else if (orgrettigheter.isNullOrEmpty()) {
-                        terminate(message.createFail("Må ha orgrettigheter for å kunne hente virksomheter"))
-                    } else {
-                        val arbeidsgivere =
-                            arbeidsforholdListe
-                                .medOrgnr(
-                                    *orgrettigheter.toTypedArray()
-                                )
-                                .orgnrMedAktivtArbeidsforhold()
-                        if (arbeidsgivere.isEmpty()) {
-                            terminate(message.createFail("Fant ingen aktive arbeidsforhold"))
-                        } else {
-                            rapid.publish(
-                                Key.EVENT_NAME to event.toJson(),
-                                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                                Key.UUID to transaksjonId.toJson(),
-                                Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
-                            )
+                    val result = trekkUtArbeidsforhold(arbeidsforholdListe, orgrettigheter)
+                    if (result.isFailure) {
+                        MdcUtils.withLogFields(
+                            Log.klasse(this),
+                            Log.event(event),
+                            Log.transaksjonId(transaksjonId)
+                        ) {
+                            result.exceptionOrNull()?.message ?: "Ukjent Feil"
+                                .also {
+                                    sikkerLogger.error(it)
+                                    logger.error(it)
+                                    terminate(message.createFail(it))
+                                }
                         }
+                    } else {
+                        val arbeidsgivere = result.getOrElse { emptyList() }
+                        rapid.publish(
+                            Key.EVENT_NAME to event.toJson(),
+                            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                            Key.UUID to transaksjonId.toJson(),
+                            Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
+                        )
                     }
                 }
             }
+
             else -> {
                 logger.info("Transaksjon $transaction er ikke støttet.")
             }
@@ -166,6 +182,25 @@ class AktiveOrgnrService(
             val m = AktiveOrgnrResponse(underenheter = emptyList(), feilReport = FeilReport(feil = mutableListOf(Feilmelding(melding = fail.feilmelding))))
             val s = m.toJson(AktiveOrgnrResponse.serializer())
             RedisKey.of(clientId!!).write(s)
+        }
+    }
+
+    private fun trekkUtArbeidsforhold(arbeidsforholdListe: List<Arbeidsforhold>?, orgrettigheter: Set<String>?): Result<List<String>> {
+        return if (arbeidsforholdListe.isNullOrEmpty()) {
+            Result.failure(Exception("Fant ingen aktive arbeidsforhold"))
+        } else if (orgrettigheter.isNullOrEmpty()) {
+            Result.failure(Exception("Må ha orgrettigheter for å kunne hente virksomheter"))
+        } else {
+            val arbeidsgivere =
+                arbeidsforholdListe
+                    .medOrgnr(
+                        *orgrettigheter.toTypedArray()
+                    )
+                    .orgnrMedAktivtArbeidsforhold()
+            if (arbeidsgivere.isEmpty()) {
+                Result.failure(Exception("Fant ingen aktive arbeidsforhold"))
+            } else Result.success(arbeidsgivere)
+
         }
     }
 

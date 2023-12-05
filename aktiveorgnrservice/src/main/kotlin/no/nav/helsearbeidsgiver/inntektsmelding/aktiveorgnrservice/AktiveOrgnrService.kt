@@ -89,8 +89,7 @@ class AktiveOrgnrService(
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(transaksjonId))) {
                     val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(Arbeidsforhold.serializer().list())
-                    val orgrettigheterStr = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER_FORENKLET).read()
-                    val orgrettigheter = orgrettigheterStr?.fromJson(String.serializer().set())
+                    val orgrettigheter = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER_FORENKLET).read()?.fromJson(String.serializer().set())
                     if (arbeidsforholdListe.isNullOrEmpty()) {
                         terminate(message.createFail("Fant ingen aktive arbeidsforhold"))
                     } else if (orgrettigheter.isNullOrEmpty()) {

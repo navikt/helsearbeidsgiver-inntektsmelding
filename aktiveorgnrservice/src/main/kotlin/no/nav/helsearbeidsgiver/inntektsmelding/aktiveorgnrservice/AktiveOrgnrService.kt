@@ -33,7 +33,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.time.LocalDate
 import java.util.UUID
 
 class AktiveOrgnrService(
@@ -100,9 +99,7 @@ class AktiveOrgnrService(
                                 .medOrgnr(
                                     *orgrettigheter.toTypedArray()
                                 )
-                                .orgnrMedAktivtArbeidsforhold(
-                                    LocalDate.of(2018, 1, 5)
-                                )
+                                .orgnrMedAktivtArbeidsforhold()
                         if (arbeidsgivere.isEmpty()) {
                             terminate(message.createFail("Fant ingen aktive arbeidsforhold"))
                         } else {

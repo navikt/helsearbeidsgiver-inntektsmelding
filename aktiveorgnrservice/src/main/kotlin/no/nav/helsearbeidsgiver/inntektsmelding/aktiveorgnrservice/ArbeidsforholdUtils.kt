@@ -10,6 +10,7 @@ fun List<Arbeidsforhold>.medOrgnr(vararg organisasjoner: String): List<Arbeidsfo
 
 fun List<Arbeidsforhold>.orgnrMedAktivtArbeidsforhold(dato: LocalDate = LocalDate.now()): List<String> {
     return this
+        .filter { it.ansettelsesperiode.periode.fom?.isBefore(dato) ?: false }
         .filter { it.ansettelsesperiode.periode.tom?.isAfter(dato) ?: true }
         .mapNotNull { it.arbeidsgiver.organisasjonsnummer }
         .distinct()

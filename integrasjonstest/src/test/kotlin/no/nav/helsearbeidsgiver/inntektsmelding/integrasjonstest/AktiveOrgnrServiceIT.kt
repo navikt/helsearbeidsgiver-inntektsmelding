@@ -97,7 +97,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 ansettelsesperiode = Ansettelsesperiode(
                     Periode(
                         fom = 1.januar,
-                        tom = 16.januar
+                        tom = null
                     )
                 ),
                 registrert = 3.januar.kl(6, 30, 40, 50000)

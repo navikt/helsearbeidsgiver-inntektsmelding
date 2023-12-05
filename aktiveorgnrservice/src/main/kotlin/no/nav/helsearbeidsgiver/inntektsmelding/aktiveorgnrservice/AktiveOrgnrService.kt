@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -154,9 +154,7 @@ class AktiveOrgnrService(
             logger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
             terminate(message.createFail("Fant ikke clientId for transaksjonId $transaksjonId i Redis!"))
         }
-        val virksomheter = RedisKey.of(transaksjonId, Key.VIRKSOMHETER).read()?.let {
-            Json.decodeFromString<Map<String, String>>(it)
-        }
+        val virksomheter = RedisKey.of(transaksjonId, Key.VIRKSOMHETER).read()?.fromJson(MapSerializer(String.serializer(), String.serializer()))
         if (virksomheter != null) {
             val gyldigeUnderenheter: List<GyldigUnderenhet> = virksomheter.map {
                 GyldigUnderenhet(

@@ -189,6 +189,7 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
             ".github/workflows/build.yml",
             "config/nais.yml",
             "build.gradle.kts",
+            "settings.gradle.kts",
             "gradle.properties"
         )
 

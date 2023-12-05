@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.loeser
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -8,10 +9,18 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 /**
  * En forenklet river som minimerer håndtering av JSON til fordel for objekter.
  *
- * __Viktig!__: Den enkleste feilen i en implementerende klasse er å ikke kalle [start] i `init`. Gjøres ikke det vil ikke riveren være aktiv.
+ * __Viktig!__: Den enkleste feilen er å ikke kalle [connect]. Gjøres ikke det vil ikke riveren være aktiv.
  *
  * Eksempel på bruk:
  * ```
+ * fun main() {
+ *     RapidApplication.create(System.getenv())
+ *         .also {
+ *             HobbitFoodRiver().connect(it)
+ *         }
+ *         .start()
+ * }
+ *
  * data class LotrCharacter(
  *     val race: Race,
  *     val name: String,
@@ -19,9 +28,6 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
  * )
  *
  * class HobbitFoodRiver : ObjectRiver<LotrCharacter>() {
- *     init {
- *         start()
- *     }
  *
  *     override fun les(json: Map<IKey, JsonElement>): LotrCharacter =
  *         LotrCharacter(
@@ -49,15 +55,15 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
  * }
  * ```
  *
- * (NB. Denne klassen er ikke en "ekte" river fra rapids-and-rivers-pakken, men den fungerer likt og starter en "ekte" under panseret.)
+ * (NB. Denne klassen er ikke en "ekte" river fra rapids-and-rivers-pakken, men den fungerer likt og bruker en "ekte" under panseret.)
  */
 abstract class ObjectRiver<Melding : Any> {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    /** __Viktig!__: Denne må kalles i implementerende klasses `init`-funksjon. */
-    protected fun start() {
-        OpenRiver(this)
+    /** __Viktig!__: Denne må kalles ved instansiering av implementerende klasse. */
+    fun connect(rapid: RapidsConnection) {
+        OpenRiver(rapid, this)
     }
 
     /**

@@ -32,7 +32,8 @@ class TilgangLoeser(
             it.interestedIn(
                 Key.UUID,
                 Key.ORGNRUNDERENHET,
-                Key.FNR
+                Key.FNR,
+                Key.FORESPOERSEL_ID
             )
         }
     }

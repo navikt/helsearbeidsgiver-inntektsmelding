@@ -46,6 +46,7 @@ class TrengerIT : EndToEndTest() {
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to transactionId.toJson(),
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer),
             Key.FORESPOERSEL_SVAR to mockTrengerInntekt().toJson(TrengerInntekt.serializer())
         )
 

@@ -106,6 +106,7 @@ class HentOrgnrLoeser(
             Key.EVENT_NAME to melding.event.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to melding.transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to orgnr.toJson()
         )
             .also {

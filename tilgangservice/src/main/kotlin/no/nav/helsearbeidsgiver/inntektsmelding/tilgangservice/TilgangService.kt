@@ -122,6 +122,7 @@ class TilgangService(
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                         Key.ORGNRUNDERENHET to orgnr.toJson(),
                         Key.FNR to fnr.toJson(),
                         Key.UUID to transaksjonId.toJson()

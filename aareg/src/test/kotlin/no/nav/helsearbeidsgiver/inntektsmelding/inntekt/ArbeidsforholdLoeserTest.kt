@@ -12,11 +12,12 @@ import io.mockk.mockk
 import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.felles.ArbeidsforholdListe
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -50,9 +51,8 @@ class ArbeidsforholdLoeserTest : FunSpec({
             event = EventName.INSENDING_STARTED,
             uuid = expectedUuid,
             map = mapOf(
-                Key.ARBEIDSFORHOLD to ArbeidsforholdListe(
-                    mockKlientArbeidsforhold().tilArbeidsforhold().let(::listOf)
-                )
+                Key.ARBEIDSFORHOLD to
+                    mockKlientArbeidsforhold().tilArbeidsforhold().let(::listOf).toJson(Arbeidsforhold.serializer()).toJsonNode()
             )
         )
             .jsonMessage

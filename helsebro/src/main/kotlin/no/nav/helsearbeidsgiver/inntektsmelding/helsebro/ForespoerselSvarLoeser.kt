@@ -50,10 +50,6 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        if (packet[Pri.Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
-            logger.warn("Mangler forespørselId!")
-            sikkerLogger.warn("Mangler forespørselId!")
-        }
         val json = packet.toJson().parseJson()
 
         logger.info("Mottok løsning på pri-topic om ${ForespoerselSvar.behovType}.")

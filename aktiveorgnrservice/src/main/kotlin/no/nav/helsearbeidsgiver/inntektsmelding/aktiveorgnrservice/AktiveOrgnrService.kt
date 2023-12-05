@@ -104,27 +104,25 @@ class AktiveOrgnrService(
                     val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(Arbeidsforhold.serializer().list())
                     val orgrettigheter = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER_FORENKLET).read()?.fromJson(String.serializer().set())
                     val result = trekkUtArbeidsforhold(arbeidsforholdListe, orgrettigheter)
-                    if (result.isFailure) {
-                        MdcUtils.withLogFields(
-                            Log.klasse(this),
-                            Log.event(event),
-                            Log.transaksjonId(transaksjonId)
-                        ) {
-                            result.exceptionOrNull()?.message ?: "Ukjent Feil"
-                                .also {
-                                    sikkerLogger.error(it)
-                                    logger.error(it)
-                                    terminate(message.createFail(it))
-                                }
-                        }
-                    } else {
-                        val arbeidsgivere = result.getOrElse { emptyList() }
+                    result.onSuccess { arbeidsgivere ->
                         rapid.publish(
                             Key.EVENT_NAME to event.toJson(),
                             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                             Key.UUID to transaksjonId.toJson(),
                             Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
                         )
+                    }
+                    result.onFailure {
+                        val feilmelding = it.message ?: "Ukjent feil"
+                        MdcUtils.withLogFields(
+                            Log.klasse(this),
+                            Log.event(event),
+                            Log.transaksjonId(transaksjonId)
+                        ) {
+                            sikkerLogger.error(feilmelding)
+                            logger.error(feilmelding)
+                        }
+                        terminate(message.createFail(feilmelding))
                     }
                 }
             }
@@ -199,8 +197,9 @@ class AktiveOrgnrService(
                     .orgnrMedAktivtArbeidsforhold()
             if (arbeidsgivere.isEmpty()) {
                 Result.failure(Exception("Fant ingen aktive arbeidsforhold"))
-            } else Result.success(arbeidsgivere)
-
+            } else {
+                Result.success(arbeidsgivere)
+            }
         }
     }
 

@@ -6,7 +6,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.ArbeidsforholdListe
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Fail
@@ -27,6 +27,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -87,29 +88,32 @@ class AktiveOrgnrService(
             }
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(transaksjonId))) {
-                    val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(ArbeidsforholdListe.serializer())
+                    val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(Arbeidsforhold.serializer().list())
                     val orgrettigheterStr = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER_FORENKLET).read()
                     val orgrettigheter = orgrettigheterStr?.fromJson(String.serializer().set())
-                    if (arbeidsforholdListe?.arbeidsforhold.isNullOrEmpty() || orgrettigheter.isNullOrEmpty()) {
-                        terminate(message.createFail("Klarte ikke hente arbeidsforhold"))
+                    if (arbeidsforholdListe.isNullOrEmpty()) {
+                        terminate(message.createFail("Fant ingen aktive arbeidsforhold"))
+                    } else if (orgrettigheter.isNullOrEmpty()) {
+                        terminate(message.createFail("Må ha orgrettigheter for å kunne hente virksomheter"))
                     } else {
-                        // TODO: hent arbeidsgivere fra altinn respons
                         val arbeidsgivere =
-                            arbeidsforholdListe!!
-                                .arbeidsforhold
+                            arbeidsforholdListe
                                 .medOrgnr(
                                     *orgrettigheter.toTypedArray()
                                 )
                                 .orgnrMedAktivtArbeidsforhold(
                                     LocalDate.of(2018, 1, 5)
                                 )
-                        // TODO Sjekk om arbeidsgivere er tom
-                        rapid.publish(
-                            Key.EVENT_NAME to event.toJson(),
-                            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                            Key.UUID to transaksjonId.toJson(),
-                            Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
-                        )
+                        if (arbeidsgivere.isEmpty()) {
+                            terminate(message.createFail("Fant ingen aktive arbeidsforhold"))
+                        } else {
+                            rapid.publish(
+                                Key.EVENT_NAME to event.toJson(),
+                                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                                Key.UUID to transaksjonId.toJson(),
+                                Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
+                            )
+                        }
                     }
                 }
             }

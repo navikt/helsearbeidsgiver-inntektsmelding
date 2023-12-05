@@ -73,7 +73,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             {
                 "underenheter": [],
                 "feilReport": {
-                    "feil": [{"melding": "Klarte ikke hente arbeidsforhold"}]
+                    "feil": [{"melding": "Fant ingen aktive arbeidsforhold"}]
                  }
             }
         """.trimIndent().removeJsonWhitespace()

@@ -61,16 +61,8 @@ class SpinnService(
         val json = message.toJsonMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
 
-        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID)
-            .read()?.let(UUID::fromString)
-        if (forespoerselId == null) {
-            "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-            return
-        }
         val spinnImId = RedisKey.of(transaksjonId, Key.SPINN_INNTEKTSMELDING_ID)
             .read()?.let(UUID::fromString)
         if (spinnImId == null) {
@@ -106,11 +98,9 @@ class SpinnService(
     override fun finalize(message: JsonMessage) {
         val json = message.toJsonMap()
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
         val eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), json)
-        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID)
-            .read()?.let(UUID::fromString)
         if (
-            forespoerselId != null &&
             eksternInntektsmelding?.avsenderSystemNavn != null &&
             eksternInntektsmelding.avsenderSystemNavn != AVSENDER_NAV_NO
         ) {

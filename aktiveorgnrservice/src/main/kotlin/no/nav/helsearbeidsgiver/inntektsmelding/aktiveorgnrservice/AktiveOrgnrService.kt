@@ -113,7 +113,7 @@ class AktiveOrgnrService(
                         )
                     }
                     result.onFailure {
-                        val feilmelding = it.message ?: "Ukjent feil"
+                        val feilmelding = it.message ?: "Ukjent feil oppstod"
                         MdcUtils.withLogFields(
                             Log.klasse(this),
                             Log.event(event),
@@ -150,20 +150,31 @@ class AktiveOrgnrService(
             ?.let(UUID::fromString)
 
         if (clientId == null) {
-            sikkerLogger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
-            logger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
-            terminate(message.createFail("Fant ikke clientId for transaksjonId $transaksjonId i Redis!"))
+            "Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!".also { feilmelding ->
+                MdcUtils.withLogFields(
+                    Log.klasse(this),
+                    Log.event(event),
+                    Log.transaksjonId(transaksjonId)
+                ) {
+                    sikkerLogger.error(feilmelding)
+                    logger.error(feilmelding)
+                }
+                terminate(message.createFail(feilmelding))
+            }
         }
         val virksomheter = RedisKey.of(transaksjonId, Key.VIRKSOMHETER).read()?.fromJson(MapSerializer(String.serializer(), String.serializer()))
         if (virksomheter != null) {
-            val gyldigeUnderenheter: List<GyldigUnderenhet> = virksomheter.map {
-                GyldigUnderenhet(
-                    orgnrUnderenhet = it.key,
-                    virksomhetsnavn = it.value
-                )
-            }.toList()
-            val s = AktiveOrgnrResponse(underenheter = gyldigeUnderenheter).toJson(AktiveOrgnrResponse.serializer())
-            RedisKey.of(clientId!!).write(s)
+            val gyldigeUnderenheter =
+                virksomheter.map {
+                    GyldigUnderenhet(
+                        orgnrUnderenhet = it.key,
+                        virksomhetsnavn = it.value
+                    )
+                }.toList()
+            val gyldigResponse = AktiveOrgnrResponse(
+                underenheter = gyldigeUnderenheter
+            ).toJson(AktiveOrgnrResponse.serializer())
+            RedisKey.of(clientId!!).write(gyldigResponse)
         }
     }
 
@@ -175,9 +186,15 @@ class AktiveOrgnrService(
             ?.let(UUID::fromString)
 
         if (clientId != null) {
-            val m = AktiveOrgnrResponse(underenheter = emptyList(), feilReport = FeilReport(feil = mutableListOf(Feilmelding(melding = fail.feilmelding))))
-            val s = m.toJson(AktiveOrgnrResponse.serializer())
-            RedisKey.of(clientId).write(s)
+            val feilResponse = AktiveOrgnrResponse(
+                underenheter = emptyList(),
+                feilReport = FeilReport(
+                    feil = mutableListOf(
+                        Feilmelding(melding = fail.feilmelding)
+                    )
+                )
+            ).toJson(AktiveOrgnrResponse.serializer())
+            RedisKey.of(clientId).write(feilResponse)
         }
     }
 

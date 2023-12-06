@@ -47,7 +47,8 @@ class InntektLoeser(
                 Key.UUID,
                 Key.ORGNRUNDERENHET,
                 Key.FNR,
-                Key.SKJAERINGSTIDSPUNKT
+                Key.SKJAERINGSTIDSPUNKT,
+                Key.FORESPOERSEL_ID
             )
             it.rejectKeys(Key.LØSNING)
         }

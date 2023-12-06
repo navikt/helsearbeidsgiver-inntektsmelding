@@ -45,7 +45,13 @@ class AktiveOrgnrService(
 
     init {
         withEventListener {
-            StatefullEventListener(redisStore, event, arrayOf(Key.FNR, Key.ARBEIDSGIVER_FNR), it, rapid)
+            StatefullEventListener(
+                redisStore = redisStore,
+                event = event,
+                dataFelter = arrayOf(Key.FNR, Key.ARBEIDSGIVER_FNR),
+                mainListener = it,
+                rapidsConnection = rapid
+            )
         }
         withDataKanal {
             StatefullDataKanal(
@@ -94,7 +100,7 @@ class AktiveOrgnrService(
                                 sikkerLogger.error(it)
                                 logger.error(it)
                             }
-                        terminate(message.createFail("Feil oppstod"))
+                        terminate(message.createFail("Ukjent Feil oppstod"))
                     }
                 }
             }
@@ -162,7 +168,11 @@ class AktiveOrgnrService(
                 terminate(message.createFail(feilmelding))
             }
         }
-        val virksomheter = RedisKey.of(transaksjonId, Key.VIRKSOMHETER).read()?.fromJson(MapSerializer(String.serializer(), String.serializer()))
+        val virksomheter = RedisKey.of(transaksjonId, Key.VIRKSOMHETER)
+            .read()
+            ?.fromJson(
+                MapSerializer(String.serializer(), String.serializer())
+            )
         if (virksomheter != null) {
             val gyldigeUnderenheter =
                 virksomheter.map {

@@ -15,6 +15,8 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
+import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.kl
@@ -31,6 +33,9 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomhetNavn("810007842") } returns "ANSTENDIG PIGGSVIN BARNEHAGE"
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
+        coEvery { pdlKlient.personBolk(any()) } returns listOf(
+            FullPerson(navn = PersonNavn(fornavn = "Bjarne", mellomnavn = null, etternavn = "Betjent"), foedselsdato = 1.januar, ident = Mock.FNR)
+        )
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
@@ -66,6 +71,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
             {
+                "fulltNavn": "Bjarne Betjent",
                 "underenheter": [{"orgnrUnderenhet": "810007842", "virksomhetsnavn": "ANSTENDIG PIGGSVIN BARNEHAGE"}]
             }
         """.trimIndent().removeJsonWhitespace()

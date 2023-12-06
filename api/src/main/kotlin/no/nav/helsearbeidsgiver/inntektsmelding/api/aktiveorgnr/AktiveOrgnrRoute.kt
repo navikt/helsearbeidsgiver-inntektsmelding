@@ -25,10 +25,9 @@ fun Route.aktiveOrgnrRoute(
     val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
     route(Routes.AKTIVEORGNR) {
         post {
-            val request = call.receive<AktiveOrgnrRequest>()
-            val arbeidsgiverFnr = hentIdentitetsnummerFraLoginToken(application.environment.config, call.request)
-
             try {
+                val request = call.receive<AktiveOrgnrRequest>()
+                val arbeidsgiverFnr = hentIdentitetsnummerFraLoginToken(application.environment.config, call.request)
                 val clientId = aktiveOrgnrProducer.publish(arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
                 val resultat = redis.hent(clientId).fromJson(AktiveOrgnrResponse.serializer())
                 call.respond(HttpStatusCode.Created, resultat.toJson(AktiveOrgnrResponse.serializer()))

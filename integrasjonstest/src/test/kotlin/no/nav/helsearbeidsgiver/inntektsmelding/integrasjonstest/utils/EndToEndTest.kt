@@ -109,7 +109,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val mockPriProducer = mockk<PriProducer>()
     val aaregClient = mockk<AaregClient>(relaxed = true)
 
-    private val pdlKlient = mockk<PdlClient>()
+    val pdlKlient = mockk<PdlClient>()
 
     @BeforeEach
     fun beforeEachEndToEnd() {

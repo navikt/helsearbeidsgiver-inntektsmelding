@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -58,6 +59,7 @@ class AktiveOrgnrService(
                 dataFelter = arrayOf(
                     Key.ARBEIDSFORHOLD,
                     Key.ORG_RETTIGHETER_FORENKLET,
+                    Key.ARBEIDSTAKER_INFORMASJON,
                     Key.VIRKSOMHETER
                 ),
                 eventName = event,
@@ -86,6 +88,12 @@ class AktiveOrgnrService(
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
+                        Key.IDENTITETSNUMMER to arbeidstakerFnr.toJson(),
+                        Key.UUID to transaksjonId.toJson()
+                    )
+                    rapid.publish(
+                        Key.EVENT_NAME to event.toJson(),
+                        Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
                         Key.IDENTITETSNUMMER to arbeidstakerFnr.toJson(),
                         Key.UUID to transaksjonId.toJson()
                     )
@@ -161,6 +169,10 @@ class AktiveOrgnrService(
                 MapSerializer(String.serializer(), String.serializer())
             )
 
+        val fulltNavn = RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
+            .read()
+            ?.fromJson(PersonDato.serializer()) ?: PersonDato("Ukjent Navn", null, "")
+
         if (clientId != null && virksomheter != null) {
             val gyldigeUnderenheter =
                 virksomheter.map {
@@ -170,6 +182,7 @@ class AktiveOrgnrService(
                     )
                 }.toList()
             val gyldigResponse = AktiveOrgnrResponse(
+                fulltNavn = fulltNavn.navn,
                 underenheter = gyldigeUnderenheter
             ).toJson(AktiveOrgnrResponse.serializer())
             RedisKey.of(clientId).write(gyldigResponse)
@@ -251,6 +264,7 @@ class AktiveOrgnrService(
 
 @Serializable
 data class AktiveOrgnrResponse(
+    val fulltNavn: String? = null,
     val underenheter: List<GyldigUnderenhet>,
     val feilReport: FeilReport? = null
 )

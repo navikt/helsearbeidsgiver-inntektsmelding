@@ -177,7 +177,7 @@ class AktiveOrgnrService(
         if (clientId != null) {
             val m = AktiveOrgnrResponse(underenheter = emptyList(), feilReport = FeilReport(feil = mutableListOf(Feilmelding(melding = fail.feilmelding))))
             val s = m.toJson(AktiveOrgnrResponse.serializer())
-            RedisKey.of(clientId!!).write(s)
+            RedisKey.of(clientId).write(s)
         }
     }
 

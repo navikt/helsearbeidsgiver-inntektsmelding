@@ -155,25 +155,13 @@ class AktiveOrgnrService(
             .read()
             ?.let(UUID::fromString)
 
-        if (clientId == null) {
-            "Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!".also { feilmelding ->
-                MdcUtils.withLogFields(
-                    Log.klasse(this),
-                    Log.event(event),
-                    Log.transaksjonId(transaksjonId)
-                ) {
-                    sikkerLogger.error(feilmelding)
-                    logger.error(feilmelding)
-                }
-                terminate(message.createFail(feilmelding))
-            }
-        }
         val virksomheter = RedisKey.of(transaksjonId, Key.VIRKSOMHETER)
             .read()
             ?.fromJson(
                 MapSerializer(String.serializer(), String.serializer())
             )
-        if (virksomheter != null) {
+
+        if (clientId != null && virksomheter != null) {
             val gyldigeUnderenheter =
                 virksomheter.map {
                     GyldigUnderenhet(
@@ -184,7 +172,27 @@ class AktiveOrgnrService(
             val gyldigResponse = AktiveOrgnrResponse(
                 underenheter = gyldigeUnderenheter
             ).toJson(AktiveOrgnrResponse.serializer())
-            RedisKey.of(clientId!!).write(gyldigResponse)
+            RedisKey.of(clientId).write(gyldigResponse)
+        } else {
+            MdcUtils.withLogFields(
+                Log.klasse(this),
+                Log.event(event),
+                Log.transaksjonId(transaksjonId)
+            ) {
+                if (clientId == null) {
+                    "Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!".also { feilmelding ->
+                        sikkerLogger.error(feilmelding)
+                        logger.error(feilmelding)
+                    }
+                }
+                if (virksomheter == null) {
+                    "Kunne ikke finne virksmheter for transaksjonId $transaksjonId i Redis!".also { feilmelding ->
+                        sikkerLogger.error(feilmelding)
+                        logger.error(feilmelding)
+                    }
+                }
+            }
+            terminate(message.createFail("Ukjent feil oppstod"))
         }
     }
 

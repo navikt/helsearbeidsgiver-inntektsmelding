@@ -54,6 +54,8 @@ spec:
       {{/if}}
   {{/if}}
   {{#if database}}
+  strategy:
+    type: Recreate
   gcp:
     sqlInstances:
       - type: POSTGRES_14

@@ -64,21 +64,13 @@ class TilgangService(
         val json = message.toJsonMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
 
-        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID)
-            .read()?.let(UUID::fromString)
-        if (forespoerselId == null) {
-            "Klarte ikke finne forespoerselId for transaksjon $transaksjonId i Redis.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-        } else {
-            MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonId),
-                Log.forespoerselId(forespoerselId)
-            ) {
-                dispatch(transaction, transaksjonId, forespoerselId)
-            }
+        MdcUtils.withLogFields(
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId)
+        ) {
+            dispatch(transaction, transaksjonId, forespoerselId)
         }
     }
 

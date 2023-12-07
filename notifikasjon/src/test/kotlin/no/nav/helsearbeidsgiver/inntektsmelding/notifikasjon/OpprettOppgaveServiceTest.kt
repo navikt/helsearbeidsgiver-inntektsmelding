@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -20,7 +19,6 @@ import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -39,9 +37,9 @@ class OpprettOppgaveServiceTest {
     }
 
     @Test
-    fun `erFeilMelding`() {
+    fun `feil tolkes som feil av service`() {
         val fail = Fail(
-            feilmelding = "FEIL",
+            feilmelding = "Opprett oppgave feilet.",
             event = EventName.OPPGAVE_OPPRETT_REQUESTED,
             transaksjonId = UUID.randomUUID(),
             forespoerselId = UUID.randomUUID(),
@@ -52,54 +50,9 @@ class OpprettOppgaveServiceTest {
 
         val failMap = mapOf(
             Key.FAIL.str to fail.toJson(Fail.serializer()),
+            Key.EVENT_NAME.str to fail.event.toJson(),
             Key.UUID.str to fail.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID.str to fail.forespoerselId!!.toJson()
-        )
-
-        val failJsonMessage = JsonMessage.newMessage(
-            failMap.mapValues { (_, value) -> value.toJsonNode() }
-        )
-
-        assertEquals(Transaction.TERMINATE, service.determineTransactionState(failJsonMessage))
-        assertNotNull(service.toFailOrNull(failMap.toJson()))
-    }
-
-    @Disabled("Enable om vi begynner å bruke ny Fail-objekt sammen med CompositeEventListener")
-    @Test
-    fun `feil fra behov tolkes som feil av service`() {
-        val failFraBehov = Behov.create(
-            event = EventName.OPPGAVE_OPPRETT_REQUESTED,
-            behov = BehovType.OPPRETT_OPPGAVE,
-            forespoerselId = randomUuid().toString()
-        ).createFail("Uff")
-
-        val failJson = mapOf(
-            Key.FAIL.str to failFraBehov.toJson(Fail.serializer()),
-            Key.UUID.str to failFraBehov.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID.str to failFraBehov.forespoerselId!!.toJson()
-        )
-            .toJson()
-
-        assertNotNull(service.toFailOrNull(failJson))
-    }
-
-    @Disabled("Enable om vi begynner å bruke ny Fail-objekt sammen med CompositeEventListener")
-    @Test
-    fun `feil fra rapid and rivers-model tolkes som feil av service`() {
-        val rapidAndRiverFail = Fail(
-            feilmelding = "OpprettOppgave feilet",
-            event = EventName.OPPGAVE_OPPRETT_REQUESTED,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = mapOf(
-                Key.BEHOV.toString() to BehovType.OPPRETT_OPPGAVE.toJson()
-            ).toJson()
-        )
-
-        val failMap = mapOf(
-            Key.FAIL.str to rapidAndRiverFail.toJson(Fail.serializer()),
-            Key.UUID.str to rapidAndRiverFail.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID.str to rapidAndRiverFail.forespoerselId!!.toJson()
         )
 
         val failJsonMessage = JsonMessage.newMessage(

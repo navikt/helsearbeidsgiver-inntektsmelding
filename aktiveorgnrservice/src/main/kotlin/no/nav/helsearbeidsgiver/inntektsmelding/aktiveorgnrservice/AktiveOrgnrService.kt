@@ -58,7 +58,7 @@ class AktiveOrgnrService(
             StatefullDataKanal(
                 dataFelter = arrayOf(
                     Key.ARBEIDSFORHOLD,
-                    Key.ORG_RETTIGHETER_FORENKLET,
+                    Key.ORG_RETTIGHETER,
                     Key.ARBEIDSTAKER_INFORMASJON,
                     Key.VIRKSOMHETER
                 ),
@@ -116,7 +116,7 @@ class AktiveOrgnrService(
             Transaction.IN_PROGRESS -> {
                 if (isDataCollected(*step1data(transaksjonId))) {
                     val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(Arbeidsforhold.serializer().list())
-                    val orgrettigheter = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER_FORENKLET).read()?.fromJson(String.serializer().set())
+                    val orgrettigheter = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER).read()?.fromJson(String.serializer().set())
                     val result = trekkUtArbeidsforhold(arbeidsforholdListe, orgrettigheter)
                     result.onSuccess { arbeidsgivere ->
                         rapid.publish(
@@ -251,7 +251,7 @@ class AktiveOrgnrService(
 
     private fun step1data(uuid: UUID): Array<RedisKey> = arrayOf(
         RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
-        RedisKey.of(uuid, Key.ORG_RETTIGHETER_FORENKLET)
+        RedisKey.of(uuid, Key.ORG_RETTIGHETER)
     )
 
     private fun RedisKey.read(): String? =

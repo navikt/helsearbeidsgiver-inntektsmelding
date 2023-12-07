@@ -8,6 +8,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
@@ -45,7 +46,7 @@ class AltinnLoeserTest : FunSpec({
         val expectedPublished = mapOf<IKey, JsonElement>(
             Key.DATA to "".toJson(),
             Key.UUID to mockUuid.toJson(),
-            Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().toJson(AltinnOrganisasjon.serializer().set())
+            Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().mapNotNull { it.orgnr }.toSet().toJson(String.serializer().set())
         )
 
         testRapid.sendJson(

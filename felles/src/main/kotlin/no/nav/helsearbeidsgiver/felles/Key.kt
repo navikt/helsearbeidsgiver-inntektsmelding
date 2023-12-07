@@ -43,7 +43,6 @@ enum class Key(override val str: String) : IKey {
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNRUNDERENHETER("orgnrUnderenheter"),
     ORG_RETTIGHETER("org_rettigheter"),
-    ORG_RETTIGHETER_FORENKLET("org_rettigheter_forenklet"),
     INNTEKTSMELDING("inntektsmelding"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     TRENGER_INNTEKT("trenger-inntekt"),

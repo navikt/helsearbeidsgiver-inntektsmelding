@@ -74,7 +74,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 "fulltNavn": "Bjarne Betjent",
                 "underenheter": [{"orgnrUnderenhet": "810007842", "virksomhetsnavn": "ANSTENDIG PIGGSVIN BARNEHAGE"}]
             }
-        """.trimIndent().removeJsonWhitespace()
+        """.removeJsonWhitespace()
         val FEILTET_AKTIVE_ORGNR_RESPONSE = """
             {
                 "underenheter": [],
@@ -82,8 +82,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                     "feil": [{"melding": "Fant ingen aktive arbeidsforhold"}]
                  }
             }
-        """.trimIndent().removeJsonWhitespace()
-        const val ORGNR = "stolt-krakk"
+        """.removeJsonWhitespace()
         const val FNR = "kongelig-albatross"
         const val FNR_AG = "uutgrunnelig-koffert"
 

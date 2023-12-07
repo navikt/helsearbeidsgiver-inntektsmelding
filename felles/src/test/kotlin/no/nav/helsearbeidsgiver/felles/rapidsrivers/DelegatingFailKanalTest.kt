@@ -37,7 +37,8 @@ class DelegatingFailKanalTest {
 
         testRapid.sendJson(
             Key.FAIL to fail.toJson(Fail.serializer()),
-            Key.EVENT_NAME to fail.event.toJson()
+            Key.EVENT_NAME to fail.event.toJson(),
+            Key.UUID to UUID.randomUUID().toJson()
         )
         verify(exactly = 1) { mockPacketListener.onPacket(any(), any()) }
     }
@@ -48,7 +49,8 @@ class DelegatingFailKanalTest {
 
         testRapid.sendJson(
             Key.FAIL to fail.toJson(Fail.serializer()),
-            Key.EVENT_NAME to fail.event.toJson()
+            Key.EVENT_NAME to fail.event.toJson(),
+            Key.UUID to UUID.randomUUID().toJson()
         )
         verify(exactly = 0) { mockPacketListener.onPacket(any(), any()) }
     }

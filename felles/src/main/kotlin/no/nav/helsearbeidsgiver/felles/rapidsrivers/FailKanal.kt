@@ -22,11 +22,13 @@ abstract class FailKanal(val rapidsConnection: RapidsConnection) : River.PacketL
                 msg.demandValues(
                     Key.EVENT_NAME to eventName.name
                 )
-                msg.rejectKey(Key.BEHOV.str)
-                msg.rejectKey(Key.LØSNING.str)
-                msg.rejectKey(Key.DATA.str)
-                msg.interestedIn(Key.UUID.str)
-                msg.interestedIn(Key.FORESPOERSEL_ID.str)
+                msg.requireKeys(Key.UUID)
+                msg.interestedIn(Key.FORESPOERSEL_ID)
+                msg.rejectKeys(
+                    Key.BEHOV,
+                    Key.LØSNING,
+                    Key.DATA
+                )
             }
         }
             .register(this)

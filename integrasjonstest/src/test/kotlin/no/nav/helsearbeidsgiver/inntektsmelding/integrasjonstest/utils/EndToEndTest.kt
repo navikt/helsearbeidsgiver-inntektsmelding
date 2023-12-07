@@ -4,7 +4,6 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -137,7 +136,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             )
         )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
-        coEvery { brregClient.hentVirksomheter(capture(slot<List<String>>())) } answers {
+        coEvery { brregClient.hentVirksomheter(any()) } answers {
             firstArg<List<String>>().map { orgnr ->
                 Virksomhet(
                     organisasjonsnummer = orgnr,

@@ -237,7 +237,7 @@ class AktiveOrgnrService(
         } else {
             val arbeidsgivere =
                 arbeidsforholdListe
-                    .medOrgnr(
+                    .filterOrgnr(
                         *orgrettigheter.toTypedArray()
                     )
                     .orgnrMedAktivtArbeidsforhold()

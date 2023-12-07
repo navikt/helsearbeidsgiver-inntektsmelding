@@ -76,25 +76,25 @@ class AktiveOrgnrService(
 
         when (transaction) {
             Transaction.NEW -> {
-                val arbeidsgiverFnr = json[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
-                val arbeidstakerFnr = json[Key.FNR]?.fromJson(String.serializer())
-                if (arbeidsgiverFnr != null && arbeidstakerFnr != null) {
+                val innloggetFnr = json[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
+                val sykemeldtFnr = json[Key.FNR]?.fromJson(String.serializer())
+                if (innloggetFnr != null && sykemeldtFnr != null) {
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
-                        Key.IDENTITETSNUMMER to arbeidsgiverFnr.toJson(),
+                        Key.IDENTITETSNUMMER to innloggetFnr.toJson(),
                         Key.UUID to transaksjonId.toJson()
                     )
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-                        Key.IDENTITETSNUMMER to arbeidstakerFnr.toJson(),
+                        Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
                         Key.UUID to transaksjonId.toJson()
                     )
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-                        Key.IDENTITETSNUMMER to arbeidstakerFnr.toJson(),
+                        Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
                         Key.UUID to transaksjonId.toJson()
                     )
                 } else {
@@ -199,7 +199,7 @@ class AktiveOrgnrService(
                     }
                 }
                 if (virksomheter == null) {
-                    "Kunne ikke finne virksmheter for transaksjonId $transaksjonId i Redis!".also { feilmelding ->
+                    "Kunne ikke finne virksomheter for transaksjonId $transaksjonId i Redis!".also { feilmelding ->
                         sikkerLogger.error(feilmelding)
                         logger.error(feilmelding)
                     }

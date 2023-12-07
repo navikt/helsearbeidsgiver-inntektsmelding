@@ -5,7 +5,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.logger
 
-private val logger = "helsearbeidsgiver-im-inntektservice".logger()
+private val logger = "helsearbeidsgiver-im-aktiveorgnrservice".logger()
 
 fun main() {
     RapidApplication

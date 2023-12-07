@@ -17,10 +17,10 @@ abstract class FailKanal(val rapidsConnection: RapidsConnection) : River.PacketL
         River(rapidsConnection).apply {
             validate { msg ->
                 msg.demand(
-                    Key.FAIL to {
-                        val fail = it.fromJson(Fail.serializer())
-                        require(fail.event == eventName)
-                    }
+                    Key.FAIL to { it.fromJson(Fail.serializer()) }
+                )
+                msg.demandValues(
+                    Key.EVENT_NAME to eventName.name
                 )
                 msg.rejectKey(Key.BEHOV.str)
                 msg.rejectKey(Key.LØSNING.str)

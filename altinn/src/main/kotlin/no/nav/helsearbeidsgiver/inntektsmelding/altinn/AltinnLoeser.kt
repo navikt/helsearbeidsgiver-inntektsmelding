@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
-import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
@@ -39,10 +38,13 @@ class AltinnLoeser(
         )
 
     override fun Melding.haandter(): Map<IKey, JsonElement> {
-        val rettigheter = Metrics.altinnRequest.recordTime {
-            altinnClient.hentRettighetOrganisasjoner(identitetsnummer)
-        }
-        val rettigheterForenklet = rettigheter.mapNotNull { it.orgnr }.toSet()
+        val rettigheterForenklet =
+            Metrics.altinnRequest.recordTime {
+                altinnClient
+                    .hentRettighetOrganisasjoner(identitetsnummer)
+                    .mapNotNull { it.orgnr }
+                    .toSet()
+            }
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transactionId.toJson(),

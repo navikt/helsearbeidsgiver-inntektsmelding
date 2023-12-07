@@ -171,7 +171,8 @@ class AktiveOrgnrService(
 
         val fulltNavn = RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
             .read()
-            ?.fromJson(PersonDato.serializer()) ?: PersonDato("Ukjent Navn", null, "")
+            ?.fromJson(PersonDato.serializer())
+            ?: PersonDato("Ukjent Navn", null, "")
 
         if (clientId != null && virksomheter != null) {
             val gyldigeUnderenheter =

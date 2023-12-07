@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -32,16 +33,22 @@ class DelegatingFailKanalTest {
 
     @Test
     fun `FAIL bør vare delegert`() {
+        val fail = mockFail(EventName.INSENDING_STARTED)
+
         testRapid.sendJson(
-            Key.FAIL to mockFail(EventName.INSENDING_STARTED).toJson(Fail.serializer())
+            Key.FAIL to fail.toJson(Fail.serializer()),
+            Key.EVENT_NAME to fail.event.toJson()
         )
         verify(exactly = 1) { mockPacketListener.onPacket(any(), any()) }
     }
 
     @Test
     fun `fanger ikke FAIL med en annen event`() {
+        val fail = mockFail(EventName.KVITTERING_REQUESTED)
+
         testRapid.sendJson(
-            Key.FAIL to mockFail(EventName.KVITTERING_REQUESTED).toJson(Fail.serializer())
+            Key.FAIL to fail.toJson(Fail.serializer()),
+            Key.EVENT_NAME to fail.event.toJson()
         )
         verify(exactly = 0) { mockPacketListener.onPacket(any(), any()) }
     }

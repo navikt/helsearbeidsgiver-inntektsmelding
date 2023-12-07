@@ -168,6 +168,7 @@ class OpprettOppgaveServiceTest {
 
         rapid.sendJson(
             Key.FAIL to fail.toJson(Fail.serializer()),
+            Key.EVENT_NAME to fail.event.toJson(),
             Key.UUID to fail.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
         )

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
@@ -51,15 +52,27 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
 
-        messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(BehovType.ARBEIDSGIVERE).firstAsMap()[Key.IDENTITETSNUMMER]?.fromJson(String.serializer()) shouldBe Mock.FNR_AG
+        val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
-        messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(BehovType.ARBEIDSFORHOLD).firstAsMap()[Key.IDENTITETSNUMMER]?.fromJson(String.serializer()) shouldBe Mock.FNR
+        aktiveOrgnrMeldinger
+            .filter(BehovType.ARBEIDSGIVERE)
+            .firstAsMap()[Key.IDENTITETSNUMMER]
+            ?.fromJson(String.serializer()) shouldBe Mock.FNR_AG
 
-        messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(BehovType.FULLT_NAVN).firstAsMap()[Key.IDENTITETSNUMMER]?.fromJson(String.serializer()) shouldBe Mock.FNR
+        aktiveOrgnrMeldinger
+            .filter(BehovType.ARBEIDSFORHOLD)
+            .firstAsMap()[Key.IDENTITETSNUMMER]
+            ?.fromJson(String.serializer()) shouldBe Mock.FNR
 
-        // messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(Key.ARBEIDSFORHOLD).firstAsMap()[Key.ARBEIDSFORHOLD] shouldBe Mock.FNR
+        aktiveOrgnrMeldinger
+            .filter(BehovType.FULLT_NAVN)
+            .firstAsMap()[Key.IDENTITETSNUMMER]
+            ?.fromJson(String.serializer()) shouldBe Mock.FNR
 
-        messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(Key.ORG_RETTIGHETER).firstAsMap()[Key.ORG_RETTIGHETER]?.fromJson(String.serializer().set()) shouldBe Mock.altinnOrganisasjonSet.map { it.orgnr }.toSet()
+        aktiveOrgnrMeldinger
+            .filter(Key.ORG_RETTIGHETER)
+            .firstAsMap()[Key.ORG_RETTIGHETER]
+            ?.fromJson(String.serializer().set()) shouldContainExactly Mock.altinnOrganisasjonSet.map { it.orgnr }.toSet()
     }
 
     @Test

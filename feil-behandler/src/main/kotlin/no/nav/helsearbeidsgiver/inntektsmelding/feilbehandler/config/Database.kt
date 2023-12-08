@@ -27,5 +27,5 @@ private fun migrationConfig(conf: HikariConfig): HikariConfig =
         jdbcUrl = conf.jdbcUrl
         username = conf.username
         password = conf.password
-        maximumPoolSize = 1
+        maximumPoolSize = 3
     }

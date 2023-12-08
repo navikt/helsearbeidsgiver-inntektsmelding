@@ -60,9 +60,9 @@ class ArbeidsforholdLoeserTest : FunSpec({
                 mapOf(
                     Key.DATA.str to "",
                     Key.UUID.str to expectedUuid.toString(),
-                    Key.ARBEIDSFORHOLD.str to no.nav.helsearbeidsgiver.felles.Data(
+                    Key.ARBEIDSFORHOLD.str to
                         mockKlientArbeidsforhold().tilArbeidsforhold().let(::listOf).toJson(Arbeidsforhold.serializer()).toJsonNode()
-                    )
+
                 )
             )
         )

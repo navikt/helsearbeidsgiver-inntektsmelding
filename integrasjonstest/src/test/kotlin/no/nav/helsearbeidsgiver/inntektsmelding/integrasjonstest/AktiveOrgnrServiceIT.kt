@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
@@ -9,6 +10,7 @@ import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -17,6 +19,8 @@ import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.kl
@@ -45,8 +49,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         Thread.sleep(15000)
 
-        messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
         redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
+
+        messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(BehovType.ARBEIDSGIVERE).firstAsMap()[Key.IDENTITETSNUMMER]?.fromJson(String.serializer()) shouldBe Mock.FNR_AG
+
+        messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(BehovType.ARBEIDSFORHOLD).firstAsMap()[Key.IDENTITETSNUMMER]?.fromJson(String.serializer()) shouldBe Mock.FNR
+
+        messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(BehovType.FULLT_NAVN).firstAsMap()[Key.IDENTITETSNUMMER]?.fromJson(String.serializer()) shouldBe Mock.FNR
+
+        // messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(Key.ARBEIDSFORHOLD).firstAsMap()[Key.ARBEIDSFORHOLD] shouldBe Mock.FNR
+
+        messages.filter(EventName.AKTIVE_ORGNR_REQUESTED).filter(Key.ORG_RETTIGHETER).firstAsMap()[Key.ORG_RETTIGHETER]?.fromJson(String.serializer().set()) shouldBe Mock.altinnOrganisasjonSet.map { it.orgnr }.toSet()
     }
 
     @Test

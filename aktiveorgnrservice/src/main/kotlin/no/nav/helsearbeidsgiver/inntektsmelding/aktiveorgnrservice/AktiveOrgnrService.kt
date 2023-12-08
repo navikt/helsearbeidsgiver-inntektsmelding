@@ -9,24 +9,24 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.createFail
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
@@ -108,7 +108,8 @@ class AktiveOrgnrService(
                                 sikkerLogger.error(it)
                                 logger.error(it)
                             }
-                        terminate(message.createFail("Ukjent Feil oppstod"))
+
+                        terminate(message.createFail("Ukjent feil oppstod", transaksjonId))
                     }
                 }
             }
@@ -136,7 +137,7 @@ class AktiveOrgnrService(
                             sikkerLogger.error(feilmelding)
                             logger.error(feilmelding)
                         }
-                        terminate(message.createFail(feilmelding))
+                        terminate(message.createFail(feilmelding, transaksjonId))
                     }
                 }
             }
@@ -206,12 +207,12 @@ class AktiveOrgnrService(
                     }
                 }
             }
-            terminate(message.createFail("Ukjent feil oppstod"))
+            terminate(message.createFail("Ukjent feil oppstod", transaksjonId))
         }
     }
 
     override fun terminate(fail: Fail) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, fail.toJsonMessage().toJsonMap())
+        val transaksjonId = fail.transaksjonId
 
         val clientId = RedisKey.of(transaksjonId, event)
             .read()
@@ -228,6 +229,17 @@ class AktiveOrgnrService(
             ).toJson(AktiveOrgnrResponse.serializer())
             RedisKey.of(clientId).write(feilResponse)
         }
+    }
+
+    fun JsonMessage.createFail(feilmelding: String, transaksjonId: UUID): Fail {
+        val json = toJsonMap()
+        return Fail(
+            feilmelding = feilmelding,
+            event = event,
+            transaksjonId = transaksjonId,
+            forespoerselId = null,
+            utloesendeMelding = this.toJson().parseJson()
+        )
     }
 
     private fun trekkUtArbeidsforhold(arbeidsforholdListe: List<Arbeidsforhold>?, orgrettigheter: Set<String>?): Result<List<String>> {

@@ -76,7 +76,8 @@ class TilgangskontrollIT : EndToEndTest() {
 
         Thread.sleep(4000)
 
-        val fail = messages.filterFeil()
+        val fail = messages.filter(EventName.TILGANG_REQUESTED)
+            .filterFeil()
             .firstAsMap()
             .get(Key.FAIL)
             .shouldNotBeNull()

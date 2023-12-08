@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -15,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -144,7 +144,7 @@ class SpinnService(
 
     override fun terminate(fail: Fail) {
         MdcUtils.withLogFields(
-            Log.transaksjonId(fail.uuid.let(UUID::fromString))
+            Log.transaksjonId(fail.transaksjonId)
         ) {
             sikkerLogger.error("$event terminert.")
         }

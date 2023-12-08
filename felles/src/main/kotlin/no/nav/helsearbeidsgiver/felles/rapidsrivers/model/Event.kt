@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
@@ -17,6 +16,7 @@ class Event(
         packetValidator.validate(jsonMessage)
         jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
     }
+
     companion object {
         val packetValidator = River.PacketValidation {
             it.demandKey(Key.EVENT_NAME.str)
@@ -36,12 +36,6 @@ class Event(
                 forespoerselId,
                 JsonMessage.newMessage(event.name, mapOfNotNull(Key.FORESPOERSEL_ID.str to forespoerselId) + map.mapKeys { it.key.str })
             )
-        }
-        fun create(jsonMessage: JsonMessage): Event {
-            val event = EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText())
-            val clientID = jsonMessage[Key.CLIENT_ID.str].takeUnless { it.isMissingOrNull() }?.asText()
-            val forespoerselId = jsonMessage[Key.FORESPOERSEL_ID.str].takeUnless { it.isMissingOrNull() }?.asText()
-            return Event(event, forespoerselId, jsonMessage, clientID)
         }
     }
 }

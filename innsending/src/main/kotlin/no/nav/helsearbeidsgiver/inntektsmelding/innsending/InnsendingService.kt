@@ -4,16 +4,18 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -73,15 +75,15 @@ class InnsendingService(
     }
 
     override fun onError(feil: Fail): Transaction {
-        val transaksjonId = feil.uuid!!.let(UUID::fromString)
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
 
-        if (feil.behov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = RedisKey.of(transaksjonId, Key.VIRKSOMHET)
+        if (utloesendeBehov == BehovType.VIRKSOMHET) {
+            val virksomhetKey = RedisKey.of(feil.transaksjonId, Key.VIRKSOMHET)
             redisStore.set(virksomhetKey, "Ukjent virksomhet")
             return Transaction.IN_PROGRESS
-        } else if (feil.behov == BehovType.FULLT_NAVN) {
-            val arbeidstakerFulltnavnKey = RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
-            val arbeidsgiverFulltnavnKey = RedisKey.of(transaksjonId, Key.ARBEIDSGIVER_INFORMASJON)
+        } else if (utloesendeBehov == BehovType.FULLT_NAVN) {
+            val arbeidstakerFulltnavnKey = RedisKey.of(feil.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
+            val arbeidsgiverFulltnavnKey = RedisKey.of(feil.transaksjonId, Key.ARBEIDSGIVER_INFORMASJON)
             redisStore.set(arbeidstakerFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             redisStore.set(arbeidsgiverFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
             return Transaction.IN_PROGRESS
@@ -90,16 +92,14 @@ class InnsendingService(
     }
 
     override fun terminate(fail: Fail) {
-        val transaksjonId = fail.uuid!!.let(UUID::fromString)
-
-        val clientId = redisStore.get(RedisKey.of(transaksjonId, event))
+        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
             ?.let(UUID::fromString)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonId)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
-                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespørselId}")
+                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
             }
         } else {
             redisStore.set(RedisKey.of(clientId), fail.feilmelding)

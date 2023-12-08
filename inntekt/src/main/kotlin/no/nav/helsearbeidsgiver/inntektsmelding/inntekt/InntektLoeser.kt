@@ -127,9 +127,9 @@ class InntektLoeser(
 private fun LocalDate.minusMaaneder(maanederTilbake: Long): YearMonth =
     toYearMonth().minusMonths(maanederTilbake)
 
-private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(this[Key.SKJAERINGSTIDSPUNKT].asText())
-private fun Behov.fnr(): Fnr = Fnr(this[Key.FNR].asText())
-private fun Behov.orgnr(): Orgnr = Orgnr(this[Key.ORGNRUNDERENHET].asText())
+private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(jsonMessage[Key.SKJAERINGSTIDSPUNKT.toString()].asText())
+private fun Behov.fnr(): Fnr = Fnr(jsonMessage[Key.FNR.toString()].asText())
+private fun Behov.orgnr(): Orgnr = Orgnr(jsonMessage[Key.ORGNRUNDERENHET.toString()].asText())
 
 private fun Behov.validate() {
     this.skjaeringstidspunkt()

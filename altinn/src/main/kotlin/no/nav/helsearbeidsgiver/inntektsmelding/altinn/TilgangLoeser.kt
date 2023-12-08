@@ -47,7 +47,7 @@ class TilgangLoeser(
                 runCatching {
                     hentTilgang(it)
                 }
-                    .onFailure { feil ->
+                    .onFailure {
                         behov.createFail("Ukjent feil.")
                             .also(this::publishFail)
                     }
@@ -59,7 +59,7 @@ class TilgangLoeser(
         val requestTimer = requestLatency.startTimer()
         runCatching {
             runBlocking {
-                altinnClient.harRettighetForOrganisasjon(behov[Key.FNR].asText(), behov[Key.ORGNRUNDERENHET].asText())
+                altinnClient.harRettighetForOrganisasjon(behov.jsonMessage[Key.FNR.str].asText(), behov.jsonMessage[Key.ORGNRUNDERENHET.str].asText())
             }
         }.also {
             requestTimer.observeDuration()

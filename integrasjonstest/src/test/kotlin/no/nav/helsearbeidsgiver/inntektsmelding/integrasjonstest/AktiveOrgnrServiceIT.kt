@@ -72,7 +72,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
             .firstAsMap()[Key.ORG_RETTIGHETER]
-            ?.fromJson(String.serializer().set()) shouldContainExactly Mock.altinnOrganisasjonSet.map { it.orgnr }.toSet()
+            ?.fromJson(String.serializer().set()) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
     }
 
     @Test

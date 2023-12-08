@@ -53,9 +53,9 @@ class VirksomhetLoeserTest {
             Key.UUID to UUID.randomUUID().toJson()
         )
 
-        val publisert = testRapid.firstMessage()
+        val publisert = testRapid.firstMessage().readFail()
 
-        publisert.readFail().feilmelding.shouldBe("Fant ikke virksomhet")
+        publisert.feilmelding shouldBe "Fant ikke virksomhet"
     }
 
     @Test

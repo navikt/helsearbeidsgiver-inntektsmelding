@@ -4,7 +4,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
@@ -13,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -148,7 +148,7 @@ class ManuellOpprettSakService(private val rapidsConnection: RapidsConnection, o
     }
 
     override fun terminate(fail: Fail) {
-        sikkerLogger.error("Terminerer flyt med transaksjon-ID '${fail.uuid}'")
+        sikkerLogger.error("Terminerer flyt med transaksjon-ID '${fail.transaksjonId}'")
     }
 
     override fun onError(feil: Fail): Transaction {

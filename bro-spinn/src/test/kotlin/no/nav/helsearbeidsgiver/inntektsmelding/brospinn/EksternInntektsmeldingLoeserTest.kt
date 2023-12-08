@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -59,7 +60,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         val actual = testRapid.firstMessage().readFail()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.behov shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
+        Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
         actual.feilmelding shouldBe "Mangler inntektsmeldingId"
     }
 
@@ -80,7 +81,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         val actual = testRapid.firstMessage().readFail()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.behov shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
+        Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
         actual.feilmelding shouldBe "Feil ved kall mot spinn api: $FIKK_SVAR_MED_RESPONSE_STATUS: 404"
     }
 
@@ -121,7 +122,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         val actual = testRapid.firstMessage().readFail()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual.behov shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
+        Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
         actual.feilmelding shouldBe "Ukjent feil ved kall til spinn"
     }
 })

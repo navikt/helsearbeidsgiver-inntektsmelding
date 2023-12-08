@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -116,12 +117,9 @@ class HentPersistertLoeserTest {
         return rapid.inspektør.message(index)
     }
 
-    private fun sendMeldingMedFeil(vararg melding: Pair<Key, JsonElement>): no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail {
+    private fun sendMeldingMedFeil(vararg melding: Pair<Key, JsonElement>): Fail {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())
         return rapid.firstMessage().readFail()
-        // TODO - serialisering med Feilmelding.serializer() funker ikke:
-//            .toJsonElement()
-//            .fromJson(Feilmelding.serializer())
     }
 }

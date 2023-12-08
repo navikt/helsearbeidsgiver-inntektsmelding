@@ -7,7 +7,16 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
+
+private val sikkerLogger = sikkerLogger()
 
 class Behov(
     val event: EventName,
@@ -54,21 +63,12 @@ class Behov(
                 packetValidation.validate(it.jsonMessage)
             }
         }
-
-        fun create(jsonMessage: JsonMessage): Behov {
-            return Behov(
-                EventName.valueOf(jsonMessage[Key.EVENT_NAME.str].asText()),
-                BehovType.valueOf(jsonMessage[Key.BEHOV.str].asText()),
-                jsonMessage[Key.FORESPOERSEL_ID.str].asText(),
-                jsonMessage
-            )
-        }
     }
 
     operator fun get(key: Key): JsonNode = jsonMessage[key.str]
 
     fun createData(map: Map<Key, Any>): Data {
-        val forespoerselID = this[Key.FORESPOERSEL_ID]
+        val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str]
         return Data(
             event,
             JsonMessage.newMessage(
@@ -82,18 +82,32 @@ class Behov(
         )
     }
 
-    fun createFail(feilmelding: String, data: Map<Key, Any> = emptyMap()): Fail {
-        val forespoerselID = this[Key.FORESPOERSEL_ID]
-
-        return Fail.create(
-            event = event,
-            behov = behov,
+    fun createFail(feilmelding: String): Fail {
+        val json = jsonMessage.toJson().parseJson()
+        return Fail(
             feilmelding = feilmelding,
-            uuid = this.uuid(),
-            data = mapOfNotNull(
-                Key.UUID to this.uuid().takeUnless { it.isBlank() },
-                Key.FORESPOERSEL_ID to forespoerselID
-            ) + data.mapKeys { it.key }
+            event = event,
+            transaksjonId = json.toMap()[Key.UUID]
+                ?.fromJson(UuidSerializer)
+                .let {
+                    if (it != null) {
+                        it
+                    } else {
+                        val nyTransaksjonId = UUID.randomUUID()
+
+                        sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$nyTransaksjonId'.\n${json.toPretty()}")
+
+                        nyTransaksjonId
+                    }
+                },
+            forespoerselId = forespoerselId?.takeUnless { it.isBlank() }
+                ?.let(UUID::fromString)
+                .also {
+                    if (it == null) {
+                        sikkerLogger.error("Mangler forespoerselId i Behov.\n${json.toPretty()}")
+                    }
+                },
+            utloesendeMelding = json
         )
     }
 
@@ -106,7 +120,7 @@ class Behov(
                 eventName = event.name,
                 map = mapOfNotNull(
                     Key.BEHOV.str to behov.name,
-                    Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
+                    Key.UUID.str to uuid().takeUnless { it.isBlank() },
                     Key.FORESPOERSEL_ID.str to this.forespoerselId
                 ) + data.mapKeys { it.key.str }
             )

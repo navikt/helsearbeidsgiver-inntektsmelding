@@ -4,11 +4,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.jsonObject
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.junit.jupiter.api.BeforeAll
@@ -77,17 +76,14 @@ class TilgangskontrollIT : EndToEndTest() {
 
         Thread.sleep(4000)
 
-        val result = messages.filter(EventName.TILGANG_REQUESTED)
+        val fail = messages.filter(EventName.TILGANG_REQUESTED)
             .filterFeil()
             .firstAsMap()
-
-        val feilmelding = result[Key.FAIL]
+            .get(Key.FAIL)
             .shouldNotBeNull()
-            .jsonObject[Fail::feilmelding.name]
-            .shouldNotBeNull()
-            .fromJson(String.serializer())
+            .fromJson(Fail.serializer())
 
-        feilmelding shouldBe "Fant ingen orgnr for forespørsel-ID '${Mock.forespoerselIdFinnesIkke}'."
+        fail.feilmelding shouldBe "Fant ingen orgnr for forespørsel-ID '${Mock.forespoerselIdFinnesIkke}'."
     }
 
     private object Mock {

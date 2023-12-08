@@ -64,7 +64,7 @@ value class Messages(
 
     fun filterFeil(): Messages =
         filter { msg ->
-            msg.toMap().contains(Key.FAIL)
+            msg.toMap().containsKey(Key.FAIL)
         }
 
     private fun filter(predicate: (JsonElement) -> Boolean): Messages =

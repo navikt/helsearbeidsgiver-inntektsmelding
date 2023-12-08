@@ -3,24 +3,27 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
-import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold
 import no.nav.helsearbeidsgiver.aareg.Arbeidsgiver
 import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -28,6 +31,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as AAregArbeidsforhold
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AktiveOrgnrServiceIT : EndToEndTest() {
@@ -73,6 +77,28 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .filter(Key.ORG_RETTIGHETER)
             .firstAsMap()[Key.ORG_RETTIGHETER]
             ?.fromJson(String.serializer().set()) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+
+        aktiveOrgnrMeldinger
+            .filter(Key.ARBEIDSFORHOLD)
+            .firstAsMap()[Key.ARBEIDSFORHOLD]
+            ?.fromJson(Arbeidsforhold.serializer().list()) shouldContainExactly Mock.arbeidsforholdListe.map { it.tilArbeidsforhold() }
+
+        aktiveOrgnrMeldinger
+            .filter(BehovType.VIRKSOMHET)
+            .firstAsMap()[Key.ORGNRUNDERENHETER]
+            ?.fromJson(String.serializer().list()) shouldContainExactly Mock.underenheter
+
+        aktiveOrgnrMeldinger
+            .filter(BehovType.VIRKSOMHET)
+            .firstAsMap()[Key.ORGNRUNDERENHETER]
+            ?.fromJson(String.serializer().list()) shouldContainExactly Mock.underenheter
+
+        aktiveOrgnrMeldinger
+            .filter(Key.VIRKSOMHETER)
+            .firstAsMap()[Key.VIRKSOMHETER]
+            ?.fromJson(
+                MapSerializer(String.serializer(), String.serializer())
+            ) shouldBe mapOf("810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE")
     }
 
     @Test
@@ -87,10 +113,34 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.FNR to Mock.FNR.toJson(),
             Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
         )
-
         Thread.sleep(15000)
-
         redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.FEILTET_AKTIVE_ORGNR_RESPONSE
+        val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
+
+        aktiveOrgnrMeldinger
+            .filter(BehovType.ARBEIDSGIVERE)
+            .firstAsMap()[Key.IDENTITETSNUMMER]
+            ?.fromJson(String.serializer()) shouldBe Mock.FNR_AG
+
+        aktiveOrgnrMeldinger
+            .filter(BehovType.ARBEIDSFORHOLD)
+            .firstAsMap()[Key.IDENTITETSNUMMER]
+            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+
+        aktiveOrgnrMeldinger
+            .filter(BehovType.FULLT_NAVN)
+            .firstAsMap()[Key.IDENTITETSNUMMER]
+            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+
+        aktiveOrgnrMeldinger
+            .filter(Key.ORG_RETTIGHETER)
+            .firstAsMap()[Key.ORG_RETTIGHETER]
+            ?.fromJson(String.serializer().set()) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+
+        aktiveOrgnrMeldinger
+            .filter(Key.ARBEIDSFORHOLD)
+            .firstAsMap()[Key.ARBEIDSFORHOLD]
+            ?.fromJson(Arbeidsforhold.serializer().list()) shouldBe emptyList()
     }
 
     private object Mock {
@@ -115,7 +165,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val clientId = randomUuid()
 
         val arbeidsforholdListe = listOf(
-            Arbeidsforhold(
+            AAregArbeidsforhold(
                 arbeidsgiver = Arbeidsgiver(
                     type = "Underenhet",
                     organisasjonsnummer = "810007842"
@@ -163,5 +213,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                     orgnrHovedenhet = "810007702"
                 )
             )
+
+        val underenheter = listOf("810007842")
     }
 }

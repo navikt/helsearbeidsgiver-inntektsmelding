@@ -4,14 +4,16 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -106,16 +108,14 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
     }
 
     override fun terminate(fail: Fail) {
-        val transaksjonId = fail.uuid!!.let(UUID::fromString)
-
-        val clientId = redisStore.get(RedisKey.of(transaksjonId, event))
+        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
             ?.let(UUID::fromString)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonId)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
-                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespørselId}")
+                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
             }
         } else {
             redisStore.set(RedisKey.of(clientId), fail.feilmelding)
@@ -123,8 +123,9 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
     }
 
     override fun onError(feil: Fail): Transaction {
-        if (feil.behov == BehovType.FULLT_NAVN) {
-            val fulltNavnKey = RedisKey.of(feil.uuid!!.let(UUID::fromString), Key.ARBEIDSTAKER_INFORMASJON)
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
+        if (utloesendeBehov == BehovType.FULLT_NAVN) {
+            val fulltNavnKey = RedisKey.of(feil.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
             redisStore.set(fulltNavnKey, PersonDato("Ukjent person", null, "").toJsonStr(PersonDato.serializer()))
             return Transaction.IN_PROGRESS
         }

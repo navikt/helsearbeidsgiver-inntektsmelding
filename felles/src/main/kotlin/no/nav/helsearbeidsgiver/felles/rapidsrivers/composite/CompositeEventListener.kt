@@ -1,20 +1,24 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.composite
 
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
-import no.nav.helsearbeidsgiver.felles.toFeilMessage
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
@@ -42,15 +46,18 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
             }
             Transaction.IN_PROGRESS -> dispatchBehov(packet, transaction)
             Transaction.FINALIZE -> finalize(packet)
-            Transaction.TERMINATE -> terminate(packet.toFeilMessage())
+            Transaction.TERMINATE -> terminate(packet[Key.FAIL.str].toString().fromJson(Fail.serializer()))
             Transaction.NOT_ACTIVE -> return
         }
     }
 
     fun determineTransactionState(message: JsonMessage): Transaction {
-        if (isFailMelding(message)) { // Returnerer INPROGRESS eller TERMINATE
-            sikkerLogger.error("Feilmelding er\n${message.toPretty()}")
-            return onError(message.toFeilMessage())
+        val json = message.toJson().parseJson()
+
+        val fail = toFailOrNull(json)
+        if (fail != null) {
+            sikkerLogger.error("Feilmelding er '${fail.feilmelding}'. Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
+            return onError(fail)
         }
 
         // event bør ikke ha UUID men dette er ikke konsistent akkuratt nå så midlertidig blir det sånn til vi får det konsistent.
@@ -84,15 +91,12 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
         }
     }
 
-    fun isFailMelding(jsonMessage: JsonMessage): Boolean { // TODO: Denne funker bare for felles.Fail-objektet
-        return try {
-            !(jsonMessage[Key.FAIL.str].isNull || jsonMessage[Key.FAIL.str].isEmpty)
-        } catch (e: NoSuchFieldError) {
-            false
-        } catch (e: IllegalArgumentException) {
-            false
-        }
-    }
+    fun toFailOrNull(json: JsonElement): Fail? =
+        json.toMap()[Key.FAIL]
+            ?.runCatching {
+                fromJson(Fail.serializer())
+            }
+            ?.getOrNull()
 
     fun isEventMelding(jsonMessage: JsonMessage): Boolean {
         return try {

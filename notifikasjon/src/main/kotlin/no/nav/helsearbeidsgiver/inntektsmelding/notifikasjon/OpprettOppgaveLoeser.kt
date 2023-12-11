@@ -7,9 +7,17 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNyOppgaveException
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
+import java.util.UUID
 
 class OpprettOppgaveLoeser(
     rapidsConnection: RapidsConnection,
@@ -26,17 +34,34 @@ class OpprettOppgaveLoeser(
         }
 
     override fun onBehov(behov: Behov) {
+        val utloesendeMelding = behov.jsonMessage.toJson().parseJson()
         val forespoerselId = behov.forespoerselId
+        val transaksjonId = utloesendeMelding.toMap()[Key.UUID]
+            ?.fromJson(UuidSerializer)
+            .let {
+                if (it != null) {
+                    it
+                } else {
+                    val nyTransaksjonId = UUID.randomUUID()
+
+                    sikkerLogger.error(
+                        "Mangler transaksjonId i ${simpleName()}. Erstatter med ny, tilfeldig UUID '$nyTransaksjonId'." +
+                            "\n${utloesendeMelding.toPretty()}"
+                    )
+
+                    nyTransaksjonId
+                }
+            }
+
         if (forespoerselId.isNullOrBlank()) {
-            val feil = no.nav.helsearbeidsgiver.felles.Fail(
-                eventName = behov.event,
-                behov = behov.behov,
+            val fail = Fail(
                 feilmelding = "Mangler forespørselId",
-                data = null,
-                uuid = behov.uuid(),
-                forespørselId = forespoerselId
-            ).toJsonMessage().toJson()
-            rapidsConnection.publish(feil)
+                event = behov.event,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding = utloesendeMelding
+            )
+            publishFail(fail)
             return
         }
         val oppgaveId = opprettOppgave(
@@ -45,15 +70,14 @@ class OpprettOppgaveLoeser(
             behov[Key.VIRKSOMHET].asText()
         )
         if (oppgaveId.isNullOrBlank()) {
-            val feil = no.nav.helsearbeidsgiver.felles.Fail(
-                eventName = behov.event,
-                behov = behov.behov,
+            val fail = Fail(
                 feilmelding = "Feilet ved opprett oppgave",
-                data = null,
-                uuid = behov.uuid(),
-                forespørselId = forespoerselId
-            ).toJsonMessage().toJson()
-            rapidsConnection.publish(feil)
+                event = behov.event,
+                transaksjonId = transaksjonId,
+                forespoerselId = forespoerselId.let(UUID::fromString),
+                utloesendeMelding = utloesendeMelding
+            )
+            publishFail(fail)
             return
         }
 

@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Inntekt
@@ -14,12 +13,15 @@ import no.nav.helsearbeidsgiver.felles.InntektData
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -173,21 +175,19 @@ class InntektService(
     }
 
     override fun terminate(fail: Fail) {
-        val transaksjonId = fail.uuid.let(UUID::fromString)
-
-        val clientId = RedisKey.of(transaksjonId, event)
+        val clientId = RedisKey.of(fail.transaksjonId, event)
             .read()
             ?.let(UUID::fromString)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonId)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
-                sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
-                logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon $transaksjonId i Redis")
+                sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
+                logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
             }
         } else {
-            val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
+            val feil = RedisKey.of(fail.transaksjonId, Feilmelding("")).read()
 
             val feilResponse = InntektData(
                 feil = feil?.fromJson(FeilReport.serializer())
@@ -198,7 +198,7 @@ class InntektService(
 
             MdcUtils.withLogFields(
                 Log.clientId(clientId),
-                Log.transaksjonId(transaksjonId)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
                 sikkerLogger.error("$event terminert.")
             }
@@ -206,10 +206,9 @@ class InntektService(
     }
 
     override fun onError(feil: Fail): Transaction {
-        val transaksjonId = feil.uuid?.let(UUID::fromString)
-            ?: throw IllegalStateException("Feil mangler transaksjon-ID.")
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
 
-        val (feilmelding, transaction) = when (feil.behov) {
+        val (feilmelding, transaction) = when (utloesendeBehov) {
             BehovType.HENT_TRENGER_IM -> {
                 val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, Key.FORESPOERSEL_SVAR)
 
@@ -222,7 +221,7 @@ class InntektService(
                     datafelt = Key.INNTEKT
                 )
 
-                RedisKey.of(transaksjonId, Key.INNTEKT).write(JsonObject(emptyMap()))
+                RedisKey.of(feil.transaksjonId, Key.INNTEKT).write(JsonObject(emptyMap()))
 
                 feilmelding to null
             }
@@ -233,7 +232,7 @@ class InntektService(
         if (feilmelding != null) {
             sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
 
-            val feilKey = RedisKey.of(transaksjonId, feilmelding)
+            val feilKey = RedisKey.of(feil.transaksjonId, feilmelding)
 
             val feilReport = feilKey.read()
                 ?.fromJson(FeilReport.serializer())

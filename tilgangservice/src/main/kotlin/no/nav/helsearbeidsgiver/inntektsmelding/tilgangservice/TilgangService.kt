@@ -5,19 +5,21 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
@@ -175,13 +177,11 @@ class TilgangService(
     }
 
     override fun terminate(fail: Fail) {
-        val transaksjonId = fail.uuid!!.let(UUID::fromString)
-
-        val clientId = RedisKey.of(transaksjonId, event)
+        val clientId = RedisKey.of(fail.transaksjonId, event)
             .read()
             ?.let(UUID::fromString)
 
-        val feil = RedisKey.of(transaksjonId, Feilmelding(""))
+        val feil = RedisKey.of(fail.transaksjonId, Feilmelding(""))
             .read()
 
         val feilResponse = TilgangData(
@@ -190,13 +190,13 @@ class TilgangService(
             .toJson(TilgangData.serializer())
 
         if (clientId == null) {
-            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne $transaksjonId i redis!")
+            sikkerLogger.error("$event forsøkt terminert, kunne ikke finne ${fail.transaksjonId} i redis!")
         } else {
             RedisKey.of(clientId).write(feilResponse)
 
             MdcUtils.withLogFields(
                 Log.clientId(clientId),
-                Log.transaksjonId(transaksjonId)
+                Log.transaksjonId(fail.transaksjonId)
             ) {
                 sikkerLogger.error("$event terminert.")
             }
@@ -204,10 +204,9 @@ class TilgangService(
     }
 
     override fun onError(feil: Fail): Transaction {
-        val transaksjonId = feil.uuid?.let(UUID::fromString)
-            ?: throw IllegalStateException("Feil mangler transaksjon-ID.")
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
 
-        val manglendeDatafelt = when (feil.behov) {
+        val manglendeDatafelt = when (utloesendeBehov) {
             BehovType.HENT_IM_ORGNR -> Key.ORGNRUNDERENHET
             BehovType.TILGANGSKONTROLL -> Key.TILGANG
             else -> null
@@ -218,7 +217,7 @@ class TilgangService(
 
             sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
 
-            val feilKey = RedisKey.of(transaksjonId, feilmelding)
+            val feilKey = RedisKey.of(feil.transaksjonId, feilmelding)
 
             val feilReport = feilKey.read()
                 ?.fromJson(FeilReport.serializer())

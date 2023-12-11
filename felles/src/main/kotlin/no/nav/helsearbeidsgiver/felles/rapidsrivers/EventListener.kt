@@ -5,9 +5,8 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -55,20 +54,8 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             sikkerLogger.warn("Mangler forespørselId!")
         }
         forespørselId = packet[Key.FORESPOERSEL_ID.str].asText()
-        val event = Event.create(packet)
         onEvent(packet)
-        onEvent(event)
     }
 
     abstract fun onEvent(packet: JsonMessage)
-
-    open fun onEvent(event: Event) {
-    }
-
-    fun publishFail(fail: Fail) {
-        rapidsConnection.publish(fail.toJsonMessage().toJson())
-    }
-    fun publishFail(fail: no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail) {
-        rapidsConnection.publish(fail.jsonMessage.toJson())
-    }
 }

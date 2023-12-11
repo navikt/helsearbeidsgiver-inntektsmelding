@@ -1,10 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntektservice
 
+import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangService
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,15 +28,19 @@ class TilgangServiceTest {
 
         val service = TilgangService(testRapid, mockRedis.store)
         val feil = Fail(
-            eventName = EventName.TILGANG_REQUESTED,
-            behov = BehovType.TILGANGSKONTROLL,
             feilmelding = "ikkeno",
-            data = null,
-            uuid = UUID.randomUUID().toString(),
-            forespørselId = null
+            event = EventName.TILGANG_REQUESTED,
+            transaksjonId = UUID.randomUUID(),
+            forespoerselId = null,
+            utloesendeMelding = JsonObject(
+                mapOf(
+                    Key.BEHOV.str to BehovType.TILGANGSKONTROLL.toJson()
+                )
+            )
         )
         val transaction = service.onError(feil)
         assertEquals(Transaction.TERMINATE, transaction)
+
         service.terminate(feil)
     }
 }

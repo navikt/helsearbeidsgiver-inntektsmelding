@@ -52,7 +52,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
         )
 
-        Thread.sleep(15000)
+        Thread.sleep(10000)
 
         redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
 
@@ -113,7 +113,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.FNR to Mock.FNR.toJson(),
             Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
         )
-        Thread.sleep(15000)
+        Thread.sleep(10000)
         redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.FEILTET_AKTIVE_ORGNR_RESPONSE
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 

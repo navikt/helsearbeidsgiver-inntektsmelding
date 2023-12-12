@@ -41,7 +41,7 @@ jobs:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Archive build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-artifacts
           path: build/libs/
@@ -62,7 +62,7 @@ jobs:
         id: set-matrix
         run: |
           TESTS=$(find ./integrasjonstest/ -name "*IT.kt" -exec basename {} .kt \; | jq -R -s -c 'split("\n")[:-1]' | jq -c '{"test": .}')
-          echo "::set-output name=matrix::${TESTS}"
+          echo "matrix=${TESTS}" >> $GITHUB_ENV
 
   test:
     needs: [build, generate-matrix]

@@ -62,7 +62,7 @@ jobs:
         id: set-matrix
         run: |
           TESTS=$(find ./integrasjonstest/ -name "*IT.kt" -exec basename {} .kt \; | jq -R -s -c 'split("\n")[:-1]' | jq -c '{"test": .}')
-          echo "matrix=${TESTS}" >> $GITHUB_ENV
+          echo "::set-output name=matrix::${TESTS}"
 
   test:
     needs: [build, generate-matrix]

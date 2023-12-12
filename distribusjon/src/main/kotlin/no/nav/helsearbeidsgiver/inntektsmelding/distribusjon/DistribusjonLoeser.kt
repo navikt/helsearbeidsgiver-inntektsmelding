@@ -10,10 +10,9 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishEvent
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -63,16 +62,13 @@ class DistribusjonLoeser(
             logger.info("Distribuerte eksternt for journalpostId: $journalpostId")
             sikkerLogger.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalførtJson")
 
-            Event.create(
-                EventName.INNTEKTSMELDING_DISTRIBUERT,
-                behov.forespoerselId!!,
-                mapOf(
-                    Key.JOURNALPOST_ID to journalpostId,
-                    Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()).toJsonNode()
-                )
-            ).also {
-                publishEvent(it)
-            }
+            rapidsConnection.publishEvent(
+                eventName = EventName.INNTEKTSMELDING_DISTRIBUERT,
+                transaksjonId = null,
+                forespoerselId = null,
+                Key.JOURNALPOST_ID to journalpostId.toJson(),
+                Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer())
+            )
 
             logger.info("Distribuerte inntektsmelding for journalpostId: $journalpostId")
         } catch (e: DeserialiseringException) {

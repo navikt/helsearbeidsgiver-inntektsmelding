@@ -62,7 +62,7 @@ jobs:
         id: set-matrix
         run: |
           TESTS=$(find ./integrasjonstest/ -name "*IT.kt" -exec basename {} .kt \; | jq -R -s -c 'split("\n")[:-1]' | jq -c '{"test": .}')
-          echo "::set-output name=matrix::${TESTS}"
+          echo "matrix=${TESTS}" >> $GITHUB_OUTPUT
 
   integrasjonstest:
     needs: [build, generate-matrix]
@@ -90,27 +90,3 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 
-  test:
-    needs: [build]
-    runs-on: ubuntu-latest-8-cores
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: temurin
-          cache: gradle
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: build-artifacts
-          path: build/libs/
-
-      - name: Unit tests
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: test --tests --parallel --build-cache '*Test' jacocoTestReport
-        env:
-          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
@@ -36,7 +37,7 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val json = packet.toJson().parseJson().toMap()
 
-        if (json[Key.FORESPOERSEL_ID]?.fromJson(String.serializer()).isNullOrEmpty()) {
+        if (Key.FORESPOERSEL_ID.lesOrNull(String.serializer(), json).isNullOrEmpty()) {
             logger.warn("Mangler forespørselId!")
             sikkerLogger.warn("Mangler forespørselId!")
         }
@@ -52,9 +53,9 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
     }
 
     fun determineTransactionState(json: Map<IKey, JsonElement>): Transaction {
-        val transactionId = json[Key.UUID]?.fromJson(UuidSerializer)
+        val transaksjonId = json[Key.UUID]?.fromJson(UuidSerializer)
 
-        if (transactionId == null) {
+        if (transaksjonId == null) {
             "Melding mangler transaksjon-ID. Ignorerer melding.".also {
                 logger.error(it)
                 sikkerLogger.error(it)
@@ -63,7 +64,7 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
         }
 
         MdcUtils.withLogFields(
-            Log.transaksjonId(transactionId)
+            Log.transaksjonId(transaksjonId)
         ) {
             val fail = toFailOrNull(json)
             if (fail != null) {
@@ -71,8 +72,8 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
                 return onError(fail)
             }
 
-            val clientIdLagreKey = RedisKey.of(transactionId, event)
-            val lagretClientId = redisStore.get(clientIdLagreKey)
+            val clientIdRedisKey = RedisKey.of(transaksjonId, event)
+            val lagretClientId = redisStore.get(clientIdRedisKey)
 
             return when {
                 lagretClientId.isNullOrEmpty() -> {
@@ -84,25 +85,25 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
                         Transaction.NOT_ACTIVE
                     } else {
                         val clientId = json[Key.CLIENT_ID]?.fromJson(UuidSerializer)
-                            .let { transaksjonId ->
-                                if (transaksjonId != null) {
-                                    transaksjonId
+                            .let { clientId ->
+                                if (clientId != null) {
+                                    clientId
                                 } else {
                                     "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
                                         logger.error(it)
                                         sikkerLogger.error(it)
                                     }
-                                    transactionId
+                                    transaksjonId
                                 }
                             }
 
-                        redisStore.set(clientIdLagreKey, clientId.toString())
+                        redisStore.set(clientIdRedisKey, clientId.toString())
 
                         Transaction.NEW
                     }
                 }
 
-                isDataCollected(transactionId) -> Transaction.FINALIZE
+                isDataCollected(transaksjonId) -> Transaction.FINALIZE
                 else -> Transaction.IN_PROGRESS
             }
         }

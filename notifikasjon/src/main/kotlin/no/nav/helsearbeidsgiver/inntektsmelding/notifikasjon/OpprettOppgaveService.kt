@@ -120,7 +120,7 @@ class OpprettOppgaveService(
         ) {
             val orgnr = redisStore.get(RedisKey.of(transaksjonsId, Key.ORGNRUNDERENHET))
             if (orgnr == null) {
-                "Mangler orgnr i redis. Klarer ikke publisere event om opprettet oppgave.".also {
+                "Mangler orgnr i redis. Klarer ikke opprette oppgave.".also {
                     logger.error(it)
                     sikkerLogger.error(it)
                 }

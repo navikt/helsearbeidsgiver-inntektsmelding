@@ -18,11 +18,19 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class OpprettSakService(private val rapidsConnection: RapidsConnection, override val redisStore: RedisStore) : CompositeEventListener(redisStore) {
+
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
     override val event: EventName = EventName.SAK_OPPRETT_REQUESTED
 
     init {
@@ -47,8 +55,28 @@ class OpprettSakService(private val rapidsConnection: RapidsConnection, override
         withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
     }
     override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
-        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
-        val forespoerselId = redisStore.get(RedisKey.of(transaksjonsId, Key.FORESPOERSEL_ID))!!
+        val json = message.toJson().parseJson().toMap()
+
+        val transaksjonsId = json[Key.UUID]?.fromJson(UuidSerializer)
+        if (transaksjonsId == null) {
+            "Mangler transaksjonId. Klarer ikke opprette sak.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+            return
+        }
+
+        val forespoerselId = redisStore.get(RedisKey.of(transaksjonsId, Key.FORESPOERSEL_ID))?.let(UUID::fromString)
+            ?: json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
+
+        if (forespoerselId == null) {
+            "Mangler forespoerselId. Klarer ikke opprette sak.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+            return
+        }
+
         if (transaction == Transaction.NEW) {
             rapidsConnection.publish(
                 JsonMessage.newMessage(

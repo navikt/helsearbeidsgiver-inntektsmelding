@@ -40,29 +40,6 @@ class Behov(
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
-
-        fun create(
-            event: EventName,
-            behov: BehovType,
-            forespoerselId: String,
-            map: Map<Key, Any> = emptyMap(),
-            packetValidation: River.PacketValidation = River.PacketValidation { }
-        ): Behov {
-            return Behov(
-                event = event,
-                behov = behov,
-                forespoerselId = forespoerselId,
-                jsonMessage = JsonMessage.newMessage(
-                    event.name,
-                    mapOf(
-                        Key.BEHOV.str to behov.name,
-                        Key.FORESPOERSEL_ID.str to forespoerselId
-                    ) + map.mapKeys { it.key.str }
-                )
-            ).also {
-                packetValidation.validate(it.jsonMessage)
-            }
-        }
     }
 
     operator fun get(key: Key): JsonNode = jsonMessage[key.str]

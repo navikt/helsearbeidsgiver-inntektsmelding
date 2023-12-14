@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -13,6 +14,9 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -60,50 +64,65 @@ class NotifikasjonHentIdLoeser(
     private fun loesBehov(behov: Behov) {
         logger.info("Mottok melding med behov '${BehovType.NOTIFIKASJON_HENT_ID}'.")
 
-        MdcUtils.withLogFields(
-            Log.forespoerselId(UUID.fromString(behov.forespoerselId))
-        ) {
-            hentNotifikasjonId(
-                behov
-            )
+        val json = behov.jsonMessage.toJson().parseJson()
+
+        val transaksjonId = json.toMap()[Key.UUID]?.fromJson(UuidSerializer)
+        val forespoerselId = behov.forespoerselId?.let(UUID::fromString)
+
+        if (transaksjonId != null && forespoerselId != null) {
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId),
+                Log.forespoerselId(forespoerselId)
+            ) {
+                hentNotifikasjonId(transaksjonId, forespoerselId)
+            }
+        } else {
+            "Mangler transaksjonId og/eller forespoerselId.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
         }
     }
 
-    private fun hentNotifikasjonId(behov: Behov) {
-        val sakId = forespoerselRepo.hentSakId(behov.forespoerselId!!)
+    private fun hentNotifikasjonId(transaksjonId: UUID, forespoerselId: UUID) {
+        val sakId = forespoerselRepo.hentSakId(forespoerselId)
         "Fant sakId '$sakId'.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
 
-        val oppgaveId = forespoerselRepo.hentOppgaveId(behov.forespoerselId!!)
+        val oppgaveId = forespoerselRepo.hentOppgaveId(forespoerselId)
         "Fant oppgaveId '$oppgaveId'.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
 
-        if (sakId != null && oppgaveId != null) {
+        if (sakId != null) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.SAK_ID to sakId.toJson(),
-                Key.OPPGAVE_ID to oppgaveId.toJson(),
-                Key.FORESPOERSEL_ID to behov.forespoerselId!!.toJson(),
-                Key.UUID to behov[Key.UUID].asText().toJson()
-            )
-        } else if (oppgaveId != null) {
-            logger.warn("Fant ikke sakId, ferdigstiller kun oppgave for ${behov.forespoerselId}!")
-            rapid.publish(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.OPPGAVE_ID to oppgaveId.toJson(),
-                Key.FORESPOERSEL_ID to behov.forespoerselId!!.toJson(),
-                Key.UUID to behov[Key.UUID].asText().toJson()
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.SAK_ID to sakId.toJson()
             )
         } else {
-            "Klarte ikke hente notifikasjons-ID-er. Begge er 'null'.".also {
+            "Fant ikke sakId.".also {
                 logger.error(it)
                 sikkerLogger.error(it)
             }
-            // publishBehov(behov)
+        }
+
+        if (oppgaveId != null) {
+            rapid.publish(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.OPPGAVE_ID to oppgaveId.toJson()
+            )
+        } else {
+            "Fant ikke oppgaveId.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
         }
     }
 }

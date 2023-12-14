@@ -43,11 +43,11 @@ class ForespoerselRepository(private val db: Database) {
         }
     }
 
-    fun hentOppgaveId(forespoerselId: String): String? {
+    fun hentOppgaveId(forespoerselId: UUID): String? {
         val requestTimer = requestLatency.labels("hentOppgaveId").startTimer()
         return transaction(db) {
-            ForespoerselEntitet.let {
-                it.select { (it.forespoerselId eq forespoerselId) }
+            ForespoerselEntitet.select {
+                ForespoerselEntitet.forespoerselId eq forespoerselId.toString()
             }
                 .firstOrNull(ForespoerselEntitet.oppgaveId)
         }.also {
@@ -55,11 +55,11 @@ class ForespoerselRepository(private val db: Database) {
         }
     }
 
-    fun hentSakId(forespoerselId: String): String? {
+    fun hentSakId(forespoerselId: UUID): String? {
         val requestTimer = requestLatency.labels("hentSakId").startTimer()
         return transaction(db) {
-            ForespoerselEntitet.let {
-                it.select { (it.forespoerselId eq forespoerselId) }
+            ForespoerselEntitet.select {
+                ForespoerselEntitet.forespoerselId eq forespoerselId.toString()
             }
                 .firstOrNull(ForespoerselEntitet.sakId)
         }.also {

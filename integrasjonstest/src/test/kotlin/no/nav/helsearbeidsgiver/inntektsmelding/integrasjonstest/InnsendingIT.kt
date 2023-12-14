@@ -188,11 +188,17 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.FORESPOERSEL_BESVART)
             .filter(Key.SAK_ID, utenDataKey = true)
-            .filter(Key.OPPGAVE_ID, utenDataKey = true)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+            }
+
+        messages.filter(EventName.FORESPOERSEL_BESVART)
+            .filter(Key.OPPGAVE_ID, utenDataKey = true)
+            .firstAsMap()
+            .also {
+                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
 

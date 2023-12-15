@@ -89,11 +89,6 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             ?.fromJson(String.serializer().list()) shouldContainExactly Mock.underenheter
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.VIRKSOMHET)
-            .firstAsMap()[Key.ORGNRUNDERENHETER]
-            ?.fromJson(String.serializer().list()) shouldContainExactly Mock.underenheter
-
-        aktiveOrgnrMeldinger
             .filter(Key.VIRKSOMHETER)
             .firstAsMap()[Key.VIRKSOMHETER]
             ?.fromJson(

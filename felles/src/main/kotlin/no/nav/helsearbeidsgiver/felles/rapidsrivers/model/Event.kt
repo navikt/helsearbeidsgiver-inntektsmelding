@@ -23,7 +23,6 @@ class Event(
             it.rejectKey(Key.BEHOV.str)
             it.rejectKey(Key.DATA.str)
             it.rejectKey(Key.FAIL.str)
-            it.rejectKey(Key.LØSNING.str)
             // midlertidig, generelt det bør vare reject
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.CLIENT_ID.str)

@@ -15,13 +15,11 @@ enum class Key(override val str: String) : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
     EVENT_NAME("@event_name"),
     BEHOV("@behov"),
-    LØSNING("@løsning"),
     OPPRETTET("@opprettet"),
 
     // Egendefinerte
     IDENTITETSNUMMER("identitetsnummer"),
     ARBEIDSGIVER_ID("arbeidsgiverId"),
-    INITIATE_ID("initiateId"),
     UUID("uuid"),
     CLIENT_ID("client_id"),
     FORESPOERSEL_ID("forespoerselId"),

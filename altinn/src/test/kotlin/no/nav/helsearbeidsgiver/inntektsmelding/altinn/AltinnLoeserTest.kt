@@ -8,6 +8,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
@@ -20,6 +21,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
@@ -39,15 +41,17 @@ class AltinnLoeserTest : FunSpec({
         coEvery { mockAltinnClient.hentRettighetOrganisasjoner(any()) } returns mockAltinnOrganisasjonSet()
 
         val mockId = "long-john-silver"
+        val mockUuid = randomUuid()
 
         val expectedPublished = mapOf<IKey, JsonElement>(
-            Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
             Key.DATA to "".toJson(),
-            Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().toJson(AltinnOrganisasjon.serializer().set())
+            Key.UUID to mockUuid.toJson(),
+            Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().mapNotNull { it.orgnr }.toSet().toJson(String.serializer().set())
         )
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+            Key.UUID to mockUuid.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
             Key.IDENTITETSNUMMER to mockId.toJson()
         )

@@ -17,6 +17,7 @@ import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
@@ -38,6 +39,7 @@ object Routes {
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
     const val KVITTERING = "/kvittering"
+    const val AKTIVEORGNR = "/aktiveorgnr"
 }
 
 fun main() {
@@ -97,6 +99,7 @@ fun Application.apiModule(rapid: RapidsConnection) {
                     innsendingRoute()
                     kvitteringRoute()
                 }
+                aktiveOrgnrRoute(rapid, redisPoller)
             }
         }
     }

@@ -34,6 +34,7 @@ dependencies {
     implementation(project(":tilgangservice"))
     implementation(project(":trengerservice"))
     implementation(project(":bro-spinn"))
+    implementation(project(":aktiveorgnrservice"))
 
     implementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
     implementation("no.nav.helsearbeidsgiver:altinn-client:$altinnClientVersion")
@@ -58,4 +59,5 @@ dependencies {
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:$testcontainersRedisJunitVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
+    testImplementation("no.nav.helsearbeidsgiver:aareg-client:$aaregClientVersion")
 }

@@ -10,9 +10,11 @@ import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
+import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -20,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
+import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
@@ -103,8 +106,9 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val spinnKlient = mockk<SpinnKlient>()
     val brregClient = mockk<BrregClient>(relaxed = true)
     val mockPriProducer = mockk<PriProducer>()
+    val aaregClient = mockk<AaregClient>(relaxed = true)
 
-    private val pdlKlient = mockk<PdlClient>()
+    val pdlKlient = mockk<PdlClient>()
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -132,6 +136,14 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             )
         )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
+        coEvery { brregClient.hentVirksomheter(any()) } answers {
+            firstArg<List<String>>().map { orgnr ->
+                Virksomhet(
+                    organisasjonsnummer = orgnr,
+                    navn = "Bedrift A/S"
+                )
+            }
+        }
         coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns "123456"
         coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any()) } returns "654321"
 
@@ -153,7 +165,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createTilgangService(redisStore)
             createTrengerService(redisStore)
 
-            createAareg(mockk(relaxed = true))
+            createAareg(aaregClient)
             createAltinn(altinnClient)
             createBrreg(brregClient, false)
             createDb(database, imRepository, forespoerselRepository)
@@ -169,6 +181,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createPdl(pdlKlient)
             createEksternInntektsmeldingLoeser(spinnKlient)
             createSpinnService(redisStore)
+            createAktiveOrgnrService(redisStore)
         }
             .register(this)
 

@@ -7,10 +7,12 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
+import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -25,6 +27,12 @@ class VirksomhetLoeser(
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
+    private val preprodOrgnr = mapOf(
+        "810007702" to "ANSTENDIG PIGGSVIN BYDEL",
+        "810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE",
+        "810008032" to "ANSTENDIG PIGGSVIN BRANNVESEN",
+        "810007982" to "ANSTENDIG PIGGSVIN SYKEHJEM"
+    )
 
     private val BEHOV = BehovType.VIRKSOMHET
     private val requestLatency = Summary.build()
@@ -32,27 +40,22 @@ class VirksomhetLoeser(
         .help("brreg hent virksomhet latency in seconds")
         .register()
 
-    private fun hentVirksomhet(orgnr: String): String {
-        if (isPreProd) {
-            when (orgnr) {
-                "810007702" -> return "ANSTENDIG PIGGSVIN BYDEL"
-                "810007842" -> return "ANSTENDIG PIGGSVIN BARNEHAGE"
-                "810008032" -> return "ANSTENDIG PIGGSVIN BRANNVESEN"
-                "810007982" -> return "ANSTENDIG PIGGSVIN SYKEHJEM"
+    private fun hentVirksomheter(orgnrListe: List<String>): List<Virksomhet> {
+        return if (isPreProd) {
+            orgnrListe.map { orgnr -> Virksomhet(preprodOrgnr.getOrDefault(orgnr, "Ukjent arbeidsgiver"), orgnr) }
+        } else {
+            runBlocking {
+                val virksomheterNavn: List<Virksomhet>
+                val requestTimer = requestLatency.startTimer()
+                measureTimeMillis {
+                    virksomheterNavn = brregClient.hentVirksomheter(orgnrListe)
+                }.also {
+                    logger.info("BREG execution took $it")
+                    requestTimer.observeDuration()
+                }
+                virksomheterNavn.ifEmpty { throw FantIkkeVirksomhetException(orgnrListe.toString()) }
             }
-            return "Ukjent arbeidsgiver"
         }
-        return runBlocking {
-            val virksomhetNav: String?
-            val requestTimer = requestLatency.startTimer()
-            measureTimeMillis {
-                virksomhetNav = brregClient.hentVirksomhetNavn(orgnr)
-            }.also {
-                logger.info("BREG execution took $it")
-                requestTimer.observeDuration()
-            }
-            virksomhetNav
-        } ?: throw FantIkkeVirksomhetException(orgnr)
     }
 
     override fun accept(): River.PacketValidation =
@@ -61,18 +64,39 @@ class VirksomhetLoeser(
                 Key.BEHOV to BEHOV.name
             )
             it.requireKeys(
-                Key.ORGNRUNDERENHET,
                 Key.UUID
+            )
+            it.interestedIn(
+                Key.ORGNRUNDERENHET,
+                Key.ORGNRUNDERENHETER
             )
         }
 
     override fun onBehov(behov: Behov) {
         logger.info("Løser behov $BEHOV med uuid ${behov.uuid()}")
-        val orgnr = behov[Key.ORGNRUNDERENHET].asText()
+        val orgnr: List<String> =
+            if (behov[Key.ORGNRUNDERENHETER].isEmpty) {
+                listOf(
+                    behov[Key.ORGNRUNDERENHET]
+                        .asText()
+                )
+            } else {
+                behov[Key.ORGNRUNDERENHETER]
+                    .map { it.asText() }
+            }
         try {
-            val navn = hentVirksomhet(orgnr)
-            logger.info("Fant $navn for $orgnr")
-            publishData(behov.createData(mapOf(Key.VIRKSOMHET to navn)))
+            val navnListe: Map<String, String> =
+                hentVirksomheter(orgnr)
+                    .associate { it.organisasjonsnummer to it.navn }
+
+            publishData(
+                behov.createData(
+                    mapOf(
+                        Key.VIRKSOMHET to navnListe.values.first(),
+                        Key.VIRKSOMHETER to navnListe
+                    )
+                )
+            )
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")
             publishFail(behov.createFail("Fant ikke virksomhet"))

@@ -3,14 +3,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.verify
-import no.nav.helse.rapids_rivers.JsonMessage
+import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
@@ -41,43 +40,41 @@ class OpprettSakServiceTest {
 
     @Test
     fun `OpprettSak skal håndtere feil`() {
-        val uuid = UUID.randomUUID()
-        val foresporselId = UUID.randomUUID()
-        val message = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.SAK_OPPRETT_REQUESTED.name,
-                Key.CLIENT_ID.str to UUID.randomUUID(),
-                Key.ORGNRUNDERENHET.str to "123456",
-                Key.IDENTITETSNUMMER.str to "123456789",
-                Key.FORESPOERSEL_ID.str to foresporselId
-            )
-        )
+        val transaksjonId: UUID = UUID.randomUUID()
+        val foresporselId: UUID = UUID.randomUUID()
 
         mockStatic(::randomUuid) {
-            every { randomUuid() } returns uuid
+            every { randomUuid() } returns transaksjonId
 
-            testRapid.sendTestMessage(
-                message.toJson()
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.name.toJson(),
+                Key.CLIENT_ID to UUID.randomUUID().toJson(),
+                Key.FORESPOERSEL_ID to foresporselId.toJson(),
+                Key.ORGNRUNDERENHET to "123456".toJson(),
+                Key.IDENTITETSNUMMER to "123456789".toJson()
             )
         }
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson(),
-            Key.UUID to uuid.toJson(),
-            Key.FAIL to Behov.create(
+            Key.FAIL to Fail(
+                feilmelding = "Klarte ikke hente navn",
                 event = EventName.SAK_OPPRETT_REQUESTED,
-                behov = BehovType.FULLT_NAVN,
-                forespoerselId = foresporselId.toString(),
-                map = mapOf(Key.UUID to uuid)
-            )
-                .createFail("Klarte ikke hente navn")
-                .toJson(Fail.serializer())
+                transaksjonId = transaksjonId,
+                forespoerselId = foresporselId,
+                utloesendeMelding = JsonObject(
+                    mapOf(
+                        Key.BEHOV.str to BehovType.FULLT_NAVN.toJson()
+                    )
+                )
+            ).toJson(Fail.serializer()),
+            Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to foresporselId.toJson()
         )
 
         verify {
             mockRedis.store.set(
-                RedisKey.of(uuid, Key.ARBEIDSTAKER_INFORMASJON),
+                RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON),
                 PersonDato("Ukjent person", null, "").toJsonStr(PersonDato.serializer())
             )
         }

@@ -1,6 +1,5 @@
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -10,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Data
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
@@ -127,17 +125,14 @@ class DummyLoeser(
                 Key.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer())
             )
             BehovType.ARBEIDSFORHOLD -> mapOf(
-                Key.ARBEIDSFORHOLD to JsonObject(
-                    mapOf(
-                        Data<Unit>::t.name to listOf(
-                            Arbeidsforhold(
-                                Arbeidsgiver("A/S", orgnr),
-                                Ansettelsesperiode(PeriodeNullable(1.januar, 31.januar)),
-                                LocalDateTime.now()
-                            )
-                        ).toJson(Arbeidsforhold.serializer())
-                    )
-                )
+                Key.ARBEIDSFORHOLD to
+                    listOf(
+                        Arbeidsforhold(
+                            Arbeidsgiver("A/S", orgnr),
+                            Ansettelsesperiode(PeriodeNullable(1.januar, 31.januar)),
+                            LocalDateTime.now()
+                        )
+                    ).toJson(Arbeidsforhold.serializer())
             )
             else -> error("Ukjent behov, ingen dummy-løsning!")
         }

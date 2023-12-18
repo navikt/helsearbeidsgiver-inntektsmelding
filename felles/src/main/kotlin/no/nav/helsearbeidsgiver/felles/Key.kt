@@ -1,9 +1,6 @@
 package no.nav.helsearbeidsgiver.felles
 
-import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.Serializable
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 
 interface IKey {
@@ -66,15 +63,6 @@ enum class Key(override val str: String) : IKey {
                 ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$json'.")
     }
 }
-
-fun JsonMessage.value(key: Key): JsonNode =
-    this[key.str]
-
-fun JsonMessage.valueNullable(key: Key): JsonNode? =
-    value(key).takeUnless(JsonNode::isMissingOrNull)
-
-fun JsonMessage.valueNullableOrUndefined(key: Key): JsonNode? =
-    try { value(key).takeUnless(JsonNode::isMissingOrNull) } catch (e: IllegalArgumentException) { null }
 
 internal object KeySerializer : AsStringSerializer<Key>(
     serialName = "helsearbeidsgiver.kotlinx.felles.Key",

@@ -9,8 +9,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
-import no.nav.helsearbeidsgiver.felles.json.Jackson
-import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 
 class SpinnKlient(
     val url: String,
@@ -27,7 +25,7 @@ class SpinnKlient(
                 if (response.status != HttpStatusCode.OK) {
                     throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${response.status.value}")
                 }
-                Jackson.fromJson<Inntektsmelding>(response.bodyAsText())
+                Jackson.fromJson(response.bodyAsText())
             } catch (e: ClientRequestException) {
                 throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${e.response.status.value}", e)
             }

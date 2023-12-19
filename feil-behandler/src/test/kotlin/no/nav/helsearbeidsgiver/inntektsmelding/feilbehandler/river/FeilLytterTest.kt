@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -13,7 +14,7 @@ import java.util.UUID
 
 class FeilLytterTest : FunSpec({
 
-    val handler = FeilLytter.FeilHaandterer
+    val handler = FeilLytter(TestRapid())
 
     test("skal håndtere gyldige feil med spesifiserte behov") {
 

@@ -21,7 +21,7 @@ class FeilLytterTest : FunSpec({
     }
 
     test("skal ignorere gyldige feil med visse behov") {
-        val ignorerteBehov = BehovType.values().filterNot { handler.behovSomHaandteres.contains(it) }
+        val ignorerteBehov = BehovType.entries.filterNot { handler.behovSomHaandteres.contains(it) }
         ignorerteBehov.forEach { handler.skalHaandteres(lagGyldigFeil(it)) shouldBe false }
     }
 

@@ -69,7 +69,7 @@ class InntektService(
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID)
+        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID) // TODO: Endre til å lese fra packet
             .read()
             ?.let(UUID::fromString)
         if (forespoerselId == null) {
@@ -118,6 +118,7 @@ class InntektService(
                             Key.EVENT_NAME to event.toJson(),
                             Key.BEHOV to BehovType.INNTEKT.toJson(),
                             Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                             Key.FNR to forespoersel.fnr.toJson(),
                             Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
                             Key.UUID to transaksjonId.toJson()

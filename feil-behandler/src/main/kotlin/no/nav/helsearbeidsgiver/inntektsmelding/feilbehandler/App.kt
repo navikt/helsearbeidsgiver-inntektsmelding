@@ -25,10 +25,10 @@ fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
     logger.info("Migrering ferdig.")
     return RapidApplication
         .create(env)
-        .createDb(database)
+        .createFeilLytter(database)
 }
 
-fun RapidsConnection.createDb(database: Database): RapidsConnection =
+fun RapidsConnection.createFeilLytter(database: Database): RapidsConnection =
     also {
         registerDbLifecycle(database)
         FeilLytter(it)

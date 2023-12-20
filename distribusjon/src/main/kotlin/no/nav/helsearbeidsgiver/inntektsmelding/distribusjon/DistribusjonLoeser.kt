@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import java.util.UUID
 
 private const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
 
@@ -65,7 +66,7 @@ class DistribusjonLoeser(
             rapidsConnection.publishEvent(
                 eventName = EventName.INNTEKTSMELDING_DISTRIBUERT,
                 transaksjonId = null,
-                forespoerselId = null,
+                forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                 Key.JOURNALPOST_ID to journalpostId.toJson(),
                 Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer())
             )

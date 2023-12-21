@@ -90,8 +90,8 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
                                     clientId
                                 } else {
                                     "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
-                                        logger.error(it)
-                                        sikkerLogger.error(it)
+                                        logger.warn(it)
+                                        sikkerLogger.warn(it)
                                     }
                                     transaksjonId
                                 }

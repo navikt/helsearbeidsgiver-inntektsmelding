@@ -1,9 +1,7 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-feil-behandler.intern.dev.nav.no
-database: register
+database: im-error-recovery
 envFrom:
   - type: secret
     name: google-sql-im-feil-behandler
-env:

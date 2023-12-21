@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.config
 import com.zaxxer.hikari.HikariConfig
 import no.nav.helsearbeidsgiver.felles.fromEnv
 
-private const val prefix = "NAIS_DATABASE_IM_FEIL_BEHANDLER_REGISTER"
+private const val prefix = "NAIS_DATABASE_IM_FEIL_BEHANDLER_IM-ERROR-RECOVERY"
 
 data class DatabaseConfig(
     val host: String = "${prefix}_HOST".fromEnv(),

@@ -92,7 +92,7 @@ class LagreJournalpostIdLoeser(
                     mapOfNotNull(
                         Key.JOURNALPOST_ID to journalpostId,
                         Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode(),
-                        Key.SKAL_DISTRIBUERE to skalDistribuere.toJson(Boolean.serializer())
+                        Key.SKAL_DISTRIBUERE to skalDistribuere
                     )
                 )
                     .also { publishEvent(it) }

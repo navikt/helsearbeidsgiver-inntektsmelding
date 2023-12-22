@@ -81,8 +81,8 @@ abstract class CompositeEventListener : River.PacketListener {
                         val clientId = json[Key.CLIENT_ID]?.fromJson(UuidSerializer)
                             .orDefault {
                                 "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
-                                    logger.error(it)
-                                    sikkerLogger.error(it)
+                                    logger.warn(it)
+                                    sikkerLogger.warn(it)
                                 }
                                 transaksjonId
                             }

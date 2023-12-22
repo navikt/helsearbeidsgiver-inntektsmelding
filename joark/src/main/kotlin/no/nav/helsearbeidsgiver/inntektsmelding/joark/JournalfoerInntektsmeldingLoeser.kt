@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 import com.fasterxml.jackson.databind.JsonNode
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
@@ -12,11 +13,14 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -46,10 +50,14 @@ class JournalfoerInntektsmeldingLoeser(
             it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
             it.demandValue(Key.BEHOV.str, JOURNALFOER_BEHOV.name)
             it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
+            it.interestedIn(Key.SKAL_DISTRIBUERE.str)
         }
     }
 
     override fun onBehov(behov: Behov) {
+        val json = behov.jsonMessage.toJson().parseJson().toMap()
+        val skalDistribuere = json[Key.SKAL_DISTRIBUERE]?.fromJson(Boolean.serializer()).orDefault(true)
+
         logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid ${behov.uuid()}")
         var inntektsmelding: Inntektsmelding? = null
         try {
@@ -62,7 +70,8 @@ class JournalfoerInntektsmeldingLoeser(
                 BehovType.LAGRE_JOURNALPOST_ID,
                 mapOf(
                     Key.OPPRETTET to LocalDateTime.now(),
-                    Key.JOURNALPOST_ID to journalpostId
+                    Key.JOURNALPOST_ID to journalpostId,
+                    Key.SKAL_DISTRIBUERE to skalDistribuere
                 )
             )
                 .also { publishBehov(it) }

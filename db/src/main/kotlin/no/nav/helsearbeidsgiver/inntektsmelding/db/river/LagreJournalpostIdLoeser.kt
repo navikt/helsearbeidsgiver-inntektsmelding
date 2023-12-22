@@ -23,7 +23,6 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 class LagreJournalpostIdLoeser(
@@ -39,7 +38,6 @@ class LagreJournalpostIdLoeser(
             it.demandValue(Key.BEHOV.str, BehovType.LAGRE_JOURNALPOST_ID.name)
             it.requireKey(Key.UUID.str)
             it.requireKey(Key.JOURNALPOST_ID.str)
-            it.interestedIn(Key.SKAL_DISTRIBUERE.str)
         }
     }
 
@@ -57,7 +55,6 @@ class LagreJournalpostIdLoeser(
 
             val event = Key.EVENT_NAME.les(EventName.serializer(), melding)
             val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-            val skalDistribuere = Key.SKAL_DISTRIBUERE.lesOrNull(Boolean.serializer(), melding).orDefault(true)
 
             val forespoerselId = behov.forespoerselId!!.let(UUID::fromString)
 
@@ -67,12 +64,12 @@ class LagreJournalpostIdLoeser(
                 Log.forespoerselId(forespoerselId)
             ) {
                 val journalpostId = Key.JOURNALPOST_ID.lesOrNull(String.serializer(), melding)
-                lagreJournalpostId(behov, journalpostId, forespoerselId, transaksjonId, skalDistribuere)
+                lagreJournalpostId(behov, journalpostId, forespoerselId, transaksjonId)
             }
         }
     }
 
-    private fun lagreJournalpostId(behov: Behov, journalpostId: String?, forespoerselId: UUID, transaksjonId: UUID, skalDistribuere: Boolean) {
+    private fun lagreJournalpostId(behov: Behov, journalpostId: String?, forespoerselId: UUID, transaksjonId: UUID) {
         if (journalpostId.isNullOrBlank()) {
             logger.error("Fant ingen journalpost-ID.")
             sikkerLogger.error("Fant ingen journalpost-ID.")
@@ -91,8 +88,7 @@ class LagreJournalpostIdLoeser(
                     EventName.INNTEKTSMELDING_JOURNALFOERT,
                     mapOfNotNull(
                         Key.JOURNALPOST_ID to journalpostId,
-                        Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode(),
-                        Key.SKAL_DISTRIBUERE to skalDistribuere
+                        Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
                     )
                 )
                     .also { publishEvent(it) }

@@ -20,7 +20,6 @@ class JournalfoertListener(rapidsConnection: RapidsConnection) : EventListener(r
         return River.PacketValidation {
             it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
             it.requireKey(Key.JOURNALPOST_ID.str)
-            it.interestedIn(Key.SKAL_DISTRIBUERE.str)
         }
     }
 
@@ -28,21 +27,15 @@ class JournalfoertListener(rapidsConnection: RapidsConnection) : EventListener(r
         logger.info("Fikk event: ${EventName.INNTEKTSMELDING_JOURNALFOERT}")
         sikkerLogger.info("Fikk event: ${EventName.INNTEKTSMELDING_JOURNALFOERT} med pakke\n${packet.toPretty()}")
 
-        val skalDistribuere = packet[Key.SKAL_DISTRIBUERE.str].asBoolean(true)
-        if (skalDistribuere) {
-            val jsonMessage = JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
-                    Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
-                    Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
-                    Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
-                )
+        val jsonMessage = JsonMessage.newMessage(
+            mapOf(
+                Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,
+                Key.BEHOV.str to BehovType.DISTRIBUER_IM.name,
+                Key.JOURNALPOST_ID.str to packet[Key.JOURNALPOST_ID.str].asText(),
+                Key.INNTEKTSMELDING_DOKUMENT.str to packet[Key.INNTEKTSMELDING_DOKUMENT.str]
             )
-            publishBehov(jsonMessage)
-            logger.info("Publiserte behov om å distribuere inntektsmelding")
-        } else {
-            logger.info("Publiserte _ikke_ behov om å distribuere inntektsmelding pga. ${Key.SKAL_DISTRIBUERE.str}=false")
-            sikkerLogger.info("Publiserte _ikke_ behov om å distribuere inntektsmelding pga. ${Key.SKAL_DISTRIBUERE.str}=false")
-        }
+        )
+        publishBehov(jsonMessage)
+        logger.info("Publiserte behov om å distribuere inntektsmelding")
     }
 }

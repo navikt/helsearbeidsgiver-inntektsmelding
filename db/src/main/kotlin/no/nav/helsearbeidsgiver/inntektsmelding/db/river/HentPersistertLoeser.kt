@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding

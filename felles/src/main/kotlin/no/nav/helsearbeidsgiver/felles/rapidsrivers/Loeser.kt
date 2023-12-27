@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -7,6 +8,9 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.Companion.publish
@@ -59,17 +63,26 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding med behov '${packet[Key.BEHOV.str].asText()}'.")
-        if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
-            logger.warn("Mangler forespørselId!")
-            sikkerLogger.warn("Mangler forespørselId!")
-        }
+        val json = packet.toJson().parseJson().toMap()
+
+        logger.info("Mottok melding med behov '${json[Key.BEHOV]}'.")
         sikkerLogger.info("Mottok melding:\n${packet.toPretty()}")
+
+        val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(String.serializer(), json)
+
+        if (forespoerselId == null) {
+            logger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er 'null'.")
+            sikkerLogger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er 'null'.")
+        } else if (forespoerselId.isEmpty()) {
+            logger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er en tom streng.")
+            sikkerLogger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er en tom streng.")
+        }
+
         if (!packet[Key.BEHOV.str].isArray) {
             val behov = Behov(
-                EventName.valueOf(packet[Key.EVENT_NAME.str].asText()),
-                BehovType.valueOf(packet[Key.BEHOV.str].asText()),
-                packet[Key.FORESPOERSEL_ID.str].asText(),
+                Key.EVENT_NAME.les(EventName.serializer(), json),
+                Key.BEHOV.les(BehovType.serializer(), json),
+                forespoerselId?.takeIf { it.isNotEmpty() },
                 packet
             )
             onBehov(behov)

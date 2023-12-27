@@ -69,11 +69,15 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun oppdaterJournalpostId(journalpostId: String, forespoerselId: UUID) {
+    fun oppdaterJournalpostId(forespoerselId: UUID, journalpostId: String) {
         val requestTimer = requestLatency.labels("oppdaterJournalpostId").startTimer()
         transaction(db) {
             InntektsmeldingEntitet.update(
-                where = { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and (InntektsmeldingEntitet.journalpostId eq null) }
+                where = {
+                    (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and
+                        InntektsmeldingEntitet.dokument.isNotNull() and
+                        InntektsmeldingEntitet.journalpostId.isNull()
+                }
             ) {
                 it[InntektsmeldingEntitet.journalpostId] = journalpostId
             }

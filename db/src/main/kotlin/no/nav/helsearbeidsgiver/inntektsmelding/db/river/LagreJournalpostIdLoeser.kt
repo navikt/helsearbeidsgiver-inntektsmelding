@@ -80,7 +80,7 @@ class LagreJournalpostIdLoeser(
                 .also { publishFail(it) }
         } else {
             try {
-                repository.oppdaterJournalpostId(journalpostId, forespoerselId)
+                repository.oppdaterJournalpostId(forespoerselId, journalpostId)
 
                 logger.info("Lagret journalpost-ID $journalpostId i database.")
                 sikkerLogger.info("Lagret journalpost-ID $journalpostId i database.")

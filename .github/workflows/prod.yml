@@ -144,6 +144,8 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     needs: [generate_vars, build]
     if: needs.generate_vars.outputs.is_deploy_matrix_empty == 'false'
     strategy:
@@ -178,9 +180,8 @@ jobs:
 
       - name: Deploy
         if: env.IMAGE_EXISTS == 'true' && steps.confirm_config_file.outputs.files_exists == 'true'
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ matrix.cluster }}
           IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_PREFIX }}${{ matrix.project }}:${{ needs.generate_vars.outputs.short_sha }}
           RESOURCE: config/nais.yml

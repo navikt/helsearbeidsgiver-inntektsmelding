@@ -47,8 +47,7 @@ class HentPersistertLoeserTest {
         sendMelding(
             Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
-            Key.INITIATE_ID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
         val melding = hentMelding(0)
         assertTrue(melding.contains(Key.DATA.str))
@@ -66,8 +65,7 @@ class HentPersistertLoeserTest {
         sendMelding(
             Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
-            Key.INITIATE_ID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
         val melding = hentMelding(0)
         assertTrue(melding.contains(Key.DATA.str))
@@ -85,8 +83,7 @@ class HentPersistertLoeserTest {
         val fail = sendMeldingMedFeil(
             Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
-            Key.INITIATE_ID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
         assertNotNull(fail.feilmelding)
         assertEquals("Klarte ikke hente persistert inntektsmelding", fail.feilmelding)
@@ -100,8 +97,7 @@ class HentPersistertLoeserTest {
         sendMelding(
             Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
-            Key.INITIATE_ID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson()
         )
         val message = hentMelding(0)
         assertTrue(message.contains(Key.DATA.str))

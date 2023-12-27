@@ -37,7 +37,6 @@ class Behov(
             it.demandKey(Key.EVENT_NAME.str)
             it.demandKey(Key.BEHOV.str)
             it.rejectKey(Key.DATA.str)
-            it.rejectKey(Key.LØSNING.str)
             it.rejectKey(Key.FAIL.str)
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)

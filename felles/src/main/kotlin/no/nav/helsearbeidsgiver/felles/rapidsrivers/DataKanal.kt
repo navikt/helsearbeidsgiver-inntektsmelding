@@ -29,7 +29,6 @@ abstract class DataKanal(val rapidsConnection: RapidsConnection) : River.PacketL
             it.demandValue(Key.EVENT_NAME.str, eventName.name)
             it.demandKey(Key.DATA.str)
             it.rejectKey(Key.BEHOV.str)
-            it.rejectKey(Key.LØSNING.str)
             it.requireKey(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }

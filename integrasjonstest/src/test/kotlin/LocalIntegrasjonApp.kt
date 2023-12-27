@@ -64,7 +64,6 @@ class DummyLoeser(
         River(rapid).apply {
             validate { msg ->
                 msg.demandValues(Key.BEHOV to behov.name)
-                msg.rejectKey(Key.LØSNING.str)
                 msg.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }.register(this)

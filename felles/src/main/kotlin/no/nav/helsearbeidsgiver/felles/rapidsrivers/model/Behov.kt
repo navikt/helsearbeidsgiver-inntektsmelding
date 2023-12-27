@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 private val sikkerLogger = sikkerLogger()
@@ -30,6 +31,7 @@ class Behov(
         jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
         jsonMessage.demandValue(Key.BEHOV.str, behov.name)
     }
+
     companion object {
         val packetValidator = River.PacketValidation {
             it.demandKey(Key.EVENT_NAME.str)
@@ -68,15 +70,9 @@ class Behov(
             event = event,
             transaksjonId = json.toMap()[Key.UUID]
                 ?.fromJson(UuidSerializer)
-                .let {
-                    if (it != null) {
-                        it
-                    } else {
-                        val nyTransaksjonId = UUID.randomUUID()
-
-                        sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$nyTransaksjonId'.\n${json.toPretty()}")
-
-                        nyTransaksjonId
+                .orDefault {
+                    UUID.randomUUID().also {
+                        sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$it'.\n${json.toPretty()}")
                     }
                 },
             forespoerselId = forespoerselId?.takeUnless { it.isBlank() }

@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Data
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.Companion.publish
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -48,17 +47,6 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
             .also {
                 logger.info("Publiserte behov for eventname ${behov.event} and uuid '${behov.uuid()}'.")
                 sikkerLogger.info("Publiserte behov:\n${it.toPretty()}")
-            }
-    }
-
-    fun publishData(data: Data) {
-        data.jsonMessage
-            .toJson()
-            .parseJson()
-            .also { rapidsConnection.publish(it.toString()) }
-            .also {
-                logger.info("Publiserte data for eventname ${data.event.name} and uuid ${data.jsonMessage[Key.UUID.str].asText()}'.")
-                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
             }
     }
 

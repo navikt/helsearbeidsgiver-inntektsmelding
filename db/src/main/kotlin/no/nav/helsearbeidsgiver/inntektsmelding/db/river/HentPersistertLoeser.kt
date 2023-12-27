@@ -1,19 +1,27 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishData
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 import kotlin.system.measureTimeMillis
 
 private const val EMPTY_PAYLOAD = "{}"
@@ -54,15 +62,18 @@ class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repos
                 } else {
                     sikkerLogger.info("Fant persistert eksternInntektsmelding: $eksternInntektsmelding for forespørselId ${behov.forespoerselId}")
                 }
-                behov.createData(
-                    mapOf(
-                        Key.INNTEKTSMELDING_DOKUMENT to dokument,
-                        Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding
-                    )
+
+                val json = behov.jsonMessage.toJson().parseJson().toMap()
+
+                val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+
+                rapidsConnection.publishData(
+                    eventName = behov.event,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                    Key.INNTEKTSMELDING_DOKUMENT to dokument.toJson(),
+                    Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson()
                 )
-                    .also {
-                        publishData(it)
-                    }
             } catch (ex: Exception) {
                 logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId ${behov.forespoerselId}")
                 sikkerLogger.error(

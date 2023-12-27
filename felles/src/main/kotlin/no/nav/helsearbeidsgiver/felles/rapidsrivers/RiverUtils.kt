@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helsearbeidsgiver.felles.IKey
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
@@ -59,9 +59,12 @@ fun MessageContext.publish(vararg messageFields: Pair<IKey, JsonElement>): JsonE
 
 fun MessageContext.publish(messageFields: Map<IKey, JsonElement>): JsonElement =
     messageFields
-        .mapKeys { (key, _) -> key.str }
-        .mapValues { (_, value) -> value.toJsonNode() }
-        .let(JsonMessage::newMessage)
+        .mapKeys { (key, _) -> key.toString() }
+        .toJson()
+        .toString()
+        .let {
+            JsonMessage(it, MessageProblems(it), null)
+        }
         .toJson()
         .also(::publish)
         .parseJson()
@@ -72,7 +75,7 @@ private fun JsonMessage.validate(
 ) {
     keyAndParserPairs.forEach { (key, block) ->
         validateFn(this, key) {
-            it.toJsonElement().let(block)
+            it.toString().parseJson().let(block)
         }
     }
 }

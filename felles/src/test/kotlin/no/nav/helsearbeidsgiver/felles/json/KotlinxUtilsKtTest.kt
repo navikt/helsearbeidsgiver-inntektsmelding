@@ -1,54 +1,21 @@
 package no.nav.helsearbeidsgiver.felles.json
 
-import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.Row2
 import io.kotest.data.row
 import io.kotest.datatest.withData
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 
 class KotlinxUtilsKtTest : FunSpec({
-
-    context("toJsonElement") {
-        test("konverterer korrekt fra JsonNode til JsonElement") {
-            val bilboJson = """
-                {
-                    "name": {
-                        "first": "Bilbo",
-                        "last": "Baggins"
-                    },
-                    "age": 111
-                }
-            """.removeJsonWhitespace()
-
-            val bilboJsonNode = jacksonOm.readTree(bilboJson)
-
-            shouldNotThrowAny {
-                val converted = bilboJsonNode.toJsonElement()
-
-                converted.jsonObject.let { hobbit ->
-                    hobbit["name"].shouldNotBeNull().jsonObject.let { name ->
-                        name["first"].shouldNotBeNull().jsonPrimitive.content shouldBe "Bilbo"
-                        name["last"].shouldNotBeNull().jsonPrimitive.content shouldBe "Baggins"
-                    }
-                    hobbit["age"].shouldNotBeNull().jsonPrimitive.content shouldBe "111"
-                }
-            }
-        }
-    }
 
     context("toMap") {
         withData(

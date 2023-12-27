@@ -8,11 +8,11 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakException
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishData
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -74,7 +74,7 @@ class OpprettSakLoeser(
 
     private fun hentNavn(behov: Behov): PersonDato {
         if (behov[Key.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null, "")
-        return behov[Key.ARBEIDSTAKER_INFORMASJON].toJsonElement().fromJson(PersonDato.serializer())
+        return behov[Key.ARBEIDSTAKER_INFORMASJON].toString().fromJson(PersonDato.serializer())
     }
 
     override fun onBehov(behov: Behov) {
@@ -90,11 +90,13 @@ class OpprettSakLoeser(
                 }
             }
 
-        logger.info("Skal opprette sak for forespørselId: ${behov.forespoerselId}")
+        val forespoerselId = behov.forespoerselId!!.let(UUID::fromString)
+
+        logger.info("Skal opprette sak for forespørselId: $forespoerselId")
         val orgnr = behov[Key.ORGNRUNDERENHET].asText()
         val personDato = hentNavn(behov)
         val sakId = opprettSak(
-            forespoerselId = behov.forespoerselId!!,
+            forespoerselId = forespoerselId.toString(),
             orgnr = orgnr,
             navn = personDato.navn,
             foedselsdato = personDato.fødselsdato
@@ -104,13 +106,20 @@ class OpprettSakLoeser(
                 feilmelding = "Opprett sak feilet",
                 event = behov.event,
                 transaksjonId = transaksjonId,
-                forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                forespoerselId = forespoerselId,
                 utloesendeMelding = utloesendeMelding
             )
             publishFail(fail)
         } else {
             logger.info("OpprettSakLøser fikk opprettet sak for forespørselId: ${behov.forespoerselId}")
-            behov.createData(mapOf(Key.SAK_ID to sakId)).also { publishData(it) }
+
+            rapidsConnection.publishData(
+                eventName = behov.event,
+                transaksjonId = transaksjonId,
+                forespoerselId = forespoerselId,
+                Key.SAK_ID to sakId.toJson()
+            )
+
             sikkerLogger.info("OpprettSakLøser publiserte med sakId=$sakId og forespoerselId=${behov.forespoerselId}")
         }
     }

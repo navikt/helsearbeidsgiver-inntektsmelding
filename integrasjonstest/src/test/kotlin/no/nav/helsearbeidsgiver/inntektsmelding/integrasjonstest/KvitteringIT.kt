@@ -29,14 +29,15 @@ class KvitteringIT : EndToEndTest() {
     @Test
     fun `skal hente data til kvittering`() {
         val clientId = UUID.randomUUID()
+        val forespoerselId = UUID.randomUUID()
 
-        forespoerselRepository.lagreForespoersel(Mock.FORESPOERSEL_ID_GYLDIG, Mock.ORGNR)
-        imRepository.lagreInntektsmelding(Mock.FORESPOERSEL_ID_GYLDIG, Mock.inntektsmeldingDokument)
+        forespoerselRepository.lagreForespoersel(forespoerselId.toString(), Mock.ORGNR)
+        imRepository.lagreInntektsmelding(forespoerselId.toString(), Mock.inntektsmeldingDokument)
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
-            Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_GYLDIG.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
         Thread.sleep(5000)
@@ -61,14 +62,15 @@ class KvitteringIT : EndToEndTest() {
     @Test
     fun `skal hente data til kvittering hvis fra eksternt system`() {
         val clientId = UUID.randomUUID()
+        val forespoerselId = UUID.randomUUID()
 
-        forespoerselRepository.lagreForespoersel(Mock.FORESPOERSEL_ID_GYLDIG, Mock.ORGNR)
-        imRepository.lagreEksternInntektsmelding(Mock.FORESPOERSEL_ID_GYLDIG, Mock.eksternInntektsmelding)
+        forespoerselRepository.lagreForespoersel(forespoerselId.toString(), Mock.ORGNR)
+        imRepository.lagreEksternInntektsmelding(forespoerselId.toString(), Mock.eksternInntektsmelding)
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
-            Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_GYLDIG.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
         Thread.sleep(5000)
@@ -94,7 +96,7 @@ class KvitteringIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
-            Key.FORESPOERSEL_ID to Mock.FORESPOERSEL_ID_UGYLDIG.toJson()
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson()
         )
 
         Thread.sleep(5000)
@@ -112,8 +114,6 @@ class KvitteringIT : EndToEndTest() {
 
     private object Mock {
         const val ORGNR = "987"
-        const val FORESPOERSEL_ID_GYLDIG = "gyldig-forespørsel"
-        const val FORESPOERSEL_ID_UGYLDIG = "ugyldig-forespørsel"
 
         val inntektsmeldingDokument = mockInntektsmelding()
         val eksternInntektsmelding = EksternInntektsmelding(

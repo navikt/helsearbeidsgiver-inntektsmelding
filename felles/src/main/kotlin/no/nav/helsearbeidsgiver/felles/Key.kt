@@ -27,9 +27,6 @@ enum class Key(override val str: String) : IKey {
     FAIL("fail"),
     FAILED_BEHOV("failed-behov"),
 
-    // Midlertidig nøkkel
-    SKAL_DISTRIBUERE("skal_distribuere"),
-
     // Tidligere DataFelt
     VIRKSOMHET("virksomhet"),
     VIRKSOMHETER("virksomheter"),

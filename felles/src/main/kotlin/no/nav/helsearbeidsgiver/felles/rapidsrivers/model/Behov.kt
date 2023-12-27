@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 private val sikkerLogger = sikkerLogger()
@@ -30,12 +31,12 @@ class Behov(
         jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
         jsonMessage.demandValue(Key.BEHOV.str, behov.name)
     }
+
     companion object {
         val packetValidator = River.PacketValidation {
             it.demandKey(Key.EVENT_NAME.str)
             it.demandKey(Key.BEHOV.str)
             it.rejectKey(Key.DATA.str)
-            it.rejectKey(Key.LØSNING.str)
             it.rejectKey(Key.FAIL.str)
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
@@ -68,15 +69,9 @@ class Behov(
             event = event,
             transaksjonId = json.toMap()[Key.UUID]
                 ?.fromJson(UuidSerializer)
-                .let {
-                    if (it != null) {
-                        it
-                    } else {
-                        val nyTransaksjonId = UUID.randomUUID()
-
-                        sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$nyTransaksjonId'.\n${json.toPretty()}")
-
-                        nyTransaksjonId
+                .orDefault {
+                    UUID.randomUUID().also {
+                        sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$it'.\n${json.toPretty()}")
                     }
                 },
             forespoerselId = forespoerselId?.takeUnless { it.isBlank() }
@@ -104,10 +99,6 @@ class Behov(
                 ) + data.mapKeys { it.key.str }
             )
         )
-    }
-
-    fun createEvent(event: EventName, data: Map<Key, Any>): Event {
-        return Event.create(event, forespoerselId, data)
     }
 
     fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()

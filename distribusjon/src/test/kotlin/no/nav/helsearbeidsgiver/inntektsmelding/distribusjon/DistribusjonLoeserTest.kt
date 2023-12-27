@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class DistribusjonLoeserTest {
@@ -48,6 +49,7 @@ class DistribusjonLoeserTest {
         rapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
             Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
             Key.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer())
         )

@@ -27,7 +27,6 @@ class FailKanal(
                 msg.interestedIn(Key.FORESPOERSEL_ID)
                 msg.rejectKeys(
                     Key.BEHOV,
-                    Key.LØSNING,
                     Key.DATA
                 )
             }

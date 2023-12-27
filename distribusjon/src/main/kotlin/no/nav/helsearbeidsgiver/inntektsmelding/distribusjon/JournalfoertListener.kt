@@ -26,6 +26,7 @@ class JournalfoertListener(rapidsConnection: RapidsConnection) : EventListener(r
     override fun onEvent(packet: JsonMessage) {
         logger.info("Fikk event: ${EventName.INNTEKTSMELDING_JOURNALFOERT}")
         sikkerLogger.info("Fikk event: ${EventName.INNTEKTSMELDING_JOURNALFOERT} med pakke\n${packet.toPretty()}")
+
         val jsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.INNTEKTSMELDING_JOURNALFOERT,

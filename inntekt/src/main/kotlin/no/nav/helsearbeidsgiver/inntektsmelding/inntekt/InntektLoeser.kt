@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.toYearMonth
@@ -50,7 +49,6 @@ class InntektLoeser(
                 Key.SKJAERINGSTIDSPUNKT,
                 Key.FORESPOERSEL_ID
             )
-            it.rejectKeys(Key.LØSNING)
         }
 
     override fun onBehov(behov: Behov) {

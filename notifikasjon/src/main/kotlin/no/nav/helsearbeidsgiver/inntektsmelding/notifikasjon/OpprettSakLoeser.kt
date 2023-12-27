@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -80,18 +81,12 @@ class OpprettSakLoeser(
         val utloesendeMelding = behov.jsonMessage.toJson().parseJson()
         val transaksjonId = utloesendeMelding.toMap()[Key.UUID]
             ?.fromJson(UuidSerializer)
-            .let {
-                if (it != null) {
-                    it
-                } else {
-                    val nyTransaksjonId = UUID.randomUUID()
-
+            .orDefault {
+                UUID.randomUUID().also {
                     sikkerLogger.error(
-                        "Mangler transaksjonId i ${simpleName()}. Erstatter med ny, tilfeldig UUID '$nyTransaksjonId'." +
+                        "Mangler transaksjonId i ${simpleName()}. Erstatter med ny, tilfeldig UUID '$it'." +
                             "\n${utloesendeMelding.toPretty()}"
                     )
-
-                    nyTransaksjonId
                 }
             }
 

@@ -50,8 +50,8 @@ class TrengerForespoerselLoeser(
         ) {
             logger.info("Mottok behov om ${BehovType.HENT_TRENGER_IM}.")
 
-            val transaksjonId = behov.uuid().let { UUID.fromString(it) }
-            val forespoerselId = behov.forespoerselId.let { UUID.fromString(it) }
+            val transaksjonId = behov.uuid().let(UUID::fromString)
+            val forespoerselId = behov.forespoerselId.let(UUID::fromString)
 
             MdcUtils.withLogFields(
                 Log.event(behov.event),

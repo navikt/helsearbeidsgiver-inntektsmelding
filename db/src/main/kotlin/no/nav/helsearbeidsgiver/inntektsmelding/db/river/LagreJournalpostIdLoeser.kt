@@ -9,12 +9,11 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishEvent
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -84,14 +83,13 @@ class LagreJournalpostIdLoeser(
 
                 val inntektsmelding = repository.hentNyeste(forespoerselId)
 
-                behov.createEvent(
-                    EventName.INNTEKTSMELDING_JOURNALFOERT,
-                    mapOfNotNull(
-                        Key.JOURNALPOST_ID to journalpostId,
-                        Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
-                    )
+                rapidsConnection.publishEvent(
+                    eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
+                    transaksjonId = null,
+                    forespoerselId = forespoerselId,
+                    Key.JOURNALPOST_ID to journalpostId.toJson(),
+                    Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())
                 )
-                    .also { publishEvent(it) }
             } catch (ex: Exception) {
                 behov.createFail("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonId")
                     .also { publishFail(it) }

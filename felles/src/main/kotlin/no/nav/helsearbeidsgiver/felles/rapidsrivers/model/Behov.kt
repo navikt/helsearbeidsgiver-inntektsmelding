@@ -106,9 +106,5 @@ class Behov(
         )
     }
 
-    fun createEvent(event: EventName, data: Map<Key, Any>): Event {
-        return Event.create(event, forespoerselId, data)
-    }
-
     fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
 }

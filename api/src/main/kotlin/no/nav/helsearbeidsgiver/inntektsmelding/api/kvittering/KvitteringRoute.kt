@@ -1,27 +1,28 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
 import io.ktor.server.application.call
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.prometheus.client.Summary
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Kvittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.KvitteringEkstern
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.KvitteringSimba
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
-import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.authorize
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.RouteExtra
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.fjernLedendeSlash
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
@@ -37,15 +38,19 @@ import kotlin.system.measureTimeMillis
 
 private const val EMPTY_PAYLOAD = "{}"
 
-fun RouteExtra.kvitteringRoute() {
-    val kvitteringProducer = KvitteringProducer(connection)
-    val tilgangProducer = TilgangProducer(connection)
+fun Route.kvitteringRoute(
+    rapid: RapidsConnection,
+    tilgangskontroll: Tilgangskontroll,
+    redisPoller: RedisPoller
+) {
+    val kvitteringProducer = KvitteringProducer(rapid)
+
     val requestLatency = Summary.build()
         .name("simba_kvittering_latency_seconds")
         .help("kvittering endpoint latency in seconds")
         .register()
 
-    route.route(Routes.KVITTERING) {
+    route(Routes.KVITTERING) {
         get {
             val forespoerselId = call.parameters["uuid"]
                 ?.let(::fjernLedendeSlash)
@@ -63,12 +68,7 @@ fun RouteExtra.kvitteringRoute() {
                 measureTimeMillis {
                     try {
                         measureTimeMillis {
-                            authorize(
-                                forespoerselId = forespoerselId,
-                                tilgangProducer = tilgangProducer,
-                                redisPoller = redis,
-                                cache = tilgangCache
-                            )
+                            tilgangskontroll.validerTilgang(call.request, forespoerselId)
                         }.also {
                             logger.info("Authorize took $it")
                         }
@@ -76,7 +76,7 @@ fun RouteExtra.kvitteringRoute() {
                         val clientId = kvitteringProducer.publish(forespoerselId)
                         var resultat: String?
                         measureTimeMillis {
-                            resultat = redis.getString(clientId, 10, 500)
+                            resultat = redisPoller.getString(clientId, 10, 500)
                         }.also {
                             logger.info("redis polling took $it")
                         }

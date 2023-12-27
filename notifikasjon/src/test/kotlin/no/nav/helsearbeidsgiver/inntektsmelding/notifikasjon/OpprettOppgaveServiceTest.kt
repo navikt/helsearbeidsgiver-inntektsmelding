@@ -2,13 +2,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import io.mockk.clearAllMocks
 import io.mockk.every
-import no.nav.helse.rapids_rivers.JsonMessage
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
@@ -48,19 +48,15 @@ class OpprettOppgaveServiceTest {
             ).toJson()
         )
 
-        val failMap = mapOf(
-            Key.FAIL.str to fail.toJson(Fail.serializer()),
-            Key.EVENT_NAME.str to fail.event.toJson(),
-            Key.UUID.str to fail.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID.str to fail.forespoerselId!!.toJson()
+        val failMap = mapOf<IKey, JsonElement>(
+            Key.FAIL to fail.toJson(Fail.serializer()),
+            Key.EVENT_NAME to fail.event.toJson(),
+            Key.UUID to fail.transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
         )
 
-        val failJsonMessage = JsonMessage.newMessage(
-            failMap.mapValues { (_, value) -> value.toJsonNode() }
-        )
-
-        assertEquals(Transaction.TERMINATE, service.determineTransactionState(failJsonMessage))
-        assertNotNull(service.toFailOrNull(failMap.toJson()))
+        assertEquals(Transaction.TERMINATE, service.determineTransactionState(failMap))
+        assertNotNull(service.toFailOrNull(failMap))
     }
 
     @Test

@@ -1,40 +1,47 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.River
+import kotlinx.serialization.json.JsonElement
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
-class Event(
-    val event: EventName,
-    val forespoerselId: String? = null,
-    val jsonMessage: JsonMessage,
-    val clientId: String? = null
-) {
-    init {
-        packetValidator.validate(jsonMessage)
-        jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
-    }
+private val logger = "im-model-event".logger()
+private val sikkerLogger = sikkerLogger()
 
-    companion object {
-        val packetValidator = River.PacketValidation {
-            it.demandKey(Key.EVENT_NAME.str)
-            it.rejectKey(Key.BEHOV.str)
-            it.rejectKey(Key.DATA.str)
-            it.rejectKey(Key.FAIL.str)
-            // midlertidig, generelt det bør vare reject
-            it.interestedIn(Key.UUID.str)
-            it.interestedIn(Key.CLIENT_ID.str)
-            it.interestedIn(Key.FORESPOERSEL_ID.str)
+fun MessageContext.publishEvent(
+    eventName: EventName,
+    transaksjonId: UUID?,
+    forespoerselId: UUID?,
+    vararg messageFields: Pair<Key, JsonElement?>
+): JsonElement {
+    val optionalIdFields = mapOf(
+        Key.UUID to transaksjonId,
+        Key.FORESPOERSEL_ID to forespoerselId
+    )
+        .mapValuesNotNull { it?.toJson() }
+        .toList()
+        .toTypedArray()
+
+    val nonNullMessageFields = messageFields.toMap()
+        .mapValuesNotNull { it }
+        .toList()
+        .toTypedArray()
+
+    return publish(
+        Key.EVENT_NAME to eventName.toJson(),
+        *optionalIdFields,
+        *nonNullMessageFields
+    )
+        .also {
+            logger.info("Publiserte event '$eventName' and transaksjonId '$transaksjonId'.")
+            sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
         }
-
-        fun create(event: EventName, forespoerselId: String?, map: Map<Key, Any> = emptyMap()): Event {
-            return Event(
-                event,
-                forespoerselId,
-                JsonMessage.newMessage(event.name, mapOfNotNull(Key.FORESPOERSEL_ID.str to forespoerselId) + map.mapKeys { it.key.str })
-            )
-        }
-    }
 }

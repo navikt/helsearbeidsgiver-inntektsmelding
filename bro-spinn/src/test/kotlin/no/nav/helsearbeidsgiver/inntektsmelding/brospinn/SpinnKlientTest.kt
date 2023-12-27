@@ -4,15 +4,13 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
-import no.nav.helsearbeidsgiver.felles.json.Jackson
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 import no.nav.inntektsmeldingkontrakt.AvsenderSystem
-import no.nav.inntektsmeldingkontrakt.Inntektsmelding
 
 class SpinnKlientTest : FunSpec({
 
     val expectedJson = "gyldigRespons.json".readResource()
-    val expectedInntektsmelding = Jackson.fromJson<Inntektsmelding>(expectedJson)
+    val expectedInntektsmelding = Jackson.fromJson(expectedJson)
 
     test("Hvis inntektsmelding ikke finnes kastes feil") {
         val spinnKlient = mockSpinnKlient("", HttpStatusCode.NotFound)

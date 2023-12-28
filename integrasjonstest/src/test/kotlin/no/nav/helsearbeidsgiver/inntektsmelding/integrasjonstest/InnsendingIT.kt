@@ -25,7 +25,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDateTime
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -53,7 +52,6 @@ class InnsendingIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
@@ -153,7 +151,6 @@ class InnsendingIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),

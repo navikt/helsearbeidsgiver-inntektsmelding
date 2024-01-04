@@ -8,62 +8,68 @@ import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
 // TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
 class KvitteringService(
-    private val rapidsConnection: RapidsConnection,
+    private val rapid: RapidsConnection,
     override val redisStore: RedisStore
-) : CompositeEventListener(redisStore) {
-
-    override val event: EventName = EventName.KVITTERING_REQUESTED
+) : CompositeEventListener() {
 
     private val logger = logger()
 
+    override val event = EventName.KVITTERING_REQUESTED
+    override val startKeys = listOf(
+        Key.FORESPOERSEL_ID
+    )
+    override val dataKeys = listOf(
+        Key.INNTEKTSMELDING_DOKUMENT,
+        Key.EKSTERN_INNTEKTSMELDING
+    )
+
     init {
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID), this, rapidsConnection) }
-        withFailKanal { DelegatingFailKanal(event, this, rapidsConnection) }
-        withDataKanal {
-            StatefullDataKanal(
-                arrayOf(Key.INNTEKTSMELDING_DOKUMENT, Key.EKSTERN_INNTEKTSMELDING),
-                event,
-                this,
-                rapidsConnection,
-                redisStore
-            )
-        }
+        StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
+        StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
+        FailKanal(rapid, event, ::onPacket)
     }
 
-    override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
-        val transactionId: String = message[Key.UUID.str].asText()
-        if (transaction == Transaction.NEW) {
-            val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
-            logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
-            val msg = JsonMessage.newMessage(
-                mapOf(
-                    Key.BEHOV.str to BehovType.HENT_PERSISTERT_IM.name,
-                    Key.EVENT_NAME.str to event.name,
-                    Key.UUID.str to transactionId,
-                    Key.FORESPOERSEL_ID.str to forespoerselId
-                )
-            ).toJson()
-            logger.info("Publiserer melding: $msg")
-            rapidsConnection.publish(msg)
-        } else {
-            logger.error("Illegal transaction type ecountered in dispatchBehov $transaction for uuid= $transactionId")
+    override fun new(message: JsonMessage) {
+        val transaksjonId: String = message[Key.UUID.str].asText()
+        val forespoerselId: String = message[Key.FORESPOERSEL_ID.str].asText()
+
+        logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
+
+        rapid.publish(
+            Key.BEHOV to BehovType.HENT_PERSISTERT_IM.toJson(),
+            Key.EVENT_NAME to event.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+        )
+            .also {
+                logger.info("Publiserte melding: ${it.toPretty()}")
+            }
+    }
+
+    override fun inProgress(message: JsonMessage) {
+        "Service skal aldri være \"underveis\".".also {
+            logger.error(it)
+            sikkerLogger.error(it)
         }
     }
 
@@ -80,7 +86,7 @@ class KvitteringService(
         redisStore.set(RedisKey.of(clientId), im)
     }
 
-    override fun terminate(fail: Fail) {
+    override fun onError(message: JsonMessage, fail: Fail) {
         val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
             ?.let(UUID::fromString)
 

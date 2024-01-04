@@ -12,10 +12,8 @@ class MockRedis {
     private val mockStorage = mutableMapOf<RedisKey, String>()
 
     private val redisKey = slot<RedisKey>()
+    private val redisKeys = slot<List<RedisKey>>()
     private val newValue = slot<String>()
-
-    // Fungerer som en capture slot for vararg
-    private val keysToCheck = mutableListOf<RedisKey>()
 
     init {
         setup()
@@ -32,14 +30,8 @@ class MockRedis {
             mockStorage[redisKey.captured]
         }
 
-        every { store.exist(*varargAll { keysToCheck.add(it) }) } answers {
-            val allKeys = mockStorage.keys.toSet()
-
-            val keysExist = keysToCheck.intersect(allKeys).size.toLong()
-
-            keysToCheck.clear()
-
-            keysExist
+        every { store.exist(capture(redisKeys)) } answers {
+            mockStorage.keys.intersect(redisKeys.captured.toSet()).size.toLong()
         }
     }
 }

@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -168,6 +169,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
                     it[InntektsmeldingEntitet.journalpostId] shouldBe journalpostId
                 } else {
                     it[InntektsmeldingEntitet.eksternInntektsmelding].shouldNotBeNull()
+                    it[InntektsmeldingEntitet.journalpostId].shouldBeNull()
                 }
             }
     }

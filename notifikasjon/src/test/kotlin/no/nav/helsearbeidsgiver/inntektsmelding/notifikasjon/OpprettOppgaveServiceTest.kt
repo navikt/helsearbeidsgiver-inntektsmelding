@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.Companion.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
@@ -56,7 +55,6 @@ class OpprettOppgaveServiceTest {
             Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
         )
 
-        assertEquals(Transaction.TERMINATE, service.determineTransactionState(failMap))
         assertNotNull(toFailOrNull(failMap))
     }
 

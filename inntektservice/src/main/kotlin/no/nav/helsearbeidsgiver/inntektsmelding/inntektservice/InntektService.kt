@@ -16,11 +16,10 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -34,37 +33,69 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 class InntektService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
-) : CompositeEventListener(redisStore) {
+) : CompositeEventListener() {
 
-    private val sikkerLogger = sikkerLogger()
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
-    override val event: EventName = EventName.INNTEKT_REQUESTED
+    override val event = EventName.INNTEKT_REQUESTED
+    override val startKeys = listOf(
+        Key.FORESPOERSEL_ID,
+        Key.SKJAERINGSTIDSPUNKT
+    )
+    override val dataKeys = listOf(
+        Key.FORESPOERSEL_SVAR,
+        Key.INNTEKT
+    )
 
     init {
-        withFailKanal { DelegatingFailKanal(event, it, rapid) }
-        withDataKanal {
-            StatefullDataKanal(
-                dataFelter = arrayOf(
-                    Key.FORESPOERSEL_SVAR,
-                    Key.INNTEKT
-                ),
-                eventName = event,
-                mainListener = it,
-                rapidsConnection = rapid,
-                redisStore = redisStore
-            )
-        }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID, Key.SKJAERINGSTIDSPUNKT), it, rapid) }
+        StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
+        StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
+        FailKanal(rapid, event, ::onPacket)
     }
 
-    override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
+    override fun new(message: JsonMessage) {
+        val json = message.toJsonMap()
+
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
+
+        // TODO Les fra melding
+        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID)
+            .read()
+            ?.let(UUID::fromString)
+        if (forespoerselId == null) {
+            sikkerLogger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
+            logger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
+            return
+        }
+        MdcUtils.withLogFields(
+            Log.klasse(this),
+            Log.event(event),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId)
+        ) {
+            rapid.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            )
+                .also {
+                    MdcUtils.withLogFields(
+                        Log.behov(BehovType.HENT_TRENGER_IM)
+                    ) {
+                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                    }
+                }
+        }
+    }
+
+    override fun inProgress(message: JsonMessage) {
         val json = message.toJsonMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
@@ -83,61 +114,35 @@ class InntektService(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId)
         ) {
-            sikkerLogger.info("Prosesserer transaksjon $transaction.")
+            val forspoerselKey = RedisKey.of(transaksjonId, Key.FORESPOERSEL_SVAR)
 
-            when (transaction) {
-                Transaction.NEW -> {
-                    rapid.publish(
-                        Key.EVENT_NAME to event.toJson(),
-                        Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                        Key.UUID to transaksjonId.toJson()
-                    )
-                        .also {
-                            MdcUtils.withLogFields(
-                                Log.behov(BehovType.HENT_TRENGER_IM)
-                            ) {
-                                sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                            }
-                        }
+            if (isDataCollected(listOf(forspoerselKey))) {
+                val forespoersel = forspoerselKey.read()?.fromJson(TrengerInntekt.serializer())
+                val skjaeringstidspunkt = RedisKey.of(transaksjonId, Key.SKJAERINGSTIDSPUNKT).read()
+                if (forespoersel == null || skjaeringstidspunkt == null) {
+                    logger.error("Klarte ikke å finne forespørsel eller skjæringstidspunkt i Redis!")
+                    sikkerLogger.error("Klarte ikke å finne data i Redis - forespørsel: $forespoersel og skjæringstidspunkt $skjaeringstidspunkt")
+                    return
                 }
 
-                Transaction.IN_PROGRESS -> {
-                    val forspoerselKey = RedisKey.of(transaksjonId, Key.FORESPOERSEL_SVAR)
-
-                    if (isDataCollected(forspoerselKey)) {
-                        val forespoersel = forspoerselKey.read()?.fromJson(TrengerInntekt.serializer())
-                        val skjaeringstidspunkt = RedisKey.of(transaksjonId, Key.SKJAERINGSTIDSPUNKT).read()
-                        if (forespoersel == null || skjaeringstidspunkt == null) {
-                            logger.error("Klarte ikke å finne forespørsel eller skjæringstidspunkt i Redis!")
-                            sikkerLogger.error("Klarte ikke å finne data i Redis - forespørsel: $forespoersel og skjæringstidspunkt $skjaeringstidspunkt")
-                            return
+                rapid.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to BehovType.INNTEKT.toJson(),
+                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.FNR to forespoersel.fnr.toJson(),
+                    Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
+                    Key.UUID to transaksjonId.toJson()
+                )
+                    .also {
+                        MdcUtils.withLogFields(
+                            Log.behov(BehovType.INNTEKT)
+                        ) {
+                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                         }
-
-                        rapid.publish(
-                            Key.EVENT_NAME to event.toJson(),
-                            Key.BEHOV to BehovType.INNTEKT.toJson(),
-                            Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                            Key.FNR to forespoersel.fnr.toJson(),
-                            Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
-                            Key.UUID to transaksjonId.toJson()
-                        )
-                            .also {
-                                MdcUtils.withLogFields(
-                                    Log.behov(BehovType.INNTEKT)
-                                ) {
-                                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                                }
-                            }
-                    } else {
-                        sikkerLogger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")
                     }
-                }
-
-                else -> {
-                    sikkerLogger.error("Støtte på forutsett transaksjonstype: $transaction")
-                }
+            } else {
+                sikkerLogger.error("Transaksjon er underveis, men mangler data. Dette bør aldri skje, ettersom vi kun venter på én datapakke.")
             }
         }
     }
@@ -156,6 +161,7 @@ class InntektService(
             logger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
         } else {
             val inntekt = RedisKey.of(transaksjonId, Key.INNTEKT).read()
+
             val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 
             val inntektJson = InntektData(
@@ -175,7 +181,47 @@ class InntektService(
         }
     }
 
-    override fun terminate(fail: Fail) {
+    override fun onError(message: JsonMessage, fail: Fail) {
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
+
+        if (utloesendeBehov == BehovType.INNTEKT) {
+            val feilmelding = Feilmelding(
+                "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
+                datafelt = Key.INNTEKT
+            )
+
+            "Legger til feilmelding: '${feilmelding.melding}'".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+
+            RedisKey.of(fail.transaksjonId, feilmelding).write(
+                FeilReport(
+                    mutableListOf(feilmelding)
+                ).toJson(FeilReport.serializer())
+            )
+
+            RedisKey.of(fail.transaksjonId, Key.INNTEKT).write(JsonObject(emptyMap()))
+
+            // TODO bruk finalize (sjekk andre servicer for tilsvarende feil)
+            return inProgress(message)
+        }
+
+        val feilReport = if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {
+            val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, Key.FORESPOERSEL_SVAR)
+
+            "Returnerer feilmelding: '${feilmelding.melding}'".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+
+            FeilReport(
+                mutableListOf(feilmelding)
+            )
+        } else {
+            FeilReport()
+        }
+
         val clientId = RedisKey.of(fail.transaksjonId, event)
             .read()
             ?.let(UUID::fromString)
@@ -188,10 +234,8 @@ class InntektService(
                 logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
             }
         } else {
-            val feil = RedisKey.of(fail.transaksjonId, Feilmelding("")).read()
-
             val feilResponse = InntektData(
-                feil = feil?.fromJson(FeilReport.serializer())
+                feil = feilReport
             )
                 .toJson(InntektData.serializer())
 
@@ -204,49 +248,6 @@ class InntektService(
                 sikkerLogger.error("$event terminert.")
             }
         }
-    }
-
-    override fun onError(feil: Fail): Transaction {
-        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), feil.utloesendeMelding.toMap())
-
-        val (feilmelding, transaction) = when (utloesendeBehov) {
-            BehovType.HENT_TRENGER_IM -> {
-                val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, Key.FORESPOERSEL_SVAR)
-
-                feilmelding to Transaction.TERMINATE
-            }
-
-            BehovType.INNTEKT -> {
-                val feilmelding = Feilmelding(
-                    "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
-                    datafelt = Key.INNTEKT
-                )
-
-                RedisKey.of(feil.transaksjonId, Key.INNTEKT).write(JsonObject(emptyMap()))
-
-                feilmelding to null
-            }
-
-            else -> null to null
-        }
-
-        if (feilmelding != null) {
-            sikkerLogger.error("Mottok feilmelding: '${feilmelding.melding}'")
-
-            val feilKey = RedisKey.of(feil.transaksjonId, feilmelding)
-
-            val feilReport = feilKey.read()
-                ?.fromJson(FeilReport.serializer())
-                .orDefault(FeilReport())
-                .also {
-                    it.feil.add(feilmelding)
-                }
-                .toJson(FeilReport.serializer())
-
-            feilKey.write(feilReport)
-        }
-
-        return transaction ?: Transaction.IN_PROGRESS
     }
 
     private fun RedisKey.write(json: JsonElement) {

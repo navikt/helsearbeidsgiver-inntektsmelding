@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -17,7 +18,8 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.time.ZonedDateTime
+import java.time.OffsetDateTime
+import java.util.UUID
 
 class TestRepo(private val db: Database) {
 
@@ -75,7 +77,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         }.shouldBeEmpty()
 
         val UUID = randomUuid()
-        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
+        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = OffsetDateTime.now())
 
         foresporselRepo.lagreForespoersel(UUID.toString(), ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), DOK_1)
@@ -133,16 +135,43 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         }.shouldBeEmpty()
 
         val UUID = randomUuid()
-        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = ZonedDateTime.now().toOffsetDateTime())
+        val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = OffsetDateTime.now())
         val JOURNALPOST_1 = "jp-1"
 
         foresporselRepo.lagreForespoersel(UUID.toString(), ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), DOK_1)
-        inntektsmeldingRepo.oppdaterJournalpostId(JOURNALPOST_1, UUID)
+        inntektsmeldingRepo.oppdaterJournalpostId(UUID, JOURNALPOST_1)
         val record = testRepo.hentRecordFraInntektsmelding(UUID.toString())
         record.shouldNotBeNull()
         val journalPostId = record.getOrNull(InntektsmeldingEntitet.journalpostId)
         journalPostId.shouldNotBeNull()
+    }
+
+    test("skal _ikke_ oppdatere journalpostId for ekstern inntektmelding") {
+        transaction {
+            InntektsmeldingEntitet.selectAll().toList()
+        }.shouldBeEmpty()
+
+        val forespoerselId = UUID.randomUUID()
+        val journalpostId = "jp-slem-fryser"
+
+        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
+        inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId.toString(), EKSTERN_INNTEKTSMELDING_DOKUMENT)
+
+        inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
+
+        transaction {
+            InntektsmeldingEntitet.selectAll().toList()
+        }
+            .forEach {
+                if (it[InntektsmeldingEntitet.dokument] != null) {
+                    it[InntektsmeldingEntitet.journalpostId] shouldBe journalpostId
+                } else {
+                    it[InntektsmeldingEntitet.eksternInntektsmelding].shouldNotBeNull()
+                    it[InntektsmeldingEntitet.journalpostId].shouldBeNull()
+                }
+            }
     }
 
     test("skal oppdatere sakId") {

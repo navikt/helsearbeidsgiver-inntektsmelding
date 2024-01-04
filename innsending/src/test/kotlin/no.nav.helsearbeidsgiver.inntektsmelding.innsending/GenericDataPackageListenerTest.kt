@@ -30,11 +30,11 @@ class GenericDataPackageListenerTest {
 
     init {
         StatefullDataKanal(
-            arrayOf(Key.FNR, Key.INNTEKT),
-            EventName.INSENDING_STARTED,
-            mockListener,
             testRapid,
-            mockRedis.store
+            EventName.INSENDING_STARTED,
+            mockRedis.store,
+            listOf(Key.FNR, Key.INNTEKT),
+            mockListener::onPacket
         )
     }
 

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -152,19 +151,25 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val transaksjonId = UUID.randomUUID()
+        val forespoerselId = UUID.randomUUID()
         val journalpostId = "jp-slem-fryser"
 
-        foresporselRepo.lagreForespoersel(transaksjonId.toString(), ORGNR)
-        inntektsmeldingRepo.lagreEksternInntektsmelding(transaksjonId.toString(), EKSTERN_INNTEKTSMELDING_DOKUMENT)
+        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
+        inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId.toString(), EKSTERN_INNTEKTSMELDING_DOKUMENT)
 
-        inntektsmeldingRepo.oppdaterJournalpostId(transaksjonId, journalpostId)
+        inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
 
-        val record = testRepo.hentRecordFraInntektsmelding(transaksjonId.toString())
-            .shouldNotBeNull()
-
-        record.getOrNull(InntektsmeldingEntitet.journalpostId)
-            .shouldBeNull()
+        transaction {
+            InntektsmeldingEntitet.selectAll().toList()
+        }
+            .forEach {
+                if (it[InntektsmeldingEntitet.dokument] != null) {
+                    it[InntektsmeldingEntitet.journalpostId] shouldBe journalpostId
+                } else {
+                    it[InntektsmeldingEntitet.eksternInntektsmelding].shouldNotBeNull()
+                }
+            }
     }
 
     test("skal oppdatere sakId") {

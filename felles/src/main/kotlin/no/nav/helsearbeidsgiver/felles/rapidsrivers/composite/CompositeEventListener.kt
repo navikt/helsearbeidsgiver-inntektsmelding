@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.Companion.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -108,13 +109,6 @@ abstract class CompositeEventListener(open val redisStore: RedisStore) : River.P
             }
         }
     }
-
-    fun toFailOrNull(json: Map<IKey, JsonElement>): Fail? =
-        json[Key.FAIL]
-            ?.runCatching {
-                fromJson(Fail.serializer())
-            }
-            ?.getOrNull()
 
     private fun isEventMelding(json: Map<IKey, JsonElement>): Boolean =
         json[Key.EVENT_NAME] != null &&

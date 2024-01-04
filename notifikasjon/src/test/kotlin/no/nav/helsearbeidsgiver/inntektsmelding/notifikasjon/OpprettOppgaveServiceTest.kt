@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.Companion.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -56,7 +57,7 @@ class OpprettOppgaveServiceTest {
         )
 
         assertEquals(Transaction.TERMINATE, service.determineTransactionState(failMap))
-        assertNotNull(service.toFailOrNull(failMap))
+        assertNotNull(toFailOrNull(failMap))
     }
 
     @Test

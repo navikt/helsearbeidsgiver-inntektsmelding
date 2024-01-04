@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.Companion.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import java.util.UUID
@@ -42,6 +43,11 @@ class FeilLytterTest : FunSpec({
 
     test("skal ignorere feil uten forespørselId") {
         val feil = lagGyldigFeil(BehovType.JOURNALFOER).copy(forespoerselId = null)
+        handler.skalHaandteres(feil) shouldBe false
+    }
+
+    test("skal ignorere ugyldige feil") {
+        val feil = toFailOrNull(emptyMap())
         handler.skalHaandteres(feil) shouldBe false
     }
 })

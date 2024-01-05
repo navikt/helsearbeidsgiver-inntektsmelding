@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -12,23 +13,21 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class StatefullDataKanal(
-    private val dataFelter: Array<Key>,
-    override val eventName: EventName,
-    private val mainListener: River.PacketListener,
-    rapidsConnection: RapidsConnection,
-    val redisStore: RedisStore
-) : DataKanal(
-    rapidsConnection
-) {
+    rapid: RapidsConnection,
+    override val event: EventName,
+    private val redisStore: RedisStore,
+    private val dataKeys: List<Key>,
+    private val onDataCollected: (JsonMessage, MessageContext) -> Unit
+) : DataKanal(rapid) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
-            it.demandValue(Key.EVENT_NAME.str, eventName.name)
+            it.demandValue(Key.EVENT_NAME.str, event.name)
             it.demandKey(Key.DATA.str)
-            dataFelter.forEach { datafelt ->
-                it.interestedIn(datafelt)
+            dataKeys.forEach { dataKey ->
+                it.interestedIn(dataKey)
             }
         }
     }
@@ -41,8 +40,8 @@ class StatefullDataKanal(
         if (packet[Key.UUID.str].asText().isNullOrEmpty()) {
             sikkerLogger.error("Transaksjon-ID er ikke initialisert for\n${packet.toPretty()}")
         } else if (collectData(packet)) {
-            sikkerLogger.info("data collected for event ${eventName.name} med packet\n${packet.toPretty()}")
-            mainListener.onPacket(packet, rapidsConnection)
+            sikkerLogger.info("data collected for event ${event.name} med packet\n${packet.toPretty()}")
+            onDataCollected(packet, rapid)
         } else {
             sikkerLogger.warn("Mangler data for ${packet.toPretty()}")
         }
@@ -50,7 +49,7 @@ class StatefullDataKanal(
 
     private fun collectData(message: JsonMessage): Boolean {
         // putt alle mottatte datafelter fra pakke i redis
-        val dataMap = dataFelter.filter { dataFelt ->
+        val dataMap = dataKeys.filter { dataFelt ->
             !message[dataFelt.str].isMissingNode
         }
             .associateWith {
@@ -73,15 +72,5 @@ class StatefullDataKanal(
             }
 
         return dataMap.isNotEmpty()
-    }
-
-    fun isAllDataCollected(transaksjonId: UUID): Boolean {
-        val allKeys = dataFelter.map { RedisKey.of(transaksjonId, it) }.toTypedArray()
-        val numKeysInRedis = redisStore.exist(*allKeys)
-        logger.info("found " + numKeysInRedis)
-        return numKeysInRedis == dataFelter.size.toLong()
-    }
-    fun isDataCollected(vararg keys: RedisKey): Boolean {
-        return redisStore.exist(*keys) == keys.size.toLong()
     }
 }

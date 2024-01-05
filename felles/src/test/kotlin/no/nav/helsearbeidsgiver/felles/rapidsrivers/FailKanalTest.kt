@@ -16,13 +16,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class DelegatingFailKanalTest {
+class FailKanalTest {
 
     private val testRapid = TestRapid()
     private val mockPacketListener = mockk<River.PacketListener>(relaxed = true)
 
     init {
-        DelegatingFailKanal(EventName.INSENDING_STARTED, mockPacketListener, testRapid)
+        FailKanal(testRapid, EventName.INSENDING_STARTED, mockPacketListener::onPacket)
     }
 
     @BeforeEach

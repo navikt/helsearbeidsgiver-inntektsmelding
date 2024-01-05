@@ -18,7 +18,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -39,120 +38,98 @@ import java.util.UUID
 class AktiveOrgnrService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
-) : CompositeEventListener(redisStore) {
+) : CompositeEventListener() {
+
     private val sikkerLogger = sikkerLogger()
     private val logger = logger()
-    override val event: EventName = EventName.AKTIVE_ORGNR_REQUESTED
+
+    override val event = EventName.AKTIVE_ORGNR_REQUESTED
+    override val startKeys = listOf(
+        Key.FNR,
+        Key.ARBEIDSGIVER_FNR
+    )
+    override val dataKeys = listOf(
+        Key.ARBEIDSFORHOLD,
+        Key.ORG_RETTIGHETER,
+        Key.ARBEIDSTAKER_INFORMASJON,
+        Key.VIRKSOMHETER
+    )
 
     init {
-        withEventListener {
-            StatefullEventListener(
-                redisStore = redisStore,
-                event = event,
-                dataFelter = arrayOf(Key.FNR, Key.ARBEIDSGIVER_FNR),
-                mainListener = it,
-                rapidsConnection = rapid
-            )
-        }
-        withDataKanal {
-            StatefullDataKanal(
-                dataFelter = arrayOf(
-                    Key.ARBEIDSFORHOLD,
-                    Key.ORG_RETTIGHETER,
-                    Key.ARBEIDSTAKER_INFORMASJON,
-                    Key.VIRKSOMHETER
-                ),
-                eventName = event,
-                mainListener = it,
-                rapidsConnection = rapid,
-                redisStore = redisStore
-            )
-        }
+        StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
+        StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
     }
 
-    override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
+    override fun new(message: JsonMessage) {
         val json = message.toJsonMap()
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-        when (transaction) {
-            Transaction.NEW -> {
-                val innloggetFnr = json[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
-                val sykemeldtFnr = json[Key.FNR]?.fromJson(String.serializer())
-                if (innloggetFnr != null && sykemeldtFnr != null) {
-                    rapid.publish(
-                        Key.EVENT_NAME to event.toJson(),
-                        Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
-                        Key.IDENTITETSNUMMER to innloggetFnr.toJson(),
-                        Key.UUID to transaksjonId.toJson()
-                    )
-                    rapid.publish(
-                        Key.EVENT_NAME to event.toJson(),
-                        Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-                        Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
-                        Key.UUID to transaksjonId.toJson()
-                    )
-                    rapid.publish(
-                        Key.EVENT_NAME to event.toJson(),
-                        Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-                        Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
-                        Key.UUID to transaksjonId.toJson()
-                    )
-                } else {
-                    MdcUtils.withLogFields(
-                        Log.klasse(this),
-                        Log.event(event),
-                        Log.transaksjonId(transaksjonId)
-                    ) {
-                        "Mangler arbeidsgiverFnr eller arbeidstakerFnr."
-                            .also {
-                                sikkerLogger.error(it)
-                                logger.error(it)
-                            }
-
-                        terminate(message.createFail("Ukjent feil oppstod", transaksjonId))
+        val innloggetFnr = json[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
+        val sykemeldtFnr = json[Key.FNR]?.fromJson(String.serializer())
+        if (innloggetFnr != null && sykemeldtFnr != null) {
+            rapid.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
+                Key.IDENTITETSNUMMER to innloggetFnr.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            )
+            rapid.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
+                Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            )
+            rapid.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+                Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            )
+        } else {
+            MdcUtils.withLogFields(
+                Log.klasse(this),
+                Log.event(event),
+                Log.transaksjonId(transaksjonId)
+            ) {
+                "Mangler arbeidsgiverFnr eller arbeidstakerFnr."
+                    .also {
+                        sikkerLogger.error(it)
+                        logger.error(it)
                     }
-                }
-            }
 
-            Transaction.IN_PROGRESS -> {
-                if (isDataCollected(*step1data(transaksjonId))) {
-                    val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(Arbeidsforhold.serializer().list())
-                    val orgrettigheter = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER).read()?.fromJson(String.serializer().set())
-                    val result = trekkUtArbeidsforhold(arbeidsforholdListe, orgrettigheter)
-                    result.onSuccess { arbeidsgivere ->
-                        rapid.publish(
-                            Key.EVENT_NAME to event.toJson(),
-                            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                            Key.UUID to transaksjonId.toJson(),
-                            Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
-                        )
-                    }
-                    result.onFailure {
-                        val feilmelding = it.message ?: "Ukjent feil oppstod"
-                        MdcUtils.withLogFields(
-                            Log.klasse(this),
-                            Log.event(event),
-                            Log.transaksjonId(transaksjonId)
-                        ) {
-                            sikkerLogger.error(feilmelding)
-                            logger.error(feilmelding)
-                        }
-                        terminate(message.createFail(feilmelding, transaksjonId))
-                    }
-                }
-            }
-
-            else -> {
-                logger.info("Transaksjon $transaction er ikke støttet.")
+                onError(message, message.createFail("Ukjent feil oppstod", transaksjonId))
             }
         }
+    }
 
-        MdcUtils.withLogFields(
-            Log.klasse(this),
-            Log.event(event),
-            Log.transaksjonId(transaksjonId)
-        ) {
-            sikkerLogger.info("Prosesserer transaksjon $transaction.")
+    override fun inProgress(message: JsonMessage) {
+        val json = message.toJsonMap()
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
+
+        if (isDataCollected(step1data(transaksjonId))) {
+            val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(Arbeidsforhold.serializer().list())
+            val orgrettigheter = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER).read()?.fromJson(String.serializer().set())
+            val result = trekkUtArbeidsforhold(arbeidsforholdListe, orgrettigheter)
+            result.onSuccess { arbeidsgivere ->
+                rapid.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
+                )
+            }
+            result.onFailure {
+                val feilmelding = it.message ?: "Ukjent feil oppstod"
+                MdcUtils.withLogFields(
+                    Log.klasse(this),
+                    Log.event(event),
+                    Log.transaksjonId(transaksjonId)
+                ) {
+                    sikkerLogger.error(feilmelding)
+                    logger.error(feilmelding)
+                }
+                onError(message, message.createFail(feilmelding, transaksjonId))
+            }
         }
     }
 
@@ -207,11 +184,11 @@ class AktiveOrgnrService(
                     }
                 }
             }
-            terminate(message.createFail("Ukjent feil oppstod", transaksjonId))
+            onError(message, message.createFail("Ukjent feil oppstod", transaksjonId))
         }
     }
 
-    override fun terminate(fail: Fail) {
+    override fun onError(message: JsonMessage, fail: Fail) {
         val transaksjonId = fail.transaksjonId
 
         val clientId = RedisKey.of(transaksjonId, event)
@@ -262,7 +239,7 @@ class AktiveOrgnrService(
         }
     }
 
-    private fun step1data(uuid: UUID): Array<RedisKey> = arrayOf(
+    private fun step1data(uuid: UUID): List<RedisKey> = listOf(
         RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
         RedisKey.of(uuid, Key.ORG_RETTIGHETER)
     )

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers
 import io.mockk.clearAllMocks
 import io.mockk.verify
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -22,13 +21,8 @@ import java.util.UUID
 
 class DataKanalTest {
 
-    private val testRapid: TestRapid = TestRapid()
-
+    private val testRapid = TestRapid()
     private val mockRedis = MockRedis()
-
-    private val dummyListener = object : River.PacketListener {
-        override fun onPacket(packet: JsonMessage, context: MessageContext) {}
-    }
 
     @BeforeEach
     fun setup() {
@@ -80,8 +74,8 @@ class DataKanalTest {
 
     @Test
     fun `Test DATA collection, Primitive`() {
-        val testFelter = arrayOf(Key.FNR, Key.INNTEKT)
-        StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, mockRedis.store)
+        val testFelter = listOf(Key.FNR, Key.INNTEKT)
+        StatefullDataKanal(testRapid, EventName.INNTEKTSMELDING_MOTTATT, mockRedis.store, testFelter) { _, _ -> }
         val uuid = UUID.randomUUID()
         testRapid.sendTestMessage(
             JsonMessage.newMessage(
@@ -120,8 +114,8 @@ class DataKanalTest {
 
     @Test
     fun `Test DATA collection, Object`() {
-        val testFelter = arrayOf(Key.ARBEIDSGIVER_INFORMASJON)
-        StatefullDataKanal(testFelter, EventName.INNTEKTSMELDING_MOTTATT, dummyListener, testRapid, mockRedis.store)
+        val testFelter = listOf(Key.ARBEIDSGIVER_INFORMASJON)
+        StatefullDataKanal(testRapid, EventName.INNTEKTSMELDING_MOTTATT, mockRedis.store, testFelter) { _, _ -> }
         val uuid = UUID.randomUUID()
         val personDato = PersonDato("X", null, "")
 
@@ -139,7 +133,7 @@ class DataKanalTest {
 }
 
 class TestDataKanal(rapidsConnection: RapidsConnection) : DataKanal(rapidsConnection) {
-    override val eventName: EventName = EventName.INNTEKTSMELDING_MOTTATT
+    override val event: EventName = EventName.INNTEKTSMELDING_MOTTATT
     var invocations = 0
 
     override fun accept(): River.PacketValidation = River.PacketValidation { }

@@ -22,10 +22,10 @@ class RedisStore(redisUrl: String) {
         return value
     }
 
-    fun exist(vararg keys: RedisKey): Long {
+    fun exist(keys: List<RedisKey>): Long {
         val keysAsString = keys.map { it.toString() }.toTypedArray()
         val count = syncCommands.exists(*keysAsString)
-        sikkerLogger.debug("Checking exist in redis: ${keys.contentToString()} -> $count")
+        sikkerLogger.debug("Checking exist in redis: $keys -> $count")
         return count
     }
 

@@ -9,11 +9,10 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.DelegatingFailKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.Transaction
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -34,30 +33,27 @@ private const val AVSENDER_NAV_NO = "NAV_NO"
 class SpinnService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
-) : CompositeEventListener(redisStore) {
+) : CompositeEventListener() {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override val event: EventName = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
+    override val event = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
+    override val startKeys = listOf(
+        Key.FORESPOERSEL_ID,
+        Key.SPINN_INNTEKTSMELDING_ID
+    )
+    override val dataKeys = listOf(
+        Key.EKSTERN_INNTEKTSMELDING
+    )
 
     init {
-        withFailKanal { DelegatingFailKanal(event, it, rapid) }
-        withDataKanal {
-            StatefullDataKanal(
-                dataFelter = arrayOf(
-                    Key.EKSTERN_INNTEKTSMELDING
-                ),
-                eventName = event,
-                mainListener = it,
-                rapidsConnection = rapid,
-                redisStore = redisStore
-            )
-        }
-        withEventListener { StatefullEventListener(redisStore, event, arrayOf(Key.FORESPOERSEL_ID, Key.SPINN_INNTEKTSMELDING_ID), it, rapid) }
+        StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
+        StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
+        FailKanal(rapid, event, ::onPacket)
     }
 
-    override fun dispatchBehov(message: JsonMessage, transaction: Transaction) {
+    override fun new(message: JsonMessage) {
         val json = message.toJsonMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
@@ -78,20 +74,24 @@ class SpinnService(
             Log.event(event),
             Log.forespoerselId(forespoerselId)
         ) {
-            sikkerLogger.info("Prosesserer transaksjon $transaction.")
-            if (transaction == Transaction.NEW) {
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
-                    Key.UUID to transaksjonId.toJson()
-                )
-                    .also {
-                        logger.info("Publiserte melding om ${BehovType.HENT_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
-                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                    }
-            }
+            rapid.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            )
+                .also {
+                    logger.info("Publiserte melding om ${BehovType.HENT_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                }
+        }
+    }
+
+    override fun inProgress(message: JsonMessage) {
+        "Service skal aldri være \"underveis\".".also {
+            logger.error(it)
+            sikkerLogger.error(it)
         }
     }
 
@@ -132,7 +132,7 @@ class SpinnService(
         }
     }
 
-    override fun terminate(fail: Fail) {
+    override fun onError(message: JsonMessage, fail: Fail) {
         MdcUtils.withLogFields(
             Log.transaksjonId(fail.transaksjonId)
         ) {

@@ -8,7 +8,7 @@ import java.time.ZonedDateTime
 fun mapInntektsmelding(
     request: Innsending,
     fulltnavnArbeidstaker: String,
-    arbeidsgiver: String,
+    virksomhetNavn: String,
     innsenderNavn: String
 ): Inntektsmelding =
     try {
@@ -16,7 +16,7 @@ fun mapInntektsmelding(
             orgnrUnderenhet = request.orgnrUnderenhet,
             identitetsnummer = request.identitetsnummer,
             fulltNavn = fulltnavnArbeidstaker,
-            virksomhetNavn = arbeidsgiver,
+            virksomhetNavn = virksomhetNavn,
             behandlingsdager = request.behandlingsdager,
             egenmeldingsperioder = request.egenmeldingsperioder,
             bestemmendeFraværsdag = bestemmendeFravaersdag(

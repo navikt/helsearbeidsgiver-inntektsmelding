@@ -45,9 +45,10 @@ class HentPersistertLoeserTest {
             repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } returns Pair(INNTEKTSMELDING_DOKUMENT, null)
         sendMelding(
-            Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.BEHOV to BEHOV.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson()
         )
         val melding = hentMelding(0)
         assertTrue(melding.contains(Key.DATA.str))
@@ -63,9 +64,10 @@ class HentPersistertLoeserTest {
             repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } returns Pair(null, EKSTERN_INNTEKTSMELDING_DOKUMENT)
         sendMelding(
-            Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.BEHOV to BEHOV.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson()
         )
         val melding = hentMelding(0)
         assertTrue(melding.contains(Key.DATA.str))
@@ -81,9 +83,10 @@ class HentPersistertLoeserTest {
             repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } throws Exception()
         val fail = sendMeldingMedFeil(
-            Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.BEHOV to BEHOV.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson()
         )
         assertNotNull(fail.feilmelding)
         assertEquals("Klarte ikke hente persistert inntektsmelding", fail.feilmelding)
@@ -95,9 +98,10 @@ class HentPersistertLoeserTest {
             repository.hentNyesteEksternEllerInternInntektsmelding(any())
         } returns null
         sendMelding(
-            Key.BEHOV to BEHOV.toJson(),
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.BEHOV to BEHOV.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson()
         )
         val message = hentMelding(0)
         assertTrue(message.contains(Key.DATA.str))

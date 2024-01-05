@@ -41,7 +41,7 @@ fun MessageContext.publishEvent(
         *nonNullMessageFields
     )
         .also {
-            logger.info("Publiserte event '$eventName' and transaksjonId '$transaksjonId'.")
+            logger.info("Publiserte event '$eventName' med transaksjonId '$transaksjonId'.")
             sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
         }
 }

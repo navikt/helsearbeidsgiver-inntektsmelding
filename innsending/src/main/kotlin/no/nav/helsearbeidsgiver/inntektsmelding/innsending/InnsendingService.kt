@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
@@ -131,7 +130,7 @@ class InnsendingService(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.UUID to uuid.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING_DOKUMENT to message[Key.INNTEKTSMELDING_DOKUMENT.str].toJsonElement()
+                Key.INNTEKTSMELDING_DOKUMENT to message[Key.INNTEKTSMELDING_DOKUMENT.str].toString().parseJson()
             )
                 .also {
                     logger.info("Submitting INNTEKTSMELDING_MOTTATT")

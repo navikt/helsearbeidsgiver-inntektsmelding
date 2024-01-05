@@ -10,14 +10,20 @@ import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Orgnr
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishData
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.toYearMonth
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -86,16 +92,21 @@ class InntektLoeser(
             .onSuccess { inntektPerOrgnrOgMaaned ->
                 val inntektPerMaaned = inntektPerOrgnrOgMaaned[behov.orgnr().verdi]
                     .orEmpty()
+
                 val inntekt = listOf(fom, middle, tom)
                     .associateWith { inntektPerMaaned[it] }
                     .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }
                     .let(::Inntekt)
-                publishData(
-                    behov.createData(
-                        mapOf(
-                            Key.INNTEKT to inntekt
-                        )
-                    )
+
+                val json = behov.jsonMessage.toJson().parseJson().toMap()
+
+                val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+
+                rapidsConnection.publishData(
+                    eventName = behov.event,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                    Key.INNTEKT to inntekt.toJson(Inntekt.serializer())
                 )
             }
             .onFailure {

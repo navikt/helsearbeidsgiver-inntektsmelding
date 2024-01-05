@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.felles.json
 
-import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.json.JsonElement
@@ -11,11 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-
-fun JsonNode.toJsonElement(): JsonElement =
-    toString().parseJson()
 
 fun EventName.toJson(): JsonElement =
     toJson(EventName.serializer())

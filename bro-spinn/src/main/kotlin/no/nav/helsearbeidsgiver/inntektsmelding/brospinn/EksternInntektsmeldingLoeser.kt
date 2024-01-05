@@ -4,13 +4,21 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishData
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 class EksternInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
@@ -39,8 +47,18 @@ class EksternInntektsmeldingLoeser(
             return
         }
         try {
+            val json = behov.jsonMessage.toJson().parseJson().toMap()
+
+            val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+
             val eksternInntektsmelding = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId.asText())
-            publishData(behov.createData(mapOf(Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding)))
+
+            rapidsConnection.publishData(
+                eventName = behov.event,
+                transaksjonId = transaksjonId,
+                forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
+            )
         } catch (e: SpinnApiException) {
             "Feil ved kall mot spinn api: ${e.message}".also {
                 logger.error(it)

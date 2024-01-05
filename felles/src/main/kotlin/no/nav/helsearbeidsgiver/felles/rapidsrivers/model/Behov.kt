@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -47,21 +47,6 @@ class Behov(
 
     operator fun contains(key: Key): Boolean = jsonMessage[key.str].isMissingOrNull().not()
 
-    fun createData(map: Map<Key, Any>): Data {
-        val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str]
-        return Data(
-            event,
-            JsonMessage.newMessage(
-                event.name,
-                mapOfNotNull(
-                    Key.DATA.str to "",
-                    Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
-                    Key.FORESPOERSEL_ID.str to forespoerselID
-                ) + map.mapKeys { it.key.str }
-            )
-        )
-    }
-
     fun createFail(feilmelding: String): Fail {
         val json = jsonMessage.toJson().parseJson()
         return Fail(
@@ -92,11 +77,15 @@ class Behov(
             forespoerselId,
             JsonMessage.newMessage(
                 eventName = event.name,
-                map = mapOfNotNull(
+                map = mapOf(
                     Key.BEHOV.str to behov.name,
                     Key.UUID.str to uuid().takeUnless { it.isBlank() },
                     Key.FORESPOERSEL_ID.str to this.forespoerselId
-                ) + data.mapKeys { it.key.str }
+                )
+                    .mapValuesNotNull { it }
+                    .plus(
+                        data.mapKeys { it.key.str }
+                    )
             )
         )
     }

@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.felles.IKey
-import no.nav.helsearbeidsgiver.felles.json.toJsonElement
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 
 object Pri {
@@ -28,7 +28,7 @@ object Pri {
             str
 
         fun fra(message: JsonMessage): JsonElement =
-            message[str].toJsonElement()
+            message[str].toString().parseJson()
 
         companion object {
             internal fun fromJson(json: String): Key =

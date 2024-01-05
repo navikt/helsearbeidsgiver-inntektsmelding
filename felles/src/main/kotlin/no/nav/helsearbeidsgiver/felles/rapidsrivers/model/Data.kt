@@ -1,24 +1,48 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.River
+import kotlinx.serialization.json.JsonElement
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
-class Data(val event: EventName, val jsonMessage: JsonMessage) {
+private val logger = "im-model-data".logger()
+private val sikkerLogger = sikkerLogger()
 
-    init {
-        packetValidator.validate(jsonMessage)
-        jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
-    }
-    companion object {
-        val packetValidator = River.PacketValidation {
-            it.demandKey(Key.EVENT_NAME.str)
-            it.rejectKey(Key.BEHOV.str)
-            it.demandKey(Key.DATA.str)
-            it.rejectKey(Key.FAIL.str)
-            it.interestedIn(Key.UUID.str)
-            it.interestedIn(Key.FORESPOERSEL_ID.str)
+fun MessageContext.publishData(
+    eventName: EventName,
+    transaksjonId: UUID?,
+    forespoerselId: UUID?,
+    vararg messageFields: Pair<Key, JsonElement?>
+): JsonElement {
+    val optionalIdFields = mapOf(
+        Key.UUID to transaksjonId,
+        Key.FORESPOERSEL_ID to forespoerselId
+    )
+        .mapValuesNotNull { it?.toJson() }
+        .toList()
+        .toTypedArray()
+
+    val nonNullMessageFields = messageFields.toMap()
+        .mapValuesNotNull { it }
+        .toList()
+        .toTypedArray()
+
+    return publish(
+        Key.EVENT_NAME to eventName.toJson(),
+        Key.DATA to "".toJson(),
+        *optionalIdFields,
+        *nonNullMessageFields
+    )
+        .also {
+            logger.info("Publiserte data for '$eventName' med transaksjonId '$transaksjonId'.")
+            sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
         }
-    }
 }

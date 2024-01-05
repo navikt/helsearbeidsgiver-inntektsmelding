@@ -156,7 +156,7 @@ class TrengerService(
             }
         } else {
             val foresporselSvar = redisStore.get(RedisKey.of(transaksjonId, Key.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
-            val inntekt = redisStore.get(RedisKey.of(transaksjonId, Key.INNTEKT))?.fromJson(Inntekt.serializer())
+            val inntekt = redisStore.get(RedisKey.of(transaksjonId, Key.INNTEKT))?.fromJsonWithUndefined(Inntekt.serializer())
             val feilReport: FeilReport? = redisStore.get(RedisKey.of(transaksjonId, Feilmelding("")))?.fromJson(FeilReport.serializer())
 
             val trengerData = TrengerData(
@@ -165,7 +165,7 @@ class TrengerService(
                 personDato = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON))?.fromJson(PersonDato.serializer()),
                 arbeidsgiver = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSGIVER_INFORMASJON))?.fromJson(PersonDato.serializer()),
                 virksomhetNavn = redisStore.get(RedisKey.of(transaksjonId, Key.VIRKSOMHET)),
-                inntekt = redisStore.get(RedisKey.of(transaksjonId, Key.INNTEKT))?.fromJsonWithUndefined(Inntekt.serializer()),
+                inntekt = inntekt,
                 skjaeringstidspunkt = foresporselSvar?.skjaeringstidspunkt,
                 fravarsPerioder = foresporselSvar?.sykmeldingsperioder,
                 egenmeldingsPerioder = foresporselSvar?.egenmeldingsperioder,

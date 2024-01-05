@@ -51,9 +51,6 @@ fun JsonMessage.interestedIn(vararg keys: IKey) {
     interestedIn(*keysAsStr)
 }
 
-fun JsonMessage.toJsonMap(): Map<IKey, JsonElement> =
-    toJson().parseJson().toMap()
-
 fun MessageContext.publish(vararg messageFields: Pair<IKey, JsonElement>): JsonElement =
     publish(messageFields.toMap())
 

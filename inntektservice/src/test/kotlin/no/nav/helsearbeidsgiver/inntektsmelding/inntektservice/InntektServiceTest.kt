@@ -9,7 +9,6 @@ import io.mockk.just
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.serialization.json.JsonObject
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -62,7 +61,7 @@ class InntektServiceTest {
         )
 
         shouldNotThrowAny {
-            service.onError(JsonMessage.newMessage(), fail)
+            service.onError(emptyMap(), fail)
         }
 
         verify {

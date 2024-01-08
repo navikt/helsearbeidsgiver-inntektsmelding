@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Bonus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
@@ -46,7 +47,7 @@ class JournalfoerInntektsmeldingMottattListenerTest {
                 true
             ),
             emptyList(),
-            no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending.NY,
+            AarsakInnsending.NY,
             true
         )
         sendMelding(

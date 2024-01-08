@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.bestemmendeFravaersdag
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import java.time.ZonedDateTime
 
 fun mapInntektsmelding(

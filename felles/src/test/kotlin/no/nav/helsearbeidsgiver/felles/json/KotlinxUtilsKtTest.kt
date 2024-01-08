@@ -18,18 +18,34 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 class KotlinxUtilsKtTest : FunSpec({
 
     context("toMap") {
-        withData(
-            mapOf<String, Map<IKey, String>>(
-                "inneholder bare Key" to mapOf(Key.EVENT_NAME to "testevent"),
-                "inneholder bare Pri.Key" to mapOf(Pri.Key.NOTIS to "husk å drikke vann"),
-                "inneholder Key og Pri.Key" to mapOf(
-                    Key.EVENT_NAME to "testevent",
-                    Pri.Key.NOTIS to "husk å drikke vann"
-                )
+        test("inneholder alle Keys") {
+            val expectedMap = mapOf(
+                Key.EVENT_NAME to "test_event",
+                Key.BEHOV to "test_behov",
+                Key.UUID to "test_transaksjonId"
             )
-        ) { expectedMap ->
+
             val json = JsonObject(
                 expectedMap.mapKeys { it.key.str }
+                    .mapValues { it.value.toJson() }
+            )
+
+            val jsonMap = json.toMap()
+
+            jsonMap shouldBe expectedMap.mapValues { it.value.toJson() }
+        }
+
+        test("inneholder bare Keys") {
+            val expectedMap = mapOf(
+                Key.EVENT_NAME to "test_event",
+                Key.BEHOV to "test_behov"
+            )
+
+            val json = JsonObject(
+                expectedMap.mapKeys { it.key.str }
+                    .plus(
+                        "ikke en key" to "skal ikke være med"
+                    )
                     .mapValues { it.value.toJson() }
             )
 

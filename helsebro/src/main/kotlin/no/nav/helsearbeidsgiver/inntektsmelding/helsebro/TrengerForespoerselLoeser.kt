@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -86,11 +84,3 @@ class TrengerForespoerselLoeser(
             }
     }
 }
-
-private fun Map<Key, JsonElement>.toJson(): JsonElement =
-    toJson(
-        MapSerializer(
-            Key.serializer(),
-            JsonElement.serializer()
-        )
-    )

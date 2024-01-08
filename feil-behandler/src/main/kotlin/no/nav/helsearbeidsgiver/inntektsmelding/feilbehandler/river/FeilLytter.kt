@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -46,7 +45,7 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerLogger.info("Mottok feil: ${packet.toPretty()}")
-        val fail = toFailOrNull(packet.toJson().parseJson().fromJsonMapFiltered(Key.serializer()))
+        val fail = toFailOrNull(packet.toJson().parseJson().toMap())
         if (skalHaandteres(fail)) {
             sikkerLogger.info("Lagrer mottatt pakke!")
             val jobb = Bakgrunnsjobb(

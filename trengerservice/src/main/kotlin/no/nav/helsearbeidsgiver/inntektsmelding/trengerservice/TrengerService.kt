@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -129,12 +128,7 @@ class TrengerService(
                         event = event,
                         transaksjonId = transaksjonId,
                         forespoerselId = forespoerselId,
-                        utloesendeMelding = melding.toJson(
-                            MapSerializer(
-                                Key.serializer(),
-                                JsonElement.serializer()
-                            )
-                        )
+                        utloesendeMelding = melding.toJson()
                     )
                     onError(melding, fail)
                 }

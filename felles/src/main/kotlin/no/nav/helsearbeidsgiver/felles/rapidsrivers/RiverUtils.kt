@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helsearbeidsgiver.felles.IKey
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -51,10 +52,10 @@ fun JsonMessage.interestedIn(vararg keys: IKey) {
     interestedIn(*keysAsStr)
 }
 
-fun MessageContext.publish(vararg messageFields: Pair<IKey, JsonElement>): JsonElement =
+fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement =
     publish(messageFields.toMap())
 
-fun MessageContext.publish(messageFields: Map<IKey, JsonElement>): JsonElement =
+fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
     messageFields
         .mapKeys { (key, _) -> key.toString() }
         .toJson()

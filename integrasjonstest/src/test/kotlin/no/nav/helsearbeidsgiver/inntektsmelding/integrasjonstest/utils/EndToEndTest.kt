@@ -7,7 +7,9 @@ import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.aareg.AaregClient
@@ -16,7 +18,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.IKey
+import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -50,6 +52,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerServ
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.mai
@@ -205,11 +209,26 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         logger.info("Stopped")
     }
 
-    fun publish(vararg messageFields: Pair<IKey, JsonElement>) {
+    fun publish(vararg messageFields: Pair<Key, JsonElement>) {
         rapid.publish(*messageFields).also {
             println("Publiserte melding: $it")
         }
     }
+
+    fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>): JsonElement =
+        messageFields.toMap()
+            .mapKeys { (key, _) -> key.toString() }
+            .toJson()
+            .toString()
+            .let {
+                JsonMessage(it, MessageProblems(it), null)
+            }
+            .toJson()
+            .also(rapid::publish)
+            .parseJson()
+            .also {
+                println("Publiserte melding: $it")
+            }
 
     /** Avslutter venting dersom meldinger finnes og ingen nye ankommer i løpet av 1500 ms. */
     fun waitForMessages(millis: Long) {

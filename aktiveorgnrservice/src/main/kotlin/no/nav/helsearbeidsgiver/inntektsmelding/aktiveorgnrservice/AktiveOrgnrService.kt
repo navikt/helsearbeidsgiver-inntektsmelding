@@ -208,12 +208,7 @@ class AktiveOrgnrService(
             event = event,
             transaksjonId = transaksjonId,
             forespoerselId = null,
-            utloesendeMelding = toJson(
-                MapSerializer(
-                    Key.serializer(),
-                    JsonElement.serializer()
-                )
-            )
+            utloesendeMelding = toJson()
         )
 
     private fun trekkUtArbeidsforhold(arbeidsforholdListe: List<Arbeidsforhold>?, orgrettigheter: Set<String>?): Result<List<String>> {

@@ -35,12 +35,12 @@ class LagreEksternInntektsmeldingLoeser(
         }
     }
     override fun onBehov(behov: Behov) {
-        val transaksjonsId = behov[Key.UUID].asText().let(UUID::fromString)
+        val transaksjonId = behov[Key.UUID].asText().let(UUID::fromString)
         val forespoerselId = behov[Key.FORESPOERSEL_ID].asText().let(UUID::fromString)
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(behov.event),
-            Log.transaksjonId(transaksjonsId),
+            Log.transaksjonId(transaksjonId),
             Log.behov(behov.behov)
         ) {
             logger.info("Mottok behov ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name}")
@@ -49,7 +49,7 @@ class LagreEksternInntektsmeldingLoeser(
             if (eksternInntektsmelding == null) {
                 logger.error("Fant ingen EksternInntektsmelding")
                 sikkerLogger.error("Fant ingen EksternInntektsmelding")
-                publishFail(behov.createFail("Klarte ikke lagre EksternInntektsmelding for transaksjonsId $transaksjonsId. Mangler datafelt"))
+                publishFail(behov.createFail("Klarte ikke lagre EksternInntektsmelding for transaksjonId $transaksjonId. Mangler datafelt"))
             } else {
                 try {
                     repository.lagreEksternInntektsmelding(forespoerselId.toString(), eksternInntektsmelding)
@@ -60,11 +60,11 @@ class LagreEksternInntektsmeldingLoeser(
 
                     rapidsConnection.publishEvent(
                         eventName = EventName.EKSTERN_INNTEKTSMELDING_LAGRET,
-                        transaksjonId = transaksjonsId,
+                        transaksjonId = transaksjonId,
                         forespoerselId = forespoerselId
                     )
                 } catch (ex: Exception) {
-                    publishFail(behov.createFail("Klarte ikke lagre EksternInntektsmelding for transaksjonsId $transaksjonsId"))
+                    publishFail(behov.createFail("Klarte ikke lagre EksternInntektsmelding for transaksjonId $transaksjonId"))
                     logger.error("Klarte ikke lagre EksternInntektsmelding")
                     sikkerLogger.error(
                         "Klarte ikke lagre EksternInntektsmelding $EksternInntektsmelding",

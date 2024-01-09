@@ -2,12 +2,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
+import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.ForespoerselEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database
@@ -52,15 +53,15 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val UUID = "abc-123"
+        val forespoerselId = "abc-123"
 
-        foresporselRepo.lagreForespoersel(UUID, ORGNR)
+        foresporselRepo.lagreForespoersel(forespoerselId, ORGNR)
 
         shouldNotThrowAny {
             transaction {
                 ForespoerselEntitet.select {
                     all(
-                        ForespoerselEntitet.forespoerselId eq UUID,
+                        ForespoerselEntitet.forespoerselId eq forespoerselId,
                         ForespoerselEntitet.orgnr eq ORGNR
                     )
                 }.single()
@@ -76,32 +77,35 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             ForespoerselEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val UUID = randomUuid()
+        val forespoerselId = UUID.randomUUID()
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = OffsetDateTime.now())
 
-        foresporselRepo.lagreForespoersel(UUID.toString(), ORGNR)
-        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), DOK_1)
+        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), DOK_1)
 
         transaction {
             InntektsmeldingEntitet.select {
                 all(
-                    InntektsmeldingEntitet.forespoerselId eq UUID.toString(),
+                    InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString(),
                     InntektsmeldingEntitet.dokument eq DOK_1
                 )
             }.single()
         }
         // lagre varianter:
-        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA)
-        val im = inntektsmeldingRepo.hentNyeste(UUID)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA)
+        val im = inntektsmeldingRepo.hentNyeste(forespoerselId)
         im shouldBe INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA
 
-        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA)
-        val im2 = inntektsmeldingRepo.hentNyeste(UUID)
-        im2?.forespurtData shouldNotBe(null)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA)
+        val im2 = inntektsmeldingRepo.hentNyeste(forespoerselId)
+        im2?.forespurtData shouldNotBe (null)
         im2?.forespurtData shouldBe INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.forespurtData
 
-        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.copy(fullLønnIArbeidsgiverPerioden = null))
-        val im3 = inntektsmeldingRepo.hentNyeste(UUID)
+        inntektsmeldingRepo.lagreInntektsmelding(
+            forespoerselId.toString(),
+            INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.copy(fullLønnIArbeidsgiverPerioden = null)
+        )
+        val im3 = inntektsmeldingRepo.hentNyeste(forespoerselId)
         im3?.fullLønnIArbeidsgiverPerioden shouldBe null
     }
 
@@ -113,16 +117,16 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             ForespoerselEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val UUID = "abc-1234"
+        val forespoerselId = "abc-1234"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT
 
-        foresporselRepo.lagreForespoersel(UUID, ORGNR)
-        inntektsmeldingRepo.lagreInntektsmelding(UUID, DOK_1)
+        foresporselRepo.lagreForespoersel(forespoerselId, ORGNR)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, DOK_1)
 
         transaction {
             InntektsmeldingEntitet.select {
                 all(
-                    InntektsmeldingEntitet.forespoerselId eq UUID,
+                    InntektsmeldingEntitet.forespoerselId eq forespoerselId,
                     InntektsmeldingEntitet.dokument eq DOK_1
                 )
             }.single()
@@ -134,24 +138,100 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val UUID = randomUuid()
+        val forespoerselId = UUID.randomUUID()
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = OffsetDateTime.now())
         val JOURNALPOST_1 = "jp-1"
 
-        foresporselRepo.lagreForespoersel(UUID.toString(), ORGNR)
-        inntektsmeldingRepo.lagreInntektsmelding(UUID.toString(), DOK_1)
-        inntektsmeldingRepo.oppdaterJournalpostId(UUID, JOURNALPOST_1)
-        val record = testRepo.hentRecordFraInntektsmelding(UUID.toString())
+        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), DOK_1)
+        inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, JOURNALPOST_1)
+        val record = testRepo.hentRecordFraInntektsmelding(forespoerselId.toString())
         record.shouldNotBeNull()
         val journalPostId = record.getOrNull(InntektsmeldingEntitet.journalpostId)
         journalPostId.shouldNotBeNull()
     }
 
-    test("skal _ikke_ oppdatere journalpostId for ekstern inntektmelding") {
-        transaction {
-            InntektsmeldingEntitet.selectAll().toList()
-        }.shouldBeEmpty()
+    test("skal kun oppdatere siste inntektsmelding med journalpostId") {
+        val forespoerselId = UUID.randomUUID()
+        val journalpostId = "jp-mollefonken-kjele"
 
+        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
+
+        // Skal kun oppdatere siste
+        inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
+
+        val resultat = transaction(db.db) {
+            InntektsmeldingEntitet.selectAll()
+                .orderBy(InntektsmeldingEntitet.innsendt)
+                .toList()
+        }
+
+        resultat shouldHaveSize 2
+
+        InntektsmeldingEntitet.apply {
+            resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
+
+            resultat[0][dokument].shouldNotBeNull()
+            resultat[0][this.journalpostId].shouldBeNull()
+
+            resultat[1][dokument].shouldNotBeNull()
+            resultat[1][this.journalpostId] shouldBe journalpostId
+        }
+    }
+
+    test("skal _ikke_ oppdatere noen inntektsmeldinger med journalpostId dersom siste allerede har") {
+        val forespoerselId = UUID.randomUUID()
+        val gammelJournalpostId = "jp-traust-gevir"
+        val nyJournalpostId = "jp-gallant-badehette"
+
+        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
+        inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
+        inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, gammelJournalpostId)
+
+        val resultatFoerNyJournalpostId = transaction(db.db) {
+            InntektsmeldingEntitet.selectAll()
+                .orderBy(InntektsmeldingEntitet.innsendt)
+                .toList()
+        }
+
+        resultatFoerNyJournalpostId shouldHaveSize 2
+
+        InntektsmeldingEntitet.apply {
+            resultatFoerNyJournalpostId[0][innsendt] shouldBeLessThan resultatFoerNyJournalpostId[1][innsendt]
+
+            resultatFoerNyJournalpostId[0][dokument].shouldNotBeNull()
+            resultatFoerNyJournalpostId[0][journalpostId].shouldBeNull()
+
+            resultatFoerNyJournalpostId[1][dokument].shouldNotBeNull()
+            resultatFoerNyJournalpostId[1][journalpostId] shouldBe gammelJournalpostId
+        }
+
+        // Skal ha null effekt
+        inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, nyJournalpostId)
+
+        val resultsEtterNyJournalpostId = transaction(db.db) {
+            InntektsmeldingEntitet.selectAll()
+                .orderBy(InntektsmeldingEntitet.innsendt)
+                .toList()
+        }
+
+        resultsEtterNyJournalpostId shouldHaveSize 2
+
+        InntektsmeldingEntitet.apply {
+            resultsEtterNyJournalpostId[0][innsendt] shouldBeLessThan resultsEtterNyJournalpostId[1][innsendt]
+
+            resultsEtterNyJournalpostId[0][dokument].shouldNotBeNull()
+            resultsEtterNyJournalpostId[0][journalpostId].shouldBeNull()
+
+            resultsEtterNyJournalpostId[1][dokument].shouldNotBeNull()
+            resultsEtterNyJournalpostId[1][journalpostId] shouldBe gammelJournalpostId
+        }
+    }
+
+    test("skal _ikke_ oppdatere journalpostId for ekstern inntektmelding") {
         val forespoerselId = UUID.randomUUID()
         val journalpostId = "jp-slem-fryser"
 
@@ -161,17 +241,23 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
 
         inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
 
-        transaction {
-            InntektsmeldingEntitet.selectAll().toList()
+        val resultat = transaction(db.db) {
+            InntektsmeldingEntitet.selectAll()
+                .orderBy(InntektsmeldingEntitet.innsendt)
+                .toList()
         }
-            .forEach {
-                if (it[InntektsmeldingEntitet.dokument] != null) {
-                    it[InntektsmeldingEntitet.journalpostId] shouldBe journalpostId
-                } else {
-                    it[InntektsmeldingEntitet.eksternInntektsmelding].shouldNotBeNull()
-                    it[InntektsmeldingEntitet.journalpostId].shouldBeNull()
-                }
-            }
+
+        resultat shouldHaveSize 2
+
+        InntektsmeldingEntitet.apply {
+            resultat[0][innsendt] shouldBeLessThan resultat[1][innsendt]
+
+            resultat[0][dokument].shouldNotBeNull()
+            resultat[0][this.journalpostId] shouldBe journalpostId
+
+            resultat[1][eksternInntektsmelding].shouldNotBeNull()
+            resultat[1][this.journalpostId].shouldBeNull()
+        }
     }
 
     test("skal oppdatere sakId") {
@@ -179,12 +265,12 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val UUID = "abc-456"
+        val forespoerselId = "abc-456"
         val SAK_ID_1 = "sak1-1"
 
-        foresporselRepo.lagreForespoersel(UUID, ORGNR)
-        foresporselRepo.oppdaterSakId(UUID, SAK_ID_1)
-        val record = testRepo.hentRecordFraForespoersel(UUID)
+        foresporselRepo.lagreForespoersel(forespoerselId, ORGNR)
+        foresporselRepo.oppdaterSakId(forespoerselId, SAK_ID_1)
+        val record = testRepo.hentRecordFraForespoersel(forespoerselId)
         record.shouldNotBeNull()
         val sakId = record.getOrNull(ForespoerselEntitet.sakId)
         sakId.shouldNotBeNull()
@@ -196,12 +282,12 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val UUID = "abc-456"
+        val forespoerselId = "abc-456"
         val OPPGAVE_ID_1 = "oppg-1"
 
-        foresporselRepo.lagreForespoersel(UUID, ORGNR)
-        foresporselRepo.oppdaterOppgaveId(UUID, OPPGAVE_ID_1)
-        val rad = testRepo.hentRecordFraForespoersel(UUID)
+        foresporselRepo.lagreForespoersel(forespoerselId, ORGNR)
+        foresporselRepo.oppdaterOppgaveId(forespoerselId, OPPGAVE_ID_1)
+        val rad = testRepo.hentRecordFraForespoersel(forespoerselId)
         rad.shouldNotBeNull()
         val oppgaveId = rad.getOrNull(ForespoerselEntitet.oppgaveId)
         oppgaveId.shouldNotBeNull()

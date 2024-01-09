@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -22,7 +21,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -57,11 +55,9 @@ class TilgangService(
         FailKanal(rapid, event, ::onPacket)
     }
 
-    override fun new(message: JsonMessage) {
-        val json = message.toJsonMap()
-
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
+    override fun new(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.transaksjonId(transaksjonId),
@@ -83,11 +79,9 @@ class TilgangService(
         }
     }
 
-    override fun inProgress(message: JsonMessage) {
-        val json = message.toJsonMap()
-
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
+    override fun inProgress(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.transaksjonId(transaksjonId),
@@ -128,10 +122,8 @@ class TilgangService(
         }
     }
 
-    override fun finalize(message: JsonMessage) {
-        val json = message.toJsonMap()
-
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
+    override fun finalize(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         val clientId = RedisKey.of(transaksjonId, event)
             .read()?.let(UUID::fromString)
@@ -159,7 +151,7 @@ class TilgangService(
         }
     }
 
-    override fun onError(message: JsonMessage, fail: Fail) {
+    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
         val manglendeDatafelt = when (utloesendeBehov) {

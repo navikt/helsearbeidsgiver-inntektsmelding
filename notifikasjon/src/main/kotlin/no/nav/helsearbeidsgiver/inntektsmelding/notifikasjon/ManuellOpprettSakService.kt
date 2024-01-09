@@ -1,12 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
-import no.nav.helse.rapids_rivers.JsonMessage
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
@@ -17,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -46,106 +48,90 @@ class ManuellOpprettSakService(
         FailKanal(rapid, event, ::onPacket)
     }
 
-    override fun new(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
-
-        // TODO Les fra melding
-        val forespoerselId = redisStore.get(RedisKey.of(transaksjonsId, Key.FORESPOERSEL_ID))!!
+    override fun new(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         rapid.publish(
             Key.EVENT_NAME to event.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-            Key.UUID to transaksjonsId.toJson(),
+            Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
     }
 
-    override fun inProgress(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
-        val forespoerselId = redisStore.get(RedisKey.of(transaksjonsId, Key.FORESPOERSEL_ID))!!
-        val forespoersel = redisStore.get(RedisKey.of(transaksjonsId, Key.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
+    override fun inProgress(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
+        val forespoerselId = redisStore.get(RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID))!!
+
+        val forespoersel = redisStore.get(RedisKey.of(transaksjonId, Key.FORESPOERSEL_SVAR))?.fromJson(TrengerInntekt.serializer())
         if (forespoersel == null) {
-            sikkerLogger.error("Fant ikke forespørsel '$forespoerselId' i redis-cache. transaksjonId='$transaksjonsId'")
+            sikkerLogger.error("Fant ikke forespørsel '$forespoerselId' i redis-cache. transaksjonId='$transaksjonId'")
             return
         }
 
         when {
-            isDataCollected(steg4(transaksjonsId)) -> {
+            isDataCollected(steg4(transaksjonId)) -> {
+                val sakId = redisStore.get(RedisKey.of(transaksjonId, Key.SAK_ID))!!
+
                 rapid.publish(
-                    JsonMessage.newMessage(
-                        mapOf(
-                            Key.EVENT_NAME.str to event.name,
-                            Key.UUID.str to transaksjonsId,
-                            Key.BEHOV.str to BehovType.PERSISTER_SAK_ID.name,
-                            Key.FORESPOERSEL_ID.str to forespoerselId,
-                            Key.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, Key.SAK_ID))!!
-                        )
-                    ).toJson()
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.BEHOV to BehovType.PERSISTER_SAK_ID.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.SAK_ID to sakId.toJson()
                 )
 
                 if (forespoersel.erBesvart) {
                     rapid.publish(
-                        JsonMessage.newMessage(
-                            mapOf(
-                                Key.EVENT_NAME.str to EventName.FORESPOERSEL_BESVART,
-                                Key.UUID.str to transaksjonsId,
-                                Key.FORESPOERSEL_ID.str to forespoerselId,
-                                Key.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, Key.SAK_ID))!!
-                            )
-                        ).toJson()
+                        Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.SAK_ID to sakId.toJson()
                     )
                 }
             }
 
-            isDataCollected(steg3(transaksjonsId)) -> {
-                val arbeidstakerRedis = redisStore.get(RedisKey.of(transaksjonsId, Key.ARBEIDSTAKER_INFORMASJON))?.fromJson(PersonDato.serializer())
+            isDataCollected(steg3(transaksjonId)) -> {
+                val arbeidstaker = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON))!!.fromJson(PersonDato.serializer())
+
                 rapid.publish(
-                    JsonMessage.newMessage(
-                        mapOf(
-                            Key.EVENT_NAME.str to event.name,
-                            Key.UUID.str to transaksjonsId,
-                            Key.BEHOV.str to BehovType.OPPRETT_SAK,
-                            Key.FORESPOERSEL_ID.str to forespoerselId,
-                            Key.ORGNRUNDERENHET.str to forespoersel.orgnr,
-                            // @TODO this transformation is not nessesary. StatefullDataKanal should be fixed to use Tree
-                            Key.ARBEIDSTAKER_INFORMASJON.str to arbeidstakerRedis!!
-                        )
-                    ).toJson()
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                    Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer())
                 )
             }
 
-            isDataCollected(steg2(transaksjonsId)) -> {
+            isDataCollected(steg2(transaksjonId)) -> {
                 rapid.publish(
-                    JsonMessage.newMessage(
-                        mapOf(
-                            Key.EVENT_NAME.str to event.name,
-                            Key.UUID.str to transaksjonsId,
-                            Key.BEHOV.str to BehovType.FULLT_NAVN.name,
-                            Key.IDENTITETSNUMMER.str to forespoersel.fnr,
-                            Key.FORESPOERSEL_ID.str to forespoerselId
-
-                        )
-                    ).toJson()
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.IDENTITETSNUMMER to forespoersel.fnr.toJson()
                 )
             }
         }
     }
 
-    override fun finalize(message: JsonMessage) {
-        val transaksjonsId = message[Key.UUID.str].asText().let(UUID::fromString)
+    override fun finalize(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
+
+        val sakId = redisStore.get(RedisKey.of(transaksjonId, Key.SAK_ID))!!
+
         rapid.publish(
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.EVENT_NAME.str to EventName.SAK_OPPRETTET.name,
-                    Key.FORESPOERSEL_ID.str to message[Key.FORESPOERSEL_ID.str],
-                    Key.SAK_ID.str to redisStore.get(RedisKey.of(transaksjonsId, Key.SAK_ID))!!
-                )
-            ).toJson()
+            Key.EVENT_NAME to EventName.SAK_OPPRETTET.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.SAK_ID to sakId.toJson()
         )
     }
 
-    override fun onError(message: JsonMessage, fail: Fail) {
+    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         sikkerLogger.error("Mottok feil:\n$fail")
     }
 

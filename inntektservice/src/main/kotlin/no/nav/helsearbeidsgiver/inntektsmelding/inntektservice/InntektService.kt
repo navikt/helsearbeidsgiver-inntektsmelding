@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntektservice
 
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -24,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -59,20 +57,10 @@ class InntektService(
         FailKanal(rapid, event, ::onPacket)
     }
 
-    override fun new(message: JsonMessage) {
-        val json = message.toJsonMap()
+    override fun new(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
-        // TODO Les fra melding
-        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID)
-            .read()
-            ?.let(UUID::fromString)
-        if (forespoerselId == null) {
-            sikkerLogger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
-            logger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
-            return
-        }
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
@@ -95,19 +83,10 @@ class InntektService(
         }
     }
 
-    override fun inProgress(message: JsonMessage) {
-        val json = message.toJsonMap()
+    override fun inProgress(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-
-        val forespoerselId = RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID) // TODO: Endre til å lese fra packet
-            .read()
-            ?.let(UUID::fromString)
-        if (forespoerselId == null) {
-            sikkerLogger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
-            logger.error("kunne ikke finne forespørselId for transaksjon $transaksjonId i Redis!")
-            return
-        }
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
@@ -147,10 +126,8 @@ class InntektService(
         }
     }
 
-    override fun finalize(message: JsonMessage) {
-        val json = message.toJsonMap()
-
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
+    override fun finalize(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         val clientId = RedisKey.of(transaksjonId, event)
             .read()
@@ -181,7 +158,7 @@ class InntektService(
         }
     }
 
-    override fun onError(message: JsonMessage, fail: Fail) {
+    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
         if (utloesendeBehov == BehovType.INNTEKT) {
@@ -204,7 +181,7 @@ class InntektService(
             RedisKey.of(fail.transaksjonId, Key.INNTEKT).write(JsonObject(emptyMap()))
 
             // TODO bruk finalize (sjekk andre servicer for tilsvarende feil)
-            return inProgress(message)
+            return inProgress(melding)
         }
 
         val feilReport = if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {

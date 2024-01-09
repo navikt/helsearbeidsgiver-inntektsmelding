@@ -1,10 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
-import no.nav.helse.rapids_rivers.JsonMessage
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -18,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -50,9 +51,9 @@ class OpprettOppgaveService(
         FailKanal(rapid, event, ::onPacket)
     }
 
-    override fun new(message: JsonMessage) {
-        medTransaksjonIdOgForespoerselId(message) { transaksjonId, forespoerselId ->
-            val orgnr = message[Key.ORGNRUNDERENHET.str].asText()
+    override fun new(melding: Map<Key, JsonElement>) {
+        medTransaksjonIdOgForespoerselId(melding) { transaksjonId, forespoerselId ->
+            val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
 
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
@@ -64,8 +65,8 @@ class OpprettOppgaveService(
         }
     }
 
-    override fun inProgress(message: JsonMessage) {
-        medTransaksjonIdOgForespoerselId(message) { _, _ ->
+    override fun inProgress(melding: Map<Key, JsonElement>) {
+        medTransaksjonIdOgForespoerselId(melding) { _, _ ->
             "Service skal aldri være \"underveis\".".also {
                 logger.error(it)
                 sikkerLogger.error(it)
@@ -73,9 +74,9 @@ class OpprettOppgaveService(
         }
     }
 
-    override fun finalize(message: JsonMessage) {
-        val transaksjonId = message[Key.UUID.str].asText().let(UUID::fromString)
-        val forespoerselId = message[Key.FORESPOERSEL_ID.str].asText().let(UUID::fromString)
+    override fun finalize(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
@@ -106,7 +107,7 @@ class OpprettOppgaveService(
         }
     }
 
-    override fun onError(message: JsonMessage, fail: Fail) {
+    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED),
@@ -116,7 +117,7 @@ class OpprettOppgaveService(
             if (utloesendeBehov == BehovType.VIRKSOMHET) {
                 val virksomhetKey = RedisKey.of(fail.transaksjonId, Key.VIRKSOMHET)
                 redisStore.set(virksomhetKey, defaultVirksomhetNavn())
-                return finalize(message)
+                return finalize(melding)
             }
 
             val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
@@ -130,14 +131,12 @@ class OpprettOppgaveService(
         }
     }
 
-    private inline fun medTransaksjonIdOgForespoerselId(message: JsonMessage, block: (UUID, UUID) -> Unit) {
+    private inline fun medTransaksjonIdOgForespoerselId(melding: Map<Key, JsonElement>, block: (UUID, UUID) -> Unit) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED)
         ) {
-            val json = message.toJson().parseJson().toMap()
-
-            val transaksjonId = json[Key.UUID]?.fromJson(UuidSerializer)
+            val transaksjonId = melding[Key.UUID]?.fromJson(UuidSerializer)
             if (transaksjonId == null) {
                 "Mangler transaksjonId. Klarer ikke opprette oppgave.".also {
                     logger.error(it)
@@ -147,7 +146,7 @@ class OpprettOppgaveService(
             }
 
             val forespoerselId = redisStore.get(RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID))?.let(UUID::fromString)
-                ?: json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
+                ?: melding[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
 
             if (forespoerselId == null) {
                 MdcUtils.withLogFields(

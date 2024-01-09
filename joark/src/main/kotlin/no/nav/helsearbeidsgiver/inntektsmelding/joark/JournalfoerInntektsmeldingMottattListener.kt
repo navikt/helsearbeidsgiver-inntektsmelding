@@ -7,10 +7,11 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.EventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -33,7 +34,8 @@ class JournalfoerInntektsmeldingMottattListener(rapidsConnection: RapidsConnecti
         }
 
     override fun onEvent(packet: JsonMessage) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, packet.toJsonMap())
+        val melding = packet.toJson().parseJson().toMap()
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),

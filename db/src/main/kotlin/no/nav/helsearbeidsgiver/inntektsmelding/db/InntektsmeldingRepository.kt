@@ -6,7 +6,10 @@ import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.forespoerselId
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.innsendt
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
@@ -17,6 +20,9 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class InntektsmeldingRepository(private val db: Database) {
+
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     private val requestLatency = Summary.build()
         .name("simba_db_inntektsmelding_repo_latency_seconds")
@@ -42,10 +48,7 @@ class InntektsmeldingRepository(private val db: Database) {
     fun hentNyeste(forespoerselId: UUID): Inntektsmelding? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
-            InntektsmeldingEntitet.select {
-                (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull()
-            }
-                .orderBy(innsendt, SortOrder.DESC)
+            hentNyesteQuery(forespoerselId)
                 .firstOrNull()
                 ?.getOrNull(InntektsmeldingEntitet.dokument)
         }.also {
@@ -71,19 +74,24 @@ class InntektsmeldingRepository(private val db: Database) {
 
     fun oppdaterJournalpostId(forespoerselId: UUID, journalpostId: String) {
         val requestTimer = requestLatency.labels("oppdaterJournalpostId").startTimer()
-        transaction(db) {
+
+        val antallOppdatert = transaction(db) {
             InntektsmeldingEntitet.update(
                 where = {
-                    (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and
-                        InntektsmeldingEntitet.dokument.isNotNull() and
+                    (InntektsmeldingEntitet.id eqSubQuery hentNyesteQuery(forespoerselId).adjustSlice { slice(InntektsmeldingEntitet.id) }) and
                         InntektsmeldingEntitet.journalpostId.isNull()
                 }
             ) {
                 it[InntektsmeldingEntitet.journalpostId] = journalpostId
             }
-        }.also {
-            requestTimer.observeDuration()
         }
+
+        if (antallOppdatert != 1) {
+            logger.error("Oppdaterte uventet antall ($antallOppdatert) rader med journalpostId.")
+            sikkerLogger.error("Oppdaterte uventet antall ($antallOppdatert) rader med journalpostId.")
+        }
+
+        requestTimer.observeDuration()
     }
 
     fun lagreEksternInntektsmelding(forespørselId: String, eksternIm: EksternInntektsmelding) {
@@ -97,4 +105,11 @@ class InntektsmeldingRepository(private val db: Database) {
             }
         }
     }
+
+    private fun hentNyesteQuery(forespoerselId: UUID): Query =
+        InntektsmeldingEntitet.select {
+            (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull()
+        }
+            .orderBy(innsendt, SortOrder.DESC)
+            .limit(1)
 }

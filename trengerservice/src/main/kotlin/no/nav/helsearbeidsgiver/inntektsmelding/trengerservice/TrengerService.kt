@@ -71,7 +71,6 @@ class TrengerService(
 
         redisStore.set(RedisKey.of(transaksjonId, Key.ARBEIDSGIVER_FNR), agFnr) // ta vare på denne til vi slår opp fullt navn
 
-        sikkerLogger.info("Dispatcher HENT_TRENGER_IM for $transaksjonId")
         sikkerLogger.info("${simpleName()} Dispatcher HENT_TRENGER_IM for $transaksjonId")
 
         rapid.publish(

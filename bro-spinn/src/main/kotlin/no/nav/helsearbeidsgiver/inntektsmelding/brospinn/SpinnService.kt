@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
-import no.nav.helse.rapids_rivers.JsonMessage
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
@@ -17,7 +17,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -53,11 +52,9 @@ class SpinnService(
         FailKanal(rapid, event, ::onPacket)
     }
 
-    override fun new(message: JsonMessage) {
-        val json = message.toJsonMap()
-
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
+    override fun new(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         val spinnImId = RedisKey.of(transaksjonId, Key.SPINN_INNTEKTSMELDING_ID)
             .read()?.let(UUID::fromString)
@@ -88,18 +85,17 @@ class SpinnService(
         }
     }
 
-    override fun inProgress(message: JsonMessage) {
+    override fun inProgress(melding: Map<Key, JsonElement>) {
         "Service skal aldri være \"underveis\".".also {
             logger.error(it)
             sikkerLogger.error(it)
         }
     }
 
-    override fun finalize(message: JsonMessage) {
-        val json = message.toJsonMap()
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
-        val eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), json)
+    override fun finalize(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
+        val eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), melding)
         if (
             eksternInntektsmelding?.avsenderSystemNavn != null &&
             eksternInntektsmelding.avsenderSystemNavn != AVSENDER_NAV_NO
@@ -132,7 +128,7 @@ class SpinnService(
         }
     }
 
-    override fun onError(message: JsonMessage, fail: Fail) {
+    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         MdcUtils.withLogFields(
             Log.transaksjonId(fail.transaksjonId)
         ) {

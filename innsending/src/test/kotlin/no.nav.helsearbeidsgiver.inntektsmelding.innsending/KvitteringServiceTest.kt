@@ -2,23 +2,23 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import io.mockk.clearAllMocks
 import io.mockk.verify
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class KvitteringServiceTest {
     private val testRapid: TestRapid = TestRapid()
     private val mockRedis = MockRedis()
 
-    private val foresporselid = "abc"
+    private val foresporselId = UUID.randomUUID()
 
     init {
         KvitteringService(testRapid, mockRedis.store)
@@ -33,37 +33,26 @@ class KvitteringServiceTest {
 
     @Test
     fun kvitteringServiceTest() {
-        val uuid = randomUuid()
+        val transaksjonId = UUID.randomUUID()
         val im = "inntektsmelding_FTW"
 
-        val packet: JsonMessage = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                Key.FORESPOERSEL_ID.str to foresporselid
-            )
-        )
-
-        testRapid.sendTestMessage(packet.toJson())
-
-        val behov = Behov(
-            EventName.KVITTERING_REQUESTED,
-            BehovType.HENT_PERSISTERT_IM,
-            foresporselid,
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.BEHOV.str to BehovType.HENT_PERSISTERT_IM,
-                    Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
-                    Key.FORESPOERSEL_ID.str to foresporselid,
-                    Key.UUID.str to uuid.toString()
-                )
-            )
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.FORESPOERSEL_ID to foresporselId.toJson()
         )
 
         testRapid.reset()
-        testRapid.sendTestMessage(behov.createData(mapOf(Key.INNTEKTSMELDING_DOKUMENT to im)).jsonMessage.toJson())
+
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.FORESPOERSEL_ID to foresporselId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.INNTEKTSMELDING_DOKUMENT to im.toJson()
+        )
 
         verify {
-            mockRedis.store.set(RedisKey.of(uuid, Key.INNTEKTSMELDING_DOKUMENT), im)
+            mockRedis.store.set(RedisKey.of(transaksjonId, Key.INNTEKTSMELDING_DOKUMENT), im)
         }
     }
 }

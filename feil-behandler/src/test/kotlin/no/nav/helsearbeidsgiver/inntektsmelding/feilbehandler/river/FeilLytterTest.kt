@@ -32,7 +32,7 @@ class FeilLytterTest : FunSpec({
         val feil = lagGyldigFeil(BehovType.JOURNALFOER).copy(
             utloesendeMelding =
             JsonMessage.newMessage(
-                mapOfNotNull(
+                mapOf(
                     Key.UUID.str to uuid,
                     Key.FORESPOERSEL_ID.str to uuid
                 )
@@ -56,7 +56,7 @@ fun lagGyldigFeil(behov: BehovType): Fail {
     val uuid = UUID.randomUUID()
     val jsonMessage = JsonMessage.newMessage(
         EventName.OPPGAVE_OPPRETT_REQUESTED.name,
-        mapOfNotNull(
+        mapOf(
             Key.BEHOV.str to behov,
             Key.UUID.str to uuid,
             Key.FORESPOERSEL_ID.str to uuid

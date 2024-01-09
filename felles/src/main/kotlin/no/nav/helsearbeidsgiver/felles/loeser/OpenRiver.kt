@@ -4,8 +4,9 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 
 /**
  * En [River] som implementerer logikken for rapids-and-rivers.
@@ -23,7 +24,9 @@ internal class OpenRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        packet.toJsonMap()
+        packet.toJson()
+            .parseJson()
+            .toMap()
             .let(messageHandler::lesOgHaandter)
             ?.also(context::publish)
     }

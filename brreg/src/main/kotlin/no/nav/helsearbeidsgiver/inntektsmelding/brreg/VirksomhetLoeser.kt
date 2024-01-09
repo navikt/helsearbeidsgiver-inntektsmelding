@@ -4,19 +4,28 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishData
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 import kotlin.system.measureTimeMillis
 
 class VirksomhetLoeser(
@@ -73,7 +82,9 @@ class VirksomhetLoeser(
         }
 
     override fun onBehov(behov: Behov) {
-        logger.info("Løser behov $BEHOV med uuid ${behov.uuid()}")
+        val json = behov.jsonMessage.toJson().parseJson().toMap()
+
+        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
         val orgnr: List<String> =
             if (behov[Key.ORGNRUNDERENHETER].isEmpty) {
                 listOf(
@@ -84,18 +95,20 @@ class VirksomhetLoeser(
                 behov[Key.ORGNRUNDERENHETER]
                     .map { it.asText() }
             }
+
+        logger.info("Løser behov $BEHOV med uuid $transaksjonId")
+
         try {
             val navnListe: Map<String, String> =
                 hentVirksomheter(orgnr)
                     .associate { it.organisasjonsnummer to it.navn }
 
-            publishData(
-                behov.createData(
-                    mapOf(
-                        Key.VIRKSOMHET to navnListe.values.first(),
-                        Key.VIRKSOMHETER to navnListe
-                    )
-                )
+            rapidsConnection.publishData(
+                eventName = behov.event,
+                transaksjonId = transaksjonId,
+                forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                Key.VIRKSOMHET to navnListe.values.first().toJson(),
+                Key.VIRKSOMHETER to navnListe.toJson(MapSerializer(String.serializer(), String.serializer()))
             )
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")

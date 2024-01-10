@@ -9,10 +9,10 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Kvittering
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.KvitteringEkstern
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.KvitteringSimba
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Kvittering
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringEkstern
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringSimba
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException

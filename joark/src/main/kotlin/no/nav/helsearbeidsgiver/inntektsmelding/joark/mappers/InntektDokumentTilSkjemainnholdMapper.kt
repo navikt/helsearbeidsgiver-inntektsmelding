@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Naturalytelse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.RefusjonEndring
 import no.seres.xsd.nav.inntektsmelding_m._20181211.EndringIRefusjon
 import no.seres.xsd.nav.inntektsmelding_m._20181211.InntektsmeldingM
 import no.seres.xsd.nav.inntektsmelding_m._20181211.NaturalytelseDetaljer

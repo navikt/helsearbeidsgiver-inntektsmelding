@@ -1,12 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Naturalytelse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.RefusjonEndring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isTelefonnummer

@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import org.junit.jupiter.api.Assertions.assertEquals

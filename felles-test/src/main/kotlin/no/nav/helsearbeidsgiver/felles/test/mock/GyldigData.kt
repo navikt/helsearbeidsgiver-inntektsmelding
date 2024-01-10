@@ -1,14 +1,14 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.FullLoennIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Naturalytelse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.NaturalytelseKode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Refusjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NaturalytelseKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import java.time.LocalDate
 
 object TestData {

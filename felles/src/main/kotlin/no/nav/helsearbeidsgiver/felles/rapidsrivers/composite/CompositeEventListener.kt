@@ -99,9 +99,9 @@ abstract class CompositeEventListener : River.PacketListener {
         }
     }
 
-    private fun isEventMelding(json: Map<Key, JsonElement>): Boolean =
-        json[Key.EVENT_NAME] != null &&
-            json.keys.intersect(setOf(Key.BEHOV, Key.DATA, Key.FAIL)).isEmpty()
+    private fun isEventMelding(melding: Map<Key, JsonElement>): Boolean =
+        melding[Key.EVENT_NAME] != null &&
+            melding.keys.intersect(setOf(Key.BEHOV, Key.DATA, Key.FAIL)).isEmpty()
 
     fun isDataCollected(keys: List<RedisKey>): Boolean =
         redisStore.exist(keys) == keys.size.toLong()

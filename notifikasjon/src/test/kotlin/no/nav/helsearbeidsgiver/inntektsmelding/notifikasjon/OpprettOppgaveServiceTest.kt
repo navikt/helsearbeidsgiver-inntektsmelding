@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -52,7 +53,7 @@ class OpprettOppgaveServiceTest {
             Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
         )
 
-        assertNotNull(service.toFailOrNull(failMap))
+        assertNotNull(toFailOrNull(failMap))
     }
 
     @Test

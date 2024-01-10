@@ -20,5 +20,10 @@ fun mapHikariConfig(databaseConfig: DatabaseConfig): HikariConfig {
         username = databaseConfig.username
         password = databaseConfig.password
         maximumPoolSize = 5
+        minimumIdle = 1
+        idleTimeout = 10001
+        connectionTimeout = 1000
+        maxLifetime = 30001
+        driverClassName = "org.postgresql.Driver"
     }
 }

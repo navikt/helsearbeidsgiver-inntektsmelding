@@ -72,7 +72,7 @@ class LagreJournalpostIdLoeser(
         if (journalpostId.isNullOrBlank()) {
             logger.error("Fant ingen journalpost-ID.")
             sikkerLogger.error("Fant ingen journalpost-ID.")
-            behov.createFail("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonId. Tom journalpost-ID!")
+            behov.createFail("Klarte ikke lagre journalpostId for transaksjonId $transaksjonId. Tom journalpost-ID!")
                 .also { publishFail(it) }
         } else {
             try {
@@ -91,7 +91,7 @@ class LagreJournalpostIdLoeser(
                     Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())
                 )
             } catch (ex: Exception) {
-                behov.createFail("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonId")
+                behov.createFail("Klarte ikke lagre journalpostId for transaksjonId $transaksjonId")
                     .also { publishFail(it) }
                 logger.error("Klarte ikke lagre journalpost-ID $journalpostId.")
                 sikkerLogger.error("Klarte ikke lagre journalpost-ID $journalpostId.", ex)

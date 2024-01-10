@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
-import no.nav.helse.rapids_rivers.JsonMessage
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -55,8 +54,8 @@ class OpprettSakService(
         FailKanal(rapid, event, ::onPacket)
     }
 
-    override fun new(message: JsonMessage) {
-        medTransaksjonIdOgForespoerselId(message) { transaksjonId, forespoerselId ->
+    override fun new(melding: Map<Key, JsonElement>) {
+        medTransaksjonIdOgForespoerselId(melding) { transaksjonId, forespoerselId ->
             val fnr = redisStore.get(RedisKey.of(transaksjonId, Key.IDENTITETSNUMMER))
             if (fnr == null) {
                 "Mangler fnr i redis. Klarer ikke opprette sak.".also {
@@ -76,8 +75,8 @@ class OpprettSakService(
         }
     }
 
-    override fun inProgress(message: JsonMessage) {
-        medTransaksjonIdOgForespoerselId(message) { transaksjonId, forespoerselId ->
+    override fun inProgress(melding: Map<Key, JsonElement>) {
+        medTransaksjonIdOgForespoerselId(melding) { transaksjonId, forespoerselId ->
             if (isDataCollected(steg3(transaksjonId))) {
                 val sakId = redisStore.get(RedisKey.of(transaksjonId, Key.SAK_ID))
                 if (sakId == null) {
@@ -89,15 +88,11 @@ class OpprettSakService(
                 }
 
                 rapid.publish(
-                    JsonMessage.newMessage(
-                        mapOf(
-                            Key.EVENT_NAME.str to event.name,
-                            Key.UUID.str to transaksjonId,
-                            Key.BEHOV.str to BehovType.PERSISTER_SAK_ID.name,
-                            Key.FORESPOERSEL_ID.str to forespoerselId,
-                            Key.SAK_ID.str to sakId
-                        )
-                    ).toJson()
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.BEHOV to BehovType.PERSISTER_SAK_ID.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.SAK_ID to sakId.toJson()
                 )
             } else if (isDataCollected(steg2(transaksjonId))) {
                 val orgnr = redisStore.get(RedisKey.of(transaksjonId, Key.ORGNRUNDERENHET))
@@ -114,23 +109,19 @@ class OpprettSakService(
                     ?: ukjentArbeidstaker()
 
                 rapid.publish(
-                    JsonMessage.newMessage(
-                        mapOf(
-                            Key.EVENT_NAME.str to event.name,
-                            Key.UUID.str to transaksjonId,
-                            Key.BEHOV.str to BehovType.OPPRETT_SAK,
-                            Key.FORESPOERSEL_ID.str to forespoerselId,
-                            Key.ORGNRUNDERENHET.str to orgnr,
-                            Key.ARBEIDSTAKER_INFORMASJON.str to arbeidstaker
-                        )
-                    ).toJson()
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                    Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer())
                 )
             }
         }
     }
 
-    override fun finalize(message: JsonMessage) {
-        medTransaksjonIdOgForespoerselId(message) { transaksjonId, forespoerselId ->
+    override fun finalize(melding: Map<Key, JsonElement>) {
+        medTransaksjonIdOgForespoerselId(melding) { transaksjonId, forespoerselId ->
             MdcUtils.withLogFields(
                 Log.klasse(this),
                 Log.event(EventName.SAK_OPPRETT_REQUESTED),
@@ -155,7 +146,7 @@ class OpprettSakService(
         }
     }
 
-    override fun onError(message: JsonMessage, fail: Fail) {
+    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.SAK_OPPRETT_REQUESTED),
@@ -165,7 +156,7 @@ class OpprettSakService(
             if (utloesendeBehov == BehovType.FULLT_NAVN) {
                 val arbeidstakerKey = RedisKey.of(fail.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
                 redisStore.set(arbeidstakerKey, ukjentArbeidstaker().toJsonStr(PersonDato.serializer()))
-                return inProgress(message)
+                return inProgress(melding)
             }
 
             val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
@@ -179,15 +170,13 @@ class OpprettSakService(
         }
     }
 
-    private inline fun medTransaksjonIdOgForespoerselId(message: JsonMessage, block: (UUID, UUID) -> Unit) {
+    private inline fun medTransaksjonIdOgForespoerselId(melding: Map<Key, JsonElement>, block: (UUID, UUID) -> Unit) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.SAK_OPPRETT_REQUESTED)
         ) {
-            val json = message.toJson().parseJson().toMap()
-
-            val transaksjonsId = json[Key.UUID]?.fromJson(UuidSerializer)
-            if (transaksjonsId == null) {
+            val transaksjonId = melding[Key.UUID]?.fromJson(UuidSerializer)
+            if (transaksjonId == null) {
                 "Mangler transaksjonId. Klarer ikke opprette sak.".also {
                     logger.error(it)
                     sikkerLogger.error(it)
@@ -195,12 +184,12 @@ class OpprettSakService(
                 return
             }
 
-            val forespoerselId = redisStore.get(RedisKey.of(transaksjonsId, Key.FORESPOERSEL_ID))?.let(UUID::fromString)
-                ?: json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
+            val forespoerselId = redisStore.get(RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID))?.let(UUID::fromString)
+                ?: melding[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
 
             if (forespoerselId == null) {
                 MdcUtils.withLogFields(
-                    Log.transaksjonId(transaksjonsId)
+                    Log.transaksjonId(transaksjonId)
                 ) {
                     "Mangler forespoerselId. Klarer ikke opprette sak.".also {
                         logger.error(it)
@@ -211,10 +200,10 @@ class OpprettSakService(
             }
 
             MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonsId),
+                Log.transaksjonId(transaksjonId),
                 Log.forespoerselId(forespoerselId)
             ) {
-                block(transaksjonsId, forespoerselId)
+                block(transaksjonId, forespoerselId)
             }
         }
     }

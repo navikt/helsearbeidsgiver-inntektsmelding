@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -22,10 +21,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.toJsonMap
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
@@ -60,12 +57,11 @@ class AktiveOrgnrService(
         StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
     }
 
-    override fun new(message: JsonMessage) {
-        val json = message.toJsonMap()
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
+    override fun new(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
-        val innloggetFnr = json[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
-        val sykemeldtFnr = json[Key.FNR]?.fromJson(String.serializer())
+        val innloggetFnr = melding[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
+        val sykemeldtFnr = melding[Key.FNR]?.fromJson(String.serializer())
         if (innloggetFnr != null && sykemeldtFnr != null) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
@@ -97,14 +93,13 @@ class AktiveOrgnrService(
                         logger.error(it)
                     }
 
-                onError(message, message.createFail("Ukjent feil oppstod", transaksjonId))
+                onError(melding, melding.createFail("Ukjent feil oppstod", transaksjonId))
             }
         }
     }
 
-    override fun inProgress(message: JsonMessage) {
-        val json = message.toJsonMap()
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
+    override fun inProgress(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         if (isDataCollected(step1data(transaksjonId))) {
             val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(Arbeidsforhold.serializer().list())
@@ -128,14 +123,13 @@ class AktiveOrgnrService(
                     sikkerLogger.error(feilmelding)
                     logger.error(feilmelding)
                 }
-                onError(message, message.createFail(feilmelding, transaksjonId))
+                onError(melding, melding.createFail(feilmelding, transaksjonId))
             }
         }
     }
 
-    override fun finalize(message: JsonMessage) {
-        val json = message.toJsonMap()
-        val transaksjonId = Key.UUID.les(UuidSerializer, json)
+    override fun finalize(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         val clientId = RedisKey.of(transaksjonId, event)
             .read()
@@ -184,11 +178,11 @@ class AktiveOrgnrService(
                     }
                 }
             }
-            onError(message, message.createFail("Ukjent feil oppstod", transaksjonId))
+            onError(melding, melding.createFail("Ukjent feil oppstod", transaksjonId))
         }
     }
 
-    override fun onError(message: JsonMessage, fail: Fail) {
+    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         val transaksjonId = fail.transaksjonId
 
         val clientId = RedisKey.of(transaksjonId, event)
@@ -208,16 +202,19 @@ class AktiveOrgnrService(
         }
     }
 
-    fun JsonMessage.createFail(feilmelding: String, transaksjonId: UUID): Fail {
-        val json = toJsonMap()
-        return Fail(
+    fun Map<Key, JsonElement>.createFail(feilmelding: String, transaksjonId: UUID): Fail =
+        Fail(
             feilmelding = feilmelding,
             event = event,
             transaksjonId = transaksjonId,
             forespoerselId = null,
-            utloesendeMelding = this.toJson().parseJson()
+            utloesendeMelding = toJson(
+                MapSerializer(
+                    Key.serializer(),
+                    JsonElement.serializer()
+                )
+            )
         )
-    }
 
     private fun trekkUtArbeidsforhold(arbeidsforholdListe: List<Arbeidsforhold>?, orgrettigheter: Set<String>?): Result<List<String>> {
         return if (arbeidsforholdListe.isNullOrEmpty()) {

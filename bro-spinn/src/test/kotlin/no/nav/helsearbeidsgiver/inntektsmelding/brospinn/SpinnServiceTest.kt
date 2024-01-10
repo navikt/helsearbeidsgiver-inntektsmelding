@@ -41,7 +41,7 @@ class SpinnServiceTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.UUID to Mock.transaksjonsId.toJson(),
+            Key.UUID to Mock.transaksjonId.toJson(),
             Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
         )
 
@@ -58,14 +58,14 @@ class SpinnServiceTest : FunSpec({
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.UUID to Mock.transaksjonsId.toJson(),
+            Key.UUID to Mock.transaksjonId.toJson(),
             Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
             Key.EKSTERN_INNTEKTSMELDING to Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
         )
 
         verify {
             mockRedis.store.set(
-                RedisKey.of(Mock.transaksjonsId, Key.EKSTERN_INNTEKTSMELDING),
+                RedisKey.of(Mock.transaksjonId, Key.EKSTERN_INNTEKTSMELDING),
                 Mock.eksternInntektsmelding.toJsonStr(EksternInntektsmelding.serializer())
             )
         }
@@ -73,7 +73,7 @@ class SpinnServiceTest : FunSpec({
 })
 
 private object Mock {
-    val transaksjonsId = randomUuid()
+    val transaksjonId = randomUuid()
     val forespoerselId = randomUuid()
     val spinnInntektsmeldingId = randomUuid()
 

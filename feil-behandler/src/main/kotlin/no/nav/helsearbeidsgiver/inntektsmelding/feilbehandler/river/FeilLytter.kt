@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.Companion.toFailOrNull
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
@@ -19,6 +19,8 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class FeilLytter(rapidsConnection: RapidsConnection, private val repository: BakgrunnsjobbRepository) : River.PacketListener {
+
+    private val jobbType = "kafka-retry-message"
 
     private val sikkerLogger = sikkerLogger()
     val behovSomHaandteres = listOf(
@@ -47,17 +49,16 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
         val fail = toFailOrNull(packet.toJson().parseJson().fromJsonMapFiltered(Key.serializer()))
         if (skalHaandteres(fail)) {
             sikkerLogger.info("Lagrer mottatt pakke")
-            lagreJobb(fail)
+            val jobb = Bakgrunnsjobb(
+                type = jobbType,
+                data = fail?.utloesendeMelding.toString()
+            )
+            lagreJobb(jobb)
         }
     }
 
-    private fun lagreJobb(fail: Fail?) {
-        repository.save(
-            Bakgrunnsjobb(
-                type = "kafka-retry-message",
-                data = fail?.utloesendeMelding.toString()
-            )
-        )
+    private fun lagreJobb(jobb: Bakgrunnsjobb) {
+        repository.save(jobb)
     }
 
     fun skalHaandteres(fail: Fail?): Boolean {

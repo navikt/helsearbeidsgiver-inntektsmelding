@@ -46,7 +46,7 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
         sikkerLogger.info("Mottok feil: ${packet.toPretty()}")
         val fail = toFailOrNull(packet.toJson().parseJson().fromJsonMapFiltered(Key.serializer()))
         if (skalHaandteres(fail)) {
-            sikkerLogger.info("Lagrer mottatt pakke")
+            sikkerLogger.info("Lagrer mottatt pakke!")
             lagreJobb(fail)
         }
     }

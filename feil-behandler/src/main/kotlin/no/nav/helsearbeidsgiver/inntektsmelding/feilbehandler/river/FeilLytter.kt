@@ -1,6 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 
 import kotlinx.serialization.serializer
+import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
+import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbRepository
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -12,10 +14,11 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.Companion.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class FeilLytter(rapidsConnection: RapidsConnection) : River.PacketListener {
+class FeilLytter(rapidsConnection: RapidsConnection, private val repository: BakgrunnsjobbRepository) : River.PacketListener {
 
     private val sikkerLogger = sikkerLogger()
     val behovSomHaandteres = listOf(
@@ -41,10 +44,20 @@ class FeilLytter(rapidsConnection: RapidsConnection) : River.PacketListener {
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerLogger.info("Mottok feil: ${packet.toPretty()}")
-        val fail = toFailOrNull(packet.toJson().parseJson().toMap())
+        val fail = toFailOrNull(packet.toJson().parseJson().fromJsonMapFiltered(Key.serializer()))
         if (skalHaandteres(fail)) {
-            sikkerLogger.info("Behandler mottatt pakke")
+            sikkerLogger.info("Lagrer mottatt pakke")
+            lagreJobb(fail)
         }
+    }
+
+    private fun lagreJobb(fail: Fail?) {
+        repository.save(
+            Bakgrunnsjobb(
+                type = "kafka-retry-message",
+                data = fail?.utloesendeMelding.toString()
+            )
+        )
     }
 
     fun skalHaandteres(fail: Fail?): Boolean {

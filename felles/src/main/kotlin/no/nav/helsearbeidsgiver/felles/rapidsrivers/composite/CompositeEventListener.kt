@@ -98,14 +98,7 @@ abstract class CompositeEventListener : River.PacketListener {
             }
         }
     }
-    /*
-        fun toFailOrNull(melding: Map<Key, JsonElement>): Fail? =
-        melding[Key.FAIL]
-            ?.runCatching {
-                fromJson(Fail.serializer())
-            }
-            ?.getOrNull()
-     */
+
     private fun isEventMelding(json: Map<Key, JsonElement>): Boolean =
         json[Key.EVENT_NAME] != null &&
             json.keys.intersect(setOf(Key.BEHOV, Key.DATA, Key.FAIL)).isEmpty()

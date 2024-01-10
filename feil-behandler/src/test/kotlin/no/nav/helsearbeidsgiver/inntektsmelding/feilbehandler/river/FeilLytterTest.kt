@@ -2,6 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
+import no.nav.hag.utils.bakgrunnsjobb.MockBakgrunnsjobbRepository
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -9,13 +11,16 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.Companion.toFailOrNull
-import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import java.time.LocalDateTime
 import java.util.UUID
 
 class FeilLytterTest : FunSpec({
 
-    val handler = FeilLytter(TestRapid())
+    val rapid = TestRapid()
+    val repository = MockBakgrunnsjobbRepository()
+
+    val handler = FeilLytter(rapid, repository)
 
     test("skal håndtere gyldige feil med spesifiserte behov") {
 
@@ -50,8 +55,31 @@ class FeilLytterTest : FunSpec({
         val feil = toFailOrNull(emptyMap())
         handler.skalHaandteres(feil) shouldBe false
     }
-})
 
+    test("Feil som håndteres skal lagres") {
+        val now = LocalDateTime.now()
+        repository.deleteAll()
+        rapid.sendTestMessage(lagRapidFeilmelding())
+        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
+    }
+})
+fun lagRapidFeilmelding(): String {
+    return """
+        {   "fail": {
+                "feilmelding": "Klarte ikke journalføre",
+                "event": "INNTEKTSMELDING_MOTTATT",
+                "transaksjonId": "96fe8a6b-6667-4a7b-ad20-f5ed829eccaf",
+                "forespoerselId": "ec50627c-26d8-44c9-866c-e42f46b5890b",
+                "utloesendeMelding": {
+                    "@event_name": "INNTEKTSMELDING_MOTTATT",
+                    "@behov": "JOURNALFOER",
+                    "forespoerselId": "ec50627c-26d8-44c9-866c-e42f46b5890b",
+                    "uuid": "96fe8a6b-6667-4a7b-ad20-f5ed829eccaf"
+                }
+            }
+        }
+    """.trimIndent()
+}
 fun lagGyldigFeil(behov: BehovType): Fail {
     val uuid = UUID.randomUUID()
     val jsonMessage = JsonMessage.newMessage(

@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import java.util.UUID
 
 // TODO test
 class TilgangLoeser(
@@ -84,7 +85,7 @@ class TilgangLoeser(
                 rapidsConnection.publishData(
                     eventName = behov.event,
                     transaksjonId = transaksjonId,
-                    forespoerselId = null,
+                    forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                     Key.TILGANG to tilgang.toJson(Tilgang.serializer())
                 )
             }

@@ -3,15 +3,15 @@ package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.toUUID
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -50,11 +50,17 @@ class TilgangLoeser(
     override fun onBehov(behov: Behov) {
         MdcUtils.withLogFields(
             Log.klasse(this),
+            Log.event(behov.event),
             Log.behov(BehovType.TILGANGSKONTROLL)
         ) {
-            behov.withLogFields {
+            val json = behov.jsonMessage.toJson().parseJson().toMap()
+
+            val transaksjonId = Key.UUID.les(UuidSerializer, json)
+            MdcUtils.withLogFields(
+                Log.transaksjonId(transaksjonId)
+            ) {
                 runCatching {
-                    hentTilgang(it)
+                    hentTilgang(behov, json, transaksjonId)
                 }
                     .onFailure {
                         behov.createFail("Ukjent feil.")
@@ -64,10 +70,7 @@ class TilgangLoeser(
         }
     }
 
-    private fun hentTilgang(behov: Behov) {
-        val json = behov.jsonMessage.toJson().parseJson().toMap()
-
-        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+    private fun hentTilgang(behov: Behov, json: Map<IKey, JsonElement>, transaksjonId: UUID) {
         val fnr = Key.FNR.les(String.serializer(), json)
         val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), json)
 
@@ -93,14 +96,5 @@ class TilgangLoeser(
                 behov.createFail("Feil ved henting av rettigheter fra Altinn.")
                     .also(this::publishFail)
             }
-    }
-}
-
-fun Behov.withLogFields(block: (Behov) -> Unit) {
-    MdcUtils.withLogFields(
-        Log.event(event),
-        Log.transaksjonId(uuid().toUUID())
-    ) {
-        block(this)
     }
 }

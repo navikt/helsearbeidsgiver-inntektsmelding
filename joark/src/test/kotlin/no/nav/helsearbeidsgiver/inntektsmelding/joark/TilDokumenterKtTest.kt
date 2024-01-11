@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class TilDokumenterKtTest {
 
@@ -10,7 +11,7 @@ class TilDokumenterKtTest {
     fun tilDokumenter() {
         val mockInntektsmelding = mockInntektsmelding()
 
-        val dokumenter = tilDokumenter("uuid-hoppende-slott", mockInntektsmelding)
+        val dokumenter = tilDokumenter(UUID.randomUUID(), mockInntektsmelding)
 
         assertEquals(1, dokumenter.size)
         assertEquals(2, dokumenter[0].dokumentVarianter.size)

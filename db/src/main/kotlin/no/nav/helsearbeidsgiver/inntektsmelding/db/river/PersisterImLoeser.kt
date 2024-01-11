@@ -72,7 +72,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             if (erDuplikat) {
                 sikkerLogger.warn("Fant duplikat av inntektsmelding for forespoerselId: $forespoerselId")
             } else {
-                repository.lagreInntektsmelding(behov.forespoerselId!!, inntektsmelding)
+                repository.lagreInntektsmelding(forespoerselId.toString(), inntektsmelding)
                 sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: $forespoerselId")
             }
 

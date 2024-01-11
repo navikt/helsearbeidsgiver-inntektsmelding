@@ -222,7 +222,7 @@ class InntektLoeserTest : FunSpec({
 
         val publisert = testRapid.firstMessage().readFail()
 
-        publisert.feilmelding shouldBe "Klarte ikke lese påkrevde felt fra innkommende melding."
+        publisert.feilmelding shouldBe "Ukjent feil."
     }
 
     test("Ukjent feil gir feilmelding på rapid") {

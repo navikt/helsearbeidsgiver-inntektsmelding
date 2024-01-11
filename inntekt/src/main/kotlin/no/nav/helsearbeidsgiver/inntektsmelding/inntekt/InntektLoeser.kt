@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -10,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Orgnr
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -22,6 +23,7 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.toYearMonth
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -67,12 +69,6 @@ class InntektLoeser(
             Log.behov(BehovType.INNTEKT)
         ) {
             runCatching {
-                behov.validate()
-            }.onFailure {
-                behov.createFail("Klarte ikke lese påkrevde felt fra innkommende melding.").also { publishFail(it) }
-            }
-
-            runCatching {
                 hentInntekt(behov)
             }
                 .onFailure { feil ->
@@ -83,24 +79,27 @@ class InntektLoeser(
     }
 
     private fun hentInntekt(behov: Behov) {
-        val requestTimer = requestLatency.startTimer()
-        val fom = behov.skjaeringstidspunkt().minusMaaneder(3)
-        val middle = behov.skjaeringstidspunkt().minusMaaneder(2)
-        val tom = behov.skjaeringstidspunkt().minusMaaneder(1)
+        val json = behov.jsonMessage.toJson().parseJson().toMap()
 
-        hentInntektPerOrgnrOgMaaned(behov.fnr(), fom, tom, UUID.fromString(behov.uuid()))
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
+        val fnr = Key.FNR.les(String.serializer(), json).let(::Fnr)
+        val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), json).let(::Orgnr)
+        val skjaeringstidspunkt = Key.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, json)
+
+        val requestTimer = requestLatency.startTimer()
+        val fom = skjaeringstidspunkt.minusMaaneder(3)
+        val middle = skjaeringstidspunkt.minusMaaneder(2)
+        val tom = skjaeringstidspunkt.minusMaaneder(1)
+
+        hentInntektPerOrgnrOgMaaned(fnr, fom, tom, transaksjonId)
             .onSuccess { inntektPerOrgnrOgMaaned ->
-                val inntektPerMaaned = inntektPerOrgnrOgMaaned[behov.orgnr().verdi]
+                val inntektPerMaaned = inntektPerOrgnrOgMaaned[orgnr.verdi]
                     .orEmpty()
 
                 val inntekt = listOf(fom, middle, tom)
                     .associateWith { inntektPerMaaned[it] }
                     .map { (maaned, inntekt) -> InntektPerMaaned(maaned, inntekt) }
                     .let(::Inntekt)
-
-                val json = behov.jsonMessage.toJson().parseJson().toMap()
-
-                val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
 
                 rapidsConnection.publishData(
                     eventName = behov.event,
@@ -112,6 +111,7 @@ class InntektLoeser(
             .onFailure {
                 publishFail(behov.createFail("Klarte ikke hente inntekt."))
             }
+
         requestTimer.observeDuration()
     }
 
@@ -136,13 +136,3 @@ class InntektLoeser(
 
 private fun LocalDate.minusMaaneder(maanederTilbake: Long): YearMonth =
     toYearMonth().minusMonths(maanederTilbake)
-
-private fun Behov.skjaeringstidspunkt(): LocalDate = LocalDate.parse(jsonMessage[Key.SKJAERINGSTIDSPUNKT.toString()].asText())
-private fun Behov.fnr(): Fnr = Fnr(jsonMessage[Key.FNR.toString()].asText())
-private fun Behov.orgnr(): Orgnr = Orgnr(jsonMessage[Key.ORGNRUNDERENHET.toString()].asText())
-
-private fun Behov.validate() {
-    this.skjaeringstidspunkt()
-    this.fnr()
-    this.orgnr()
-}

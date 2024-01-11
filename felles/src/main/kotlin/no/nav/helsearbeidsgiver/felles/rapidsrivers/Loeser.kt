@@ -27,34 +27,17 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     private val sikkerLogger = sikkerLogger()
 
     init {
-        configure(
-            River(rapidsConnection).apply {
-                validate(accept())
+        River(rapidsConnection).apply {
+            validate(accept())
+            validate {
+                Behov.packetValidator.validate(it)
             }
-        ).register(this)
+        }
+            .register(this)
     }
 
     abstract fun accept(): River.PacketValidation
-
-    private fun configure(river: River): River {
-        return river.validate {
-            Behov.packetValidator.validate(it)
-        }
-    }
-
-    // Var forsiktig å bruke det, hvis du kan.
-    // Alle løser som publiserer Behov vil få kunskap om nedstrøms løserne.
-    // i tilleg gjenbruktbarhet av løseren vil vare betydelig redusert
-    fun publishBehov(behov: Behov) {
-        behov.jsonMessage
-            .toJson()
-            .parseJson()
-            .also { rapidsConnection.publish(it.toString()) }
-            .also {
-                logger.info("Publiserte behov for eventname ${behov.event} and uuid '${behov.uuid()}'.")
-                sikkerLogger.info("Publiserte behov:\n${it.toPretty()}")
-            }
-    }
+    abstract fun onBehov(behov: Behov)
 
     fun publishFail(fail: Fail) {
         rapidsConnection.publish(fail)
@@ -92,6 +75,4 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
 
         onBehov(behov)
     }
-
-    abstract fun onBehov(behov: Behov)
 }

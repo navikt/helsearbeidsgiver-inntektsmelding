@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
@@ -40,18 +39,20 @@ class EksternInntektsmeldingLoeser(
         }
 
     override fun onBehov(behov: Behov) {
-        logger.info("Løser behov $BEHOV med uuid ${behov.uuid()}")
-        val inntektsmeldingId = behov[Key.SPINN_INNTEKTSMELDING_ID]
-        if (inntektsmeldingId.isMissingOrNull() || inntektsmeldingId.asText().isEmpty()) {
-            publishFail(behov.createFail("Mangler inntektsmeldingId"))
-            return
-        }
         try {
             val json = behov.jsonMessage.toJson().parseJson().toMap()
 
             val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
 
-            val eksternInntektsmelding = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId.asText())
+            logger.info("Løser behov $BEHOV med transaksjonId $transaksjonId")
+
+            val inntektsmeldingId = Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json)
+            if (inntektsmeldingId == null) {
+                publishFail(behov.createFail("Mangler inntektsmeldingId"))
+                return
+            }
+
+            val eksternInntektsmelding = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId.toString())
 
             rapidsConnection.publishData(
                 eventName = behov.event,

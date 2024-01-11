@@ -6,10 +6,11 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.PdfDokument
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument.transformToXML
 import java.util.Base64
+import java.util.UUID
 
 private val base64 = Base64.getEncoder()
 
-fun tilDokumenter(uuid: String, inntektsmelding: Inntektsmelding): List<Dokument> =
+fun tilDokumenter(uuid: UUID, inntektsmelding: Inntektsmelding): List<Dokument> =
     listOf(
         Dokument(
             tittel = "Inntektsmelding",

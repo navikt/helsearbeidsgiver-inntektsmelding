@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler
 
 import com.zaxxer.hikari.HikariConfig
+import no.nav.hag.utils.bakgrunnsjobb.PostgresBakgrunnsjobbRepository
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.config.Database
@@ -31,7 +32,8 @@ fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
 fun RapidsConnection.createFeilLytter(database: Database): RapidsConnection =
     also {
         registerDbLifecycle(database)
-        FeilLytter(it)
+        val repository = PostgresBakgrunnsjobbRepository(database.dataSource)
+        FeilLytter(it, repository)
     }
 
 private fun RapidsConnection.registerDbLifecycle(db: Database) {

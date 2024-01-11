@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -12,13 +11,18 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishBehov
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.util.UUID
 
 class JournalfoerInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
@@ -33,14 +37,6 @@ class JournalfoerInntektsmeldingLoeser(
         .help("journaloer inntektsmelding latency in seconds")
         .register()
 
-    private fun mapInntektsmeldingDokument(jsonNode: JsonNode): Inntektsmelding {
-        try {
-            return jsonNode.toString().fromJson(Inntektsmelding.serializer())
-        } catch (ex: Exception) {
-            throw UgyldigFormatException(ex)
-        }
-    }
-
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.EVENT_NAME.str, EventName.INNTEKTSMELDING_MOTTATT.name)
@@ -50,26 +46,26 @@ class JournalfoerInntektsmeldingLoeser(
     }
 
     override fun onBehov(behov: Behov) {
-        logger.info("Løser behov " + BehovType.JOURNALFOER + " med uuid ${behov.uuid()}")
-        var inntektsmelding: Inntektsmelding? = null
         try {
-            inntektsmelding = mapInntektsmeldingDokument(behov[Key.INNTEKTSMELDING_DOKUMENT])
+            val json = behov.jsonMessage.toJson().parseJson().toMap()
+
+            val transaksjonId = Key.UUID.les(UuidSerializer, json)
+            val inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), json)
+
+            logger.info("Løser behov '${BehovType.JOURNALFOER}' med transaksjonId $transaksjonId")
             sikkerLogger.info("Skal journalføre: $inntektsmelding")
-            val journalpostId = opprettOgFerdigstillJournalpost(behov.uuid(), inntektsmelding)
+
+            val journalpostId = opprettOgFerdigstillJournalpost(transaksjonId, inntektsmelding)
+
             sikkerLogger.info("Journalførte inntektsmelding journalpostid: $journalpostId")
             logger.info("Journalførte inntektsmelding med journalpostid: $journalpostId")
-            behov.createBehov(
-                BehovType.LAGRE_JOURNALPOST_ID,
-                mapOf(
-                    Key.OPPRETTET to LocalDateTime.now(),
-                    Key.JOURNALPOST_ID to journalpostId
-                )
-            )
-                .also { publishBehov(it) }
-        } catch (ex: UgyldigFormatException) {
-            sikkerLogger.error("Klarte ikke journalføre: feil format!", ex)
-            publishFail(
-                behov.createFail("Feil format i Inntektsmelding")
+
+            rapidsConnection.publishBehov(
+                eventName = behov.event,
+                behovType = BehovType.LAGRE_JOURNALPOST_ID,
+                transaksjonId = transaksjonId,
+                forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                Key.JOURNALPOST_ID to journalpostId.toJson()
             )
         } catch (ex: Exception) {
             sikkerLogger.error("Klarte ikke journalføre!", ex)
@@ -79,10 +75,10 @@ class JournalfoerInntektsmeldingLoeser(
         }
     }
 
-    private fun opprettOgFerdigstillJournalpost(uuid: String, inntektsmelding: Inntektsmelding): String {
+    private fun opprettOgFerdigstillJournalpost(transaksjonId: UUID, inntektsmelding: Inntektsmelding): String {
         sikkerLogger.info("Bruker inntektsinformasjon $inntektsmelding")
 
-        logger.info("Prøver å opprette og ferdigstille journalpost for $uuid...")
+        logger.info("Prøver å opprette og ferdigstille journalpost for $transaksjonId...")
         val requestTimer = requestLatency.startTimer()
         val response = runBlocking {
             dokarkivClient.opprettOgFerdigstillJournalpost(
@@ -93,20 +89,18 @@ class JournalfoerInntektsmeldingLoeser(
                     navn = inntektsmelding.virksomhetNavn
                 ),
                 datoMottatt = LocalDate.now(),
-                dokumenter = tilDokumenter(uuid, inntektsmelding),
-                eksternReferanseId = "ARI-$uuid",
-                callId = "callId_$uuid"
+                dokumenter = tilDokumenter(transaksjonId, inntektsmelding),
+                eksternReferanseId = "ARI-$transaksjonId",
+                callId = "callId_$transaksjonId"
             )
         }.also {
             requestTimer.observeDuration()
         }
 
         if (response.journalpostFerdigstilt) {
-            logger.info("Opprettet og ferdigstilte journalpost ${response.journalpostId} for $uuid.")
+            logger.info("Opprettet og ferdigstilte journalpost ${response.journalpostId} for $transaksjonId.")
         }
 
         return response.journalpostId
     }
 }
-
-private class UgyldigFormatException(ex: Exception) : Exception("Klarte ikke lese ut Inntektsmelding fra Json node!", ex)

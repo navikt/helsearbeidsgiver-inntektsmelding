@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -97,13 +98,6 @@ abstract class CompositeEventListener : River.PacketListener {
             }
         }
     }
-
-    fun toFailOrNull(melding: Map<Key, JsonElement>): Fail? =
-        melding[Key.FAIL]
-            ?.runCatching {
-                fromJson(Fail.serializer())
-            }
-            ?.getOrNull()
 
     private fun isEventMelding(melding: Map<Key, JsonElement>): Boolean =
         melding[Key.EVENT_NAME] != null &&

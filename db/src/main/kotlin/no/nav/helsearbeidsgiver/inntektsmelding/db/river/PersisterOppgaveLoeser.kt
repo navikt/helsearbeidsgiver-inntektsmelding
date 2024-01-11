@@ -26,7 +26,7 @@ class PersisterOppgaveLoeser(
     }
 
     override fun onBehov(behov: Behov) {
-        sikkerLogger.info("PersisterOppgaveLøser mottok for uuid: ${behov.uuid()}")
+        sikkerLogger.info("PersisterOppgaveLøser mottok for uuid: ${behov.jsonMessage[Key.UUID.str].asText()}")
 
         val forespoerselId = behov.forespoerselId!!.let(UUID::fromString)
         val oppgaveId = behov[Key.OPPGAVE_ID].asText()

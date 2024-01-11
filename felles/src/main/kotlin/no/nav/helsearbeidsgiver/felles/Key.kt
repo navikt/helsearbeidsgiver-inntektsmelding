@@ -12,7 +12,6 @@ enum class Key(override val str: String) : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
     EVENT_NAME("@event_name"),
     BEHOV("@behov"),
-    OPPRETTET("@opprettet"),
 
     // Egendefinerte
     AAPEN_ID("aapen_id"),
@@ -24,7 +23,6 @@ enum class Key(override val str: String) : IKey {
     JOURNALPOST_ID("journalpostId"),
     DATA("data"),
     FAIL("fail"),
-    FAILED_BEHOV("failed-behov"),
     SKJEMA_INNTEKTSMELDING("skjema_inntektsmelding"),
     AAPEN_INNTEKTMELDING("aapen_inntektmelding"),
 

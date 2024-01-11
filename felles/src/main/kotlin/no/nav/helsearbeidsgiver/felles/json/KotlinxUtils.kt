@@ -19,6 +19,7 @@ fun EventName.toJson(): JsonElement =
 fun BehovType.toJson(): JsonElement =
     toJson(BehovType.serializer())
 
+@JvmName("toJsonMapKeyStringValueString")
 fun Map<String, String>.toJson(): JsonElement =
     toJson(
         MapSerializer(
@@ -27,6 +28,7 @@ fun Map<String, String>.toJson(): JsonElement =
         )
     )
 
+@JvmName("toJsonMapKeyKeyValueJsonElement")
 fun Map<Key, JsonElement>.toJson(): JsonElement =
     toJson(
         MapSerializer(

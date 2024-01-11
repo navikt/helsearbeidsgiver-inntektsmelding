@@ -31,7 +31,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class TilgangService(
+class TilgangForespoerselService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
 ) : CompositeEventListener() {
@@ -39,7 +39,7 @@ class TilgangService(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override val event = EventName.TILGANG_REQUESTED
+    override val event = EventName.TILGANG_FORESPOERSEL_REQUESTED
     override val startKeys = listOf(
         Key.FORESPOERSEL_ID,
         Key.FNR
@@ -60,14 +60,16 @@ class TilgangService(
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
+            Log.klasse(this),
+            Log.event(event),
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId)
         ) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.HENT_IM_ORGNR.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.UUID to transaksjonId.toJson()
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson()
             )
                 .also {
                     MdcUtils.withLogFields(
@@ -84,6 +86,8 @@ class TilgangService(
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
+            Log.klasse(this),
+            Log.event(event),
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId)
         ) {
@@ -104,10 +108,10 @@ class TilgangService(
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
-                    Key.FNR to fnr.toJson(),
-                    Key.UUID to transaksjonId.toJson()
+                    Key.FNR to fnr.toJson()
                 )
                     .also {
                         MdcUtils.withLogFields(
@@ -131,21 +135,22 @@ class TilgangService(
         if (clientId == null) {
             sikkerLogger.error("Kunne ikke lese clientId for $transaksjonId fra Redis")
         } else {
-            val tilgang = RedisKey.of(transaksjonId, Key.TILGANG).read()
-            val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
-
-            val tilgangJson = TilgangData(
-                tilgang = tilgang?.fromJson(Tilgang.serializer()),
-                feil = feil?.fromJson(FeilReport.serializer())
-            )
-                .toJson(TilgangData.serializer())
-
-            RedisKey.of(clientId).write(tilgangJson)
-
             MdcUtils.withLogFields(
+                Log.klasse(this),
+                Log.event(event),
                 Log.clientId(clientId),
                 Log.transaksjonId(transaksjonId)
             ) {
+                val tilgang = RedisKey.of(transaksjonId, Key.TILGANG).read()
+                val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
+
+                val tilgangJson = TilgangData(
+                    tilgang = tilgang?.fromJson(Tilgang.serializer()),
+                    feil = feil?.fromJson(FeilReport.serializer())
+                )
+                    .toJson(TilgangData.serializer())
+
+                RedisKey.of(clientId).write(tilgangJson)
                 sikkerLogger.info("$event fullført.")
             }
         }
@@ -182,6 +187,8 @@ class TilgangService(
             RedisKey.of(clientId).write(feilReport.toJson(FeilReport.serializer()))
 
             MdcUtils.withLogFields(
+                Log.klasse(this),
+                Log.event(event),
                 Log.clientId(clientId),
                 Log.transaksjonId(fail.transaksjonId)
             ) {

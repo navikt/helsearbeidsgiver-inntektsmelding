@@ -107,6 +107,7 @@ class VirksomhetLoeser(
                 eventName = behov.event,
                 transaksjonId = transaksjonId,
                 forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                Key.AAPEN_ID to json[Key.AAPEN_ID],
                 Key.VIRKSOMHET to navnListe.values.first().toJson(),
                 Key.VIRKSOMHETER to navnListe.toJson(MapSerializer(String.serializer(), String.serializer()))
             )

@@ -15,6 +15,7 @@ enum class Key(override val str: String) : IKey {
     OPPRETTET("@opprettet"),
 
     // Egendefinerte
+    AAPEN_ID("aapen_id"),
     IDENTITETSNUMMER("identitetsnummer"),
     ARBEIDSGIVER_ID("arbeidsgiverId"),
     UUID("uuid"),
@@ -24,6 +25,8 @@ enum class Key(override val str: String) : IKey {
     DATA("data"),
     FAIL("fail"),
     FAILED_BEHOV("failed-behov"),
+    SKJEMA_INNTEKTSMELDING("skjema_inntektsmelding"),
+    AAPEN_INNTEKTMELDING("aapen_inntektmelding"),
 
     // Tidligere DataFelt
     VIRKSOMHET("virksomhet"),

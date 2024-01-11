@@ -40,6 +40,7 @@ class Behov(
             it.rejectKey(Key.FAIL.str)
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
+            it.interestedIn(Key.AAPEN_ID.str)
         }
     }
 

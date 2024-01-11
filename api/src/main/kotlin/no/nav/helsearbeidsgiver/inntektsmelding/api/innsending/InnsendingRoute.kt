@@ -103,7 +103,7 @@ fun Route.innsendingRoute(
                             }
                         }
 
-                    tilgangskontroll.validerTilgang(call.request, forespoerselId)
+                    tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 
                     request.validate()
                     val innloggerFnr = call.request.lesFnrFraAuthToken()

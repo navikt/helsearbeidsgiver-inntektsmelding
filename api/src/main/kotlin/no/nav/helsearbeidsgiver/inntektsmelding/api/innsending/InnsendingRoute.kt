@@ -105,6 +105,7 @@ fun Route.innsendingRoute(
 
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 
+                    // TODO sjekk gyldighet mot forespørsel, f. eks. forespurtData matcher
                     request.validate()
                     val innloggerFnr = call.request.lesFnrFraAuthToken()
                     val clientId = producer.publish(forespoerselId, request, innloggerFnr)

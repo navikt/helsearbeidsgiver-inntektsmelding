@@ -104,8 +104,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(aape
 private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(aapenId: UUID, result: Result<JsonElement>) {
     result
         .onSuccess {
-            logger.info("Åpen inntektsmelding vellykket mottatt.")
-            sikkerLogger.info("Åpen inntektsmelding vellykket mottatt:\n${it.toPretty()}")
+            logger.info("Åpen inntektsmelding mottatt OK.")
+            sikkerLogger.info("Åpen inntektsmelding mottatt OK:\n${it.toPretty()}")
             respond(HttpStatusCode.OK, AapenInntektmeldingResponse(aapenId), AapenInntektmeldingResponse.serializer())
         }
         .onFailure {

@@ -8,13 +8,13 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -40,7 +40,7 @@ abstract class CompositeEventListener : River.PacketListener {
     abstract fun onError(melding: Map<Key, JsonElement>, fail: Fail)
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val melding = packet.toJson().parseJson().fromJsonMapFiltered(Key.serializer())
+        val melding = packet.toJson().parseJson().toMap()
 
         if (Key.FORESPOERSEL_ID.lesOrNull(String.serializer(), melding).isNullOrEmpty()) {
             logger.warn("Mangler forespørselId!")

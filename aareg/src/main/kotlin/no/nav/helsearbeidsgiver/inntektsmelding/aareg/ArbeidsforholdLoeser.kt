@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -32,10 +33,10 @@ class ArbeidsforholdLoeser(
     rapidsConnection: RapidsConnection,
     private val aaregClient: AaregClient
 ) : Loeser(rapidsConnection) {
+
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    private val behovType = BehovType.ARBEIDSFORHOLD
     private val requestLatency = Summary.build()
         .name("simba_aareg_hent_arbeidsforhold_latency_seconds")
         .help("aareg hent arbeidsforhold latency in seconds")
@@ -44,7 +45,7 @@ class ArbeidsforholdLoeser(
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to behovType.name
+                Key.BEHOV to BehovType.ARBEIDSFORHOLD.name
             )
             it.requireKeys(
                 Key.IDENTITETSNUMMER,
@@ -58,8 +59,9 @@ class ArbeidsforholdLoeser(
         measureTimeMillis {
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
             val identitetsnummer = Key.IDENTITETSNUMMER.les(String.serializer(), json)
+            val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json)
 
-            logger.info("Løser behov $behovType med transaksjon-ID $transaksjonId")
+            logger.info("Løser behov ${BehovType.ARBEIDSFORHOLD} med transaksjon-ID $transaksjonId")
 
             val arbeidsforhold = hentArbeidsforhold(identitetsnummer, transaksjonId)
 
@@ -67,7 +69,7 @@ class ArbeidsforholdLoeser(
                 rapidsConnection.publishData(
                     eventName = behov.event,
                     transaksjonId = transaksjonId,
-                    forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                    forespoerselId = forespoerselId,
                     Key.ARBEIDSFORHOLD to arbeidsforhold.toJson(Arbeidsforhold.serializer())
                 )
             } else {

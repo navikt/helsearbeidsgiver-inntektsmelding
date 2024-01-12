@@ -5,9 +5,9 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.rejectKeys
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
@@ -44,13 +44,15 @@ class ForespoerselBesvartFraSimbaLoeser(
         }.register(this)
     }
 
-    override fun Map<IKey, JsonElement>.lesMelding(): Melding =
-        Melding(
+    override fun JsonElement.lesMelding(): Melding {
+        val json = toMap()
+        return Melding(
             event = EventName.INNTEKTSMELDING_MOTTATT.name,
-            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, this),
-            transaksjonId = Key.UUID.les(UuidSerializer, this),
+            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
+            transaksjonId = Key.UUID.les(UuidSerializer, json),
             spinnInntektsmeldingId = null
         )
+    }
 
     override fun haandterFeil(json: JsonElement) {
         sikkerLogger.error(

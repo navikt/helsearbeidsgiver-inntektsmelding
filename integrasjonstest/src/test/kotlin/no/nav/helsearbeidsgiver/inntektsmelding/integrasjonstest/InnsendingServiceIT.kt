@@ -11,7 +11,6 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -154,12 +153,12 @@ class InnsendingServiceIT : EndToEndTest() {
         }
     }
 
-    private fun Map<IKey, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<IKey, JsonElement> =
+    private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =
         also {
             Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
         }
 
-    private fun Map<IKey, JsonElement>.verifiserForespoerselId(): Map<IKey, JsonElement> =
+    private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =
         also {
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
         }

@@ -8,7 +8,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -70,7 +69,7 @@ class TilgangLoeser(
         }
     }
 
-    private fun hentTilgang(behov: Behov, json: Map<IKey, JsonElement>, transaksjonId: UUID) {
+    private fun hentTilgang(behov: Behov, json: Map<Key, JsonElement>, transaksjonId: UUID) {
         val fnr = Key.FNR.les(String.serializer(), json)
         val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), json)
 

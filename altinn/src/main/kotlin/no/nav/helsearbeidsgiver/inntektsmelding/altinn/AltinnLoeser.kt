@@ -5,7 +5,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -29,7 +28,7 @@ class AltinnLoeser(
     private val altinnClient: AltinnClient
 ) : ObjectRiver<Melding>() {
 
-    override fun les(json: Map<IKey, JsonElement>): Melding =
+    override fun les(json: Map<Key, JsonElement>): Melding =
         Melding(
             eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
             transactionId = Key.UUID.les(UuidSerializer, json),
@@ -37,7 +36,7 @@ class AltinnLoeser(
             identitetsnummer = Key.IDENTITETSNUMMER.les(String.serializer(), json)
         )
 
-    override fun Melding.haandter(): Map<IKey, JsonElement> {
+    override fun Melding.haandter(): Map<Key, JsonElement> {
         val rettigheterForenklet =
             Metrics.altinnRequest.recordTime {
                 altinnClient

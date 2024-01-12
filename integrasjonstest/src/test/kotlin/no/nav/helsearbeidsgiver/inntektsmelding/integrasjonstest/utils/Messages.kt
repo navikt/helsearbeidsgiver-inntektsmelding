@@ -6,7 +6,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -18,7 +17,7 @@ import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 value class Messages(
     private val value: MutableList<JsonElement> = mutableListOf()
 ) {
-    fun firstAsMap(): Map<IKey, JsonElement> =
+    fun firstAsMap(): Map<Key, JsonElement> =
         value.firstOrNull()
             .shouldNotBeNull()
             .toMap()

@@ -9,13 +9,11 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -43,7 +41,7 @@ class AltinnLoeserTest : FunSpec({
         val mockId = "long-john-silver"
         val mockUuid = randomUuid()
 
-        val expectedPublished = mapOf<IKey, JsonElement>(
+        val expectedPublished = mapOf(
             Key.DATA to "".toJson(),
             Key.UUID to mockUuid.toJson(),
             Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().mapNotNull { it.orgnr }.toSet().toJson(String.serializer().set())

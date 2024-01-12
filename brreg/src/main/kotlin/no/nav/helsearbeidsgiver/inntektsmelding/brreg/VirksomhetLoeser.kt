@@ -4,8 +4,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brreg
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.brreg.BrregClient
@@ -13,6 +11,7 @@ import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -108,7 +107,7 @@ class VirksomhetLoeser(
                 transaksjonId = transaksjonId,
                 forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                 Key.VIRKSOMHET to navnListe.values.first().toJson(),
-                Key.VIRKSOMHETER to navnListe.toJson(MapSerializer(String.serializer(), String.serializer()))
+                Key.VIRKSOMHETER to navnListe.toJson()
             )
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")

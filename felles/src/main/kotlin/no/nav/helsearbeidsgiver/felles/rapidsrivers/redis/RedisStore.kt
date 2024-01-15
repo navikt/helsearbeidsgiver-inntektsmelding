@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 
 import io.lettuce.core.RedisClient
 import io.lettuce.core.SetArgs
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class RedisStore(redisUrl: String) {
@@ -22,7 +23,17 @@ class RedisStore(redisUrl: String) {
         return value
     }
 
-    fun exist(keys: List<RedisKey>): Long {
+    fun getAll(keys: Set<RedisKey>): Map<String, String> {
+        val keysAsString = keys.map { it.toString() }.toTypedArray()
+        return syncCommands.mget(*keysAsString)
+            .associate { it.key to it.getValueOrElse(null) }
+            .mapValuesNotNull { it }
+            .also {
+                sikkerLogger.debug("Getting all from redis: $it")
+            }
+    }
+
+    fun exist(keys: Set<RedisKey>): Long {
         val keysAsString = keys.map { it.toString() }.toTypedArray()
         val count = syncCommands.exists(*keysAsString)
         sikkerLogger.debug("Checking exist in redis: $keys -> $count")

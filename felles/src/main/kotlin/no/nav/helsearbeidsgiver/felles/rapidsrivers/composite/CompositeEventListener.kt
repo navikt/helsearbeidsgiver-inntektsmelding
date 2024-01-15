@@ -14,6 +14,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNul
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -61,16 +63,18 @@ abstract class CompositeEventListener : River.PacketListener {
             Log.transaksjonId(transaksjonId)
         ) {
             val fail = toFailOrNull(melding)
-            if (fail != null) {
-                sikkerLogger.error("Feilmelding er '${fail.feilmelding}'. Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
-                return onError(melding, fail)
-            }
 
             val clientIdRedisKey = RedisKey.of(transaksjonId, event)
-            val lagretClientId = redisStore.get(clientIdRedisKey)
+
+            val meldingMedRedisData = melding + getAllRedisData(transaksjonId)
 
             return when {
-                lagretClientId.isNullOrEmpty() -> {
+                fail != null -> {
+                    sikkerLogger.error("Feilmelding er '${fail.feilmelding}'. Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
+                    onError(meldingMedRedisData, fail)
+                }
+
+                redisStore.get(clientIdRedisKey).isNullOrEmpty() -> {
                     if (!isEventMelding(melding)) {
                         "Servicen er inaktiv for gitt event. Mest sannsynlig skyldes dette timeout av Redis-verdier.".also {
                             logger.error(it)
@@ -93,8 +97,13 @@ abstract class CompositeEventListener : River.PacketListener {
                     }
                 }
 
-                isAllDataCollected(transaksjonId) -> finalize(melding)
-                else -> inProgress(melding)
+                isAllDataCollected(transaksjonId) -> {
+                    finalize(meldingMedRedisData)
+                }
+
+                else -> {
+                    inProgress(meldingMedRedisData)
+                }
             }
         }
     }
@@ -103,11 +112,38 @@ abstract class CompositeEventListener : River.PacketListener {
         melding[Key.EVENT_NAME] != null &&
             melding.keys.intersect(setOf(Key.BEHOV, Key.DATA, Key.FAIL)).isEmpty()
 
-    fun isDataCollected(keys: List<RedisKey>): Boolean =
+    fun isDataCollected(keys: Set<RedisKey>): Boolean =
         redisStore.exist(keys) == keys.size.toLong()
 
+    private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
+        val allDataKeys = (startKeys + dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
+        return redisStore.getAll(allDataKeys)
+            .mapKeysNotNull { key ->
+                key.removePrefix(transaksjonId.toString())
+                    .runCatching(Key::fromString)
+                    .getOrElse {
+                        sikkerLogger.error("Feil med nøkkel i Redis.", it)
+                        null
+                    }
+            }
+            .mapValuesNotNull { value ->
+                runCatching {
+                    value.parseJson()
+                }
+                    // Midlertidig fiks for strenger som ikke lagres som JSON i Redis.
+                    .recoverCatching {
+                        sikkerLogger.warn("Klarte ikke parse redis-verdi.\nvalue=$value", it)
+                        "\"$value\"".parseJson()
+                    }
+                    .onFailure {
+                        sikkerLogger.warn("Klarte ikke backup-parse redis-verdi.\nvalue=$value", it)
+                    }
+                    .getOrNull()
+            }
+    }
+
     private fun isAllDataCollected(transaksjonId: UUID): Boolean {
-        val allKeys = dataKeys.map { RedisKey.of(transaksjonId, it) }
+        val allKeys = dataKeys.map { RedisKey.of(transaksjonId, it) }.toSet()
         val numKeysInRedis = redisStore.exist(allKeys)
         logger.info("found " + numKeysInRedis)
         return numKeysInRedis == dataKeys.size.toLong()

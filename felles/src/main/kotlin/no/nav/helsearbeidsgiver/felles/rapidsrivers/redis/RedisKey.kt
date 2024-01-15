@@ -28,7 +28,7 @@ sealed class RedisKey {
 
 private data class KeyKey(override val uuid: UUID, val key: Key) : RedisKey() {
     override fun toString(): String =
-        uuid.toString() + key.str
+        uuid.toString() + key.toString()
 }
 
 private data class TransactionKey(override val uuid: UUID, val eventName: EventName) : RedisKey() {

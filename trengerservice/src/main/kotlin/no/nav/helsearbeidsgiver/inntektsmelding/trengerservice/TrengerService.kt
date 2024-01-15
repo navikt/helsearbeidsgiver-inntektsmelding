@@ -50,9 +50,19 @@ class TrengerService(
     )
     override val dataKeys = listOf(
         Key.FORESPOERSEL_SVAR,
+        Key.VIRKSOMHET,
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.ARBEIDSGIVER_INFORMASJON,
+        Key.INNTEKT
+    )
+
+    private val steg1Keys = setOf(
+        Key.FORESPOERSEL_SVAR
+    )
+    private val steg2Keys = setOf(
         Key.VIRKSOMHET,
+        Key.ARBEIDSTAKER_INFORMASJON,
+        Key.ARBEIDSGIVER_INFORMASJON,
         Key.INNTEKT
     )
 
@@ -82,7 +92,7 @@ class TrengerService(
 
         sikkerLogger.info("Dispatcher for $transaksjonId with trans state 'in progress'")
 
-        if (melding.containsStep1Data()) {
+        if (steg1Keys.all { it in melding } && steg2Keys.none { it in melding }) {
             val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
 
             sikkerLogger.info("${simpleName()} Dispatcher VIRKSOMHET for $transaksjonId")
@@ -194,52 +204,67 @@ class TrengerService(
             return
         }
 
-        val (feilmelding, meldingMedDefault) = when (utloesendeBehov) {
+        val datafeil = when (utloesendeBehov) {
             BehovType.VIRKSOMHET ->
-                Pair(
-                    Feilmelding("Vi klarte ikke å hente virksomhet navn.", datafelt = Key.VIRKSOMHET),
-                    melding.plus(
-                        Key.VIRKSOMHET to "Ukjent navn".toJson()
+                listOf(
+                    Datafeil(
+                        Key.VIRKSOMHET,
+                        "Vi klarte ikke å hente virksomhet navn.",
+                        "Ukjent navn".toJson()
                     )
                 )
 
             BehovType.FULLT_NAVN ->
-                Pair(
-                    Feilmelding("Vi klarte ikke å hente arbeidstaker informasjon.", datafelt = Key.ARBEIDSTAKER_INFORMASJON),
-                    melding + mapOf(
-                        Key.ARBEIDSTAKER_INFORMASJON to PersonDato("Ukjent navn", null, "").toJson(PersonDato.serializer()),
-                        Key.ARBEIDSGIVER_INFORMASJON to PersonDato("Ukjent navn", null, "").toJson(PersonDato.serializer())
+                listOf(
+                    Datafeil(
+                        Key.ARBEIDSTAKER_INFORMASJON,
+                        "Vi klarte ikke å hente arbeidstaker informasjon.",
+                        PersonDato("Ukjent navn", null, "").toJson(PersonDato.serializer())
+                    ),
+                    Datafeil(
+                        Key.ARBEIDSGIVER_INFORMASJON,
+                        "Vi klarte ikke å hente arbeidsgiver informasjon.",
+                        PersonDato("Ukjent navn", null, "").toJson(PersonDato.serializer())
                     )
                 )
 
             BehovType.INNTEKT ->
-                Pair(
-                    Feilmelding(
+                listOf(
+                    Datafeil(
+                        Key.INNTEKT,
                         "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
-                        datafelt = Key.INNTEKT
-                    ),
-                    melding.plus(
-                        Key.INNTEKT to UNDEFINED_FELT.toJson()
+                        UNDEFINED_FELT.toJson()
                     )
                 )
 
             else ->
-                Pair(
-                    null,
-                    melding
-                )
+                emptyList()
         }
 
-        if (feilmelding != null) {
-            val feilKey = RedisKey.of(fail.transaksjonId, feilmelding)
+        if (datafeil.isNotEmpty()) {
+            val feilKey = RedisKey.of(fail.transaksjonId, Feilmelding(""))
             val feilReport = redisStore.get(feilKey)?.fromJson(FeilReport.serializer()) ?: FeilReport()
-            feilReport.feil.add(feilmelding)
+            feilReport.feil.addAll(
+                datafeil.map { Feilmelding(it.feilmelding, datafelt = it.key) }
+            )
             redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
         }
 
-        return inProgress(meldingMedDefault)
-    }
+        datafeil.onEach {
+            redisStore.set(RedisKey.of(fail.transaksjonId, it.key), it.defaultVerdi.toString())
+        }
 
-    private fun Map<Key, JsonElement>.containsStep1Data(): Boolean =
-        Key.FORESPOERSEL_SVAR in this
+        val meldingMedDefault = datafeil.associate { it.key to it.defaultVerdi }
+            .plus(melding)
+
+        if (dataKeys.all { it in meldingMedDefault }) {
+            finalize(meldingMedDefault)
+        }
+    }
 }
+
+private data class Datafeil(
+    val key: Key,
+    val feilmelding: String,
+    val defaultVerdi: JsonElement
+)

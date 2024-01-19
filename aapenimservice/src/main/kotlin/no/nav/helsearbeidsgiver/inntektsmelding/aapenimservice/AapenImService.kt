@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -32,7 +31,6 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -58,6 +56,13 @@ class AapenImService(
         Key.AAPEN_INNTEKTMELDING,
         Key.ER_DUPLIKAT_IM
     )
+
+    private val step1Data =
+        setOf(
+            Key.VIRKSOMHET,
+            Key.ARBEIDSTAKER_INFORMASJON,
+            Key.ARBEIDSGIVER_INFORMASJON
+        )
 
     init {
         StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
@@ -106,43 +111,22 @@ class AapenImService(
             Log.transaksjonId(transaksjonId),
             Log.aapenId(aapenId)
         ) {
-            if (isDataCollected(step1data(transaksjonId))) {
-                val skjema = redisStore.get(RedisKey.of(transaksjonId, Key.SKJEMA_INNTEKTSMELDING))?.fromJson(SkjemaInntektsmelding.serializer())
-                val orgNavn = redisStore.get(RedisKey.of(transaksjonId, Key.VIRKSOMHET)).orDefault(ukjentVirksomhet())
+            if (step1Data.all { it in melding }) {
+                val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
+                val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
+                val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+                val avsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
 
-                val sykmeldt = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON))
-                    ?.fromJson(PersonDato.serializer())
-                    .orDefault {
-                        "Fant ikke arbeidstakerinformasjon i Redis.".also {
-                            logger.error(it)
-                            sikkerLogger.error(it)
-                        }
-                        val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
-                        tomPerson(sykmeldtFnr)
-                    }
+                val inntektsmelding = tilInntektsmelding(
+                    aapenId = aapenId,
+                    skjema = skjema,
+                    orgNavn = orgNavn,
+                    sykmeldt = sykmeldt,
+                    avsender = avsender
+                )
 
-                val avsender = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSGIVER_INFORMASJON))
-                    ?.fromJson(PersonDato.serializer())
-                    .orDefault {
-                        "Fant ikke arbeidsgiverinformasjon i Redis.".also {
-                            logger.error(it)
-                            sikkerLogger.error(it)
-                        }
-                        val avsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
-                        tomPerson(avsenderFnr)
-                    }
-
-                if (skjema != null) {
-                    val inntektsmelding = tilInntektsmelding(
-                        aapenId = aapenId,
-                        skjema = skjema,
-                        orgNavn = orgNavn,
-                        sykmeldt = sykmeldt,
-                        avsender = avsender
-                    )
-
-                    logger.debug("Skal sende melding med behov 'BehovType.LAGRE_AAPEN_IM'")
-                    sikkerLogger.debug("Skal sende melding med behov 'BehovType.LAGRE_AAPEN_IM'")
+                logger.debug("Skal sende melding med behov 'BehovType.LAGRE_AAPEN_IM'")
+                sikkerLogger.debug("Skal sende melding med behov 'BehovType.LAGRE_AAPEN_IM'")
 //                    rapid.publish(
 //                        Key.EVENT_NAME to event.toJson(),
 //                        Key.UUID to transaksjonId.toJson(),
@@ -151,15 +135,9 @@ class AapenImService(
 //                        Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
 //                    )
 
-                    // TODO Midlertidig sett svar til im-api
-                    val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
-                    redisStore.set(RedisKey.of(clientId), inntektsmelding.toJsonStr(Inntektsmelding.serializer()))
-                } else {
-                    "Fant ikke skjema i Redis. Kan ikke fortsette.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                }
+                // TODO Midlertidig sett svar til im-api
+                val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
+                redisStore.set(RedisKey.of(clientId), inntektsmelding.toJsonStr(Inntektsmelding.serializer()))
             }
         }
     }
@@ -210,16 +188,33 @@ class AapenImService(
             Log.transaksjonId(fail.transaksjonId)
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
-            if (utloesendeBehov == BehovType.VIRKSOMHET) {
-                val virksomhetKey = RedisKey.of(fail.transaksjonId, Key.VIRKSOMHET)
-                redisStore.set(virksomhetKey, ukjentVirksomhet())
-                return inProgress(melding)
-            } else if (utloesendeBehov == BehovType.FULLT_NAVN) {
-                val arbeidstakerKey = RedisKey.of(fail.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
-                val arbeidsgiverKey = RedisKey.of(fail.transaksjonId, Key.ARBEIDSGIVER_INFORMASJON)
-                redisStore.set(arbeidstakerKey, tomPerson().toJsonStr(PersonDato.serializer()))
-                redisStore.set(arbeidsgiverKey, tomPerson().toJsonStr(PersonDato.serializer()))
-                return inProgress(melding)
+            val datafeil = when (utloesendeBehov) {
+                BehovType.VIRKSOMHET -> {
+                    listOf(
+                        Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
+                    )
+                }
+                BehovType.FULLT_NAVN -> {
+                    val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
+                    val avsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
+                    listOf(
+                        Key.ARBEIDSTAKER_INFORMASJON to tomPerson(sykmeldtFnr).toJson(PersonDato.serializer()),
+                        Key.ARBEIDSGIVER_INFORMASJON to tomPerson(avsenderFnr).toJson(PersonDato.serializer())
+                    )
+                }
+                else -> {
+                    emptyList()
+                }
+            }
+
+            if (datafeil.isNotEmpty()) {
+                datafeil.forEach {
+                    redisStore.set(RedisKey.of(fail.transaksjonId, it.first), it.second.toString())
+                }
+
+                val meldingMedDefault = datafeil.toMap() + melding
+
+                return inProgress(meldingMedDefault)
             }
 
             val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
@@ -263,19 +258,9 @@ private fun tilInntektsmelding(
         mottatt = OffsetDateTime.now()
     )
 
-private fun step1data(transaksjonId: UUID): List<RedisKey> =
-    listOf(
-        Key.VIRKSOMHET,
-        Key.ARBEIDSTAKER_INFORMASJON,
-        Key.ARBEIDSGIVER_INFORMASJON
+private fun tomPerson(fnr: String): PersonDato =
+    PersonDato(
+        navn = "",
+        fødselsdato = null,
+        ident = fnr
     )
-        .map { RedisKey.of(transaksjonId, it) }
-
-private fun ukjentVirksomhet(): String =
-    "Ukjent virksomhet"
-
-private fun tomPerson(ident: String = "") = PersonDato(
-    navn = "",
-    fødselsdato = null,
-    ident = ident
-)

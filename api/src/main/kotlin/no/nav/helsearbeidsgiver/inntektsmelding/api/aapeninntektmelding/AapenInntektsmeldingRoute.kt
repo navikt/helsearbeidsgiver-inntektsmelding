@@ -46,8 +46,18 @@ fun Route.aapenInntektmeldingRoute(
             Log.apiRoute(Routes.AAPEN_INNTEKTMELDING),
             Log.aapenId(aapenId)
         ) {
-            val skjema = lesRequestOrNull(aapenId)
-            if (skjema != null) {
+            val skjema = lesRequestOrNull()
+            if (skjema == null) {
+                respondBadRequest(JsonErrorResponse(inntektsmeldingId = aapenId), JsonErrorResponse.serializer())
+            } else if (!skjema.erGyldig()) {
+                "Fikk valideringsfeil.".also {
+                    logger.info(it)
+                    sikkerLogger.info(it)
+                }
+
+                // TODO returner (og logg) mer utfyllende feil
+                respondBadRequest("Valideringsfeil. Mer utfyllende feil må implementeres.", String.serializer())
+            } else {
                 tilgangskontroll.validerTilgangTilOrg(call.request, aapenId, skjema.avsender.orgnr)
 
                 val avsenderFnr = call.request.lesFnrFraAuthToken()
@@ -69,7 +79,7 @@ fun Route.aapenInntektmeldingRoute(
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(aapenId: UUID): SkjemaInntektsmelding? =
+private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): SkjemaInntektsmelding? =
     call.receiveText()
         .parseJson()
         .also { json ->
@@ -81,25 +91,13 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(aape
         .runCatching {
             fromJson(SkjemaInntektsmelding.serializer())
         }
-        .getOrElse { e ->
+        .onFailure { e ->
             "Kunne ikke parse json.".let {
                 logger.error(it)
                 sikkerLogger.error(it, e)
-                respondBadRequest(JsonErrorResponse(inntektsmeldingId = aapenId), JsonErrorResponse.serializer())
-                null
             }
         }
-        ?.let {
-            if (it.erGyldig()) {
-                it
-            } else {
-                logger.info("Fikk valideringsfeil.")
-
-                // TODO returner mer utfyllende feil
-                respondBadRequest("Valideringsfeil. Mer utfyllende feil må implementeres.", String.serializer())
-                null
-            }
-        }
+        .getOrNull()
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(aapenId: UUID, result: Result<JsonElement>) {
     result

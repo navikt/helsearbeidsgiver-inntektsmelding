@@ -6,7 +6,7 @@ import kotlinx.coroutines.runBlocking
 object Metrics {
     val dbAapenIm: Summary = Summary.build()
         .name("simba_db_aapen_im_repo_latency_seconds")
-        .help("Latency (i sek.) for database 'db-aapen-im' and table 'aapen_inntektsmelding'.")
+        .help("Latency (i sek.) for database 'im-db' and table 'aapen_inntektsmelding'.")
         .labelNames("method")
         .register()
 

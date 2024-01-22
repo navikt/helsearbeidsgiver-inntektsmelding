@@ -52,15 +52,15 @@ enum class Key(override val str: String) : IKey {
         str
 
     companion object {
-        internal fun fromJson(json: String): Key =
+        internal fun fromString(key: String): Key =
             Key.entries.firstOrNull {
-                json == it.str
+                key == it.toString()
             }
-                ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$json'.")
+                ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$key'.")
     }
 }
 
 internal object KeySerializer : AsStringSerializer<Key>(
     serialName = "helsearbeidsgiver.kotlinx.felles.Key",
-    parse = Key::fromJson
+    parse = Key::fromString
 )

@@ -95,7 +95,7 @@ class InntektService(
         ) {
             val forspoerselKey = RedisKey.of(transaksjonId, Key.FORESPOERSEL_SVAR)
 
-            if (isDataCollected(listOf(forspoerselKey))) {
+            if (isDataCollected(setOf(forspoerselKey))) {
                 val forespoersel = forspoerselKey.read()?.fromJson(TrengerInntekt.serializer())
                 val skjaeringstidspunkt = RedisKey.of(transaksjonId, Key.SKJAERINGSTIDSPUNKT).read()
                 if (forespoersel == null || skjaeringstidspunkt == null) {

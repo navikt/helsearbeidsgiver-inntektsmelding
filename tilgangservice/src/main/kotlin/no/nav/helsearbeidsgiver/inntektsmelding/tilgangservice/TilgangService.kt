@@ -89,7 +89,7 @@ class TilgangService(
         ) {
             val orgnrKey = RedisKey.of(transaksjonId, Key.ORGNRUNDERENHET)
 
-            if (isDataCollected(listOf(orgnrKey))) {
+            if (isDataCollected(setOf(orgnrKey))) {
                 val orgnr = orgnrKey.read()
 
                 val fnr = RedisKey.of(transaksjonId, Key.FNR)

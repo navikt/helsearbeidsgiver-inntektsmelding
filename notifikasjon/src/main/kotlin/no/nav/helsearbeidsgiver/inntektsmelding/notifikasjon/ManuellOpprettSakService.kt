@@ -135,7 +135,7 @@ class ManuellOpprettSakService(
         sikkerLogger.error("Mottok feil:\n$fail")
     }
 
-    private fun steg2(transactionId: UUID): List<RedisKey> = listOf(RedisKey.of(transactionId, Key.FORESPOERSEL_SVAR))
-    private fun steg3(transactionId: UUID): List<RedisKey> = listOf(RedisKey.of(transactionId, Key.ARBEIDSTAKER_INFORMASJON))
-    private fun steg4(transactionId: UUID): List<RedisKey> = listOf(RedisKey.of(transactionId, Key.SAK_ID))
+    private fun steg2(transactionId: UUID): Set<RedisKey> = setOf(RedisKey.of(transactionId, Key.FORESPOERSEL_SVAR))
+    private fun steg3(transactionId: UUID): Set<RedisKey> = setOf(RedisKey.of(transactionId, Key.ARBEIDSTAKER_INFORMASJON))
+    private fun steg4(transactionId: UUID): Set<RedisKey> = setOf(RedisKey.of(transactionId, Key.SAK_ID))
 }

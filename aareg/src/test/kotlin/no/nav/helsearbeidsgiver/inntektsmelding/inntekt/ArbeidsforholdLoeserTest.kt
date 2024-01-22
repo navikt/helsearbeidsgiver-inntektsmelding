@@ -12,8 +12,6 @@ import io.mockk.coEvery
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
@@ -29,7 +27,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.ArbeidsforholdLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -91,12 +88,7 @@ class ArbeidsforholdLoeserTest : FunSpec({
             event = event,
             transaksjonId = transaksjonId,
             forespoerselId = forespoerselId,
-            utloesendeMelding = innkommendeMelding.toJson(
-                MapSerializer(
-                    Key.serializer(),
-                    JsonElement.serializer()
-                )
-            )
+            utloesendeMelding = innkommendeMelding.toJson()
         )
 
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
@@ -112,7 +104,7 @@ class ArbeidsforholdLoeserTest : FunSpec({
         val fail = testRapid.firstMessage().readFail()
 
         fail.shouldBeEqualToIgnoringFields(expected, Fail::utloesendeMelding)
-        fail.utloesendeMelding.fromJsonMapFiltered(Key.serializer()) shouldContainAll innkommendeMelding
+        fail.utloesendeMelding.toMap() shouldContainAll innkommendeMelding
     }
 })
 

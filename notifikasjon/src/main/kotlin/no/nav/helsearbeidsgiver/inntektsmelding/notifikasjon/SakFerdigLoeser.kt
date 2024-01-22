@@ -13,11 +13,11 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -55,12 +55,15 @@ class SakFerdigLoeser(
         }
         val json = packet.toJson().parseJson()
 
+        logger.info("Mottok melding med event '${EventName.FORESPOERSEL_BESVART}'.")
+        sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
+
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.FORESPOERSEL_BESVART)
         ) {
             runCatching {
-                json.haandterMelding(context)
+                haandterMelding(json.toMap(), context)
             }
                 .onFailure { e ->
                     "Ukjent feil.".also {
@@ -71,12 +74,7 @@ class SakFerdigLoeser(
         }
     }
 
-    private fun JsonElement.haandterMelding(context: MessageContext) {
-        logger.info("Mottok melding med event '${EventName.FORESPOERSEL_BESVART}'.")
-        sikkerLogger.info("Mottok melding:\n${toPretty()}")
-
-        val melding = fromJsonMapFiltered(Key.serializer())
-
+    private fun haandterMelding(melding: Map<Key, JsonElement>, context: MessageContext) {
         val sakId = Key.SAK_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)

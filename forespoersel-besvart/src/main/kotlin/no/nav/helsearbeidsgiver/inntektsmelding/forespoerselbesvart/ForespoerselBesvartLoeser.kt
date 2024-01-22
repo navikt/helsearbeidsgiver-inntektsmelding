@@ -7,10 +7,8 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -31,7 +29,7 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
 
     abstract val forespoerselBesvartCounter: Counter
 
-    abstract fun Map<IKey, JsonElement>.lesMelding(): Melding
+    abstract fun JsonElement.lesMelding(): Melding
 
     abstract fun haandterFeil(json: JsonElement)
 
@@ -62,7 +60,7 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
     }
 
     private fun opprettEvent(json: JsonElement, context: MessageContext) {
-        val melding = json.toMap().lesMelding()
+        val melding = json.lesMelding()
 
         logger.info("Mottok melding om '${melding.event}'.")
 

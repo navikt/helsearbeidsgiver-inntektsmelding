@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -46,12 +45,7 @@ class TrengerForespoerselLoeserTest : FunSpec({
                 Pri.Key.BOOMERANG to mapOf(
                     Key.EVENT_NAME to expectedEvent.toJson(),
                     Key.UUID to expectedTransaksjonId.toJson()
-                ).toJson(
-                    MapSerializer(
-                        Key.serializer(),
-                        JsonElement.serializer()
-                    )
-                )
+                ).toJson()
             )
         }
     }

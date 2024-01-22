@@ -198,12 +198,13 @@ class InnsendingService(
         }
     }
 
-    private fun step1data(uuid: UUID): List<RedisKey> = listOf(
-        RedisKey.of(uuid, Key.VIRKSOMHET),
-        RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
-        RedisKey.of(uuid, Key.ARBEIDSTAKER_INFORMASJON),
-        RedisKey.of(uuid, Key.ARBEIDSGIVER_INFORMASJON)
-    )
+    private fun step1data(uuid: UUID): Set<RedisKey> =
+        setOf(
+            RedisKey.of(uuid, Key.VIRKSOMHET),
+            RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
+            RedisKey.of(uuid, Key.ARBEIDSTAKER_INFORMASJON),
+            RedisKey.of(uuid, Key.ARBEIDSGIVER_INFORMASJON)
+        )
 
     private fun personIkkeFunnet(ident: String = "") = PersonDato(
         navn = "",

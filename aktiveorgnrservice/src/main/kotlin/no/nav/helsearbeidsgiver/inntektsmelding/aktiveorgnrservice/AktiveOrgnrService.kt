@@ -208,12 +208,7 @@ class AktiveOrgnrService(
             event = event,
             transaksjonId = transaksjonId,
             forespoerselId = null,
-            utloesendeMelding = toJson(
-                MapSerializer(
-                    Key.serializer(),
-                    JsonElement.serializer()
-                )
-            )
+            utloesendeMelding = toJson()
         )
 
     private fun trekkUtArbeidsforhold(arbeidsforholdListe: List<Arbeidsforhold>?, orgrettigheter: Set<String>?): Result<List<String>> {
@@ -236,10 +231,11 @@ class AktiveOrgnrService(
         }
     }
 
-    private fun step1data(uuid: UUID): List<RedisKey> = listOf(
-        RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
-        RedisKey.of(uuid, Key.ORG_RETTIGHETER)
-    )
+    private fun step1data(uuid: UUID): Set<RedisKey> =
+        setOf(
+            RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
+            RedisKey.of(uuid, Key.ORG_RETTIGHETER)
+        )
 
     private fun RedisKey.read(): String? =
         redisStore.get(this)

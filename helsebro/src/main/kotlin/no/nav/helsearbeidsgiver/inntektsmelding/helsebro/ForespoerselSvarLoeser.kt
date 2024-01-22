@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -155,7 +156,7 @@ private data class Melding(
 ) {
     companion object {
         fun fra(json: JsonElement): Melding =
-            json.toMap().let {
+            json.fromJsonMapFiltered(Pri.Key.serializer()).let {
                 val forespoerselSvar = Pri.Key.LØSNING.les(ForespoerselSvar.serializer(), it)
                 val boomerang = forespoerselSvar.boomerang.toMap()
 

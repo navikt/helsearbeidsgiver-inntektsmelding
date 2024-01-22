@@ -47,7 +47,7 @@ fun Route.trengerRoute(
                 .onSuccess { request ->
                     logger.info("Henter data for uuid: ${request.uuid}")
                     try {
-                        tilgangskontroll.validerTilgang(call.request, request.uuid)
+                        tilgangskontroll.validerTilgangTilForespoersel(call.request, request.uuid)
 
                         val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 

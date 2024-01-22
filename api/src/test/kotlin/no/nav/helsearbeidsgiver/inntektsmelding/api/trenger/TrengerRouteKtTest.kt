@@ -109,7 +109,7 @@ class TrengerRouteKtTest : ApiTest() {
     fun `skal returnere Forbidden hvis feil i Tilgangsresultet`() = testApi {
         val mockTilgangClientId = UUID.randomUUID()
 
-        every { anyConstructed<TilgangProducer>().publish(any(), any()) } returns mockTilgangClientId
+        every { anyConstructed<TilgangProducer>().publishForespoerselId(any(), any()) } returns mockTilgangClientId
 
         coEvery { anyConstructed<RedisPoller>().hent(mockTilgangClientId) } returns TilgangData(
             feil = FeilReport(

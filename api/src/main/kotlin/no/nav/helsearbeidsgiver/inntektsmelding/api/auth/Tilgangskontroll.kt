@@ -16,17 +16,37 @@ class Tilgangskontroll(
     private val cache: LocalCache<Tilgang>,
     private val redisPoller: RedisPoller
 ) {
-    fun validerTilgang(
+    fun validerTilgangTilForespoersel(
         request: ApplicationRequest,
-        id: UUID
+        forespoerselId: UUID
+    ) {
+        validerTilgang(request, forespoerselId) { fnr ->
+            tilgangProducer.publishForespoerselId(forespoerselId, fnr)
+        }
+    }
+
+    fun validerTilgangTilOrg(
+        request: ApplicationRequest,
+        id: UUID,
+        orgnr: String
+    ) {
+        validerTilgang(request, id) { fnr ->
+            tilgangProducer.publishOrgnr(orgnr, fnr)
+        }
+    }
+
+    private fun validerTilgang(
+        request: ApplicationRequest,
+        id: UUID,
+        publish: (String) -> UUID
     ) {
         val innloggerFnr = request.lesFnrFraAuthToken()
 
         val tilgang = runBlocking {
             cache.get("$innloggerFnr:$id") {
-                logger.info("Fant ikke forespørsel i cache, ber om tilgangskontroll for '$id'.")
+                logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll for '$id'.")
 
-                val clientId = tilgangProducer.publish(id, innloggerFnr)
+                val clientId = publish(innloggerFnr)
 
                 val resultat = redisPoller.hent(clientId)
                     .fromJson(TilgangData.serializer())

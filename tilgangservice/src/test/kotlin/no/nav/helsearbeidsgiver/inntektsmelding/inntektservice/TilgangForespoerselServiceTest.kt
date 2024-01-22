@@ -15,18 +15,18 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
-import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangService
+import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangForespoerselService
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class TilgangServiceTest {
+class TilgangForespoerselServiceTest {
 
     private val testRapid = TestRapid()
     private val mockRedis = MockRedis()
 
-    private val service = TilgangService(testRapid, mockRedis.store)
+    private val service = TilgangForespoerselService(testRapid, mockRedis.store)
 
     @BeforeEach
     fun setup() {
@@ -37,12 +37,7 @@ class TilgangServiceTest {
 
     @Test
     fun `kritisk feil stopper flyten`() {
-        // TODO: uuid *må* være satt i Fail - ellers kastes IllegalStateException ved onError()
-        // Kunne endret dette til å returnere Transaction.TERMINATE, men da gjenoppstår
-        // problemet som en IllegalArgumentException i .terminate()
-        // Kanskje bør uuid enforces til ikke-null i Fail?
-
-        val event = EventName.TILGANG_REQUESTED
+        val event = EventName.TILGANG_FORESPOERSEL_REQUESTED
         val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
 

@@ -4,14 +4,27 @@ import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 
 object Metrics {
-    val altinnRequest = Summary.build()
+    val dbAapenIm: Summary = Summary.build()
+        .name("simba_db_aapen_im_repo_latency_seconds")
+        .help("Latency (i sek.) for database 'db-aapen-im' and table 'aapen_inntektsmelding'.")
+        .labelNames("method")
+        .register()
+
+    val altinnRequest: Summary = Summary.build()
         .name("simba_altinn_hent_rettighet_organisasjoner_latency_seconds")
-        .help("Altinn hentRettighetOrganisasjoner - latency in seconds")
+        .help("Latency (i sek.) for Altinn-hentRettighetOrganisasjoner.")
         .register()
 }
 
-fun <T> Summary.recordTime(block: suspend () -> T): T {
-    val requestTimer = startTimer()
+/** Bruk av [label] krever at `labelNames` er satt på [Summary]. */
+fun <T> Summary.recordTime(label: String? = null, block: suspend () -> T): T {
+    val requestTimer: Summary.Timer =
+        if (label == null) {
+            startTimer()
+        } else {
+            labels(label).startTimer()
+        }
+
     return runBlocking { block() }
         .also {
             requestTimer.observeDuration()

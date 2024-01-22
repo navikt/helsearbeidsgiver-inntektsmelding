@@ -3,9 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 import io.prometheus.client.Summary
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.forespoerselId
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet.innsendt
+import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
@@ -59,16 +57,20 @@ class InntektsmeldingRepository(private val db: Database) {
     fun hentNyesteEksternEllerInternInntektsmelding(forespørselId: String): Pair<Inntektsmelding?, EksternInntektsmelding?>? {
         val requestTimer = requestLatency.labels("hentNyesteInternEllerEkstern").startTimer()
         return transaction(db) {
-            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding).run {
-                select { (forespoerselId eq forespørselId) }.orderBy(innsendt, SortOrder.DESC)
-            }.limit(1).map {
-                Pair(
-                    it[InntektsmeldingEntitet.dokument],
-                    it[InntektsmeldingEntitet.eksternInntektsmelding]
-                )
-            }.firstOrNull().also {
-                requestTimer.observeDuration()
-            }
+            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding)
+                .select { (InntektsmeldingEntitet.forespoerselId eq forespørselId) }
+                .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+                .limit(1)
+                .map {
+                    Pair(
+                        it[InntektsmeldingEntitet.dokument],
+                        it[InntektsmeldingEntitet.eksternInntektsmelding]
+                    )
+                }
+                .firstOrNull()
+                .also {
+                    requestTimer.observeDuration()
+                }
         }
     }
 
@@ -110,6 +112,6 @@ class InntektsmeldingRepository(private val db: Database) {
         InntektsmeldingEntitet.select {
             (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull()
         }
-            .orderBy(innsendt, SortOrder.DESC)
+            .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
             .limit(1)
 }

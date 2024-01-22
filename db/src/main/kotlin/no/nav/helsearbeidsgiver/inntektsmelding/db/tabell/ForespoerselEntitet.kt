@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.db.config
+package no.nav.helsearbeidsgiver.inntektsmelding.db.tabell
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime

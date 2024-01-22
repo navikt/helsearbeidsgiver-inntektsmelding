@@ -31,10 +31,12 @@ import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
+import no.nav.helsearbeidsgiver.inntektsmelding.db.AapenImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
-import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
+import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
+import no.nav.helsearbeidsgiver.inntektsmelding.db.registerDbLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
@@ -102,6 +104,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     val tilgangProducer by lazy { TilgangProducer(rapid) }
     val imRepository by lazy { InntektsmeldingRepository(database.db) }
+    val aapenImRepo by lazy { AapenImRepo(database.db) }
     val forespoerselRepository by lazy { ForespoerselRepository(database.db) }
 
     val altinnClient = mockk<AltinnClient>()
@@ -172,7 +175,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createAareg(aaregClient)
             createAltinn(altinnClient)
             createBrreg(brregClient, false)
-            createDb(database, imRepository, forespoerselRepository)
+            createDbRivers(imRepository, aapenImRepo, forespoerselRepository)
             createDistribusjon(mockk(relaxed = true))
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
@@ -187,6 +190,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createSpinnService(redisStore)
             createAktiveOrgnrService(redisStore)
         }
+            .registerDbLifecycle(database)
             .register(this)
 
         thread = thread {

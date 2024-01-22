@@ -9,8 +9,8 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.ForespoerselEntitet
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.InntektsmeldingEntitet
+import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.ForespoerselEntitet
+import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.Op
@@ -24,21 +24,20 @@ import java.util.UUID
 
 class TestRepo(private val db: Database) {
 
-    fun hentRecordFraInntektsmelding(forespørselId: String): ResultRow? {
-        return transaction(db) {
-            InntektsmeldingEntitet.run {
-                select { (forespoerselId eq forespørselId) }
+    fun hentRecordFraInntektsmelding(forespoerselId: UUID): ResultRow? =
+        transaction(db) {
+            InntektsmeldingEntitet.select {
+                InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()
             }.firstOrNull()
         }
-    }
 
-    fun hentRecordFraForespoersel(forespørselId: String): ResultRow? {
-        return transaction(db) {
-            ForespoerselEntitet.run {
-                select { (forespoerselId eq forespørselId) }
-            }.firstOrNull()
+    fun hentRecordFraForespoersel(forespoerselId: UUID): ResultRow? =
+        transaction(db) {
+            ForespoerselEntitet.select {
+                ForespoerselEntitet.forespoerselId eq forespoerselId.toString()
+            }
+                .firstOrNull()
         }
-    }
 }
 
 class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, ForespoerselEntitet), { db ->
@@ -145,7 +144,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), DOK_1)
         inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, JOURNALPOST_1)
-        val record = testRepo.hentRecordFraInntektsmelding(forespoerselId.toString())
+        val record = testRepo.hentRecordFraInntektsmelding(forespoerselId)
         record.shouldNotBeNull()
         val journalPostId = record.getOrNull(InntektsmeldingEntitet.journalpostId)
         journalPostId.shouldNotBeNull()
@@ -265,11 +264,11 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val forespoerselId = "abc-456"
+        val forespoerselId = UUID.randomUUID()
         val SAK_ID_1 = "sak1-1"
 
-        foresporselRepo.lagreForespoersel(forespoerselId, ORGNR)
-        foresporselRepo.oppdaterSakId(forespoerselId, SAK_ID_1)
+        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
+        foresporselRepo.oppdaterSakId(forespoerselId.toString(), SAK_ID_1)
         val record = testRepo.hentRecordFraForespoersel(forespoerselId)
         record.shouldNotBeNull()
         val sakId = record.getOrNull(ForespoerselEntitet.sakId)
@@ -282,11 +281,11 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
-        val forespoerselId = "abc-456"
+        val forespoerselId = UUID.randomUUID()
         val OPPGAVE_ID_1 = "oppg-1"
 
-        foresporselRepo.lagreForespoersel(forespoerselId, ORGNR)
-        foresporselRepo.oppdaterOppgaveId(forespoerselId, OPPGAVE_ID_1)
+        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
+        foresporselRepo.oppdaterOppgaveId(forespoerselId.toString(), OPPGAVE_ID_1)
         val rad = testRepo.hentRecordFraForespoersel(forespoerselId)
         rad.shouldNotBeNull()
         val oppgaveId = rad.getOrNull(ForespoerselEntitet.oppgaveId)

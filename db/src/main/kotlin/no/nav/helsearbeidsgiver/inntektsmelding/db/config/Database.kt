@@ -2,15 +2,20 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.config
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import no.nav.helsearbeidsgiver.felles.fromEnv
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
 class Database(
-    dbConfig: HikariConfig
+    private val config: HikariConfig
 ) {
-    val dataSource by lazy { HikariDataSource(dbConfig) }
+    constructor(secrets: Secrets) : this(
+        dbConfig(secrets)
+    )
+
+    val dataSource by lazy { HikariDataSource(config) }
     val db by lazy { ExposedDatabase.connect(dataSource) }
-    private val config = dbConfig
+
     fun migrate() {
         migrationConfig(config)
             .let(::HikariDataSource)
@@ -20,14 +25,34 @@ class Database(
                     .lockRetryCount(50)
                     .load()
                     .migrate()
-            }.close()
+            }
+            .close()
+    }
+
+    class Secrets(prefix: String) {
+        val username = "${prefix}_USERNAME".fromEnv()
+        val password = "${prefix}_PASSWORD".fromEnv()
+
+        val url = "jdbc:postgresql://%s:%s/%s".format(
+            "${prefix}_HOST".fromEnv(),
+            "${prefix}_PORT".fromEnv(),
+            "${prefix}_DATABASE".fromEnv()
+        )
     }
 }
 
-private fun migrationConfig(conf: HikariConfig): HikariConfig =
+private fun dbConfig(secrets: Database.Secrets): HikariConfig =
     HikariConfig().apply {
-        jdbcUrl = conf.jdbcUrl
-        username = conf.username
-        password = conf.password
+        jdbcUrl = secrets.url
+        username = secrets.username
+        password = secrets.password
+        maximumPoolSize = 5
+    }
+
+private fun migrationConfig(config: HikariConfig): HikariConfig =
+    HikariConfig().apply {
+        jdbcUrl = config.jdbcUrl
+        username = config.username
+        password = config.password
         maximumPoolSize = 3
     }

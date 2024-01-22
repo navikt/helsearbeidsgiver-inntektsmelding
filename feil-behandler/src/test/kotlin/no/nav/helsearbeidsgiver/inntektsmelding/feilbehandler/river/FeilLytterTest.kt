@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import java.time.LocalDateTime
 import java.util.UUID
@@ -47,23 +46,24 @@ class FeilLytterTest : FunSpec({
     }
 
     test("skal ignorere feil uten forespørselId") {
+        // TODO: Kan egentlig tillate feil uten forespørselId..
         val feil = lagGyldigFeil(BehovType.JOURNALFOER).copy(forespoerselId = null)
         handler.skalHaandteres(feil) shouldBe false
     }
 
-    test("skal ignorere ugyldige feil") {
-        val feil = toFailOrNull(emptyMap())
-        handler.skalHaandteres(feil) shouldBe false
-    }
-
-    test("Feil som håndteres skal lagres") {
+    test("Ny feil med forskjellig behov og samme id skal lagres, gjentakende feil oppdaterer jobb") {
         val now = LocalDateTime.now()
         repository.deleteAll()
         rapid.sendTestMessage(lagRapidFeilmelding())
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
+        rapid.sendTestMessage(lagRapidFeilmelding("LAGRE_FORESPOERSEL"))
+        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
+        //TODO: mockRepo støtter ikke duplikat-håndtering enda, så mock gjør ikke update på en eksisterende melding per nå.
+//        rapid.sendTestMessage(lagRapidFeilmelding("LAGRE_FORESPOERSEL"))
+//        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
     }
 })
-fun lagRapidFeilmelding(): String {
+fun lagRapidFeilmelding(behov: String = "JOURNALFOER"): String {
     return """
         {   "fail": {
                 "feilmelding": "Klarte ikke journalføre",
@@ -72,7 +72,7 @@ fun lagRapidFeilmelding(): String {
                 "forespoerselId": "ec50627c-26d8-44c9-866c-e42f46b5890b",
                 "utloesendeMelding": {
                     "@event_name": "INNTEKTSMELDING_MOTTATT",
-                    "@behov": "JOURNALFOER",
+                    "@behov": "${behov}",
                     "forespoerselId": "ec50627c-26d8-44c9-866c-e42f46b5890b",
                     "uuid": "96fe8a6b-6667-4a7b-ad20-f5ed829eccaf"
                 }

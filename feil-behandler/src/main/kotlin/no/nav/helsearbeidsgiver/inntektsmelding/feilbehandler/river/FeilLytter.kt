@@ -16,6 +16,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.sql.SQLException
+import java.sql.SQLIntegrityConstraintViolationException
 
 class FeilLytter(rapidsConnection: RapidsConnection, private val repository: BakgrunnsjobbRepository) : River.PacketListener {
 
@@ -46,25 +48,46 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerLogger.info("Mottok feil: ${packet.toPretty()}")
         val fail = toFailOrNull(packet.toJson().parseJson().toMap())
-        if (skalHaandteres(fail)) {
-            sikkerLogger.info("Lagrer mottatt pakke!")
-            val jobb = Bakgrunnsjobb(
-                type = jobbType,
-                data = fail?.utloesendeMelding.toString()
-            )
-            lagreJobb(jobb)
-        }
-    }
-
-    private fun lagreJobb(jobb: Bakgrunnsjobb) {
-        repository.save(jobb)
-    }
-
-    fun skalHaandteres(fail: Fail?): Boolean {
         if (fail == null) {
             sikkerLogger.warn("Kunne ikke parse feil-objekt, ignorerer...")
-            return false
+            return
         }
+        if (skalHaandteres(fail)) {
+            // slå opp transaksjonID. Hvis den finnes, kan det være en annen feilende melding i samme transaksjon (forskjelig behov): Lagre i så fall
+            // med egen UUID. Denne UUID vil så sendes med som ny transaksjonID ved rekjøring..
+            val jobbId = fail.transaksjonId
+            val eksisterendeJobb = repository.getById(jobbId)
+            if (eksisterendeJobb != null &&
+                (fail.utloesendeMelding.toMap()[Key.BEHOV] != eksisterendeJobb.data.parseJson().toMap()[Key.BEHOV])
+            ) {
+                sikkerLogger.info("Id $jobbId finnes fra før med annet behov. Lagrer en ny jobb.")
+                repository.save(Bakgrunnsjobb(type = jobbType, data = fail.utloesendeMelding.toString()))
+            } else {
+                sikkerLogger.info("Lagrer mottatt pakke!")
+                val jobb = Bakgrunnsjobb(
+                    uuid = fail.transaksjonId,
+                    type = jobbType,
+                    data = fail.utloesendeMelding.toString()
+                )
+                lagreEllerOppdater(jobb)
+            }
+        }
+    }
+
+    private fun lagreEllerOppdater(jobb: Bakgrunnsjobb) {
+        try {
+            repository.save(jobb)
+            sikkerLogger.info("Lagret ny jobb med id ${jobb.uuid}")
+        } catch (e: SQLIntegrityConstraintViolationException) {
+            jobb.forsoek = jobb.forsoek + 1
+            repository.update(jobb)
+            sikkerLogger.info("Oppdaterte eksisterende jobb med id ${jobb.uuid}")
+        } catch (ex: SQLException) {
+            sikkerLogger.error("Lagring av jobb med id ${jobb.uuid} feilet!", ex)
+        }
+    }
+
+    fun skalHaandteres(fail: Fail): Boolean {
         if (fail.forespoerselId == null) {
             sikkerLogger.info("Mangler forespørselId, ignorerer")
             return false

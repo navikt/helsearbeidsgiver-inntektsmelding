@@ -72,9 +72,11 @@ abstract class ObjectRiver<Melding : Any> {
      *
      * @param json innkommende melding.
      *
-     * @return Verdi lest fra [json]. Brukes som input i [haandter].
+     * @return
+     * Verdi lest fra [json]. Brukes som input i [haandter].
+     * Returneres '`null`' så vil melding ignoreres.
      */
-    protected abstract fun les(json: Map<Key, JsonElement>): Melding
+    protected abstract fun les(json: Map<Key, JsonElement>): Melding?
 
     /**
      * Riverens hovedfunksjon. Agerer på innkommende melding.
@@ -125,6 +127,4 @@ abstract class ObjectRiver<Melding : Any> {
 
         return utgaaende
     }
-
-    protected class AvvisMeldingException : Exception()
 }

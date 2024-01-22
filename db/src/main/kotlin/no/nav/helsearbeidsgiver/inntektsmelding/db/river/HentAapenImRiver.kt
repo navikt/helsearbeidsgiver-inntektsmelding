@@ -34,18 +34,17 @@ class HentAapenImRiver(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): HentAapenImMelding {
+    override fun les(json: Map<Key, JsonElement>): HentAapenImMelding? =
         if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
-            throw AvvisMeldingException()
+            null
+        } else {
+            HentAapenImMelding(
+                eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.HENT_AAPEN_IM, BehovType.serializer(), json),
+                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                aapenId = Key.AAPEN_ID.les(UuidSerializer, json)
+            )
         }
-
-        return HentAapenImMelding(
-            eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-            behovType = Key.BEHOV.krev(BehovType.HENT_AAPEN_IM, BehovType.serializer(), json),
-            transaksjonId = Key.UUID.les(UuidSerializer, json),
-            aapenId = Key.AAPEN_ID.les(UuidSerializer, json)
-        )
-    }
 
     override fun HentAapenImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> =
         MdcUtils.withLogFields(

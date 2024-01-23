@@ -92,7 +92,7 @@ class TrengerService(
 
         sikkerLogger.info("Dispatcher for $transaksjonId with trans state 'in progress'")
 
-        if (steg1Keys.all { it in melding } && steg2Keys.none { it in melding }) {
+        if (steg1Keys.all(melding::containsKey) && steg2Keys.none(melding::containsKey)) {
             val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
 
             sikkerLogger.info("${simpleName()} Dispatcher VIRKSOMHET for $transaksjonId")
@@ -257,7 +257,7 @@ class TrengerService(
         val meldingMedDefault = datafeil.associate { it.key to it.defaultVerdi }
             .plus(melding)
 
-        if (dataKeys.all { it in meldingMedDefault }) {
+        if (dataKeys.all(meldingMedDefault::containsKey)) {
             finalize(meldingMedDefault)
         }
     }

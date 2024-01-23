@@ -26,7 +26,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -53,8 +52,7 @@ class AapenImService(
         Key.VIRKSOMHET,
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.ARBEIDSGIVER_INFORMASJON,
-        Key.AAPEN_INNTEKTMELDING,
-        Key.ER_DUPLIKAT_IM
+        Key.AAPEN_INNTEKTMELDING
     )
 
     private val step1Data =
@@ -111,7 +109,7 @@ class AapenImService(
             Log.transaksjonId(transaksjonId),
             Log.aapenId(aapenId)
         ) {
-            if (step1Data.all { it in melding }) {
+            if (step1Data.all(melding::containsKey)) {
                 val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
                 val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
@@ -125,19 +123,17 @@ class AapenImService(
                     avsender = avsender
                 )
 
-                logger.debug("Skal sende melding med behov 'BehovType.LAGRE_AAPEN_IM'")
-                sikkerLogger.debug("Skal sende melding med behov 'BehovType.LAGRE_AAPEN_IM'")
-//                    rapid.publish(
-//                        Key.EVENT_NAME to event.toJson(),
-//                        Key.UUID to transaksjonId.toJson(),
-//                        Key.AAPEN_ID to aapenId.toJson(),
-//                        Key.BEHOV to BehovType.LAGRE_AAPEN_IM.toJson(),
-//                        Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
-//                    )
-
-                // TODO Midlertidig sett svar til im-api
-                val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
-                redisStore.set(RedisKey.of(clientId), inntektsmelding.toJsonStr(Inntektsmelding.serializer()))
+                rapid.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to BehovType.LAGRE_AAPEN_IM.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.AAPEN_ID to aapenId.toJson(),
+                    Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                )
+                    .also {
+                        logger.info("Publiserte melding med behov '${BehovType.LAGRE_AAPEN_IM}'.")
+                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                    }
             }
         }
     }
@@ -145,7 +141,6 @@ class AapenImService(
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val aapenId = Key.AAPEN_ID.les(UuidSerializer, melding)
-        val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
         val inntektsmeldingJson = Key.AAPEN_INNTEKTMELDING.les(JsonElement.serializer(), melding)
 
         MdcUtils.withLogFields(
@@ -162,22 +157,20 @@ class AapenImService(
                 redisStore.set(RedisKey.of(clientId), inntektsmeldingJson.toString())
             }
 
-            if (!erDuplikat) {
-                rapid.publish(
-                    Key.EVENT_NAME to EventName.AAPEN_IM_LAGRET.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.AAPEN_ID to aapenId.toJson(),
-                    Key.AAPEN_INNTEKTMELDING to inntektsmeldingJson
-                )
-                    .also {
-                        MdcUtils.withLogFields(
-                            Log.event(EventName.AAPEN_IM_LAGRET)
-                        ) {
-                            logger.info("Publiserte melding.")
-                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
-                        }
+            rapid.publish(
+                Key.EVENT_NAME to EventName.AAPEN_IM_LAGRET.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.AAPEN_ID to aapenId.toJson(),
+                Key.AAPEN_INNTEKTMELDING to inntektsmeldingJson
+            )
+                .also {
+                    MdcUtils.withLogFields(
+                        Log.event(EventName.AAPEN_IM_LAGRET)
+                    ) {
+                        logger.info("Publiserte melding.")
+                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                     }
-            }
+                }
         }
     }
 
@@ -194,6 +187,7 @@ class AapenImService(
                         Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
                     )
                 }
+
                 BehovType.FULLT_NAVN -> {
                     val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
                     val avsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
@@ -202,6 +196,7 @@ class AapenImService(
                         Key.ARBEIDSGIVER_INFORMASJON to tomPerson(avsenderFnr).toJson(PersonDato.serializer())
                     )
                 }
+
                 else -> {
                     emptyList()
                 }

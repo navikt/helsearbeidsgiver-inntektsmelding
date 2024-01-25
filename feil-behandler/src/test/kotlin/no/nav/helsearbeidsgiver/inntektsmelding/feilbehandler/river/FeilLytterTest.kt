@@ -22,7 +22,6 @@ class FeilLytterTest : FunSpec({
     val handler = FeilLytter(rapid, repository)
 
     test("skal håndtere gyldige feil med spesifiserte behov") {
-
         handler.behovSomHaandteres.forEach { handler.skalHaandteres(lagGyldigFeil(it)) shouldBe true }
     }
 
@@ -58,9 +57,26 @@ class FeilLytterTest : FunSpec({
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
         rapid.sendTestMessage(lagRapidFeilmelding("LAGRE_FORESPOERSEL"))
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
-        //TODO: mockRepo støtter ikke duplikat-håndtering enda, så mock gjør ikke update på en eksisterende melding per nå.
-//        rapid.sendTestMessage(lagRapidFeilmelding("LAGRE_FORESPOERSEL"))
-//        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
+    }
+
+    test("Duplikatfeil (samme feil etter rekjøring) skal oppdatere eksisterende feil -> status: FEILET og øke forsøk") {
+        val now = LocalDateTime.now()
+        repository.deleteAll()
+        val feilmelding = lagRapidFeilmelding()
+        rapid.sendTestMessage(feilmelding)
+        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
+        rapid.sendTestMessage(feilmelding)
+        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 0
+        val oppdatert = repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.FEILET), true)
+        oppdatert.size shouldBe 1
+        oppdatert[0].forsoek shouldBe 1
+
+        rapid.sendTestMessage(feilmelding)
+        rapid.sendTestMessage(feilmelding)
+        rapid.sendTestMessage(feilmelding)
+        val feilet = repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.FEILET), true)
+        feilet.size shouldBe 1
+        feilet[0].forsoek shouldBe 4
     }
 })
 fun lagRapidFeilmelding(behov: String = "JOURNALFOER"): String {
@@ -72,7 +88,7 @@ fun lagRapidFeilmelding(behov: String = "JOURNALFOER"): String {
                 "forespoerselId": "ec50627c-26d8-44c9-866c-e42f46b5890b",
                 "utloesendeMelding": {
                     "@event_name": "INNTEKTSMELDING_MOTTATT",
-                    "@behov": "${behov}",
+                    "@behov": "$behov",
                     "forespoerselId": "ec50627c-26d8-44c9-866c-e42f46b5890b",
                     "uuid": "96fe8a6b-6667-4a7b-ad20-f5ed829eccaf"
                 }

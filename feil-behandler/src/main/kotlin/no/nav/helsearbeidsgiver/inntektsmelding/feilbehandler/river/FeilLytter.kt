@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 import kotlinx.serialization.serializer
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbRepository
+import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -17,7 +18,6 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.sql.SQLException
-import java.sql.SQLIntegrityConstraintViolationException
 
 class FeilLytter(rapidsConnection: RapidsConnection, private val repository: BakgrunnsjobbRepository) : River.PacketListener {
 
@@ -54,14 +54,16 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
         }
         if (skalHaandteres(fail)) {
             // slå opp transaksjonID. Hvis den finnes, kan det være en annen feilende melding i samme transaksjon (forskjelig behov): Lagre i så fall
-            // med egen UUID. Denne UUID vil så sendes med som ny transaksjonID ved rekjøring..
+            // med egen id. Denne id vil så sendes med som ny transaksjonID ved rekjøring..
             val jobbId = fail.transaksjonId
             val eksisterendeJobb = repository.getById(jobbId)
-            if (eksisterendeJobb != null &&
-                (fail.utloesendeMelding.toMap()[Key.BEHOV] != eksisterendeJobb.data.parseJson().toMap()[Key.BEHOV])
-            ) {
-                sikkerLogger.info("Id $jobbId finnes fra før med annet behov. Lagrer en ny jobb.")
-                repository.save(Bakgrunnsjobb(type = jobbType, data = fail.utloesendeMelding.toString()))
+            if (eksisterendeJobb != null) {
+                if (fail.utloesendeMelding.toMap()[Key.BEHOV] != eksisterendeJobb.data.parseJson().toMap()[Key.BEHOV]) {
+                    sikkerLogger.info("Id $jobbId finnes fra før med annet behov. Lagrer en ny jobb.")
+                    lagre(Bakgrunnsjobb(type = jobbType, data = fail.utloesendeMelding.toString()))
+                } else {
+                    oppdater(eksisterendeJobb)
+                }
             } else {
                 sikkerLogger.info("Lagrer mottatt pakke!")
                 val jobb = Bakgrunnsjobb(
@@ -69,19 +71,28 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
                     type = jobbType,
                     data = fail.utloesendeMelding.toString()
                 )
-                lagreEllerOppdater(jobb)
+                lagre(jobb)
             }
         }
     }
 
-    private fun lagreEllerOppdater(jobb: Bakgrunnsjobb) {
+    private fun oppdater(jobb: Bakgrunnsjobb) {
+        // TODO: Om vi når max forsøk bør man sette status til STOPPET permanent,
+        //  men rekjøring vil uansett ikke skje
+        jobb.forsoek = jobb.forsoek + 1
+        jobb.status = BakgrunnsjobbStatus.FEILET
+        try {
+            repository.update(jobb)
+            sikkerLogger.info("Oppdaterte eksisterende jobb med id ${jobb.uuid}")
+        } catch (ex: SQLException) {
+            sikkerLogger.error("Oppdatering av jobb med id ${jobb.uuid} feilet!", ex)
+        }
+    }
+
+    private fun lagre(jobb: Bakgrunnsjobb) {
         try {
             repository.save(jobb)
             sikkerLogger.info("Lagret ny jobb med id ${jobb.uuid}")
-        } catch (e: SQLIntegrityConstraintViolationException) {
-            jobb.forsoek = jobb.forsoek + 1
-            repository.update(jobb)
-            sikkerLogger.info("Oppdaterte eksisterende jobb med id ${jobb.uuid}")
         } catch (ex: SQLException) {
             sikkerLogger.error("Lagring av jobb med id ${jobb.uuid} feilet!", ex)
         }

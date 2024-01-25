@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
@@ -36,7 +37,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
-import no.nav.helsearbeidsgiver.inntektsmelding.db.registerDbLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
@@ -190,7 +190,9 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createSpinnService(redisStore)
             createAktiveOrgnrService(redisStore)
         }
-            .registerDbLifecycle(database)
+            .registerShutdownLifecycle {
+                database.dataSource.close()
+            }
             .register(this)
 
         thread = thread {

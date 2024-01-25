@@ -59,7 +59,7 @@ class FeilLytterTest : FunSpec({
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
     }
 
-    test("Duplikatfeil (samme feil etter rekjøring) skal oppdatere eksisterende feil -> status: FEILET og øke forsøk") {
+    test("Duplikatfeil (samme feil etter rekjøring) skal oppdatere eksisterende feil -> status: FEILET") {
         val now = LocalDateTime.now()
         repository.deleteAll()
         val feilmelding = lagRapidFeilmelding()
@@ -69,14 +69,14 @@ class FeilLytterTest : FunSpec({
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 0
         val oppdatert = repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.FEILET), true)
         oppdatert.size shouldBe 1
-        oppdatert[0].forsoek shouldBe 1
+        oppdatert[0].forsoek shouldBe 0 // Antall forsøk oppdateres av bakgrunnsjobbService
 
         rapid.sendTestMessage(feilmelding)
         rapid.sendTestMessage(feilmelding)
         rapid.sendTestMessage(feilmelding)
         val feilet = repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.FEILET), true)
         feilet.size shouldBe 1
-        feilet[0].forsoek shouldBe 4
+        feilet[0].forsoek shouldBe 0
     }
 })
 fun lagRapidFeilmelding(behov: String = "JOURNALFOER"): String {

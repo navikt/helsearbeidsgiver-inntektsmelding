@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentAapenImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLoeser
@@ -32,7 +33,10 @@ fun main() {
     return RapidApplication
         .create(System.getenv())
         .createDbRivers(imRepo, aapenImRepo, forespoerselRepo)
-        .registerDbLifecycle(database)
+        .registerShutdownLifecycle {
+            logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
+            database.dataSource.close()
+        }
         .start()
 }
 
@@ -74,14 +78,4 @@ fun RapidsConnection.createDbRivers(
 
         logger.info("Starter ${LagreAapenImRiver::class.simpleName}...")
         LagreAapenImRiver(aapenImRepo).connect(this)
-    }
-
-fun RapidsConnection.registerDbLifecycle(db: Database): RapidsConnection =
-    also {
-        it.register(object : RapidsConnection.StatusListener {
-            override fun onShutdown(rapidsConnection: RapidsConnection) {
-                logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
-                db.dataSource.close()
-            }
-        })
     }

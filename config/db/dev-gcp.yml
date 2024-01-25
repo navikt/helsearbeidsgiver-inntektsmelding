@@ -1,9 +1,8 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-db.intern.dev.nav.no 
 database: inntektsmelding
+databaseVersion: POSTGRES_14
 envFrom:
   - type: secret
     name: google-sql-im-db
-env:

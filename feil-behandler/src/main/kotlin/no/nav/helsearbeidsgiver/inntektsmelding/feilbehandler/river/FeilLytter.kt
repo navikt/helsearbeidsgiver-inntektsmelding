@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
+import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -21,7 +22,7 @@ import java.sql.SQLException
 
 class FeilLytter(rapidsConnection: RapidsConnection, private val repository: BakgrunnsjobbRepository) : River.PacketListener {
 
-    private val jobbType = "kafka-retry-message"
+    private val jobbType = FeilProsessor.JOB_TYPE
 
     private val sikkerLogger = sikkerLogger()
     val behovSomHaandteres = listOf(
@@ -79,7 +80,6 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
     private fun oppdater(jobb: Bakgrunnsjobb) {
         // TODO: Om vi når max forsøk bør man sette status til STOPPET permanent,
         //  men rekjøring vil uansett ikke skje
-        jobb.forsoek = jobb.forsoek + 1
         jobb.status = BakgrunnsjobbStatus.FEILET
         try {
             repository.update(jobb)

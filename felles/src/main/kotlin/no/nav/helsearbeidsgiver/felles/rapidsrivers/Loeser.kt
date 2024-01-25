@@ -14,8 +14,10 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.Companion.publish
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -46,29 +48,31 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val json = packet.toJson().parseJson().toMap()
+        val melding = packet.toJson().parseJson().toMap()
 
-        logger.info("Mottok melding med behov '${json[Key.BEHOV]}'.")
-        sikkerLogger.info("Mottok melding:\n${packet.toPretty()}")
+        val eventName = Key.EVENT_NAME.les(EventName.serializer(), melding)
+        val behovType = Key.BEHOV.les(BehovType.serializer(), melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(String.serializer(), melding)
 
-        val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(String.serializer(), json)
+        MdcUtils.withLogFields(
+            Log.klasse(this),
+            Log.event(eventName),
+            Log.behov(behovType)
+        ) {
+            logger.info("Mottok melding med behov '$behovType'.")
+            sikkerLogger.info("Mottok melding:\n${packet.toPretty()}")
 
-        if (forespoerselId == null) {
-            logger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er 'null'.")
-            sikkerLogger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er 'null'.")
-        } else if (forespoerselId.isEmpty()) {
-            logger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er en tom streng.")
-            sikkerLogger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er en tom streng.")
+            if (forespoerselId == null) {
+                logger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er 'null'.")
+                sikkerLogger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er 'null'.")
+            } else if (forespoerselId.isEmpty()) {
+                logger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er en tom streng.")
+                sikkerLogger.warn("Mangler forespørselId! '${Key.FORESPOERSEL_ID}' er en tom streng.")
+            }
         }
 
-        if (!packet[Key.BEHOV.str].isArray) {
-            val behov = Behov(
-                Key.EVENT_NAME.les(EventName.serializer(), json),
-                Key.BEHOV.les(BehovType.serializer(), json),
-                forespoerselId?.takeIf { it.isNotEmpty() },
-                packet
-            )
-            onBehov(behov)
-        }
+        val behov = Behov(eventName, behovType, forespoerselId, packet)
+
+        onBehov(behov)
     }
 }

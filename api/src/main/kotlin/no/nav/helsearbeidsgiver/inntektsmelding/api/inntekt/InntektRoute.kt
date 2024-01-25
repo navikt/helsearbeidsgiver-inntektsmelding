@@ -37,7 +37,7 @@ fun Route.inntektRoute(
         post {
             val request = call.receive<InntektRequest>()
 
-            tilgangskontroll.validerTilgang(call.request, request.forespoerselId)
+            tilgangskontroll.validerTilgangTilForespoersel(call.request, request.forespoerselId)
 
             "Henter oppdatert inntekt for forespørselId: ${request.forespoerselId}".let {
                 logger.info(it)

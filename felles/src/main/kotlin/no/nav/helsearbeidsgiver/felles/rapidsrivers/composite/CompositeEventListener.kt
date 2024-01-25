@@ -2,6 +2,13 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.composite
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.floatOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.longOrNull
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
@@ -14,6 +21,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNul
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -61,16 +70,18 @@ abstract class CompositeEventListener : River.PacketListener {
             Log.transaksjonId(transaksjonId)
         ) {
             val fail = toFailOrNull(melding)
-            if (fail != null) {
-                sikkerLogger.error("Feilmelding er '${fail.feilmelding}'. Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
-                return onError(melding, fail)
-            }
 
             val clientIdRedisKey = RedisKey.of(transaksjonId, event)
-            val lagretClientId = redisStore.get(clientIdRedisKey)
+
+            val meldingMedRedisData = getAllRedisData(transaksjonId) + melding
 
             return when {
-                lagretClientId.isNullOrEmpty() -> {
+                fail != null -> {
+                    sikkerLogger.error("Feilmelding er '${fail.feilmelding}'. Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
+                    onError(meldingMedRedisData, fail)
+                }
+
+                redisStore.get(clientIdRedisKey).isNullOrEmpty() -> {
                     if (!isEventMelding(melding)) {
                         "Servicen er inaktiv for gitt event. Mest sannsynlig skyldes dette timeout av Redis-verdier.".also {
                             logger.error(it)
@@ -93,8 +104,13 @@ abstract class CompositeEventListener : River.PacketListener {
                     }
                 }
 
-                isAllDataCollected(transaksjonId) -> finalize(melding)
-                else -> inProgress(melding)
+                isAllDataCollected(transaksjonId) -> {
+                    finalize(meldingMedRedisData)
+                }
+
+                else -> {
+                    inProgress(meldingMedRedisData)
+                }
             }
         }
     }
@@ -103,11 +119,58 @@ abstract class CompositeEventListener : River.PacketListener {
         melding[Key.EVENT_NAME] != null &&
             melding.keys.intersect(setOf(Key.BEHOV, Key.DATA, Key.FAIL)).isEmpty()
 
-    fun isDataCollected(keys: List<RedisKey>): Boolean =
+    fun isDataCollected(keys: Set<RedisKey>): Boolean =
         redisStore.exist(keys) == keys.size.toLong()
 
+    private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
+        val allDataKeys = (startKeys + dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
+        return redisStore.getAll(allDataKeys)
+            .mapKeysNotNull { key ->
+                key.removePrefix(transaksjonId.toString())
+                    .runCatching(Key::fromString)
+                    .getOrElse {
+                        sikkerLogger.error("Feil med nøkkel i Redis.", it)
+                        null
+                    }
+            }
+            .mapValuesNotNull { value ->
+                // Midlertidig fiks for strenger som ikke lagres som JSON i Redis.
+                runCatching {
+                    val json = value.parseJson()
+
+                    // Strenger uten mellomrom parses OK, men klarer ikke leses som streng
+                    if (json is JsonPrimitive) {
+                        if (
+                            json is JsonNull ||
+                            json.isString ||
+                            json.booleanOrNull != null ||
+                            json.intOrNull != null ||
+                            json.longOrNull != null ||
+                            json.doubleOrNull != null ||
+                            json.floatOrNull != null
+                        ) {
+                            json
+                        } else {
+                            "\"$value\"".parseJson()
+                        }
+                    } else {
+                        json
+                    }
+                }
+                    // Strenger med mellomrom ender her
+                    .recoverCatching {
+                        sikkerLogger.warn("Klarte ikke parse redis-verdi.\nvalue=$value", it)
+                        "\"$value\"".parseJson()
+                    }
+                    .getOrElse {
+                        sikkerLogger.warn("Klarte ikke backup-parse redis-verdi.\nvalue=$value", it)
+                        null
+                    }
+            }
+    }
+
     private fun isAllDataCollected(transaksjonId: UUID): Boolean {
-        val allKeys = dataKeys.map { RedisKey.of(transaksjonId, it) }
+        val allKeys = dataKeys.map { RedisKey.of(transaksjonId, it) }.toSet()
         val numKeysInRedis = redisStore.exist(allKeys)
         logger.info("found " + numKeysInRedis)
         return numKeysInRedis == dataKeys.size.toLong()

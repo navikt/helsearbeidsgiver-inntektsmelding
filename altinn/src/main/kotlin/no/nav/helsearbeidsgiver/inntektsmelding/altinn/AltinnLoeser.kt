@@ -36,7 +36,7 @@ class AltinnLoeser(
             identitetsnummer = Key.IDENTITETSNUMMER.les(String.serializer(), json)
         )
 
-    override fun Melding.haandter(): Map<Key, JsonElement> {
+    override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val rettigheterForenklet =
             Metrics.altinnRequest.recordTime {
                 altinnClient

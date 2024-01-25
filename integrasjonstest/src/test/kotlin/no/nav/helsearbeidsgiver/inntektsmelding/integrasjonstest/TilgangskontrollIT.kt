@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
@@ -37,12 +36,12 @@ class TilgangskontrollIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal få tilgang`() {
-        tilgangProducer.publish(Mock.forespoerselIdMedTilgang, Mock.INNLOGGET_FNR)
+    fun `forespoersel - skal få tilgang`() {
+        tilgangProducer.publishForespoerselId(Mock.forespoerselIdMedTilgang, Mock.INNLOGGET_FNR)
 
         Thread.sleep(6000)
 
-        val result = messages.filter(EventName.TILGANG_REQUESTED)
+        val result = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filter(Key.TILGANG)
             .firstAsMap()
 
@@ -54,12 +53,12 @@ class TilgangskontrollIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal bli nektet tilgang`() {
-        tilgangProducer.publish(Mock.forespoerselIdUtenTilgang, Mock.INNLOGGET_FNR)
+    fun `forespoersel - skal bli nektet tilgang`() {
+        tilgangProducer.publishForespoerselId(Mock.forespoerselIdUtenTilgang, Mock.INNLOGGET_FNR)
 
         Thread.sleep(4000)
 
-        val result = messages.filter(EventName.TILGANG_REQUESTED)
+        val result = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filter(Key.TILGANG)
             .firstAsMap()
 
@@ -71,12 +70,12 @@ class TilgangskontrollIT : EndToEndTest() {
     }
 
     @Test
-    fun `skal få melding om at forespørsel ikke finnes`() {
-        tilgangProducer.publish(Mock.forespoerselIdFinnesIkke, Mock.INNLOGGET_FNR)
+    fun `forespoersel - skal få melding om at forespørsel ikke finnes`() {
+        tilgangProducer.publishForespoerselId(Mock.forespoerselIdFinnesIkke, Mock.INNLOGGET_FNR)
 
         Thread.sleep(4000)
 
-        val fail = messages.filter(EventName.TILGANG_REQUESTED)
+        val fail = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filterFeil()
             .firstAsMap()
             .get(Key.FAIL)
@@ -84,6 +83,40 @@ class TilgangskontrollIT : EndToEndTest() {
             .fromJson(Fail.serializer())
 
         fail.feilmelding shouldBe "Fant ingen orgnr for forespørsel-ID '${Mock.forespoerselIdFinnesIkke}'."
+    }
+
+    @Test
+    fun `organisasjon - skal få tilgang`() {
+        tilgangProducer.publishOrgnr(Mock.ORGNR_MED_TILGANG, Mock.INNLOGGET_FNR)
+
+        Thread.sleep(6000)
+
+        val result = messages.filter(EventName.TILGANG_ORG_REQUESTED)
+            .filter(Key.TILGANG)
+            .firstAsMap()
+
+        val tilgang = result[Key.TILGANG]
+            .shouldNotBeNull()
+            .fromJson(Tilgang.serializer())
+
+        tilgang shouldBe Tilgang.HAR_TILGANG
+    }
+
+    @Test
+    fun `organisasjon - skal bli nektet tilgang`() {
+        tilgangProducer.publishOrgnr(Mock.ORGNR_UTEN_TILGANG, Mock.INNLOGGET_FNR)
+
+        Thread.sleep(4000)
+
+        val result = messages.filter(EventName.TILGANG_ORG_REQUESTED)
+            .filter(Key.TILGANG)
+            .firstAsMap()
+
+        val tilgang = result[Key.TILGANG]
+            .shouldNotBeNull()
+            .fromJson(Tilgang.serializer())
+
+        tilgang shouldBe Tilgang.IKKE_TILGANG
     }
 
     private object Mock {

@@ -1,10 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.prometheus.client.Summary
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.ForespoerselEntitet
+import no.nav.helsearbeidsgiver.inntektsmelding.db.config.firstOrNull
+import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.ForespoerselEntitet
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -94,6 +93,3 @@ class ForespoerselRepository(private val db: Database) {
         }
     }
 }
-
-private fun <T> Query.firstOrNull(c: Expression<T>): T? =
-    firstOrNull()?.getOrNull(c)

@@ -77,6 +77,7 @@ class FulltNavnLoeser(
                     eventName = behov.event,
                     transaksjonId = transaksjonId,
                     forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                    Key.AAPEN_ID to json[Key.AAPEN_ID],
                     Key.ARBEIDSTAKER_INFORMASJON to arbeidstakerInfo.toJson(PersonDato.serializer()),
                     Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo.toJson(PersonDato.serializer())
                 )

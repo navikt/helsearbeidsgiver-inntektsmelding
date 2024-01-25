@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.db.config
+package no.nav.helsearbeidsgiver.inntektsmelding.db.tabell
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding

@@ -64,7 +64,7 @@ class TestClient(
     fun mockTilgang(tilgang: Tilgang) {
         val mockTilgangClientId = UUID.randomUUID()
 
-        every { anyConstructed<TilgangProducer>().publish(any(), any()) } returns mockTilgangClientId
+        every { anyConstructed<TilgangProducer>().publishForespoerselId(any(), any()) } returns mockTilgangClientId
 
         coEvery { anyConstructed<RedisPoller>().hent(mockTilgangClientId) } returns TilgangData(tilgang).toJson(TilgangData.serializer())
     }

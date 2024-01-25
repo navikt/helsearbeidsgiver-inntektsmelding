@@ -68,7 +68,7 @@ fun Route.kvitteringRoute(
                 measureTimeMillis {
                     try {
                         measureTimeMillis {
-                            tilgangskontroll.validerTilgang(call.request, forespoerselId)
+                            tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
                         }.also {
                             logger.info("Authorize took $it")
                         }

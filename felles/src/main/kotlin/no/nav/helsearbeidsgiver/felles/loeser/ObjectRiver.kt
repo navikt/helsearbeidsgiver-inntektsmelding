@@ -36,7 +36,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
  *             height = Key.HEIGHT.lesOrNull(Int.serializer(), json)
  *         )
  *
- *     override fun LotrCharacter.haandter(): Map<Key, JsonElement> {
+ *     override fun LotrCharacter.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
  *         val favouriteFood = when (name) {
  *             "Frodo" -> "\uD83C\uDF53"
  *             "Sam" -> "\uD83E\uDD54"
@@ -72,9 +72,11 @@ abstract class ObjectRiver<Melding : Any> {
      *
      * @param json innkommende melding.
      *
-     * @return Verdi lest fra [json]. Brukes som input i [haandter].
+     * @return
+     * Verdi lest fra [json]. Brukes som input i [haandter].
+     * Returneres '`null`' så vil melding ignoreres.
      */
-    protected abstract fun les(json: Map<Key, JsonElement>): Melding
+    protected abstract fun les(json: Map<Key, JsonElement>): Melding?
 
     /**
      * Riverens hovedfunksjon. Agerer på innkommende melding.
@@ -86,7 +88,7 @@ abstract class ObjectRiver<Melding : Any> {
      * Utgående melding som skal publiseres når innkommende melding er ferdig prosessert.
      * Returneres '`null`' så vil ingen utgående melding publiseres.
      */
-    protected abstract fun Melding.haandter(): Map<Key, JsonElement>?
+    protected abstract fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>?
 
     /**
      * Kalles ved exception under [haandter].
@@ -95,7 +97,7 @@ abstract class ObjectRiver<Melding : Any> {
      * Utgående melding som skal publiseres når feil er ferdig prosessert.
      * Default implementasjon returnerer '`null`', som betyr at ingen utgående melding publiseres.
      */
-    protected open fun Throwable.haandterFeil(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+    protected open fun Melding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement>? {
         "Ukjent feil.".also {
             logger.error(it)
             sikkerLogger.error(it, this)
@@ -107,12 +109,14 @@ abstract class ObjectRiver<Melding : Any> {
     internal fun lesOgHaandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         val innkommende = runCatching { les(json) }.getOrNull()
 
-        val utgaaende = runCatching {
-            innkommende?.haandter()
-        }
-            .getOrElse {
-                it.haandterFeil(json)
+        val utgaaende = innkommende?.let {
+            runCatching {
+                it.haandter(json)
             }
+                .getOrElse { e ->
+                    it.haandterFeil(json, e)
+                }
+        }
 
         if (utgaaende != null && utgaaende.isEmpty()) {
             "Utgående melding er tom.".also {

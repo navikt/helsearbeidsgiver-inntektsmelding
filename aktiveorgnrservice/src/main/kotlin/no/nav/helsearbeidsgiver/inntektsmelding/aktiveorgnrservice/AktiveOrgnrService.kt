@@ -231,10 +231,11 @@ class AktiveOrgnrService(
         }
     }
 
-    private fun step1data(uuid: UUID): List<RedisKey> = listOf(
-        RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
-        RedisKey.of(uuid, Key.ORG_RETTIGHETER)
-    )
+    private fun step1data(uuid: UUID): Set<RedisKey> =
+        setOf(
+            RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
+            RedisKey.of(uuid, Key.ORG_RETTIGHETER)
+        )
 
     private fun RedisKey.read(): String? =
         redisStore.get(this)

@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.aapeninntektmelding
+package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreaapenim
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -32,12 +32,12 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 // TODO test
-fun Route.aapenInntektmeldingRoute(
+fun Route.lagreAapenImRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
     redisPoller: RedisPoller
 ) {
-    val producer = AapenInntektmeldingProducer(rapid)
+    val producer = LagreAapenImProducer(rapid)
 
     post(Routes.AAPEN_INNTEKTMELDING) {
         val aapenId: UUID = UUID.randomUUID()
@@ -104,7 +104,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(aapenId:
         .onSuccess {
             logger.info("Åpen inntektsmelding mottatt OK.")
             sikkerLogger.info("Åpen inntektsmelding mottatt OK:\n${it.toPretty()}")
-            respond(HttpStatusCode.OK, AapenInntektmeldingResponse(aapenId), AapenInntektmeldingResponse.serializer())
+            respond(HttpStatusCode.OK, LagreAapenImResponse(aapenId), LagreAapenImResponse.serializer())
         }
         .onFailure {
             logger.info("Klarte ikke hente resultat.")

@@ -16,12 +16,13 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.inntektsmelding.api.aapeninntektmelding.aapenInntektmeldingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentaapenim.hentAapenImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreaapenim.lagreAapenImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.trengerRoute
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
@@ -40,6 +41,7 @@ object Routes {
     const val INNTEKT = "/inntekt"
     const val INNSENDING = "/inntektsmelding"
     const val AAPEN_INNTEKTMELDING = "/aapen-inntektsmelding"
+    const val AAPEN_INNTEKTMELDING_MED_ID = "$AAPEN_INNTEKTMELDING/{aapenId}"
     const val KVITTERING = "/kvittering"
     const val AKTIVEORGNR = "/aktiveorgnr"
 }
@@ -102,8 +104,9 @@ fun Application.apiModule(rapid: RapidsConnection) {
                 trengerRoute(rapid, tilgangskontroll, redisPoller)
                 inntektRoute(rapid, tilgangskontroll, redisPoller)
                 innsendingRoute(rapid, tilgangskontroll, redisPoller)
-                aapenInntektmeldingRoute(rapid, tilgangskontroll, redisPoller)
                 kvitteringRoute(rapid, tilgangskontroll, redisPoller)
+                lagreAapenImRoute(rapid, tilgangskontroll, redisPoller)
+                hentAapenImRoute(rapid, tilgangskontroll, redisPoller)
                 aktiveOrgnrRoute(rapid, redisPoller)
             }
         }

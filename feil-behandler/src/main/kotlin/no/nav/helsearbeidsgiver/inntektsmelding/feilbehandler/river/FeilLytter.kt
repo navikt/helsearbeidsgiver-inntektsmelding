@@ -78,9 +78,14 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
     }
 
     private fun oppdater(jobb: Bakgrunnsjobb) {
-        // TODO: Om vi når max forsøk bør man sette status til STOPPET permanent,
-        //  men rekjøring vil uansett ikke skje
-        jobb.status = BakgrunnsjobbStatus.FEILET
+        // Dette må gjøres her fordi jobbene er asynkrone og bakgrunnsjobbService ikke får vite at jobben feiler i disse tilfellene
+        // BakgrunnsjobbService finnVentende() tar heller ikke hensyn til forsøk, kun status på jobben!
+        if (jobb.forsoek > jobb.maksAntallForsoek) {
+            jobb.status = BakgrunnsjobbStatus.STOPPET
+            sikkerLogger.warn("Maks forsøk nådd, stopper jobb med id ${jobb.uuid} permanent!")
+        } else {
+            jobb.status = BakgrunnsjobbStatus.FEILET
+        }
         try {
             repository.update(jobb)
             sikkerLogger.info("Oppdaterte eksisterende jobb med id ${jobb.uuid}")

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
 import no.nav.hag.utils.bakgrunnsjobb.MockBakgrunnsjobbRepository
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -9,7 +10,10 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
+import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import java.time.LocalDateTime
 import java.util.UUID
@@ -20,6 +24,10 @@ class FeilLytterTest : FunSpec({
     val repository = MockBakgrunnsjobbRepository()
 
     val handler = FeilLytter(rapid, repository)
+
+    afterTest {
+        repository.deleteAll()
+    }
 
     test("skal håndtere gyldige feil med spesifiserte behov") {
         handler.behovSomHaandteres.forEach { handler.skalHaandteres(lagGyldigFeil(it)) shouldBe true }
@@ -52,7 +60,6 @@ class FeilLytterTest : FunSpec({
 
     test("Ny feil med forskjellig behov og samme id skal lagres, gjentakende feil oppdaterer jobb") {
         val now = LocalDateTime.now()
-        repository.deleteAll()
         rapid.sendTestMessage(lagRapidFeilmelding())
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
         rapid.sendTestMessage(lagRapidFeilmelding("LAGRE_FORESPOERSEL"))
@@ -61,7 +68,6 @@ class FeilLytterTest : FunSpec({
 
     test("Duplikatfeil (samme feil etter rekjøring) skal oppdatere eksisterende feil -> status: FEILET") {
         val now = LocalDateTime.now()
-        repository.deleteAll()
         val feilmelding = lagRapidFeilmelding()
         rapid.sendTestMessage(feilmelding)
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
@@ -77,6 +83,24 @@ class FeilLytterTest : FunSpec({
         val feilet = repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.FEILET), true)
         feilet.size shouldBe 1
         feilet[0].forsoek shouldBe 0
+    }
+
+    test("Skal sette jobb til STOPPET når maks antall forsøk er overskredet") {
+        val now = LocalDateTime.now()
+        val feilmelding = lagRapidFeilmelding()
+        val feil = toFailOrNull(feilmelding.parseJson().toMap())!!
+
+        repository.save(
+            Bakgrunnsjobb(
+                feil.transaksjonId,
+                FeilProsessor.JOB_TYPE,
+                forsoek = 4,
+                maksAntallForsoek = 3,
+                data = feil.utloesendeMelding.toString()
+            )
+        )
+        rapid.sendTestMessage(feilmelding)
+        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.STOPPET), true).size shouldBe 1
     }
 })
 fun lagRapidFeilmelding(behov: String = "JOURNALFOER"): String {

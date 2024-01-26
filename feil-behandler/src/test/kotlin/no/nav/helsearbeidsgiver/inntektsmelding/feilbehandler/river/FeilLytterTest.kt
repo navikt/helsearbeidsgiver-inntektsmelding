@@ -58,7 +58,7 @@ class FeilLytterTest : FunSpec({
         handler.skalHaandteres(feil) shouldBe false
     }
 
-    test("Ny feil med forskjellig behov og samme id skal lagres, gjentakende feil oppdaterer jobb") {
+    test("Ny feil med forskjellig behov og samme id skal lagres") {
         val now = LocalDateTime.now()
         rapid.sendTestMessage(lagRapidFeilmelding())
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1

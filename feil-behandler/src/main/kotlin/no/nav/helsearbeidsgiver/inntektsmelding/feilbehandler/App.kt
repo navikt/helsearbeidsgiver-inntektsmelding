@@ -1,12 +1,14 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler
 
 import com.zaxxer.hikari.HikariConfig
+import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbService
 import no.nav.hag.utils.bakgrunnsjobb.PostgresBakgrunnsjobbRepository
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.config.DatabaseConfig
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.config.mapHikariConfig
+import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river.FeilLytter
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -34,6 +36,9 @@ fun RapidsConnection.createFeilLytter(database: Database): RapidsConnection =
         registerDbLifecycle(database)
         val repository = PostgresBakgrunnsjobbRepository(database.dataSource)
         FeilLytter(it, repository)
+        val bgService = BakgrunnsjobbService(repository)
+        bgService.registrer(FeilProsessor(it))
+        bgService.startAsync(true)
     }
 
 private fun RapidsConnection.registerDbLifecycle(db: Database) {

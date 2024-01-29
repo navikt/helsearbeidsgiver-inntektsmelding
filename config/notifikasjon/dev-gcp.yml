@@ -2,10 +2,10 @@ kafkaPool: nav-dev
 azure:
   enabled: true
 ingress: https://helsearbeidsgiver-im-notifikasjon.intern.dev.nav.no
-#database: notifikasjon
-#envFrom:
-#  - type: secret
-#    name: google-sql-im-notifikasjon
+database: notifikasjon
+envFrom:
+  - type: secret
+    name: google-sql-im-notifikasjon
 secureLogs:
   enabled: true
 env:

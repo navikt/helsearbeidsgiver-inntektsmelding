@@ -11,7 +11,7 @@ import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
@@ -28,15 +28,13 @@ class InntektsmeldingRepository(private val db: Database) {
         .labelNames("method")
         .register()
 
-    fun lagreInntektsmelding(forespørselId: String, inntektsmeldingDokument: Inntektsmelding) {
+    fun lagreInntektsmelding(forespoerselId: String, inntektsmeldingDokument: Inntektsmelding) {
         val requestTimer = requestLatency.labels("lagreInntektsmelding").startTimer()
         transaction(db) {
-            InntektsmeldingEntitet.run {
-                insert {
-                    it[forespoerselId] = forespørselId
-                    it[dokument] = inntektsmeldingDokument
-                    it[innsendt] = LocalDateTime.now()
-                }
+            InntektsmeldingEntitet.insert {
+                it[this.forespoerselId] = forespoerselId
+                it[dokument] = inntektsmeldingDokument
+                it[innsendt] = LocalDateTime.now()
             }
         }.also {
             requestTimer.observeDuration()
@@ -46,7 +44,7 @@ class InntektsmeldingRepository(private val db: Database) {
     fun hentNyeste(forespoerselId: UUID): Inntektsmelding? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
-            hentNyesteQuery(forespoerselId)
+            hentNyesteImQuery(forespoerselId)
                 .firstOrNull()
                 ?.getOrNull(InntektsmeldingEntitet.dokument)
         }.also {
@@ -54,11 +52,12 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun hentNyesteEksternEllerInternInntektsmelding(forespørselId: String): Pair<Inntektsmelding?, EksternInntektsmelding?>? {
+    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: String): Pair<Inntektsmelding?, EksternInntektsmelding?>? {
         val requestTimer = requestLatency.labels("hentNyesteInternEllerEkstern").startTimer()
         return transaction(db) {
-            InntektsmeldingEntitet.slice(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding)
-                .select { (InntektsmeldingEntitet.forespoerselId eq forespørselId) }
+            InntektsmeldingEntitet
+                .select(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding)
+                .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
                 .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
                 .limit(1)
                 .map {
@@ -80,7 +79,9 @@ class InntektsmeldingRepository(private val db: Database) {
         val antallOppdatert = transaction(db) {
             InntektsmeldingEntitet.update(
                 where = {
-                    (InntektsmeldingEntitet.id eqSubQuery hentNyesteQuery(forespoerselId).adjustSlice { slice(InntektsmeldingEntitet.id) }) and
+                    val nyesteImIdQuery = hentNyesteImQuery(forespoerselId).adjustSelect { select(InntektsmeldingEntitet.id) }
+
+                    (InntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
                         InntektsmeldingEntitet.journalpostId.isNull()
                 }
             ) {
@@ -96,22 +97,20 @@ class InntektsmeldingRepository(private val db: Database) {
         requestTimer.observeDuration()
     }
 
-    fun lagreEksternInntektsmelding(forespørselId: String, eksternIm: EksternInntektsmelding) {
+    fun lagreEksternInntektsmelding(forespoerselId: String, eksternIm: EksternInntektsmelding) {
         transaction(db) {
-            InntektsmeldingEntitet.run {
-                insert {
-                    it[forespoerselId] = forespørselId
-                    it[eksternInntektsmelding] = eksternIm
-                    it[innsendt] = LocalDateTime.now()
-                }
+            InntektsmeldingEntitet.insert {
+                it[this.forespoerselId] = forespoerselId
+                it[eksternInntektsmelding] = eksternIm
+                it[innsendt] = LocalDateTime.now()
             }
         }
     }
 
-    private fun hentNyesteQuery(forespoerselId: UUID): Query =
-        InntektsmeldingEntitet.select {
-            (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull()
-        }
+    private fun hentNyesteImQuery(forespoerselId: UUID): Query =
+        InntektsmeldingEntitet
+            .selectAll()
+            .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull() }
             .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
             .limit(1)
 }

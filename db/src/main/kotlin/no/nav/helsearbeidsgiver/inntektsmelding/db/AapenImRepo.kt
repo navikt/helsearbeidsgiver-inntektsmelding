@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.util.UUID
@@ -42,7 +42,9 @@ class AapenImRepo(private val db: Database) {
             transaction(db) {
                 AapenInntektsmeldingEntitet.update(
                     where = {
-                        (AapenInntektsmeldingEntitet.id eqSubQuery hentNyesteImQuery(aapenId).adjustSlice { slice(AapenInntektsmeldingEntitet.id) }) and
+                        val nyesteImIdQuery = hentNyesteImQuery(aapenId).adjustSelect { select(AapenInntektsmeldingEntitet.id) }
+
+                        (AapenInntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
                             AapenInntektsmeldingEntitet.journalpostId.isNull()
                     }
                 ) {
@@ -55,8 +57,7 @@ class AapenImRepo(private val db: Database) {
 
 private fun hentNyesteImQuery(aapenId: UUID): Query =
     AapenInntektsmeldingEntitet
-        .select {
-            AapenInntektsmeldingEntitet.aapenId eq aapenId
-        }
+        .selectAll()
+        .where { AapenInntektsmeldingEntitet.aapenId eq aapenId }
         .orderBy(AapenInntektsmeldingEntitet.opprettet, SortOrder.DESC)
         .limit(1)

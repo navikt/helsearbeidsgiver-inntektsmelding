@@ -2,31 +2,43 @@ package no.nav.helsearbeidsgiver.felles.metrics
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
+import kotlin.reflect.KFunction
 
 object Metrics {
-    val dbAapenIm: Summary = Summary.build()
-        .name("simba_db_aapen_im_repo_latency_seconds")
-        .help("Latency (i sek.) for database 'im-db' and table 'aapen_inntektsmelding'.")
-        .labelNames("method")
-        .register()
+    val dbAapenIm = databaseMetric("inntektsmelding", "aapen_inntektsmelding")
 
-    val altinnRequest: Summary = Summary.build()
-        .name("simba_altinn_hent_rettighet_organisasjoner_latency_seconds")
-        .help("Latency (i sek.) for Altinn-hentRettighetOrganisasjoner.")
-        .register()
+    val altinnRequest = requestMetric("Altinn")
+
+    val pdlRequest = requestMetric("PDL")
 }
 
-/** Bruk av [label] krever at `labelNames` er satt på [Summary]. */
-fun <T> Summary.recordTime(label: String? = null, block: suspend () -> T): T {
-    val requestTimer: Summary.Timer =
-        if (label == null) {
-            startTimer()
-        } else {
-            labels(label).startTimer()
-        }
+fun <T> Summary.recordTime(fnToRecord: KFunction<*>, block: suspend () -> T): T {
+    // Bruk av `labels` krever at `labelNames` er satt på Summary.
+    val requestTimer: Summary.Timer = labels(fnToRecord.name).startTimer()
 
     return runBlocking { block() }
         .also {
             requestTimer.observeDuration()
         }
+}
+
+private fun databaseMetric(dbName: String, tableName: String): Summary =
+    latencyMetric(
+        name = "db_${dbName}_$tableName",
+        description = "database '$dbName' and table '$tableName'"
+    )
+
+private fun requestMetric(clientName: String): Summary =
+    latencyMetric(
+        name = "client_$clientName",
+        description = "$clientName-request"
+    )
+
+private fun latencyMetric(name: String, description: String): Summary {
+    val nameInSnake = name.replace(Regex("[ -]"), "_").lowercase()
+    return Summary.build()
+        .name("simba_${nameInSnake}_latency_seconds")
+        .help("Latency (i sek.) for $description.")
+        .labelNames("method")
+        .register()
 }

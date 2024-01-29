@@ -44,6 +44,8 @@ enum class Key(override val str: String) : IKey {
     TRENGER_INNTEKT("trenger-inntekt"),
     INNTEKT("inntekt"),
     FNR("fnr"),
+    FNR_LISTE("fnr_liste"),
+    PERSONER("personer"),
     ARBEIDSGIVER_FNR("arbeidsgiverFnr"), // pga trengerService....
     SKJAERINGSTIDSPUNKT("skjaeringstidspunkt"),
     TILGANG("tilgang"),

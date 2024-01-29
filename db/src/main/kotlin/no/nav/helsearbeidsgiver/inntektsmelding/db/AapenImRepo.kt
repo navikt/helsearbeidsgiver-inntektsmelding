@@ -19,7 +19,7 @@ import java.util.UUID
 class AapenImRepo(private val db: Database) {
 
     fun hentNyesteIm(aapenId: UUID): Inntektsmelding? =
-        Metrics.dbAapenIm.recordTime(::hentNyesteIm.name) {
+        Metrics.dbAapenIm.recordTime(::hentNyesteIm) {
             transaction(db) {
                 hentNyesteImQuery(aapenId)
                     .firstOrNull(AapenInntektsmeldingEntitet.inntektsmelding)
@@ -27,7 +27,7 @@ class AapenImRepo(private val db: Database) {
         }
 
     fun lagreIm(aapenId: UUID, im: Inntektsmelding) {
-        Metrics.dbAapenIm.recordTime(::lagreIm.name) {
+        Metrics.dbAapenIm.recordTime(::lagreIm) {
             transaction(db) {
                 AapenInntektsmeldingEntitet.insert {
                     it[this.aapenId] = aapenId
@@ -38,7 +38,7 @@ class AapenImRepo(private val db: Database) {
     }
 
     fun oppdaterJournalpostId(aapenId: UUID, journalpostId: String) {
-        Metrics.dbAapenIm.recordTime(::oppdaterJournalpostId.name) {
+        Metrics.dbAapenIm.recordTime(::oppdaterJournalpostId) {
             transaction(db) {
                 AapenInntektsmeldingEntitet.update(
                     where = {

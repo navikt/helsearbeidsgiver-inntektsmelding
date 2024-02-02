@@ -106,7 +106,7 @@ abstract class CompositeEventListener : River.PacketListener {
                     }
                 }
 
-                isAllDataCollected(transaksjonId) -> {
+                dataKeys.all(meldingMedRedisData::containsKey) -> {
                     finalize(meldingMedRedisData)
                 }
 
@@ -119,10 +119,7 @@ abstract class CompositeEventListener : River.PacketListener {
 
     private fun isEventMelding(melding: Map<Key, JsonElement>): Boolean =
         melding[Key.EVENT_NAME] != null &&
-            melding.keys.intersect(setOf(Key.BEHOV, Key.DATA, Key.FAIL)).isEmpty()
-
-    fun isDataCollected(keys: Set<RedisKey>): Boolean =
-        redisStore.exist(keys) == keys.size.toLong()
+            setOf(Key.BEHOV, Key.DATA, Key.FAIL).none(melding::containsKey)
 
     private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
         val allDataKeys = (startKeys + dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
@@ -171,12 +168,5 @@ abstract class CompositeEventListener : River.PacketListener {
                         null
                     }
             }
-    }
-
-    private fun isAllDataCollected(transaksjonId: UUID): Boolean {
-        val allKeys = dataKeys.map { RedisKey.of(transaksjonId, it) }.toSet()
-        val numKeysInRedis = redisStore.exist(allKeys)
-        logger.info("found " + numKeysInRedis)
-        return numKeysInRedis == dataKeys.size.toLong()
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
 
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -91,20 +92,10 @@ class TilgangForespoerselService(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId)
         ) {
-            val orgnrKey = RedisKey.of(transaksjonId, Key.ORGNRUNDERENHET)
+            if (Key.ORGNRUNDERENHET in melding) {
+                val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
+                val fnr = Key.FNR.les(String.serializer(), melding)
 
-            if (isDataCollected(setOf(orgnrKey))) {
-                val orgnr = orgnrKey.read()
-
-                val fnr = RedisKey.of(transaksjonId, Key.FNR)
-                    .read()
-                if (orgnr == null || fnr == null) {
-                    "Klarte ikke lese orgnr og / eller fnr fra Redis.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                    return
-                }
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
@@ -141,11 +132,12 @@ class TilgangForespoerselService(
                 Log.clientId(clientId),
                 Log.transaksjonId(transaksjonId)
             ) {
-                val tilgang = RedisKey.of(transaksjonId, Key.TILGANG).read()
+                val tilgang = Key.TILGANG.les(Tilgang.serializer(), melding)
+
                 val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 
                 val tilgangJson = TilgangData(
-                    tilgang = tilgang?.fromJson(Tilgang.serializer()),
+                    tilgang = tilgang,
                     feil = feil?.fromJson(FeilReport.serializer())
                 )
                     .toJson(TilgangData.serializer())

@@ -78,6 +78,14 @@ abstract class CompositeEventListener : River.PacketListener {
             val meldingMedRedisData = getAllRedisData(transaksjonId) + melding
 
             return when {
+                !startKeys.all(meldingMedRedisData::containsKey) -> {
+                    "'startKeys' mangler, enten pga. Redis-timeout eller feil i melding fra im-api.".also {
+                        logger.error(it)
+                        sikkerLogger.error(it)
+                    }
+                    Unit
+                }
+
                 fail != null -> {
                     sikkerLogger.error("Feilmelding er '${fail.feilmelding}'. Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
                     onError(meldingMedRedisData, fail)

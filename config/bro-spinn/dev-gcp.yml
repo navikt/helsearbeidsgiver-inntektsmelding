@@ -5,7 +5,7 @@ env:
   - name: SPINN_SCOPE
     value: "api://dev-gcp.helsearbeidsgiver.spinosaurus/.default"
   - name: SPINN_API_URL
-    value: "https://spinosaurus/api/v1/inntektsmelding"
+    value: "http://spinosaurus/api/v1/inntektsmelding"
   - name: REDIS_URL
     value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
 apps:

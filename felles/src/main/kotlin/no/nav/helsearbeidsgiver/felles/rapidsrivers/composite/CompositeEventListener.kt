@@ -5,9 +5,13 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.double
 import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.float
 import kotlinx.serialization.json.floatOrNull
+import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.long
 import kotlinx.serialization.json.longOrNull
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -143,13 +147,17 @@ abstract class CompositeEventListener : River.PacketListener {
                         if (
                             json is JsonNull ||
                             json.isString ||
-                            json.booleanOrNull != null ||
-                            json.intOrNull != null ||
-                            json.longOrNull != null ||
-                            json.doubleOrNull != null ||
-                            json.floatOrNull != null
+                            json.booleanOrNull != null
                         ) {
                             json
+                        } else if (json.intOrNull != null) {
+                            "\"${json.int}\"".parseJson()
+                        } else if (json.longOrNull != null) {
+                            "\"${json.long}\"".parseJson()
+                        } else if (json.doubleOrNull != null) {
+                            "\"${json.double}\"".parseJson()
+                        } else if (json.floatOrNull != null) {
+                            "\"${json.float}\"".parseJson()
                         } else {
                             "\"$value\"".parseJson()
                         }

@@ -3,12 +3,12 @@ azure:
   enabled: true
 env:
   - name: SPINN_SCOPE
-    value: "api://dev-fss.helsearbeidsgiver.syfoinntektsmelding/.default"
+    value: "api://dev-gcp.helsearbeidsgiver.spinosaurus/.default"
   - name: SPINN_API_URL
-    value: "https://syfoinntektsmelding.dev-fss-pub.nais.io/api/v1/inntektsmelding"
+    value: "http://spinosaurus/api/v1/inntektsmelding"
   - name: REDIS_URL
     value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
 apps:
   - name: helsearbeidsgiver-redis
-externalHosts:
-  - helsearbeidsgiver-proxy.dev-fss-pub.nais.io
+  - name: spinosaurus
+

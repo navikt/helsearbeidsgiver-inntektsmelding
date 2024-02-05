@@ -104,11 +104,11 @@ class TilgangOrgService(
                 Log.clientId(clientId),
                 Log.transaksjonId(transaksjonId)
             ) {
-                val tilgang = RedisKey.of(transaksjonId, Key.TILGANG).read()
+                val tilgang = Key.TILGANG.les(Tilgang.serializer(), melding)
                 val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 
                 val tilgangJson = TilgangData(
-                    tilgang = tilgang?.fromJson(Tilgang.serializer()),
+                    tilgang = tilgang,
                     feil = feil?.fromJson(FeilReport.serializer())
                 )
                     .toJson(TilgangData.serializer())

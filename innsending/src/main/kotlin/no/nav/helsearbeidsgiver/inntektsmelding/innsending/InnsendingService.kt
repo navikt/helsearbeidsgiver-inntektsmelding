@@ -20,15 +20,11 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 class InnsendingService(
@@ -49,11 +45,19 @@ class InnsendingService(
     override val dataKeys = listOf(
         Key.VIRKSOMHET,
         Key.ARBEIDSFORHOLD,
-        Key.INNTEKTSMELDING_DOKUMENT,
         Key.ARBEIDSGIVER_INFORMASJON,
         Key.ARBEIDSTAKER_INFORMASJON,
+        Key.INNTEKTSMELDING_DOKUMENT,
         Key.ER_DUPLIKAT_IM
     )
+
+    private val step1Keys =
+        setOf(
+            Key.VIRKSOMHET,
+            Key.ARBEIDSFORHOLD,
+            Key.ARBEIDSTAKER_INFORMASJON,
+            Key.ARBEIDSGIVER_INFORMASJON
+        )
 
     init {
         StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
@@ -100,44 +104,24 @@ class InnsendingService(
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
+        val inntektsmeldingJson = Key.INNTEKTSMELDING.les(JsonElement.serializer(), melding)
 
-        if (isDataCollected(step1data(transaksjonId))) {
-            val arbeidstaker = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON))
-                ?.fromJson(PersonDato.serializer())
-                .orDefault {
-                    "Fant ikke arbeidstakerinformasjon i Redis.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                    val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
-                    personIkkeFunnet(sykmeldtFnr)
-                }
-
-            val arbeidsgiver = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSGIVER_INFORMASJON))
-                ?.fromJson(PersonDato.serializer())
-                .orDefault {
-                    "Fant ikke arbeidsgiverinformasjon i Redis.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                    val innsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
-                    personIkkeFunnet(innsenderFnr)
-                }
-
-            val virksomhetNavn = redisStore.get(RedisKey.of(transaksjonId, Key.VIRKSOMHET)).orDefault("Ukjent virksomhet")
-            val inntektsmeldingJson = redisStore.get(RedisKey.of(transaksjonId, Key.INNTEKTSMELDING))!!.parseJson()
+        if (step1Keys.all(melding::containsKey)) {
+            val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
+            val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+            val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
 
             logger.info("InnsendingService: emitting behov PERSISTER_IM")
 
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.INNTEKTSMELDING to inntektsmeldingJson,
                 Key.VIRKSOMHET to virksomhetNavn.toJson(),
                 Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),
-                Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer()),
-                Key.INNTEKTSMELDING to inntektsmeldingJson,
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.UUID to transaksjonId.toJson()
+                Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer())
             )
         }
     }
@@ -151,7 +135,7 @@ class InnsendingService(
         val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
 
         logger.info("publiserer under clientID $clientId")
-        redisStore.set(RedisKey.of(clientId), redisStore.get(RedisKey.of(transaksjonId, Key.INNTEKTSMELDING_DOKUMENT))!!)
+        redisStore.set(RedisKey.of(clientId), inntektsmeldingJson.toString())
 
         if (!erDuplikat) {
             logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
@@ -172,43 +156,56 @@ class InnsendingService(
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
-        if (utloesendeBehov == BehovType.VIRKSOMHET) {
-            val virksomhetKey = RedisKey.of(fail.transaksjonId, Key.VIRKSOMHET)
-            redisStore.set(virksomhetKey, "Ukjent virksomhet")
-            return inProgress(melding)
-        } else if (utloesendeBehov == BehovType.FULLT_NAVN) {
-            val arbeidstakerFulltnavnKey = RedisKey.of(fail.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
-            val arbeidsgiverFulltnavnKey = RedisKey.of(fail.transaksjonId, Key.ARBEIDSGIVER_INFORMASJON)
-            redisStore.set(arbeidstakerFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
-            redisStore.set(arbeidsgiverFulltnavnKey, personIkkeFunnet().toJsonStr(PersonDato.serializer()))
-            return inProgress(melding)
+        val datafeil = when (utloesendeBehov) {
+            BehovType.VIRKSOMHET -> {
+                listOf(
+                    Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
+                )
+            }
+
+            BehovType.FULLT_NAVN -> {
+                val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
+                val avsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
+
+                listOf(
+                    Key.ARBEIDSTAKER_INFORMASJON to tomPerson(sykmeldtFnr).toJson(PersonDato.serializer()),
+                    Key.ARBEIDSGIVER_INFORMASJON to tomPerson(avsenderFnr).toJson(PersonDato.serializer())
+                )
+            }
+
+            else -> {
+                emptyList()
+            }
         }
 
-        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
-            ?.let(UUID::fromString)
-
-        if (clientId == null) {
-            MdcUtils.withLogFields(
-                Log.transaksjonId(fail.transaksjonId)
-            ) {
-                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
+        if (datafeil.isNotEmpty()) {
+            datafeil.onEach { (key, defaultVerdi) ->
+                redisStore.set(RedisKey.of(fail.transaksjonId, key), defaultVerdi.toString())
             }
+
+            val meldingMedDefault = datafeil.toMap().plus(melding)
+
+            inProgress(meldingMedDefault)
         } else {
-            redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
+                ?.let(UUID::fromString)
+
+            if (clientId == null) {
+                MdcUtils.withLogFields(
+                    Log.transaksjonId(fail.transaksjonId)
+                ) {
+                    sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
+                }
+            } else {
+                redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+            }
         }
     }
+}
 
-    private fun step1data(uuid: UUID): Set<RedisKey> =
-        setOf(
-            RedisKey.of(uuid, Key.VIRKSOMHET),
-            RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
-            RedisKey.of(uuid, Key.ARBEIDSTAKER_INFORMASJON),
-            RedisKey.of(uuid, Key.ARBEIDSGIVER_INFORMASJON)
-        )
-
-    private fun personIkkeFunnet(ident: String = "") = PersonDato(
+private fun tomPerson(fnr: String): PersonDato =
+    PersonDato(
         navn = "",
         fødselsdato = null,
-        ident = ident
+        ident = fnr
     )
-}

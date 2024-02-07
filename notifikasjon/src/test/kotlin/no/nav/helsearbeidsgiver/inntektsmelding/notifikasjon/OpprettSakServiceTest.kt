@@ -42,6 +42,7 @@ class OpprettSakServiceTest {
     fun `OpprettSak skal håndtere feil`() {
         val transaksjonId: UUID = UUID.randomUUID()
         val foresporselId: UUID = UUID.randomUUID()
+        val fnr = "123456789"
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
@@ -51,7 +52,7 @@ class OpprettSakServiceTest {
                 Key.CLIENT_ID to UUID.randomUUID().toJson(),
                 Key.FORESPOERSEL_ID to foresporselId.toJson(),
                 Key.ORGNRUNDERENHET to "123456".toJson(),
-                Key.IDENTITETSNUMMER to "123456789".toJson()
+                Key.IDENTITETSNUMMER to fnr.toJson()
             )
         }
 
@@ -75,7 +76,7 @@ class OpprettSakServiceTest {
         verify {
             mockRedis.store.set(
                 RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON),
-                PersonDato("Ukjent person", null, "").toJsonStr(PersonDato.serializer())
+                PersonDato("Ukjent person", null, fnr).toJsonStr(PersonDato.serializer())
             )
         }
     }

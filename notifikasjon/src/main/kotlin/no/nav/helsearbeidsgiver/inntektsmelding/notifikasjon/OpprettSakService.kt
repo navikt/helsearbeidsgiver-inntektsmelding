@@ -1,11 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -18,10 +20,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -37,16 +37,19 @@ class OpprettSakService(
 
     override val event = EventName.SAK_OPPRETT_REQUESTED
     override val startKeys = listOf(
-        Key.ORGNRUNDERENHET,
-        Key.IDENTITETSNUMMER,
+        Key.UUID,
         Key.FORESPOERSEL_ID,
-        Key.UUID
+        Key.ORGNRUNDERENHET,
+        Key.IDENTITETSNUMMER
     )
     override val dataKeys = listOf(
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.SAK_ID,
         Key.PERSISTERT_SAK_ID
     )
+
+    private val step2Keys = setOf(Key.ARBEIDSTAKER_INFORMASJON)
+    private val step3Keys = setOf(Key.SAK_ID)
 
     init {
         StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
@@ -56,14 +59,7 @@ class OpprettSakService(
 
     override fun new(melding: Map<Key, JsonElement>) {
         medTransaksjonIdOgForespoerselId(melding) { transaksjonId, forespoerselId ->
-            val fnr = redisStore.get(RedisKey.of(transaksjonId, Key.IDENTITETSNUMMER))
-            if (fnr == null) {
-                "Mangler fnr i redis. Klarer ikke opprette sak.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
-                return
-            }
+            val fnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
 
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
@@ -77,15 +73,8 @@ class OpprettSakService(
 
     override fun inProgress(melding: Map<Key, JsonElement>) {
         medTransaksjonIdOgForespoerselId(melding) { transaksjonId, forespoerselId ->
-            if (isDataCollected(steg3(transaksjonId))) {
-                val sakId = redisStore.get(RedisKey.of(transaksjonId, Key.SAK_ID))
-                if (sakId == null) {
-                    "Mangler sakId i redis. Klarer ikke opprette sak.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                    return
-                }
+            if (step3Keys.all(melding::containsKey)) {
+                val sakId = Key.SAK_ID.les(String.serializer(), melding)
 
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
@@ -94,19 +83,9 @@ class OpprettSakService(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.SAK_ID to sakId.toJson()
                 )
-            } else if (isDataCollected(steg2(transaksjonId))) {
-                val orgnr = redisStore.get(RedisKey.of(transaksjonId, Key.ORGNRUNDERENHET))
-                if (orgnr == null) {
-                    "Mangler orgnr i redis. Klarer ikke opprette sak.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                    return
-                }
-
-                val arbeidstaker = redisStore.get(RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON))
-                    ?.fromJson(PersonDato.serializer())
-                    ?: ukjentArbeidstaker()
+            } else if (step2Keys.all(melding::containsKey)) {
+                val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
+                val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
 
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
@@ -128,14 +107,7 @@ class OpprettSakService(
                 Log.transaksjonId(transaksjonId),
                 Log.forespoerselId(forespoerselId)
             ) {
-                val sakId = redisStore.get(RedisKey.of(transaksjonId, Key.SAK_ID))
-                if (sakId == null) {
-                    "Mangler sakId i redis. Klarer ikke publisere event om opprettet sak.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                    return
-                }
+                val sakId = Key.SAK_ID.les(String.serializer(), melding)
 
                 rapid.publish(
                     Key.EVENT_NAME to EventName.SAK_OPPRETTET.toJson(),
@@ -154,9 +126,14 @@ class OpprettSakService(
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             if (utloesendeBehov == BehovType.FULLT_NAVN) {
-                val arbeidstakerKey = RedisKey.of(fail.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
-                redisStore.set(arbeidstakerKey, ukjentArbeidstaker().toJsonStr(PersonDato.serializer()))
-                return inProgress(melding)
+                val fnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
+                val ukjentPersonJson = PersonDato("Ukjent person", null, fnr).toJson(PersonDato.serializer())
+
+                redisStore.set(RedisKey.of(fail.transaksjonId, Key.ARBEIDSTAKER_INFORMASJON), ukjentPersonJson.toString())
+
+                val meldingMedDefault = mapOf(Key.ARBEIDSTAKER_INFORMASJON to ukjentPersonJson).plus(melding)
+
+                return inProgress(meldingMedDefault)
             }
 
             val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
@@ -175,29 +152,8 @@ class OpprettSakService(
             Log.klasse(this),
             Log.event(EventName.SAK_OPPRETT_REQUESTED)
         ) {
-            val transaksjonId = melding[Key.UUID]?.fromJson(UuidSerializer)
-            if (transaksjonId == null) {
-                "Mangler transaksjonId. Klarer ikke opprette sak.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
-                return
-            }
-
-            val forespoerselId = redisStore.get(RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID))?.let(UUID::fromString)
-                ?: melding[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
-
-            if (forespoerselId == null) {
-                MdcUtils.withLogFields(
-                    Log.transaksjonId(transaksjonId)
-                ) {
-                    "Mangler forespoerselId. Klarer ikke opprette sak.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                }
-                return
-            }
+            val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+            val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
             MdcUtils.withLogFields(
                 Log.transaksjonId(transaksjonId),
@@ -207,10 +163,4 @@ class OpprettSakService(
             }
         }
     }
-
-    private fun ukjentArbeidstaker(): PersonDato =
-        PersonDato("Ukjent person", null, "")
-
-    private fun steg2(transactionId: UUID): Set<RedisKey> = setOf(RedisKey.of(transactionId, Key.ARBEIDSTAKER_INFORMASJON))
-    private fun steg3(transactionId: UUID): Set<RedisKey> = setOf(RedisKey.of(transactionId, Key.SAK_ID))
 }

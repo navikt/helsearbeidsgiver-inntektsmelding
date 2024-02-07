@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -55,16 +54,8 @@ class SpinnService(
     override fun new(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
+        val spinnImId = Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, melding)
 
-        val spinnImId = RedisKey.of(transaksjonId, Key.SPINN_INNTEKTSMELDING_ID)
-            .read()?.let(UUID::fromString)
-        if (spinnImId == null) {
-            "Klarte ikke finne spinnImId for transaksjon $transaksjonId i Redis.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-            return
-        }
         MdcUtils.withLogFields(
             Log.transaksjonId(transaksjonId),
             Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING),
@@ -97,7 +88,7 @@ class SpinnService(
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val eksternInntektsmelding = Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), melding)
         if (
-            eksternInntektsmelding?.avsenderSystemNavn != null &&
+            eksternInntektsmelding != null &&
             eksternInntektsmelding.avsenderSystemNavn != AVSENDER_NAV_NO
         ) {
             rapid.publish(
@@ -135,7 +126,4 @@ class SpinnService(
             sikkerLogger.error("$event terminert.")
         }
     }
-
-    private fun RedisKey.read(): String? =
-        redisStore.get(this)
 }

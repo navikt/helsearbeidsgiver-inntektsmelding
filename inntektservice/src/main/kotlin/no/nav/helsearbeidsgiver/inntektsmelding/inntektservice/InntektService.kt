@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -93,16 +94,9 @@ class InntektService(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId)
         ) {
-            val forspoerselKey = RedisKey.of(transaksjonId, Key.FORESPOERSEL_SVAR)
-
-            if (isDataCollected(setOf(forspoerselKey))) {
-                val forespoersel = forspoerselKey.read()?.fromJson(TrengerInntekt.serializer())
-                val skjaeringstidspunkt = RedisKey.of(transaksjonId, Key.SKJAERINGSTIDSPUNKT).read()
-                if (forespoersel == null || skjaeringstidspunkt == null) {
-                    logger.error("Klarte ikke å finne forespørsel eller skjæringstidspunkt i Redis!")
-                    sikkerLogger.error("Klarte ikke å finne data i Redis - forespørsel: $forespoersel og skjæringstidspunkt $skjaeringstidspunkt")
-                    return
-                }
+            if (Key.FORESPOERSEL_SVAR in melding) {
+                val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+                val skjaeringstidspunkt = Key.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, melding)
 
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
@@ -137,12 +131,12 @@ class InntektService(
             sikkerLogger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
             logger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
         } else {
-            val inntekt = RedisKey.of(transaksjonId, Key.INNTEKT).read()
+            val inntekt = Key.INNTEKT.les(Inntekt.serializer(), melding)
 
             val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 
             val inntektJson = InntektData(
-                inntekt = inntekt?.fromJson(Inntekt.serializer()),
+                inntekt = inntekt,
                 feil = feil?.fromJson(FeilReport.serializer())
             )
                 .toJson(InntektData.serializer())
@@ -180,8 +174,13 @@ class InntektService(
 
             RedisKey.of(fail.transaksjonId, Key.INNTEKT).write(JsonObject(emptyMap()))
 
+            val meldingMedDefault = mapOf(
+                Key.INNTEKT to JsonObject(emptyMap())
+            )
+                .plus(melding)
+
             // TODO bruk finalize (sjekk andre servicer for tilsvarende feil)
-            return inProgress(melding)
+            return inProgress(meldingMedDefault)
         }
 
         val feilReport = if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {

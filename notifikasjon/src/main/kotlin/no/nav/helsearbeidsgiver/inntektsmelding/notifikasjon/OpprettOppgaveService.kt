@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -37,9 +36,9 @@ class OpprettOppgaveService(
 
     override val event = EventName.OPPGAVE_OPPRETT_REQUESTED
     override val startKeys = listOf(
-        Key.ORGNRUNDERENHET,
+        Key.UUID,
         Key.FORESPOERSEL_ID,
-        Key.UUID
+        Key.ORGNRUNDERENHET
     )
     override val dataKeys = listOf(
         Key.VIRKSOMHET
@@ -84,17 +83,8 @@ class OpprettOppgaveService(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId)
         ) {
-            val orgnr = redisStore.get(RedisKey.of(transaksjonId, Key.ORGNRUNDERENHET))
-            if (orgnr == null) {
-                "Mangler orgnr i redis. Klarer ikke opprette oppgave.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
-                return
-            }
-
-            val virksomhetNavn = redisStore.get(RedisKey.of(transaksjonId, Key.VIRKSOMHET))
-                ?: defaultVirksomhetNavn()
+            val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
+            val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
 
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
@@ -115,9 +105,13 @@ class OpprettOppgaveService(
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             if (utloesendeBehov == BehovType.VIRKSOMHET) {
-                val virksomhetKey = RedisKey.of(fail.transaksjonId, Key.VIRKSOMHET)
-                redisStore.set(virksomhetKey, defaultVirksomhetNavn())
-                return finalize(melding)
+                val defaultVirksomhetNavnJson = "Arbeidsgiver".toJson()
+
+                redisStore.set(RedisKey.of(fail.transaksjonId, Key.VIRKSOMHET), defaultVirksomhetNavnJson.toString())
+
+                val meldingMedDefault = mapOf(Key.VIRKSOMHET to defaultVirksomhetNavnJson).plus(melding)
+
+                return finalize(meldingMedDefault)
             }
 
             val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
@@ -136,29 +130,8 @@ class OpprettOppgaveService(
             Log.klasse(this),
             Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED)
         ) {
-            val transaksjonId = melding[Key.UUID]?.fromJson(UuidSerializer)
-            if (transaksjonId == null) {
-                "Mangler transaksjonId. Klarer ikke opprette oppgave.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
-                return
-            }
-
-            val forespoerselId = redisStore.get(RedisKey.of(transaksjonId, Key.FORESPOERSEL_ID))?.let(UUID::fromString)
-                ?: melding[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer)
-
-            if (forespoerselId == null) {
-                MdcUtils.withLogFields(
-                    Log.transaksjonId(transaksjonId)
-                ) {
-                    "Mangler forespoerselId. Klarer ikke opprette oppgave.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                }
-                return
-            }
+            val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+            val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
             MdcUtils.withLogFields(
                 Log.transaksjonId(transaksjonId),
@@ -168,7 +141,4 @@ class OpprettOppgaveService(
             }
         }
     }
-
-    private fun defaultVirksomhetNavn(): String =
-        "Arbeidsgiver"
 }

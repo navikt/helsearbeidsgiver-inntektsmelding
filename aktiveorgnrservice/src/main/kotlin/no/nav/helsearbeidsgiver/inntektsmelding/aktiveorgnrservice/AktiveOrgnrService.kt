@@ -52,6 +52,11 @@ class AktiveOrgnrService(
         Key.VIRKSOMHETER
     )
 
+    private val step1Keys = setOf(
+        Key.ARBEIDSFORHOLD,
+        Key.ORG_RETTIGHETER
+    )
+
     init {
         StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
         StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
@@ -101,30 +106,31 @@ class AktiveOrgnrService(
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
-        if (isDataCollected(step1data(transaksjonId))) {
-            val arbeidsforholdListe = RedisKey.of(transaksjonId, Key.ARBEIDSFORHOLD).read()?.fromJson(Arbeidsforhold.serializer().list())
-            val orgrettigheter = RedisKey.of(transaksjonId, Key.ORG_RETTIGHETER).read()?.fromJson(String.serializer().set())
-            val result = trekkUtArbeidsforhold(arbeidsforholdListe, orgrettigheter)
-            result.onSuccess { arbeidsgivere ->
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
-                )
-            }
-            result.onFailure {
-                val feilmelding = it.message ?: "Ukjent feil oppstod"
-                MdcUtils.withLogFields(
-                    Log.klasse(this),
-                    Log.event(event),
-                    Log.transaksjonId(transaksjonId)
-                ) {
-                    sikkerLogger.error(feilmelding)
-                    logger.error(feilmelding)
+        if (step1Keys.all(melding::containsKey)) {
+            val arbeidsforholdListe = Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
+            val orgrettigheter = Key.ORG_RETTIGHETER.les(String.serializer().set(), melding)
+
+            trekkUtArbeidsforhold(arbeidsforholdListe, orgrettigheter)
+                .onSuccess { arbeidsgivere ->
+                    rapid.publish(
+                        Key.EVENT_NAME to event.toJson(),
+                        Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
+                    )
                 }
-                onError(melding, melding.createFail(feilmelding, transaksjonId))
-            }
+                .onFailure {
+                    val feilmelding = it.message ?: "Ukjent feil oppstod"
+                    MdcUtils.withLogFields(
+                        Log.klasse(this),
+                        Log.event(event),
+                        Log.transaksjonId(transaksjonId)
+                    ) {
+                        sikkerLogger.error(feilmelding)
+                        logger.error(feilmelding)
+                    }
+                    onError(melding, melding.createFail(feilmelding, transaksjonId))
+                }
         }
     }
 
@@ -135,25 +141,20 @@ class AktiveOrgnrService(
             .read()
             ?.let(UUID::fromString)
 
-        val virksomheter = RedisKey.of(transaksjonId, Key.VIRKSOMHETER)
-            .read()
-            ?.fromJson(
-                MapSerializer(String.serializer(), String.serializer())
-            )
+        val virksomheter = Key.VIRKSOMHETER.les(
+            MapSerializer(String.serializer(), String.serializer()),
+            melding
+        )
+        val fulltNavn = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
 
-        val fulltNavn = RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON)
-            .read()
-            ?.fromJson(PersonDato.serializer())
-            ?: PersonDato("Ukjent Navn", null, "")
-
-        if (clientId != null && virksomheter != null) {
+        if (clientId != null) {
             val gyldigeUnderenheter =
                 virksomheter.map {
                     GyldigUnderenhet(
                         orgnrUnderenhet = it.key,
                         virksomhetsnavn = it.value
                     )
-                }.toList()
+                }
             val gyldigResponse = AktiveOrgnrResponse(
                 fulltNavn = fulltNavn.navn,
                 underenheter = gyldigeUnderenheter
@@ -165,27 +166,16 @@ class AktiveOrgnrService(
                 Log.event(event),
                 Log.transaksjonId(transaksjonId)
             ) {
-                if (clientId == null) {
-                    "Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!".also { feilmelding ->
-                        sikkerLogger.error(feilmelding)
-                        logger.error(feilmelding)
-                    }
-                }
-                if (virksomheter == null) {
-                    "Kunne ikke finne virksomheter for transaksjonId $transaksjonId i Redis!".also { feilmelding ->
-                        sikkerLogger.error(feilmelding)
-                        logger.error(feilmelding)
-                    }
+                "Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!".also { feilmelding ->
+                    sikkerLogger.error(feilmelding)
+                    logger.error(feilmelding)
                 }
             }
-            onError(melding, melding.createFail("Ukjent feil oppstod", transaksjonId))
         }
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val transaksjonId = fail.transaksjonId
-
-        val clientId = RedisKey.of(transaksjonId, event)
+        val clientId = RedisKey.of(fail.transaksjonId, event)
             .read()
             ?.let(UUID::fromString)
 
@@ -202,7 +192,7 @@ class AktiveOrgnrService(
         }
     }
 
-    fun Map<Key, JsonElement>.createFail(feilmelding: String, transaksjonId: UUID): Fail =
+    private fun Map<Key, JsonElement>.createFail(feilmelding: String, transaksjonId: UUID): Fail =
         Fail(
             feilmelding = feilmelding,
             event = event,
@@ -230,12 +220,6 @@ class AktiveOrgnrService(
             }
         }
     }
-
-    private fun step1data(uuid: UUID): Set<RedisKey> =
-        setOf(
-            RedisKey.of(uuid, Key.ARBEIDSFORHOLD),
-            RedisKey.of(uuid, Key.ORG_RETTIGHETER)
-        )
 
     private fun RedisKey.read(): String? =
         redisStore.get(this)

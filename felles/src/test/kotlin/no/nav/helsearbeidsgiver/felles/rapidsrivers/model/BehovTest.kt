@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
 class BehovTest : FunSpec({

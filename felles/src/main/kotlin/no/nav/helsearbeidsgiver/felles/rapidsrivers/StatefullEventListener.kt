@@ -12,10 +12,10 @@ import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class StatefullEventListener(
-    rapid: RapidsConnection,
     override val event: EventName,
+    private val dataKeys: Set<Key>,
+    rapid: RapidsConnection,
     private val redisStore: RedisStore,
-    private val dataKeys: List<Key>,
     private val onEventProcessed: (JsonMessage, MessageContext) -> Unit
 ) : EventListener(rapid) {
     private val sikkerLogger = sikkerLogger()

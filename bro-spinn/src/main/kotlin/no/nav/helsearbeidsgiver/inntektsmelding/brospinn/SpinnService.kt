@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.UUID
 
 private const val AVSENDER_NAV_NO = "NAV_NO"
 
@@ -37,18 +36,18 @@ class SpinnService(
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
-    override val startKeys = listOf(
+    override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.SPINN_INNTEKTSMELDING_ID
     )
-    override val dataKeys = listOf(
+    override val dataKeys = setOf(
         Key.EKSTERN_INNTEKTSMELDING
     )
 
     init {
-        StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
-        StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
-        FailKanal(rapid, event, ::onPacket)
+        StatefullEventListener(event, startKeys, rapid, redisStore, ::onPacket)
+        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
+        FailKanal(event, rapid, ::onPacket)
     }
 
     override fun new(melding: Map<Key, JsonElement>) {

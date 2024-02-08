@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -41,19 +41,19 @@ class TilgangForespoerselService(
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.TILGANG_FORESPOERSEL_REQUESTED
-    override val startKeys = listOf(
+    override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.FNR
     )
-    override val dataKeys = listOf(
+    override val dataKeys = setOf(
         Key.ORGNRUNDERENHET,
         Key.TILGANG
     )
 
     init {
-        StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
-        StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
-        FailKanal(rapid, event, ::onPacket)
+        StatefullEventListener(event, startKeys, rapid, redisStore, ::onPacket)
+        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
+        FailKanal(event, rapid, ::onPacket)
     }
 
     override fun new(melding: Map<Key, JsonElement>) {

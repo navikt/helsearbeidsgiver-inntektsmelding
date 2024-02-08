@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
 import io.mockk.clearAllMocks
 import io.mockk.verify
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -10,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -52,7 +54,7 @@ class KvitteringServiceTest {
         )
 
         verify {
-            mockRedis.store.set(RedisKey.of(transaksjonId, Key.INNTEKTSMELDING_DOKUMENT), im)
+            mockRedis.store.set(RedisKey.of(transaksjonId, Key.INNTEKTSMELDING_DOKUMENT), im.toJsonStr(String.serializer()))
         }
     }
 }

@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -12,10 +13,14 @@ private val logger = "im-notifikasjon".logger()
 val sikkerLogger = sikkerLogger()
 
 fun main() {
-    val environment = setUpEnvironment()
+    val redisStore = RedisStore(Env.redisUrl)
+
     RapidApplication
         .create(System.getenv())
-        .createNotifikasjon(buildRedisStore(environment), buildClient(environment), environment.linkUrl)
+        .createNotifikasjon(redisStore, buildClient(), Env.linkUrl)
+        .registerShutdownLifecycle {
+            redisStore.shutdown()
+        }
         .start()
 }
 
@@ -53,12 +58,7 @@ fun RapidsConnection.createNotifikasjon(
         SlettSakLoeser(this, arbeidsgiverNotifikasjonKlient)
     }
 
-fun buildClient(environment: Environment): ArbeidsgiverNotifikasjonKlient {
-    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return ArbeidsgiverNotifikasjonKlient(environment.notifikasjonUrl, tokenProvider::getToken)
-}
-
-fun buildRedisStore(environment: Environment): RedisStore {
-    sikkerLogger.info("Redis url er " + environment.redisUrl)
-    return RedisStore(environment.redisUrl)
+private fun buildClient(): ArbeidsgiverNotifikasjonKlient {
+    val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
+    return ArbeidsgiverNotifikasjonKlient(Env.notifikasjonUrl, tokenProvider::getToken)
 }

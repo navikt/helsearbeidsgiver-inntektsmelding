@@ -66,6 +66,8 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import kotlin.concurrent.thread
+import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
@@ -92,7 +94,10 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
         postgreSQLContainer.toHikariConfig()
             .let(::Database)
-            .also(Database::migrate)
+            .also {
+                val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
+                it.migrate(migrationLocation)
+            }
             .createTruncateFunction()
     }
 

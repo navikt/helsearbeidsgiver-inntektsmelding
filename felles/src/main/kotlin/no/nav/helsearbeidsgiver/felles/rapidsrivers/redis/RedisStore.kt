@@ -33,7 +33,6 @@ class RedisStore(redisUrl: String) {
             }
     }
 
-    // TODO bruk overalt, se RapidsConnection.registerShutdownLifecycle
     fun shutdown() {
         connection.close()
         redisClient.shutdown()

@@ -16,13 +16,20 @@ class Database(
     val dataSource by lazy { HikariDataSource(config) }
     val db by lazy { ExposedDatabase.connect(dataSource) }
 
-    fun migrate() {
+    fun migrate(location: String? = null) {
         migrationConfig(config)
             .let(::HikariDataSource)
-            .also {
+            .also { dataSource ->
                 Flyway.configure()
-                    .dataSource(it)
+                    .dataSource(dataSource)
                     .lockRetryCount(50)
+                    .let {
+                        if (location != null) {
+                            it.locations("filesystem:$location")
+                        } else {
+                            it
+                        }
+                    }
                     .load()
                     .migrate()
             }

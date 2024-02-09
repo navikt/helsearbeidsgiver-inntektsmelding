@@ -1,10 +1,8 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
-import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakException
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
@@ -14,14 +12,15 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishData
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -34,41 +33,13 @@ class OpprettSakLoeser(
 ) : Loeser(rapidsConnection) {
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_SAK.name)
             it.requireKey(Key.ORGNRUNDERENHET.str)
             it.interestedIn(Key.ARBEIDSTAKER_INFORMASJON.str)
-        }
-    }
-
-    private fun opprettSak(
-        forespoerselId: String,
-        orgnr: String,
-        navn: String,
-        foedselsdato: LocalDate?
-    ): String? {
-        val formattertFoedselsdato = foedselsdato?.format(birthDateFormatter) ?: "Ukjent"
-        val requestTimer = Metrics.requestLatency.labels("opprettSak").startTimer()
-        return try {
-            runBlocking {
-                arbeidsgiverNotifikasjonKlient.opprettNySak(
-                    grupperingsid = forespoerselId,
-                    merkelapp = "Inntektsmelding",
-                    virksomhetsnummer = orgnr,
-                    tittel = "Inntektsmelding for $navn: f. $formattertFoedselsdato",
-                    lenke = "$linkUrl/im-dialog/$forespoerselId",
-                    statusTekst = "NAV trenger inntektsmelding",
-                    harddeleteOm = "P5M"
-                )
-            }.also {
-                requestTimer.observeDuration()
-            }
-        } catch (e: OpprettNySakException) {
-            sikkerLogger.error("Feil ved kall til opprett sak for $forespoerselId!", e)
-            logger.error("Feil ved kall til opprett sak for $forespoerselId!")
-            return null
         }
     }
 
@@ -95,12 +66,19 @@ class OpprettSakLoeser(
         logger.info("Skal opprette sak for forespørselId: $forespoerselId")
         val orgnr = behov[Key.ORGNRUNDERENHET].asText()
         val personDato = hentNavn(behov)
-        val sakId = opprettSak(
-            forespoerselId = forespoerselId.toString(),
-            orgnr = orgnr,
-            navn = personDato.navn,
-            foedselsdato = personDato.fødselsdato
-        )
+        val formattertFoedselsdato = personDato.fødselsdato?.format(birthDateFormatter) ?: "Ukjent"
+
+        val sakId = runCatching {
+            arbeidsgiverNotifikasjonKlient.opprettSak(
+                linkUrl = linkUrl,
+                inntektsmeldingId = forespoerselId,
+                orgnr = orgnr,
+                sykmeldtNavn = personDato.navn,
+                sykmeldtFoedselsdato = formattertFoedselsdato
+            )
+        }
+            .getOrNull()
+
         if (sakId.isNullOrBlank()) {
             val fail = Fail(
                 feilmelding = "Opprett sak feilet",

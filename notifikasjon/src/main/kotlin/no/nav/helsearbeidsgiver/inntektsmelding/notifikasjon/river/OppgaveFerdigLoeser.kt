@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
@@ -8,7 +8,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -18,20 +17,23 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.Metrics
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class SakFerdigLoeser(
+class OppgaveFerdigLoeser(
     rapid: RapidsConnection,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
 ) : River.PacketListener {
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         River(rapid).apply {
@@ -42,7 +44,7 @@ class SakFerdigLoeser(
                 it.requireKeys(
                     Key.UUID,
                     Key.FORESPOERSEL_ID,
-                    Key.SAK_ID
+                    Key.OPPGAVE_ID
                 )
             }
         }.register(this)
@@ -75,39 +77,34 @@ class SakFerdigLoeser(
     }
 
     private fun haandterMelding(melding: Map<Key, JsonElement>, context: MessageContext) {
-        val sakId = Key.SAK_ID.les(String.serializer(), melding)
+        val oppgaveId = Key.OPPGAVE_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
-            Log.sakId(sakId),
+            Log.oppgaveId(oppgaveId),
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId)
         ) {
-            ferdigstillSak(sakId, forespoerselId, transaksjonId, context)
+            ferdigstillOppgave(oppgaveId, forespoerselId, transaksjonId, context)
         }
     }
 
-    private fun ferdigstillSak(sakId: String, forespoerselId: UUID, transaksjonId: UUID, context: MessageContext) {
-        logger.info("Ferdigstiller sak...")
-        val requestTimer = Metrics.requestLatency.labels("ferdigstillSak").startTimer()
+    private fun ferdigstillOppgave(oppgaveId: String, forespoerselId: UUID, transaksjonId: UUID, context: MessageContext) {
+        logger.info("Ferdigstiller oppgave...")
+        val requestTimer = Metrics.requestLatency.labels("ferdigstillOppgave").startTimer()
         runBlocking {
-            agNotifikasjonKlient.nyStatusSak(
-                id = sakId,
-                status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
-            )
+            agNotifikasjonKlient.oppgaveUtfoert(oppgaveId)
         }.also {
             requestTimer.observeDuration()
         }
-
         context.publish(
-            Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
-            Key.SAK_ID to sakId.toJson(),
+            Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
+            Key.OPPGAVE_ID to oppgaveId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.UUID to transaksjonId.toJson()
         )
 
-        logger.info("Sak ferdigstilt.")
+        logger.info("Oppgave ferdigstilt.")
     }
 }

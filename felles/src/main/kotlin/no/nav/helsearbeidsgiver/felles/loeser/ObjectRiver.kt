@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.felles.loeser
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -105,26 +106,42 @@ abstract class ObjectRiver<Melding : Any> {
         return null
     }
 
+    /**
+     * Bestemmer loggfelt som logges i [haandter] og [haandterFeil].
+     *
+     * @return
+     * Map for loggfelt med feltnavn og innhold.
+     */
+    protected open fun Melding.loggfelt(): Map<String, String> =
+        emptyMap()
+
     /** Brukes av [OpenRiver]. */
     internal fun lesOgHaandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         val innkommende = runCatching { les(json) }.getOrNull()
 
-        val utgaaende = innkommende?.let {
-            runCatching {
-                it.haandter(json)
-            }
-                .getOrElse { e ->
-                    it.haandterFeil(json, e)
+        val loggfelt = innkommende?.loggfelt()
+            ?.toList()
+            ?.toTypedArray()
+            .orEmpty()
+
+        return MdcUtils.withLogFields(*loggfelt) {
+            val utgaaende = innkommende?.let {
+                runCatching {
+                    it.haandter(json)
                 }
-        }
-
-        if (utgaaende != null && utgaaende.isEmpty()) {
-            "Utgående melding er tom.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
+                    .getOrElse { e ->
+                        it.haandterFeil(json, e)
+                    }
             }
-        }
 
-        return utgaaende
+            if (utgaaende != null && utgaaende.isEmpty()) {
+                "Utgående melding er tom.".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
+                }
+            }
+
+            utgaaende
+        }
     }
 }

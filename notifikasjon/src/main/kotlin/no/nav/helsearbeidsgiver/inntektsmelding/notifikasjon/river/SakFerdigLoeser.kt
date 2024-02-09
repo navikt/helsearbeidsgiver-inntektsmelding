@@ -1,6 +1,5 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -17,20 +16,22 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.ferdigstillSak
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
-import java.util.UUID
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class OppgaveFerdigLoeser(
+class SakFerdigLoeser(
     rapid: RapidsConnection,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
 ) : River.PacketListener {
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         River(rapid).apply {
@@ -41,7 +42,7 @@ class OppgaveFerdigLoeser(
                 it.requireKeys(
                     Key.UUID,
                     Key.FORESPOERSEL_ID,
-                    Key.OPPGAVE_ID
+                    Key.SAK_ID
                 )
             }
         }.register(this)
@@ -74,34 +75,23 @@ class OppgaveFerdigLoeser(
     }
 
     private fun haandterMelding(melding: Map<Key, JsonElement>, context: MessageContext) {
-        val oppgaveId = Key.OPPGAVE_ID.les(String.serializer(), melding)
+        val sakId = Key.SAK_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
-            Log.oppgaveId(oppgaveId),
+            Log.sakId(sakId),
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId)
         ) {
-            ferdigstillOppgave(oppgaveId, forespoerselId, transaksjonId, context)
-        }
-    }
+            agNotifikasjonKlient.ferdigstillSak(sakId)
 
-    private fun ferdigstillOppgave(oppgaveId: String, forespoerselId: UUID, transaksjonId: UUID, context: MessageContext) {
-        logger.info("Ferdigstiller oppgave...")
-        val requestTimer = Metrics.requestLatency.labels("ferdigstillOppgave").startTimer()
-        runBlocking {
-            agNotifikasjonKlient.oppgaveUtfoert(oppgaveId)
-        }.also {
-            requestTimer.observeDuration()
+            context.publish(
+                Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
+                Key.SAK_ID to sakId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            )
         }
-        context.publish(
-            Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
-            Key.OPPGAVE_ID to oppgaveId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.UUID to transaksjonId.toJson()
-        )
-
-        logger.info("Oppgave ferdigstilt.")
     }
 }

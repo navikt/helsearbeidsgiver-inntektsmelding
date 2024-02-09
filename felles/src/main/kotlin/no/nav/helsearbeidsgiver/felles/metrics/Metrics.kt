@@ -10,9 +10,21 @@ object Metrics {
         .labelNames("method")
         .register()
 
+    val dbAapenSak: Summary = Summary.build()
+        .name("simba_db_aapen_sak_repo_latency_seconds")
+        .help("Latency (i sek.) for database 'im-notifikasjon' and table 'aapen_sak'.")
+        .labelNames("method")
+        .register()
+
     val altinnRequest: Summary = Summary.build()
         .name("simba_altinn_hent_rettighet_organisasjoner_latency_seconds")
         .help("Latency (i sek.) for Altinn-hentRettighetOrganisasjoner.")
+        .register()
+
+    val agNotifikasjonRequest: Summary = Summary.build()
+        .name("simba_notifikasjon_latency_seconds")
+        .help("Latency (i sek.) for Fager-arbeidsgivernotifikasjonsklient.")
+        .labelNames("method")
         .register()
 }
 

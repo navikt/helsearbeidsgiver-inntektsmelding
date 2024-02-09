@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.maps.shouldContainKey

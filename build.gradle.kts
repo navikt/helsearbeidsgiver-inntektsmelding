@@ -70,7 +70,7 @@ subprojects {
     )
 
     tasks {
-        if (!project.erFellesModul() && !project.erFellesTestModul()) {
+        if (!project.erFellesModul() && !project.erFellesDatabaseModul() && !project.erFellesTestModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -271,6 +271,9 @@ fun Project.mainClass(): String =
 
 fun Project.erFellesModul(): Boolean =
     name == "felles"
+
+fun Project.erFellesDatabaseModul(): Boolean =
+    name == "felles-db"
 
 fun Project.erFellesTestModul(): Boolean =
     name == "felles-test"

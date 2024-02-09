@@ -47,7 +47,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerService
@@ -90,7 +90,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         )
     }
 
-    private val database by lazy {
+    private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
         postgreSQLContainer.toHikariConfig()
             .let(::Database)
@@ -108,9 +108,10 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val messages = Messages()
 
     val tilgangProducer by lazy { TilgangProducer(rapid) }
-    val imRepository by lazy { InntektsmeldingRepository(database.db) }
-    val aapenImRepo by lazy { AapenImRepo(database.db) }
-    val forespoerselRepository by lazy { ForespoerselRepository(database.db) }
+
+    val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
+    val aapenImRepo by lazy { AapenImRepo(inntektsmeldingDatabase.db) }
+    val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
@@ -157,7 +158,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             }
         }
         coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns "123456"
-        coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any()) } returns "654321"
+        coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns "654321"
 
         mockPriProducer.apply {
             // Må bare returnere en Result med gyldig JSON
@@ -189,14 +190,14 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createHelsebro(mockPriProducer)
             createInntekt(mockk(relaxed = true))
             createJoark(dokarkivClient)
-            createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
             createEksternInntektsmeldingLoeser(spinnKlient)
             createSpinnService(redisStore)
             createAktiveOrgnrService(redisStore)
         }
             .registerShutdownLifecycle {
-                database.dataSource.close()
+                inntektsmeldingDatabase.dataSource.close()
             }
             .register(this)
 
@@ -260,7 +261,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     }
 
     fun truncateDatabase() {
-        transaction(database.db) {
+        transaction(inntektsmeldingDatabase.db) {
             exec("SELECT truncate_tables()")
         }
     }

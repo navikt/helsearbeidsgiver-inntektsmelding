@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection

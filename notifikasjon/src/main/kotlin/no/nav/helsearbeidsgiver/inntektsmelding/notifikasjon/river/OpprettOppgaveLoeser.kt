@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
@@ -16,11 +16,13 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishBehov
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.Metrics
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
@@ -31,6 +33,8 @@ class OpprettOppgaveLoeser(
 ) : Loeser(rapidsConnection) {
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_OPPGAVE.name)

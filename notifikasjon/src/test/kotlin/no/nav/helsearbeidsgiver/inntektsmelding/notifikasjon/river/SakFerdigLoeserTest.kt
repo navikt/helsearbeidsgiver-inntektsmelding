@@ -1,6 +1,6 @@
 @file:UseSerializers(UuidSerializer::class)
 
-package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
+import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -23,54 +24,58 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class OppgaveFerdigLoeserTest : FunSpec({
+class SakFerdigLoeserTest : FunSpec({
     val testRapid = TestRapid()
     val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
 
-    OppgaveFerdigLoeser(testRapid, mockAgNotifikasjonKlient)
+    SakFerdigLoeser(testRapid, mockAgNotifikasjonKlient)
 
     beforeEach {
         testRapid.reset()
         clearAllMocks()
     }
 
-    test("Ved besvart forespørsel med oppgave-ID ferdigstilles oppgaven") {
-        val expected = PublishedOppgave.mock()
+    test("Ved besvart forespørsel med sak-ID så ferdigstilles saken") {
+        val expected = PublishedSak.mock()
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.OPPGAVE_ID to expected.oppgaveId.toJson(),
+            Key.SAK_ID to expected.sakId.toJson(),
             Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
             Key.UUID to expected.transaksjonId.toJson()
         )
 
-        val actual = testRapid.firstMessage().fromJson(PublishedOppgave.serializer())
+        val actual = testRapid.firstMessage().fromJson(PublishedSak.serializer())
 
         testRapid.inspektør.size shouldBeExactly 1
 
         actual shouldBe expected
 
         coVerifySequence {
-            mockAgNotifikasjonKlient.oppgaveUtfoert(expected.oppgaveId)
+            mockAgNotifikasjonKlient.nyStatusSak(
+                id = expected.sakId,
+                status = SaksStatus.FERDIG,
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
+            )
         }
     }
 })
 
 @Serializable
-private data class PublishedOppgave(
+private data class PublishedSak(
     @SerialName("@event_name")
     val eventName: EventName,
-    @SerialName("oppgave_id")
-    val oppgaveId: String,
+    @SerialName("sak_id")
+    val sakId: String,
     val forespoerselId: UUID,
     @SerialName("uuid")
     val transaksjonId: UUID
 ) {
     companion object {
-        fun mock(): PublishedOppgave =
-            PublishedOppgave(
-                eventName = EventName.OPPGAVE_FERDIGSTILT,
-                oppgaveId = "trist-kaleidoskop",
+        fun mock(): PublishedSak =
+            PublishedSak(
+                eventName = EventName.SAK_FERDIGSTILT,
+                sakId = "sulten-kalamari",
                 forespoerselId = UUID.randomUUID(),
                 transaksjonId = UUID.randomUUID()
             )

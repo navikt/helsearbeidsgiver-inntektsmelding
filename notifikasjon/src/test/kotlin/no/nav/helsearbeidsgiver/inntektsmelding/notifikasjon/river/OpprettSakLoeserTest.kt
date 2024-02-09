@@ -9,6 +9,7 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.OpprettNySakException
+import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -21,6 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID
+import kotlin.time.Duration.Companion.days
 
 class OpprettSakLoeserTest : FunSpec({
 
@@ -38,13 +40,14 @@ class OpprettSakLoeserTest : FunSpec({
         val forespoerselId = UUID.randomUUID()
         coEvery {
             mockArbeidsgiverNotifikasjonKlient.opprettNySak(
-                forespoerselId.toString(),
-                "Inntektsmelding",
-                "org-456",
-                "Inntektsmelding for ${mockPersonDato().navn}: f. 050120",
-                "enSlagsUrl/im-dialog/$forespoerselId",
-                "NAV trenger inntektsmelding",
-                "P5M"
+                virksomhetsnummer = "org-456",
+                merkelapp = "Inntektsmelding",
+                grupperingsid = forespoerselId.toString(),
+                lenke = "enSlagsUrl/im-dialog/$forespoerselId",
+                tittel = "Inntektsmelding for ${mockPersonDato().navn}: f. 050120",
+                statusTekst = "NAV trenger inntektsmelding",
+                initiellStatus = SaksStatus.UNDER_BEHANDLING,
+                harddeleteOm = 150.days
             )
         } returns expectedSakId
 
@@ -72,8 +75,9 @@ class OpprettSakLoeserTest : FunSpec({
         val forespoerselId = UUID.randomUUID()
         coEvery {
             mockArbeidsgiverNotifikasjonKlient.opprettNySak(
-                forespoerselId.toString(),
                 any(),
+                any(),
+                forespoerselId.toString(),
                 any(),
                 any(),
                 any(),

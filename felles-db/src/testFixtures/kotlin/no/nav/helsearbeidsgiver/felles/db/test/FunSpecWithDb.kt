@@ -40,7 +40,6 @@ private fun dbConfig(): HikariConfig {
     }
 }
 
-// TODO fiks postgres-versjon
 private fun postgres(): PostgreSQLContainer<Nothing> =
     PostgreSQLContainer<Nothing>("postgres:14").apply {
         withReuse(true)

@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.Metrics
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonMetrics
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -92,7 +92,7 @@ class OppgaveFerdigLoeser(
 
     private fun ferdigstillOppgave(oppgaveId: String, forespoerselId: UUID, transaksjonId: UUID, context: MessageContext) {
         logger.info("Ferdigstiller oppgave...")
-        val requestTimer = Metrics.requestLatency.labels("ferdigstillOppgave").startTimer()
+        val requestTimer = NotifikasjonMetrics.requestLatency.labels("ferdigstillOppgave").startTimer()
         runBlocking {
             agNotifikasjonKlient.oppgaveUtfoert(oppgaveId)
         }.also {

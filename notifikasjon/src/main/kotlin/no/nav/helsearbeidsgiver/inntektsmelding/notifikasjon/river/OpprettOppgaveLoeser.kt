@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishBehov
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.Metrics
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonMetrics
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -102,7 +102,7 @@ class OpprettOppgaveLoeser(
         orgnr: String,
         virksomhetnavn: String
     ): String? {
-        val requestTimer = Metrics.requestLatency.labels("opprettOppgave").startTimer()
+        val requestTimer = NotifikasjonMetrics.requestLatency.labels("opprettOppgave").startTimer()
         return try {
             runBlocking {
                 arbeidsgiverNotifikasjonKlient.opprettNyOppgave(

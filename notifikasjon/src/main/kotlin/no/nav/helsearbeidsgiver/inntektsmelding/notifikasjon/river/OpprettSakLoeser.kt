@@ -77,6 +77,10 @@ class OpprettSakLoeser(
                 sykmeldtFoedselsdato = formattertFoedselsdato
             )
         }
+            .onFailure {
+                logger.error("Klarte ikke opprette sak.", it)
+                sikkerLogger.error("Klarte ikke opprette sak.", it)
+            }
             .getOrNull()
 
         if (sakId.isNullOrBlank()) {

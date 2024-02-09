@@ -22,7 +22,7 @@ object Metrics {
         .register()
 
     val agNotifikasjonRequest: Summary = Summary.build()
-        .name("simba_notifikasjon_latency_seconds")
+        .name("simba_agnotifikasjon_latency_seconds")
         .help("Latency (i sek.) for Fager-arbeidsgivernotifikasjonsklient.")
         .labelNames("method")
         .register()

@@ -66,7 +66,7 @@ fun Route.hentAapenImRoute(
 
                             if (inntektsmelding != null) {
                                 tilgangskontroll.validerTilgangTilOrg(call.request, aapenId, inntektsmelding.avsender.orgnr)
-                                sendOkResponse(aapenId, inntektsmelding)
+                                sendOkResponse(inntektsmelding)
                             } else {
                                 val feilmelding = result.failure
                                     ?.fromJson(String.serializer())
@@ -84,13 +84,13 @@ fun Route.hentAapenImRoute(
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.sendOkResponse(aapenId: UUID, inntektsmelding: Inntektsmelding) {
+private suspend fun PipelineContext<Unit, ApplicationCall>.sendOkResponse(inntektsmelding: Inntektsmelding) {
     "Åpen inntektsmelding hentet OK.".also {
         logger.info(it)
         sikkerLogger.info("$it\n$inntektsmelding")
     }
     val response = ResultJson(
-        success = HentAapenImResponseSuccess(aapenId, inntektsmelding).toJson(HentAapenImResponseSuccess.serializer())
+        success = HentAapenImResponseSuccess(inntektsmelding).toJson(HentAapenImResponseSuccess.serializer())
     )
     respondOk(response, ResultJson.serializer())
 }

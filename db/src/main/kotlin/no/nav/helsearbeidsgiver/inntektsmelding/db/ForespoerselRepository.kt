@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.ForespoerselEntitet
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
@@ -23,7 +23,12 @@ class ForespoerselRepository(private val db: Database) {
     fun oppdaterOppgaveId(forespoerselId: String, oppgaveId: String) {
         val requestTimer = requestLatency.labels("oppdaterOppgaveId").startTimer()
         transaction(db) {
-            ForespoerselEntitet.update({ (ForespoerselEntitet.forespoerselId eq forespoerselId) and (ForespoerselEntitet.oppgaveId eq null) }) {
+            ForespoerselEntitet.update(
+                where = {
+                    (ForespoerselEntitet.forespoerselId eq forespoerselId) and
+                        ForespoerselEntitet.oppgaveId.isNull()
+                }
+            ) {
                 it[ForespoerselEntitet.oppgaveId] = oppgaveId
             }
         }.also {
@@ -34,7 +39,12 @@ class ForespoerselRepository(private val db: Database) {
     fun oppdaterSakId(forespoerselId: String, sakId: String) {
         val requestTimer = requestLatency.labels("oppdaterSakId").startTimer()
         transaction(db) {
-            ForespoerselEntitet.update({ (ForespoerselEntitet.forespoerselId eq forespoerselId) and (ForespoerselEntitet.sakId eq null) }) {
+            ForespoerselEntitet.update(
+                where = {
+                    (ForespoerselEntitet.forespoerselId eq forespoerselId) and
+                        ForespoerselEntitet.sakId.isNull()
+                }
+            ) {
                 it[ForespoerselEntitet.sakId] = sakId
             }
         }.also {
@@ -45,9 +55,9 @@ class ForespoerselRepository(private val db: Database) {
     fun hentOppgaveId(forespoerselId: UUID): String? {
         val requestTimer = requestLatency.labels("hentOppgaveId").startTimer()
         return transaction(db) {
-            ForespoerselEntitet.select {
-                ForespoerselEntitet.forespoerselId eq forespoerselId.toString()
-            }
+            ForespoerselEntitet
+                .selectAll()
+                .where { ForespoerselEntitet.forespoerselId eq forespoerselId.toString() }
                 .firstOrNull(ForespoerselEntitet.oppgaveId)
         }.also {
             requestTimer.observeDuration()
@@ -57,9 +67,9 @@ class ForespoerselRepository(private val db: Database) {
     fun hentSakId(forespoerselId: UUID): String? {
         val requestTimer = requestLatency.labels("hentSakId").startTimer()
         return transaction(db) {
-            ForespoerselEntitet.select {
-                ForespoerselEntitet.forespoerselId eq forespoerselId.toString()
-            }
+            ForespoerselEntitet
+                .selectAll()
+                .where { ForespoerselEntitet.forespoerselId eq forespoerselId.toString() }
                 .firstOrNull(ForespoerselEntitet.sakId)
         }.also {
             requestTimer.observeDuration()
@@ -69,10 +79,10 @@ class ForespoerselRepository(private val db: Database) {
     fun hentOrgnr(forespoerselId: UUID): String? {
         val requestTimer = requestLatency.labels("hentOrgnr").startTimer()
         return transaction(db) {
-            ForespoerselEntitet.let {
-                it.select { (it.forespoerselId eq forespoerselId.toString()) }
-                    .firstOrNull(it.orgnr)
-            }
+            ForespoerselEntitet
+                .selectAll()
+                .where { ForespoerselEntitet.forespoerselId eq forespoerselId.toString() }
+                .firstOrNull(ForespoerselEntitet.orgnr)
         }.also {
             requestTimer.observeDuration()
         }
@@ -81,12 +91,10 @@ class ForespoerselRepository(private val db: Database) {
     fun lagreForespoersel(forespoerselId: String, organisasjonsnummer: String) {
         val requestTimer = requestLatency.labels("lagreForespoersel").startTimer()
         transaction(db) {
-            ForespoerselEntitet.run {
-                insert {
-                    it[this.forespoerselId] = forespoerselId
-                    it[orgnr] = organisasjonsnummer
-                    it[opprettet] = LocalDateTime.now()
-                }
+            ForespoerselEntitet.insert {
+                it[this.forespoerselId] = forespoerselId
+                it[orgnr] = organisasjonsnummer
+                it[opprettet] = LocalDateTime.now()
             }
         }.also {
             requestTimer.observeDuration()

@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.TilgangData
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -64,10 +65,14 @@ class TilgangForespoerselServiceTest {
                 Feilmelding("Teknisk feil, prøv igjen senere.", -1, Key.TILGANG)
             )
         )
-            .toJsonStr(FeilReport.serializer())
+
+        val expectedResultJson = TilgangData(
+            feil = expectedFeilReport
+        )
+            .toJsonStr(TilgangData.serializer())
 
         verify {
-            mockRedis.store.set(RedisKey.of(clientId), expectedFeilReport)
+            mockRedis.store.set(RedisKey.of(clientId), expectedResultJson)
         }
     }
 }

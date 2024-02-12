@@ -2,7 +2,6 @@ kafkaPool: nav-prod
 azure:
   enabled: true
 database: im-error-recovery
-databaseVersion: POSTGRES_14
 envFrom:
   - type: secret
     name: google-sql-im-feil-behandler

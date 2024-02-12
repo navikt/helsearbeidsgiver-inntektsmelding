@@ -37,9 +37,5 @@ class MockRedis {
             }
                 .mapValuesNotNull { it }
         }
-
-        every { store.exist(capture(redisKeys)) } answers {
-            mockStorage.keys.intersect(redisKeys.captured.toSet()).size.toLong()
-        }
     }
 }

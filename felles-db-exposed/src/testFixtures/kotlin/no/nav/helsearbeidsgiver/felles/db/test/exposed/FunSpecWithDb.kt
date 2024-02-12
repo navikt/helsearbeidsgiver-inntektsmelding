@@ -1,8 +1,8 @@
-package no.nav.helsearbeidsgiver.felles.db.test
+package no.nav.helsearbeidsgiver.felles.db.test.exposed
 
 import com.zaxxer.hikari.HikariConfig
 import io.kotest.core.spec.style.FunSpec
-import no.nav.helsearbeidsgiver.felles.db.Database
+import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll

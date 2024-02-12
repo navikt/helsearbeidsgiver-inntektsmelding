@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.felles.db.Database
+import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle

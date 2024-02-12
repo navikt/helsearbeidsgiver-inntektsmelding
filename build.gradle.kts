@@ -273,7 +273,7 @@ fun Project.erFellesModul(): Boolean =
     name == "felles"
 
 fun Project.erFellesDatabaseModul(): Boolean =
-    name == "felles-db"
+    name == "felles-db-exposed"
 
 fun Project.erFellesTestModul(): Boolean =
     name == "felles-test"

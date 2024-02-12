@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.db
+package no.nav.helsearbeidsgiver.felles.db.exposed
 
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Query

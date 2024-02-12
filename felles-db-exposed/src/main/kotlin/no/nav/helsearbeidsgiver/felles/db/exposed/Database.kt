@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.db
+package no.nav.helsearbeidsgiver.felles.db.exposed
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

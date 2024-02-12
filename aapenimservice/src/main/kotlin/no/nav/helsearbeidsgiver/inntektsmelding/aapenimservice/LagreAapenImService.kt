@@ -34,7 +34,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 // TODO test
-class AapenImService(
+class LagreAapenImService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
 ) : CompositeEventListener() {
@@ -177,7 +177,7 @@ class AapenImService(
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(EventName.AAPEN_IM_MOTTATT),
+            Log.event(event),
             Log.transaksjonId(fail.transaksjonId)
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())

@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.aapeninntektmelding
+package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreaapenim
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
@@ -15,11 +15,11 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 // TODO test
-class AapenInntektmeldingProducer(
+class LagreAapenImProducer(
     private val rapid: RapidsConnection
 ) {
     init {
-        logger.info("Starter ${AapenInntektmeldingProducer::class.simpleName}...")
+        logger.info("Starter ${LagreAapenImProducer::class.simpleName}...")
     }
 
     fun publish(aapenId: UUID, avsenderFnr: String, skjema: SkjemaInntektsmelding): UUID {

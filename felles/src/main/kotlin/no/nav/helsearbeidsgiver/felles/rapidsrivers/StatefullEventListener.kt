@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -38,7 +39,7 @@ class StatefullEventListener(
     private fun lagreData(packet: JsonMessage) {
         val melding = packet.toJson().parseJson().toMap()
 
-        val transaksjonId = UUID.randomUUID()
+        val transaksjonId = randomUuid()
 
         // TODO fjern når client-ID er død
         packet[Key.UUID.str] = transaksjonId.toString()

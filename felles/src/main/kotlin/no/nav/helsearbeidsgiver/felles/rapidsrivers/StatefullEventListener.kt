@@ -6,10 +6,13 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import java.util.UUID
 
 class StatefullEventListener(
     override val event: EventName,
@@ -26,29 +29,26 @@ class StatefullEventListener(
         }
     }
 
-    private fun collectData(packet: JsonMessage) {
-        val transactionId = randomUuid()
-        packet[Key.UUID.str] = transactionId.toString()
-
-        dataKeys.associateWith {
-            packet[it.str]
-        }
-            .onEach { (dataFelt, data) ->
-                // TODO denne bør fjernes, all data bør behandles likt
-                val dataAsString =
-                    if (data.isTextual) {
-                        data.asText()
-                    } else {
-                        data.toString()
-                    }
-
-                redisStore.set(RedisKey.of(transactionId, dataFelt), dataAsString)
-            }
-    }
-
     override fun onEvent(packet: JsonMessage) {
         sikkerLogger.info("Statefull event listener for event ${event.name} med packet \n${packet.toPretty()}")
-        collectData(packet)
+        lagreData(packet)
         onEventProcessed(packet, rapidsConnection)
+    }
+
+    private fun lagreData(packet: JsonMessage) {
+        val melding = packet.toJson().parseJson().toMap()
+
+        val transaksjonId = UUID.randomUUID()
+
+        // TODO fjern når client-ID er død
+        packet[Key.UUID.str] = transaksjonId.toString()
+
+        melding.plus(
+            Key.UUID to transaksjonId.toJson()
+        )
+            .filterKeys(dataKeys::contains)
+            .onEach { (key, data) ->
+                redisStore.set(RedisKey.of(transaksjonId, key), data.toString())
+            }
     }
 }

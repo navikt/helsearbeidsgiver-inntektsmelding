@@ -23,7 +23,6 @@ data class LagreAapenImMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    val aapenId: UUID,
     val aapenInntektsmelding: Inntektsmelding
 )
 
@@ -43,7 +42,6 @@ class LagreAapenImRiver(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.LAGRE_AAPEN_IM, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                aapenId = Key.AAPEN_ID.les(UuidSerializer, json),
                 aapenInntektsmelding = Key.AAPEN_INNTEKTMELDING.les(Inntektsmelding.serializer(), json)
             )
         }
@@ -54,14 +52,14 @@ class LagreAapenImRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.aapenId(aapenId)
+            Log.aapenId(aapenInntektsmelding.id)
         ) {
             "Skal lagre åpen inntektsmelding.".also {
                 logger.info(it)
                 sikkerLogger.info(it)
             }
 
-            aapenImRepo.lagreIm(aapenId, aapenInntektsmelding)
+            aapenImRepo.lagreIm(aapenInntektsmelding)
 
             "Lagret åpen inntektsmelding.".also {
                 logger.info(it)
@@ -71,7 +69,6 @@ class LagreAapenImRiver(
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.AAPEN_ID to aapenId.toJson(),
                 Key.DATA to "".toJson(),
                 Key.AAPEN_INNTEKTMELDING to aapenInntektsmelding.toJson(Inntektsmelding.serializer())
             )
@@ -93,7 +90,7 @@ class LagreAapenImRiver(
             Key.FAIL to fail.toJson(Fail.serializer()),
             Key.EVENT_NAME to fail.event.toJson(),
             Key.UUID to fail.transaksjonId.toJson(),
-            Key.AAPEN_ID to aapenId.toJson()
+            Key.AAPEN_ID to aapenInntektsmelding.id.toJson()
         )
     }
 }

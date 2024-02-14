@@ -1,6 +1,5 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -8,7 +7,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
-import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -18,13 +16,14 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.ferdigstillSak
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
-import java.util.UUID
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class SakFerdigLoeser(
     rapid: RapidsConnection,
@@ -32,6 +31,7 @@ class SakFerdigLoeser(
 ) : River.PacketListener {
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         River(rapid).apply {
@@ -84,30 +84,14 @@ class SakFerdigLoeser(
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId)
         ) {
-            ferdigstillSak(sakId, forespoerselId, transaksjonId, context)
-        }
-    }
+            agNotifikasjonKlient.ferdigstillSak(sakId)
 
-    private fun ferdigstillSak(sakId: String, forespoerselId: UUID, transaksjonId: UUID, context: MessageContext) {
-        logger.info("Ferdigstiller sak...")
-        val requestTimer = Metrics.requestLatency.labels("ferdigstillSak").startTimer()
-        runBlocking {
-            agNotifikasjonKlient.nyStatusSak(
-                id = sakId,
-                status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
+            context.publish(
+                Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
+                Key.SAK_ID to sakId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson()
             )
-        }.also {
-            requestTimer.observeDuration()
         }
-
-        context.publish(
-            Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
-            Key.SAK_ID to sakId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.UUID to transaksjonId.toJson()
-        )
-
-        logger.info("Sak ferdigstilt.")
     }
 }

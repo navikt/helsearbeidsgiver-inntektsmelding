@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
+package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement

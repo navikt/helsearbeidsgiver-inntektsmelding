@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon
 
 import io.prometheus.client.Summary
 
-object Metrics {
+object NotifikasjonMetrics {
 
     val requestLatency = Summary.build()
         .name("simba_notifikasjon_latency_seconds")

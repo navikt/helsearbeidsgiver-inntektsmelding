@@ -2,8 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentAapenImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLoeser
@@ -20,7 +20,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 private val logger = "helsearbeidsgiver-im-db".logger()
 
 fun main() {
-    val database = Database(Database.Secrets("NAIS_DATABASE_IM_DB_INNTEKTSMELDING"))
+    val database = Database("NAIS_DATABASE_IM_DB_INNTEKTSMELDING")
 
     logger.info("Migrering starter...")
     database.migrate()

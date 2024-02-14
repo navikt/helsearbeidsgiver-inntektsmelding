@@ -9,8 +9,8 @@ import org.jetbrains.exposed.sql.Database as ExposedDatabase
 class Database(
     private val config: HikariConfig
 ) {
-    constructor(secrets: Secrets) : this(
-        dbConfig(secrets)
+    constructor(secretsPrefix: String) : this(
+        dbConfig(Secrets(secretsPrefix))
     )
 
     val dataSource by lazy { HikariDataSource(config) }
@@ -35,20 +35,9 @@ class Database(
             }
             .close()
     }
-
-    class Secrets(prefix: String) {
-        val username = "${prefix}_USERNAME".fromEnv()
-        val password = "${prefix}_PASSWORD".fromEnv()
-
-        val url = "jdbc:postgresql://%s:%s/%s".format(
-            "${prefix}_HOST".fromEnv(),
-            "${prefix}_PORT".fromEnv(),
-            "${prefix}_DATABASE".fromEnv()
-        )
-    }
 }
 
-private fun dbConfig(secrets: Database.Secrets): HikariConfig =
+private fun dbConfig(secrets: Secrets): HikariConfig =
     HikariConfig().apply {
         jdbcUrl = secrets.url
         username = secrets.username
@@ -63,3 +52,14 @@ private fun migrationConfig(config: HikariConfig): HikariConfig =
         password = config.password
         maximumPoolSize = 3
     }
+
+private class Secrets(prefix: String) {
+    val username = "${prefix}_USERNAME".fromEnv()
+    val password = "${prefix}_PASSWORD".fromEnv()
+
+    val url = "jdbc:postgresql://%s:%s/%s".format(
+        "${prefix}_HOST".fromEnv(),
+        "${prefix}_PORT".fromEnv(),
+        "${prefix}_DATABASE".fromEnv()
+    )
+}

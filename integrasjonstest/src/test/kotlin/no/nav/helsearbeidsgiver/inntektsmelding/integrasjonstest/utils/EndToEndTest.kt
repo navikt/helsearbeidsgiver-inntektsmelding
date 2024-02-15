@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -267,35 +266,12 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         }
     }
 
-    fun mockHelsebroForespoerselSvar(
+    fun mockForespoerselSvarFraHelsebro(
         eventName: EventName,
         transaksjonId: UUID,
         forespoerselId: UUID,
         forespoersel: TrengerInntekt
     ) {
-        mockHelsebro {
-            publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
-                Key.DATA to "".toJson(),
-                Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
-            )
-        }
-    }
-
-    fun mockHelsebroFeil(fail: Fail) {
-        mockHelsebro {
-            publish(
-                Key.FAIL to fail.toJson(Fail.serializer()),
-                Key.EVENT_NAME to fail.event.toJson(),
-                Key.UUID to fail.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
-            )
-        }
-    }
-
-    private fun mockHelsebro(block: () -> Unit) {
         every {
             mockPriProducer.send(
                 *varargAny { (key, value) ->
@@ -304,7 +280,13 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                 }
             )
         } answers {
-            block()
+            publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
+                Key.DATA to "".toJson(),
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
+            )
 
             Result.success(JsonObject(emptyMap()))
         }

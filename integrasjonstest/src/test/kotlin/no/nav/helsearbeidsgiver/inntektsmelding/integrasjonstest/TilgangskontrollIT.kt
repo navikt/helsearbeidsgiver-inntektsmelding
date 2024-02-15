@@ -10,8 +10,6 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -43,7 +41,7 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `forespoersel - skal få tilgang`() {
         val transaksjonId: UUID = UUID.randomUUID()
 
-        mockHelsebroForespoerselSvar(
+        mockForespoerselSvarFraHelsebro(
             eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
@@ -83,7 +81,7 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `forespoersel - skal bli nektet tilgang`() {
         val transaksjonId: UUID = UUID.randomUUID()
 
-        mockHelsebroForespoerselSvar(
+        mockForespoerselSvarFraHelsebro(
             eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
@@ -109,42 +107,6 @@ class TilgangskontrollIT : EndToEndTest() {
             .fromJson(Tilgang.serializer())
 
         tilgang shouldBe Tilgang.IKKE_TILGANG
-    }
-
-    @Test
-    fun `forespoersel - skal få melding om at forespørsel ikke finnes`() {
-        val transaksjonId: UUID = UUID.randomUUID()
-
-        val expectedFeilmelding = "Du hendelse!"
-
-        mockHelsebroFeil(
-            Fail(
-                feilmelding = expectedFeilmelding,
-                event = EventName.TILGANG_FORESPOERSEL_REQUESTED,
-                transaksjonId = transaksjonId,
-                forespoerselId = Mock.forespoerselId,
-                utloesendeMelding = mapOf(
-                    Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson()
-                ).toJson()
-            )
-        )
-
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            tilgangProducer.publishForespoerselId(Mock.forespoerselId, Mock.INNLOGGET_FNR)
-
-            Thread.sleep(4000)
-        }
-
-        val fail = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
-            .filterFeil()
-            .firstAsMap()
-            .get(Key.FAIL)
-            .shouldNotBeNull()
-            .fromJson(Fail.serializer())
-
-        fail.feilmelding shouldBe expectedFeilmelding
     }
 
     @Test

@@ -27,7 +27,7 @@ class TrengerIT : EndToEndTest() {
     fun `Test trengerIM meldingsflyt`() {
         val transaksjonId: UUID = UUID.randomUUID()
 
-        mockHelsebroForespoerselSvar(
+        mockForespoerselSvarFraHelsebro(
             eventName = EventName.TRENGER_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,

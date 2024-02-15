@@ -76,18 +76,6 @@ class ForespoerselRepository(private val db: Database) {
         }
     }
 
-    fun hentOrgnr(forespoerselId: UUID): String? {
-        val requestTimer = requestLatency.labels("hentOrgnr").startTimer()
-        return transaction(db) {
-            ForespoerselEntitet
-                .selectAll()
-                .where { ForespoerselEntitet.forespoerselId eq forespoerselId.toString() }
-                .firstOrNull(ForespoerselEntitet.orgnr)
-        }.also {
-            requestTimer.observeDuration()
-        }
-    }
-
     fun lagreForespoersel(forespoerselId: String, organisasjonsnummer: String) {
         val requestTimer = requestLatency.labels("lagreForespoersel").startTimer()
         transaction(db) {

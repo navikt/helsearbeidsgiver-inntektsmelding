@@ -5,7 +5,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentAapenImRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreAapenImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternInntektsmeldingLoeser
@@ -63,9 +62,6 @@ fun RapidsConnection.createDbRivers(
 
         logger.info("Starter ${PersisterOppgaveLoeser::class.simpleName}...")
         PersisterOppgaveLoeser(this, forespoerselRepo)
-
-        logger.info("Starter ${HentOrgnrLoeser::class.simpleName}...")
-        HentOrgnrLoeser(this, forespoerselRepo)
 
         logger.info("Starter ${NotifikasjonHentIdLoeser::class.simpleName}...")
         NotifikasjonHentIdLoeser(this, forespoerselRepo)

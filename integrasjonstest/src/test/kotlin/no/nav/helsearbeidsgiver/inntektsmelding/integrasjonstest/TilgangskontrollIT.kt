@@ -2,14 +2,22 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.every
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import org.junit.jupiter.api.BeforeAll
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -18,14 +26,10 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TilgangskontrollIT : EndToEndTest() {
 
-    @BeforeAll
-    fun beforeAll() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselIdMedTilgang.toString(), Mock.ORGNR_MED_TILGANG)
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselIdUtenTilgang.toString(), Mock.ORGNR_UTEN_TILGANG)
-    }
-
     @BeforeEach
     fun beforeEach() {
+        clearAllMocks()
+
         coEvery {
             altinnClient.harRettighetForOrganisasjon(Mock.INNLOGGET_FNR, Mock.ORGNR_MED_TILGANG)
         } returns true
@@ -37,9 +41,32 @@ class TilgangskontrollIT : EndToEndTest() {
 
     @Test
     fun `forespoersel - skal få tilgang`() {
-        tilgangProducer.publishForespoerselId(Mock.forespoerselIdMedTilgang, Mock.INNLOGGET_FNR)
+        val transaksjonId: UUID = UUID.randomUUID()
 
-        Thread.sleep(6000)
+        mockHelsebroForespoerselSvar(
+            eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
+            transaksjonId = transaksjonId,
+            forespoerselId = Mock.forespoerselId,
+            forespoersel = mockTrengerInntekt().copy(
+                orgnr = Mock.ORGNR_MED_TILGANG
+            )
+        )
+
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns transaksjonId
+
+            tilgangProducer.publishForespoerselId(Mock.forespoerselId, Mock.INNLOGGET_FNR)
+
+            Thread.sleep(6000)
+        }
+
+        messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+            .filter(BehovType.HENT_TRENGER_IM)
+            .firstAsMap()
+            .also {
+                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
+            }
 
         val result = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filter(Key.TILGANG)
@@ -54,9 +81,24 @@ class TilgangskontrollIT : EndToEndTest() {
 
     @Test
     fun `forespoersel - skal bli nektet tilgang`() {
-        tilgangProducer.publishForespoerselId(Mock.forespoerselIdUtenTilgang, Mock.INNLOGGET_FNR)
+        val transaksjonId: UUID = UUID.randomUUID()
 
-        Thread.sleep(4000)
+        mockHelsebroForespoerselSvar(
+            eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
+            transaksjonId = transaksjonId,
+            forespoerselId = Mock.forespoerselId,
+            forespoersel = mockTrengerInntekt().copy(
+                orgnr = Mock.ORGNR_UTEN_TILGANG
+            )
+        )
+
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns transaksjonId
+
+            tilgangProducer.publishForespoerselId(Mock.forespoerselId, Mock.INNLOGGET_FNR)
+
+            Thread.sleep(4000)
+        }
 
         val result = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filter(Key.TILGANG)
@@ -71,9 +113,29 @@ class TilgangskontrollIT : EndToEndTest() {
 
     @Test
     fun `forespoersel - skal få melding om at forespørsel ikke finnes`() {
-        tilgangProducer.publishForespoerselId(Mock.forespoerselIdFinnesIkke, Mock.INNLOGGET_FNR)
+        val transaksjonId: UUID = UUID.randomUUID()
 
-        Thread.sleep(4000)
+        val expectedFeilmelding = "Du hendelse!"
+
+        mockHelsebroFeil(
+            Fail(
+                feilmelding = expectedFeilmelding,
+                event = EventName.TILGANG_FORESPOERSEL_REQUESTED,
+                transaksjonId = transaksjonId,
+                forespoerselId = Mock.forespoerselId,
+                utloesendeMelding = mapOf(
+                    Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson()
+                ).toJson()
+            )
+        )
+
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns transaksjonId
+
+            tilgangProducer.publishForespoerselId(Mock.forespoerselId, Mock.INNLOGGET_FNR)
+
+            Thread.sleep(4000)
+        }
 
         val fail = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filterFeil()
@@ -82,7 +144,7 @@ class TilgangskontrollIT : EndToEndTest() {
             .shouldNotBeNull()
             .fromJson(Fail.serializer())
 
-        fail.feilmelding shouldBe "Fant ingen orgnr for forespørsel-ID '${Mock.forespoerselIdFinnesIkke}'."
+        fail.feilmelding shouldBe expectedFeilmelding
     }
 
     @Test
@@ -125,8 +187,6 @@ class TilgangskontrollIT : EndToEndTest() {
         const val ORGNR_MED_TILGANG = "654654654"
         const val ORGNR_UTEN_TILGANG = "789789789"
 
-        val forespoerselIdMedTilgang: UUID = UUID.randomUUID()
-        val forespoerselIdUtenTilgang: UUID = UUID.randomUUID()
-        val forespoerselIdFinnesIkke: UUID = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
     }
 }

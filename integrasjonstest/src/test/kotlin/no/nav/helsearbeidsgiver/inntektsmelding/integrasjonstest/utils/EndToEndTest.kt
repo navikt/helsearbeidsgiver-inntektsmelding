@@ -18,7 +18,11 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -54,7 +58,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerServ
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -65,6 +71,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
+import java.util.UUID
 import kotlin.concurrent.thread
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
@@ -257,6 +264,49 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             messageAmount = messages.all().size
 
             Thread.sleep(1500)
+        }
+    }
+
+    fun mockHelsebroForespoerselSvar(
+        eventName: EventName,
+        transaksjonId: UUID,
+        forespoerselId: UUID,
+        forespoersel: TrengerInntekt
+    ) {
+        mockHelsebro {
+            publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
+                Key.DATA to "".toJson(),
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
+            )
+        }
+    }
+
+    fun mockHelsebroFeil(fail: Fail) {
+        mockHelsebro {
+            publish(
+                Key.FAIL to fail.toJson(Fail.serializer()),
+                Key.EVENT_NAME to fail.event.toJson(),
+                Key.UUID to fail.transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
+            )
+        }
+    }
+
+    private fun mockHelsebro(block: () -> Unit) {
+        every {
+            mockPriProducer.send(
+                *varargAny { (key, value) ->
+                    key == Pri.Key.BEHOV &&
+                        runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.TRENGER_FORESPØRSEL
+                }
+            )
+        } answers {
+            block()
+
+            Result.success(JsonObject(emptyMap()))
         }
     }
 

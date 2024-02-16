@@ -18,9 +18,9 @@ CREATE TABLE forespoersel_oppgave
     oppdatert       TIMESTAMP   NOT NULL DEFAULT now()
 );
 
-CREATE TABLE aapen_sak
+CREATE TABLE selvbestemt_sak
 (
-    aapen_id  UUID PRIMARY KEY,
+    selvbestemt_id  UUID PRIMARY KEY,
     sak_id    TEXT UNIQUE NOT NULL,
     slettes   TIMESTAMP   NOT NULL,
     opprettet TIMESTAMP   NOT NULL DEFAULT now(),

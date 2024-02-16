@@ -11,8 +11,8 @@ object Metrics {
         .register()
 
     val dbAapenSak: Summary = Summary.build()
-        .name("simba_db_aapen_sak_repo_latency_seconds")
-        .help("Latency (i sek.) for database 'im-notifikasjon' and table 'aapen_sak'.")
+        .name("simba_db_selvbestemt_sak_repo_latency_seconds")
+        .help("Latency (i sek.) for database 'im-notifikasjon' and table 'selvbestemt_sak'.")
         .labelNames("method")
         .register()
 

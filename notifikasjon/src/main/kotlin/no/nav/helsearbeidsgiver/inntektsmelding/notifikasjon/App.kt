@@ -25,7 +25,7 @@ private val logger = "im-notifikasjon".logger()
 fun main() {
     val env = setUpEnvironment()
 
-    val database = Database(Database.Secrets("NAIS_DATABASE_IM_NOTIFIKASJON_NOTIFIKASJON"))
+    val database = Database("NAIS_DATABASE_IM_NOTIFIKASJON_NOTIFIKASJON")
 
     logger.info("Migrering starter...")
     database.migrate()

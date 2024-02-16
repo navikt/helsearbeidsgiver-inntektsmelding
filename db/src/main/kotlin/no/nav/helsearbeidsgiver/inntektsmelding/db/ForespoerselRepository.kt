@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.prometheus.client.Summary
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.firstOrNull
+import no.nav.helsearbeidsgiver.felles.db.exposed.firstOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.ForespoerselEntitet
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and

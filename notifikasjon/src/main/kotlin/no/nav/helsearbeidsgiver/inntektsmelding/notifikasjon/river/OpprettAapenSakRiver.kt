@@ -4,6 +4,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifkasjon.graphql.generated.enums.SaksStatus
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
@@ -23,8 +24,8 @@ import java.util.UUID
 
 data class OpprettAapenSakMelding(
     val eventName: EventName,
+    val behovType: BehovType,
     val transaksjonId: UUID,
-    val aapenId: UUID,
     val inntektsmelding: Inntektsmelding
 )
 
@@ -43,9 +44,9 @@ class OpprettAapenSakRiver(
             null
         } else {
             OpprettAapenSakMelding(
-                eventName = Key.EVENT_NAME.krev(EventName.AAPEN_IM_LAGRET, EventName.serializer(), json),
+                eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.OPPRETT_AAPEN_SAK, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                aapenId = Key.AAPEN_ID.les(UuidSerializer, json),
                 inntektsmelding = Key.AAPEN_INNTEKTMELDING.les(Inntektsmelding.serializer(), json)
             )
         }
@@ -53,7 +54,7 @@ class OpprettAapenSakRiver(
     override fun OpprettAapenSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sakId = agNotifikasjonKlient.opprettSak(
             linkUrl = linkUrl,
-            inntektsmeldingId = aapenId,
+            inntektsmeldingId = inntektsmelding.id,
             orgnr = inntektsmelding.avsender.orgnr,
             sykmeldtNavn = inntektsmelding.sykmeldt.navn,
             sykmeldtFoedselsdato = inntektsmelding.sykmeldt.fnr.take(6),
@@ -63,12 +64,12 @@ class OpprettAapenSakRiver(
         return MdcUtils.withLogFields(
             Log.sakId(sakId)
         ) {
-            aapenRepo.lagreSakId(aapenId, sakId)
+            aapenRepo.lagreSakId(inntektsmelding.id, sakId)
 
             mapOf(
-                Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
+                Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.AAPEN_ID to aapenId.toJson(),
+                Key.DATA to "".toJson(),
                 Key.SAK_ID to sakId.toJson()
             )
         }
@@ -90,7 +91,7 @@ class OpprettAapenSakRiver(
             Key.FAIL to fail.toJson(Fail.serializer()),
             Key.EVENT_NAME to fail.event.toJson(),
             Key.UUID to fail.transaksjonId.toJson(),
-            Key.AAPEN_ID to aapenId.toJson()
+            Key.AAPEN_ID to inntektsmelding.id.toJson()
         )
     }
 
@@ -99,6 +100,6 @@ class OpprettAapenSakRiver(
             Log.klasse(this),
             Log.event(eventName),
             Log.transaksjonId(transaksjonId),
-            Log.aapenId(aapenId)
+            Log.aapenId(inntektsmelding.id)
         )
 }

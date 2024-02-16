@@ -52,15 +52,18 @@ class LagreAapenImService(
         Key.VIRKSOMHET,
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.ARBEIDSGIVER_INFORMASJON,
-        Key.AAPEN_INNTEKTMELDING
+        Key.AAPEN_INNTEKTMELDING,
+        Key.SAK_ID
     )
 
-    private val step1Data =
-        setOf(
-            Key.VIRKSOMHET,
-            Key.ARBEIDSTAKER_INFORMASJON,
-            Key.ARBEIDSGIVER_INFORMASJON
-        )
+    private val step1Keys = setOf(
+        Key.VIRKSOMHET,
+        Key.ARBEIDSTAKER_INFORMASJON,
+        Key.ARBEIDSGIVER_INFORMASJON
+    )
+    private val step2Keys = setOf(
+        Key.AAPEN_INNTEKTMELDING
+    )
 
     init {
         StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
@@ -109,7 +112,20 @@ class LagreAapenImService(
             Log.transaksjonId(transaksjonId),
             Log.aapenId(aapenId)
         ) {
-            if (step1Data.all(melding::containsKey)) {
+            if (step2Keys.all(melding::containsKey)) {
+                val inntektsmelding = Key.AAPEN_INNTEKTMELDING.les(Inntektsmelding.serializer(), melding)
+
+                rapid.publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to BehovType.OPPRETT_AAPEN_SAK.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                )
+                    .also {
+                        logger.info("Publiserte melding med behov '${BehovType.OPPRETT_AAPEN_SAK}'.")
+                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                    }
+            } else if (step1Keys.all(melding::containsKey)) {
                 val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
                 val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
@@ -127,29 +143,30 @@ class LagreAapenImService(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.LAGRE_AAPEN_IM.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.AAPEN_ID to aapenId.toJson(),
                     Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
                 )
                     .also {
                         logger.info("Publiserte melding med behov '${BehovType.LAGRE_AAPEN_IM}'.")
                         sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                     }
+            } else {
+                Unit
             }
         }
     }
 
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val aapenId = Key.AAPEN_ID.les(UuidSerializer, melding)
-        val inntektsmeldingJson = Key.AAPEN_INNTEKTMELDING.les(JsonElement.serializer(), melding)
+        val inntektsmelding = Key.AAPEN_INNTEKTMELDING.les(Inntektsmelding.serializer(), melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.aapenId(aapenId)
+            Log.aapenId(inntektsmelding.id)
         ) {
             val clientId = redisStore.get(RedisKey.of(transaksjonId, event))?.let(UUID::fromString)
+            val inntektsmeldingJson = inntektsmelding.toJson(Inntektsmelding.serializer())
 
             if (clientId == null) {
                 sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
@@ -160,7 +177,6 @@ class LagreAapenImService(
             rapid.publish(
                 Key.EVENT_NAME to EventName.AAPEN_IM_LAGRET.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.AAPEN_ID to aapenId.toJson(),
                 Key.AAPEN_INNTEKTMELDING to inntektsmeldingJson
             )
                 .also {

@@ -26,11 +26,11 @@ class AapenImRepo(private val db: Database) {
             }
         }
 
-    fun lagreIm(aapenId: UUID, im: Inntektsmelding) {
+    fun lagreIm(im: Inntektsmelding) {
         Metrics.dbAapenIm.recordTime(::lagreIm.name) {
             transaction(db) {
                 AapenInntektsmeldingEntitet.insert {
-                    it[this.aapenId] = aapenId
+                    it[aapenId] = im.id
                     it[inntektsmelding] = im
                 }
             }

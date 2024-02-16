@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -46,7 +47,7 @@ class TilgangForespoerselService(
         Key.FNR
     )
     override val dataKeys = listOf(
-        Key.ORGNRUNDERENHET,
+        Key.FORESPOERSEL_SVAR,
         Key.TILGANG
     )
 
@@ -68,13 +69,13 @@ class TilgangForespoerselService(
         ) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.HENT_IM_ORGNR.toJson(),
+                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson()
             )
                 .also {
                     MdcUtils.withLogFields(
-                        Log.behov(BehovType.HENT_IM_ORGNR)
+                        Log.behov(BehovType.HENT_TRENGER_IM)
                     ) {
                         sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                     }
@@ -92,17 +93,17 @@ class TilgangForespoerselService(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId)
         ) {
-            if (Key.ORGNRUNDERENHET in melding) {
-                val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
-                val fnr = Key.FNR.les(String.serializer(), melding)
+            if (Key.FORESPOERSEL_SVAR in melding) {
+                val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+                val avsenderFnr = Key.FNR.les(String.serializer(), melding)
 
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                     Key.UUID to transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to orgnr.toJson(),
-                    Key.FNR to fnr.toJson()
+                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                    Key.FNR to avsenderFnr.toJson()
                 )
                     .also {
                         MdcUtils.withLogFields(
@@ -152,7 +153,7 @@ class TilgangForespoerselService(
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
         val manglendeDatafelt = when (utloesendeBehov) {
-            BehovType.HENT_IM_ORGNR -> Key.ORGNRUNDERENHET
+            BehovType.HENT_TRENGER_IM -> Key.FORESPOERSEL_SVAR
             BehovType.TILGANGSKONTROLL -> Key.TILGANG
             else -> null
         }

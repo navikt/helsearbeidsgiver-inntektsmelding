@@ -10,8 +10,8 @@ CREATE TRIGGER forespoersel_oppgave_autoupdate_column_oppdatert
     FOR EACH ROW
 EXECUTE FUNCTION autoupdate_column_oppdatert();
 
-CREATE TRIGGER aapen_sak_autoupdate_column_oppdatert
+CREATE TRIGGER selvbestemt_sak_autoupdate_column_oppdatert
     BEFORE UPDATE
-    ON aapen_sak
+    ON selvbestemt_sak
     FOR EACH ROW
 EXECUTE FUNCTION autoupdate_column_oppdatert();

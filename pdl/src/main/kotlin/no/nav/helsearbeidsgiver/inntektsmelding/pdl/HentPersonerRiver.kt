@@ -93,13 +93,13 @@ class HentPersonerRiver(
         sikkerLogger.error(fail.feilmelding, error)
 
         return fail.tilMelding()
-            .plus(Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID])
             .plus(Key.AAPEN_ID to json[Key.AAPEN_ID])
             .mapValuesNotNull { it }
     }
 
     override fun Melding.loggfelt(): Map<String, String> =
         mapOf(
+            Log.klasse(this),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId)

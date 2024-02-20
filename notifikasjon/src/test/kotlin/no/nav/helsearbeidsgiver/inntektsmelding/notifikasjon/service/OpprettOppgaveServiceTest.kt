@@ -25,7 +25,9 @@ class OpprettOppgaveServiceTest {
     private val rapid = TestRapid()
     private val mockRedis = MockRedis()
 
-    private val service = OpprettOppgaveService(rapid, mockRedis.store)
+    init {
+        OpprettOppgaveService(rapid, mockRedis.store)
+    }
 
     @BeforeEach
     fun setup() {

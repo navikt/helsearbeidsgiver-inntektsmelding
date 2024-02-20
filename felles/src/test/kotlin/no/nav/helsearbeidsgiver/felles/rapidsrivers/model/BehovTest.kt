@@ -30,10 +30,10 @@ class BehovTest : FunSpec({
             jsonMessage = utloesendeMelding
         )
 
-        val fail = behov.createFail(Mock.feilmelding)
+        val fail = behov.createFail(Mock.FEILMELDING)
 
         val expected = Fail(
-            feilmelding = Mock.feilmelding,
+            feilmelding = Mock.FEILMELDING,
             event = Mock.event,
             transaksjonId = Mock.transaksjonId,
             forespoerselId = Mock.forespoerselId,
@@ -59,10 +59,10 @@ class BehovTest : FunSpec({
             jsonMessage = utloesendeMelding
         )
 
-        val fail = behov.createFail(Mock.feilmelding)
+        val fail = behov.createFail(Mock.FEILMELDING)
 
         val expected = Fail(
-            feilmelding = Mock.feilmelding,
+            feilmelding = Mock.FEILMELDING,
             event = Mock.event,
             transaksjonId = UUID.randomUUID(),
             forespoerselId = Mock.forespoerselId,
@@ -76,7 +76,7 @@ class BehovTest : FunSpec({
 private object Mock {
     val event = EventName.FORESPØRSEL_LAGRET
     val behovType = BehovType.FULLT_NAVN
-    val transaksjonId = UUID.randomUUID()
-    val forespoerselId = UUID.randomUUID()
-    val feilmelding = "feilmelding"
+    val transaksjonId: UUID = UUID.randomUUID()
+    val forespoerselId: UUID = UUID.randomUUID()
+    const val FEILMELDING = "feilmelding"
 }

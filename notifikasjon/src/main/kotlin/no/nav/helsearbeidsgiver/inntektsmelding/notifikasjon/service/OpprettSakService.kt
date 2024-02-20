@@ -23,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
@@ -32,7 +31,6 @@ class OpprettSakService(
     override val redisStore: RedisStore
 ) : CompositeEventListener() {
 
-    private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.SAK_OPPRETT_REQUESTED

@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 
 fun mockInntektsmeldingDokumentMedTommeLister(): Inntektsmelding =

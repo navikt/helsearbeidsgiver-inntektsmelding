@@ -3,18 +3,17 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishEvent
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -73,27 +72,26 @@ class LagreJournalpostIdLoeser(
         if (journalpostId.isNullOrBlank()) {
             logger.error("Fant ingen journalpost-ID.")
             sikkerLogger.error("Fant ingen journalpost-ID.")
-            behov.createFail("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonId. Tom journalpost-ID!")
+            behov.createFail("Klarte ikke lagre journalpostId for transaksjonId $transaksjonId. Tom journalpost-ID!")
                 .also { publishFail(it) }
         } else {
             try {
-                repository.oppdaterJournalpostId(journalpostId, forespoerselId)
+                repository.oppdaterJournalpostId(forespoerselId, journalpostId)
 
                 logger.info("Lagret journalpost-ID $journalpostId i database.")
                 sikkerLogger.info("Lagret journalpost-ID $journalpostId i database.")
 
                 val inntektsmelding = repository.hentNyeste(forespoerselId)
 
-                behov.createEvent(
-                    EventName.INNTEKTSMELDING_JOURNALFOERT,
-                    mapOfNotNull(
-                        Key.JOURNALPOST_ID to journalpostId,
-                        Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())?.toJsonNode()
-                    )
+                rapidsConnection.publishEvent(
+                    eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
+                    transaksjonId = null,
+                    forespoerselId = forespoerselId,
+                    Key.JOURNALPOST_ID to journalpostId.toJson(),
+                    Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())
                 )
-                    .also { publishEvent(it) }
             } catch (ex: Exception) {
-                behov.createFail("Klarte ikke lagre journalpostId for transaksjonsId $transaksjonId")
+                behov.createFail("Klarte ikke lagre journalpostId for transaksjonId $transaksjonId")
                     .also { publishFail(it) }
                 logger.error("Klarte ikke lagre journalpost-ID $journalpostId.")
                 sikkerLogger.error("Klarte ikke lagre journalpost-ID $journalpostId.", ex)

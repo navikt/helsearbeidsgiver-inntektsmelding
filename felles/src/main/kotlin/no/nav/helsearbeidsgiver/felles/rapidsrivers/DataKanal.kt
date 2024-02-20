@@ -9,14 +9,14 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-abstract class DataKanal(val rapidsConnection: RapidsConnection) : River.PacketListener {
-    abstract val eventName: EventName
+abstract class DataKanal(val rapid: RapidsConnection) : River.PacketListener {
+    abstract val event: EventName
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
     init {
         configure(
-            River(rapidsConnection).apply {
+            River(rapid).apply {
                 validate(accept())
             }
         ).register(this)
@@ -26,10 +26,9 @@ abstract class DataKanal(val rapidsConnection: RapidsConnection) : River.PacketL
 
     private fun configure(river: River): River {
         return river.validate {
-            it.demandValue(Key.EVENT_NAME.str, eventName.name)
+            it.demandValue(Key.EVENT_NAME.str, event.name)
             it.demandKey(Key.DATA.str)
             it.rejectKey(Key.BEHOV.str)
-            it.rejectKey(Key.LØSNING.str)
             it.requireKey(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }

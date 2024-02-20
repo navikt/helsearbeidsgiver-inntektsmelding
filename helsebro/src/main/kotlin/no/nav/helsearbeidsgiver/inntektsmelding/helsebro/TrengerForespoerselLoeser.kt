@@ -1,13 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.require
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -50,8 +51,10 @@ class TrengerForespoerselLoeser(
         ) {
             logger.info("Mottok behov om ${BehovType.HENT_TRENGER_IM}.")
 
-            val transaksjonId = behov.uuid().let { UUID.fromString(it) }
-            val forespoerselId = behov.forespoerselId.let { UUID.fromString(it) }
+            val json = behov.jsonMessage.toJson().parseJson().toMap()
+
+            val transaksjonId = Key.UUID.les(UuidSerializer, json)
+            val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
 
             MdcUtils.withLogFields(
                 Log.event(behov.event),
@@ -81,11 +84,3 @@ class TrengerForespoerselLoeser(
             }
     }
 }
-
-private fun Map<Key, JsonElement>.toJson(): JsonElement =
-    toJson(
-        MapSerializer(
-            Key.serializer(),
-            JsonElement.serializer()
-        )
-    )

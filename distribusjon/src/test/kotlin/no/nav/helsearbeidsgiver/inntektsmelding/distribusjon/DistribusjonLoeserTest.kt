@@ -5,7 +5,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class DistribusjonLoeserTest {
@@ -48,6 +49,7 @@ class DistribusjonLoeserTest {
         rapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
             Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
             Key.JOURNALPOST_ID to JOURNALPOST_ID.toJson(),
             Key.INNTEKTSMELDING_DOKUMENT to mockInntektsmelding().toJson(Inntektsmelding.serializer())
         )

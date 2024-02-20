@@ -1,0 +1,7 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+database: im-error-recovery
+envFrom:
+  - type: secret
+    name: google-sql-im-feil-behandler

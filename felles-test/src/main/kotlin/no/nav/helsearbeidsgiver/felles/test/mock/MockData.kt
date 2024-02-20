@@ -102,8 +102,8 @@ fun mockForespurtDataMedFastsattInntekt(): ForespurtData =
 fun mockTrengerInntekt(): TrengerInntekt =
     TrengerInntekt(
         type = ForespoerselType.KOMPLETT,
-        orgnr = "123",
-        fnr = "456",
+        orgnr = "789789789",
+        fnr = "15055012345",
         skjaeringstidspunkt = 11.januar(2018),
         sykmeldingsperioder = listOf(2.januar til 31.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),

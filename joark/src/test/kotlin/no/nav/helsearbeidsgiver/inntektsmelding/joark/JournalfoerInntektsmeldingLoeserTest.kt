@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
@@ -7,7 +8,7 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -18,6 +19,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -80,13 +82,11 @@ class JournalfoerInntektsmeldingLoeserTest {
             Key.UUID to expectedUuid.toJson()
         )
 
-        val publisert = testRapid.firstMessage()
-            .toMap()
-            .mapValues { (_, value) -> value.fromJson(String.serializer()) }
+        val publisert = testRapid.firstMessage().toMap()
 
-        assertEquals(BehovType.LAGRE_JOURNALPOST_ID.name, publisert[Key.BEHOV])
-        assertEquals("jid-ulende-koala", publisert[Key.JOURNALPOST_ID])
-        assertEquals(expectedUuid.toString(), publisert[Key.UUID])
+        publisert[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.LAGRE_JOURNALPOST_ID
+        publisert[Key.JOURNALPOST_ID]?.fromJson(String.serializer()) shouldBe "jid-ulende-koala"
+        publisert[Key.UUID]?.fromJson(UuidSerializer) shouldBe expectedUuid
     }
 
     @Test

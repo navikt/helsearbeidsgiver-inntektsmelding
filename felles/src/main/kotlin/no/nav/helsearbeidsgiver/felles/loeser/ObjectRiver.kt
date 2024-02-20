@@ -2,7 +2,8 @@ package no.nav.helsearbeidsgiver.felles.loeser
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.IKey
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -29,14 +30,14 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
  *
  * class HobbitFoodRiver : ObjectRiver<LotrCharacter>() {
  *
- *     override fun les(json: Map<IKey, JsonElement>): LotrCharacter =
+ *     override fun les(json: Map<Key, JsonElement>): LotrCharacter =
  *         LotrCharacter(
  *             race = Key.RACE.krev(Race.HOBBIT, Race.serializer(), json),
  *             name = Key.NAME.les(String.serializer(), json),
  *             height = Key.HEIGHT.lesOrNull(Int.serializer(), json)
  *         )
  *
- *     override fun LotrCharacter.haandter(): Map<IKey, JsonElement> {
+ *     override fun LotrCharacter.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
  *         val favouriteFood = when (name) {
  *             "Frodo" -> "\uD83C\uDF53"
  *             "Sam" -> "\uD83E\uDD54"
@@ -72,9 +73,11 @@ abstract class ObjectRiver<Melding : Any> {
      *
      * @param json innkommende melding.
      *
-     * @return Verdi lest fra [json]. Brukes som input i [haandter].
+     * @return
+     * Verdi lest fra [json]. Brukes som input i [haandter].
+     * Returneres '`null`' så vil melding ignoreres.
      */
-    protected abstract fun les(json: Map<IKey, JsonElement>): Melding
+    protected abstract fun les(json: Map<Key, JsonElement>): Melding?
 
     /**
      * Riverens hovedfunksjon. Agerer på innkommende melding.
@@ -86,7 +89,7 @@ abstract class ObjectRiver<Melding : Any> {
      * Utgående melding som skal publiseres når innkommende melding er ferdig prosessert.
      * Returneres '`null`' så vil ingen utgående melding publiseres.
      */
-    protected abstract fun Melding.haandter(): Map<IKey, JsonElement>?
+    protected abstract fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>?
 
     /**
      * Kalles ved exception under [haandter].
@@ -95,7 +98,7 @@ abstract class ObjectRiver<Melding : Any> {
      * Utgående melding som skal publiseres når feil er ferdig prosessert.
      * Default implementasjon returnerer '`null`', som betyr at ingen utgående melding publiseres.
      */
-    protected open fun Throwable.haandterFeil(json: Map<IKey, JsonElement>): Map<IKey, JsonElement>? {
+    protected open fun Melding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement>? {
         "Ukjent feil.".also {
             logger.error(it)
             sikkerLogger.error(it, this)
@@ -103,24 +106,42 @@ abstract class ObjectRiver<Melding : Any> {
         return null
     }
 
+    /**
+     * Bestemmer loggfelt som logges i [haandter] og [haandterFeil].
+     *
+     * @return
+     * Map for loggfelt med feltnavn og innhold.
+     */
+    protected open fun Melding.loggfelt(): Map<String, String> =
+        emptyMap()
+
     /** Brukes av [OpenRiver]. */
-    internal fun lesOgHaandter(json: Map<IKey, JsonElement>): Map<IKey, JsonElement>? {
+    internal fun lesOgHaandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         val innkommende = runCatching { les(json) }.getOrNull()
 
-        val utgaaende = runCatching {
-            innkommende?.haandter()
-        }
-            .getOrElse {
-                it.haandterFeil(json)
+        val loggfelt = innkommende?.loggfelt()
+            ?.toList()
+            ?.toTypedArray()
+            .orEmpty()
+
+        return MdcUtils.withLogFields(*loggfelt) {
+            val utgaaende = innkommende?.let {
+                runCatching {
+                    it.haandter(json)
+                }
+                    .getOrElse { e ->
+                        it.haandterFeil(json, e)
+                    }
             }
 
-        if (utgaaende != null && utgaaende.isEmpty()) {
-            "Utgående melding er tom.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
+            if (utgaaende != null && utgaaende.isEmpty()) {
+                "Utgående melding er tom.".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
+                }
             }
-        }
 
-        return utgaaende
+            utgaaende
+        }
     }
 }

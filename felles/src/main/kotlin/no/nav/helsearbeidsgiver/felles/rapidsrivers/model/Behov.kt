@@ -1,21 +1,28 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.model
 
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.utils.mapOfNotNull
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
+private val logger = "im-model-behov".logger()
 private val sikkerLogger = sikkerLogger()
 
 class Behov(
@@ -30,57 +37,20 @@ class Behov(
         jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
         jsonMessage.demandValue(Key.BEHOV.str, behov.name)
     }
+
     companion object {
         val packetValidator = River.PacketValidation {
             it.demandKey(Key.EVENT_NAME.str)
             it.demandKey(Key.BEHOV.str)
             it.rejectKey(Key.DATA.str)
-            it.rejectKey(Key.LØSNING.str)
             it.rejectKey(Key.FAIL.str)
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
-        }
-
-        fun create(
-            event: EventName,
-            behov: BehovType,
-            forespoerselId: String,
-            map: Map<Key, Any> = emptyMap(),
-            packetValidation: River.PacketValidation = River.PacketValidation { }
-        ): Behov {
-            return Behov(
-                event = event,
-                behov = behov,
-                forespoerselId = forespoerselId,
-                jsonMessage = JsonMessage.newMessage(
-                    event.name,
-                    mapOf(
-                        Key.BEHOV.str to behov.name,
-                        Key.FORESPOERSEL_ID.str to forespoerselId
-                    ) + map.mapKeys { it.key.str }
-                )
-            ).also {
-                packetValidation.validate(it.jsonMessage)
-            }
+            it.interestedIn(Key.AAPEN_ID.str)
         }
     }
 
     operator fun get(key: Key): JsonNode = jsonMessage[key.str]
-
-    fun createData(map: Map<Key, Any>): Data {
-        val forespoerselID = jsonMessage[Key.FORESPOERSEL_ID.str]
-        return Data(
-            event,
-            JsonMessage.newMessage(
-                event.name,
-                mapOfNotNull(
-                    Key.DATA.str to "",
-                    Key.UUID.str to this.uuid().takeUnless { it.isBlank() },
-                    Key.FORESPOERSEL_ID.str to forespoerselID
-                ) + map.mapKeys { it.key.str }
-            )
-        )
-    }
 
     fun createFail(feilmelding: String): Fail {
         val json = jsonMessage.toJson().parseJson()
@@ -89,15 +59,9 @@ class Behov(
             event = event,
             transaksjonId = json.toMap()[Key.UUID]
                 ?.fromJson(UuidSerializer)
-                .let {
-                    if (it != null) {
-                        it
-                    } else {
-                        val nyTransaksjonId = UUID.randomUUID()
-
-                        sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$nyTransaksjonId'.\n${json.toPretty()}")
-
-                        nyTransaksjonId
+                .orDefault {
+                    UUID.randomUUID().also {
+                        sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$it'.\n${json.toPretty()}")
                     }
                 },
             forespoerselId = forespoerselId?.takeUnless { it.isBlank() }
@@ -110,26 +74,36 @@ class Behov(
             utloesendeMelding = json
         )
     }
+}
 
-    fun createBehov(behov: BehovType, data: Map<Key, Any>): Behov {
-        return Behov(
-            this.event,
-            behov,
-            forespoerselId,
-            JsonMessage.newMessage(
-                eventName = event.name,
-                map = mapOfNotNull(
-                    Key.BEHOV.str to behov.name,
-                    Key.UUID.str to uuid().takeUnless { it.isBlank() },
-                    Key.FORESPOERSEL_ID.str to this.forespoerselId
-                ) + data.mapKeys { it.key.str }
-            )
-        )
-    }
+fun MessageContext.publishBehov(
+    eventName: EventName,
+    behovType: BehovType,
+    transaksjonId: UUID?,
+    forespoerselId: UUID?,
+    vararg messageFields: Pair<Key, JsonElement?>
+): JsonElement {
+    val optionalIdFields = mapOf(
+        Key.UUID to transaksjonId,
+        Key.FORESPOERSEL_ID to forespoerselId
+    )
+        .mapValuesNotNull { it?.toJson() }
+        .toList()
+        .toTypedArray()
 
-    fun createEvent(event: EventName, data: Map<Key, Any>): Event {
-        return Event.create(event, forespoerselId, data)
-    }
+    val nonNullMessageFields = messageFields.toMap()
+        .mapValuesNotNull { it }
+        .toList()
+        .toTypedArray()
 
-    fun uuid() = jsonMessage[Key.UUID.str].takeUnless { it.isMissingOrNull() }?.asText().orEmpty()
+    return publish(
+        Key.EVENT_NAME to eventName.toJson(),
+        Key.BEHOV to behovType.toJson(),
+        *optionalIdFields,
+        *nonNullMessageFields
+    )
+        .also {
+            logger.info("Publiserte behov for '$eventName' med transaksjonId '$transaksjonId'.")
+            sikkerLogger.info("Publiserte behov:\n${it.toPretty()}")
+        }
 }

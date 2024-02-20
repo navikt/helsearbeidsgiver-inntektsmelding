@@ -1,14 +1,14 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.bestemmendeFravaersdag
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import java.time.ZonedDateTime
 
 fun mapInntektsmelding(
     request: Innsending,
     fulltnavnArbeidstaker: String,
-    arbeidsgiver: String,
+    virksomhetNavn: String,
     innsenderNavn: String
 ): Inntektsmelding =
     try {
@@ -16,7 +16,7 @@ fun mapInntektsmelding(
             orgnrUnderenhet = request.orgnrUnderenhet,
             identitetsnummer = request.identitetsnummer,
             fulltNavn = fulltnavnArbeidstaker,
-            virksomhetNavn = arbeidsgiver,
+            virksomhetNavn = virksomhetNavn,
             behandlingsdager = request.behandlingsdager,
             egenmeldingsperioder = request.egenmeldingsperioder,
             bestemmendeFraværsdag = bestemmendeFravaersdag(

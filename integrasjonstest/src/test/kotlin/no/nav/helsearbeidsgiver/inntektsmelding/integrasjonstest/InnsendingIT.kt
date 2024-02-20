@@ -8,7 +8,7 @@ import io.mockk.coEvery
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -25,7 +25,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDateTime
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -53,7 +52,6 @@ class InnsendingIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
@@ -153,7 +151,6 @@ class InnsendingIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
@@ -188,11 +185,17 @@ class InnsendingIT : EndToEndTest() {
 
         messages.filter(EventName.FORESPOERSEL_BESVART)
             .filter(Key.SAK_ID, utenDataKey = true)
-            .filter(Key.OPPGAVE_ID, utenDataKey = true)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
+            }
+
+        messages.filter(EventName.FORESPOERSEL_BESVART)
+            .filter(Key.OPPGAVE_ID, utenDataKey = true)
+            .firstAsMap()
+            .also {
+                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
 

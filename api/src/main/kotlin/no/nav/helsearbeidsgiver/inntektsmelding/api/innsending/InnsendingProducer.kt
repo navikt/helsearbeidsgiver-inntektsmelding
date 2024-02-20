@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.innsending
 
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import java.time.LocalDateTime
 import java.util.UUID
 
 class InnsendingProducer(
@@ -25,7 +24,6 @@ class InnsendingProducer(
 
         rapid.publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to clientId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),

@@ -10,11 +10,11 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 private val sikkerLogger = sikkerLogger()
@@ -33,18 +33,12 @@ data class Fail(
                 Key.FAIL to fail.toJson(serializer()),
                 Key.EVENT_NAME to fail.event.toJson(),
                 Key.UUID to fail.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to fail.forespoerselId.let {
-                    if (it != null) {
-                        it
-                    } else {
-                        val nyForespoerselId = randomUuid()
-
+                Key.FORESPOERSEL_ID to fail.forespoerselId.orDefault {
+                    UUID.randomUUID().also {
                         sikkerLogger.error(
-                            "Mangler forespoerselId i Fail. Erstatter med ny, tilfeldig UUID '$nyForespoerselId'. " +
+                            "Mangler forespoerselId i Fail. Erstatter med ny, tilfeldig UUID '$it'. " +
                                 "Fail ble forårsaket av\n${fail.utloesendeMelding.toPretty()}"
                         )
-
-                        nyForespoerselId
                     }
                 }
                     .toJson()

@@ -2,21 +2,21 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.AarsakInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Feilregistrert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferietrekk
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStilling
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.NyStillingsprosent
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Nyansatt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Permisjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Permittering
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Sykefravaer
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Tariffendring
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.VarigLonnsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Feilregistrert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Ferietrekk
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NyStilling
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NyStillingsprosent
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Nyansatt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Permisjon
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Permittering
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Sykefravaer
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Tariffendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.VarigLonnsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import java.time.LocalDate
 
 private const val FORKLARING_ENDRING = "Forklaring for endring"

@@ -1,13 +1,12 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import com.zaxxer.hikari.HikariConfig
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.DatabaseConfig
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.mapHikariConfig
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLoeser
+import no.nav.helsearbeidsgiver.felles.db.exposed.Database
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentAapenImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreAapenImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdLoeser
@@ -16,29 +15,35 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterImLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterOppgaveLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterSakLoeser
 import no.nav.helsearbeidsgiver.utils.log.logger
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 private val logger = "helsearbeidsgiver-im-db".logger()
-private val sikkerLogger = sikkerLogger()
 
 fun main() {
-    buildApp(mapHikariConfig(DatabaseConfig()), System.getenv()).start()
-}
+    val database = Database("NAIS_DATABASE_IM_DB_INNTEKTSMELDING")
 
-fun buildApp(config: HikariConfig, env: Map<String, String>): RapidsConnection {
-    val database = Database(config)
-    sikkerLogger.info("Bruker database url: ${config.jdbcUrl}")
     logger.info("Migrering starter...")
     database.migrate()
     logger.info("Migrering ferdig.")
+
     val imRepo = InntektsmeldingRepository(database.db)
+    val aapenImRepo = AapenImRepo(database.db)
     val forespoerselRepo = ForespoerselRepository(database.db)
+
     return RapidApplication
-        .create(env)
-        .createDb(database, imRepo, forespoerselRepo)
+        .create(System.getenv())
+        .createDbRivers(imRepo, aapenImRepo, forespoerselRepo)
+        .registerShutdownLifecycle {
+            logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
+            database.dataSource.close()
+        }
+        .start()
 }
 
-fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingRepository, forespoerselRepo: ForespoerselRepository): RapidsConnection =
+fun RapidsConnection.createDbRivers(
+    imRepo: InntektsmeldingRepository,
+    aapenImRepo: AapenImRepo,
+    forespoerselRepo: ForespoerselRepository
+): RapidsConnection =
     also {
         logger.info("Starter ${LagreForespoerselLoeser::class.simpleName}...")
         LagreForespoerselLoeser(this, forespoerselRepo)
@@ -58,23 +63,15 @@ fun RapidsConnection.createDb(database: Database, imRepo: InntektsmeldingReposit
         logger.info("Starter ${PersisterOppgaveLoeser::class.simpleName}...")
         PersisterOppgaveLoeser(this, forespoerselRepo)
 
-        logger.info("Starter ${HentOrgnrLoeser::class.simpleName}...")
-        HentOrgnrLoeser(this, forespoerselRepo)
-
         logger.info("Starter ${NotifikasjonHentIdLoeser::class.simpleName}...")
         NotifikasjonHentIdLoeser(this, forespoerselRepo)
 
         logger.info("Starter ${LagreEksternInntektsmeldingLoeser::class.simpleName}...")
         LagreEksternInntektsmeldingLoeser(this, imRepo)
 
-        registerDbLifecycle(database)
-    }
+        logger.info("Starter ${HentAapenImRiver::class.simpleName}...")
+        HentAapenImRiver(aapenImRepo).connect(this)
 
-private fun RapidsConnection.registerDbLifecycle(db: Database) {
-    register(object : RapidsConnection.StatusListener {
-        override fun onShutdown(rapidsConnection: RapidsConnection) {
-            logger.info("Mottatt stoppsignal, lukker databasetilkobling")
-            db.dataSource.close()
-        }
-    })
-}
+        logger.info("Starter ${LagreAapenImRiver::class.simpleName}...")
+        LagreAapenImRiver(aapenImRepo).connect(this)
+    }

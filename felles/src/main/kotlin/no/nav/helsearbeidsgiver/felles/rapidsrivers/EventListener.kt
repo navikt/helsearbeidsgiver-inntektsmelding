@@ -30,11 +30,10 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
         return river.validate {
             it.demandValue(Key.EVENT_NAME.str, event.name)
             it.rejectKey(Key.BEHOV.str)
-            it.rejectKey(Key.LØSNING.str)
             it.rejectKey(Key.DATA.str)
             it.rejectKey(Key.FAIL.str)
             it.interestedIn(Key.CLIENT_ID.str)
-            // transaksjon kan ikke ha UUID / transaksjonsID som egentlig betyr noe, men jeg beholder det for øyebliket
+            // transaksjon kan ikke ha UUID / transaksjonId som egentlig betyr noe, men jeg beholder det for øyebliket
             // for backward compatability
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)

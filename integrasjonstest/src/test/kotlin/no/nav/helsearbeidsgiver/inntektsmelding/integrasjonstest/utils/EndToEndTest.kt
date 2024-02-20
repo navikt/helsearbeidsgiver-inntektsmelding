@@ -7,29 +7,39 @@ import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.brreg.BrregClient
+import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.IKey
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
+import no.nav.helsearbeidsgiver.felles.db.exposed.Database
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
+import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
+import no.nav.helsearbeidsgiver.inntektsmelding.db.AapenImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
-import no.nav.helsearbeidsgiver.inntektsmelding.db.createDb
+import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
@@ -40,13 +50,17 @@ import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjon
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerService
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.mai
@@ -56,7 +70,10 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
+import java.util.UUID
 import kotlin.concurrent.thread
+import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
@@ -79,11 +96,14 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         )
     }
 
-    private val database by lazy {
+    private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
         postgreSQLContainer.toHikariConfig()
             .let(::Database)
-            .also(Database::migrate)
+            .also {
+                val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
+                it.migrate(migrationLocation)
+            }
             .createTruncateFunction()
     }
 
@@ -94,8 +114,10 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val messages = Messages()
 
     val tilgangProducer by lazy { TilgangProducer(rapid) }
-    val imRepository by lazy { InntektsmeldingRepository(database.db) }
-    val forespoerselRepository by lazy { ForespoerselRepository(database.db) }
+
+    val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
+    val aapenImRepo by lazy { AapenImRepo(inntektsmeldingDatabase.db) }
+    val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
@@ -103,8 +125,9 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     val spinnKlient = mockk<SpinnKlient>()
     val brregClient = mockk<BrregClient>(relaxed = true)
     val mockPriProducer = mockk<PriProducer>()
+    val aaregClient = mockk<AaregClient>(relaxed = true)
 
-    private val pdlKlient = mockk<PdlClient>()
+    val pdlKlient = mockk<PdlClient>()
 
     @BeforeEach
     fun beforeEachEndToEnd() {
@@ -132,8 +155,16 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             )
         )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
+        coEvery { brregClient.hentVirksomheter(any()) } answers {
+            firstArg<List<String>>().map { orgnr ->
+                Virksomhet(
+                    organisasjonsnummer = orgnr,
+                    navn = "Bedrift A/S"
+                )
+            }
+        }
         coEvery { arbeidsgiverNotifikasjonKlient.opprettNyOppgave(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns "123456"
-        coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any()) } returns "654321"
+        coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns "654321"
 
         mockPriProducer.apply {
             // Må bare returnere en Result med gyldig JSON
@@ -153,10 +184,10 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createTilgangService(redisStore)
             createTrengerService(redisStore)
 
-            createAareg(mockk(relaxed = true))
+            createAareg(aaregClient)
             createAltinn(altinnClient)
             createBrreg(brregClient, false)
-            createDb(database, imRepository, forespoerselRepository)
+            createDbRivers(imRepository, aapenImRepo, forespoerselRepository)
             createDistribusjon(mockk(relaxed = true))
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
@@ -165,11 +196,15 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createHelsebro(mockPriProducer)
             createInntekt(mockk(relaxed = true))
             createJoark(dokarkivClient)
-            createNotifikasjon(redisStore, arbeidsgiverNotifikasjonKlient, NOTIFIKASJON_LINK)
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
             createEksternInntektsmeldingLoeser(spinnKlient)
             createSpinnService(redisStore)
+            createAktiveOrgnrService(redisStore)
         }
+            .registerShutdownLifecycle {
+                inntektsmeldingDatabase.dataSource.close()
+            }
             .register(this)
 
         thread = thread {
@@ -192,11 +227,26 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         logger.info("Stopped")
     }
 
-    fun publish(vararg messageFields: Pair<IKey, JsonElement>) {
+    fun publish(vararg messageFields: Pair<Key, JsonElement>) {
         rapid.publish(*messageFields).also {
             println("Publiserte melding: $it")
         }
     }
+
+    fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>): JsonElement =
+        messageFields.toMap()
+            .mapKeys { (key, _) -> key.toString() }
+            .toJson()
+            .toString()
+            .let {
+                JsonMessage(it, MessageProblems(it), null)
+            }
+            .toJson()
+            .also(rapid::publish)
+            .parseJson()
+            .also {
+                println("Publiserte melding: $it")
+            }
 
     /** Avslutter venting dersom meldinger finnes og ingen nye ankommer i løpet av 1500 ms. */
     fun waitForMessages(millis: Long) {
@@ -216,8 +266,34 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         }
     }
 
+    fun mockForespoerselSvarFraHelsebro(
+        eventName: EventName,
+        transaksjonId: UUID,
+        forespoerselId: UUID,
+        forespoersel: TrengerInntekt
+    ) {
+        every {
+            mockPriProducer.send(
+                *varargAny { (key, value) ->
+                    key == Pri.Key.BEHOV &&
+                        runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.TRENGER_FORESPØRSEL
+                }
+            )
+        } answers {
+            publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
+                Key.DATA to "".toJson(),
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
+            )
+
+            Result.success(JsonObject(emptyMap()))
+        }
+    }
+
     fun truncateDatabase() {
-        transaction(database.db) {
+        transaction(inntektsmeldingDatabase.db) {
             exec("SELECT truncate_tables()")
         }
     }

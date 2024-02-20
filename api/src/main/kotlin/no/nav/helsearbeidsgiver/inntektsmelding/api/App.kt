@@ -16,12 +16,15 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.Tilgang
+import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentaapenim.hentAapenImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreaapenim.lagreAapenImRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.trengerRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.routeExtra
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -34,10 +37,13 @@ val sikkerLogger = sikkerLogger()
 object Routes {
     const val PREFIX = "/api/v1"
 
-    const val INNSENDING = "/inntektsmelding"
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
+    const val INNSENDING = "/inntektsmelding"
+    const val AAPEN_INNTEKTMELDING = "/aapen-inntektsmelding"
+    const val AAPEN_INNTEKTMELDING_MED_ID = "$AAPEN_INNTEKTMELDING/{aapenId}"
     const val KVITTERING = "/kvittering"
+    const val AKTIVEORGNR = "/aktiveorgnr"
 }
 
 fun main() {
@@ -58,6 +64,14 @@ fun startServer(env: Map<String, String> = System.getenv()) {
 }
 
 fun Application.apiModule(rapid: RapidsConnection) {
+    val redisPoller = RedisPoller()
+
+    val tilgangskontroll = Tilgangskontroll(
+        TilgangProducer(rapid),
+        LocalCache(60.minutes, 1000),
+        redisPoller
+    )
+
     customAuthentication()
 
     install(ContentNegotiation) {
@@ -85,18 +99,15 @@ fun Application.apiModule(rapid: RapidsConnection) {
             call.respondText("helsearbeidsgiver inntektsmelding")
         }
 
-        val redisPoller = RedisPoller()
-
-        val tilgangCache = LocalCache<Tilgang>(60.minutes, 100)
-
         authenticate {
             route(Routes.PREFIX) {
-                routeExtra(rapid, redisPoller, tilgangCache) {
-                    trengerRoute()
-                    inntektRoute()
-                    innsendingRoute()
-                    kvitteringRoute()
-                }
+                trengerRoute(rapid, tilgangskontroll, redisPoller)
+                inntektRoute(rapid, tilgangskontroll, redisPoller)
+                innsendingRoute(rapid, tilgangskontroll, redisPoller)
+                kvitteringRoute(rapid, tilgangskontroll, redisPoller)
+                lagreAapenImRoute(rapid, tilgangskontroll, redisPoller)
+                hentAapenImRoute(rapid, tilgangskontroll, redisPoller)
+                aktiveOrgnrRoute(rapid, redisPoller)
             }
         }
     }

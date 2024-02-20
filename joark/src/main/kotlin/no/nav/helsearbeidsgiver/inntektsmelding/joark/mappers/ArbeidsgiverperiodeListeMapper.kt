@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import org.mapstruct.Mapper
 
 @Mapper

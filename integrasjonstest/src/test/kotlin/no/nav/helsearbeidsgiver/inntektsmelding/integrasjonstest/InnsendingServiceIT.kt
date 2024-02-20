@@ -8,10 +8,9 @@ import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -26,7 +25,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDateTime
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -49,7 +47,6 @@ class InnsendingServiceIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.OPPRETTET to LocalDateTime.now().toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
@@ -156,12 +153,12 @@ class InnsendingServiceIT : EndToEndTest() {
         }
     }
 
-    private fun Map<IKey, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<IKey, JsonElement> =
+    private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =
         also {
             Key.UUID.lesOrNull(UuidSerializer, it) shouldBe transaksjonId
         }
 
-    private fun Map<IKey, JsonElement>.verifiserForespoerselId(): Map<IKey, JsonElement> =
+    private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =
         also {
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
         }

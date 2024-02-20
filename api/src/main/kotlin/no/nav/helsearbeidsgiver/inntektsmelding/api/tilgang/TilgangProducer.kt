@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang
 
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -21,20 +22,32 @@ class TilgangProducer(
         logger.info("Starter ${TilgangProducer::class.simpleName}...")
     }
 
-    fun publish(forespoerselId: UUID, fnr: String): UUID {
+    fun publishForespoerselId(forespoerselId: UUID, fnr: String): UUID =
+        publish(
+            EventName.TILGANG_FORESPOERSEL_REQUESTED,
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.FNR to fnr.toJson()
+        )
+
+    fun publishOrgnr(orgnr: String, fnr: String): UUID =
+        publish(
+            EventName.TILGANG_ORG_REQUESTED,
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
+            Key.FNR to fnr.toJson()
+        )
+
+    private fun publish(eventName: EventName, vararg messageFields: Pair<Key, JsonElement>): UUID {
         val clientId = randomUuid()
 
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(EventName.TILGANG_REQUESTED),
-            Log.clientId(clientId),
-            Log.forespoerselId(forespoerselId)
+            Log.event(eventName),
+            Log.clientId(clientId)
         ) {
             rapid.publish(
-                Key.EVENT_NAME to EventName.TILGANG_REQUESTED.toJson(),
+                Key.EVENT_NAME to eventName.toJson(),
                 Key.CLIENT_ID to clientId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.FNR to fnr.toJson()
+                *messageFields
             )
                 .also { json ->
                     "Publiserte request om tilgang.".let {

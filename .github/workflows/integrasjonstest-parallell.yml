@@ -18,7 +18,7 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle wrapper
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -26,7 +26,7 @@ jobs:
             ${{ runner.os }}-gradle-wrapper-
 
       - name: Cache Gradle packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/caches/build-cache-1/
           key: ${{ runner.os }}-gradle-cache-${{ hashFiles('build.gradle') }}
@@ -34,7 +34,7 @@ jobs:
             ${{ runner.os }}-gradle-cache-
 
       - name: Build
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         with:
           arguments: assemble --build-cache --parallel
         env:
@@ -84,7 +84,7 @@ jobs:
           path: build/libs/
 
       - name: Integrasjonstest
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         with:
           arguments: integrasjonstest:test --build-cache --tests no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.${{ matrix.test }}
         env:

@@ -92,13 +92,9 @@ class HentPersonerRiver(
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return mapOf(
-            Key.FAIL to fail.toJson(Fail.serializer()),
-            Key.EVENT_NAME to fail.event.toJson(),
-            Key.UUID to fail.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.AAPEN_ID to json[Key.AAPEN_ID]
-        )
+        return fail.tilMelding()
+            .plus(Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID])
+            .plus(Key.AAPEN_ID to json[Key.AAPEN_ID])
             .mapValuesNotNull { it }
     }
 

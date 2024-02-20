@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -31,7 +32,6 @@ data class Melding(
     val fnrListe: List<String>
 )
 
-// TODO legg til loggfelt
 class HentPersonerRiver(
     private val pdlClient: PdlClient
 ) : ObjectRiver<Melding>() {
@@ -101,6 +101,13 @@ class HentPersonerRiver(
         )
             .mapValuesNotNull { it }
     }
+
+    override fun Melding.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.event(eventName),
+            Log.behov(behovType),
+            Log.transaksjonId(transaksjonId)
+        )
 
     private fun hentPersoner(fnrListe: List<String>): List<Person> =
         Metrics.pdlRequest.recordTime(pdlClient::personBolk) {

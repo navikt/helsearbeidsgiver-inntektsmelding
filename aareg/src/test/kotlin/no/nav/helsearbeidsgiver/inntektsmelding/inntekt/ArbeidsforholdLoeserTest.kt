@@ -93,9 +93,7 @@ class ArbeidsforholdLoeserTest : FunSpec({
 
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
 
-        testRapid.sendJson(
-            *innkommendeMelding.toList().toTypedArray()
-        )
+        testRapid.sendJson(innkommendeMelding)
 
         coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.transaksjonId.toString()) }
 

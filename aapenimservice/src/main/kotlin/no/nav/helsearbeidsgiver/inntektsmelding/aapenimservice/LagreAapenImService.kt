@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.aapenimservice
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
@@ -53,6 +54,7 @@ class LagreAapenImService(
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.ARBEIDSGIVER_INFORMASJON,
         Key.AAPEN_INNTEKTMELDING,
+        Key.ER_DUPLIKAT_IM,
         Key.SAK_ID
     )
 
@@ -62,7 +64,8 @@ class LagreAapenImService(
         Key.ARBEIDSGIVER_INFORMASJON
     )
     private val step2Keys = setOf(
-        Key.AAPEN_INNTEKTMELDING
+        Key.AAPEN_INNTEKTMELDING,
+        Key.ER_DUPLIKAT_IM
     )
 
     init {
@@ -115,16 +118,23 @@ class LagreAapenImService(
             if (step2Keys.all(melding::containsKey)) {
                 val inntektsmelding = Key.AAPEN_INNTEKTMELDING.les(Inntektsmelding.serializer(), melding)
 
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.OPPRETT_AAPEN_SAK.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
-                )
-                    .also {
-                        logger.info("Publiserte melding med behov '${BehovType.OPPRETT_AAPEN_SAK}'.")
-                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                when (inntektsmelding.aarsakInnsending) {
+                    AarsakInnsending.Endring -> {
+                        finalize(melding)
                     }
+                    AarsakInnsending.Ny -> {
+                        rapid.publish(
+                            Key.EVENT_NAME to event.toJson(),
+                            Key.BEHOV to BehovType.OPPRETT_AAPEN_SAK.toJson(),
+                            Key.UUID to transaksjonId.toJson(),
+                            Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                        )
+                            .also {
+                                logger.info("Publiserte melding med behov '${BehovType.OPPRETT_AAPEN_SAK}'.")
+                                sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                            }
+                    }
+                }
             } else if (step1Keys.all(melding::containsKey)) {
                 val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
@@ -158,6 +168,7 @@ class LagreAapenImService(
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val inntektsmelding = Key.AAPEN_INNTEKTMELDING.les(Inntektsmelding.serializer(), melding)
+        val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
@@ -174,19 +185,21 @@ class LagreAapenImService(
                 redisStore.set(RedisKey.of(clientId), inntektsmeldingJson.toString())
             }
 
-            rapid.publish(
-                Key.EVENT_NAME to EventName.AAPEN_IM_LAGRET.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.AAPEN_INNTEKTMELDING to inntektsmeldingJson
-            )
-                .also {
-                    MdcUtils.withLogFields(
-                        Log.event(EventName.AAPEN_IM_LAGRET)
-                    ) {
-                        logger.info("Publiserte melding.")
-                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+            if (!erDuplikat) {
+                rapid.publish(
+                    Key.EVENT_NAME to EventName.AAPEN_IM_LAGRET.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.AAPEN_INNTEKTMELDING to inntektsmeldingJson
+                )
+                    .also {
+                        MdcUtils.withLogFields(
+                            Log.event(EventName.AAPEN_IM_LAGRET)
+                        ) {
+                            logger.info("Publiserte melding.")
+                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                        }
                     }
-                }
+            }
         }
     }
 

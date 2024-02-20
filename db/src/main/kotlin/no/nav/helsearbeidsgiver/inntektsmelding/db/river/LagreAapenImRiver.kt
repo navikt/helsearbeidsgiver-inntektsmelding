@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -17,6 +18,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 data class LagreAapenImMelding(
@@ -59,18 +61,30 @@ class LagreAapenImRiver(
                 sikkerLogger.info(it)
             }
 
-            aapenImRepo.lagreIm(aapenInntektsmelding)
+            val nyesteIm = aapenImRepo.hentNyesteIm(aapenInntektsmelding.id)
 
-            "Lagret åpen inntektsmelding.".also {
-                logger.info(it)
-                sikkerLogger.info(it)
+            val erDuplikat = nyesteIm?.erDuplikatAv(aapenInntektsmelding).orDefault(false)
+
+            if (!erDuplikat) {
+                aapenImRepo.lagreIm(aapenInntektsmelding)
+
+                "Lagret åpen inntektsmelding.".also {
+                    logger.info(it)
+                    sikkerLogger.info(it)
+                }
+            } else {
+                "Lagret _ikke_ åpen inntektsmelding pga. duplikat.".also {
+                    logger.info(it)
+                    sikkerLogger.info(it)
+                }
             }
 
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to "".toJson(),
-                Key.AAPEN_INNTEKTMELDING to aapenInntektsmelding.toJson(Inntektsmelding.serializer())
+                Key.AAPEN_INNTEKTMELDING to aapenInntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
             )
         }
 
@@ -94,3 +108,14 @@ class LagreAapenImRiver(
         )
     }
 }
+
+private fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =
+    this == other.copy(
+        avsender = other.avsender.copy(
+            fnr = avsender.fnr,
+            navn = avsender.navn,
+            tlf = avsender.tlf
+        ),
+        aarsakInnsending = aarsakInnsending,
+        mottatt = mottatt
+    )

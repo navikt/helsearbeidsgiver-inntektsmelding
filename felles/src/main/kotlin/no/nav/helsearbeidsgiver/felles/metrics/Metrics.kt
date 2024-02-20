@@ -7,13 +7,18 @@ import kotlin.reflect.KFunction
 object Metrics {
     val dbAapenIm = databaseMetric("inntektsmelding", "aapen_inntektsmelding")
 
+    val dbAapenSak = databaseMetric("notifikasjon", "selvbestemt_sak")
+
+    val agNotifikasjonRequest = requestMetric("AG-notifikasjon")
+
     val altinnRequest = requestMetric("Altinn")
+
+    val dokArkivRequest = requestMetric("DokArkiv")
 
     val pdlRequest = requestMetric("PDL")
 }
 
 fun <T> Summary.recordTime(fnToRecord: KFunction<*>, block: suspend () -> T): T {
-    // Bruk av `labels` krever at `labelNames` er satt på Summary.
     val requestTimer: Summary.Timer = labels(fnToRecord.name).startTimer()
 
     return runBlocking { block() }

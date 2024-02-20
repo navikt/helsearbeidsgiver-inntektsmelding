@@ -9,6 +9,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.helsearbeidsgiver.felles.db.test.exposed.FunSpecWithDb
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.ForespoerselEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database

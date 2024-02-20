@@ -5,7 +5,6 @@ import no.nav.helsearbeidsgiver.felles.oauth2.AzureOAuth2Environment
 
 fun setUpEnvironment(): Environment {
     return Environment(
-        raw = System.getenv(),
         notifikasjonUrl = getEnvVar("ARBEIDSGIVER_NOTIFIKASJON_API_URL"),
         linkUrl = getEnvVar("LINK_URL"),
         AzureOAuth2Environment(
@@ -24,7 +23,6 @@ fun setUpEnvironment(): Environment {
 }
 
 data class Environment(
-    val raw: Map<String, String>,
     val notifikasjonUrl: String,
     val linkUrl: String,
     val azureOAuthEnvironment: AzureOAuth2Environment,

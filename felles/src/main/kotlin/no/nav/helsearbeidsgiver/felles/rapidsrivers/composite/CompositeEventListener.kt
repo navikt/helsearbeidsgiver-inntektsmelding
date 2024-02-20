@@ -76,6 +76,14 @@ abstract class CompositeEventListener : River.PacketListener {
             val meldingMedRedisData = getAllRedisData(transaksjonId) + melding
 
             return when {
+                !startKeys.all(meldingMedRedisData::containsKey) -> {
+                    "'startKeys' mangler, enten pga. Redis-timeout eller feil i melding fra im-api.".also {
+                        logger.error(it)
+                        sikkerLogger.error(it)
+                    }
+                    Unit
+                }
+
                 fail != null -> {
                     sikkerLogger.error("Feilmelding er '${fail.feilmelding}'. Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
                     onError(meldingMedRedisData, fail)
@@ -104,7 +112,7 @@ abstract class CompositeEventListener : River.PacketListener {
                     }
                 }
 
-                isAllDataCollected(transaksjonId) -> {
+                dataKeys.all(meldingMedRedisData::containsKey) -> {
                     finalize(meldingMedRedisData)
                 }
 
@@ -117,10 +125,7 @@ abstract class CompositeEventListener : River.PacketListener {
 
     private fun isEventMelding(melding: Map<Key, JsonElement>): Boolean =
         melding[Key.EVENT_NAME] != null &&
-            melding.keys.intersect(setOf(Key.BEHOV, Key.DATA, Key.FAIL)).isEmpty()
-
-    fun isDataCollected(keys: Set<RedisKey>): Boolean =
-        redisStore.exist(keys) == keys.size.toLong()
+            setOf(Key.BEHOV, Key.DATA, Key.FAIL).none(melding::containsKey)
 
     private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
         val allDataKeys = (startKeys + dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
@@ -136,26 +141,7 @@ abstract class CompositeEventListener : River.PacketListener {
             .mapValuesNotNull { value ->
                 // Midlertidig fiks for strenger som ikke lagres som JSON i Redis.
                 runCatching {
-                    val json = value.parseJson()
-
-                    // Strenger uten mellomrom parses OK, men klarer ikke leses som streng
-                    if (json is JsonPrimitive) {
-                        if (
-                            json is JsonNull ||
-                            json.isString ||
-                            json.booleanOrNull != null ||
-                            json.intOrNull != null ||
-                            json.longOrNull != null ||
-                            json.doubleOrNull != null ||
-                            json.floatOrNull != null
-                        ) {
-                            json
-                        } else {
-                            "\"$value\"".parseJson()
-                        }
-                    } else {
-                        json
-                    }
+                    parse(value)
                 }
                     // Strenger med mellomrom ender her
                     .recoverCatching {
@@ -168,11 +154,30 @@ abstract class CompositeEventListener : River.PacketListener {
                     }
             }
     }
+}
 
-    private fun isAllDataCollected(transaksjonId: UUID): Boolean {
-        val allKeys = dataKeys.map { RedisKey.of(transaksjonId, it) }.toSet()
-        val numKeysInRedis = redisStore.exist(allKeys)
-        logger.info("found " + numKeysInRedis)
-        return numKeysInRedis == dataKeys.size.toLong()
+fun parse(value: String): JsonElement {
+    val json = value.parseJson()
+
+    // Strenger uten mellomrom parses OK, men klarer ikke leses som streng
+    return if (json is JsonPrimitive) {
+        if (
+            json is JsonNull ||
+            json.isString ||
+            json.booleanOrNull != null
+        ) {
+            json
+        } else if (
+            json.intOrNull != null ||
+            json.longOrNull != null ||
+            json.doubleOrNull != null ||
+            json.floatOrNull != null
+        ) {
+            "\"${json.content}\"".parseJson()
+        } else {
+            "\"$value\"".parseJson()
+        }
+    } else {
+        json
     }
 }

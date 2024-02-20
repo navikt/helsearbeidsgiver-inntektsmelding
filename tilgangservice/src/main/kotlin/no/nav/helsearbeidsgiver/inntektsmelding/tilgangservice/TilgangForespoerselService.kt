@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
 
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -9,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -45,7 +47,7 @@ class TilgangForespoerselService(
         Key.FNR
     )
     override val dataKeys = listOf(
-        Key.ORGNRUNDERENHET,
+        Key.FORESPOERSEL_SVAR,
         Key.TILGANG
     )
 
@@ -67,13 +69,13 @@ class TilgangForespoerselService(
         ) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.HENT_IM_ORGNR.toJson(),
+                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson()
             )
                 .also {
                     MdcUtils.withLogFields(
-                        Log.behov(BehovType.HENT_IM_ORGNR)
+                        Log.behov(BehovType.HENT_TRENGER_IM)
                     ) {
                         sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                     }
@@ -91,27 +93,17 @@ class TilgangForespoerselService(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId)
         ) {
-            val orgnrKey = RedisKey.of(transaksjonId, Key.ORGNRUNDERENHET)
+            if (Key.FORESPOERSEL_SVAR in melding) {
+                val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+                val avsenderFnr = Key.FNR.les(String.serializer(), melding)
 
-            if (isDataCollected(setOf(orgnrKey))) {
-                val orgnr = orgnrKey.read()
-
-                val fnr = RedisKey.of(transaksjonId, Key.FNR)
-                    .read()
-                if (orgnr == null || fnr == null) {
-                    "Klarte ikke lese orgnr og / eller fnr fra Redis.".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                    return
-                }
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
                     Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                     Key.UUID to transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to orgnr.toJson(),
-                    Key.FNR to fnr.toJson()
+                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                    Key.FNR to avsenderFnr.toJson()
                 )
                     .also {
                         MdcUtils.withLogFields(
@@ -141,11 +133,12 @@ class TilgangForespoerselService(
                 Log.clientId(clientId),
                 Log.transaksjonId(transaksjonId)
             ) {
-                val tilgang = RedisKey.of(transaksjonId, Key.TILGANG).read()
+                val tilgang = Key.TILGANG.les(Tilgang.serializer(), melding)
+
                 val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 
                 val tilgangJson = TilgangData(
-                    tilgang = tilgang?.fromJson(Tilgang.serializer()),
+                    tilgang = tilgang,
                     feil = feil?.fromJson(FeilReport.serializer())
                 )
                     .toJson(TilgangData.serializer())
@@ -160,7 +153,7 @@ class TilgangForespoerselService(
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
         val manglendeDatafelt = when (utloesendeBehov) {
-            BehovType.HENT_IM_ORGNR -> Key.ORGNRUNDERENHET
+            BehovType.HENT_TRENGER_IM -> Key.FORESPOERSEL_SVAR
             BehovType.TILGANGSKONTROLL -> Key.TILGANG
             else -> null
         }
@@ -184,7 +177,12 @@ class TilgangForespoerselService(
         if (clientId == null) {
             sikkerLogger.error("$event forsøkt terminert, kunne ikke finne ${fail.transaksjonId} i redis!")
         } else {
-            RedisKey.of(clientId).write(feilReport.toJson(FeilReport.serializer()))
+            val tilgangJson = TilgangData(
+                feil = feilReport
+            )
+                .toJson(TilgangData.serializer())
+
+            RedisKey.of(clientId).write(tilgangJson)
 
             MdcUtils.withLogFields(
                 Log.klasse(this),

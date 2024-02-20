@@ -104,11 +104,11 @@ class TilgangOrgService(
                 Log.clientId(clientId),
                 Log.transaksjonId(transaksjonId)
             ) {
-                val tilgang = RedisKey.of(transaksjonId, Key.TILGANG).read()
+                val tilgang = Key.TILGANG.les(Tilgang.serializer(), melding)
                 val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 
                 val tilgangJson = TilgangData(
-                    tilgang = tilgang?.fromJson(Tilgang.serializer()),
+                    tilgang = tilgang,
                     feil = feil?.fromJson(FeilReport.serializer())
                 )
                     .toJson(TilgangData.serializer())
@@ -141,7 +141,12 @@ class TilgangOrgService(
         if (clientId == null) {
             sikkerLogger.error("$event forsøkt terminert, kunne ikke finne ${fail.transaksjonId} i redis!")
         } else {
-            RedisKey.of(clientId).write(feilReport.toJson(FeilReport.serializer()))
+            val tilgangJson = TilgangData(
+                feil = feilReport
+            )
+                .toJson(TilgangData.serializer())
+
+            RedisKey.of(clientId).write(tilgangJson)
 
             MdcUtils.withLogFields(
                 Log.klasse(this),

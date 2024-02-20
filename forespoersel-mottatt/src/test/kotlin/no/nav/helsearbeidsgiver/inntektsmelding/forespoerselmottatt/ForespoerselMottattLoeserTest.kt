@@ -67,9 +67,7 @@ class ForespoerselMottattLoeserTest : FunSpec({
             Pri.Key.FORESPOERSEL_ID to "ikke en uuid".toJson()
         )
 
-        testRapid.sendJson(
-            *expectedRepublisert.toList().toTypedArray()
-        )
+        testRapid.sendJson(expectedRepublisert)
 
         testRapid.inspektør.size shouldBeExactly 0
 

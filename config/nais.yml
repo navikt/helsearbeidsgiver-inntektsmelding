@@ -56,7 +56,7 @@ spec:
   {{#if database}}
   gcp:
     sqlInstances:
-      - type: {{#if databaseVersion}}{{ databaseVersion }}{{else}}POSTGRES_15{{/if}}
+      - type: POSTGRES_14
         databases:
           - name: {{ database }}
   {{/if}}

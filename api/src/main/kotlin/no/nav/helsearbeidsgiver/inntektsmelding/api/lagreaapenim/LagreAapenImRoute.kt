@@ -10,6 +10,7 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -29,6 +30,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 // TODO test
@@ -39,40 +41,53 @@ fun Route.lagreAapenImRoute(
 ) {
     val producer = LagreAapenImProducer(rapid)
 
-    post(Routes.AAPEN_INNTEKTMELDING) {
-        val aapenId: UUID = UUID.randomUUID()
+    post(Routes.AAPEN_INNTEKTMELDING_MED_VALGFRI_ID) {
+        val aapenIdFraPath = call.parameters["aapenId"]
+            ?.runCatching(UUID::fromString)
+            ?.getOrNull()
+
+        val aapenId: UUID = aapenIdFraPath.orDefault(UUID.randomUUID())
 
         MdcUtils.withLogFields(
-            Log.apiRoute(Routes.AAPEN_INNTEKTMELDING),
+            Log.apiRoute(Routes.AAPEN_INNTEKTMELDING_MED_VALGFRI_ID),
             Log.aapenId(aapenId)
         ) {
             val skjema = lesRequestOrNull()
-            if (skjema == null) {
-                respondBadRequest(JsonErrorResponse(inntektsmeldingId = aapenId), JsonErrorResponse.serializer())
-            } else if (!skjema.erGyldig()) {
-                "Fikk valideringsfeil.".also {
-                    logger.info(it)
-                    sikkerLogger.info(it)
+            when {
+                skjema == null -> {
+                    respondBadRequest(JsonErrorResponse(inntektsmeldingId = aapenId), JsonErrorResponse.serializer())
                 }
-
-                // TODO returner (og logg) mer utfyllende feil
-                respondBadRequest("Valideringsfeil. Mer utfyllende feil må implementeres.", String.serializer())
-            } else {
-                tilgangskontroll.validerTilgangTilOrg(call.request, aapenId, skjema.avsender.orgnr)
-
-                val avsenderFnr = call.request.lesFnrFraAuthToken()
-
-                val clientId = producer.publish(aapenId, avsenderFnr, skjema)
-
-                MdcUtils.withLogFields(
-                    Log.clientId(clientId)
-                ) {
-                    runCatching {
-                        redisPoller.hent(clientId)
+                !skjema.erGyldig() -> {
+                    "Fikk valideringsfeil.".also {
+                        logger.info(it)
+                        sikkerLogger.info(it)
                     }
-                        .let {
-                            sendResponse(aapenId, it)
+
+                    // TODO returner (og logg) mer utfyllende feil
+                    respondBadRequest("Valideringsfeil. Mer utfyllende feil må implementeres.", String.serializer())
+                }
+                (skjema.aarsakInnsending == AarsakInnsending.Ny && aapenIdFraPath != null) ||
+                    (skjema.aarsakInnsending == AarsakInnsending.Endring && aapenIdFraPath == null) -> {
+                    // TODO returner (og logg) mer utfyllende feil
+                    respondBadRequest("Valideringsfeil pga. stiparameter. Mer utfyllende feil må implementeres.", String.serializer())
+                }
+                else -> {
+                    tilgangskontroll.validerTilgangTilOrg(call.request, aapenId, skjema.avsender.orgnr)
+
+                    val avsenderFnr = call.request.lesFnrFraAuthToken()
+
+                    val clientId = producer.publish(aapenId, avsenderFnr, skjema)
+
+                    MdcUtils.withLogFields(
+                        Log.clientId(clientId)
+                    ) {
+                        runCatching {
+                            redisPoller.hent(clientId)
                         }
+                            .let {
+                                sendResponse(aapenId, it)
+                            }
+                    }
                 }
             }
         }

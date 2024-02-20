@@ -1,7 +1,6 @@
 kafkaPool: nav-dev
 azure:
   enabled: true
-ingress: https://helsearbeidsgiver-im-notifikasjon.intern.dev.nav.no
 database: notifikasjon
 envFrom:
   - type: secret

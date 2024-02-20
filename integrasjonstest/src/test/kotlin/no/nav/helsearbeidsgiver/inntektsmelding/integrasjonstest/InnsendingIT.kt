@@ -84,14 +84,6 @@ class InnsendingIT : EndToEndTest() {
             }
 
         messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
-            .filter(BehovType.JOURNALFOER)
-            .firstAsMap()
-            .also {
-                // Journalført i dokarkiv
-                it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-            }
-
-        messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
             .also {

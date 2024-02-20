@@ -2,10 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.Database
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentAapenImRiver
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentOrgnrLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreAapenImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternInntektsmeldingLoeser
@@ -20,7 +19,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 private val logger = "helsearbeidsgiver-im-db".logger()
 
 fun main() {
-    val database = Database(Database.Secrets("NAIS_DATABASE_IM_DB_INNTEKTSMELDING"))
+    val database = Database("NAIS_DATABASE_IM_DB_INNTEKTSMELDING")
 
     logger.info("Migrering starter...")
     database.migrate()
@@ -63,9 +62,6 @@ fun RapidsConnection.createDbRivers(
 
         logger.info("Starter ${PersisterOppgaveLoeser::class.simpleName}...")
         PersisterOppgaveLoeser(this, forespoerselRepo)
-
-        logger.info("Starter ${HentOrgnrLoeser::class.simpleName}...")
-        HentOrgnrLoeser(this, forespoerselRepo)
 
         logger.info("Starter ${NotifikasjonHentIdLoeser::class.simpleName}...")
         NotifikasjonHentIdLoeser(this, forespoerselRepo)

@@ -2,18 +2,20 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerData
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -23,41 +25,34 @@ class TrengerIT : EndToEndTest() {
 
     @Test
     fun `Test trengerIM meldingsflyt`() {
-        var transactionId: UUID
+        val transaksjonId: UUID = UUID.randomUUID()
 
-        publish(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.CLIENT_ID to Mock.clientId.toJson(UuidSerializer),
-            Key.ARBEIDSGIVER_ID to "12345678910".toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
+        mockForespoerselSvarFraHelsebro(
+            eventName = EventName.TRENGER_REQUESTED,
+            transaksjonId = transaksjonId,
+            forespoerselId = Mock.forespoerselId,
+            forespoersel = mockTrengerInntekt()
         )
 
-        waitForMessages(10000)
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns transaksjonId
+
+            publish(
+                Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+                Key.CLIENT_ID to Mock.clientId.toJson(UuidSerializer),
+                Key.ARBEIDSGIVER_ID to "12345678910".toJson(),
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
+            )
+
+            waitForMessages(10000)
+        }
 
         messages.filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .let {
                 // Ble lagret i databasen
-                transactionId = it[Key.UUID].shouldNotBeNull().fromJson(UuidSerializer)
-            }
-
-        publish(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.DATA to "".toJson(),
-            Key.UUID to transactionId.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer),
-            Key.FORESPOERSEL_SVAR to mockTrengerInntekt().toJson(TrengerInntekt.serializer())
-        )
-
-        waitForMessages(12000)
-
-        messages.filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.HENT_TRENGER_IM)
-            .firstAsMap()
-            .let {
-                // Ble lagret i databasen
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transactionId
+                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
         messages.filter(EventName.TRENGER_REQUESTED)
@@ -65,7 +60,7 @@ class TrengerIT : EndToEndTest() {
             .firstAsMap()
             .let {
                 // Ble lagret i databasen
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transactionId
+                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
         messages.filter(EventName.TRENGER_REQUESTED)
@@ -73,7 +68,7 @@ class TrengerIT : EndToEndTest() {
             .firstAsMap()
             .let {
                 // Ble lagret i databasen
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transactionId
+                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
         messages.filter(EventName.TRENGER_REQUESTED)
@@ -81,7 +76,7 @@ class TrengerIT : EndToEndTest() {
             .firstAsMap()
             .let {
                 // Ble lagret i databasen
-                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transactionId
+                it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
         val trengerData = redisStore.get(RedisKey.of(Mock.clientId))?.fromJson(TrengerData.serializer())

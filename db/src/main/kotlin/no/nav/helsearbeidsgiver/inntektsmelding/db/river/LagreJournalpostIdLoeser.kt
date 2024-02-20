@@ -55,15 +55,22 @@ class LagreJournalpostIdLoeser(
             val event = Key.EVENT_NAME.les(EventName.serializer(), melding)
             val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
-            val forespoerselId = behov.forespoerselId!!.let(UUID::fromString)
+            val forespoerselId = behov.forespoerselId?.let(UUID::fromString)
 
-            MdcUtils.withLogFields(
-                Log.event(event),
-                Log.transaksjonId(transaksjonId),
-                Log.forespoerselId(forespoerselId)
-            ) {
-                val journalpostId = Key.JOURNALPOST_ID.lesOrNull(String.serializer(), melding)
-                lagreJournalpostId(behov, journalpostId, forespoerselId, transaksjonId)
+            if (forespoerselId != null) {
+                MdcUtils.withLogFields(
+                    Log.event(event),
+                    Log.transaksjonId(transaksjonId),
+                    Log.forespoerselId(forespoerselId)
+                ) {
+                    val journalpostId = Key.JOURNALPOST_ID.lesOrNull(String.serializer(), melding)
+                    lagreJournalpostId(behov, journalpostId, forespoerselId, transaksjonId)
+                }
+            } else {
+                "Klarte ikke lagre journalpost-ID. Melding mangler forespørsel-ID.".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
+                }
             }
         }
     }

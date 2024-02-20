@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail.Companion.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -40,7 +39,7 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     abstract fun onBehov(behov: Behov)
 
     fun publishFail(fail: Fail) {
-        rapidsConnection.publish(fail)
+        rapidsConnection.publish(fail.tilMelding())
             .also {
                 logger.info("Publiserte feil for eventname '${fail.event.name}'.")
                 sikkerLogger.info("Publiserte feil:\n${it.toPretty()}")

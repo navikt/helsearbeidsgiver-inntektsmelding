@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.AapenImRepo
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
@@ -48,45 +47,38 @@ class LagreAapenImRiver(
             )
         }
 
-    override fun LagreAapenImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> =
-        MdcUtils.withLogFields(
-            Log.klasse(this),
-            Log.event(eventName),
-            Log.behov(behovType),
-            Log.transaksjonId(transaksjonId),
-            Log.aapenId(aapenInntektsmelding.id)
-        ) {
-            "Skal lagre åpen inntektsmelding.".also {
+    override fun LagreAapenImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+        "Skal lagre åpen inntektsmelding.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
+        }
+
+        val nyesteIm = aapenImRepo.hentNyesteIm(aapenInntektsmelding.id)
+
+        val erDuplikat = nyesteIm?.erDuplikatAv(aapenInntektsmelding).orDefault(false)
+
+        if (!erDuplikat) {
+            aapenImRepo.lagreIm(aapenInntektsmelding)
+
+            "Lagret åpen inntektsmelding.".also {
                 logger.info(it)
                 sikkerLogger.info(it)
             }
-
-            val nyesteIm = aapenImRepo.hentNyesteIm(aapenInntektsmelding.id)
-
-            val erDuplikat = nyesteIm?.erDuplikatAv(aapenInntektsmelding).orDefault(false)
-
-            if (!erDuplikat) {
-                aapenImRepo.lagreIm(aapenInntektsmelding)
-
-                "Lagret åpen inntektsmelding.".also {
-                    logger.info(it)
-                    sikkerLogger.info(it)
-                }
-            } else {
-                "Lagret _ikke_ åpen inntektsmelding pga. duplikat.".also {
-                    logger.info(it)
-                    sikkerLogger.info(it)
-                }
+        } else {
+            "Lagret _ikke_ åpen inntektsmelding pga. duplikat.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
             }
-
-            mapOf(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                Key.AAPEN_INNTEKTMELDING to aapenInntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
-            )
         }
+
+        return mapOf(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.AAPEN_INNTEKTMELDING to aapenInntektsmelding.toJson(Inntektsmelding.serializer()),
+            Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
+        )
+    }
 
     override fun LagreAapenImMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
         val fail = Fail(
@@ -100,13 +92,19 @@ class LagreAapenImRiver(
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return mapOf(
-            Key.FAIL to fail.toJson(Fail.serializer()),
-            Key.EVENT_NAME to fail.event.toJson(),
-            Key.UUID to fail.transaksjonId.toJson(),
-            Key.AAPEN_ID to aapenInntektsmelding.id.toJson()
-        )
+        return fail.tilMelding()
+            .minus(Key.FORESPOERSEL_ID)
+            .plus(Key.AAPEN_ID to aapenInntektsmelding.id.toJson())
     }
+
+    override fun LagreAapenImMelding.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this),
+            Log.event(eventName),
+            Log.behov(behovType),
+            Log.transaksjonId(transaksjonId),
+            Log.aapenId(aapenInntektsmelding.id)
+        )
 }
 
 private fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =

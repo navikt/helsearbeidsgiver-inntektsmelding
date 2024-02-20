@@ -87,18 +87,16 @@ class OpprettAapenSakRiver(
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return mapOf(
-            Key.FAIL to fail.toJson(Fail.serializer()),
-            Key.EVENT_NAME to fail.event.toJson(),
-            Key.UUID to fail.transaksjonId.toJson(),
-            Key.AAPEN_ID to inntektsmelding.id.toJson()
-        )
+        return fail.tilMelding()
+            .minus(Key.FORESPOERSEL_ID)
+            .plus(Key.AAPEN_ID to inntektsmelding.id.toJson())
     }
 
     override fun OpprettAapenSakMelding.loggfelt(): Map<String, String> =
         mapOf(
             Log.klasse(this),
             Log.event(eventName),
+            Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
             Log.aapenId(inntektsmelding.id)
         )

@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.felles.db.exposed.firstOrNull
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.firstOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.AapenInntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Query
@@ -26,11 +26,11 @@ class AapenImRepo(private val db: Database) {
             }
         }
 
-    fun lagreIm(aapenId: UUID, im: Inntektsmelding) {
+    fun lagreIm(im: Inntektsmelding) {
         Metrics.dbAapenIm.recordTime(::lagreIm.name) {
             transaction(db) {
                 AapenInntektsmeldingEntitet.insert {
-                    it[this.aapenId] = aapenId
+                    it[aapenId] = im.id
                     it[inntektsmelding] = im
                 }
             }

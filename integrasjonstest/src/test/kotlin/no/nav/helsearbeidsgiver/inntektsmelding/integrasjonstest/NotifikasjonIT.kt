@@ -27,7 +27,7 @@ class NotifikasjonIT : EndToEndTest() {
     @Test
     fun `Oppretter og lagrer sak etter at forespørselen er mottatt`() {
         coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
+            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
         } returns Mock.SAK_ID
 
         publish(
@@ -137,7 +137,7 @@ class NotifikasjonIT : EndToEndTest() {
         var transactionId: UUID
 
         coEvery {
-            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any())
+            arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
         } returns Mock.SAK_ID
 
         publish(

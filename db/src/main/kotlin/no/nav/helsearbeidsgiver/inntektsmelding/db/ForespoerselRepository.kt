@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.prometheus.client.Summary
-import no.nav.helsearbeidsgiver.inntektsmelding.db.config.firstOrNull
+import no.nav.helsearbeidsgiver.felles.db.exposed.firstOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.ForespoerselEntitet
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
@@ -71,18 +71,6 @@ class ForespoerselRepository(private val db: Database) {
                 .selectAll()
                 .where { ForespoerselEntitet.forespoerselId eq forespoerselId.toString() }
                 .firstOrNull(ForespoerselEntitet.sakId)
-        }.also {
-            requestTimer.observeDuration()
-        }
-    }
-
-    fun hentOrgnr(forespoerselId: UUID): String? {
-        val requestTimer = requestLatency.labels("hentOrgnr").startTimer()
-        return transaction(db) {
-            ForespoerselEntitet
-                .selectAll()
-                .where { ForespoerselEntitet.forespoerselId eq forespoerselId.toString() }
-                .firstOrNull(ForespoerselEntitet.orgnr)
         }.also {
             requestTimer.observeDuration()
         }

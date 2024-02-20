@@ -22,6 +22,9 @@ fun main() {
 
 fun RapidsConnection.createAapenImService(redisStore: RedisStore): RapidsConnection =
     also {
-        logger.info("Starter ${AapenImService::class.simpleName}...")
-        AapenImService(this, redisStore)
+        logger.info("Starter ${HentAapenImService::class.simpleName}...")
+        HentAapenImService(this, redisStore)
+
+        logger.info("Starter ${LagreAapenImService::class.simpleName}...")
+        LagreAapenImService(this, redisStore)
     }

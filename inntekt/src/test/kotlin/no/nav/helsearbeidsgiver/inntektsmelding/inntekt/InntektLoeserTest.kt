@@ -63,7 +63,7 @@ class InntektLoeserTest : FunSpec({
             )
         )
 
-        testRapid.sendJson(*mockInnkommendeMelding())
+        testRapid.sendJson(mockInnkommendeMelding())
 
         val publisert = testRapid.firstMessage().toMap()
 
@@ -97,7 +97,7 @@ class InntektLoeserTest : FunSpec({
             )
         )
 
-        testRapid.sendJson(*mockInnkommendeMelding())
+        testRapid.sendJson(mockInnkommendeMelding())
 
         val publisert = testRapid.firstMessage().toMap()
 
@@ -135,7 +135,7 @@ class InntektLoeserTest : FunSpec({
             )
         )
 
-        testRapid.sendJson(*mockInnkommendeMelding())
+        testRapid.sendJson(mockInnkommendeMelding())
 
         val publisert = testRapid.firstMessage().toMap()
 
@@ -163,7 +163,7 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         } returns emptyMap()
 
-        testRapid.sendJson(*mockInnkommendeMelding())
+        testRapid.sendJson(mockInnkommendeMelding())
 
         val publisert = testRapid.firstMessage().toMap()
 
@@ -180,9 +180,7 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         } returns emptyMap()
 
-        val innkommendeMelding = mockInnkommendeMelding()
-
-        testRapid.sendJson(*innkommendeMelding)
+        testRapid.sendJson(mockInnkommendeMelding())
 
         coVerifySequence {
             inntektKlient.hentInntektPerOrgnrOgMaaned(
@@ -200,7 +198,7 @@ class InntektLoeserTest : FunSpec({
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
         } throws RuntimeException()
 
-        testRapid.sendJson(*mockInnkommendeMelding())
+        testRapid.sendJson(mockInnkommendeMelding())
 
         coVerifySequence {
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
@@ -234,7 +232,7 @@ class InntektLoeserTest : FunSpec({
 
         every { mockInntektPerOgnrOgMaaned[any()] } throws RuntimeException()
 
-        testRapid.sendJson(*mockInnkommendeMelding())
+        testRapid.sendJson(mockInnkommendeMelding())
 
         coVerifySequence {
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
@@ -253,8 +251,8 @@ private object Mock {
     val skjaeringstidspunkt = 14.april
 }
 
-private fun mockInnkommendeMelding(): Array<Pair<Key, JsonElement>> =
-    arrayOf(
+private fun mockInnkommendeMelding(): Map<Key, JsonElement> =
+    mapOf(
         Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
         Key.BEHOV to BehovType.INNTEKT.toJson(),
         Key.UUID to Mock.uuid.toJson(),

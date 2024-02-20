@@ -50,7 +50,7 @@ class MessagesTest : FunSpec({
     }
 
     test("finner ikke manglende melding for behov") {
-        Mock.meldingerMedBehov.filter(BehovType.HENT_IM_ORGNR)
+        Mock.meldingerMedBehov.filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
             .all()
             .shouldBeEmpty()
     }

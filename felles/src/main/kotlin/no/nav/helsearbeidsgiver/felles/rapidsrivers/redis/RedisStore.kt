@@ -35,13 +35,6 @@ class RedisStore(redisUrl: String) {
             }
     }
 
-    fun exist(keys: Set<RedisKey>): Long {
-        val keysAsString = keys.map { it.toString() }.toTypedArray()
-        val count = syncCommands.exists(*keysAsString)
-        sikkerLogger.debug("Checking exist in redis: $keys -> $count")
-        return count
-    }
-
     fun shutdown() {
         logger.info("Stoppsignal mottatt, lukker Redis-tilkobling.")
         connection.close()

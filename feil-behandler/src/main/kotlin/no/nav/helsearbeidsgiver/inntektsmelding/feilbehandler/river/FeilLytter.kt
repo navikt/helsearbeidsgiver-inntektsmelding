@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 
-import kotlinx.serialization.serializer
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbRepository
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus

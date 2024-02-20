@@ -6,9 +6,12 @@ import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-fun TestRapid.sendJson(vararg keyValuePairs: Pair<IKey, JsonElement>) {
-    keyValuePairs.toMap()
-        .mapKeys { (key, _) -> key.toString() }
+fun <K : IKey> TestRapid.sendJson(vararg messageFields: Pair<K, JsonElement>) {
+    sendJson(messageFields.toMap())
+}
+
+fun <K : IKey> TestRapid.sendJson(messageFields: Map<K, JsonElement>) {
+    messageFields.mapKeys { (key, _) -> key.toString() }
         .toJson()
         .toString()
         .let(this::sendTestMessage)

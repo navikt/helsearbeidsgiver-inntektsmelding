@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDate
 import java.util.UUID
 
+// TODO slett etter overgangsperiode
 class JournalfoerInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
     private val dokarkivClient: DokArkivClient

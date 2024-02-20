@@ -49,7 +49,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
-import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJoark
+import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
@@ -195,7 +195,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createMarkerForespoerselBesvart(mockPriProducer)
             createHelsebro(mockPriProducer)
             createInntekt(mockk(relaxed = true))
-            createJoark(dokarkivClient)
+            createJournalfoerImRiver(dokarkivClient)
             createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
             createEksternInntektsmeldingLoeser(spinnKlient)

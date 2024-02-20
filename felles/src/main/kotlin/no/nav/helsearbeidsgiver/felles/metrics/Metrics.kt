@@ -26,6 +26,12 @@ object Metrics {
         .help("Latency (i sek.) for Fager-arbeidsgivernotifikasjonsklient.")
         .labelNames("method")
         .register()
+
+    val dokArkivRequest: Summary = Summary.build()
+        .name("simba_dokarkiv_latency_seconds")
+        .help("Latency (i sek.) for dokarkiv-klient.")
+        .labelNames("method")
+        .register()
 }
 
 /** Bruk av [label] krever at `labelNames` er satt på [Summary]. */

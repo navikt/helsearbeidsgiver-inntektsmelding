@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.UUID
 
 class ManuellOpprettSakService(
     private val rapid: RapidsConnection,
@@ -30,11 +29,11 @@ class ManuellOpprettSakService(
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.MANUELL_OPPRETT_SAK_REQUESTED
-    override val startKeys = listOf(
+    override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.UUID
     )
-    override val dataKeys = listOf(
+    override val dataKeys = setOf(
         Key.FORESPOERSEL_SVAR,
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.SAK_ID,
@@ -46,9 +45,9 @@ class ManuellOpprettSakService(
     private val step4Keys = setOf(Key.SAK_ID)
 
     init {
-        StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
-        StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
-        FailKanal(rapid, event, ::onPacket)
+        StatefullEventListener(event, startKeys, rapid, redisStore, ::onPacket)
+        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
+        FailKanal(event, rapid, ::onPacket)
     }
 
     override fun new(melding: Map<Key, JsonElement>) {

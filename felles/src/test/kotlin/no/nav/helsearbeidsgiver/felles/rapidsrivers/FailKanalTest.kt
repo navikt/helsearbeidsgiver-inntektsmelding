@@ -22,7 +22,7 @@ class FailKanalTest {
     private val mockPacketListener = mockk<River.PacketListener>(relaxed = true)
 
     init {
-        FailKanal(testRapid, EventName.INSENDING_STARTED, mockPacketListener::onPacket)
+        FailKanal(EventName.INSENDING_STARTED, testRapid, mockPacketListener::onPacket)
     }
 
     @BeforeEach

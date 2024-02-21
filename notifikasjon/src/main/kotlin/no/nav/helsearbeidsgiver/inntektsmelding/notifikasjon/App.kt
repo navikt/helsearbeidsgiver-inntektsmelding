@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 private val logger = "im-notifikasjon".logger()
 
 fun main() {
-    val env = setUpEnvironment()
+    val redisStore = RedisStore(Env.redisUrl)
 
     val database = Database("NAIS_DATABASE_IM_NOTIFIKASJON_NOTIFIKASJON")
 
@@ -36,12 +36,14 @@ fun main() {
     RapidApplication
         .create(System.getenv())
         .createNotifikasjonRivers(
-            env.linkUrl,
+            Env.linkUrl,
             aapenRepo,
-            RedisStore(env.redisUrl),
-            buildClient(env)
+            redisStore,
+            buildClient()
         )
         .registerShutdownLifecycle {
+            redisStore.shutdown()
+
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
             database.dataSource.close()
         }
@@ -86,7 +88,7 @@ fun RapidsConnection.createNotifikasjonRivers(
         OpprettAapenSakRiver(linkUrl, aapenRepo, arbeidsgiverNotifikasjonKlient).connect(this)
     }
 
-fun buildClient(environment: Environment): ArbeidsgiverNotifikasjonKlient {
-    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return ArbeidsgiverNotifikasjonKlient(environment.notifikasjonUrl, tokenProvider::getToken)
+private fun buildClient(): ArbeidsgiverNotifikasjonKlient {
+    val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
+    return ArbeidsgiverNotifikasjonKlient(Env.notifikasjonUrl, tokenProvider::getToken)
 }

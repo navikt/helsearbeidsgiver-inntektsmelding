@@ -43,7 +43,7 @@ class AltinnRiver(
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val rettigheterForenklet =
-            Metrics.altinnRequest.recordTime {
+            Metrics.altinnRequest.recordTime(altinnClient::hentRettighetOrganisasjoner) {
                 altinnClient
                     .hentRettighetOrganisasjoner(identitetsnummer)
                     .mapNotNull { it.orgnr }

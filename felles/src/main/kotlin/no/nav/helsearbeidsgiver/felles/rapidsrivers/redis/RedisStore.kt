@@ -3,9 +3,11 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 import io.lettuce.core.RedisClient
 import io.lettuce.core.SetArgs
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class RedisStore(redisUrl: String) {
+    private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     private val redisClient = redisUrl.let(RedisClient::create)
@@ -34,6 +36,7 @@ class RedisStore(redisUrl: String) {
     }
 
     fun shutdown() {
+        logger.info("Stoppsignal mottatt, lukker Redis-tilkobling.")
         connection.close()
         redisClient.shutdown()
     }

@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 
 fun EventName.toJson(): JsonElement =
     toJson(EventName.serializer())
@@ -53,3 +54,6 @@ fun <K : IKey, T : Any> K.krev(krav: T, serializer: KSerializer<T>, melding: Map
             throw IllegalArgumentException("Nøkkel '$this' har verdi '$it', som ikke matcher med påkrevd verdi '$krav'.")
         }
     }
+
+fun Map<Key, JsonElement>.toPretty(): String =
+    toJson().toPretty()

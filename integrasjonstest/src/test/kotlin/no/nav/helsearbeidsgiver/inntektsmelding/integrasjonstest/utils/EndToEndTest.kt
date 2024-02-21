@@ -203,6 +203,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
             createAktiveOrgnrService(redisStore)
         }
             .registerShutdownLifecycle {
+                redisStore.shutdown()
                 inntektsmeldingDatabase.dataSource.close()
             }
             .register(this)

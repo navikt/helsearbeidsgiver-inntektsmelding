@@ -20,6 +20,9 @@ fun RapidsConnection.createPdl(pdlClient: PdlClient): RapidsConnection =
     also {
         logger.info("Starter ${FulltNavnLoeser::class.simpleName}...")
         FulltNavnLoeser(this, pdlClient)
+
+        logger.info("Starter ${HentPersonerRiver::class.simpleName}...")
+        HentPersonerRiver(pdlClient).connect(this)
     }
 
 fun buildClient(environment: Environment): PdlClient {

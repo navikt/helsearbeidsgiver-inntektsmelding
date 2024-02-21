@@ -5,7 +5,6 @@ import no.nav.helsearbeidsgiver.felles.oauth2.AzureOAuth2Environment
 
 fun setUpEnvironment(): Environment {
     return Environment(
-        raw = System.getenv(),
         pdlUrl = getEnvVar("PDL_URL"),
         AzureOAuth2Environment(
             scope = getEnvVar("PROXY_SCOPE"),
@@ -19,7 +18,6 @@ fun setUpEnvironment(): Environment {
 }
 
 data class Environment(
-    val raw: Map<String, String>,
     val pdlUrl: String,
     val azureOAuthEnvironment: AzureOAuth2Environment
 )

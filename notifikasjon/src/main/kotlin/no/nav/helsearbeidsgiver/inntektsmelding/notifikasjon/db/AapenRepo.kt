@@ -24,7 +24,7 @@ class AapenRepo(private val db: Database) {
             sikkerLogger.info(it)
         }
 
-        return Metrics.dbAapenSak.recordTime(::lagreSakId.name) {
+        return Metrics.dbAapenSak.recordTime(::lagreSakId) {
             transaction(db) {
                 AapenSak.insert {
                     it[this.aapenId] = aapenId

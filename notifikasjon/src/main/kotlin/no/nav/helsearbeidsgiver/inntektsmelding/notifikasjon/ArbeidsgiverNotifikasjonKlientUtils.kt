@@ -19,7 +19,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     sykmeldtFoedselsdato: String,
     initiellStatus: SaksStatus = SaksStatus.UNDER_BEHANDLING
 ): String =
-    Metrics.agNotifikasjonRequest.recordTime(::opprettNySak.name) {
+    Metrics.agNotifikasjonRequest.recordTime(::opprettNySak) {
         runBlocking {
             opprettNySak(
                 virksomhetsnummer = orgnr,
@@ -35,7 +35,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     }
 
 fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(sakId: String) {
-    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak.name) {
+    Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
         runBlocking {
             nyStatusSak(
                 id = sakId,

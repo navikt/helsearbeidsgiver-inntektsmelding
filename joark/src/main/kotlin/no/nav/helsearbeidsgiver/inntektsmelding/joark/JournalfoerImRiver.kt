@@ -137,7 +137,7 @@ class JournalfoerImRiver(
             sikkerLogger.info("$it Gjelder IM:\n$inntektsmelding")
         }
 
-        val response = Metrics.dokArkivRequest.recordTime(dokArkivClient::opprettOgFerdigstillJournalpost.name) {
+        val response = Metrics.dokArkivRequest.recordTime(dokArkivClient::opprettOgFerdigstillJournalpost) {
             dokArkivClient.opprettOgFerdigstillJournalpost(
                 tittel = "Inntektsmelding",
                 gjelderPerson = GjelderPerson(inntektsmelding.identitetsnummer),

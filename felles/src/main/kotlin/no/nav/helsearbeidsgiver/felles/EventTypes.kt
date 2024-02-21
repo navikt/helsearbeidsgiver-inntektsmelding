@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class BehovType {
+    PERSONER,
     FULLT_NAVN,
     VIRKSOMHET,
     INNTEKT,

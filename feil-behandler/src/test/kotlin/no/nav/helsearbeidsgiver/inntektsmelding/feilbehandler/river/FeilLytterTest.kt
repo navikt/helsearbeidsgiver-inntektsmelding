@@ -103,7 +103,7 @@ class FeilLytterTest : FunSpec({
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.STOPPET), true).size shouldBe 1
     }
 })
-fun lagRapidFeilmelding(behov: String = "JOURNALFOER"): String {
+fun lagRapidFeilmelding(behov: String = BehovType.LAGRE_JOURNALPOST_ID.name): String {
     return """
         {   "fail": {
                 "feilmelding": "Klarte ikke journalføre",

@@ -30,7 +30,6 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
         BehovType.OPPRETT_SAK,
         BehovType.PERSISTER_OPPGAVE_ID,
         BehovType.PERSISTER_SAK_ID,
-        BehovType.JOURNALFOER,
         BehovType.LAGRE_JOURNALPOST_ID,
         BehovType.NOTIFIKASJON_HENT_ID
     )

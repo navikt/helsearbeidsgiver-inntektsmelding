@@ -55,7 +55,7 @@ fun RapidsConnection.createDbRivers(
         HentPersistertLoeser(this, imRepo)
 
         logger.info("Starter ${LagreJournalpostIdLoeser::class.simpleName}...")
-        LagreJournalpostIdLoeser(this, imRepo)
+        LagreJournalpostIdLoeser(this, imRepo, aapenImRepo)
 
         logger.info("Starter ${PersisterSakLoeser::class.simpleName}...")
         PersisterSakLoeser(this, forespoerselRepo)

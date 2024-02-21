@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullDataKanal
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -41,11 +41,11 @@ class AktiveOrgnrService(
     private val logger = logger()
 
     override val event = EventName.AKTIVE_ORGNR_REQUESTED
-    override val startKeys = listOf(
+    override val startKeys = setOf(
         Key.FNR,
         Key.ARBEIDSGIVER_FNR
     )
-    override val dataKeys = listOf(
+    override val dataKeys = setOf(
         Key.ARBEIDSFORHOLD,
         Key.ORG_RETTIGHETER,
         Key.ARBEIDSTAKER_INFORMASJON,
@@ -58,8 +58,8 @@ class AktiveOrgnrService(
     )
 
     init {
-        StatefullEventListener(rapid, event, redisStore, startKeys, ::onPacket)
-        StatefullDataKanal(rapid, event, redisStore, dataKeys, ::onPacket)
+        StatefullEventListener(event, startKeys, rapid, redisStore, ::onPacket)
+        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
     }
 
     override fun new(melding: Map<Key, JsonElement>) {

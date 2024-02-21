@@ -40,8 +40,8 @@ abstract class CompositeEventListener : River.PacketListener {
 
     abstract val redisStore: RedisStore
     abstract val event: EventName
-    abstract val startKeys: List<Key>
-    abstract val dataKeys: List<Key>
+    abstract val startKeys: Set<Key>
+    abstract val dataKeys: Set<Key>
 
     abstract fun new(melding: Map<Key, JsonElement>)
     abstract fun inProgress(melding: Map<Key, JsonElement>)

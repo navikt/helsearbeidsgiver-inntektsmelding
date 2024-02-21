@@ -16,6 +16,12 @@ import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 fun JsonMessage.toPretty(): String =
     toJson().parseJson().toPretty()
 
+fun JsonMessage.demandKeys(vararg keys: IKey) {
+    keys.forEach {
+        demandKey(it.toString())
+    }
+}
+
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<IKey, String>) {
     keyAndValuePairs.forEach { (key, value) ->
         demandValue(key.str, value)

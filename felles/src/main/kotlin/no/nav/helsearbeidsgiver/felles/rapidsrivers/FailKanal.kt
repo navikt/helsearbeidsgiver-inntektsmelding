@@ -10,8 +10,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 
 class FailKanal(
-    val rapid: RapidsConnection,
     private val event: EventName,
+    rapid: RapidsConnection,
     private val onFail: (JsonMessage, MessageContext) -> Unit
 ) : River.PacketListener {
     init {

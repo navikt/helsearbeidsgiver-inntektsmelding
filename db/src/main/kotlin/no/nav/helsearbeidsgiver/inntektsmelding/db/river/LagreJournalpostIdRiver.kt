@@ -38,7 +38,7 @@ enum class InntektsmeldingType {
     AAPEN
 }
 
-class LagreJournalpostIdLoeser(
+class LagreJournalpostIdRiver(
     private val imRepo: InntektsmeldingRepository,
     private val aapenImRepo: AapenImRepo
 ) : ObjectRiver<LagreJournalpostIdMelding>() {

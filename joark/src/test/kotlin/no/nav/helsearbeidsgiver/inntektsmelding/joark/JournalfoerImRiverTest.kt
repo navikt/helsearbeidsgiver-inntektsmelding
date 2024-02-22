@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -91,6 +92,8 @@ class JournalfoerImRiverTest : FunSpec({
                     .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
             )
 
+            testRapid.inspektør.size shouldBeExactly 1
+
             testRapid.firstMessage()
                 .toMap()
                 .also {
@@ -146,6 +149,8 @@ class JournalfoerImRiverTest : FunSpec({
                     .plus(Key.AAPEN_ID to aapenId.toJson())
             )
 
+            testRapid.inspektør.size shouldBeExactly 1
+
             testRapid.firstMessage()
                 .toMap()
                 .also {
@@ -153,8 +158,8 @@ class JournalfoerImRiverTest : FunSpec({
                     Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_JOURNALPOST_ID
                     Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
                     Key.JOURNALPOST_ID.lesOrNull(String.serializer(), it) shouldBe journalpostId
-                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
                     Key.AAPEN_ID.lesOrNull(UuidSerializer, it) shouldBe aapenId
+                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
                 }
 
             coVerifySequence {
@@ -200,6 +205,8 @@ class JournalfoerImRiverTest : FunSpec({
 
             testRapid.sendJson(innkommendeJsonMap)
 
+            testRapid.inspektør.size shouldBeExactly 1
+
             testRapid.firstMessage()
                 .toMap()
                 .also {
@@ -207,6 +214,7 @@ class JournalfoerImRiverTest : FunSpec({
                     Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
                     Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
                     Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
+                    Key.AAPEN_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
                 }
 
             coVerify(exactly = 0) {
@@ -219,7 +227,7 @@ class JournalfoerImRiverTest : FunSpec({
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
             } throws RuntimeException("dette går itj', nei!")
 
-            val forespoerselId = UUID.randomUUID()
+            val aapenId = UUID.randomUUID()
 
             val innkommendeMelding = JournalfoerImMelding(
                 eventName = EventName.INNTEKTSMELDING_MOTTATT,
@@ -228,17 +236,19 @@ class JournalfoerImRiverTest : FunSpec({
             )
 
             val innkommendeJsonMap = innkommendeMelding.tilMap()
-                .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
+                .plus(Key.AAPEN_ID to aapenId.toJson())
 
             val forventetFail = Fail(
                 feilmelding = "Klarte ikke journalføre.",
                 event = innkommendeMelding.eventName,
                 transaksjonId = innkommendeMelding.transaksjonId,
-                forespoerselId = forespoerselId,
+                forespoerselId = null,
                 utloesendeMelding = innkommendeJsonMap.toJson()
             )
 
             testRapid.sendJson(innkommendeJsonMap)
+
+            testRapid.inspektør.size shouldBeExactly 1
 
             testRapid.firstMessage()
                 .toMap()
@@ -246,7 +256,8 @@ class JournalfoerImRiverTest : FunSpec({
                     Key.FAIL.lesOrNull(Fail.serializer(), it) shouldBe forventetFail
                     Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
                     Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
-                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
+                    Key.AAPEN_ID.lesOrNull(UuidSerializer, it) shouldBe aapenId
+                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
                 }
 
             coVerifySequence {
@@ -274,7 +285,7 @@ class JournalfoerImRiverTest : FunSpec({
                     .plus(uoensketKeyMedVerdi)
             )
 
-            testRapid.inspektør.size shouldBe 0
+            testRapid.inspektør.size shouldBeExactly 0
 
             coVerify(exactly = 0) {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -290,7 +301,7 @@ class JournalfoerImRiverTest : FunSpec({
 
             testRapid.sendJson(innkommendeMelding.tilMap())
 
-            testRapid.inspektør.size shouldBe 0
+            testRapid.inspektør.size shouldBeExactly 0
 
             coVerify(exactly = 0) {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())

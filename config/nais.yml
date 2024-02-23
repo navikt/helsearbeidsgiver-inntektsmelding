@@ -59,6 +59,10 @@ spec:
       - type: POSTGRES_14
         databases:
           - name: {{ database }}
+        {{#if tier}}
+        tier: {{ tier }}
+        {{/if}}
+        diskAutoresize: true
   {{/if}}
   prometheus:
     enabled: true

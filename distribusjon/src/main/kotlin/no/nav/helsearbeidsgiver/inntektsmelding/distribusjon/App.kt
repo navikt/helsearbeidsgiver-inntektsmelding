@@ -2,25 +2,29 @@ package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.utils.log.logger
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.apache.kafka.clients.producer.KafkaProducer
 
 private val logger = "im-distribusjon".logger()
-val sikkerLogger = sikkerLogger()
 
 fun main() {
+    val producer = KafkaProducer<String, String>(kafkaProps())
+
     RapidApplication
         .create(System.getenv())
-        .createDistribusjon(KafkaProducer<String, String>(KafkaProperties(Kafka())))
+        .createDistribusjonRiver(producer)
+        .registerShutdownLifecycle {
+            producer.close()
+        }
         .start()
 }
 
-fun RapidsConnection.createDistribusjon(kafkaProducer: KafkaProducer<String, String>): RapidsConnection =
+fun RapidsConnection.createDistribusjonRiver(producer: KafkaProducer<String, String>): RapidsConnection =
     also {
-        logger.info("Starter ${DistribusjonLoeser::class.simpleName}...")
-        DistribusjonLoeser(this, kafkaProducer)
+        logger.info("Starter ${DistribusjonRiver::class.simpleName}...")
+        DistribusjonRiver(producer).connect(this)
 
-        logger.info("Starter ${JournalfoertListener::class.simpleName}...")
-        JournalfoertListener(this)
+        logger.info("Starter ${DistribusjonLoeser::class.simpleName}...")
+        DistribusjonLoeser(this, producer)
     }

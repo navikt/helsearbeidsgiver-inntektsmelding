@@ -17,18 +17,20 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
 
-private const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
-
+// TODO slett etter overgangsfase
 class DistribusjonLoeser(
     rapidsConnection: RapidsConnection,
     private val kafkaProducer: KafkaProducer<String, String>
 ) : Loeser(rapidsConnection) {
 
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
     private val requestLatency = Summary.build()
         .name("simba_distribusjon_inntektsmelding_latency_seconds")
         .help("distribusjon inntektsmelding latency in seconds")

@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
@@ -69,10 +70,10 @@ class JournalfoerImRiver(
             }
         }
 
-    override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+    override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Mottok melding med event '$eventName'. Sender behov '${BehovType.LAGRE_JOURNALPOST_ID}'.".also {
             logger.info(it)
-            sikkerLogger.info(it)
+            sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
         val inntektsmelding = runCatching {

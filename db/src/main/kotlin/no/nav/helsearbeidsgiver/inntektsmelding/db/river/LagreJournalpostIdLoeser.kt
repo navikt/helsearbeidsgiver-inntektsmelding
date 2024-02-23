@@ -92,7 +92,7 @@ class LagreJournalpostIdLoeser(
 
                 rapidsConnection.publishEvent(
                     eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
-                    transaksjonId = null,
+                    transaksjonId = transaksjonId,
                     forespoerselId = forespoerselId,
                     Key.JOURNALPOST_ID to journalpostId.toJson(),
                     Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding?.toJson(Inntektsmelding.serializer())

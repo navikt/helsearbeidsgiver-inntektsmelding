@@ -21,6 +21,8 @@ enum class BehovType {
 
     LAGRE_JOURNALPOST_ID,
     LAGRE_FORESPOERSEL,
+
+    // TODO slett etter overgangsfase
     DISTRIBUER_IM,
 
     NOTIFIKASJON_HENT_ID,

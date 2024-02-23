@@ -1,8 +1,9 @@
 kafkaPool: nav-prod
 azure:
   enabled: true
-database: inntektsmelding
-tier: db-custom-1-1536
+database:
+  - name: inntektsmelding
+    tier: db-custom-1-1536
 envFrom:
   - type: secret
     name: google-sql-im-db

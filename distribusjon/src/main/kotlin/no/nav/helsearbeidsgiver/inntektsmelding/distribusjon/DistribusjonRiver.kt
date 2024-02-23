@@ -1,5 +1,3 @@
-@file:Suppress("NonAsciiCharacters")
-
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import kotlinx.serialization.builtins.serializer

@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.desember
 import java.time.ZonedDateTime
 
 private val dag = 24.desember(2022)
-private val inntekt = 25_000.0
+private const val INNTEKT = 25_000.0
 
 fun mockInntektsmelding(): Inntektsmelding =
     Inntektsmelding(
@@ -28,10 +28,10 @@ fun mockInntektsmelding(): Inntektsmelding =
             Periode(dag, dag.plusDays(2)),
             Periode(dag.plusDays(3), dag.plusDays(4))
         ),
-        beregnetInntekt = inntekt,
+        beregnetInntekt = INNTEKT,
         inntekt = Inntekt(
             bekreftet = true,
-            beregnetInntekt = inntekt,
+            beregnetInntekt = INNTEKT,
             endringÅrsak = Tariffendring(dag, dag),
             manueltKorrigert = false
         ),
@@ -42,7 +42,7 @@ fun mockInntektsmelding(): Inntektsmelding =
         ),
         refusjon = Refusjon(
             utbetalerHeleEllerDeler = true,
-            refusjonPrMnd = inntekt,
+            refusjonPrMnd = INNTEKT,
             refusjonOpphører = dag.plusDays(3),
             refusjonEndringer = listOf(
                 RefusjonEndring(140.0, dag.minusDays(4)),
@@ -89,13 +89,13 @@ fun mockDelvisInntektsmeldingDokument() = mockInntektsmelding().copy(
     naturalytelser = null,
     inntekt = Inntekt(
         bekreftet = true,
-        beregnetInntekt = inntekt,
+        beregnetInntekt = INNTEKT,
         endringÅrsak = Tariffendring(dag, dag),
         manueltKorrigert = false
     ),
     refusjon = Refusjon(
         utbetalerHeleEllerDeler = true,
-        refusjonPrMnd = inntekt,
+        refusjonPrMnd = INNTEKT,
         refusjonOpphører = dag.plusDays(3),
         refusjonEndringer = listOf(
             RefusjonEndring(140.0, dag.minusDays(4)),

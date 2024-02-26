@@ -232,6 +232,6 @@ class NotifikasjonIT : EndToEndTest() {
         const val SAK_ID = "sak_id_123"
         const val OPPGAVE_ID = "oppgave_id_456"
 
-        val forespoerselId = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
     }
 }

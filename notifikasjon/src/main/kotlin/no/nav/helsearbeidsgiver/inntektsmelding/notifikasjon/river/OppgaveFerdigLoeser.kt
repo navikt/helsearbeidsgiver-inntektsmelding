@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -13,11 +12,12 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonMetrics
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -91,20 +91,15 @@ class OppgaveFerdigLoeser(
     }
 
     private fun ferdigstillOppgave(oppgaveId: String, forespoerselId: UUID, transaksjonId: UUID, context: MessageContext) {
-        logger.info("Ferdigstiller oppgave...")
-        val requestTimer = NotifikasjonMetrics.requestLatency.labels("ferdigstillOppgave").startTimer()
-        runBlocking {
+        Metrics.agNotifikasjonRequest.recordTime(agNotifikasjonKlient::oppgaveUtfoert) {
             agNotifikasjonKlient.oppgaveUtfoert(oppgaveId)
-        }.also {
-            requestTimer.observeDuration()
         }
+
         context.publish(
             Key.EVENT_NAME to EventName.OPPGAVE_FERDIGSTILT.toJson(),
             Key.OPPGAVE_ID to oppgaveId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.UUID to transaksjonId.toJson()
         )
-
-        logger.info("Oppgave ferdigstilt.")
     }
 }

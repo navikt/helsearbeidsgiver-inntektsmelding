@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class AktiveOrgnrRouteKtTest : ApiTest() {
     private val path = Routes.PREFIX + Routes.AKTIVEORGNR
@@ -47,8 +46,6 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     }
 
     private object Mock {
-        val forespoerselId: UUID = UUID.randomUUID()
-
         val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
             {
                 "fulltNavn": "test-navn",

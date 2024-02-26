@@ -63,7 +63,7 @@ class ForespoerselMottattIT : EndToEndTest() {
         const val FNR = "fnr-rebekka"
         const val ORGNR = "orgnr-gås"
 
-        val forespoerselId = UUID.randomUUID()
-        val transaksjonId = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
+        val transaksjonId: UUID = UUID.randomUUID()
     }
 }

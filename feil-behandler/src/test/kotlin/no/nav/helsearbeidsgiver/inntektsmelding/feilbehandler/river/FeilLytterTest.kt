@@ -10,11 +10,13 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -62,7 +64,7 @@ class FeilLytterTest : FunSpec({
         val now = LocalDateTime.now()
         rapid.sendTestMessage(lagRapidFeilmelding())
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
-        rapid.sendTestMessage(lagRapidFeilmelding("LAGRE_FORESPOERSEL"))
+        rapid.sendTestMessage(lagRapidFeilmelding(BehovType.LAGRE_FORESPOERSEL))
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
     }
 
@@ -103,23 +105,30 @@ class FeilLytterTest : FunSpec({
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.STOPPET), true).size shouldBe 1
     }
 })
-fun lagRapidFeilmelding(behov: String = BehovType.LAGRE_JOURNALPOST_ID.name): String {
-    return """
-        {   "fail": {
-                "feilmelding": "Klarte ikke journalføre",
-                "event": "INNTEKTSMELDING_MOTTATT",
-                "transaksjonId": "96fe8a6b-6667-4a7b-ad20-f5ed829eccaf",
-                "forespoerselId": "ec50627c-26d8-44c9-866c-e42f46b5890b",
-                "utloesendeMelding": {
-                    "@event_name": "INNTEKTSMELDING_MOTTATT",
-                    "@behov": "$behov",
-                    "forespoerselId": "ec50627c-26d8-44c9-866c-e42f46b5890b",
-                    "uuid": "96fe8a6b-6667-4a7b-ad20-f5ed829eccaf"
-                }
-            }
-        }
-    """.trimIndent()
+
+fun lagRapidFeilmelding(behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID): String {
+    val eventName = EventName.INNTEKTSMELDING_MOTTATT
+    val transaksjonId = UUID.randomUUID()
+    val forespoerselId = UUID.randomUUID()
+
+    return mapOf(
+        Key.FAIL to Fail(
+            feilmelding = "Klarte ikke journalføre",
+            event = eventName,
+            transaksjonId = transaksjonId,
+            forespoerselId = forespoerselId,
+            utloesendeMelding = mapOf(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to behovType.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            ).toJson()
+        ).toJson(Fail.serializer())
+    )
+        .toJson()
+        .toString()
 }
+
 fun lagGyldigFeil(behov: BehovType): Fail {
     val uuid = UUID.randomUUID()
     val jsonMessage = JsonMessage.newMessage(

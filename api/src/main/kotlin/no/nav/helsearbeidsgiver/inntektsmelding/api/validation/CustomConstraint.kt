@@ -6,5 +6,3 @@ interface CustomConstraint : Constraint {
     override val messageBundle: String
         get() = "messages"
 }
-
-object FeilmeldingConstraint : CustomConstraint

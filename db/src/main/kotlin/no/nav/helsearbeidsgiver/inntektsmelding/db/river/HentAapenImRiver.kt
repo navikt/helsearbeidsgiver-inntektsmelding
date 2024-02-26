@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.db.AapenImRepo
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -46,41 +45,43 @@ class HentAapenImRiver(
             )
         }
 
-    override fun HentAapenImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> =
-        MdcUtils.withLogFields(
+    override fun HentAapenImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+        "Skal hente åpen inntektsmelding.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
+        }
+
+        val inntektsmelding = aapenImRepo.hentNyesteIm(aapenId)
+
+        return if (inntektsmelding != null) {
+            "Hentet åpen inntektsmelding.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+
+            mapOf(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.AAPEN_ID to aapenId.toJson(),
+                Key.DATA to "".toJson(),
+                Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+            )
+        } else {
+            haandterFeil("Fant ikke åpen inntektsmelding.", json)
+        }
+    }
+
+    override fun HentAapenImMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> =
+        haandterFeil("Klarte ikke hente åpen inntektsmelding.", json, error)
+
+    override fun HentAapenImMelding.loggfelt(): Map<String, String> =
+        mapOf(
             Log.klasse(this),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
             Log.aapenId(aapenId)
-        ) {
-            "Skal hente åpen inntektsmelding.".also {
-                logger.info(it)
-                sikkerLogger.info(it)
-            }
-
-            val inntektsmelding = aapenImRepo.hentNyesteIm(aapenId)
-
-            if (inntektsmelding != null) {
-                "Hentet åpen inntektsmelding.".also {
-                    logger.info(it)
-                    sikkerLogger.info(it)
-                }
-
-                mapOf(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.AAPEN_ID to aapenId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
-                )
-            } else {
-                haandterFeil("Fant ikke åpen inntektsmelding.", json)
-            }
-        }
-
-    override fun HentAapenImMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> =
-        haandterFeil("Klarte ikke hente åpen inntektsmelding.", json, error)
+        )
 
     private fun HentAapenImMelding.haandterFeil(
         feilmelding: String,
@@ -98,11 +99,8 @@ class HentAapenImRiver(
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return mapOf(
-            Key.FAIL to fail.toJson(Fail.serializer()),
-            Key.EVENT_NAME to fail.event.toJson(),
-            Key.UUID to fail.transaksjonId.toJson(),
-            Key.AAPEN_ID to aapenId.toJson()
-        )
+        return fail.tilMelding()
+            .minus(Key.FORESPOERSEL_ID)
+            .plus(Key.AAPEN_ID to aapenId.toJson())
     }
 }

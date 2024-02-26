@@ -26,7 +26,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.VarigLonnsendr
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
-import no.nav.helsearbeidsgiver.inntektsmelding.api.TestData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import org.valiktor.ConstraintViolationException
 import java.time.LocalDate
@@ -396,3 +395,8 @@ class InnsendingValidateKtTest : FunSpec({
         }
     }
 })
+
+private object TestData {
+    const val notValidIdentitetsnummer = "50012001987"
+    const val notValidOrgNr = "123456789"
+}

@@ -22,8 +22,6 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
-import java.util.UUID
 
 val eksternInntektsmelding = EksternInntektsmelding(
     avsenderSystemNavn = "NAV_NO",
@@ -47,15 +45,10 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
     every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
 
     test("Ved når inntektsmeldingId mangler skal feil publiseres") {
-
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns UUID.randomUUID()
-
-            testRapid.sendJson(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson()
-            )
-        }
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson()
+        )
 
         val actual = testRapid.firstMessage().readFail()
 
@@ -68,15 +61,11 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
 
         every { spinnKlient.hentEksternInntektsmelding(any()) } throws SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: 404")
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns UUID.randomUUID()
-
-            testRapid.sendJson(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-                Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
-            )
-        }
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+            Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+        )
 
         val actual = testRapid.firstMessage().readFail()
 
@@ -88,15 +77,11 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
     test("Hvis Inntektsmelding finnes publiseres data") {
         every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns UUID.randomUUID()
-
-            testRapid.sendJson(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-                Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
-            )
-        }
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+            Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+        )
 
         val actual = testRapid.firstMessage().toMap()
 
@@ -109,15 +94,11 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
     test("Hvis request timer ut blir feil publisert") {
         every { spinnKlient.hentEksternInntektsmelding(any()) } throws SocketTimeoutException("Timeout!")
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns UUID.randomUUID()
-
-            testRapid.sendJson(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-                Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
-            )
-        }
+        testRapid.sendJson(
+            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+            Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+        )
 
         val actual = testRapid.firstMessage().readFail()
 

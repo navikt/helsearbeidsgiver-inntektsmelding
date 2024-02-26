@@ -2,13 +2,6 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers.composite
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.floatOrNull
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.longOrNull
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.River
@@ -139,45 +132,13 @@ abstract class CompositeEventListener : River.PacketListener {
                     }
             }
             .mapValuesNotNull { value ->
-                // Midlertidig fiks for strenger som ikke lagres som JSON i Redis.
                 runCatching {
-                    parse(value)
+                    value.parseJson()
                 }
-                    // Strenger med mellomrom ender her
-                    .recoverCatching {
-                        sikkerLogger.warn("Klarte ikke parse redis-verdi.\nvalue=$value", it)
-                        "\"$value\"".parseJson()
-                    }
                     .getOrElse {
-                        sikkerLogger.warn("Klarte ikke backup-parse redis-verdi.\nvalue=$value", it)
+                        sikkerLogger.warn("Klarte ikke parse redis-verdi.\nvalue=$value", it)
                         null
                     }
             }
-    }
-}
-
-fun parse(value: String): JsonElement {
-    val json = value.parseJson()
-
-    // Strenger uten mellomrom parses OK, men klarer ikke leses som streng
-    return if (json is JsonPrimitive) {
-        if (
-            json is JsonNull ||
-            json.isString ||
-            json.booleanOrNull != null
-        ) {
-            json
-        } else if (
-            json.intOrNull != null ||
-            json.longOrNull != null ||
-            json.doubleOrNull != null ||
-            json.floatOrNull != null
-        ) {
-            "\"${json.content}\"".parseJson()
-        } else {
-            "\"$value\"".parseJson()
-        }
-    } else {
-        json
     }
 }

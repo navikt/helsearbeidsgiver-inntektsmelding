@@ -23,12 +23,12 @@ import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class AltinnLoeserTest : FunSpec({
+class AltinnRiverTest : FunSpec({
     val testRapid = TestRapid()
 
     val mockAltinnClient = mockk<AltinnClient>(relaxed = true)
 
-    AltinnLoeser(mockAltinnClient).connect(testRapid)
+    AltinnRiver(mockAltinnClient).connect(testRapid)
 
     beforeEach {
         testRapid.reset()

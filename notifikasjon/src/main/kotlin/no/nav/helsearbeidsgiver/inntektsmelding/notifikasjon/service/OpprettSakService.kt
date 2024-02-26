@@ -140,7 +140,10 @@ class OpprettSakService(
                 ?.let(UUID::fromString)
 
             if (clientId == null) {
-                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
+                "Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
+                }
             } else {
                 redisStore.set(RedisKey.of(clientId), fail.feilmelding)
             }

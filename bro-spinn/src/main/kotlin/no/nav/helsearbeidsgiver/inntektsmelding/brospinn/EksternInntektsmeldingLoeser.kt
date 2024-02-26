@@ -25,7 +25,7 @@ class EksternInntektsmeldingLoeser(
 ) : Loeser(rapidsConnection) {
 
     private val logger = logger()
-    val sikkerlogger = sikkerLogger()
+    private val sikkerlogger = sikkerLogger()
     private val BEHOV = BehovType.HENT_EKSTERN_INNTEKTSMELDING
     override fun accept(): River.PacketValidation =
         River.PacketValidation {

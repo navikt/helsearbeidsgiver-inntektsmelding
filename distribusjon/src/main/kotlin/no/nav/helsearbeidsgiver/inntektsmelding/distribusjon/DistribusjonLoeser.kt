@@ -3,10 +3,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import io.prometheus.client.Summary
-import kotlinx.serialization.Serializable
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -59,11 +59,10 @@ class DistribusjonLoeser(
         val requestTimer = requestLatency.startTimer()
         try {
             val inntektsmelding = hentInntektsmeldingDokument(behov)
-            val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmelding, journalpostId)
-            val journalførtJson = journalførtInntektsmelding.toJsonStr(JournalførtInntektsmelding.serializer())
-            kafkaProducer.send(ProducerRecord(TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN, journalførtJson))
+            val journalfoertJson = JournalfoertInntektsmelding(journalpostId, inntektsmelding).toJsonStr(JournalfoertInntektsmelding.serializer())
+            kafkaProducer.send(ProducerRecord(TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN, journalfoertJson))
             logger.info("Distribuerte eksternt for journalpostId: $journalpostId")
-            sikkerLogger.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalførtJson")
+            sikkerLogger.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalfoertJson")
 
             rapidsConnection.publishEvent(
                 eventName = EventName.INNTEKTSMELDING_DISTRIBUERT,
@@ -95,10 +94,3 @@ class DistribusjonLoeser(
         }
     }
 }
-
-// TODO erstatt med no.nav.helsearbeidsgiver.domene.inntektsmelding.JournalfoertInntektsmelding når Spinn er over på domenepakken
-@Serializable
-class JournalførtInntektsmelding(
-    val inntektsmeldingDokument: Inntektsmelding,
-    val journalpostId: String
-)

@@ -11,7 +11,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 
 class SpinnKlient(
-    val url: String,
+    private val url: String,
     private val getAccessToken: () -> String
 ) {
     private val httpClient = createHttpClient()

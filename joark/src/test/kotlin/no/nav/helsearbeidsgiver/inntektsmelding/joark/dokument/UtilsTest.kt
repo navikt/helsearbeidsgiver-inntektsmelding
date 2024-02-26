@@ -34,8 +34,8 @@ class UtilsTest {
         }
         val liste = (tekstBuilder.toString() + tekstBuilder.toString() + tekst).delOppLangeNavn()
         assertEquals(tekstBuilder.toString(), liste.first())
-        assertEquals(tekstBuilder.toString(), liste.get(1))
-        assertEquals(tekst, liste.get(2))
+        assertEquals(tekstBuilder.toString(), liste[1])
+        assertEquals(tekst, liste[2])
     }
 
     @Test
@@ -43,7 +43,7 @@ class UtilsTest {
         val tekst = "Albert Fredriksens Saft- og Syltetøykokeri, avdeling Fredrikstad"
         val liste = tekst.delOppLangeNavn()
         assertEquals("Albert Fredriksens Saft- og", liste.first())
-        assertEquals("Syltetøykokeri, avdeling Fredrikstad", liste.get(1))
+        assertEquals("Syltetøykokeri, avdeling Fredrikstad", liste[1])
     }
 
     @Test

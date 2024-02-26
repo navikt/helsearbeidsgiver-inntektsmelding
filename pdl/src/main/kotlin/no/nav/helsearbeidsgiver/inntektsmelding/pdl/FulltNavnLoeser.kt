@@ -2,8 +2,6 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
-import io.prometheus.client.Summary
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -12,6 +10,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
@@ -38,10 +38,6 @@ class FulltNavnLoeser(
     private val sikkerLogger = sikkerLogger()
 
     private val BEHOV = BehovType.FULLT_NAVN
-    private val requestLatency = Summary.build()
-        .name("simba_pdl_latency_seconds")
-        .help("pdl kall latency in seconds")
-        .register()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
@@ -62,9 +58,7 @@ class FulltNavnLoeser(
         logger.info("Henter navn for transaksjonId $transaksjonId.")
 
         val identer = listOf(arbeidstakerId, arbeidsgiverId).filterNot(String::isEmpty)
-
         measureTimeMillis {
-            val requestTimer = requestLatency.startTimer()
             try {
                 val personer = hentPersoner(identer)
 
@@ -85,8 +79,6 @@ class FulltNavnLoeser(
                 logger.error("Klarte ikke hente navn for transaksjonId $transaksjonId.")
                 sikkerLogger.error("Det oppstod en feil ved henting av identitetsnummer: $arbeidstakerId: ${ex.message} for transaksjonId $transaksjonId.", ex)
                 publishFail(behov.createFail("Klarte ikke hente navn"))
-            } finally {
-                requestTimer.observeDuration()
             }
         }.also {
             logger.info("${simpleName()} took $it")
@@ -94,7 +86,7 @@ class FulltNavnLoeser(
     }
 
     private fun hentPersoner(identitetsnummere: List<String>): List<PersonDato> =
-        runBlocking {
+        Metrics.pdlRequest.recordTime(pdlClient::personBolk) {
             pdlClient.personBolk(identitetsnummere)
         }
             .orEmpty()

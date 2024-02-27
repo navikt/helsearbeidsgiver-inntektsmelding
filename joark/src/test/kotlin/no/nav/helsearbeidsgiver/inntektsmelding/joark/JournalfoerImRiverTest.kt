@@ -16,22 +16,11 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
+import no.nav.helsearbeidsgiver.dokarkiv.domene.DokumentVariant
 import no.nav.helsearbeidsgiver.dokarkiv.domene.GjelderPerson
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.BegrunnelseRedusertLoennIAgp
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NaturalytelseKode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -39,17 +28,12 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.kl
-import no.nav.helsearbeidsgiver.utils.test.date.mars
-import no.nav.helsearbeidsgiver.utils.test.date.november
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
-import no.nav.helsearbeidsgiver.utils.test.date.september
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.UUID
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender as KlientAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
@@ -69,7 +53,7 @@ class JournalfoerImRiverTest : FunSpec({
         withData(
             mapOf(
                 "forespurt inntektmelding (gammel versjon)" to Mock.inntektmeldingGammelVersjon.toJson(Inntektsmelding.serializer()),
-                "forespurt inntektmelding (ny versjon, ikke i bruk)" to Mock.inntektmeldingNyVersjon.toJson(InntektsmeldingV1.serializer())
+                "forespurt inntektmelding (ny versjon, ikke i bruk)" to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer())
             )
         ) { inntektsmeldingJson ->
             val journalpostId = UUID.randomUUID().toString()
@@ -91,16 +75,17 @@ class JournalfoerImRiverTest : FunSpec({
                     .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
             )
 
-            testRapid.firstMessage()
-                .toMap()
-                .also {
-                    Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
-                    Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_JOURNALPOST_ID
-                    Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
-                    Key.JOURNALPOST_ID.lesOrNull(String.serializer(), it) shouldBe journalpostId
-                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
-                    Key.AAPEN_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
-                }
+            val publisert = testRapid.firstMessage().toMap()
+
+            Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe innkommendeMelding.eventName
+            Key.BEHOV.lesOrNull(BehovType.serializer(), publisert) shouldBe BehovType.LAGRE_JOURNALPOST_ID
+            Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
+            Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalpostId
+            Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
+            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+
+            publisert[Key.DATA].shouldBeNull()
+            publisert[Key.FAIL].shouldBeNull()
 
             coVerifySequence {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(
@@ -123,11 +108,12 @@ class JournalfoerImRiverTest : FunSpec({
 
         withData(
             mapOf(
-                "selvbestemt inntektmelding (ny versjon)" to Mock.inntektmeldingNyVersjon.toJson(InntektsmeldingV1.serializer()),
+                "selvbestemt inntektmelding (ny versjon)" to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer()),
                 "selvbestemt inntektmelding (gammel versjon, ikke i bruk)" to Mock.inntektmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
             )
         ) { inntektsmeldingJson ->
             val journalpostId = UUID.randomUUID().toString()
+            val inntektsmeldingNyVersjon = mockInntektsmeldingV1()
 
             coEvery {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -146,29 +132,30 @@ class JournalfoerImRiverTest : FunSpec({
                     .plus(Key.AAPEN_ID to aapenId.toJson())
             )
 
-            testRapid.firstMessage()
-                .toMap()
-                .also {
-                    Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
-                    Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_JOURNALPOST_ID
-                    Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
-                    Key.JOURNALPOST_ID.lesOrNull(String.serializer(), it) shouldBe journalpostId
-                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
-                    Key.AAPEN_ID.lesOrNull(UuidSerializer, it) shouldBe aapenId
-                }
+            val publisert = testRapid.firstMessage().toMap()
+
+            Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe innkommendeMelding.eventName
+            Key.BEHOV.lesOrNull(BehovType.serializer(), publisert) shouldBe BehovType.LAGRE_JOURNALPOST_ID
+            Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
+            Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalpostId
+            Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert) shouldBe aapenId
+
+            publisert[Key.DATA].shouldBeNull()
+            publisert[Key.FAIL].shouldBeNull()
 
             coVerifySequence {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(
                     tittel = "Inntektsmelding",
-                    gjelderPerson = GjelderPerson(Mock.inntektmeldingNyVersjon.sykmeldt.fnr),
+                    gjelderPerson = GjelderPerson(inntektsmeldingNyVersjon.sykmeldt.fnr),
                     avsender = KlientAvsender.Organisasjon(
-                        orgnr = Mock.inntektmeldingNyVersjon.avsender.orgnr,
-                        navn = Mock.inntektmeldingNyVersjon.avsender.orgNavn
+                        orgnr = inntektsmeldingNyVersjon.avsender.orgnr,
+                        navn = inntektsmeldingNyVersjon.avsender.orgNavn
                     ),
                     datoMottatt = LocalDate.now(),
                     dokumenter = withArg {
                         it shouldHaveSize 1
-                        it.first().dokumentVarianter.map { it.filtype } shouldContainExactly listOf("XML", "PDFA")
+                        it.first().dokumentVarianter.map(DokumentVariant::filtype) shouldContainExactly listOf("XML", "PDFA")
                     },
                     eksternReferanseId = "ARI-${innkommendeMelding.transaksjonId}",
                     callId = "callId_${innkommendeMelding.transaksjonId}"
@@ -200,14 +187,15 @@ class JournalfoerImRiverTest : FunSpec({
 
             testRapid.sendJson(innkommendeJsonMap)
 
-            testRapid.firstMessage()
-                .toMap()
-                .also {
-                    Key.FAIL.lesOrNull(Fail.serializer(), it) shouldBe forventetFail
-                    Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
-                    Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
-                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
-                }
+            val publisert = testRapid.firstMessage().toMap()
+
+            Key.FAIL.lesOrNull(Fail.serializer(), publisert) shouldBe forventetFail
+            Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe innkommendeMelding.eventName
+            Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
+            Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
+
+            publisert[Key.BEHOV].shouldBeNull()
+            publisert[Key.DATA].shouldBeNull()
 
             coVerify(exactly = 0) {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -240,14 +228,15 @@ class JournalfoerImRiverTest : FunSpec({
 
             testRapid.sendJson(innkommendeJsonMap)
 
-            testRapid.firstMessage()
-                .toMap()
-                .also {
-                    Key.FAIL.lesOrNull(Fail.serializer(), it) shouldBe forventetFail
-                    Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
-                    Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
-                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
-                }
+            val publisert = testRapid.firstMessage().toMap()
+
+            Key.FAIL.lesOrNull(Fail.serializer(), publisert) shouldBe forventetFail
+            Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe innkommendeMelding.eventName
+            Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
+            Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
+
+            publisert[Key.BEHOV].shouldBeNull()
+            publisert[Key.DATA].shouldBeNull()
 
             coVerifySequence {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -281,7 +270,7 @@ class JournalfoerImRiverTest : FunSpec({
             }
         }
 
-        test("melding med ukjent event") {
+        test("melding med uønsket event") {
             val innkommendeMelding = JournalfoerImMelding(
                 eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED,
                 transaksjonId = UUID.randomUUID(),
@@ -307,87 +296,10 @@ private fun JournalfoerImMelding.tilMap(imKey: Key = Key.INNTEKTSMELDING_DOKUMEN
     )
 
 private object Mock {
-    val inntektmeldingNyVersjon = InntektsmeldingV1(
-        id = UUID.randomUUID(),
-        sykmeldt = Sykmeldt(
-            fnr = "16054577777",
-            navn = "Skummel Bolle"
-        ),
-        avsender = Avsender(
-            "000444000",
-            "Skumle bakverk A/S",
-            "07072288888",
-            "Nifs Krumkake",
-            "44553399"
-        ),
-        sykmeldingsperioder = listOf(
-            Periode(
-                fom = 5.oktober,
-                tom = 15.oktober
-            ),
-            Periode(
-                fom = 20.oktober,
-                tom = 3.november
-            )
-        ),
-        agp = Arbeidsgiverperiode(
-            listOf(
-                Periode(
-                    fom = 5.oktober,
-                    tom = 15.oktober
-                ),
-                Periode(
-                    fom = 20.oktober,
-                    tom = 22.oktober
-                )
-            ),
-            listOf(
-                Periode(
-                    fom = 28.september,
-                    tom = 28.september
-                ),
-                Periode(
-                    fom = 30.september,
-                    tom = 30.september
-                )
-            ),
-            RedusertLoennIAgp(
-                beloep = 300.3,
-                begrunnelse = BegrunnelseRedusertLoennIAgp.FerieEllerAvspasering
-            )
-        ),
-        inntekt = Inntekt(
-            beloep = 544.6,
-            inntektsdato = 28.september,
-            naturalytelser = listOf(
-                Naturalytelse(
-                    naturalytelse = NaturalytelseKode.BEDRIFTSBARNEHAGEPLASS,
-                    verdiBeloep = 52.5,
-                    sluttdato = 10.oktober
-                ),
-                Naturalytelse(
-                    naturalytelse = NaturalytelseKode.BIL,
-                    verdiBeloep = 434.0,
-                    sluttdato = 12.oktober
-                )
-            ),
-            endringAarsak = NyStillingsprosent(
-                gjelderFra = 16.oktober
-            )
-        ),
-        refusjon = Refusjon(
-            beloepPerMaaned = 150.2,
-            endringer = listOf(),
-            sluttdato = 31.oktober
-        ),
-        aarsakInnsending = AarsakInnsending.Ny,
-        mottatt = 14.mars.kl(14, 41, 42, 0).atOffset(ZoneOffset.ofHours(1))
-    )
-
-    val inntektmeldingGammelVersjon = inntektmeldingNyVersjon.convert()
+    val inntektmeldingGammelVersjon = mockInntektsmeldingV1().convert()
 
     val fail = Fail(
-        feilmelding = "Klarte ikke journalføre.",
+        feilmelding = "I don't think we're in Kansas anymore.",
         event = EventName.INNTEKTSMELDING_MOTTATT,
         transaksjonId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),

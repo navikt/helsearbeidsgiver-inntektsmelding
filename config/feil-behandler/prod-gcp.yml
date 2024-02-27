@@ -3,7 +3,7 @@ azure:
   enabled: true
 database:
   - name: im-error-recovery
-    tier: db-custom-1-1536
+    tier: db-custom-1-3840
 envFrom:
   - type: secret
     name: google-sql-im-feil-behandler

@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.AapenRepo
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretListener
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OppgaveFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettAapenSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettOppgaveLoeser
@@ -57,8 +57,8 @@ fun RapidsConnection.createNotifikasjonRivers(
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
 ): RapidsConnection =
     also {
-        logger.info("Starter ${ForespoerselLagretListener::class.simpleName}...")
-        ForespoerselLagretListener(this)
+        logger.info("Starter ${ForespoerselLagretRiver::class.simpleName}...")
+        ForespoerselLagretRiver(this)
 
         logger.info("Starter ${OpprettSakService::class.simpleName}...")
         OpprettSakService(this, redisStore)

@@ -12,28 +12,47 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.UUID
 
-class StatefullEventListener(
-    override val event: EventName,
+class LagreStartDataRedisRiver(
+    private val eventName: EventName,
     private val dataKeys: Set<Key>,
     rapid: RapidsConnection,
     private val redisStore: RedisStore,
-    private val onEventProcessed: (JsonMessage, MessageContext) -> Unit
-) : EventListener(rapid) {
+    private val etterDataLagret: (JsonMessage, MessageContext) -> Unit
+) : River.PacketListener {
+    private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
-            it.interestedIn(*dataKeys.toTypedArray())
+    init {
+        River(rapid).apply {
+            validate {
+                it.demandValues(
+                    Key.EVENT_NAME to eventName.name
+                )
+                it.rejectKeys(
+                    Key.BEHOV,
+                    Key.DATA,
+                    Key.FAIL
+                )
+                it.interestedIn(
+                    Key.UUID,
+                    *dataKeys.toTypedArray()
+                )
+            }
         }
     }
 
-    override fun onEvent(packet: JsonMessage) {
-        sikkerLogger.info("Statefull event listener for event ${event.name} med packet \n${packet.toPretty()}")
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         lagreData(packet)
-        onEventProcessed(packet, rapidsConnection)
+
+        "Lagret startdata for event $eventName.".also {
+            logger.info(it)
+            sikkerLogger.info("$it\n${packet.toPretty()}")
+        }
+
+        etterDataLagret(packet, context)
     }
 
     private fun lagreData(packet: JsonMessage) {

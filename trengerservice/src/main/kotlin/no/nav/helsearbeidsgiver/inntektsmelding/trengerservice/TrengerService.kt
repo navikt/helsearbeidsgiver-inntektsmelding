@@ -16,14 +16,11 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -39,11 +36,11 @@ const val UNDEFINED_FELT: String = "{}"
 class TrengerService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
-) : CompositeEventListener() {
+) : Service() {
 
     private val sikkerLogger = sikkerLogger()
 
-    override val event = EventName.TRENGER_REQUESTED
+    override val eventName = EventName.TRENGER_REQUESTED
     override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.ARBEIDSGIVER_ID
@@ -66,38 +63,34 @@ class TrengerService(
         Key.INNTEKT
     )
 
-    init {
-        StatefullEventListener(event, startKeys, rapid, redisStore, ::onPacket)
-        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
-        FailKanal(event, rapid, ::onPacket)
-    }
-
-    override fun new(melding: Map<Key, JsonElement>) {
+    override fun onStart(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         sikkerLogger.info("${simpleName()} Dispatcher HENT_TRENGER_IM for $transaksjonId")
 
         rapid.publish(
-            Key.EVENT_NAME to event.toJson(),
+            Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.UUID to transaksjonId.toJson()
         )
     }
 
-    override fun inProgress(melding: Map<Key, JsonElement>) {
+    override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         sikkerLogger.info("Dispatcher for $transaksjonId with trans state 'in progress'")
 
-        if (steg1Keys.all(melding::containsKey) && steg2Keys.none(melding::containsKey)) {
+        if (isFinished(melding)) {
+            finish(melding)
+        } else if (steg1Keys.all(melding::containsKey) && steg2Keys.none(melding::containsKey)) {
             val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
 
             sikkerLogger.info("${simpleName()} Dispatcher VIRKSOMHET for $transaksjonId")
             rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
+                Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
@@ -106,7 +99,7 @@ class TrengerService(
 
             sikkerLogger.info("${simpleName()} dispatcher FULLT_NAVN for $transaksjonId")
             rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
+                Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
@@ -120,7 +113,7 @@ class TrengerService(
             if (skjaeringstidspunkt != null) {
                 sikkerLogger.info("${simpleName()} Dispatcher INNTEKT for $transaksjonId")
                 rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
+                    Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.INNTEKT.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.UUID to transaksjonId.toJson(),
@@ -133,7 +126,7 @@ class TrengerService(
                     sikkerLogger.error("$it forespoersel=$forespoersel")
                     val fail = Fail(
                         feilmelding = it,
-                        event = event,
+                        event = eventName,
                         transaksjonId = transaksjonId,
                         forespoerselId = forespoerselId,
                         utloesendeMelding = melding.toJson()
@@ -144,7 +137,7 @@ class TrengerService(
         }
     }
 
-    override fun finalize(melding: Map<Key, JsonElement>) {
+    private fun finish(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val clientId = redisStore.get(RedisKey.of(transaksjonId, EventName.TRENGER_REQUESTED))
             ?.let(UUID::fromString)
@@ -257,9 +250,7 @@ class TrengerService(
         val meldingMedDefault = datafeil.associate { it.key to it.defaultVerdi }
             .plus(melding)
 
-        if (dataKeys.all(meldingMedDefault::containsKey)) {
-            finalize(meldingMedDefault)
-        }
+        onData(meldingMedDefault)
     }
 }
 

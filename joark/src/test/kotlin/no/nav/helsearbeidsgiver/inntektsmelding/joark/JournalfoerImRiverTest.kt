@@ -177,6 +177,57 @@ class JournalfoerImRiverTest : FunSpec({
         }
     }
 
+    test("håndterer retries (med BehovType.JOURNALFOER)") {
+        val journalpostId = UUID.randomUUID().toString()
+
+        coEvery {
+            mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+        } returns Mock.opprettOgFerdigstillResponse(journalpostId)
+
+        val innkommendeMelding = JournalfoerImMelding(
+            eventName = EventName.AAPEN_IM_LAGRET,
+            transaksjonId = UUID.randomUUID(),
+            inntektsmeldingJson = Mock.inntektmeldingNyVersjon.toJson(InntektsmeldingV1.serializer())
+        )
+
+        val aapenId = UUID.randomUUID()
+
+        testRapid.sendJson(
+            innkommendeMelding.tilMap(Key.AAPEN_INNTEKTMELDING)
+                .plus(Key.AAPEN_ID to aapenId.toJson())
+                .plus(Key.BEHOV to BehovType.JOURNALFOER.toJson())
+        )
+
+        testRapid.firstMessage()
+            .toMap()
+            .also {
+                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
+                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_JOURNALPOST_ID
+                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
+                Key.JOURNALPOST_ID.lesOrNull(String.serializer(), it) shouldBe journalpostId
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
+                Key.AAPEN_ID.lesOrNull(UuidSerializer, it) shouldBe aapenId
+            }
+
+        coVerifySequence {
+            mockDokArkivKlient.opprettOgFerdigstillJournalpost(
+                tittel = "Inntektsmelding",
+                gjelderPerson = GjelderPerson(Mock.inntektmeldingNyVersjon.sykmeldt.fnr),
+                avsender = KlientAvsender.Organisasjon(
+                    orgnr = Mock.inntektmeldingNyVersjon.avsender.orgnr,
+                    navn = Mock.inntektmeldingNyVersjon.avsender.orgNavn
+                ),
+                datoMottatt = LocalDate.now(),
+                dokumenter = withArg {
+                    it shouldHaveSize 1
+                    it.first().dokumentVarianter.map { it.filtype } shouldContainExactly listOf("XML", "PDFA")
+                },
+                eksternReferanseId = "ARI-${innkommendeMelding.transaksjonId}",
+                callId = "callId_${innkommendeMelding.transaksjonId}"
+            )
+        }
+    }
+
     context("håndterer feil") {
         test("ugyldig inntektsmelding feiler") {
             val forespoerselId = UUID.randomUUID()
@@ -195,7 +246,10 @@ class JournalfoerImRiverTest : FunSpec({
                 event = innkommendeMelding.eventName,
                 transaksjonId = innkommendeMelding.transaksjonId,
                 forespoerselId = forespoerselId,
-                utloesendeMelding = innkommendeJsonMap.toJson()
+                utloesendeMelding = innkommendeJsonMap.plus(
+                    Key.BEHOV to BehovType.JOURNALFOER.toJson()
+                )
+                    .toJson()
             )
 
             testRapid.sendJson(innkommendeJsonMap)
@@ -235,7 +289,10 @@ class JournalfoerImRiverTest : FunSpec({
                 event = innkommendeMelding.eventName,
                 transaksjonId = innkommendeMelding.transaksjonId,
                 forespoerselId = forespoerselId,
-                utloesendeMelding = innkommendeJsonMap.toJson()
+                utloesendeMelding = innkommendeJsonMap.plus(
+                    Key.BEHOV to BehovType.JOURNALFOER.toJson()
+                )
+                    .toJson()
             )
 
             testRapid.sendJson(innkommendeJsonMap)

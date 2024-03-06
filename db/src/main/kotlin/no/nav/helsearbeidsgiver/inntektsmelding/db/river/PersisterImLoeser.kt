@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -41,7 +42,8 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 Key.VIRKSOMHET,
                 Key.ARBEIDSTAKER_INFORMASJON,
                 Key.ARBEIDSGIVER_INFORMASJON,
-                Key.FORESPOERSEL_ID
+                Key.FORESPOERSEL_ID,
+                Key.FORESPOERSEL_SVAR
             )
         }
 
@@ -58,6 +60,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), json)
             val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), json)
             val innsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), json)
+            val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), json)
 
             val inntektsmelding = mapInntektsmelding(
                 request = innsending,

@@ -1,9 +1,6 @@
 package no.nav.helsearbeidsgiver.felles
 
-import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.Serializable
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 
 interface IKey {
@@ -15,36 +12,23 @@ enum class Key(override val str: String) : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
     EVENT_NAME("@event_name"),
     BEHOV("@behov"),
-    LØSNING("@løsning"),
-    OPPRETTET("@opprettet"),
 
     // Egendefinerte
+    AAPEN_ID("aapen_id"),
     IDENTITETSNUMMER("identitetsnummer"),
     ARBEIDSGIVER_ID("arbeidsgiverId"),
-    INITIATE_ID("initiateId"),
     UUID("uuid"),
     CLIENT_ID("client_id"),
     FORESPOERSEL_ID("forespoerselId"),
     JOURNALPOST_ID("journalpostId"),
     DATA("data"),
     FAIL("fail"),
-    FAILED_BEHOV("failed-behov");
+    SKJEMA_INNTEKTSMELDING("skjema_inntektsmelding"),
+    AAPEN_INNTEKTMELDING("aapen_inntektmelding"),
 
-    override fun toString(): String =
-        str
-
-    companion object {
-        internal fun fromJson(json: String): Key =
-            Key.entries.firstOrNull {
-                json == it.str
-            }
-                ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$json'.")
-    }
-}
-
-@Serializable(DataFeltSerializer::class)
-enum class DataFelt(override val str: String) : IKey {
+    // Tidligere DataFelt
     VIRKSOMHET("virksomhet"),
+    VIRKSOMHETER("virksomheter"),
     ARBEIDSTAKER_INFORMASJON("arbeidstakerInformasjon"),
     ARBEIDSGIVER_INFORMASJON("arbeidsgiverInformasjon"),
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
@@ -53,45 +37,35 @@ enum class DataFelt(override val str: String) : IKey {
     PERSISTERT_SAK_ID("persistert_sak_id"),
     OPPGAVE_ID("oppgave_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
-    FORESPOERSEL_ID("forespoerselId"),
+    ORGNRUNDERENHETER("orgnrUnderenheter"),
+    ORG_RETTIGHETER("org_rettigheter"),
     INNTEKTSMELDING("inntektsmelding"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     TRENGER_INNTEKT("trenger-inntekt"),
     INNTEKT("inntekt"),
     FNR("fnr"),
+    FNR_LISTE("fnr_liste"),
+    PERSONER("personer"),
     ARBEIDSGIVER_FNR("arbeidsgiverFnr"), // pga trengerService....
     SKJAERINGSTIDSPUNKT("skjaeringstidspunkt"),
     TILGANG("tilgang"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
     EKSTERN_INNTEKTSMELDING("eksternInntektsmelding"),
     ER_DUPLIKAT_IM("er_duplikat_im");
+
     override fun toString(): String =
         str
 
     companion object {
-        internal fun fromJson(json: String): DataFelt =
-            DataFelt.entries.firstOrNull {
-                json == it.str
+        internal fun fromString(key: String): Key =
+            Key.entries.firstOrNull {
+                key == it.toString()
             }
-                ?: throw IllegalArgumentException("Fant ingen DataFelt med verdi som matchet '$json'.")
+                ?: throw IllegalArgumentException("Fant ingen Key med verdi som matchet '$key'.")
     }
 }
 
-fun JsonMessage.value(key: IKey): JsonNode =
-    this[key.str]
-
-fun JsonMessage.valueNullable(key: IKey): JsonNode? =
-    value(key).takeUnless(JsonNode::isMissingOrNull)
-
-fun JsonMessage.valueNullableOrUndefined(key: IKey): JsonNode? =
-    try { value(key).takeUnless(JsonNode::isMissingOrNull) } catch (e: IllegalArgumentException) { null }
-
 internal object KeySerializer : AsStringSerializer<Key>(
     serialName = "helsearbeidsgiver.kotlinx.felles.Key",
-    parse = Key::fromJson
-)
-
-internal object DataFeltSerializer : AsStringSerializer<DataFelt>(
-    serialName = "helsearbeidsgiver.kotlinx.felles.DataFelt",
-    parse = DataFelt::fromJson
+    parse = Key::fromString
 )

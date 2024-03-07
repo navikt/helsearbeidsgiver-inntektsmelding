@@ -3,8 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldBeIn
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.NaturalytelseKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NaturalytelseKode
 import no.nav.inntektsmelding.xml.kodeliste._20210216.BegrunnelseIngenEllerRedusertUtbetalingKodeliste
 import no.nav.inntektsmelding.xml.kodeliste._20210216.NaturalytelseKodeliste
 

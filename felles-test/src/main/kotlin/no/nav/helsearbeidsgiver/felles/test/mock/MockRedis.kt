@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 
 class MockRedis {
     val store = mockk<RedisStore>()
@@ -12,10 +13,8 @@ class MockRedis {
     private val mockStorage = mutableMapOf<RedisKey, String>()
 
     private val redisKey = slot<RedisKey>()
+    private val redisKeys = slot<Set<RedisKey>>()
     private val newValue = slot<String>()
-
-    // Fungerer som en capture slot for vararg
-    private val keysToCheck = mutableListOf<RedisKey>()
 
     init {
         setup()
@@ -32,14 +31,11 @@ class MockRedis {
             mockStorage[redisKey.captured]
         }
 
-        every { store.exist(*varargAll { keysToCheck.add(it) }) } answers {
-            val allKeys = mockStorage.keys.toSet()
-
-            val keysExist = keysToCheck.intersect(allKeys).size.toLong()
-
-            keysToCheck.clear()
-
-            keysExist
+        every { store.getAll(capture(redisKeys)) } answers {
+            redisKeys.captured.associate {
+                it.toString() to mockStorage[it]
+            }
+                .mapValuesNotNull { it }
         }
     }
 }

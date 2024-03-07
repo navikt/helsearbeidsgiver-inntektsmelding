@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.maps.shouldContainAll
 import io.mockk.every
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -35,8 +34,8 @@ class InntektProducerTest : FunSpec({
         publisert shouldContainAll mapOf(
             Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
             Key.CLIENT_ID to expectedClientId.toJson(),
-            DataFelt.FORESPOERSEL_ID to request.forespoerselId.toJson(),
-            DataFelt.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson()
+            Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
+            Key.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson()
         )
     }
 })

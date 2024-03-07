@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.dokument
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.BegrunnelseIngenEllerRedusertUtbetalingKode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.BegrunnelseIngenEllerRedusertUtbetalingKode
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -61,7 +61,7 @@ fun String.delOppLangeNavn(): List<String> {
         !this.contains(" ") -> this.chunked(MAX_LINJELENGDE)
         else ->
             this.split(" ")
-                .fold(listOf<String>()) { result, word ->
+                .fold(emptyList()) { result, word ->
                     val lastString = result.lastOrNull()
                     if (lastString != null && lastString.length + word.length < MAX_LINJELENGDE) {
                         result.dropLastIfNotEmpty() + "$lastString $word"

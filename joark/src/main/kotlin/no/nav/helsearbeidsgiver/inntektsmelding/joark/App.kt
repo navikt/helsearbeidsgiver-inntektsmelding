@@ -11,23 +11,23 @@ private val logger = "helsearbeidsgiver-im-joark".logger()
 fun main() {
     RapidApplication
         .create(System.getenv())
-        .createJoark(createDokArkivClient(setUpEnvironment()))
+        .createJournalfoerImRiver(createDokArkivClient())
         .start()
 }
 
-fun RapidsConnection.createJoark(dokArkivClient: DokArkivClient): RapidsConnection =
+fun RapidsConnection.createJournalfoerImRiver(dokArkivClient: DokArkivClient): RapidsConnection =
     also {
+        logger.info("Starter ${JournalfoerImRiver::class.simpleName}...")
+        JournalfoerImRiver(dokArkivClient).connect(this)
+
         logger.info("Starter ${JournalfoerInntektsmeldingLoeser::class.simpleName}...")
         JournalfoerInntektsmeldingLoeser(this, dokArkivClient)
-
-        logger.info("Starter ${JournalfoerInntektsmeldingMottattListener::class.simpleName}...")
-        JournalfoerInntektsmeldingMottattListener(this)
     }
 
-private fun createDokArkivClient(environment: Environment): DokArkivClient {
-    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
+private fun createDokArkivClient(): DokArkivClient {
+    val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
     return DokArkivClient(
-        url = environment.dokarkivUrl,
+        url = Env.dokArkivUrl,
         maxRetries = 3,
         getAccessToken = tokenProvider::getToken
     )

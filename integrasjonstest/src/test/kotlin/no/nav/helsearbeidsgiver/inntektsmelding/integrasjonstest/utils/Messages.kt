@@ -5,9 +5,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -19,7 +17,7 @@ import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 value class Messages(
     private val value: MutableList<JsonElement> = mutableListOf()
 ) {
-    fun firstAsMap(): Map<IKey, JsonElement> =
+    fun firstAsMap(): Map<Key, JsonElement> =
         value.firstOrNull()
             .shouldNotBeNull()
             .toMap()
@@ -54,7 +52,7 @@ value class Messages(
                 .orDefault(false)
         }
 
-    fun filter(dataFelt: DataFelt, utenDataKey: Boolean = false): Messages =
+    fun filter(dataFelt: Key, utenDataKey: Boolean = false): Messages =
         filter { msg ->
             val dataFunnet = utenDataKey || msg.toMap().contains(Key.DATA)
 
@@ -65,7 +63,7 @@ value class Messages(
 
     fun filterFeil(): Messages =
         filter { msg ->
-            msg.toMap().contains(Key.FAIL)
+            msg.toMap().containsKey(Key.FAIL)
         }
 
     private fun filter(predicate: (JsonElement) -> Boolean): Messages =

@@ -1,11 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark.mappers
 
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Bonus
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Feilregistrert
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Ferie
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Periode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Tariffendring
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.VarigLonnsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Bonus
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Feilregistrert
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Ferie
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Tariffendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.VarigLonnsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mapstruct.factory.Mappers

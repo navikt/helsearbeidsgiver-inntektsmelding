@@ -4,7 +4,6 @@ import io.prometheus.client.Counter
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -13,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 
 class ForespoerselBesvartFraSpleisLoeser(
@@ -41,13 +41,15 @@ class ForespoerselBesvartFraSpleisLoeser(
         }.register(this)
     }
 
-    override fun Map<IKey, JsonElement>.lesMelding(): Melding =
-        Melding(
+    override fun JsonElement.lesMelding(): Melding {
+        val json = fromJsonMapFiltered(Pri.Key.serializer())
+        return Melding(
             event = Pri.NotisType.FORESPOERSEL_BESVART.name,
-            forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, this),
+            forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             transaksjonId = randomUuid(),
-            spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, this)
+            spinnInntektsmeldingId = Pri.Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json)
         )
+    }
 
     override fun haandterFeil(json: JsonElement) {
         priProducer.send(json)

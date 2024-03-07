@@ -1,6 +1,5 @@
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -10,10 +9,7 @@ import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Data
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
-import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
@@ -68,7 +64,6 @@ class DummyLoeser(
         River(rapid).apply {
             validate { msg ->
                 msg.demandValues(Key.BEHOV to behov.name)
-                msg.rejectKey(Key.LØSNING.str)
                 msg.interestedIn(Key.FORESPOERSEL_ID.str)
             }
         }.register(this)
@@ -85,13 +80,13 @@ class DummyLoeser(
             }
     }
 
-    private fun getData(): Map<IKey, JsonElement> {
+    private fun getData(): Map<Key, JsonElement> {
         val fnr = "123"
         val orgnr = "123"
 
         return when (behov) {
             BehovType.HENT_TRENGER_IM -> mapOf(
-                DataFelt.FORESPOERSEL_SVAR to TrengerInntekt(
+                Key.FORESPOERSEL_SVAR to TrengerInntekt(
                     type = ForespoerselType.KOMPLETT,
                     orgnr = orgnr,
                     fnr = fnr,
@@ -103,10 +98,10 @@ class DummyLoeser(
                 ).toJson(TrengerInntekt.serializer())
             )
             BehovType.VIRKSOMHET -> mapOf(
-                DataFelt.VIRKSOMHET to "Din Bedrift A/S".toJson()
+                Key.VIRKSOMHET to "Din Bedrift A/S".toJson()
             )
             BehovType.FULLT_NAVN -> mapOf(
-                DataFelt.ARBEIDSTAKER_INFORMASJON to
+                Key.ARBEIDSTAKER_INFORMASJON to
                     PersonDato(
                         "Navn navnesen",
                         LocalDate.now(),
@@ -115,7 +110,7 @@ class DummyLoeser(
                         .toJson(
                             PersonDato.serializer()
                         ),
-                DataFelt.ARBEIDSGIVER_INFORMASJON to
+                Key.ARBEIDSGIVER_INFORMASJON to
                     PersonDato(
                         "Arbeidsgiver",
                         LocalDate.now(),
@@ -126,20 +121,17 @@ class DummyLoeser(
                         )
             )
             BehovType.INNTEKT -> mapOf(
-                DataFelt.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer())
+                Key.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer())
             )
             BehovType.ARBEIDSFORHOLD -> mapOf(
-                DataFelt.ARBEIDSFORHOLD to JsonObject(
-                    mapOf(
-                        Data<Unit>::t.name to listOf(
-                            Arbeidsforhold(
-                                Arbeidsgiver("A/S", orgnr),
-                                Ansettelsesperiode(PeriodeNullable(1.januar, 31.januar)),
-                                LocalDateTime.now()
-                            )
-                        ).toJson(Arbeidsforhold.serializer())
-                    )
-                )
+                Key.ARBEIDSFORHOLD to
+                    listOf(
+                        Arbeidsforhold(
+                            Arbeidsgiver("A/S", orgnr),
+                            Ansettelsesperiode(PeriodeNullable(1.januar, 31.januar)),
+                            LocalDateTime.now()
+                        )
+                    ).toJson(Arbeidsforhold.serializer())
             )
             else -> error("Ukjent behov, ingen dummy-løsning!")
         }

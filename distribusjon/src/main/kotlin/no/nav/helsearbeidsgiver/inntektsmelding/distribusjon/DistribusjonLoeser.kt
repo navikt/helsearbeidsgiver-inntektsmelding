@@ -3,24 +3,23 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.distribusjon
 
 import io.prometheus.client.Summary
-import kotlinx.serialization.Serializable
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.JournalfoertInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.toJsonNode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Event
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishEvent
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import java.util.UUID
 
 private const val TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN = "helsearbeidsgiver.inntektsmelding"
 
@@ -38,14 +37,14 @@ class DistribusjonLoeser(
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.DISTRIBUER_IM.name)
-            it.requireKey(DataFelt.INNTEKTSMELDING_DOKUMENT.str)
+            it.requireKey(Key.INNTEKTSMELDING_DOKUMENT.str)
             it.requireKey(Key.JOURNALPOST_ID.str)
         }
     }
 
     private fun hentInntektsmeldingDokument(behov: Behov): Inntektsmelding {
         try {
-            val json = behov[DataFelt.INNTEKTSMELDING_DOKUMENT].toString()
+            val json = behov[Key.INNTEKTSMELDING_DOKUMENT].toString()
             return json.fromJson(Inntektsmelding.serializer())
         } catch (ex: Exception) {
             throw DeserialiseringException(ex)
@@ -58,22 +57,18 @@ class DistribusjonLoeser(
         val requestTimer = requestLatency.startTimer()
         try {
             val inntektsmelding = hentInntektsmeldingDokument(behov)
-            val journalførtInntektsmelding = JournalførtInntektsmelding(inntektsmelding, journalpostId)
-            val journalførtJson = journalførtInntektsmelding.toJsonStr(JournalførtInntektsmelding.serializer())
-            kafkaProducer.send(ProducerRecord(TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN, journalførtJson))
+            val journalfoertJson = JournalfoertInntektsmelding(journalpostId, inntektsmelding).toJsonStr(JournalfoertInntektsmelding.serializer())
+            kafkaProducer.send(ProducerRecord(TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN, journalfoertJson))
             logger.info("Distribuerte eksternt for journalpostId: $journalpostId")
-            sikkerLogger.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalførtJson")
+            sikkerLogger.info("Distribuerte eksternt for journalpostId: $journalpostId json: $journalfoertJson")
 
-            Event.create(
-                EventName.INNTEKTSMELDING_DISTRIBUERT,
-                behov.forespoerselId!!,
-                mapOf(
-                    Key.JOURNALPOST_ID to journalpostId,
-                    DataFelt.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()).toJsonNode()
-                )
-            ).also {
-                publishEvent(it)
-            }
+            rapidsConnection.publishEvent(
+                eventName = EventName.INNTEKTSMELDING_DISTRIBUERT,
+                transaksjonId = null,
+                forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                Key.JOURNALPOST_ID to journalpostId.toJson(),
+                Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer())
+            )
 
             logger.info("Distribuerte inntektsmelding for journalpostId: $journalpostId")
         } catch (e: DeserialiseringException) {
@@ -81,8 +76,7 @@ class DistribusjonLoeser(
             sikkerLogger.error("Distribusjon feilet fordi Inntektsmelding ikke kunne leses for journalpostId: $journalpostId", e)
             publishFail(
                 behov.createFail(
-                    "Distribusjon feilet fordi Inntektsmelding ikke kunne leses for journalpostId: $journalpostId",
-                    mapOf(Key.JOURNALPOST_ID to journalpostId)
+                    "Distribusjon feilet fordi Inntektsmelding ikke kunne leses for journalpostId: $journalpostId"
                 )
             )
         } catch (e: Exception) {
@@ -90,8 +84,7 @@ class DistribusjonLoeser(
             sikkerLogger.error("Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId", e)
             publishFail(
                 behov.createFail(
-                    "Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId",
-                    mapOf(Key.JOURNALPOST_ID to journalpostId)
+                    "Klarte ikke distribuere inntektsmelding for journalpostId: $journalpostId"
                 )
             )
         } finally {
@@ -99,10 +92,3 @@ class DistribusjonLoeser(
         }
     }
 }
-
-// TODO erstatt med no.nav.helsearbeidsgiver.domene.inntektsmelding.JournalfoertInntektsmelding når Spinn er over på domenepakken
-@Serializable
-class JournalførtInntektsmelding(
-    val inntektsmeldingDokument: Inntektsmelding,
-    val journalpostId: String
-)

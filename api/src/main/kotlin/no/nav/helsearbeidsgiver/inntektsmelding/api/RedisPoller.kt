@@ -35,8 +35,8 @@ class RedisPoller {
             json.parseJson()
         } catch (e: Exception) {
             "JSON-parsing feilet.".let {
-                sikkerLogger.error("$it key=$key json=$json")
-                throw RedisPollerJsonParseException("$it Se sikker logg for mer info. key='$key'", e)
+                sikkerLogger.error("$it key=$key json=$json", e)
+                throw RedisPollerJsonParseException("$it key='$key'", e)
             }
         }
     }

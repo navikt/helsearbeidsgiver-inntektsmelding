@@ -3,13 +3,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -40,8 +38,8 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
 
             publish(
                 Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
-                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
             )
         }
 
@@ -52,7 +50,7 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                DataFelt.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldingId
+                Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldingId
             }
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT)
@@ -62,7 +60,7 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_MOTTATT
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.LAGRE_EKSTERN_INNTEKTSMELDING
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                DataFelt.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), it) shouldBe eksternInntektsmelding
+                Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), it) shouldBe eksternInntektsmelding
             }
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_LAGRET)

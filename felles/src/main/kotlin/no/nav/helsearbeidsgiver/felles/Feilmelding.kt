@@ -2,15 +2,11 @@ package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
 
-data class Data<T>(
-    val t: T? = null
-)
-
 @Serializable
 data class Feilmelding(
     val melding: String,
     val status: Int? = null,
-    val datafelt: DataFelt? = null
+    val datafelt: Key? = null
 )
 
 @Serializable

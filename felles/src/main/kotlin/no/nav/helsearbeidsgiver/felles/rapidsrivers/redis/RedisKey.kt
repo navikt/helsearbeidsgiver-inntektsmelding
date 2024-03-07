@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 
-import no.nav.helsearbeidsgiver.felles.DataFelt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
@@ -21,9 +20,6 @@ sealed class RedisKey {
         fun of(uuid: UUID, key: Key): RedisKey =
             KeyKey(uuid, key)
 
-        fun of(uuid: UUID, dataFelt: DataFelt): RedisKey =
-            DataKey(uuid, dataFelt)
-
         // @TODO ikke bra nok
         fun of(uuid: UUID, feilMelding: Feilmelding): RedisKey =
             FeilKey(uuid, feilMelding)
@@ -32,12 +28,7 @@ sealed class RedisKey {
 
 private data class KeyKey(override val uuid: UUID, val key: Key) : RedisKey() {
     override fun toString(): String =
-        uuid.toString() + key.str
-}
-
-private data class DataKey(override val uuid: UUID, val datafelt: DataFelt) : RedisKey() {
-    override fun toString(): String =
-        uuid.toString() + datafelt.str
+        uuid.toString() + key.toString()
 }
 
 private data class TransactionKey(override val uuid: UUID, val eventName: EventName) : RedisKey() {

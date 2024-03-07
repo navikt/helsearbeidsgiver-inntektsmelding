@@ -6,37 +6,35 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-// vi kan vurdere å bruke event feltet og dispatche event istedenfor Fail.
-abstract class FailKanal(val rapidsConnection: RapidsConnection) : River.PacketListener {
-    abstract val eventName: EventName
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 
+class FailKanal(
+    private val event: EventName,
+    rapid: RapidsConnection,
+    private val onFail: (JsonMessage, MessageContext) -> Unit
+) : River.PacketListener {
     init {
-        configure(
-            River(rapidsConnection).apply {
-                validate(accept())
+        River(rapid).apply {
+            validate { msg ->
+                msg.demand(
+                    Key.FAIL to { it.fromJson(Fail.serializer()) }
+                )
+                msg.demandValues(
+                    Key.EVENT_NAME to event.name
+                )
+                msg.requireKeys(Key.UUID)
+                msg.interestedIn(Key.FORESPOERSEL_ID)
+                msg.rejectKeys(
+                    Key.BEHOV,
+                    Key.DATA
+                )
             }
-        ).register(this)
-    }
-
-    protected fun accept(): River.PacketValidation {
-        return River.PacketValidation { }
-    }
-
-    private fun configure(river: River): River {
-        return river.validate {
-            it.demandValue(Key.EVENT_NAME.str, eventName.name)
-            it.demandKey(Key.FAIL.str)
-            it.rejectKey(Key.BEHOV.str)
-            it.rejectKey(Key.LØSNING.str)
-            it.rejectKey(Key.DATA.str)
-            it.requireKey(Key.UUID.str)
-            it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
+            .register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        onFail(packet)
+        onFail(packet, context)
     }
-
-    abstract fun onFail(packet: JsonMessage)
 }

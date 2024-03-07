@@ -4,25 +4,25 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fail
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
@@ -62,17 +62,18 @@ class ForespoerselSvarLoeserTest : FunSpec({
     test("Ved feil så publiseres feil på simba-rapid") {
         val expectedIncoming = mockForespoerselSvarMedFeil()
 
-        val expected = PublishedFeil.mock(expectedIncoming)
+        val expected = mockFail(expectedIncoming)
 
         testRapid.sendJson(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
             Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer())
         )
 
-        val actual = testRapid.firstMessage().fromJson(PublishedFeil.serializer())
+        val actual = testRapid.firstMessage().readFail()
 
         testRapid.inspektør.size shouldBeExactly 1
-        actual shouldBe expected
+        actual.shouldBeEqualToIgnoringFields(expected, Fail::utloesendeMelding)
+        actual.utloesendeMelding.toMap() shouldContainAll expected.utloesendeMelding.toMap()
     }
 })
 
@@ -104,33 +105,22 @@ private data class PublishedData(
     }
 }
 
-@Serializable
-@OptIn(ExperimentalSerializationApi::class)
-private data class PublishedFeil(
-    @JsonNames("@event_name")
-    val eventName: EventName,
-    val fail: Map<String, JsonElement>,
-    val uuid: UUID
-) {
-    companion object {
-        fun mock(forespoerselSvar: ForespoerselSvar): PublishedFeil {
-            val feilmelding = "Klarte ikke hente forespørsel. Feilet med kode '${forespoerselSvar.feil?.name.shouldNotBeNull()}'."
+fun mockFail(forespoerselSvar: ForespoerselSvar): Fail {
+    val feilmelding = "Klarte ikke hente forespørsel. Feilet med kode '${forespoerselSvar.feil?.name.shouldNotBeNull()}'."
 
-            val boomerangMap = forespoerselSvar.boomerang.toMap()
+    val boomerangMap = forespoerselSvar.boomerang.toMap()
 
-            val initiateEvent = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
-            val transaksjonId = Key.UUID.les(UuidSerializer, boomerangMap)
+    val initiateEvent = Key.EVENT_NAME.les(EventName.serializer(), boomerangMap)
+    val transaksjonId = Key.UUID.les(UuidSerializer, boomerangMap)
 
-            return PublishedFeil(
-                eventName = initiateEvent,
-                fail = mapOf(
-                    Fail::behov.name to BehovType.HENT_TRENGER_IM.toJson(),
-                    Fail::feilmelding.name to feilmelding.toJson(),
-                    Fail::uuid.name to transaksjonId.toJson(),
-                    Fail::forespørselId.name to forespoerselSvar.forespoerselId.toJson()
-                ),
-                uuid = transaksjonId
-            )
-        }
-    }
+    return Fail(
+        feilmelding = feilmelding,
+        event = initiateEvent,
+        transaksjonId = transaksjonId,
+        forespoerselId = forespoerselSvar.forespoerselId,
+        utloesendeMelding = mapOf(
+            Pri.Key.BEHOV.str to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+            Pri.Key.LØSNING.str to forespoerselSvar.toJson(ForespoerselSvar.serializer())
+        ).toJson()
+    )
 }

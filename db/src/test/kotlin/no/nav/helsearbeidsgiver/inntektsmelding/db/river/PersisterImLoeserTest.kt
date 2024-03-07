@@ -160,8 +160,8 @@ class PersisterImLoeserTest {
         val arbeidsgiver = PersonDato("Gudrun Arbeidsgiver", null, "fnr-gudrun")
         val arbeidstaker = PersonDato("Toril Arbeidstaker", null, innsending.identitetsnummer)
 
-        val inntektsmelding = mapInntektsmelding(innsending, arbeidstaker.navn, "Test Virksomhet", arbeidsgiver.navn)
         val vedtaksperiodeId = randomUuid()
+        val inntektsmelding = mapInntektsmelding(innsending, arbeidstaker.navn, "Test Virksomhet", arbeidsgiver.navn, vedtaksperiodeId)
         val forespoerselSvar = TrengerInntekt(
             type = ForespoerselType.KOMPLETT,
             orgnr = innsending.orgnrUnderenhet,

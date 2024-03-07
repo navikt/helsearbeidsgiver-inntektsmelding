@@ -222,6 +222,11 @@ class InnsendingIT : EndToEndTest() {
 
         val forespoerselId: UUID = UUID.randomUUID()
         val innsending = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
-        val innsendtInntektsmelding = mapInntektsmelding(innsending, "Bjarne Betjent", "Bedrift A/S", "Max Mekker")
+        val innsendtInntektsmelding = mapInntektsmelding(
+            innsending,
+            "Bjarne Betjent",
+            "Bedrift A/S",
+            "Max Mekker"
+        )
     }
 }

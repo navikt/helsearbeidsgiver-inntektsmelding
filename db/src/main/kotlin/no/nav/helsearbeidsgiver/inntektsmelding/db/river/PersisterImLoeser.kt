@@ -66,7 +66,8 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 request = innsending,
                 fulltnavnArbeidstaker = arbeidstaker.navn,
                 virksomhetNavn = virksomhetNavn,
-                innsenderNavn = innsender.navn
+                innsenderNavn = innsender.navn,
+                vedtaksperiodeId = forespoersel.vedtaksperiodeId
             )
 
             val sisteIm = repository.hentNyeste(forespoerselId)

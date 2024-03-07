@@ -114,6 +114,7 @@ subprojects {
     val kotlinCoroutinesVersion: String by project
     val kotlinSerializationVersion: String by project
     val mockkVersion: String by project
+    val tokenProviderVersion: String by project
     val utilsVersion: String by project
 
     dependencies {
@@ -125,6 +126,7 @@ subprojects {
         }
 
         implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
+        implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
         implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")

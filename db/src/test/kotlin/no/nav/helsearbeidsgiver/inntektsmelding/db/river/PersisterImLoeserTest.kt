@@ -23,11 +23,14 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -70,7 +73,8 @@ class PersisterImLoeserTest {
             Key.VIRKSOMHET to "Test Virksomhet".toJson(),
             Key.ARBEIDSGIVER_INFORMASJON to Mock.arbeidsgiver.toJson(PersonDato.serializer()),
             Key.ARBEIDSTAKER_INFORMASJON to Mock.arbeidstaker.toJson(PersonDato.serializer()),
-            Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+            Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer()),
+            Key.FORESPOERSEL_SVAR to Mock.forespoerselSvar.toJson(TrengerInntekt.serializer())
         )
 
         coVerify(exactly = 1) {
@@ -99,7 +103,8 @@ class PersisterImLoeserTest {
             Key.VIRKSOMHET to "Test Virksomhet".toJson(),
             Key.ARBEIDSGIVER_INFORMASJON to Mock.arbeidsgiver.toJson(PersonDato.serializer()),
             Key.ARBEIDSTAKER_INFORMASJON to Mock.arbeidstaker.toJson(PersonDato.serializer()),
-            Key.INNTEKTSMELDING to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING).toJson(Innsending.serializer())
+            Key.INNTEKTSMELDING to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING).toJson(Innsending.serializer()),
+            Key.FORESPOERSEL_SVAR to Mock.forespoerselSvar.toJson(TrengerInntekt.serializer())
         )
 
         coVerify(exactly = 0) {
@@ -156,5 +161,17 @@ class PersisterImLoeserTest {
         val arbeidstaker = PersonDato("Toril Arbeidstaker", null, innsending.identitetsnummer)
 
         val inntektsmelding = mapInntektsmelding(innsending, arbeidstaker.navn, "Test Virksomhet", arbeidsgiver.navn)
+        val vedtaksperiodeId = randomUuid()
+        val forespoerselSvar = TrengerInntekt(
+            type = ForespoerselType.KOMPLETT,
+            orgnr = innsending.orgnrUnderenhet,
+            fnr = innsending.identitetsnummer,
+            vedtaksperiodeId = vedtaksperiodeId,
+            skjaeringstidspunkt = innsending.bestemmendeFraværsdag,
+            sykmeldingsperioder = innsending.fraværsperioder.map { no.nav.helsearbeidsgiver.felles.Periode(it.fom, it.tom) },
+            egenmeldingsperioder = innsending.egenmeldingsperioder.map { no.nav.helsearbeidsgiver.felles.Periode(it.fom, it.tom) },
+            forespurtData = mockForespurtData(),
+            erBesvart = false
+        )
     }
 }

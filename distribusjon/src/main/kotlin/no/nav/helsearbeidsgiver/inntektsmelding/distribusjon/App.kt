@@ -24,7 +24,4 @@ fun RapidsConnection.createDistribusjonRiver(producer: KafkaProducer<String, Str
     also {
         logger.info("Starter ${DistribusjonRiver::class.simpleName}...")
         DistribusjonRiver(producer).connect(this)
-
-        logger.info("Starter ${DistribusjonLoeser::class.simpleName}...")
-        DistribusjonLoeser(this, producer)
     }

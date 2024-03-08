@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -46,46 +47,56 @@ class DistribusjonRiverTest : FunSpec({
         clearAllMocks()
     }
 
-    test("distribuerer inntektsmelding på kafka topic") {
-        every { mockKafkaProducer.send(any()) } returns CompletableFuture()
+    context("distribuerer inntektsmelding på kafka topic") {
+        withData(
+            mapOf(
+                "for vanlig melding" to null,
+                "for retry-melding" to BehovType.DISTRIBUER_IM
+            )
+        ) { innkommendeBehov ->
 
-        val transaksjonId = UUID.randomUUID()
-        val forespoerselId = UUID.randomUUID()
-        val journalfoertInntektsmelding = JournalfoertInntektsmelding(
-            journalpostId = "7983693",
-            inntektsmelding = mockInntektsmelding()
-        )
+            every { mockKafkaProducer.send(any()) } returns CompletableFuture()
 
-        val innkommendeMelding = Melding(
-            eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
-            transaksjonId = transaksjonId,
-            journalpostId = journalfoertInntektsmelding.journalpostId,
-            inntektsmelding = journalfoertInntektsmelding.inntektsmelding
-        )
+            val transaksjonId = UUID.randomUUID()
+            val forespoerselId = UUID.randomUUID()
+            val journalfoertInntektsmelding = JournalfoertInntektsmelding(
+                journalpostId = "7983693",
+                inntektsmelding = mockInntektsmelding()
+            )
 
-        testRapid.sendJson(
-            innkommendeMelding.tilMap()
-                .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
-        )
+            val innkommendeMelding = Melding(
+                eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
+                transaksjonId = transaksjonId,
+                journalpostId = journalfoertInntektsmelding.journalpostId,
+                inntektsmelding = journalfoertInntektsmelding.inntektsmelding
+            )
 
-        testRapid.inspektør.size shouldBeExactly 1
+            testRapid.sendJson(
+                innkommendeMelding.tilMap()
+                    .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
+                    .plus(Key.BEHOV to innkommendeBehov?.toJson())
+                    .mapValuesNotNull { it }
+            )
 
-        val publisert = testRapid.firstMessage().toMap()
+            testRapid.inspektør.size shouldBeExactly 1
 
-        Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INNTEKTSMELDING_DISTRIBUERT
-        Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe transaksjonId
-        Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalfoertInntektsmelding.journalpostId
-        Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe journalfoertInntektsmelding.inntektsmelding
-        Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
-        Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+            val publisert = testRapid.firstMessage().toMap()
 
-        val forventetRecord = ProducerRecord<String, String>(
-            TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-            journalfoertInntektsmelding.toJsonStr(JournalfoertInntektsmelding.serializer())
-        )
+            Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INNTEKTSMELDING_DISTRIBUERT
+            Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe transaksjonId
+            Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalfoertInntektsmelding.journalpostId
+            Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe journalfoertInntektsmelding.inntektsmelding
+            Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
+            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
-        verifySequence {
-            mockKafkaProducer.send(forventetRecord)
+            val forventetRecord = ProducerRecord<String, String>(
+                TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
+                journalfoertInntektsmelding.toJsonStr(JournalfoertInntektsmelding.serializer())
+            )
+
+            verifySequence {
+                mockKafkaProducer.send(forventetRecord)
+            }
         }
     }
 
@@ -110,7 +121,10 @@ class DistribusjonRiverTest : FunSpec({
             event = innkommendeMelding.eventName,
             transaksjonId = innkommendeMelding.transaksjonId,
             forespoerselId = forespoerselId,
-            utloesendeMelding = innkommendeJsonMap.toJson()
+            utloesendeMelding = innkommendeJsonMap.plus(
+                Key.BEHOV to BehovType.DISTRIBUER_IM.toJson()
+            )
+                .toJson()
         )
 
         testRapid.sendJson(innkommendeJsonMap)

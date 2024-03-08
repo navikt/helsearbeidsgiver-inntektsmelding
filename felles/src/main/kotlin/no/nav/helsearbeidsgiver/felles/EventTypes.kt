@@ -22,9 +22,6 @@ enum class BehovType {
     LAGRE_JOURNALPOST_ID,
     LAGRE_FORESPOERSEL,
 
-    // TODO slett etter overgangsfase
-    DISTRIBUER_IM,
-
     NOTIFIKASJON_HENT_ID,
     OPPRETT_SAK,
     SLETT_SAK,
@@ -36,7 +33,10 @@ enum class BehovType {
 
     HENT_EKSTERN_INNTEKTSMELDING,
     LAGRE_EKSTERN_INNTEKTSMELDING,
-    TRENGER_FORESPØRSEL
+    TRENGER_FORESPØRSEL,
+
+    // Brukt til å prøve igjen ved feil
+    DISTRIBUER_IM
 }
 
 @Serializable

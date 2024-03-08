@@ -4,10 +4,12 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.JournalfoertInntektsmelding
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
@@ -41,8 +43,12 @@ class DistribusjonRiver(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): Melding? =
-        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
+    override fun les(json: Map<Key, JsonElement>): Melding? {
+        val behovType = Key.BEHOV.lesOrNull(BehovType.serializer(), json)
+        return if (
+            setOf(Key.DATA, Key.FAIL).any(json::containsKey) ||
+            (behovType != null && behovType != BehovType.DISTRIBUER_IM)
+        ) {
             null
         } else {
             Melding(
@@ -52,6 +58,7 @@ class DistribusjonRiver(
                 inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), json)
             )
         }
+    }
 
     override fun Melding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Forsøker å distribuere IM med journalpost-ID '$journalpostId'.".also {
@@ -83,7 +90,10 @@ class DistribusjonRiver(
             event = eventName,
             transaksjonId = transaksjonId,
             forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
-            utloesendeMelding = json.toJson()
+            utloesendeMelding = json.plus(
+                Key.BEHOV to BehovType.DISTRIBUER_IM.toJson()
+            )
+                .toJson()
         )
 
         logger.error(fail.feilmelding)

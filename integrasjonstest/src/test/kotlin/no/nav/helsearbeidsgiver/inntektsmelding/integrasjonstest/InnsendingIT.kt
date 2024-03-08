@@ -5,16 +5,22 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.Periode
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -22,6 +28,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonT
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -40,6 +47,14 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.innsending.orgnrUnderenhet)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+        val transaksjonId: UUID = randomUuid()
+
+        mockForespoerselSvarFraHelsebro(
+            eventName = EventName.INSENDING_STARTED,
+            transaksjonId = transaksjonId,
+            forespoerselId = Mock.forespoerselId,
+            forespoersel = Mock.forespoerselSvar
+        )
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -50,17 +65,20 @@ class InnsendingIT : EndToEndTest() {
             dokumenter = emptyList()
         )
 
-        publish(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.CLIENT_ID to UUID.randomUUID().toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
-            Key.IDENTITETSNUMMER to Mock.innsending.identitetsnummer.toJson(),
-            Key.ARBEIDSGIVER_ID to Mock.innsending.identitetsnummer.toJson(),
-            Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
-        )
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns transaksjonId
+            publish(
+                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+                Key.CLIENT_ID to UUID.randomUUID().toJson(),
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
+                Key.IDENTITETSNUMMER to Mock.innsending.identitetsnummer.toJson(),
+                Key.ARBEIDSGIVER_ID to Mock.innsending.identitetsnummer.toJson(),
+                Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+            )
+            Thread.sleep(10000)
+        }
 
-        Thread.sleep(10000)
 
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
@@ -130,6 +148,15 @@ class InnsendingIT : EndToEndTest() {
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
         imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), Mock.innsendtInntektsmelding)
 
+        val transaksjonId: UUID = randomUuid()
+
+        mockForespoerselSvarFraHelsebro(
+            eventName = EventName.INSENDING_STARTED,
+            transaksjonId = transaksjonId,
+            forespoerselId = Mock.forespoerselId,
+            forespoersel = Mock.forespoerselSvar
+        )
+
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
         } returns OpprettOgFerdigstillResponse(
@@ -141,17 +168,19 @@ class InnsendingIT : EndToEndTest() {
 
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
 
-        publish(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.CLIENT_ID to UUID.randomUUID().toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
-            Key.IDENTITETSNUMMER to "fnr-bjarne".toJson(),
-            Key.ARBEIDSGIVER_ID to "fnr-max".toJson(),
-            Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
-        )
-
-        Thread.sleep(10000)
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns transaksjonId
+            publish(
+                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+                Key.CLIENT_ID to UUID.randomUUID().toJson(),
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
+                Key.IDENTITETSNUMMER to "fnr-bjarne".toJson(),
+                Key.ARBEIDSGIVER_ID to "fnr-max".toJson(),
+                Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+            )
+            Thread.sleep(10000)
+        }
 
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.ER_DUPLIKAT_IM)
@@ -220,13 +249,26 @@ class InnsendingIT : EndToEndTest() {
         const val SAK_ID = "forundret-lysekrone"
         const val OPPGAVE_ID = "neglisjert-sommer"
 
-        val forespoerselId: UUID = UUID.randomUUID()
+        val forespoerselId: UUID = randomUuid()
         val innsending = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
+        val vedtaksperiodeId = randomUuid()
         val innsendtInntektsmelding = mapInntektsmelding(
-            innsending,
-            "Bjarne Betjent",
-            "Bedrift A/S",
-            "Max Mekker"
+            request = innsending,
+            fulltnavnArbeidstaker = "Bjarne Betjent",
+            virksomhetNavn = "Bedrift A/S",
+            innsenderNavn = "Max Mekker",
+            vedtaksperiodeId = vedtaksperiodeId
+        )
+        val forespoerselSvar = TrengerInntekt(
+            type = ForespoerselType.KOMPLETT,
+            orgnr = innsending.orgnrUnderenhet,
+            fnr = innsending.identitetsnummer,
+            vedtaksperiodeId = vedtaksperiodeId,
+            skjaeringstidspunkt = innsending.bestemmendeFraværsdag,
+            sykmeldingsperioder = innsending.fraværsperioder.map { Periode(it.fom, it.tom) },
+            egenmeldingsperioder = innsending.egenmeldingsperioder.map { Periode(it.fom, it.tom) },
+            forespurtData = mockForespurtData(),
+            erBesvart = false
         )
     }
 }

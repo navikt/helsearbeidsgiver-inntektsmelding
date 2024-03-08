@@ -79,7 +79,6 @@ class InnsendingIT : EndToEndTest() {
             Thread.sleep(10000)
         }
 
-
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .firstAsMap()

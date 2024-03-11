@@ -70,7 +70,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import kotlin.concurrent.thread
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
@@ -79,13 +78,9 @@ private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
 
-    private lateinit var thread: Thread
-
     private val logger = logger()
 
-    private val rapid by lazy {
-        ImTestRapid()
-    }
+    private val imTestRapid = ImTestRapid()
 
     private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
@@ -104,7 +99,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     val messages = Messages()
 
-    val tilgangProducer by lazy { TilgangProducer(rapid) }
+    val tilgangProducer by lazy { TilgangProducer(imTestRapid) }
 
     val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
     val aapenImRepo by lazy { AapenImRepo(inntektsmeldingDatabase.db) }
@@ -122,6 +117,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     @BeforeEach
     fun beforeEachEndToEnd() {
+        imTestRapid.reset()
         messages.reset()
         clearAllMocks()
 
@@ -169,7 +165,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     fun beforeAllEndToEnd() {
         // Start rivers
         logger.info("Starter rivers...")
-        rapid.apply {
+        imTestRapid.apply {
             createInnsending(redisStore)
             createInntektService(redisStore)
             createTilgangService(redisStore)
@@ -198,11 +194,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                 inntektsmeldingDatabase.dataSource.close()
             }
             .register(this)
-
-        thread = thread {
-            rapid.start()
-        }
-        Thread.sleep(2000)
     }
 
     override fun onMessage(message: String, context: MessageContext) {
@@ -214,14 +205,11 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     fun afterAllEndToEnd() {
         // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
-        rapid.stop()
-        rapid.reset()
-        thread.interrupt()
         logger.info("Stopped")
     }
 
     fun publish(vararg messageFields: Pair<Key, JsonElement>) {
-        rapid.publish(*messageFields).also {
+        imTestRapid.publish(*messageFields).also {
             println("Publiserte melding: $it")
         }
     }
@@ -235,7 +223,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                 JsonMessage(it, MessageProblems(it), null)
             }
             .toJson()
-            .also(rapid::publish)
+            .also(imTestRapid::publish)
             .parseJson()
             .also {
                 println("Publiserte melding: $it")

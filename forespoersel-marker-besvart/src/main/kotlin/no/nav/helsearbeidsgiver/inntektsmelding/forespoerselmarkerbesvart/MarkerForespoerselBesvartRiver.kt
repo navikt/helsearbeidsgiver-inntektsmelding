@@ -43,7 +43,8 @@ class MarkerForespoerselBesvartRiver(
             )
             msg.rejectKeys(
                 Key.BEHOV,
-                Key.DATA
+                Key.DATA,
+                Key.FAIL
             )
         }
             .register(this)

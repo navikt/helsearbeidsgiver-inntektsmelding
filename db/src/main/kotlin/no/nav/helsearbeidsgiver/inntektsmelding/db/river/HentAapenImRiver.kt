@@ -76,7 +76,7 @@ class HentAapenImRiver(
 
     override fun HentAapenImMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@HentAapenImRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),

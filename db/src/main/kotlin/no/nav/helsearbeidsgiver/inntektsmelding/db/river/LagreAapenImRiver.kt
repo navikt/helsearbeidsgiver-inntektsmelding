@@ -99,7 +99,7 @@ class LagreAapenImRiver(
 
     override fun LagreAapenImMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@LagreAapenImRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),

@@ -94,7 +94,7 @@ class OpprettAapenSakRiver(
 
     override fun OpprettAapenSakMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@OpprettAapenSakRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),

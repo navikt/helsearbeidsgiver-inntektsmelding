@@ -3,16 +3,20 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 class ImTestRapid : RapidsConnection() {
-    private val messages = mutableListOf<Pair<String?, String>>()
+
+    private val logger = logger()
+
+    internal val messages = Messages()
 
     override fun publish(message: String) {
-        publishSafe(null, message)
+        publishSafe(message)
     }
 
     override fun publish(key: String, message: String) {
-        publishSafe(key, message)
+        publishSafe(message)
     }
 
     override fun rapidName(): String =
@@ -22,16 +26,19 @@ class ImTestRapid : RapidsConnection() {
     override fun stop() {}
 
     internal fun reset() {
-        messages.clear()
+        messages.reset()
     }
 
-    private fun publishSafe(key: String?, message: String) {
+    private fun publishSafe(message: String) {
         // Rapid tåler bare JSON-objekt
         if (message.parseJson() !is JsonObject) {
             throw JsonObjectRequired(message)
         }
 
-        messages.add(key to message)
+        messages.add(message)
+
+        logger.info("Rapid: $message")
+
         notifyMessage(message, this)
     }
 }

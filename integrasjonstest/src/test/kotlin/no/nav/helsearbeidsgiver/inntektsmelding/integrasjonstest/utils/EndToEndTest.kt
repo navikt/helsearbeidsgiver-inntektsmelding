@@ -8,9 +8,7 @@ import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -76,7 +74,7 @@ import kotlin.io.path.absolutePathString
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
+abstract class EndToEndTest : ContainerTest() {
 
     private val logger = logger()
 
@@ -97,7 +95,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         RedisStore(redisContainer.redisURI)
     }
 
-    val messages = Messages()
+    val messages get() = imTestRapid.messages
 
     val tilgangProducer by lazy { TilgangProducer(imTestRapid) }
 
@@ -118,7 +116,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     @BeforeEach
     fun beforeEachEndToEnd() {
         imTestRapid.reset()
-        messages.reset()
         clearAllMocks()
 
         coEvery { pdlKlient.personBolk(any()) } returns listOf(
@@ -166,39 +163,35 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         // Start rivers
         logger.info("Starter rivers...")
         imTestRapid.apply {
+            // Servicer
+            createAktiveOrgnrService(redisStore)
             createInnsending(redisStore)
             createInntektService(redisStore)
+            createSpinnService(redisStore)
             createTilgangService(redisStore)
             createTrengerService(redisStore)
 
+            // Rivers
             createAareg(aaregClient)
             createAltinn(altinnClient)
             createBrreg(brregClient, false)
             createDbRivers(imRepository, aapenImRepo, forespoerselRepository)
             createDistribusjon(mockk(relaxed = true))
+            createEksternInntektsmeldingLoeser(spinnKlient)
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
-            createMarkerForespoerselBesvart(mockPriProducer)
             createHelsebro(mockPriProducer)
             createInntekt(mockk(relaxed = true))
             createJournalfoerImRiver(dokarkivClient)
+            createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
-            createEksternInntektsmeldingLoeser(spinnKlient)
-            createSpinnService(redisStore)
-            createAktiveOrgnrService(redisStore)
         }
             .registerShutdownLifecycle {
                 redisStore.shutdown()
                 inntektsmeldingDatabase.dataSource.close()
             }
-            .register(this)
-    }
-
-    override fun onMessage(message: String, context: MessageContext) {
-        logger.info("onMessage: $message")
-        messages.add(message)
     }
 
     @AfterAll

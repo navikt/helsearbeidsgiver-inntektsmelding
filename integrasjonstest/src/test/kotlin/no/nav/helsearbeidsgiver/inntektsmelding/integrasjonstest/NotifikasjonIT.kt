@@ -212,7 +212,6 @@ class NotifikasjonIT : EndToEndTest() {
             Key.SAK_ID to Mock.SAK_ID.toJson()
         )
 
-        Thread.sleep(5000)
         coVerify(exactly = 1) { arbeidsgiverNotifikasjonKlient.hardDeleteSak(Mock.SAK_ID) }
         messages.all().size shouldBe 1
     }

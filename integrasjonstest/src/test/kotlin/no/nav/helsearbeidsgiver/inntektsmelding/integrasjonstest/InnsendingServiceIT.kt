@@ -55,8 +55,6 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
         )
 
-        Thread.sleep(10000)
-
         // Alle transaksjonId skal være like. Finn første og beste som sammenligningsgrunnlag.
         val transaksjonId = messages.all()
             .firstNotNullOf {

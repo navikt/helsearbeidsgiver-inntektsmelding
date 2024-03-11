@@ -31,8 +31,8 @@ class ImTestRapid : RapidsConnection() {
             throw JsonObjectRequired(message)
         }
 
-        notifyMessage(message, this)
         messages.add(key to message)
+        notifyMessage(message, this)
     }
 }
 

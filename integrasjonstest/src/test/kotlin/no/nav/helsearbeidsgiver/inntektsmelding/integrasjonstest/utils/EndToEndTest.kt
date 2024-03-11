@@ -229,24 +229,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                 println("Publiserte melding: $it")
             }
 
-    /** Avslutter venting dersom meldinger finnes og ingen nye ankommer i løpet av 1500 ms. */
-    fun waitForMessages(millis: Long) {
-        val startTime = System.nanoTime()
-
-        var messageAmount = 0
-
-        while (messageAmount == 0 || messageAmount != messages.all().size) {
-            val elapsedTime = (System.nanoTime() - startTime) / 1_000_000
-            if (elapsedTime > millis) {
-                throw MessagesWaitLimitException(millis)
-            }
-
-            messageAmount = messages.all().size
-
-            Thread.sleep(1500)
-        }
-    }
-
     fun mockForespoerselSvarFraHelsebro(
         eventName: EventName,
         transaksjonId: UUID,
@@ -279,10 +261,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         }
     }
 }
-
-private class MessagesWaitLimitException(millis: Long) : RuntimeException(
-    "Tid brukt på å vente på meldinger overskred grensen på $millis ms."
-)
 
 private fun Database.createTruncateFunction() =
     also {

@@ -70,7 +70,6 @@ class InnsendingServiceIT : EndToEndTest() {
                 Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
                 Key.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
             )
-            Thread.sleep(10000)
         }
 
         // Data hentet

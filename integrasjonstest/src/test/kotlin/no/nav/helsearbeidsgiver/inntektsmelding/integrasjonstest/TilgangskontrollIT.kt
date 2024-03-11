@@ -54,8 +54,6 @@ class TilgangskontrollIT : EndToEndTest() {
             every { randomUuid() } returns transaksjonId
 
             tilgangProducer.publishForespoerselId(Mock.forespoerselId, Mock.INNLOGGET_FNR)
-
-            Thread.sleep(6000)
         }
 
         messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
@@ -94,8 +92,6 @@ class TilgangskontrollIT : EndToEndTest() {
             every { randomUuid() } returns transaksjonId
 
             tilgangProducer.publishForespoerselId(Mock.forespoerselId, Mock.INNLOGGET_FNR)
-
-            Thread.sleep(4000)
         }
 
         val result = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
@@ -113,8 +109,6 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `organisasjon - skal få tilgang`() {
         tilgangProducer.publishOrgnr(Mock.ORGNR_MED_TILGANG, Mock.INNLOGGET_FNR)
 
-        Thread.sleep(6000)
-
         val result = messages.filter(EventName.TILGANG_ORG_REQUESTED)
             .filter(Key.TILGANG)
             .firstAsMap()
@@ -129,8 +123,6 @@ class TilgangskontrollIT : EndToEndTest() {
     @Test
     fun `organisasjon - skal bli nektet tilgang`() {
         tilgangProducer.publishOrgnr(Mock.ORGNR_UTEN_TILGANG, Mock.INNLOGGET_FNR)
-
-        Thread.sleep(4000)
 
         val result = messages.filter(EventName.TILGANG_ORG_REQUESTED)
             .filter(Key.TILGANG)

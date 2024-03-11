@@ -76,7 +76,6 @@ class InnsendingIT : EndToEndTest() {
                 Key.ARBEIDSGIVER_ID to Mock.innsending.identitetsnummer.toJson(),
                 Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
             )
-            Thread.sleep(10000)
         }
 
         messages.filter(EventName.INSENDING_STARTED)
@@ -178,7 +177,6 @@ class InnsendingIT : EndToEndTest() {
                 Key.ARBEIDSGIVER_ID to "fnr-max".toJson(),
                 Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
             )
-            Thread.sleep(10000)
         }
 
         messages.filter(EventName.INSENDING_STARTED)

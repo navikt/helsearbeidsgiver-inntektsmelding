@@ -41,7 +41,6 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
             )
-            Thread.sleep(10000)
         }
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)

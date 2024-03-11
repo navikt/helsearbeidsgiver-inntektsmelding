@@ -60,8 +60,6 @@ class InnsendingIT : EndToEndTest() {
             Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
 
-        Thread.sleep(10000)
-
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .firstAsMap()
@@ -150,8 +148,6 @@ class InnsendingIT : EndToEndTest() {
             Key.ARBEIDSGIVER_ID to "fnr-max".toJson(),
             Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
         )
-
-        Thread.sleep(10000)
 
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.ER_DUPLIKAT_IM)

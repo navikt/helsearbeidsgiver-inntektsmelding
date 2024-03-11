@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
@@ -188,17 +187,15 @@ abstract class EndToEndTest : ContainerTest() {
             createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
         }
-            .registerShutdownLifecycle {
-                redisStore.shutdown()
-                inntektsmeldingDatabase.dataSource.close()
-            }
     }
 
     @AfterAll
     fun afterAllEndToEnd() {
         // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
-        logger.info("Stopped")
+        redisStore.shutdown()
+        inntektsmeldingDatabase.dataSource.close()
+        logger.info("Stopped.")
     }
 
     fun publish(vararg messageFields: Pair<Key, JsonElement>) {

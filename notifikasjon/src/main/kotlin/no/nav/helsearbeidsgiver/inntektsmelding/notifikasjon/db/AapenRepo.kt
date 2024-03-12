@@ -12,7 +12,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.time.toJavaDuration
 
-// TODO test
 class AapenRepo(private val db: Database) {
 
     private val logger = logger()

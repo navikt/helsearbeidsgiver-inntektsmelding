@@ -19,9 +19,6 @@ fun RapidsConnection.createJournalfoerImRiver(dokArkivClient: DokArkivClient): R
     also {
         logger.info("Starter ${JournalfoerImRiver::class.simpleName}...")
         JournalfoerImRiver(dokArkivClient).connect(this)
-
-        logger.info("Starter ${JournalfoerInntektsmeldingLoeser::class.simpleName}...")
-        JournalfoerInntektsmeldingLoeser(this, dokArkivClient)
     }
 
 private fun createDokArkivClient(): DokArkivClient {

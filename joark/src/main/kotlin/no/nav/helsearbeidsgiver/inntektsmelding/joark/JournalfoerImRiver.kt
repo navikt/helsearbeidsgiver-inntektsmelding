@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
@@ -29,7 +30,7 @@ import java.time.LocalDate
 import java.util.UUID
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
-class JournalfoerImMelding(
+data class JournalfoerImMelding(
     val eventName: EventName,
     val transaksjonId: UUID,
     // TODO endre til v1.Inntektsmelding når kun den brukes
@@ -108,7 +109,7 @@ class JournalfoerImRiver(
                     Log.behov(BehovType.LAGRE_JOURNALPOST_ID)
                 ) {
                     logger.info("Publiserer behov '${BehovType.LAGRE_JOURNALPOST_ID}' med journalpost-ID '$journalpostId'.")
-                    sikkerLogger.info("Publiserer behov:\n${it.toJson().toPretty()}")
+                    sikkerLogger.info("Publiserer behov:\n${it.toPretty()}")
                 }
             }
     }

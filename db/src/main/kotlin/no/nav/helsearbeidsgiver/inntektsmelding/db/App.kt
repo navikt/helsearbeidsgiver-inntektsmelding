@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreAapenImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.NotifikasjonHentIdLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterImLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterOppgaveLoeser
@@ -54,8 +54,8 @@ fun RapidsConnection.createDbRivers(
         logger.info("Starter ${HentPersistertLoeser::class.simpleName}...")
         HentPersistertLoeser(this, imRepo)
 
-        logger.info("Starter ${LagreJournalpostIdLoeser::class.simpleName}...")
-        LagreJournalpostIdLoeser(this, imRepo)
+        logger.info("Starter ${LagreJournalpostIdRiver::class.simpleName}...")
+        LagreJournalpostIdRiver(imRepo, aapenImRepo).connect(this)
 
         logger.info("Starter ${PersisterSakLoeser::class.simpleName}...")
         PersisterSakLoeser(this, forespoerselRepo)

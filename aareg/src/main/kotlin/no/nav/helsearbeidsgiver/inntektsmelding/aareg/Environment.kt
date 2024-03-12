@@ -1,19 +1,19 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 
 import no.nav.helsearbeidsgiver.felles.getEnvVar
-import no.nav.helsearbeidsgiver.felles.oauth2.AzureOAuth2Environment
+import no.nav.helsearbeidsgiver.tokenprovider.OAuth2Environment
 
 fun setUpEnvironment(): Environment {
     return Environment(
         raw = System.getenv(),
         aaregUrl = getEnvVar("AAREG_URL"),
-        AzureOAuth2Environment(
+        oauth2Environment = OAuth2Environment(
             scope = getEnvVar("PROXY_SCOPE"),
-            azureWellKnownUrl = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
-            azureTokenEndpointUrl = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
-            azureAppClientID = getEnvVar("AZURE_APP_CLIENT_ID"),
-            azureAppClientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET"),
-            azureAppJwk = getEnvVar("AZURE_APP_JWK")
+            wellKnownUrl = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
+            tokenEndpointUrl = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+            clientId = getEnvVar("AZURE_APP_CLIENT_ID"),
+            clientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET"),
+            clientJwk = getEnvVar("AZURE_APP_JWK")
         )
     )
 }
@@ -21,5 +21,5 @@ fun setUpEnvironment(): Environment {
 data class Environment(
     val raw: Map<String, String>,
     val aaregUrl: String,
-    val azureOAuthEnvironment: AzureOAuth2Environment
+    val oauth2Environment: OAuth2Environment
 )

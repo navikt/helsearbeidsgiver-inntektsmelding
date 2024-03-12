@@ -2,8 +2,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
+import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-inntekt".logger()
@@ -22,6 +22,6 @@ fun RapidsConnection.createInntekt(inntektKlient: InntektKlient): RapidsConnecti
     }
 
 fun createInntektKlient(): InntektKlient {
-    val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
-    return InntektKlient(Env.inntektUrl, tokenProvider::getToken)
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    return InntektKlient(Env.inntektUrl, tokenGetter)
 }

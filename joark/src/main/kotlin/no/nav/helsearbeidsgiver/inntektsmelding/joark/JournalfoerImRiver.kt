@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
@@ -29,7 +30,7 @@ import java.time.LocalDate
 import java.util.UUID
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
-class JournalfoerImMelding(
+data class JournalfoerImMelding(
     val eventName: EventName,
     val transaksjonId: UUID,
     // TODO endre til v1.Inntektsmelding når kun den brukes
@@ -43,8 +44,12 @@ class JournalfoerImRiver(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): JournalfoerImMelding? =
-        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
+    override fun les(json: Map<Key, JsonElement>): JournalfoerImMelding? {
+        val behovType = Key.BEHOV.lesOrNull(BehovType.serializer(), json)
+        return if (
+            setOf(Key.DATA, Key.FAIL).any(json::containsKey) ||
+            (behovType != null && behovType != BehovType.JOURNALFOER)
+        ) {
             null
         } else {
             val eventName = Key.EVENT_NAME.les(EventName.serializer(), json)
@@ -69,6 +74,7 @@ class JournalfoerImRiver(
                     null
             }
         }
+    }
 
     override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Mottok melding med event '$eventName'. Sender behov '${BehovType.LAGRE_JOURNALPOST_ID}'.".also {
@@ -103,7 +109,7 @@ class JournalfoerImRiver(
                     Log.behov(BehovType.LAGRE_JOURNALPOST_ID)
                 ) {
                     logger.info("Publiserer behov '${BehovType.LAGRE_JOURNALPOST_ID}' med journalpost-ID '$journalpostId'.")
-                    sikkerLogger.info("Publiserer behov:\n${it.toJson().toPretty()}")
+                    sikkerLogger.info("Publiserer behov:\n${it.toPretty()}")
                 }
             }
     }
@@ -114,7 +120,10 @@ class JournalfoerImRiver(
             event = eventName,
             transaksjonId = transaksjonId,
             forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
-            utloesendeMelding = json.toJson()
+            utloesendeMelding = json.plus(
+                Key.BEHOV to BehovType.JOURNALFOER.toJson()
+            )
+                .toJson()
         )
 
         logger.error(fail.feilmelding)

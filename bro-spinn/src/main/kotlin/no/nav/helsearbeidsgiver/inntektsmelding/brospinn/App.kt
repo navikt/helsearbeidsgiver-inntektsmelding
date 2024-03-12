@@ -2,9 +2,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
+import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-bro-spinn".logger()
@@ -39,6 +39,6 @@ fun RapidsConnection.createSpinnService(redisStore: RedisStore): RapidsConnectio
     }
 
 fun createSpinnKlient(): SpinnKlient {
-    val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
-    return SpinnKlient(Env.spinnUrl, tokenProvider::getToken)
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    return SpinnKlient(Env.spinnUrl, tokenGetter)
 }

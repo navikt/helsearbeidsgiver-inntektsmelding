@@ -41,8 +41,6 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
             )
-
-            waitForMessages(20000)
         }
 
         bekreftForventedeMeldinger()
@@ -66,8 +64,6 @@ class ForespoerselBesvartIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.UUID to Mock.transaksjonId.toJson()
         )
-
-        waitForMessages(20000)
 
         bekreftForventedeMeldinger()
     }

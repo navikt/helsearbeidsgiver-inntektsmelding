@@ -38,13 +38,6 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
     }
-    fun publishBehov(message: JsonMessage) {
-        message[Key.EVENT_NAME.str] = event.name
-        if (forespørselId.isNotEmpty()) {
-            message[Key.FORESPOERSEL_ID.str] = forespørselId
-        }
-        rapidsConnection.publish(message.toJson())
-    }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {

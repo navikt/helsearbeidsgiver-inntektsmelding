@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.til
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 
@@ -108,5 +109,6 @@ fun mockTrengerInntekt(): TrengerInntekt =
         sykmeldingsperioder = listOf(2.januar til 31.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         forespurtData = mockForespurtData(),
-        erBesvart = false
+        erBesvart = false,
+        vedtaksperiodeId = randomUuid()
     )

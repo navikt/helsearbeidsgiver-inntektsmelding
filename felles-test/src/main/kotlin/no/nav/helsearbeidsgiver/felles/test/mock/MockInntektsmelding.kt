@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.RefusjonEndrin
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.BegrunnelseRedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
@@ -30,7 +29,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending as Aa
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt as InntektV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse as NaturalytelseV1
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NaturalytelseKode as NaturalytelseKodeV1
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon as RefusjonV1
 
 private val dag = 24.desember(2022)
@@ -39,6 +37,7 @@ private const val INNTEKT = 25_000.0
 fun mockInntektsmeldingV1(): InntektsmeldingV1 =
     InntektsmeldingV1(
         id = UUID.randomUUID(),
+        type = InntektsmeldingV1.Type.FORESPURT,
         sykmeldt = Sykmeldt(
             fnr = "16054577777",
             navn = "Skummel Bolle"
@@ -83,7 +82,7 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
             ),
             RedusertLoennIAgp(
                 beloep = 300.3,
-                begrunnelse = BegrunnelseRedusertLoennIAgp.FerieEllerAvspasering
+                begrunnelse = RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering
             )
         ),
         inntekt = InntektV1(
@@ -91,12 +90,12 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
             inntektsdato = 28.september,
             naturalytelser = listOf(
                 NaturalytelseV1(
-                    naturalytelse = NaturalytelseKodeV1.BEDRIFTSBARNEHAGEPLASS,
+                    naturalytelse = NaturalytelseV1.Kode.BEDRIFTSBARNEHAGEPLASS,
                     verdiBeloep = 52.5,
                     sluttdato = 10.oktober
                 ),
                 NaturalytelseV1(
-                    naturalytelse = NaturalytelseKodeV1.BIL,
+                    naturalytelse = NaturalytelseV1.Kode.BIL,
                     verdiBeloep = 434.0,
                     sluttdato = 12.oktober
                 )

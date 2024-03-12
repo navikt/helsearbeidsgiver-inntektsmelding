@@ -186,7 +186,7 @@ class LagreAapenImRiverTest : FunSpec({
         withData(
             mapOf(
                 "melding med data" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer()))
+                "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer()))
             )
         ) { uoensketKeyMedVerdi ->
             val innkommendeMelding = LagreAapenImMelding(
@@ -237,12 +237,10 @@ private fun LagreAapenImMelding.tilMap(): Map<Key, JsonElement> =
         Key.AAPEN_INNTEKTMELDING to aapenInntektsmelding.toJson(Inntektsmelding.serializer())
     )
 
-private object Mock {
-    val fail = Fail(
-        feilmelding = "Vi har et KJEMPEPROBLEM!",
-        event = EventName.AAPEN_IM_MOTTATT,
-        transaksjonId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
-        utloesendeMelding = JsonNull
-    )
-}
+private val mockFail = Fail(
+    feilmelding = "Vi har et KJEMPEPROBLEM!",
+    event = EventName.AAPEN_IM_MOTTATT,
+    transaksjonId = UUID.randomUUID(),
+    forespoerselId = UUID.randomUUID(),
+    utloesendeMelding = JsonNull
+)

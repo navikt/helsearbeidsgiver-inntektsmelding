@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.til
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -230,7 +231,8 @@ private object Mock {
                 31.mars til 31.mars
             ),
             forespurtData = mockForespurtData(),
-            erBesvart = false
+            erBesvart = false,
+            vedtaksperiodeId = randomUuid()
         )
 
     private fun inntekt(): Inntekt =

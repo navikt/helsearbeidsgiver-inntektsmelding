@@ -4,7 +4,6 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
-import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.AapenRepo
@@ -18,6 +17,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SlettSakLoese
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.ManuellOpprettSakService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettOppgaveService
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.OpprettSakService
+import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-notifikasjon".logger()
@@ -89,6 +89,6 @@ fun RapidsConnection.createNotifikasjonRivers(
     }
 
 private fun buildClient(): ArbeidsgiverNotifikasjonKlient {
-    val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
-    return ArbeidsgiverNotifikasjonKlient(Env.notifikasjonUrl, tokenProvider::getToken)
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    return ArbeidsgiverNotifikasjonKlient(Env.notifikasjonUrl, tokenGetter)
 }

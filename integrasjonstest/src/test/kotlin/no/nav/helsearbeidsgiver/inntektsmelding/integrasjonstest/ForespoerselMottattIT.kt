@@ -32,8 +32,6 @@ class ForespoerselMottattIT : EndToEndTest() {
                 Pri.Key.FNR to Mock.FNR.toJson(),
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
             )
-
-            waitForMessages(8000)
         }
 
         messages.filter(EventName.FORESPØRSEL_MOTTATT)
@@ -63,7 +61,7 @@ class ForespoerselMottattIT : EndToEndTest() {
         const val FNR = "fnr-rebekka"
         const val ORGNR = "orgnr-gås"
 
-        val forespoerselId = UUID.randomUUID()
-        val transaksjonId = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
+        val transaksjonId: UUID = UUID.randomUUID()
     }
 }

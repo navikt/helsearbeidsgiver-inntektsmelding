@@ -9,7 +9,7 @@ enum class BehovType {
     VIRKSOMHET,
     INNTEKT,
     ARBEIDSFORHOLD,
-    JOURNALFOER, // TODO slett etter overgangsperiode
+    JOURNALFOER,
     ARBEIDSGIVERE,
     TILGANGSKONTROLL,
     HENT_TRENGER_IM, // TODO: SPLEIS_FORESPOERSEL eller SPLEIS_FORESPOERSEL_DETALJER??
@@ -21,7 +21,6 @@ enum class BehovType {
 
     LAGRE_JOURNALPOST_ID,
     LAGRE_FORESPOERSEL,
-    DISTRIBUER_IM,
 
     NOTIFIKASJON_HENT_ID,
     OPPRETT_SAK,
@@ -34,7 +33,10 @@ enum class BehovType {
 
     HENT_EKSTERN_INNTEKTSMELDING,
     LAGRE_EKSTERN_INNTEKTSMELDING,
-    TRENGER_FORESPØRSEL
+    TRENGER_FORESPØRSEL,
+
+    // Brukt til å prøve igjen ved feil
+    DISTRIBUER_IM
 }
 
 @Serializable

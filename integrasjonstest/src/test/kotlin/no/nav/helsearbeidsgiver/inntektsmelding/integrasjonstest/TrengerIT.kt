@@ -43,8 +43,6 @@ class TrengerIT : EndToEndTest() {
                 Key.ARBEIDSGIVER_ID to "12345678910".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
             )
-
-            waitForMessages(10000)
         }
 
         messages.filter(EventName.TRENGER_REQUESTED)

@@ -5,12 +5,12 @@ import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbProsesserer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class FeilProsessor(val rapid: RapidsConnection) : BakgrunnsjobbProsesserer {
+class FeilProsessor(private val rapid: RapidsConnection) : BakgrunnsjobbProsesserer {
     override val type: String
         get() = JOB_TYPE
 
     companion object {
-        val JOB_TYPE = "kafka-retry-message"
+        const val JOB_TYPE = "kafka-retry-message"
     }
 
     private val sikkerLogger = sikkerLogger()

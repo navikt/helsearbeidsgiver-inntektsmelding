@@ -4,12 +4,14 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import java.time.ZonedDateTime
+import java.util.UUID
 
 fun mapInntektsmelding(
     request: Innsending,
     fulltnavnArbeidstaker: String,
     virksomhetNavn: String,
-    innsenderNavn: String
+    innsenderNavn: String,
+    vedtaksperiodeId: UUID? = null
 ): Inntektsmelding =
     try {
         Inntektsmelding(
@@ -37,7 +39,8 @@ fun mapInntektsmelding(
             årsakInnsending = request.årsakInnsending,
             innsenderNavn = innsenderNavn,
             forespurtData = request.forespurtData,
-            telefonnummer = request.telefonnummer
+            telefonnummer = request.telefonnummer,
+            vedtaksperiodeId = vedtaksperiodeId
         )
     } catch (ex: Exception) {
         throw UgyldigFormatException(ex)
@@ -46,4 +49,4 @@ fun mapInntektsmelding(
 class UgyldigFormatException(ex: Exception) : Exception(ex)
 
 fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =
-    this == other.copy(tidspunkt = tidspunkt, årsakInnsending = årsakInnsending, innsenderNavn = innsenderNavn)
+    this == other.copy(tidspunkt = tidspunkt, årsakInnsending = årsakInnsending, innsenderNavn = innsenderNavn, vedtaksperiodeId = vedtaksperiodeId)

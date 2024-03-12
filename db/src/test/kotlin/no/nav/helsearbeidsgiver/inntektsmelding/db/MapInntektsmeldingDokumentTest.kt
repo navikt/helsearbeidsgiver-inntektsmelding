@@ -16,7 +16,12 @@ class MapInntektsmeldingDokumentTest {
         val fulltNavn = "Test Testesen"
         val arbeidsgiver = "Bedrift A/S"
         val innsenderNavn = "Hege fra HR"
-        val inntektsmelding = mapInntektsmelding(GYLDIG_INNSENDING_REQUEST, fulltNavn, arbeidsgiver, innsenderNavn)
+        val inntektsmelding = mapInntektsmelding(
+            GYLDIG_INNSENDING_REQUEST,
+            fulltNavn,
+            arbeidsgiver,
+            innsenderNavn
+        )
         assertNotNull(inntektsmelding.inntekt)
         assertEquals(GYLDIG_INNSENDING_REQUEST.inntekt.beregnetInntekt, inntektsmelding.inntekt?.beregnetInntekt)
 

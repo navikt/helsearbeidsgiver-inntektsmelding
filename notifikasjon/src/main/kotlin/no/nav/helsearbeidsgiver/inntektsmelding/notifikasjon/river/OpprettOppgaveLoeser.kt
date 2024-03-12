@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -11,12 +10,13 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishBehov
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.NotifikasjonMetrics
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -102,9 +102,8 @@ class OpprettOppgaveLoeser(
         orgnr: String,
         virksomhetnavn: String
     ): String? {
-        val requestTimer = NotifikasjonMetrics.requestLatency.labels("opprettOppgave").startTimer()
         return try {
-            runBlocking {
+            Metrics.agNotifikasjonRequest.recordTime(arbeidsgiverNotifikasjonKlient::opprettNyOppgave) {
                 arbeidsgiverNotifikasjonKlient.opprettNyOppgave(
                     eksternId = forespoerselId.toString(),
                     lenke = "$linkUrl/im-dialog/$forespoerselId",
@@ -120,8 +119,6 @@ class OpprettOppgaveLoeser(
                     Hvis dere sender inntektsmelding via lønnssystem kan dere fortsatt gjøre dette,
                     og trenger ikke sende inn via Min side – arbeidsgiver."""
                 )
-            }.also {
-                requestTimer.observeDuration()
             }
         } catch (e: OpprettNyOppgaveException) {
             sikkerLogger.error("Feil ved kall til opprett oppgave for $forespoerselId!", e)

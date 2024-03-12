@@ -30,6 +30,7 @@ data class ForespoerselSvar(
         val type: ForespoerselType,
         val orgnr: String,
         val fnr: String,
+        val vedtaksperiodeId: UUID,
         val skjaeringstidspunkt: LocalDate?,
         val sykmeldingsperioder: List<Periode>,
         val egenmeldingsperioder: List<Periode>,

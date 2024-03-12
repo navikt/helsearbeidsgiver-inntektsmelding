@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainAll
-import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -23,12 +23,12 @@ import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class AltinnLoeserTest : FunSpec({
+class AltinnRiverTest : FunSpec({
     val testRapid = TestRapid()
 
     val mockAltinnClient = mockk<AltinnClient>(relaxed = true)
 
-    AltinnLoeser(mockAltinnClient).connect(testRapid)
+    AltinnRiver(mockAltinnClient).connect(testRapid)
 
     beforeEach {
         testRapid.reset()
@@ -69,7 +69,7 @@ class AltinnLoeserTest : FunSpec({
             Key.IDENTITETSNUMMER to mockId.toJson()
         )
 
-        testRapid.inspektør.size shouldBe 0
+        testRapid.inspektør.size shouldBeExactly 0
 
         coVerify(exactly = 0) { mockAltinnClient.hentRettighetOrganisasjoner(any()) }
     }
@@ -80,7 +80,7 @@ class AltinnLoeserTest : FunSpec({
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson()
         )
 
-        testRapid.inspektør.size shouldBe 0
+        testRapid.inspektør.size shouldBeExactly 0
 
         coVerify(exactly = 0) { mockAltinnClient.hentRettighetOrganisasjoner(any()) }
     }

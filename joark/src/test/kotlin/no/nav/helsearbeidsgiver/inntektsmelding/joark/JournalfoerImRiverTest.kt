@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -23,10 +24,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.BegrunnelseRedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NaturalytelseKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
@@ -91,6 +90,8 @@ class JournalfoerImRiverTest : FunSpec({
                     .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
             )
 
+            testRapid.inspektør.size shouldBeExactly 1
+
             testRapid.firstMessage()
                 .toMap()
                 .also {
@@ -146,6 +147,8 @@ class JournalfoerImRiverTest : FunSpec({
                     .plus(Key.AAPEN_ID to aapenId.toJson())
             )
 
+            testRapid.inspektør.size shouldBeExactly 1
+
             testRapid.firstMessage()
                 .toMap()
                 .also {
@@ -153,8 +156,8 @@ class JournalfoerImRiverTest : FunSpec({
                     Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_JOURNALPOST_ID
                     Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
                     Key.JOURNALPOST_ID.lesOrNull(String.serializer(), it) shouldBe journalpostId
-                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
                     Key.AAPEN_ID.lesOrNull(UuidSerializer, it) shouldBe aapenId
+                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
                 }
 
             coVerifySequence {
@@ -177,6 +180,57 @@ class JournalfoerImRiverTest : FunSpec({
         }
     }
 
+    test("håndterer retries (med BehovType.JOURNALFOER)") {
+        val journalpostId = UUID.randomUUID().toString()
+
+        coEvery {
+            mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+        } returns Mock.opprettOgFerdigstillResponse(journalpostId)
+
+        val innkommendeMelding = JournalfoerImMelding(
+            eventName = EventName.AAPEN_IM_LAGRET,
+            transaksjonId = UUID.randomUUID(),
+            inntektsmeldingJson = Mock.inntektmeldingNyVersjon.toJson(InntektsmeldingV1.serializer())
+        )
+
+        val aapenId = UUID.randomUUID()
+
+        testRapid.sendJson(
+            innkommendeMelding.tilMap(Key.AAPEN_INNTEKTMELDING)
+                .plus(Key.AAPEN_ID to aapenId.toJson())
+                .plus(Key.BEHOV to BehovType.JOURNALFOER.toJson())
+        )
+
+        testRapid.firstMessage()
+            .toMap()
+            .also {
+                Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
+                Key.BEHOV.lesOrNull(BehovType.serializer(), it) shouldBe BehovType.LAGRE_JOURNALPOST_ID
+                Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
+                Key.JOURNALPOST_ID.lesOrNull(String.serializer(), it) shouldBe journalpostId
+                Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
+                Key.AAPEN_ID.lesOrNull(UuidSerializer, it) shouldBe aapenId
+            }
+
+        coVerifySequence {
+            mockDokArkivKlient.opprettOgFerdigstillJournalpost(
+                tittel = "Inntektsmelding",
+                gjelderPerson = GjelderPerson(Mock.inntektmeldingNyVersjon.sykmeldt.fnr),
+                avsender = KlientAvsender.Organisasjon(
+                    orgnr = Mock.inntektmeldingNyVersjon.avsender.orgnr,
+                    navn = Mock.inntektmeldingNyVersjon.avsender.orgNavn
+                ),
+                datoMottatt = LocalDate.now(),
+                dokumenter = withArg {
+                    it shouldHaveSize 1
+                    it.first().dokumentVarianter.map { it.filtype } shouldContainExactly listOf("XML", "PDFA")
+                },
+                eksternReferanseId = "ARI-${innkommendeMelding.transaksjonId}",
+                callId = "callId_${innkommendeMelding.transaksjonId}"
+            )
+        }
+    }
+
     context("håndterer feil") {
         test("ugyldig inntektsmelding feiler") {
             val forespoerselId = UUID.randomUUID()
@@ -195,10 +249,15 @@ class JournalfoerImRiverTest : FunSpec({
                 event = innkommendeMelding.eventName,
                 transaksjonId = innkommendeMelding.transaksjonId,
                 forespoerselId = forespoerselId,
-                utloesendeMelding = innkommendeJsonMap.toJson()
+                utloesendeMelding = innkommendeJsonMap.plus(
+                    Key.BEHOV to BehovType.JOURNALFOER.toJson()
+                )
+                    .toJson()
             )
 
             testRapid.sendJson(innkommendeJsonMap)
+
+            testRapid.inspektør.size shouldBeExactly 1
 
             testRapid.firstMessage()
                 .toMap()
@@ -207,6 +266,7 @@ class JournalfoerImRiverTest : FunSpec({
                     Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
                     Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
                     Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
+                    Key.AAPEN_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
                 }
 
             coVerify(exactly = 0) {
@@ -219,7 +279,7 @@ class JournalfoerImRiverTest : FunSpec({
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
             } throws RuntimeException("dette går itj', nei!")
 
-            val forespoerselId = UUID.randomUUID()
+            val aapenId = UUID.randomUUID()
 
             val innkommendeMelding = JournalfoerImMelding(
                 eventName = EventName.INNTEKTSMELDING_MOTTATT,
@@ -228,17 +288,22 @@ class JournalfoerImRiverTest : FunSpec({
             )
 
             val innkommendeJsonMap = innkommendeMelding.tilMap()
-                .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
+                .plus(Key.AAPEN_ID to aapenId.toJson())
 
             val forventetFail = Fail(
                 feilmelding = "Klarte ikke journalføre.",
                 event = innkommendeMelding.eventName,
                 transaksjonId = innkommendeMelding.transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = innkommendeJsonMap.toJson()
+                forespoerselId = null,
+                utloesendeMelding = innkommendeJsonMap.plus(
+                    Key.BEHOV to BehovType.JOURNALFOER.toJson()
+                )
+                    .toJson()
             )
 
             testRapid.sendJson(innkommendeJsonMap)
+
+            testRapid.inspektør.size shouldBeExactly 1
 
             testRapid.firstMessage()
                 .toMap()
@@ -246,7 +311,8 @@ class JournalfoerImRiverTest : FunSpec({
                     Key.FAIL.lesOrNull(Fail.serializer(), it) shouldBe forventetFail
                     Key.EVENT_NAME.lesOrNull(EventName.serializer(), it) shouldBe innkommendeMelding.eventName
                     Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
-                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe forespoerselId
+                    Key.AAPEN_ID.lesOrNull(UuidSerializer, it) shouldBe aapenId
+                    Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
                 }
 
             coVerifySequence {
@@ -274,7 +340,7 @@ class JournalfoerImRiverTest : FunSpec({
                     .plus(uoensketKeyMedVerdi)
             )
 
-            testRapid.inspektør.size shouldBe 0
+            testRapid.inspektør.size shouldBeExactly 0
 
             coVerify(exactly = 0) {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -290,7 +356,7 @@ class JournalfoerImRiverTest : FunSpec({
 
             testRapid.sendJson(innkommendeMelding.tilMap())
 
-            testRapid.inspektør.size shouldBe 0
+            testRapid.inspektør.size shouldBeExactly 0
 
             coVerify(exactly = 0) {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -309,6 +375,7 @@ private fun JournalfoerImMelding.tilMap(imKey: Key = Key.INNTEKTSMELDING_DOKUMEN
 private object Mock {
     val inntektmeldingNyVersjon = InntektsmeldingV1(
         id = UUID.randomUUID(),
+        type = InntektsmeldingV1.Type.FORESPURT,
         sykmeldt = Sykmeldt(
             fnr = "16054577777",
             navn = "Skummel Bolle"
@@ -353,7 +420,7 @@ private object Mock {
             ),
             RedusertLoennIAgp(
                 beloep = 300.3,
-                begrunnelse = BegrunnelseRedusertLoennIAgp.FerieEllerAvspasering
+                begrunnelse = RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering
             )
         ),
         inntekt = Inntekt(
@@ -361,12 +428,12 @@ private object Mock {
             inntektsdato = 28.september,
             naturalytelser = listOf(
                 Naturalytelse(
-                    naturalytelse = NaturalytelseKode.BEDRIFTSBARNEHAGEPLASS,
+                    naturalytelse = Naturalytelse.Kode.BEDRIFTSBARNEHAGEPLASS,
                     verdiBeloep = 52.5,
                     sluttdato = 10.oktober
                 ),
                 Naturalytelse(
-                    naturalytelse = NaturalytelseKode.BIL,
+                    naturalytelse = Naturalytelse.Kode.BIL,
                     verdiBeloep = 434.0,
                     sluttdato = 12.oktober
                 )

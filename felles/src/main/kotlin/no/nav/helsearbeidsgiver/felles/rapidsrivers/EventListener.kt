@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -38,13 +37,6 @@ abstract class EventListener(val rapidsConnection: RapidsConnection) : River.Pac
             it.interestedIn(Key.UUID.str)
             it.interestedIn(Key.FORESPOERSEL_ID.str)
         }
-    }
-    fun publishBehov(message: JsonMessage) {
-        message[Key.EVENT_NAME.str] = event.name
-        if (forespørselId.isNotEmpty()) {
-            message[Key.FORESPOERSEL_ID.str] = forespørselId
-        }
-        rapidsConnection.publish(message.toJson())
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

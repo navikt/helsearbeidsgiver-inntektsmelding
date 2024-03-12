@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
-import io.prometheus.client.Summary
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -12,6 +10,8 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
@@ -29,11 +29,6 @@ class TilgangLoeser(
     rapidsConnection: RapidsConnection,
     private val altinnClient: AltinnClient
 ) : Loeser(rapidsConnection) {
-
-    private val requestLatency = Summary.build()
-        .name("simba_altinn_tilgangskontroll_latency_seconds")
-        .help("altinn tilgangskontroll latency in seconds")
-        .register()
 
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
@@ -73,13 +68,10 @@ class TilgangLoeser(
         val fnr = Key.FNR.les(String.serializer(), json)
         val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), json)
 
-        val requestTimer = requestLatency.startTimer()
         runCatching {
-            runBlocking {
+            Metrics.altinnRequest.recordTime(altinnClient::harRettighetForOrganisasjon) {
                 altinnClient.harRettighetForOrganisasjon(fnr, orgnr)
             }
-        }.also {
-            requestTimer.observeDuration()
         }
             .onSuccess { harTilgang ->
                 val tilgang = if (harTilgang) Tilgang.HAR_TILGANG else Tilgang.IKKE_TILGANG

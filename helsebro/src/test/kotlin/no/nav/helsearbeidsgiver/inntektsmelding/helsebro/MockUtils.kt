@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
 import no.nav.helsearbeidsgiver.felles.til
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -46,7 +47,8 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         sykmeldingsperioder = listOf(2.januar til 16.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         forespurtData = mockForespurtData(),
-        erBesvart = false
+        erBesvart = false,
+        vedtaksperiodeId = randomUuid()
     )
 
 fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
@@ -61,7 +63,8 @@ fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
         ),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         forespurtData = mockForespurtDataMedFastsattInntekt(),
-        erBesvart = false
+        erBesvart = false,
+        vedtaksperiodeId = randomUuid()
     )
 
 private fun mockBoomerang(): JsonElement =

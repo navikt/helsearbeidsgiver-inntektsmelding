@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.joark
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
-import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
+import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-joark".logger()
@@ -22,10 +22,10 @@ fun RapidsConnection.createJournalfoerImRiver(dokArkivClient: DokArkivClient): R
     }
 
 private fun createDokArkivClient(): DokArkivClient {
-    val tokenProvider = OAuth2ClientConfig(Env.azureOAuthEnvironment)
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
     return DokArkivClient(
         url = Env.dokArkivUrl,
         maxRetries = 3,
-        getAccessToken = tokenProvider::getToken
+        getAccessToken = tokenGetter
     )
 }

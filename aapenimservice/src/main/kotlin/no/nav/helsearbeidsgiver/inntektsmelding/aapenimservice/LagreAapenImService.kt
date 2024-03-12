@@ -256,6 +256,7 @@ class LagreAapenImService(
 
 private fun tilInntektsmelding(
     aapenId: UUID,
+    type: Inntektsmelding.Type = Inntektsmelding.Type.SELVBESTEMT,
     skjema: SkjemaInntektsmelding,
     orgNavn: String,
     sykmeldt: PersonDato,
@@ -279,7 +280,8 @@ private fun tilInntektsmelding(
         inntekt = skjema.inntekt,
         refusjon = skjema.refusjon,
         aarsakInnsending = skjema.aarsakInnsending,
-        mottatt = OffsetDateTime.now()
+        mottatt = OffsetDateTime.now(),
+        type = type
     )
 
 private fun tomPerson(fnr: String): PersonDato =

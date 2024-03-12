@@ -47,13 +47,13 @@ class LagreAapenImRiverTest : FunSpec({
     }
 
     context("åpen inntektsmelding lagres") {
-        val inntektmeldingId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
 
         withData(
             mapOf(
                 "hvis ingen andre inntektsmeldinger er mottatt" to null,
                 "hvis ikke duplikat av tidligere inntektsmeldinger" to mockInntektsmeldingV1().copy(
-                    id = inntektmeldingId,
+                    id = inntektsmeldingId,
                     sykmeldingsperioder = listOf(13.juli til 31.juli)
                 )
             )
@@ -61,7 +61,7 @@ class LagreAapenImRiverTest : FunSpec({
             every { mockAapenImRepo.hentNyesteIm(any()) } returns eksisterendeIm
             every { mockAapenImRepo.lagreIm(any()) } just Runs
 
-            val nyInntektsmelding = mockInntektsmeldingV1().copy(id = inntektmeldingId)
+            val nyInntektsmelding = mockInntektsmeldingV1().copy(id = inntektsmeldingId)
 
             val innkommendeMelding = LagreAapenImMelding(
                 eventName = EventName.AAPEN_IM_MOTTATT,

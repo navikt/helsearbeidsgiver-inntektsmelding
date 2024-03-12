@@ -53,8 +53,8 @@ class JournalfoerImRiverTest : FunSpec({
     context("oppretter journalpost og publiserer melding for å lagre journalpost-ID") {
         withData(
             mapOf(
-                "forespurt inntektmelding (gammel versjon)" to Mock.inntektmeldingGammelVersjon.toJson(Inntektsmelding.serializer()),
-                "forespurt inntektmelding (ny versjon, ikke i bruk)" to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer())
+                "forespurt inntektsmelding (gammel versjon)" to Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer()),
+                "forespurt inntektsmelding (ny versjon, ikke i bruk)" to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer())
             )
         ) { inntektsmeldingJson ->
             val journalpostId = UUID.randomUUID().toString()
@@ -93,10 +93,10 @@ class JournalfoerImRiverTest : FunSpec({
             coVerifySequence {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(
                     tittel = "Inntektsmelding",
-                    gjelderPerson = GjelderPerson(Mock.inntektmeldingGammelVersjon.identitetsnummer),
+                    gjelderPerson = GjelderPerson(Mock.inntektsmeldingGammelVersjon.identitetsnummer),
                     avsender = KlientAvsender.Organisasjon(
-                        orgnr = Mock.inntektmeldingGammelVersjon.orgnrUnderenhet,
-                        navn = Mock.inntektmeldingGammelVersjon.virksomhetNavn
+                        orgnr = Mock.inntektsmeldingGammelVersjon.orgnrUnderenhet,
+                        navn = Mock.inntektsmeldingGammelVersjon.virksomhetNavn
                     ),
                     datoMottatt = LocalDate.now(),
                     dokumenter = withArg {
@@ -111,8 +111,8 @@ class JournalfoerImRiverTest : FunSpec({
 
         withData(
             mapOf(
-                "selvbestemt inntektmelding (ny versjon)" to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer()),
-                "selvbestemt inntektmelding (gammel versjon, ikke i bruk)" to Mock.inntektmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
+                "selvbestemt inntektsmelding (ny versjon)" to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer()),
+                "selvbestemt inntektsmelding (gammel versjon, ikke i bruk)" to Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
             )
         ) { inntektsmeldingJson ->
             val journalpostId = UUID.randomUUID().toString()
@@ -275,7 +275,7 @@ class JournalfoerImRiverTest : FunSpec({
             val innkommendeMelding = JournalfoerImMelding(
                 eventName = EventName.INNTEKTSMELDING_MOTTATT,
                 transaksjonId = UUID.randomUUID(),
-                inntektsmeldingJson = Mock.inntektmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
+                inntektsmeldingJson = Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
             )
 
             val innkommendeJsonMap = innkommendeMelding.tilMap()
@@ -324,7 +324,7 @@ class JournalfoerImRiverTest : FunSpec({
             val innkommendeMelding = JournalfoerImMelding(
                 eventName = EventName.INNTEKTSMELDING_MOTTATT,
                 transaksjonId = UUID.randomUUID(),
-                inntektsmeldingJson = Mock.inntektmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
+                inntektsmeldingJson = Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
             )
 
             testRapid.sendJson(
@@ -343,7 +343,7 @@ class JournalfoerImRiverTest : FunSpec({
             val innkommendeMelding = JournalfoerImMelding(
                 eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED,
                 transaksjonId = UUID.randomUUID(),
-                inntektsmeldingJson = Mock.inntektmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
+                inntektsmeldingJson = Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
             )
 
             testRapid.sendJson(innkommendeMelding.tilMap())
@@ -365,7 +365,7 @@ private fun JournalfoerImMelding.tilMap(imKey: Key = Key.INNTEKTSMELDING_DOKUMEN
     )
 
 private object Mock {
-    val inntektmeldingGammelVersjon = mockInntektsmeldingV1().convert()
+    val inntektsmeldingGammelVersjon = mockInntektsmeldingV1().convert()
 
     val fail = Fail(
         feilmelding = "I don't think we're in Kansas anymore.",

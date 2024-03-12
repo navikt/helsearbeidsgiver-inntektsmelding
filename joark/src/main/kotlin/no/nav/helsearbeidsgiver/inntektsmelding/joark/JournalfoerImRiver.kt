@@ -76,10 +76,10 @@ class JournalfoerImRiver(
         }
     }
 
-    override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+    override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Mottok melding med event '$eventName'. Sender behov '${BehovType.LAGRE_JOURNALPOST_ID}'.".also {
             logger.info(it)
-            sikkerLogger.info(it)
+            sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
         val inntektsmelding = runCatching {

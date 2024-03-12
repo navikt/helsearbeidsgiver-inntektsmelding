@@ -36,7 +36,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.AapenImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
-import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
+import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
@@ -175,7 +175,7 @@ abstract class EndToEndTest : ContainerTest() {
             createAltinn(altinnClient)
             createBrreg(brregClient, false)
             createDbRivers(imRepository, aapenImRepo, forespoerselRepository)
-            createDistribusjon(mockk(relaxed = true))
+            createDistribusjonRiver(mockk(relaxed = true))
             createEksternInntektsmeldingLoeser(spinnKlient)
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)

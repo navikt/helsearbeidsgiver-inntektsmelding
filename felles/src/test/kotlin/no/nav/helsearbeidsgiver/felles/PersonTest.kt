@@ -1,0 +1,24 @@
+package no.nav.helsearbeidsgiver.felles
+
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.data.row
+import io.kotest.datatest.withData
+import io.kotest.matchers.shouldBe
+import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.mars
+
+class PersonTest : FunSpec({
+    withData(
+        nameFn = { (fnr, _) -> fnr },
+        listOf(
+            row("01015030000", 1.januar(1950)),
+            row("01025090000", 1.februar(1950)),
+            row("01033030000", 1.mars(1930)),
+            row("01041070000", 1.april(2010))
+        )
+    ) { (fnr, forventetDato) ->
+        Person.foedselsdato(fnr) shouldBe forventetDato
+    }
+})

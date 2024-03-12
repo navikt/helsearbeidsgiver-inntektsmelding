@@ -45,7 +45,7 @@ class HentPersonerRiver(
         } else {
             Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                behovType = Key.BEHOV.krev(BehovType.PERSONER, BehovType.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.HENT_PERSONER, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 fnrListe = Key.FNR_LISTE.les(String.serializer().list(), json)
             )

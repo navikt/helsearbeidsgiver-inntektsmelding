@@ -23,10 +23,8 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.BegrunnelseRedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NaturalytelseKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
@@ -366,6 +364,7 @@ private fun JournalfoerImMelding.tilMap(imKey: Key = Key.INNTEKTSMELDING_DOKUMEN
 private object Mock {
     val inntektmeldingNyVersjon = InntektsmeldingV1(
         id = UUID.randomUUID(),
+        type = InntektsmeldingV1.Type.FORESPURT,
         sykmeldt = Sykmeldt(
             fnr = "16054577777",
             navn = "Skummel Bolle"
@@ -410,7 +409,7 @@ private object Mock {
             ),
             RedusertLoennIAgp(
                 beloep = 300.3,
-                begrunnelse = BegrunnelseRedusertLoennIAgp.FerieEllerAvspasering
+                begrunnelse = RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering
             )
         ),
         inntekt = Inntekt(
@@ -418,12 +417,12 @@ private object Mock {
             inntektsdato = 28.september,
             naturalytelser = listOf(
                 Naturalytelse(
-                    naturalytelse = NaturalytelseKode.BEDRIFTSBARNEHAGEPLASS,
+                    naturalytelse = Naturalytelse.Kode.BEDRIFTSBARNEHAGEPLASS,
                     verdiBeloep = 52.5,
                     sluttdato = 10.oktober
                 ),
                 Naturalytelse(
-                    naturalytelse = NaturalytelseKode.BIL,
+                    naturalytelse = Naturalytelse.Kode.BIL,
                     verdiBeloep = 434.0,
                     sluttdato = 12.oktober
                 )

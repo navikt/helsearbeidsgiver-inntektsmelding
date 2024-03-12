@@ -8,10 +8,7 @@ import io.prometheus.client.CollectorRegistry
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
-import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.aareg.AaregClient
 import no.nav.helsearbeidsgiver.altinn.AltinnClient
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
@@ -27,7 +24,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
@@ -71,30 +67,17 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import kotlin.concurrent.thread
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener {
-
-    private lateinit var thread: Thread
+abstract class EndToEndTest : ContainerTest() {
 
     private val logger = logger()
 
-    private val rapid by lazy {
-        RapidApplication.create(
-            mapOf(
-                "KAFKA_RAPID_TOPIC" to topic,
-                "KAFKA_CREATE_TOPICS" to topic,
-                "RAPID_APP_NAME" to "HAG",
-                "KAFKA_BOOTSTRAP_SERVERS" to kafkaContainer.bootstrapServers,
-                "KAFKA_CONSUMER_GROUP_ID" to "HAG"
-            )
-        )
-    }
+    private val imTestRapid = ImTestRapid()
 
     private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
@@ -111,9 +94,9 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         RedisStore(redisContainer.redisURI)
     }
 
-    val messages = Messages()
+    val messages get() = imTestRapid.messages
 
-    val tilgangProducer by lazy { TilgangProducer(rapid) }
+    val tilgangProducer by lazy { TilgangProducer(imTestRapid) }
 
     val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
     val aapenImRepo by lazy { AapenImRepo(inntektsmeldingDatabase.db) }
@@ -131,7 +114,7 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
 
     @BeforeEach
     fun beforeEachEndToEnd() {
-        messages.reset()
+        imTestRapid.reset()
         clearAllMocks()
 
         coEvery { pdlKlient.personBolk(any()) } returns listOf(
@@ -178,58 +161,45 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
     fun beforeAllEndToEnd() {
         // Start rivers
         logger.info("Starter rivers...")
-        rapid.apply {
+        imTestRapid.apply {
+            // Servicer
+            createAktiveOrgnrService(redisStore)
             createInnsending(redisStore)
             createInntektService(redisStore)
+            createSpinnService(redisStore)
             createTilgangService(redisStore)
             createTrengerService(redisStore)
 
+            // Rivers
             createAareg(aaregClient)
             createAltinn(altinnClient)
             createBrreg(brregClient, false)
             createDbRivers(imRepository, aapenImRepo, forespoerselRepository)
             createDistribusjon(mockk(relaxed = true))
+            createEksternInntektsmeldingLoeser(spinnKlient)
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
-            createMarkerForespoerselBesvart(mockPriProducer)
             createHelsebro(mockPriProducer)
             createInntekt(mockk(relaxed = true))
             createJournalfoerImRiver(dokarkivClient)
+            createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
-            createEksternInntektsmeldingLoeser(spinnKlient)
-            createSpinnService(redisStore)
-            createAktiveOrgnrService(redisStore)
         }
-            .registerShutdownLifecycle {
-                redisStore.shutdown()
-                inntektsmeldingDatabase.dataSource.close()
-            }
-            .register(this)
-
-        thread = thread {
-            rapid.start()
-        }
-        Thread.sleep(2000)
-    }
-
-    override fun onMessage(message: String, context: MessageContext) {
-        logger.info("onMessage: $message")
-        messages.add(message)
     }
 
     @AfterAll
     fun afterAllEndToEnd() {
         // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
-        rapid.stop()
-        thread.interrupt()
-        logger.info("Stopped")
+        redisStore.shutdown()
+        inntektsmeldingDatabase.dataSource.close()
+        logger.info("Stopped.")
     }
 
     fun publish(vararg messageFields: Pair<Key, JsonElement>) {
-        rapid.publish(*messageFields).also {
+        imTestRapid.publish(*messageFields).also {
             println("Publiserte melding: $it")
         }
     }
@@ -243,29 +213,11 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
                 JsonMessage(it, MessageProblems(it), null)
             }
             .toJson()
-            .also(rapid::publish)
+            .also(imTestRapid::publish)
             .parseJson()
             .also {
                 println("Publiserte melding: $it")
             }
-
-    /** Avslutter venting dersom meldinger finnes og ingen nye ankommer i løpet av 1500 ms. */
-    fun waitForMessages(millis: Long) {
-        val startTime = System.nanoTime()
-
-        var messageAmount = 0
-
-        while (messageAmount == 0 || messageAmount != messages.all().size) {
-            val elapsedTime = (System.nanoTime() - startTime) / 1_000_000
-            if (elapsedTime > millis) {
-                throw MessagesWaitLimitException(millis)
-            }
-
-            messageAmount = messages.all().size
-
-            Thread.sleep(1500)
-        }
-    }
 
     fun mockForespoerselSvarFraHelsebro(
         eventName: EventName,
@@ -299,10 +251,6 @@ abstract class EndToEndTest : ContainerTest(), RapidsConnection.MessageListener 
         }
     }
 }
-
-private class MessagesWaitLimitException(millis: Long) : RuntimeException(
-    "Tid brukt på å vente på meldinger overskred grensen på $millis ms."
-)
 
 private fun Database.createTruncateFunction() =
     also {

@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.til
+import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLoeser
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -94,7 +95,8 @@ class DummyLoeser(
                     sykmeldingsperioder = listOf(2.januar til 3.januar),
                     egenmeldingsperioder = listOf(1.januar til 1.januar),
                     forespurtData = mockForespurtData(),
-                    erBesvart = false
+                    erBesvart = false,
+                    vedtaksperiodeId = randomUuid()
                 ).toJson(TrengerInntekt.serializer())
             )
             BehovType.VIRKSOMHET -> mapOf(

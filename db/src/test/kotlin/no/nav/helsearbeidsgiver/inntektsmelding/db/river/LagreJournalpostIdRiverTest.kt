@@ -243,7 +243,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
 
 private object Mock {
     val fail = Fail(
-        feilmelding = "Klarte ikke journalføre.",
+        feilmelding = "I er et steinras og du skal falla med meg.",
         event = EventName.INNTEKTSMELDING_MOTTATT,
         transaksjonId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),

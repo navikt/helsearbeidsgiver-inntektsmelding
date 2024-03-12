@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -58,6 +59,8 @@ class HentPersonerRiverTest : FunSpec({
             Key.FNR_LISTE to listOf(olaFnr).toJson(String.serializer())
         )
 
+        testRapid.inspektør.size shouldBeExactly 1
+
         val publisert = testRapid.firstMessage().toMap()
 
         val personMap = Key.PERSONER.lesOrNull(personMapSerializer, publisert)
@@ -75,6 +78,8 @@ class HentPersonerRiverTest : FunSpec({
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.INSENDING_STARTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -96,6 +101,8 @@ class HentPersonerRiverTest : FunSpec({
             Key.UUID to transaksjonId.toJson(),
             Key.FNR_LISTE to listOf(olaFnr, kariFnr).toJson(String.serializer())
         )
+
+        testRapid.inspektør.size shouldBeExactly 1
 
         val publisert = testRapid.firstMessage().toMap()
 
@@ -121,6 +128,8 @@ class HentPersonerRiverTest : FunSpec({
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -142,6 +151,8 @@ class HentPersonerRiverTest : FunSpec({
             Key.FNR_LISTE to listOf(olaFnr, kariFnr).toJson(String.serializer())
         )
 
+        testRapid.inspektør.size shouldBeExactly 1
+
         val publisert = testRapid.firstMessage().toMap()
 
         val personMap = Key.PERSONER.lesOrNull(personMapSerializer, publisert)
@@ -161,6 +172,8 @@ class HentPersonerRiverTest : FunSpec({
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -183,6 +196,8 @@ class HentPersonerRiverTest : FunSpec({
             Key.FNR_LISTE to listOf(olaFnr).toJson(String.serializer())
         )
 
+        testRapid.inspektør.size shouldBeExactly 1
+
         val publisert = testRapid.firstMessage().toMap()
 
         Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert)
@@ -198,6 +213,8 @@ class HentPersonerRiverTest : FunSpec({
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -220,6 +237,8 @@ class HentPersonerRiverTest : FunSpec({
             Key.FNR_LISTE to listOf(olaFnr).toJson(String.serializer())
         )
 
+        testRapid.inspektør.size shouldBeExactly 1
+
         val publisert = testRapid.firstMessage().toMap()
 
         Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert)
@@ -235,6 +254,8 @@ class HentPersonerRiverTest : FunSpec({
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -254,6 +275,8 @@ class HentPersonerRiverTest : FunSpec({
             Key.FNR_LISTE to listOf("666").toJson(String.serializer())
         )
 
+        testRapid.inspektør.size shouldBeExactly 1
+
         val publisert = testRapid.firstMessage().toMap()
 
         publisert[Key.PERSONER].shouldBeNull()
@@ -270,6 +293,9 @@ class HentPersonerRiverTest : FunSpec({
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.FORESPOERSEL_ID.les(UuidSerializer, publisert) shouldBe forespoerselId
         Key.AAPEN_ID.les(UuidSerializer, publisert) shouldBe aapenId
+
+        publisert[Key.BEHOV].shouldBeNull()
+        publisert[Key.DATA].shouldBeNull()
     }
 })
 

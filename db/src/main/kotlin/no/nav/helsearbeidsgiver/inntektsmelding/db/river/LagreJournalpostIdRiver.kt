@@ -71,10 +71,13 @@ class LagreJournalpostIdRiver(
                     journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json)
                 )
             } else {
-                "Klarte ikke lagre journalpost-ID. Melding mangler inntektsmelding-ID.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
+                if (Key.BEHOV.lesOrNull(BehovType.serializer(), json) == BehovType.LAGRE_JOURNALPOST_ID) {
+                    "Klarte ikke lagre journalpost-ID. Melding mangler inntektsmelding-ID.".also {
+                        logger.error(it)
+                        sikkerLogger.error("$it\n${json.toPretty()}")
+                    }
                 }
+
                 null
             }
         }

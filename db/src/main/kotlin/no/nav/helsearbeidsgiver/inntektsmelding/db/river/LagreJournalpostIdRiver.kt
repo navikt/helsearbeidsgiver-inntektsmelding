@@ -73,7 +73,7 @@ class LagreJournalpostIdRiver(
             } else {
                 "Klarte ikke lagre journalpost-ID. Melding mangler inntektsmelding-ID.".also {
                     logger.error(it)
-                    sikkerLogger.error(it)
+                    sikkerLogger.error("$it\n${json.toPretty()}")
                 }
                 null
             }

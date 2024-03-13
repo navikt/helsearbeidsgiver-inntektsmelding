@@ -46,6 +46,7 @@ class ForespoerselLagretRiver(
                 )
             }
         }
+            .register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

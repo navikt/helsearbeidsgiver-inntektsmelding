@@ -42,6 +42,7 @@ class LagreStartDataRedisRiver(
                 )
             }
         }
+            .register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

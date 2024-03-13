@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -9,7 +10,6 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -54,14 +54,16 @@ class HentPersonerRiverTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.BEHOV to BehovType.PERSONER.toJson(),
+            Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FNR_LISTE to listOf(olaFnr).toJson(String.serializer())
         )
 
+        testRapid.inspektør.size shouldBeExactly 1
+
         val publisert = testRapid.firstMessage().toMap()
 
-        val personMap = Key.PERSONER.lesOrNull(personMapSerializer(), publisert)
+        val personMap = Key.PERSONER.lesOrNull(personMapSerializer, publisert)
             .shouldNotBeNull()
 
         personMap shouldHaveSize 1
@@ -76,6 +78,8 @@ class HentPersonerRiverTest : FunSpec({
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.INSENDING_STARTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -93,14 +97,16 @@ class HentPersonerRiverTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.PERSONER.toJson(),
+            Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FNR_LISTE to listOf(olaFnr, kariFnr).toJson(String.serializer())
         )
 
+        testRapid.inspektør.size shouldBeExactly 1
+
         val publisert = testRapid.firstMessage().toMap()
 
-        val personMap = Key.PERSONER.lesOrNull(personMapSerializer(), publisert)
+        val personMap = Key.PERSONER.lesOrNull(personMapSerializer, publisert)
             .shouldNotBeNull()
 
         personMap shouldHaveSize 2
@@ -122,6 +128,8 @@ class HentPersonerRiverTest : FunSpec({
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -138,14 +146,16 @@ class HentPersonerRiverTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.PERSONER.toJson(),
+            Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FNR_LISTE to listOf(olaFnr, kariFnr).toJson(String.serializer())
         )
 
+        testRapid.inspektør.size shouldBeExactly 1
+
         val publisert = testRapid.firstMessage().toMap()
 
-        val personMap = Key.PERSONER.lesOrNull(personMapSerializer(), publisert)
+        val personMap = Key.PERSONER.lesOrNull(personMapSerializer, publisert)
             .shouldNotBeNull()
 
         personMap shouldHaveSize 1
@@ -162,6 +172,8 @@ class HentPersonerRiverTest : FunSpec({
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -178,11 +190,13 @@ class HentPersonerRiverTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.PERSONER.toJson(),
+            Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.FNR_LISTE to listOf(olaFnr).toJson(String.serializer())
         )
+
+        testRapid.inspektør.size shouldBeExactly 1
 
         val publisert = testRapid.firstMessage().toMap()
 
@@ -192,13 +206,15 @@ class HentPersonerRiverTest : FunSpec({
 
         Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
-        Key.PERSONER.lesOrNull(personMapSerializer(), publisert)
+        Key.PERSONER.lesOrNull(personMapSerializer, publisert)
             .shouldNotBeNull()
             .shouldHaveSize(1)
 
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -215,11 +231,13 @@ class HentPersonerRiverTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.PERSONER.toJson(),
+            Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.AAPEN_ID to aapenId.toJson(),
             Key.FNR_LISTE to listOf(olaFnr).toJson(String.serializer())
         )
+
+        testRapid.inspektør.size shouldBeExactly 1
 
         val publisert = testRapid.firstMessage().toMap()
 
@@ -229,13 +247,15 @@ class HentPersonerRiverTest : FunSpec({
 
         Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
-        Key.PERSONER.lesOrNull(personMapSerializer(), publisert)
+        Key.PERSONER.lesOrNull(personMapSerializer, publisert)
             .shouldNotBeNull()
             .shouldHaveSize(1)
 
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.DATA.les(String.serializer(), publisert) shouldBe ""
+
+        publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
     }
 
@@ -248,12 +268,14 @@ class HentPersonerRiverTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.PERSONER.toJson(),
+            Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.AAPEN_ID to aapenId.toJson(),
             Key.FNR_LISTE to listOf("666").toJson(String.serializer())
         )
+
+        testRapid.inspektør.size shouldBeExactly 1
 
         val publisert = testRapid.firstMessage().toMap()
 
@@ -265,16 +287,19 @@ class HentPersonerRiverTest : FunSpec({
         fail.event shouldBe EventName.TRENGER_REQUESTED
         fail.transaksjonId shouldBe transaksjonId
         fail.forespoerselId shouldBe forespoerselId
-        fail.utloesendeMelding.toMap()[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.PERSONER
+        fail.utloesendeMelding.toMap()[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.HENT_PERSONER
 
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.FORESPOERSEL_ID.les(UuidSerializer, publisert) shouldBe forespoerselId
         Key.AAPEN_ID.les(UuidSerializer, publisert) shouldBe aapenId
+
+        publisert[Key.BEHOV].shouldBeNull()
+        publisert[Key.DATA].shouldBeNull()
     }
 })
 
-private fun personMapSerializer(): KSerializer<Map<String, Person>> =
+private val personMapSerializer =
     MapSerializer(
         String.serializer(),
         Person.serializer()

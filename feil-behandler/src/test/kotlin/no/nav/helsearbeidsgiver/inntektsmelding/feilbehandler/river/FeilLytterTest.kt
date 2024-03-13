@@ -42,7 +42,7 @@ class FeilLytterTest : FunSpec({
 
     test("skal ignorere feil uten behov") {
         val uuid = UUID.randomUUID()
-        val feil = lagGyldigFeil(BehovType.JOURNALFOER).copy(
+        val feil = lagGyldigFeil(BehovType.LAGRE_JOURNALPOST_ID).copy(
             utloesendeMelding =
             JsonMessage.newMessage(
                 mapOf(
@@ -56,7 +56,7 @@ class FeilLytterTest : FunSpec({
 
     test("skal ignorere feil uten forespørselId") {
         // TODO: Kan egentlig tillate feil uten forespørselId..
-        val feil = lagGyldigFeil(BehovType.JOURNALFOER).copy(forespoerselId = null)
+        val feil = lagGyldigFeil(BehovType.LAGRE_JOURNALPOST_ID).copy(forespoerselId = null)
         handler.skalHaandteres(feil) shouldBe false
     }
 

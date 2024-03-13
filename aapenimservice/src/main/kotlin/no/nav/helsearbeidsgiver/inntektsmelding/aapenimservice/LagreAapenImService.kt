@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aapenimservice
 
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -11,7 +12,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -51,8 +52,7 @@ class LagreAapenImService(
     )
     override val dataKeys = setOf(
         Key.VIRKSOMHET,
-        Key.ARBEIDSTAKER_INFORMASJON,
-        Key.ARBEIDSGIVER_INFORMASJON,
+        Key.PERSONER,
         Key.AAPEN_INNTEKTMELDING,
         Key.ER_DUPLIKAT_IM,
         Key.SAK_ID
@@ -60,8 +60,7 @@ class LagreAapenImService(
 
     private val step1Keys = setOf(
         Key.VIRKSOMHET,
-        Key.ARBEIDSTAKER_INFORMASJON,
-        Key.ARBEIDSGIVER_INFORMASJON
+        Key.PERSONER
     )
     private val step2Keys = setOf(
         Key.AAPEN_INNTEKTMELDING,
@@ -98,9 +97,11 @@ class LagreAapenImService(
                 Key.EVENT_NAME to event.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.AAPEN_ID to aapenId.toJson(),
-                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-                Key.IDENTITETSNUMMER to skjema.sykmeldtFnr.toJson(),
-                Key.ARBEIDSGIVER_ID to avsenderFnr.toJson()
+                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
+                Key.FNR_LISTE to listOf(
+                    skjema.sykmeldtFnr,
+                    avsenderFnr
+                ).toJson(String.serializer())
             )
         }
     }
@@ -137,9 +138,16 @@ class LagreAapenImService(
                 }
             } else if (step1Keys.all(melding::containsKey)) {
                 val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
+                val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(String.serializer(), melding)
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-                val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
-                val avsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+                val personer = Key.PERSONER.les(personerMapSerializer, melding)
+
+                val sykmeldt = skjema.sykmeldtFnr.let {
+                    personer[it] ?: tomPerson(it)
+                }
+                val avsender = avsenderFnr.let {
+                    personer[it] ?: tomPerson(it)
+                }
 
                 val inntektsmelding = tilInntektsmelding(
                     aapenId = aapenId,
@@ -210,33 +218,20 @@ class LagreAapenImService(
             Log.transaksjonId(fail.transaksjonId)
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
-            val datafeil = when (utloesendeBehov) {
-                BehovType.VIRKSOMHET -> {
-                    listOf(
-                        Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
-                    )
+            val datafeil =
+                when (utloesendeBehov) {
+                    BehovType.VIRKSOMHET -> Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
+
+                    // Lesing av personer bruker allerede defaults, så trenger bare map-struktur her
+                    BehovType.FULLT_NAVN -> Key.PERSONER to emptyMap<String, JsonElement>().toJson()
+
+                    else -> null
                 }
 
-                BehovType.FULLT_NAVN -> {
-                    val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
-                    val avsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
-                    listOf(
-                        Key.ARBEIDSTAKER_INFORMASJON to tomPerson(sykmeldtFnr).toJson(PersonDato.serializer()),
-                        Key.ARBEIDSGIVER_INFORMASJON to tomPerson(avsenderFnr).toJson(PersonDato.serializer())
-                    )
-                }
+            if (datafeil != null) {
+                redisStore.set(RedisKey.of(fail.transaksjonId, datafeil.first), datafeil.second.toString())
 
-                else -> {
-                    emptyList()
-                }
-            }
-
-            if (datafeil.isNotEmpty()) {
-                datafeil.forEach {
-                    redisStore.set(RedisKey.of(fail.transaksjonId, it.first), it.second.toString())
-                }
-
-                val meldingMedDefault = datafeil.toMap() + melding
+                val meldingMedDefault = mapOf(datafeil) + melding
 
                 return inProgress(meldingMedDefault)
             }
@@ -254,23 +249,30 @@ class LagreAapenImService(
     }
 }
 
+private val personerMapSerializer =
+    MapSerializer(
+        String.serializer(),
+        Person.serializer()
+    )
+
 private fun tilInntektsmelding(
     aapenId: UUID,
+    type: Inntektsmelding.Type = Inntektsmelding.Type.SELVBESTEMT,
     skjema: SkjemaInntektsmelding,
     orgNavn: String,
-    sykmeldt: PersonDato,
-    avsender: PersonDato
+    sykmeldt: Person,
+    avsender: Person
 ): Inntektsmelding =
     Inntektsmelding(
         id = aapenId,
         sykmeldt = Sykmeldt(
-            fnr = sykmeldt.ident,
+            fnr = sykmeldt.fnr,
             navn = sykmeldt.navn
         ),
         avsender = Avsender(
             orgnr = skjema.avsender.orgnr,
             orgNavn = orgNavn,
-            fnr = avsender.ident,
+            fnr = avsender.fnr,
             navn = avsender.navn,
             tlf = skjema.avsender.tlf
         ),
@@ -279,12 +281,13 @@ private fun tilInntektsmelding(
         inntekt = skjema.inntekt,
         refusjon = skjema.refusjon,
         aarsakInnsending = skjema.aarsakInnsending,
-        mottatt = OffsetDateTime.now()
+        mottatt = OffsetDateTime.now(),
+        type = type
     )
 
-private fun tomPerson(fnr: String): PersonDato =
-    PersonDato(
+private fun tomPerson(fnr: String): Person =
+    Person(
+        fnr = fnr,
         navn = "",
-        fødselsdato = null,
-        ident = fnr
+        foedselsdato = Person.foedselsdato(fnr)
     )

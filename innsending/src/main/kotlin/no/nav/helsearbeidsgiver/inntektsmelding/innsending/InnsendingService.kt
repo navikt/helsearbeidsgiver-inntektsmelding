@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -48,7 +49,8 @@ class InnsendingService(
         Key.ARBEIDSGIVER_INFORMASJON,
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.INNTEKTSMELDING_DOKUMENT,
-        Key.ER_DUPLIKAT_IM
+        Key.ER_DUPLIKAT_IM,
+        Key.FORESPOERSEL_SVAR
     )
 
     private val step1Keys =
@@ -56,7 +58,8 @@ class InnsendingService(
             Key.VIRKSOMHET,
             Key.ARBEIDSFORHOLD,
             Key.ARBEIDSTAKER_INFORMASJON,
-            Key.ARBEIDSGIVER_INFORMASJON
+            Key.ARBEIDSGIVER_INFORMASJON,
+            Key.FORESPOERSEL_SVAR
         )
 
     init {
@@ -71,6 +74,14 @@ class InnsendingService(
         val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
         val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
         val innsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
+
+        logger.info("InnsendingService: emitting behov HENT_TRENGER_IM")
+        rapid.publish(
+            Key.EVENT_NAME to event.toJson(),
+            Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.UUID to transaksjonId.toJson()
+        )
 
         logger.info("InnsendingService: emitting behov Virksomhet")
         rapid.publish(
@@ -110,6 +121,7 @@ class InnsendingService(
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
             val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
             val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+            val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
 
             logger.info("InnsendingService: emitting behov PERSISTER_IM")
 
@@ -121,7 +133,8 @@ class InnsendingService(
                 Key.INNTEKTSMELDING to inntektsmeldingJson,
                 Key.VIRKSOMHET to virksomhetNavn.toJson(),
                 Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),
-                Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer())
+                Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer()),
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
             )
         }
     }

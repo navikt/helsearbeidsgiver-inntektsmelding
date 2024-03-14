@@ -79,7 +79,7 @@ class DistribusjonRiver(
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.AAPEN_ID to json[Key.AAPEN_ID]
+            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID]
         )
             .mapValuesNotNull { it }
     }
@@ -100,7 +100,7 @@ class DistribusjonRiver(
         sikkerLogger.error(fail.feilmelding, error)
 
         return fail.tilMelding()
-            .plus(Key.AAPEN_ID to json[Key.AAPEN_ID])
+            .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }
 

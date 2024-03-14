@@ -29,24 +29,24 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.db.AapenImRepo
+import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import java.util.UUID
 
-class LagreAapenImRiverTest : FunSpec({
+class LagreSelvbestemtImRiverTest : FunSpec({
     val testRapid = TestRapid()
-    val mockAapenImRepo = mockk<AapenImRepo>()
+    val mockSelvbestemtImRepo = mockk<SelvbestemtImRepo>()
 
-    LagreAapenImRiver(mockAapenImRepo).connect(testRapid)
+    LagreSelvbestemtImRiver(mockSelvbestemtImRepo).connect(testRapid)
 
     beforeTest {
         testRapid.reset()
         clearAllMocks()
     }
 
-    context("åpen inntektsmelding lagres") {
+    context("selvbestemt inntektsmelding lagres") {
         val inntektsmeldingId = UUID.randomUUID()
 
         withData(
@@ -58,16 +58,16 @@ class LagreAapenImRiverTest : FunSpec({
                 )
             )
         ) { eksisterendeIm ->
-            every { mockAapenImRepo.hentNyesteIm(any()) } returns eksisterendeIm
-            every { mockAapenImRepo.lagreIm(any()) } just Runs
+            every { mockSelvbestemtImRepo.hentNyesteIm(any()) } returns eksisterendeIm
+            every { mockSelvbestemtImRepo.lagreIm(any()) } just Runs
 
             val nyInntektsmelding = mockInntektsmeldingV1().copy(id = inntektsmeldingId)
 
-            val innkommendeMelding = LagreAapenImMelding(
-                eventName = EventName.AAPEN_IM_MOTTATT,
-                behovType = BehovType.LAGRE_AAPEN_IM,
+            val innkommendeMelding = LagreSelvbestemtImMelding(
+                eventName = EventName.SELVBESTEMT_IM_MOTTATT,
+                behovType = BehovType.LAGRE_SELVBESTEMT_IM,
                 transaksjonId = UUID.randomUUID(),
-                aapenInntektsmelding = nyInntektsmelding
+                selvbestemtInntektsmelding = nyInntektsmelding
             )
 
             testRapid.sendJson(innkommendeMelding.tilMap())
@@ -79,15 +79,15 @@ class LagreAapenImRiverTest : FunSpec({
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe innkommendeMelding.eventName
             Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
             Key.DATA.lesOrNull(String.serializer(), publisert) shouldBe ""
-            Key.AAPEN_INNTEKTMELDING.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe nyInntektsmelding
+            Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe nyInntektsmelding
             Key.ER_DUPLIKAT_IM.lesOrNull(Boolean.serializer(), publisert) shouldBe false
 
             publisert[Key.BEHOV].shouldBeNull()
             publisert[Key.FAIL].shouldBeNull()
 
             verifySequence {
-                mockAapenImRepo.hentNyesteIm(nyInntektsmelding.id)
-                mockAapenImRepo.lagreIm(nyInntektsmelding)
+                mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.id)
+                mockSelvbestemtImRepo.lagreIm(nyInntektsmelding)
             }
         }
     }
@@ -105,14 +105,14 @@ class LagreAapenImRiverTest : FunSpec({
             mottatt = nyInntektsmelding.mottatt.minusDays(14)
         )
 
-        every { mockAapenImRepo.hentNyesteIm(any()) } returns duplikatIm
-        every { mockAapenImRepo.lagreIm(any()) } just Runs
+        every { mockSelvbestemtImRepo.hentNyesteIm(any()) } returns duplikatIm
+        every { mockSelvbestemtImRepo.lagreIm(any()) } just Runs
 
-        val innkommendeMelding = LagreAapenImMelding(
-            eventName = EventName.AAPEN_IM_MOTTATT,
-            behovType = BehovType.LAGRE_AAPEN_IM,
+        val innkommendeMelding = LagreSelvbestemtImMelding(
+            eventName = EventName.SELVBESTEMT_IM_MOTTATT,
+            behovType = BehovType.LAGRE_SELVBESTEMT_IM,
             transaksjonId = UUID.randomUUID(),
-            aapenInntektsmelding = nyInntektsmelding
+            selvbestemtInntektsmelding = nyInntektsmelding
         )
 
         testRapid.sendJson(innkommendeMelding.tilMap())
@@ -124,36 +124,36 @@ class LagreAapenImRiverTest : FunSpec({
         Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe innkommendeMelding.eventName
         Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
         Key.DATA.lesOrNull(String.serializer(), publisert) shouldBe ""
-        Key.AAPEN_INNTEKTMELDING.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe nyInntektsmelding
+        Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe nyInntektsmelding
         Key.ER_DUPLIKAT_IM.lesOrNull(Boolean.serializer(), publisert) shouldBe true
 
         publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.FAIL].shouldBeNull()
 
         verifySequence {
-            mockAapenImRepo.hentNyesteIm(nyInntektsmelding.id)
+            mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.id)
         }
         verify(exactly = 0) {
-            mockAapenImRepo.lagreIm(nyInntektsmelding)
+            mockSelvbestemtImRepo.lagreIm(nyInntektsmelding)
         }
     }
 
     test("håndterer at repo feiler") {
         every {
-            mockAapenImRepo.hentNyesteIm(any())
+            mockSelvbestemtImRepo.hentNyesteIm(any())
         } throws RuntimeException("fy fasiken, den svei")
 
-        val innkommendeMelding = LagreAapenImMelding(
-            eventName = EventName.AAPEN_IM_MOTTATT,
-            behovType = BehovType.LAGRE_AAPEN_IM,
+        val innkommendeMelding = LagreSelvbestemtImMelding(
+            eventName = EventName.SELVBESTEMT_IM_MOTTATT,
+            behovType = BehovType.LAGRE_SELVBESTEMT_IM,
             transaksjonId = UUID.randomUUID(),
-            aapenInntektsmelding = mockInntektsmeldingV1()
+            selvbestemtInntektsmelding = mockInntektsmeldingV1()
         )
 
         val innkommendeJsonMap = innkommendeMelding.tilMap()
 
         val forventetFail = Fail(
-            feilmelding = "Klarte ikke lagre åpen inntektsmelding.",
+            feilmelding = "Klarte ikke lagre selvbestemt inntektsmelding.",
             event = innkommendeMelding.eventName,
             transaksjonId = innkommendeMelding.transaksjonId,
             forespoerselId = null,
@@ -175,10 +175,10 @@ class LagreAapenImRiverTest : FunSpec({
         publisert[Key.DATA].shouldBeNull()
 
         verifySequence {
-            mockAapenImRepo.hentNyesteIm(any())
+            mockSelvbestemtImRepo.hentNyesteIm(any())
         }
         verify(exactly = 0) {
-            mockAapenImRepo.lagreIm(any())
+            mockSelvbestemtImRepo.lagreIm(any())
         }
     }
 
@@ -189,11 +189,11 @@ class LagreAapenImRiverTest : FunSpec({
                 "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer()))
             )
         ) { uoensketKeyMedVerdi ->
-            val innkommendeMelding = LagreAapenImMelding(
-                eventName = EventName.AAPEN_IM_MOTTATT,
-                behovType = BehovType.LAGRE_AAPEN_IM,
+            val innkommendeMelding = LagreSelvbestemtImMelding(
+                eventName = EventName.SELVBESTEMT_IM_MOTTATT,
+                behovType = BehovType.LAGRE_SELVBESTEMT_IM,
                 transaksjonId = UUID.randomUUID(),
-                aapenInntektsmelding = mockInntektsmeldingV1()
+                selvbestemtInntektsmelding = mockInntektsmeldingV1()
             )
 
             testRapid.sendJson(
@@ -204,17 +204,17 @@ class LagreAapenImRiverTest : FunSpec({
             testRapid.inspektør.size shouldBeExactly 0
 
             verify(exactly = 0) {
-                mockAapenImRepo.hentNyesteIm(any())
-                mockAapenImRepo.lagreIm(any())
+                mockSelvbestemtImRepo.hentNyesteIm(any())
+                mockSelvbestemtImRepo.lagreIm(any())
             }
         }
 
         test("melding med uønsket behov") {
-            val innkommendeMelding = LagreAapenImMelding(
-                eventName = EventName.AAPEN_IM_MOTTATT,
+            val innkommendeMelding = LagreSelvbestemtImMelding(
+                eventName = EventName.SELVBESTEMT_IM_MOTTATT,
                 behovType = BehovType.VIRKSOMHET,
                 transaksjonId = UUID.randomUUID(),
-                aapenInntektsmelding = mockInntektsmeldingV1()
+                selvbestemtInntektsmelding = mockInntektsmeldingV1()
             )
 
             testRapid.sendJson(innkommendeMelding.tilMap())
@@ -222,24 +222,24 @@ class LagreAapenImRiverTest : FunSpec({
             testRapid.inspektør.size shouldBeExactly 0
 
             verify(exactly = 0) {
-                mockAapenImRepo.hentNyesteIm(any())
-                mockAapenImRepo.lagreIm(any())
+                mockSelvbestemtImRepo.hentNyesteIm(any())
+                mockSelvbestemtImRepo.lagreIm(any())
             }
         }
     }
 })
 
-private fun LagreAapenImMelding.tilMap(): Map<Key, JsonElement> =
+private fun LagreSelvbestemtImMelding.tilMap(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
         Key.UUID to transaksjonId.toJson(),
-        Key.AAPEN_INNTEKTMELDING to aapenInntektsmelding.toJson(Inntektsmelding.serializer())
+        Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer())
     )
 
 private val mockFail = Fail(
     feilmelding = "Vi har et KJEMPEPROBLEM!",
-    event = EventName.AAPEN_IM_MOTTATT,
+    event = EventName.SELVBESTEMT_IM_MOTTATT,
     transaksjonId = UUID.randomUUID(),
     forespoerselId = UUID.randomUUID(),
     utloesendeMelding = JsonNull

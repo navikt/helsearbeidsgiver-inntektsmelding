@@ -36,7 +36,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 // TODO test
-class LagreAapenImService(
+class LagreSelvbestemtImService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
 ) : CompositeEventListener() {
@@ -44,16 +44,16 @@ class LagreAapenImService(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override val event = EventName.AAPEN_IM_MOTTATT
+    override val event = EventName.SELVBESTEMT_IM_MOTTATT
     override val startKeys = setOf(
-        Key.AAPEN_ID,
+        Key.SELVBESTEMT_ID,
         Key.SKJEMA_INNTEKTSMELDING,
         Key.ARBEIDSGIVER_FNR
     )
     override val dataKeys = setOf(
         Key.VIRKSOMHET,
         Key.PERSONER,
-        Key.AAPEN_INNTEKTMELDING,
+        Key.SELVBESTEMT_INNTEKTSMELDING,
         Key.ER_DUPLIKAT_IM,
         Key.SAK_ID
     )
@@ -63,7 +63,7 @@ class LagreAapenImService(
         Key.PERSONER
     )
     private val step2Keys = setOf(
-        Key.AAPEN_INNTEKTMELDING,
+        Key.SELVBESTEMT_INNTEKTSMELDING,
         Key.ER_DUPLIKAT_IM
     )
 
@@ -75,7 +75,7 @@ class LagreAapenImService(
 
     override fun new(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val aapenId = Key.AAPEN_ID.les(UuidSerializer, melding)
+        val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
         val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(String.serializer(), melding)
 
@@ -83,12 +83,12 @@ class LagreAapenImService(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.aapenId(aapenId)
+            Log.selvbestemtId(selvbestemtId)
         ) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.AAPEN_ID to aapenId.toJson(),
+                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                 Key.ORGNRUNDERENHET to skjema.avsender.orgnr.toJson()
             )
@@ -96,7 +96,7 @@ class LagreAapenImService(
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.AAPEN_ID to aapenId.toJson(),
+                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.FNR_LISTE to listOf(
                     skjema.sykmeldtFnr,
@@ -108,16 +108,16 @@ class LagreAapenImService(
 
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val aapenId = Key.AAPEN_ID.les(UuidSerializer, melding)
+        val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.aapenId(aapenId)
+            Log.selvbestemtId(selvbestemtId)
         ) {
             if (step2Keys.all(melding::containsKey)) {
-                val inntektsmelding = Key.AAPEN_INNTEKTMELDING.les(Inntektsmelding.serializer(), melding)
+                val inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding)
 
                 when (inntektsmelding.aarsakInnsending) {
                     AarsakInnsending.Endring -> {
@@ -126,12 +126,12 @@ class LagreAapenImService(
                     AarsakInnsending.Ny -> {
                         rapid.publish(
                             Key.EVENT_NAME to event.toJson(),
-                            Key.BEHOV to BehovType.OPPRETT_AAPEN_SAK.toJson(),
+                            Key.BEHOV to BehovType.OPPRETT_SELVBESTEMT_SAK.toJson(),
                             Key.UUID to transaksjonId.toJson(),
-                            Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
                         )
                             .also {
-                                logger.info("Publiserte melding med behov '${BehovType.OPPRETT_AAPEN_SAK}'.")
+                                logger.info("Publiserte melding med behov '${BehovType.OPPRETT_SELVBESTEMT_SAK}'.")
                                 sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                             }
                     }
@@ -150,7 +150,7 @@ class LagreAapenImService(
                 }
 
                 val inntektsmelding = tilInntektsmelding(
-                    aapenId = aapenId,
+                    selvbestemtId = selvbestemtId,
                     skjema = skjema,
                     orgNavn = orgNavn,
                     sykmeldt = sykmeldt,
@@ -159,12 +159,12 @@ class LagreAapenImService(
 
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.LAGRE_AAPEN_IM.toJson(),
+                    Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.AAPEN_INNTEKTMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
                 )
                     .also {
-                        logger.info("Publiserte melding med behov '${BehovType.LAGRE_AAPEN_IM}'.")
+                        logger.info("Publiserte melding med behov '${BehovType.LAGRE_SELVBESTEMT_IM}'.")
                         sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                     }
             } else {
@@ -175,14 +175,14 @@ class LagreAapenImService(
 
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val inntektsmelding = Key.AAPEN_INNTEKTMELDING.les(Inntektsmelding.serializer(), melding)
+        val inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding)
         val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.aapenId(inntektsmelding.id)
+            Log.selvbestemtId(inntektsmelding.id)
         ) {
             val clientId = redisStore.get(RedisKey.of(transaksjonId, event))?.let(UUID::fromString)
             val inntektsmeldingJson = inntektsmelding.toJson(Inntektsmelding.serializer())
@@ -195,13 +195,13 @@ class LagreAapenImService(
 
             if (!erDuplikat) {
                 rapid.publish(
-                    Key.EVENT_NAME to EventName.AAPEN_IM_LAGRET.toJson(),
+                    Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.AAPEN_INNTEKTMELDING to inntektsmeldingJson
+                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmeldingJson
                 )
                     .also {
                         MdcUtils.withLogFields(
-                            Log.event(EventName.AAPEN_IM_LAGRET)
+                            Log.event(EventName.SELVBESTEMT_IM_LAGRET)
                         ) {
                             logger.info("Publiserte melding.")
                             sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
@@ -240,8 +240,8 @@ class LagreAapenImService(
                 ?.let(UUID::fromString)
 
             if (clientId == null) {
-                val aapenId = Key.AAPEN_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding.toMap())
-                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. aapenId=$aapenId")
+                val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding.toMap())
+                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. selvbestemtId=$selvbestemtId")
             } else {
                 redisStore.set(RedisKey.of(clientId), fail.feilmelding)
             }
@@ -256,7 +256,7 @@ private val personerMapSerializer =
     )
 
 private fun tilInntektsmelding(
-    aapenId: UUID,
+    selvbestemtId: UUID,
     type: Inntektsmelding.Type = Inntektsmelding.Type.SELVBESTEMT,
     skjema: SkjemaInntektsmelding,
     orgNavn: String,
@@ -264,7 +264,7 @@ private fun tilInntektsmelding(
     avsender: Person
 ): Inntektsmelding =
     Inntektsmelding(
-        id = aapenId,
+        id = selvbestemtId,
         sykmeldt = Sykmeldt(
             fnr = sykmeldt.fnr,
             navn = sykmeldt.navn

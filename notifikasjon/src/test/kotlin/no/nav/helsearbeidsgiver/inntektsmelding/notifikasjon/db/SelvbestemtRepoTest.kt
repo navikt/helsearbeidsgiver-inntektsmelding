@@ -14,15 +14,15 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.util.UUID
 
-class AapenRepoTest : FunSpecWithDb(listOf(AapenSak), { db ->
+class SelvbestemtRepoTest : FunSpecWithDb(listOf(SelvbestemtSak), { db ->
 
-    val aapenRepo = AapenRepo(db.db)
+    val selvbestemtRepo = SelvbestemtRepo(db.db)
 
     test("lagrer sak-ID") {
-        val aapenId = UUID.randomUUID()
+        val selvbestemtId = UUID.randomUUID()
         val sakId = "trallende-sarkofag"
 
-        val antallLagret = aapenRepo.lagreSakId(aapenId, sakId)
+        val antallLagret = selvbestemtRepo.lagreSakId(selvbestemtId, sakId)
 
         antallLagret shouldBeExactly 1
 
@@ -30,42 +30,42 @@ class AapenRepoTest : FunSpecWithDb(listOf(AapenSak), { db ->
 
         alleSaker shouldHaveSize 1
         alleSaker.first().also { lagret ->
-            lagret[AapenSak.aapenId] shouldBe aapenId
-            lagret[AapenSak.sakId] shouldBe sakId
-            lagret[AapenSak.slettes].toLocalDate() shouldBe LocalDate.now().plusDays(sakLevetid.inWholeDays)
+            lagret[SelvbestemtSak.selvbestemtId] shouldBe selvbestemtId
+            lagret[SelvbestemtSak.sakId] shouldBe sakId
+            lagret[SelvbestemtSak.slettes].toLocalDate() shouldBe LocalDate.now().plusDays(sakLevetid.inWholeDays)
         }
     }
 
-    test("lagrer ikke sak-ID ved konflikt på åpen-ID") {
-        val aapenId = UUID.randomUUID()
+    test("lagrer ikke sak-ID ved konflikt på selvbestemt-ID") {
+        val selvbestemtId = UUID.randomUUID()
         val sakId1 = "sensitiv-xylofon"
         val sakId2 = "kampklar-banan"
 
-        aapenRepo.lagreSakId(aapenId, sakId1)
+        selvbestemtRepo.lagreSakId(selvbestemtId, sakId1)
 
         lesAlleSaker(db.db) shouldHaveSize 1
 
         shouldThrowExactly<ExposedSQLException> {
-            aapenRepo.lagreSakId(aapenId, sakId2)
+            selvbestemtRepo.lagreSakId(selvbestemtId, sakId2)
         }
     }
 
     test("lagrer ikke sak-ID ved konflikt på sak-ID") {
-        val aapenId1 = UUID.randomUUID()
-        val aapenId2 = UUID.randomUUID()
+        val selvbestemtId1 = UUID.randomUUID()
+        val selvbestemtId2 = UUID.randomUUID()
         val sakId = "brautende-flaske"
 
-        aapenRepo.lagreSakId(aapenId1, sakId)
+        selvbestemtRepo.lagreSakId(selvbestemtId1, sakId)
 
         lesAlleSaker(db.db) shouldHaveSize 1
 
         shouldThrowExactly<ExposedSQLException> {
-            aapenRepo.lagreSakId(aapenId2, sakId)
+            selvbestemtRepo.lagreSakId(selvbestemtId2, sakId)
         }
     }
 })
 
 private fun lesAlleSaker(db: Database): List<ResultRow> =
     transaction(db) {
-        AapenSak.selectAll().toList()
+        SelvbestemtSak.selectAll().toList()
     }

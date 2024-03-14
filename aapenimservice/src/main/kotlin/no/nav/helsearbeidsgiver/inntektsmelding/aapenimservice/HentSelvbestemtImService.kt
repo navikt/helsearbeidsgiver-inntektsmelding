@@ -29,7 +29,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 // TODO test
-class HentAapenImService(
+class HentSelvbestemtImService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
 ) : CompositeEventListener() {
@@ -37,12 +37,12 @@ class HentAapenImService(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override val event = EventName.AAPEN_IM_REQUESTED
+    override val event = EventName.SELVBESTEMT_IM_REQUESTED
     override val startKeys = setOf(
-        Key.AAPEN_ID
+        Key.SELVBESTEMT_ID
     )
     override val dataKeys = setOf(
-        Key.AAPEN_INNTEKTMELDING
+        Key.SELVBESTEMT_INNTEKTSMELDING
     )
 
     init {
@@ -53,19 +53,19 @@ class HentAapenImService(
 
     override fun new(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val aapenId = Key.AAPEN_ID.les(UuidSerializer, melding)
+        val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.aapenId(aapenId)
+            Log.selvbestemtId(selvbestemtId)
         ) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.HENT_AAPEN_IM.toJson(),
+                Key.BEHOV to BehovType.HENT_SELVBESTEMT_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.AAPEN_ID to aapenId.toJson()
+                Key.SELVBESTEMT_ID to selvbestemtId.toJson()
             )
         }
     }
@@ -79,14 +79,14 @@ class HentAapenImService(
 
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val aapenId = Key.AAPEN_ID.les(UuidSerializer, melding)
-        val inntektsmeldingJson = Key.AAPEN_INNTEKTMELDING.les(JsonElement.serializer(), melding)
+        val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
+        val inntektsmeldingJson = Key.SELVBESTEMT_INNTEKTSMELDING.les(JsonElement.serializer(), melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.aapenId(aapenId)
+            Log.selvbestemtId(selvbestemtId)
         ) {
             val clientId = redisStore.get(RedisKey.of(transaksjonId, event))
                 ?.let(UUID::fromString)
@@ -110,8 +110,8 @@ class HentAapenImService(
                 ?.let(UUID::fromString)
 
             if (clientId == null) {
-                val aapenId = Key.AAPEN_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding.toMap())
-                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. aapenId=$aapenId")
+                val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding.toMap())
+                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. selvbestemtId=$selvbestemtId")
             } else {
                 val feilmeldingJson = fail.feilmelding.toJson(String.serializer())
                 val resultJson = ResultJson(failure = feilmeldingJson).toJsonStr(ResultJson.serializer())

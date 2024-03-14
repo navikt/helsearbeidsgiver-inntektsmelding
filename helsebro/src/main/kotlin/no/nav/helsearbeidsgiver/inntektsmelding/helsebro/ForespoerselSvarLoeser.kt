@@ -145,6 +145,7 @@ fun ForespoerselSvar.Suksess.toTrengerInntekt(): TrengerInntekt =
         type = type,
         orgnr = orgnr,
         fnr = fnr,
+        vedtaksperiodeId = vedtaksperiodeId,
         skjaeringstidspunkt = skjaeringstidspunkt,
         sykmeldingsperioder = sykmeldingsperioder,
         egenmeldingsperioder = egenmeldingsperioder,

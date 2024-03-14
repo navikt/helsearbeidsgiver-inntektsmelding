@@ -238,7 +238,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         }
     }
 
-    test("skal _ikke_ oppdatere journalpostId for ekstern inntektmelding") {
+    test("skal _ikke_ oppdatere journalpostId for ekstern inntektsmelding") {
         val forespoerselId = UUID.randomUUID()
         val journalpostId = "jp-slem-fryser"
 

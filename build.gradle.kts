@@ -114,6 +114,7 @@ subprojects {
     val kotlinCoroutinesVersion: String by project
     val kotlinSerializationVersion: String by project
     val mockkVersion: String by project
+    val tokenProviderVersion: String by project
     val utilsVersion: String by project
 
     dependencies {
@@ -125,18 +126,18 @@ subprojects {
         }
 
         implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
+        implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
         implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
 
+        testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
         testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
         testImplementation("io.mockk:mockk:$mockkVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-
-        testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }

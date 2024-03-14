@@ -27,7 +27,6 @@ data class LagreAapenImMelding(
     val aapenInntektsmelding: Inntektsmelding
 )
 
-// TODO test
 class LagreAapenImRiver(
     private val aapenImRepo: AapenImRepo
 ) : ObjectRiver<LagreAapenImMelding>() {

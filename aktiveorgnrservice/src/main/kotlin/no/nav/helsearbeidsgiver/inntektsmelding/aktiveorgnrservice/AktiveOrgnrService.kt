@@ -14,8 +14,9 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -56,10 +57,14 @@ class AktiveOrgnrService(
         Key.ARBEIDSFORHOLD,
         Key.ORG_RETTIGHETER
     )
+    private val step2Keys = setOf(
+        Key.VIRKSOMHETER
+    )
 
     init {
-        StatefullEventListener(event, startKeys, rapid, redisStore, ::onPacket)
+        LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
         LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
+        FailKanal(event, rapid, ::onPacket)
     }
 
     override fun new(melding: Map<Key, JsonElement>) {
@@ -106,7 +111,7 @@ class AktiveOrgnrService(
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
-        if (step1Keys.all(melding::containsKey)) {
+        if (step1Keys.all(melding::containsKey) && step2Keys.none(melding::containsKey)) {
             val arbeidsforholdListe = Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
             val orgrettigheter = Key.ORG_RETTIGHETER.les(String.serializer().set(), melding)
 
@@ -188,6 +193,7 @@ class AktiveOrgnrService(
                     )
                 )
             ).toJson(AktiveOrgnrResponse.serializer())
+
             RedisKey.of(clientId).write(feilResponse)
         }
     }

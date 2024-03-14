@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.ints.shouldBeExactly
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -43,7 +43,7 @@ class MarkerForespoerselBesvartRiverTest : FunSpec({
             Key.FORESPOERSEL_ID to expectedForespoerselId.toJson()
         )
 
-        testRapid.inspektør.size shouldBe 0
+        testRapid.inspektør.size shouldBeExactly 0
 
         verifySequence {
             mockPriProducer.send(
@@ -61,7 +61,7 @@ class MarkerForespoerselBesvartRiverTest : FunSpec({
             Key.BEHOV to BehovType.FULLT_NAVN.toJson()
         )
 
-        testRapid.inspektør.size shouldBe 0
+        testRapid.inspektør.size shouldBeExactly 0
 
         verify(exactly = 0) {
             mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>())
@@ -76,7 +76,7 @@ class MarkerForespoerselBesvartRiverTest : FunSpec({
             Key.DATA to "".toJson()
         )
 
-        testRapid.inspektør.size shouldBe 0
+        testRapid.inspektør.size shouldBeExactly 0
 
         verify(exactly = 0) {
             mockPriProducer.send(*anyVararg<Pair<Pri.Key, JsonElement>>())

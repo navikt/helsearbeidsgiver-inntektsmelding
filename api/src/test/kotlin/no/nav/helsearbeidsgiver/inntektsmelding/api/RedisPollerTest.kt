@@ -62,6 +62,7 @@ class RedisPollerTest {
                 "type": "${expected.type}",
                 "orgnr": "${expected.orgnr}",
                 "fnr": "${expected.fnr}",
+                "vedtaksperiodeId": ${expected.vedtaksperiodeId.toJson()},
                 "skjaeringstidspunkt": "${expected.skjaeringstidspunkt}",
                 "sykmeldingsperioder": ${expected.sykmeldingsperioder.toJsonStr(Periode.serializer().list())},
                 "egenmeldingsperioder": ${expected.egenmeldingsperioder.toJsonStr(Periode.serializer().list())},

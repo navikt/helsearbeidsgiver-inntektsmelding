@@ -33,7 +33,6 @@ enum class BehovType {
 
     HENT_EKSTERN_INNTEKTSMELDING,
     LAGRE_EKSTERN_INNTEKTSMELDING,
-    TRENGER_FORESPØRSEL,
 
     // Brukt til å prøve igjen ved feil
     DISTRIBUER_IM

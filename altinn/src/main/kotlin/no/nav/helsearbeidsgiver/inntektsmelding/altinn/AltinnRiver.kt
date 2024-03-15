@@ -60,7 +60,7 @@ class AltinnRiver(
 
     override fun Melding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@AltinnRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId)

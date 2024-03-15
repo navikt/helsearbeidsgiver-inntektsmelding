@@ -99,7 +99,7 @@ class HentPersonerRiver(
 
     override fun Melding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@HentPersonerRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId)

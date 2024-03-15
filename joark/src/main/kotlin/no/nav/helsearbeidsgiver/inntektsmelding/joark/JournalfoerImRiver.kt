@@ -53,7 +53,7 @@ class JournalfoerImRiver(
         return if (
             setOf(Key.DATA, Key.FAIL).any(json::containsKey) ||
             (behovType != null && behovType != BehovType.JOURNALFOER) || // TODO: kan fjernes
-            (shouldRetry(LISTENER_ID, retry))
+            (!erRetryOgMatcherLytteren(LISTENER_ID, retry))
         ) {
             null
         } else {

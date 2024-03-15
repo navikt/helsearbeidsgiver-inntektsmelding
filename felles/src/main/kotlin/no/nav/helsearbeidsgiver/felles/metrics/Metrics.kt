@@ -5,9 +5,9 @@ import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KFunction
 
 object Metrics {
-    val dbAapenIm = databaseMetric("inntektsmelding", "aapen_inntektsmelding")
+    val dbSelvbestemtIm = databaseMetric("inntektsmelding", "selvbestemt_inntektsmelding")
 
-    val dbAapenSak = databaseMetric("notifikasjon", "selvbestemt_sak")
+    val dbSelvbestemtSak = databaseMetric("notifikasjon", "selvbestemt_sak")
 
     val agNotifikasjonRequest = requestMetric("AG-notifikasjon")
 

@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.AapenRepo
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class OpprettAapenSakMelding(
+data class OpprettSelvbestemtSakMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
@@ -30,28 +30,28 @@ data class OpprettAapenSakMelding(
 )
 
 // TODO test
-class OpprettAapenSakRiver(
+class OpprettSelvbestemtSakRiver(
     private val linkUrl: String,
-    private val aapenRepo: AapenRepo,
+    private val selvbestemtRepo: SelvbestemtRepo,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
-) : ObjectRiver<OpprettAapenSakMelding>() {
+) : ObjectRiver<OpprettSelvbestemtSakMelding>() {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): OpprettAapenSakMelding? =
+    override fun les(json: Map<Key, JsonElement>): OpprettSelvbestemtSakMelding? =
         if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
             null
         } else {
-            OpprettAapenSakMelding(
+            OpprettSelvbestemtSakMelding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                behovType = Key.BEHOV.krev(BehovType.OPPRETT_AAPEN_SAK, BehovType.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.OPPRETT_SELVBESTEMT_SAK, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                inntektsmelding = Key.AAPEN_INNTEKTMELDING.les(Inntektsmelding.serializer(), json)
+                inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), json)
             )
         }
 
-    override fun OpprettAapenSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+    override fun OpprettSelvbestemtSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sakId = agNotifikasjonKlient.opprettSak(
             linkUrl = linkUrl,
             inntektsmeldingId = inntektsmelding.id,
@@ -64,7 +64,7 @@ class OpprettAapenSakRiver(
         return MdcUtils.withLogFields(
             Log.sakId(sakId)
         ) {
-            aapenRepo.lagreSakId(inntektsmelding.id, sakId)
+            selvbestemtRepo.lagreSakId(inntektsmelding.id, sakId)
 
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -75,9 +75,9 @@ class OpprettAapenSakRiver(
         }
     }
 
-    override fun OpprettAapenSakMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
+    override fun OpprettSelvbestemtSakMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
         val fail = Fail(
-            feilmelding = "Klarte ikke lagre sak for åpen inntektsmelding.",
+            feilmelding = "Klarte ikke lagre sak for selvbestemt inntektsmelding.",
             event = eventName,
             transaksjonId = transaksjonId,
             forespoerselId = null,
@@ -89,15 +89,15 @@ class OpprettAapenSakRiver(
 
         return fail.tilMelding()
             .minus(Key.FORESPOERSEL_ID)
-            .plus(Key.AAPEN_ID to inntektsmelding.id.toJson())
+            .plus(Key.SELVBESTEMT_ID to inntektsmelding.id.toJson())
     }
 
-    override fun OpprettAapenSakMelding.loggfelt(): Map<String, String> =
+    override fun OpprettSelvbestemtSakMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@OpprettAapenSakRiver),
+            Log.klasse(this@OpprettSelvbestemtSakRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.aapenId(inntektsmelding.id)
+            Log.selvbestemtId(inntektsmelding.id)
         )
 }

@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentaapenim
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -14,25 +14,25 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 // TODO test
-class HentAapenImProducer(
+class HentSelvbestemtImProducer(
     private val rapid: RapidsConnection
 ) {
     init {
-        logger.info("Starter ${HentAapenImProducer::class.simpleName}...")
+        logger.info("Starter ${HentSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(aapenId: UUID): UUID {
+    fun publish(selvbestemtId: UUID): UUID {
         val clientId = UUID.randomUUID()
 
         MdcUtils.withLogFields(
-            Log.event(EventName.AAPEN_IM_REQUESTED),
+            Log.event(EventName.SELVBESTEMT_IM_REQUESTED),
             Log.clientId(clientId),
-            Log.aapenId(aapenId)
+            Log.selvbestemtId(selvbestemtId)
         ) {
             rapid.publish(
-                Key.EVENT_NAME to EventName.AAPEN_IM_REQUESTED.toJson(),
+                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
                 Key.CLIENT_ID to clientId.toJson(),
-                Key.AAPEN_ID to aapenId.toJson()
+                Key.SELVBESTEMT_ID to selvbestemtId.toJson()
             )
                 .also {
                     logger.info("Publiserte til kafka.")

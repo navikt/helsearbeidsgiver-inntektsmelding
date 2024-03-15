@@ -4,12 +4,12 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentAapenImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentPersistertLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreAapenImRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.HentSelvbestemtImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreForespoerselLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreJournalpostIdRiver
+import no.nav.helsearbeidsgiver.inntektsmelding.db.river.LagreSelvbestemtImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.NotifikasjonHentIdLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterImLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.db.river.PersisterOppgaveLoeser
@@ -26,12 +26,12 @@ fun main() {
     logger.info("Migrering ferdig.")
 
     val imRepo = InntektsmeldingRepository(database.db)
-    val aapenImRepo = AapenImRepo(database.db)
+    val selvbestemtImRepo = SelvbestemtImRepo(database.db)
     val forespoerselRepo = ForespoerselRepository(database.db)
 
     return RapidApplication
         .create(System.getenv())
-        .createDbRivers(imRepo, aapenImRepo, forespoerselRepo)
+        .createDbRivers(imRepo, selvbestemtImRepo, forespoerselRepo)
         .registerShutdownLifecycle {
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
             database.dataSource.close()
@@ -41,7 +41,7 @@ fun main() {
 
 fun RapidsConnection.createDbRivers(
     imRepo: InntektsmeldingRepository,
-    aapenImRepo: AapenImRepo,
+    selvbestemtImRepo: SelvbestemtImRepo,
     forespoerselRepo: ForespoerselRepository
 ): RapidsConnection =
     also {
@@ -55,7 +55,7 @@ fun RapidsConnection.createDbRivers(
         HentPersistertLoeser(this, imRepo)
 
         logger.info("Starter ${LagreJournalpostIdRiver::class.simpleName}...")
-        LagreJournalpostIdRiver(imRepo, aapenImRepo).connect(this)
+        LagreJournalpostIdRiver(imRepo, selvbestemtImRepo).connect(this)
 
         logger.info("Starter ${PersisterSakLoeser::class.simpleName}...")
         PersisterSakLoeser(this, forespoerselRepo)
@@ -69,9 +69,9 @@ fun RapidsConnection.createDbRivers(
         logger.info("Starter ${LagreEksternInntektsmeldingLoeser::class.simpleName}...")
         LagreEksternInntektsmeldingLoeser(this, imRepo)
 
-        logger.info("Starter ${HentAapenImRiver::class.simpleName}...")
-        HentAapenImRiver(aapenImRepo).connect(this)
+        logger.info("Starter ${HentSelvbestemtImRiver::class.simpleName}...")
+        HentSelvbestemtImRiver(selvbestemtImRepo).connect(this)
 
-        logger.info("Starter ${LagreAapenImRiver::class.simpleName}...")
-        LagreAapenImRiver(aapenImRepo).connect(this)
+        logger.info("Starter ${LagreSelvbestemtImRiver::class.simpleName}...")
+        LagreSelvbestemtImRiver(selvbestemtImRepo).connect(this)
     }

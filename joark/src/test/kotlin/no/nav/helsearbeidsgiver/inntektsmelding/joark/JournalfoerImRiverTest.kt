@@ -85,7 +85,7 @@ class JournalfoerImRiverTest : FunSpec({
             Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
             Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalpostId
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
-            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
             publisert[Key.DATA].shouldBeNull()
             publisert[Key.FAIL].shouldBeNull()
@@ -123,16 +123,16 @@ class JournalfoerImRiverTest : FunSpec({
             } returns Mock.opprettOgFerdigstillResponse(journalpostId)
 
             val innkommendeMelding = JournalfoerImMelding(
-                eventName = EventName.AAPEN_IM_LAGRET,
+                eventName = EventName.SELVBESTEMT_IM_LAGRET,
                 transaksjonId = UUID.randomUUID(),
                 inntektsmeldingJson = inntektsmeldingJson
             )
 
-            val aapenId = UUID.randomUUID()
+            val selvbestemtId = UUID.randomUUID()
 
             testRapid.sendJson(
-                innkommendeMelding.tilMap(Key.AAPEN_INNTEKTMELDING)
-                    .plus(Key.AAPEN_ID to aapenId.toJson())
+                innkommendeMelding.tilMap(Key.SELVBESTEMT_INNTEKTSMELDING)
+                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -143,7 +143,7 @@ class JournalfoerImRiverTest : FunSpec({
             Key.BEHOV.lesOrNull(BehovType.serializer(), publisert) shouldBe BehovType.LAGRE_JOURNALPOST_ID
             Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
             Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalpostId
-            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert) shouldBe aapenId
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert) shouldBe selvbestemtId
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
             publisert[Key.DATA].shouldBeNull()
@@ -178,16 +178,16 @@ class JournalfoerImRiverTest : FunSpec({
         } returns Mock.opprettOgFerdigstillResponse(journalpostId)
 
         val innkommendeMelding = JournalfoerImMelding(
-            eventName = EventName.AAPEN_IM_LAGRET,
+            eventName = EventName.SELVBESTEMT_IM_LAGRET,
             transaksjonId = UUID.randomUUID(),
             inntektsmeldingJson = inntektsmeldingNyVersjon.toJson(InntektsmeldingV1.serializer())
         )
 
-        val aapenId = UUID.randomUUID()
+        val selvbestemtId = UUID.randomUUID()
 
         testRapid.sendJson(
-            innkommendeMelding.tilMap(Key.AAPEN_INNTEKTMELDING)
-                .plus(Key.AAPEN_ID to aapenId.toJson())
+            innkommendeMelding.tilMap(Key.SELVBESTEMT_INNTEKTSMELDING)
+                .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
                 .plus(Key.BEHOV to BehovType.JOURNALFOER.toJson())
         )
 
@@ -199,7 +199,7 @@ class JournalfoerImRiverTest : FunSpec({
                 Key.UUID.lesOrNull(UuidSerializer, it) shouldBe innkommendeMelding.transaksjonId
                 Key.JOURNALPOST_ID.lesOrNull(String.serializer(), it) shouldBe journalpostId
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it).shouldBeNull()
-                Key.AAPEN_ID.lesOrNull(UuidSerializer, it) shouldBe aapenId
+                Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, it) shouldBe selvbestemtId
             }
 
         coVerifySequence {
@@ -255,7 +255,7 @@ class JournalfoerImRiverTest : FunSpec({
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe innkommendeMelding.eventName
             Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
-            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
             publisert[Key.BEHOV].shouldBeNull()
             publisert[Key.DATA].shouldBeNull()
@@ -270,7 +270,7 @@ class JournalfoerImRiverTest : FunSpec({
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
             } throws RuntimeException("dette går itj', nei!")
 
-            val aapenId = UUID.randomUUID()
+            val selvbestemtId = UUID.randomUUID()
 
             val innkommendeMelding = JournalfoerImMelding(
                 eventName = EventName.INNTEKTSMELDING_MOTTATT,
@@ -279,7 +279,7 @@ class JournalfoerImRiverTest : FunSpec({
             )
 
             val innkommendeJsonMap = innkommendeMelding.tilMap()
-                .plus(Key.AAPEN_ID to aapenId.toJson())
+                .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
 
             val forventetFail = Fail(
                 feilmelding = "Klarte ikke journalføre.",
@@ -301,7 +301,7 @@ class JournalfoerImRiverTest : FunSpec({
             Key.FAIL.lesOrNull(Fail.serializer(), publisert) shouldBe forventetFail
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe innkommendeMelding.eventName
             Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe innkommendeMelding.transaksjonId
-            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert) shouldBe aapenId
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert) shouldBe selvbestemtId
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
             publisert[Key.BEHOV].shouldBeNull()

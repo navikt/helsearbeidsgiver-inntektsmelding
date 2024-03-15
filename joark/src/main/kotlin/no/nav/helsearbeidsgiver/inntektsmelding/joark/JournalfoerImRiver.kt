@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
@@ -63,11 +62,11 @@ class JournalfoerImRiver(
                         inntektsmeldingJson = Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), json)
                     )
 
-                EventName.AAPEN_IM_LAGRET ->
+                EventName.SELVBESTEMT_IM_LAGRET ->
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmeldingJson = Key.AAPEN_INNTEKTMELDING.les(JsonElement.serializer(), json)
+                        inntektsmeldingJson = Key.SELVBESTEMT_INNTEKTSMELDING.les(JsonElement.serializer(), json)
                     )
 
                 else ->
@@ -101,7 +100,7 @@ class JournalfoerImRiver(
             Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingJson,
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.AAPEN_ID to json[Key.AAPEN_ID]
+            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID]
         )
             .mapValuesNotNull { it }
             .also {
@@ -130,7 +129,7 @@ class JournalfoerImRiver(
         sikkerLogger.error(fail.feilmelding, error)
 
         return fail.tilMelding()
-            .plus(Key.AAPEN_ID to json[Key.AAPEN_ID])
+            .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }
 

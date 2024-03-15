@@ -87,7 +87,7 @@ class DistribusjonRiverTest : FunSpec({
             Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalfoertInntektsmelding.journalpostId
             Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe journalfoertInntektsmelding.inntektsmelding
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
-            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
             val forventetRecord = ProducerRecord<String, String>(
                 TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,

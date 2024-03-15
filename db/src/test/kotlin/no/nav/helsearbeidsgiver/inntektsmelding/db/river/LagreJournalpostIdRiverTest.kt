@@ -26,9 +26,9 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.db.AapenImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -37,9 +37,9 @@ class LagreJournalpostIdRiverTest : FunSpec({
 
     val testRapid = TestRapid()
     val mockImRepo = mockk<InntektsmeldingRepository>()
-    val mockAapenImRepo = mockk<AapenImRepo>()
+    val mockSelvbestemtImRepo = mockk<SelvbestemtImRepo>()
 
-    LagreJournalpostIdRiver(mockImRepo, mockAapenImRepo).connect(testRapid)
+    LagreJournalpostIdRiver(mockImRepo, mockSelvbestemtImRepo).connect(testRapid)
 
     beforeTest {
         testRapid.reset()
@@ -68,26 +68,26 @@ class LagreJournalpostIdRiverTest : FunSpec({
             Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalpostId
             Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe INNTEKTSMELDING_DOKUMENT
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
-            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
             verifySequence {
                 mockImRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
             }
             verify(exactly = 0) {
-                mockAapenImRepo.oppdaterJournalpostId(any(), any())
+                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
             }
         }
 
-        test("aapen IM") {
-            every { mockAapenImRepo.oppdaterJournalpostId(any(), any()) } just Runs
+        test("selvbestemt IM") {
+            every { mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any()) } just Runs
 
             val transaksjonId = UUID.randomUUID()
             val journalpostId = "84294234"
-            val aapenId = UUID.randomUUID()
+            val selvbestemtId = UUID.randomUUID()
 
             testRapid.sendJson(
                 Mock.innkommendeMeldingUtenImId(transaksjonId, journalpostId)
-                    .plus(Key.AAPEN_ID to aapenId.toJson())
+                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
             )
 
             testRapid.inspektør.size shouldBeExactly 1
@@ -98,11 +98,11 @@ class LagreJournalpostIdRiverTest : FunSpec({
             Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe transaksjonId
             Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalpostId
             Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe INNTEKTSMELDING_DOKUMENT
-            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert) shouldBe aapenId
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert) shouldBe selvbestemtId
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
             verifySequence {
-                mockAapenImRepo.oppdaterJournalpostId(aapenId, journalpostId)
+                mockSelvbestemtImRepo.oppdaterJournalpostId(selvbestemtId, journalpostId)
             }
             verify(exactly = 0) {
                 mockImRepo.oppdaterJournalpostId(any(), any())
@@ -140,26 +140,26 @@ class LagreJournalpostIdRiverTest : FunSpec({
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe eventName
             Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe transaksjonId
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
-            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
             verifySequence {
                 mockImRepo.oppdaterJournalpostId(any(), any())
             }
             verify(exactly = 0) {
-                mockAapenImRepo.oppdaterJournalpostId(any(), any())
+                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
             }
         }
 
-        test("aapen IM") {
-            every { mockAapenImRepo.oppdaterJournalpostId(any(), any()) } throws Exception()
+        test("selvbestemt IM") {
+            every { mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any()) } throws Exception()
 
             val eventName = EventName.INNTEKTSMELDING_MOTTATT
             val transaksjonId = UUID.randomUUID()
             val journalpostId = "1134250053"
-            val aapenId = UUID.randomUUID()
+            val selvbestemtId = UUID.randomUUID()
 
             val innkommendeMelding = Mock.innkommendeMeldingUtenImId(transaksjonId, journalpostId)
-                .plus(Key.AAPEN_ID to aapenId.toJson())
+                .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
 
             val forventetFail = Fail(
                 feilmelding = "Klarte ikke lagre journalpost-ID '$journalpostId'.",
@@ -178,11 +178,11 @@ class LagreJournalpostIdRiverTest : FunSpec({
             Key.FAIL.lesOrNull(Fail.serializer(), publisert) shouldBe forventetFail
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe eventName
             Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe transaksjonId
-            Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert) shouldBe aapenId
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert) shouldBe selvbestemtId
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
             verifySequence {
-                mockAapenImRepo.oppdaterJournalpostId(any(), any())
+                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
             }
             verify(exactly = 0) {
                 mockImRepo.oppdaterJournalpostId(any(), any())
@@ -207,11 +207,11 @@ class LagreJournalpostIdRiverTest : FunSpec({
 
             verify(exactly = 0) {
                 mockImRepo.oppdaterJournalpostId(any(), any())
-                mockAapenImRepo.oppdaterJournalpostId(any(), any())
+                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
             }
         }
 
-        test("melding mangler både forespoerselId og aapenId") {
+        test("melding mangler både forespoerselId og selvbestemtId") {
             testRapid.sendJson(
                 Mock.innkommendeMeldingUtenImId(UUID.randomUUID(), "6837506")
             )
@@ -220,7 +220,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
 
             verify(exactly = 0) {
                 mockImRepo.oppdaterJournalpostId(any(), any())
-                mockAapenImRepo.oppdaterJournalpostId(any(), any())
+                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
             }
         }
 
@@ -235,7 +235,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
 
             verify(exactly = 0) {
                 mockImRepo.oppdaterJournalpostId(any(), any())
-                mockAapenImRepo.oppdaterJournalpostId(any(), any())
+                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
             }
         }
     }

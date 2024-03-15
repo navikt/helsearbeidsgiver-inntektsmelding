@@ -204,7 +204,7 @@ class HentPersonerRiverTest : FunSpec({
             .shouldNotBeNull()
             .shouldBe(forespoerselId)
 
-        Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+        Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
         Key.PERSONER.lesOrNull(personMapSerializer, publisert)
             .shouldNotBeNull()
@@ -218,9 +218,9 @@ class HentPersonerRiverTest : FunSpec({
         publisert[Key.FAIL].shouldBeNull()
     }
 
-    test("sender med aapenId dersom det finnes i utløsende melding") {
+    test("sender med selvbestemtId dersom det finnes i utløsende melding") {
         val transaksjonId = UUID.randomUUID()
-        val aapenId = UUID.randomUUID()
+        val selvbestemtId = UUID.randomUUID()
         val olaFnr = "123456"
 
         coEvery {
@@ -233,7 +233,7 @@ class HentPersonerRiverTest : FunSpec({
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.AAPEN_ID to aapenId.toJson(),
+            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
             Key.FNR_LISTE to listOf(olaFnr).toJson(String.serializer())
         )
 
@@ -241,9 +241,9 @@ class HentPersonerRiverTest : FunSpec({
 
         val publisert = testRapid.firstMessage().toMap()
 
-        Key.AAPEN_ID.lesOrNull(UuidSerializer, publisert)
+        Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert)
             .shouldNotBeNull()
-            .shouldBe(aapenId)
+            .shouldBe(selvbestemtId)
 
         Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
 
@@ -262,7 +262,7 @@ class HentPersonerRiverTest : FunSpec({
     test("håndterer ukjente feil") {
         val transaksjonId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
-        val aapenId = UUID.randomUUID()
+        val selvbestemtId = UUID.randomUUID()
 
         coEvery { mockPdlClient.personBolk(any()) } throws IllegalArgumentException("Finner bare brødristere!")
 
@@ -271,7 +271,7 @@ class HentPersonerRiverTest : FunSpec({
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.AAPEN_ID to aapenId.toJson(),
+            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
             Key.FNR_LISTE to listOf("666").toJson(String.serializer())
         )
 
@@ -292,7 +292,7 @@ class HentPersonerRiverTest : FunSpec({
         Key.EVENT_NAME.les(EventName.serializer(), publisert) shouldBe EventName.TRENGER_REQUESTED
         Key.UUID.les(UuidSerializer, publisert) shouldBe transaksjonId
         Key.FORESPOERSEL_ID.les(UuidSerializer, publisert) shouldBe forespoerselId
-        Key.AAPEN_ID.les(UuidSerializer, publisert) shouldBe aapenId
+        Key.SELVBESTEMT_ID.les(UuidSerializer, publisert) shouldBe selvbestemtId
 
         publisert[Key.BEHOV].shouldBeNull()
         publisert[Key.DATA].shouldBeNull()

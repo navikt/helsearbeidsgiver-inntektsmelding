@@ -4,7 +4,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.db.exposed.firstOrNull
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
-import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.AapenInntektsmeldingEntitet
+import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
@@ -18,39 +18,40 @@ import org.jetbrains.exposed.sql.update
 import java.util.UUID
 
 // TODO test
-class AapenImRepo(private val db: Database) {
+class SelvbestemtImRepo(private val db: Database) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun hentNyesteIm(aapenId: UUID): Inntektsmelding? =
-        Metrics.dbAapenIm.recordTime(::hentNyesteIm) {
+    fun hentNyesteIm(selvbestemtId: UUID): Inntektsmelding? =
+        Metrics.dbSelvbestemtIm.recordTime(::hentNyesteIm) {
             transaction(db) {
-                hentNyesteImQuery(aapenId)
-                    .firstOrNull(AapenInntektsmeldingEntitet.inntektsmelding)
+                hentNyesteImQuery(selvbestemtId)
+                    .firstOrNull(SelvbestemtInntektsmeldingEntitet.inntektsmelding)
             }
         }
 
     fun lagreIm(im: Inntektsmelding) {
-        Metrics.dbAapenIm.recordTime(::lagreIm) {
+        Metrics.dbSelvbestemtIm.recordTime(::lagreIm) {
             transaction(db) {
-                AapenInntektsmeldingEntitet.insert {
-                    it[aapenId] = im.id
+                SelvbestemtInntektsmeldingEntitet.insert {
+                    it[inntektsmeldingId] = UUID.randomUUID()
+                    it[selvbestemtId] = im.id
                     it[inntektsmelding] = im
                 }
             }
         }
     }
 
-    fun oppdaterJournalpostId(aapenId: UUID, journalpostId: String) {
-        val antallOppdatert = Metrics.dbAapenIm.recordTime(::oppdaterJournalpostId) {
+    fun oppdaterJournalpostId(selvbestemtId: UUID, journalpostId: String) {
+        val antallOppdatert = Metrics.dbSelvbestemtIm.recordTime(::oppdaterJournalpostId) {
             transaction(db) {
-                AapenInntektsmeldingEntitet.update(
+                SelvbestemtInntektsmeldingEntitet.update(
                     where = {
-                        val nyesteImIdQuery = hentNyesteImQuery(aapenId).adjustSelect { select(AapenInntektsmeldingEntitet.id) }
+                        val nyesteImIdQuery = hentNyesteImQuery(selvbestemtId).adjustSelect { select(SelvbestemtInntektsmeldingEntitet.id) }
 
-                        (AapenInntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
-                            AapenInntektsmeldingEntitet.journalpostId.isNull()
+                        (SelvbestemtInntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
+                            SelvbestemtInntektsmeldingEntitet.journalpostId.isNull()
                     }
                 ) {
                     it[this.journalpostId] = journalpostId
@@ -72,9 +73,9 @@ class AapenImRepo(private val db: Database) {
     }
 }
 
-private fun hentNyesteImQuery(aapenId: UUID): Query =
-    AapenInntektsmeldingEntitet
+private fun hentNyesteImQuery(selvbestemtId: UUID): Query =
+    SelvbestemtInntektsmeldingEntitet
         .selectAll()
-        .where { AapenInntektsmeldingEntitet.aapenId eq aapenId }
-        .orderBy(AapenInntektsmeldingEntitet.opprettet, SortOrder.DESC)
+        .where { SelvbestemtInntektsmeldingEntitet.selvbestemtId eq selvbestemtId }
+        .orderBy(SelvbestemtInntektsmeldingEntitet.opprettet, SortOrder.DESC)
         .limit(1)

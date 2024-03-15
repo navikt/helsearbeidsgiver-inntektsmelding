@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreaapenim
+package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -34,28 +34,28 @@ import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 // TODO test
-fun Route.lagreAapenImRoute(
+fun Route.lagreSelvbestemtImRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
     redisPoller: RedisPoller
 ) {
-    val producer = LagreAapenImProducer(rapid)
+    val producer = LagreSelvbestemtImProducer(rapid)
 
-    post(Routes.AAPEN_INNTEKTMELDING_MED_VALGFRI_ID) {
-        val aapenIdFraPath = call.parameters["aapenId"]
+    post(Routes.SELVBESTEMT_INNTEKTMELDING_MED_VALGFRI_ID) {
+        val selvbestemtIdFraPath = call.parameters["selvbestemtId"]
             ?.runCatching(UUID::fromString)
             ?.getOrNull()
 
-        val aapenId: UUID = aapenIdFraPath.orDefault(UUID.randomUUID())
+        val selvbestemtId: UUID = selvbestemtIdFraPath.orDefault(UUID.randomUUID())
 
         MdcUtils.withLogFields(
-            Log.apiRoute(Routes.AAPEN_INNTEKTMELDING_MED_VALGFRI_ID),
-            Log.aapenId(aapenId)
+            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTMELDING_MED_VALGFRI_ID),
+            Log.selvbestemtId(selvbestemtId)
         ) {
             val skjema = lesRequestOrNull()
             when {
                 skjema == null -> {
-                    respondBadRequest(JsonErrorResponse(inntektsmeldingId = aapenId), JsonErrorResponse.serializer())
+                    respondBadRequest(JsonErrorResponse(inntektsmeldingId = selvbestemtId), JsonErrorResponse.serializer())
                 }
                 !skjema.erGyldig() -> {
                     "Fikk valideringsfeil.".also {
@@ -66,17 +66,17 @@ fun Route.lagreAapenImRoute(
                     // TODO returner (og logg) mer utfyllende feil
                     respondBadRequest("Valideringsfeil. Mer utfyllende feil må implementeres.", String.serializer())
                 }
-                (skjema.aarsakInnsending == AarsakInnsending.Ny && aapenIdFraPath != null) ||
-                    (skjema.aarsakInnsending == AarsakInnsending.Endring && aapenIdFraPath == null) -> {
+                (skjema.aarsakInnsending == AarsakInnsending.Ny && selvbestemtIdFraPath != null) ||
+                    (skjema.aarsakInnsending == AarsakInnsending.Endring && selvbestemtIdFraPath == null) -> {
                     // TODO returner (og logg) mer utfyllende feil
                     respondBadRequest("Valideringsfeil pga. stiparameter. Mer utfyllende feil må implementeres.", String.serializer())
                 }
                 else -> {
-                    tilgangskontroll.validerTilgangTilOrg(call.request, aapenId, skjema.avsender.orgnr)
+                    tilgangskontroll.validerTilgangTilOrg(call.request, selvbestemtId, skjema.avsender.orgnr)
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    val clientId = producer.publish(aapenId, avsenderFnr, skjema)
+                    val clientId = producer.publish(selvbestemtId, avsenderFnr, skjema)
 
                     MdcUtils.withLogFields(
                         Log.clientId(clientId)
@@ -85,7 +85,7 @@ fun Route.lagreAapenImRoute(
                             redisPoller.hent(clientId)
                         }
                             .let {
-                                sendResponse(aapenId, it)
+                                sendResponse(selvbestemtId, it)
                             }
                     }
                 }
@@ -98,7 +98,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): S
     call.receiveText()
         .parseJson()
         .also { json ->
-            "Mottok åpen inntektsmelding.".let {
+            "Mottok selvbestemt inntektsmelding.".let {
                 logger.info(it)
                 sikkerLogger.info("$it:\n${json.toPretty()}")
             }
@@ -114,22 +114,22 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): S
         }
         .getOrNull()
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(aapenId: UUID, result: Result<JsonElement>) {
+private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(selvbestemtId: UUID, result: Result<JsonElement>) {
     result
         .onSuccess {
-            logger.info("Åpen inntektsmelding mottatt OK.")
-            sikkerLogger.info("Åpen inntektsmelding mottatt OK:\n${it.toPretty()}")
-            respond(HttpStatusCode.OK, LagreAapenImResponse(aapenId), LagreAapenImResponse.serializer())
+            logger.info("Selvbestemt inntektsmelding mottatt OK.")
+            sikkerLogger.info("Selvbestemt inntektsmelding mottatt OK:\n${it.toPretty()}")
+            respond(HttpStatusCode.OK, LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
         }
         .onFailure {
             logger.info("Klarte ikke hente resultat.")
             sikkerLogger.info("Klarte ikke hente resultat.", it)
             when (it) {
                 is RedisPollerTimeoutException ->
-                    respondInternalServerError(RedisTimeoutResponse(inntektsmeldingId = aapenId), RedisTimeoutResponse.serializer())
+                    respondInternalServerError(RedisTimeoutResponse(inntektsmeldingId = selvbestemtId), RedisTimeoutResponse.serializer())
 
                 else ->
-                    respondInternalServerError(RedisPermanentErrorResponse(aapenId), RedisPermanentErrorResponse.serializer())
+                    respondInternalServerError(RedisPermanentErrorResponse(selvbestemtId), RedisPermanentErrorResponse.serializer())
             }
         }
 }

@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.utils
 
 import kotlinx.serialization.Serializable
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 interface Retriable {
 
@@ -12,9 +11,7 @@ interface Retriable {
     bare da skal pakken behandles.
      */
     fun erRetryOgMatcherLytteren(myListenerID: RetryID, retryId: RetryID?): Boolean {
-        val shouldRun = retryId == null || myListenerID == retryId
-        sikkerLogger().info("$myListenerID mottok pakke med id $retryId. Skal kjøre: $shouldRun")
-        return shouldRun
+        return retryId == null || myListenerID == retryId
     }
 }
 

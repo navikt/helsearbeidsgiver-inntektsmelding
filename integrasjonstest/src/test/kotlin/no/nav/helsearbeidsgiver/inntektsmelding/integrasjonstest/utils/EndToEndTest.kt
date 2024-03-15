@@ -32,11 +32,11 @@ import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
-import no.nav.helsearbeidsgiver.inntektsmelding.db.AapenImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.createDbRivers
-import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjon
+import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.createDistribusjonRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSimba
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForespoerselBesvartFraSpleis
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
@@ -99,7 +99,7 @@ abstract class EndToEndTest : ContainerTest() {
     val tilgangProducer by lazy { TilgangProducer(imTestRapid) }
 
     val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
-    val aapenImRepo by lazy { AapenImRepo(inntektsmeldingDatabase.db) }
+    val selvbestemtImRepo by lazy { SelvbestemtImRepo(inntektsmeldingDatabase.db) }
     val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
 
     val altinnClient = mockk<AltinnClient>()
@@ -174,8 +174,8 @@ abstract class EndToEndTest : ContainerTest() {
             createAareg(aaregClient)
             createAltinn(altinnClient)
             createBrreg(brregClient, false)
-            createDbRivers(imRepository, aapenImRepo, forespoerselRepository)
-            createDistribusjon(mockk(relaxed = true))
+            createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
+            createDistribusjonRiver(mockk(relaxed = true))
             createEksternInntektsmeldingLoeser(spinnKlient)
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)

@@ -6,12 +6,12 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.AapenRepo
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretListener
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OppgaveFerdigLoeser
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettAapenSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettOppgaveLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSakLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OpprettSelvbestemtSakRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SakFerdigLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.SlettSakLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service.ManuellOpprettSakService
@@ -31,13 +31,13 @@ fun main() {
     database.migrate()
     logger.info("Migrering ferdig.")
 
-    val aapenRepo = AapenRepo(database.db)
+    val selvbestemtRepo = SelvbestemtRepo(database.db)
 
     RapidApplication
         .create(System.getenv())
         .createNotifikasjonRivers(
             Env.linkUrl,
-            aapenRepo,
+            selvbestemtRepo,
             redisStore,
             buildClient()
         )
@@ -52,13 +52,13 @@ fun main() {
 
 fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
-    aapenRepo: AapenRepo,
+    selvbestemtRepo: SelvbestemtRepo,
     redisStore: RedisStore,
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
 ): RapidsConnection =
     also {
-        logger.info("Starter ${ForespoerselLagretListener::class.simpleName}...")
-        ForespoerselLagretListener(this)
+        logger.info("Starter ${ForespoerselLagretRiver::class.simpleName}...")
+        ForespoerselLagretRiver(this)
 
         logger.info("Starter ${OpprettSakService::class.simpleName}...")
         OpprettSakService(this, redisStore)
@@ -84,8 +84,8 @@ fun RapidsConnection.createNotifikasjonRivers(
         logger.info("Starter ${SlettSakLoeser::class.simpleName}...")
         SlettSakLoeser(this, arbeidsgiverNotifikasjonKlient)
 
-        logger.info("Starter ${OpprettAapenSakRiver::class.simpleName}...")
-        OpprettAapenSakRiver(linkUrl, aapenRepo, arbeidsgiverNotifikasjonKlient).connect(this)
+        logger.info("Starter ${OpprettSelvbestemtSakRiver::class.simpleName}...")
+        OpprettSelvbestemtSakRiver(linkUrl, selvbestemtRepo, arbeidsgiverNotifikasjonKlient).connect(this)
     }
 
 private fun buildClient(): ArbeidsgiverNotifikasjonKlient {

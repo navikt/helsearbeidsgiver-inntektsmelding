@@ -13,8 +13,8 @@ import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.inntektsmelding.db.AapenImRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
+import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -35,12 +35,12 @@ data class LagreJournalpostIdMelding(
 // TODO erstatt med v1.Inntektsmelding.Type når mulig
 enum class InntektsmeldingType {
     FORESPURT,
-    AAPEN
+    SELVBESTEMT
 }
 
 class LagreJournalpostIdRiver(
     private val imRepo: InntektsmeldingRepository,
-    private val aapenImRepo: AapenImRepo
+    private val selvbestemtImRepo: SelvbestemtImRepo
 ) : ObjectRiver<LagreJournalpostIdMelding>() {
 
     private val logger = logger()
@@ -51,12 +51,12 @@ class LagreJournalpostIdRiver(
             null
         } else {
             val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json)
-            val aapenId = Key.AAPEN_ID.lesOrNull(UuidSerializer, json)
+            val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, json)
 
             val typeOgId = if (forespoerselId != null) {
                 InntektsmeldingType.FORESPURT to forespoerselId
-            } else if (aapenId != null) {
-                InntektsmeldingType.AAPEN to aapenId
+            } else if (selvbestemtId != null) {
+                InntektsmeldingType.SELVBESTEMT to selvbestemtId
             } else {
                 null
             }
@@ -71,10 +71,13 @@ class LagreJournalpostIdRiver(
                     journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json)
                 )
             } else {
-                "Klarte ikke lagre journalpost-ID. Melding mangler inntektsmelding-ID.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
+                if (Key.BEHOV.lesOrNull(BehovType.serializer(), json) == BehovType.LAGRE_JOURNALPOST_ID) {
+                    "Klarte ikke lagre journalpost-ID. Melding mangler inntektsmelding-ID.".also {
+                        logger.error(it)
+                        sikkerLogger.error("$it\n${json.toPretty()}")
+                    }
                 }
+
                 null
             }
         }
@@ -88,8 +91,8 @@ class LagreJournalpostIdRiver(
                 imRepo.oppdaterJournalpostId(inntektsmeldingId, journalpostId)
             }
 
-            InntektsmeldingType.AAPEN -> {
-                aapenImRepo.oppdaterJournalpostId(inntektsmeldingId, journalpostId)
+            InntektsmeldingType.SELVBESTEMT -> {
+                selvbestemtImRepo.oppdaterJournalpostId(inntektsmeldingId, journalpostId)
             }
         }
 
@@ -104,7 +107,7 @@ class LagreJournalpostIdRiver(
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING_DOKUMENT to json[Key.INNTEKTSMELDING_DOKUMENT],
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.AAPEN_ID to json[Key.AAPEN_ID]
+            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID]
         )
             .mapValuesNotNull { it }
             .also {
@@ -126,7 +129,7 @@ class LagreJournalpostIdRiver(
         sikkerLogger.error(fail.feilmelding, error)
 
         return fail.tilMelding()
-            .plus(Key.AAPEN_ID to json[Key.AAPEN_ID])
+            .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }
 

@@ -6,11 +6,12 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.json.jsonb
 
-object AapenInntektsmeldingEntitet : Table("aapen_inntektsmelding") {
+object SelvbestemtInntektsmeldingEntitet : Table("selvbestemt_inntektsmelding") {
     val id = integer("id").autoIncrement(
-        idSeqName = "aapen_inntektsmelding_id_seq"
+        idSeqName = "selvbestemt_inntektsmelding_id_seq"
     )
-    val aapenId = uuid("aapen_id")
+    val inntektsmeldingId = uuid("inntektsmelding_id")
+    val selvbestemtId = uuid("selvbestemt_id")
     val inntektsmelding = jsonb<Inntektsmelding>(
         name = "inntektsmelding",
         jsonConfig = jsonConfig,

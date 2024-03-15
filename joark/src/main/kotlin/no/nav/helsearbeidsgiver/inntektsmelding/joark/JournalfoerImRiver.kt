@@ -68,11 +68,11 @@ class JournalfoerImRiver(
                         inntektsmeldingJson = Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), json)
                     )
 
-                EventName.AAPEN_IM_LAGRET ->
+                EventName.SELVBESTEMT_IM_LAGRET ->
                     JournalfoerImMelding(
                         eventName = eventName,
                         transaksjonId = transaksjonId,
-                        inntektsmeldingJson = Key.AAPEN_INNTEKTMELDING.les(JsonElement.serializer(), json)
+                        inntektsmeldingJson = Key.SELVBESTEMT_INNTEKTSMELDING.les(JsonElement.serializer(), json)
                     )
 
                 else ->
@@ -81,10 +81,10 @@ class JournalfoerImRiver(
         }
     }
 
-    override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+    override fun JournalfoerImMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         "Mottok melding med event '$eventName'. Sender behov '${BehovType.LAGRE_JOURNALPOST_ID}'.".also {
             logger.info(it)
-            sikkerLogger.info(it)
+            sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
 
         val inntektsmelding = runCatching {
@@ -106,7 +106,7 @@ class JournalfoerImRiver(
             Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingJson,
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.AAPEN_ID to json[Key.AAPEN_ID]
+            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID]
         )
             .mapValuesNotNull { it }
             .also {
@@ -135,13 +135,13 @@ class JournalfoerImRiver(
         sikkerLogger.error(fail.feilmelding, error)
 
         return fail.tilMelding()
-            .plus(Key.AAPEN_ID to json[Key.AAPEN_ID])
+            .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }
 
     override fun JournalfoerImMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@JournalfoerImRiver),
             Log.event(eventName),
             Log.transaksjonId(transaksjonId)
         )
@@ -168,9 +168,15 @@ class JournalfoerImRiver(
         }
 
         if (response.journalpostFerdigstilt) {
-            logger.info("Opprettet og ferdigstilte journalpost med ID '${response.journalpostId}'.")
+            "Opprettet og ferdigstilte journalpost med ID '${response.journalpostId}'.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
         } else {
-            logger.error("Opprettet, men ferdigstilte ikke journalpost med ID '${response.journalpostId}'.")
+            "Opprettet, men ferdigstilte ikke journalpost med ID '${response.journalpostId}'.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
         }
 
         return response.journalpostId

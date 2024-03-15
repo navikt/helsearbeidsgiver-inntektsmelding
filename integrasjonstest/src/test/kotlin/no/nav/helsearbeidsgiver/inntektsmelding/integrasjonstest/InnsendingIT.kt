@@ -116,15 +116,6 @@ class InnsendingIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
-            .filter(BehovType.DISTRIBUER_IM)
-            .firstAsMap()
-            .also {
-                // Be om å distribuere
-                it shouldContainKey Key.INNTEKTSMELDING_DOKUMENT
-                it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
-            }
-
         messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .firstAsMap()
             .also {

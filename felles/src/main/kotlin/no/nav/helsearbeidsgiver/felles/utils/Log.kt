@@ -20,7 +20,7 @@ object Log {
 
     fun forespoerselId(value: UUID) = "forespoersel_id" to value.toString()
 
-    fun aapenId(value: UUID) = "aapen_id" to value.toString()
+    fun selvbestemtId(value: UUID) = "selvbestemt_id" to value.toString()
 
     fun sakId(value: String) = "sak_id" to value
 

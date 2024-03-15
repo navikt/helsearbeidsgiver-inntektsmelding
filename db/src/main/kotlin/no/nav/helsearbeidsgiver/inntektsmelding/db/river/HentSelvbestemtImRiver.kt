@@ -76,7 +76,7 @@ class HentSelvbestemtImRiver(
 
     override fun HentSelvbestemtImMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@HentAapenImRiver),
+            Log.klasse(this@HentSelvbestemtImRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),

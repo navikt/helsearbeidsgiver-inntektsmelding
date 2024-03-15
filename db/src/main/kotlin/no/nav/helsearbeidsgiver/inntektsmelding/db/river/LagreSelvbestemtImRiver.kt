@@ -98,7 +98,7 @@ class LagreSelvbestemtImRiver(
 
     override fun LagreSelvbestemtImMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@LagreAapenImRiver),
+            Log.klasse(this@LagreSelvbestemtImRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),

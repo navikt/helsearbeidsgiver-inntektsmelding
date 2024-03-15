@@ -94,7 +94,7 @@ class OpprettSelvbestemtSakRiver(
 
     override fun OpprettSelvbestemtSakMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this@OpprettAapenSakRiver),
+            Log.klasse(this@OpprettSelvbestemtSakRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),

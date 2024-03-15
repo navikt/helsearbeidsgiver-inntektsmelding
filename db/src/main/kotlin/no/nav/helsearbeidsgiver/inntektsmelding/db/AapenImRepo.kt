@@ -5,6 +5,8 @@ import no.nav.helsearbeidsgiver.felles.db.exposed.firstOrNull
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.AapenInntektsmeldingEntitet
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
@@ -17,6 +19,9 @@ import java.util.UUID
 
 // TODO test
 class AapenImRepo(private val db: Database) {
+
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     fun hentNyesteIm(aapenId: UUID): Inntektsmelding? =
         Metrics.dbAapenIm.recordTime(::hentNyesteIm) {
@@ -38,7 +43,7 @@ class AapenImRepo(private val db: Database) {
     }
 
     fun oppdaterJournalpostId(aapenId: UUID, journalpostId: String) {
-        Metrics.dbAapenIm.recordTime(::oppdaterJournalpostId) {
+        val antallOppdatert = Metrics.dbAapenIm.recordTime(::oppdaterJournalpostId) {
             transaction(db) {
                 AapenInntektsmeldingEntitet.update(
                     where = {
@@ -50,6 +55,18 @@ class AapenImRepo(private val db: Database) {
                 ) {
                     it[this.journalpostId] = journalpostId
                 }
+            }
+        }
+
+        if (antallOppdatert == 1) {
+            "Lagret journalpost-ID '$journalpostId' i database.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+        } else {
+            "Oppdaterte uventet antall ($antallOppdatert) rader med journalpost-ID '$journalpostId'.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
             }
         }
     }

@@ -96,11 +96,6 @@ class LagreJournalpostIdRiver(
             }
         }
 
-        "Lagret journalpost-ID '$journalpostId' i database.".also {
-            logger.info(it)
-            sikkerLogger.info(it)
-        }
-
         return mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
             Key.UUID to transaksjonId.toJson(),

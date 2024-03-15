@@ -89,9 +89,16 @@ class InntektsmeldingRepository(private val db: Database) {
             }
         }
 
-        if (antallOppdatert != 1) {
-            logger.error("Oppdaterte uventet antall ($antallOppdatert) rader med journalpostId.")
-            sikkerLogger.error("Oppdaterte uventet antall ($antallOppdatert) rader med journalpostId.")
+        if (antallOppdatert == 1) {
+            "Lagret journalpost-ID '$journalpostId' i database.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
+        } else {
+            "Oppdaterte uventet antall ($antallOppdatert) rader med journalpost-ID '$journalpostId'.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
         }
 
         requestTimer.observeDuration()

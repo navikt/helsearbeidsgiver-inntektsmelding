@@ -136,7 +136,7 @@ class JournalfoerImRiver(
 
     override fun JournalfoerImMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@JournalfoerImRiver),
             Log.event(eventName),
             Log.transaksjonId(transaksjonId)
         )
@@ -163,9 +163,15 @@ class JournalfoerImRiver(
         }
 
         if (response.journalpostFerdigstilt) {
-            logger.info("Opprettet og ferdigstilte journalpost med ID '${response.journalpostId}'.")
+            "Opprettet og ferdigstilte journalpost med ID '${response.journalpostId}'.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
+            }
         } else {
-            logger.error("Opprettet, men ferdigstilte ikke journalpost med ID '${response.journalpostId}'.")
+            "Opprettet, men ferdigstilte ikke journalpost med ID '${response.journalpostId}'.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
         }
 
         return response.journalpostId

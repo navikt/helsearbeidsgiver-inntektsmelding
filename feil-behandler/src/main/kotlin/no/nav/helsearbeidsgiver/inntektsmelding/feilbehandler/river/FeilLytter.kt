@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.river
 
+import kotlinx.serialization.builtins.serializer
 import no.nav.hag.utils.bakgrunnsjobb.Bakgrunnsjobb
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbRepository
 import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbStatus
@@ -30,7 +31,6 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
         BehovType.OPPRETT_SAK,
         BehovType.PERSISTER_OPPGAVE_ID,
         BehovType.PERSISTER_SAK_ID,
-        BehovType.JOURNALFOER,
         BehovType.LAGRE_JOURNALPOST_ID,
         BehovType.NOTIFIKASJON_HENT_ID
     )
@@ -108,8 +108,9 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
             return false
         }
         val behovFraMelding = fail.utloesendeMelding.toMap()[Key.BEHOV]?.fromJson(BehovType.serializer())
-        val skalHaandteres = behovSomHaandteres.contains(behovFraMelding)
-        sikkerLogger.info("Behov: $behovFraMelding skal håndteres: $skalHaandteres")
+        val harRetry = fail.utloesendeMelding.toMap()[Key.RETRY]?.fromJson(String.serializer())
+        val skalHaandteres = harRetry != null || behovSomHaandteres.contains(behovFraMelding)
+        sikkerLogger.info("Feil skal håndteres: $skalHaandteres")
         return skalHaandteres
     }
 }

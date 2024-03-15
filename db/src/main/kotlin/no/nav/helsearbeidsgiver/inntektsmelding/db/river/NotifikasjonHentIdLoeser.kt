@@ -106,7 +106,7 @@ class NotifikasjonHentIdLoeser(
             )
         } else {
             "Fant ikke sakId.".also {
-                logger.error(it)
+                logger.error(it) // TODO: bare logg en notis?
                 sikkerLogger.error(it)
             }
         }

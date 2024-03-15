@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
+import no.nav.helsearbeidsgiver.felles.utils.RetryID
 import no.nav.helsearbeidsgiver.inntektsmelding.feilbehandler.prosessor.FeilProsessor
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -32,17 +33,21 @@ class FeilLytterTest : FunSpec({
     }
 
     test("skal håndtere gyldige feil med spesifiserte behov") {
-        handler.behovSomHaandteres.forEach { handler.skalHaandteres(lagGyldigFeil(it)) shouldBe true }
+        handler.behovSomHaandteres.forEach { handler.skalHaandteres(lagGyldigFeilMedBehov(it)) shouldBe true }
     }
 
     test("skal ignorere gyldige feil med visse behov") {
         val ignorerteBehov = BehovType.entries.filterNot { handler.behovSomHaandteres.contains(it) }
-        ignorerteBehov.forEach { handler.skalHaandteres(lagGyldigFeil(it)) shouldBe false }
+        ignorerteBehov.forEach { handler.skalHaandteres(lagGyldigFeilMedBehov(it)) shouldBe false }
+    }
+
+    test("skal håndtere gyldige feil med spesifisert retry") {
+        RetryID.values().forEach { handler.skalHaandteres(lagGyldigFeil(it)) shouldBe true }
     }
 
     test("skal ignorere feil uten behov") {
         val uuid = UUID.randomUUID()
-        val feil = lagGyldigFeil(BehovType.LAGRE_JOURNALPOST_ID).copy(
+        val feil = lagGyldigFeilMedBehov(BehovType.LAGRE_JOURNALPOST_ID).copy(
             utloesendeMelding =
             JsonMessage.newMessage(
                 mapOf(
@@ -56,21 +61,58 @@ class FeilLytterTest : FunSpec({
 
     test("skal ignorere feil uten forespørselId") {
         // TODO: Kan egentlig tillate feil uten forespørselId..
-        val feil = lagGyldigFeil(BehovType.LAGRE_JOURNALPOST_ID).copy(forespoerselId = null)
+        val feil = lagGyldigFeilMedBehov(BehovType.LAGRE_JOURNALPOST_ID).copy(forespoerselId = null)
         handler.skalHaandteres(feil) shouldBe false
     }
 
     test("Ny feil med forskjellig behov og samme id skal lagres") {
         val now = LocalDateTime.now()
-        rapid.sendTestMessage(lagRapidFeilmelding())
+        rapid.sendTestMessage(lagRapidFeilmeldingMedBehov())
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
-        rapid.sendTestMessage(lagRapidFeilmelding(BehovType.LAGRE_FORESPOERSEL))
+        rapid.sendTestMessage(lagRapidFeilmeldingMedBehov(BehovType.LAGRE_FORESPOERSEL))
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 2
+    }
+
+    test("Gammel med behov: Duplikatfeil (samme feil etter rekjøring) skal oppdatere eksisterende feil -> status: FEILET") {
+        val now = LocalDateTime.now()
+        val feilmelding = lagRapidFeilmeldingMedBehov()
+        rapid.sendTestMessage(feilmelding)
+        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
+        rapid.sendTestMessage(feilmelding)
+        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 0
+        val oppdatert = repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.FEILET), true)
+        oppdatert.size shouldBe 1
+        oppdatert[0].forsoek shouldBe 0 // Antall forsøk oppdateres av bakgrunnsjobbService
+
+        rapid.sendTestMessage(feilmelding)
+        rapid.sendTestMessage(feilmelding)
+        rapid.sendTestMessage(feilmelding)
+        val feilet = repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.FEILET), true)
+        feilet.size shouldBe 1
+        feilet[0].forsoek shouldBe 0
+    }
+
+    test("Gammel med behov: Skal sette jobb til STOPPET når maks antall forsøk er overskredet") {
+        val now = LocalDateTime.now()
+        val feilmelding = lagRapidFeilmeldingMedBehov()
+        val feil = toFailOrNull(feilmelding.parseJson().toMap())!!
+
+        repository.save(
+            Bakgrunnsjobb(
+                feil.transaksjonId,
+                FeilProsessor.JOB_TYPE,
+                forsoek = 4,
+                maksAntallForsoek = 3,
+                data = feil.utloesendeMelding.toString()
+            )
+        )
+        rapid.sendTestMessage(feilmelding)
+        repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.STOPPET), true).size shouldBe 1
     }
 
     test("Duplikatfeil (samme feil etter rekjøring) skal oppdatere eksisterende feil -> status: FEILET") {
         val now = LocalDateTime.now()
-        val feilmelding = lagRapidFeilmelding()
+        val feilmelding = lagRapidFeilmelding(RetryID.JOURNALFOER)
         rapid.sendTestMessage(feilmelding)
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.OPPRETTET), true).size shouldBe 1
         rapid.sendTestMessage(feilmelding)
@@ -89,7 +131,7 @@ class FeilLytterTest : FunSpec({
 
     test("Skal sette jobb til STOPPET når maks antall forsøk er overskredet") {
         val now = LocalDateTime.now()
-        val feilmelding = lagRapidFeilmelding()
+        val feilmelding = lagRapidFeilmelding(RetryID.JOURNALFOER)
         val feil = toFailOrNull(feilmelding.parseJson().toMap())!!
 
         repository.save(
@@ -106,7 +148,7 @@ class FeilLytterTest : FunSpec({
     }
 })
 
-fun lagRapidFeilmelding(behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID): String {
+fun lagRapidFeilmeldingMedBehov(behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID): String {
     val eventName = EventName.INNTEKTSMELDING_MOTTATT
     val transaksjonId = UUID.randomUUID()
     val forespoerselId = UUID.randomUUID()
@@ -129,12 +171,56 @@ fun lagRapidFeilmelding(behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID): 
         .toString()
 }
 
-fun lagGyldigFeil(behov: BehovType): Fail {
+fun lagRapidFeilmelding(retryId: RetryID): String {
+    val eventName = EventName.INNTEKTSMELDING_MOTTATT
+    val transaksjonId = UUID.randomUUID()
+    val forespoerselId = UUID.randomUUID()
+
+    return mapOf(
+        Key.FAIL to Fail(
+            feilmelding = "Klarte ikke journalføre",
+            event = eventName,
+            transaksjonId = transaksjonId,
+            forespoerselId = forespoerselId,
+            utloesendeMelding = mapOf(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.RETRY to retryId.toJson(RetryID.serializer()),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            ).toJson()
+        ).toJson(Fail.serializer())
+    )
+        .toJson()
+        .toString()
+}
+
+/*
+  "Gammel" feil og packet - behov vil i fremtiden kun være satt for "synkrone" kall som forventer et svar.
+  Feil som inneholder behov vil etter hvert aldri rekjøres, retry-flagg vil erstatte Behov-logikken,
+  men dette vil endres gradvis, ikke big-bang
+ */
+fun lagGyldigFeilMedBehov(behov: BehovType): Fail {
     val uuid = UUID.randomUUID()
     val jsonMessage = JsonMessage.newMessage(
         EventName.OPPGAVE_OPPRETT_REQUESTED.name,
         mapOf(
             Key.BEHOV.str to behov,
+            Key.UUID.str to uuid,
+            Key.FORESPOERSEL_ID.str to uuid
+        )
+    )
+    return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, UUID.randomUUID(), UUID.randomUUID(), jsonMessage.toJson().parseJson())
+}
+
+/*
+  Ny feil - som angir med Key.RETRY at den skal forsøkes på nytt
+ */
+fun lagGyldigFeil(retryId: RetryID): Fail {
+    val uuid = UUID.randomUUID()
+    val jsonMessage = JsonMessage.newMessage(
+        EventName.OPPGAVE_OPPRETT_REQUESTED.name,
+        mapOf(
+            Key.RETRY.str to retryId,
             Key.UUID.str to uuid,
             Key.FORESPOERSEL_ID.str to uuid
         )

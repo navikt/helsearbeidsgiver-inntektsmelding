@@ -14,7 +14,7 @@ import java.util.UUID
 data class RedisTimeoutResponse(
     // TODO slett etter endring i frontend
     val uuid: UUID? = null,
-    val inntektsmeldingId: UUID? = null
+    val inntektsmeldingTypeId: UUID? = null
 ) {
     @EncodeDefault
     val error = "Brukte for lang tid mot redis."
@@ -23,7 +23,7 @@ data class RedisTimeoutResponse(
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class RedisPermanentErrorResponse(
-    val inntektsmeldingId: UUID
+    val inntektsmeldingTypeId: UUID
 ) {
     @EncodeDefault
     val error = "Permanent feil mot redis."

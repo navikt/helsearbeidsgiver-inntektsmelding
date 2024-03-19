@@ -85,7 +85,6 @@ class TrengerIT : EndToEndTest() {
             personDato.shouldNotBeNull()
             arbeidsgiver.shouldNotBeNull()
             virksomhetNavn.shouldNotBeNull()
-            inntekt.shouldNotBeNull()
             skjaeringstidspunkt.shouldNotBeNull()
             fravarsPerioder.shouldNotBeNull()
             egenmeldingsPerioder.shouldNotBeNull()

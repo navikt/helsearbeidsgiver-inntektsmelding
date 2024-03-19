@@ -71,7 +71,7 @@ class OpprettSakLoeser(
         val sakId = runCatching {
             arbeidsgiverNotifikasjonKlient.opprettSak(
                 linkUrl = linkUrl,
-                inntektsmeldingId = forespoerselId,
+                inntektsmeldingTypeId = forespoerselId,
                 orgnr = orgnr,
                 sykmeldtNavn = personDato.navn,
                 sykmeldtFoedselsdato = formattertFoedselsdato

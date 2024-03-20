@@ -5,6 +5,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -13,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -56,6 +56,7 @@ class ServiceRiver(
 
                 StartMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
+                    clientId = Key.CLIENT_ID.lesOrNull(UuidSerializer, json),
                     transaksjonId = transaksjonId,
                     startDataMap = json.plus(Key.UUID to transaksjonId.toJson())
                         .filterKeys(service.startKeys::contains)
@@ -123,7 +124,7 @@ class ServiceRiver(
         )
 
     private fun StartMelding.haandterStart(melding: Map<Key, JsonElement>) {
-        startDataMap.onEach { (key, data) ->
+        startDataMap.forEach { (key, data) ->
             service.redisStore.set(RedisKey.of(transaksjonId, key), data.toString())
         }
 
@@ -136,16 +137,15 @@ class ServiceRiver(
 
         // if-sjekk trengs trolig ikke, men beholder midlertidig for sikkerhets skyld
         if (service.redisStore.get(clientIdRedisKey).isNullOrEmpty()) {
-            val clientId = melding[Key.CLIENT_ID]?.fromJson(UuidSerializer)
-                .orDefault {
-                    "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
-                        logger.warn(it)
-                        sikkerLogger.warn(it)
-                    }
-                    transaksjonId
+            val clientId = clientId.orDefault {
+                "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
+                    logger.warn(it)
+                    sikkerLogger.warn(it)
                 }
+                transaksjonId
+            }
 
-            service.redisStore.set(clientIdRedisKey, clientId.toString())
+            service.redisStore.set(clientIdRedisKey, clientId.toJson().toString())
 
             service.onStart(melding)
         } else {

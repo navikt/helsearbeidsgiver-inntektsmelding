@@ -18,11 +18,11 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
-import no.nav.helsearbeidsgiver.inntektsmelding.api.hentaapenim.hentAapenImRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
-import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreaapenim.lagreAapenImRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim.lagreSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.trengerRoute
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
@@ -37,13 +37,13 @@ val sikkerLogger = sikkerLogger()
 object Routes {
     const val PREFIX = "/api/v1"
 
-    private const val PREFIX_AAPEN_INNTEKTMELDING = "/aapen-inntektsmelding"
+    private const val PREFIX_SELVBESTEMT_INNTEKTMELDING = "/selvbestemt-inntektsmelding"
 
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
     const val INNSENDING = "/inntektsmelding"
-    const val AAPEN_INNTEKTMELDING_MED_ID = "$PREFIX_AAPEN_INNTEKTMELDING/{aapenId}"
-    const val AAPEN_INNTEKTMELDING_MED_VALGFRI_ID = "$PREFIX_AAPEN_INNTEKTMELDING/{aapenId?}"
+    const val SELVBESTEMT_INNTEKTMELDING_MED_ID = "$PREFIX_SELVBESTEMT_INNTEKTMELDING/{selvbestemtId}"
+    const val SELVBESTEMT_INNTEKTMELDING_MED_VALGFRI_ID = "$PREFIX_SELVBESTEMT_INNTEKTMELDING/{selvbestemtId?}"
     const val KVITTERING = "/kvittering"
     const val AKTIVEORGNR = "/aktiveorgnr"
 }
@@ -107,8 +107,8 @@ fun Application.apiModule(rapid: RapidsConnection) {
                 inntektRoute(rapid, tilgangskontroll, redisPoller)
                 innsendingRoute(rapid, tilgangskontroll, redisPoller)
                 kvitteringRoute(rapid, tilgangskontroll, redisPoller)
-                lagreAapenImRoute(rapid, tilgangskontroll, redisPoller)
-                hentAapenImRoute(rapid, tilgangskontroll, redisPoller)
+                lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisPoller)
+                hentSelvbestemtImRoute(rapid, tilgangskontroll, redisPoller)
                 aktiveOrgnrRoute(rapid, redisPoller)
             }
         }

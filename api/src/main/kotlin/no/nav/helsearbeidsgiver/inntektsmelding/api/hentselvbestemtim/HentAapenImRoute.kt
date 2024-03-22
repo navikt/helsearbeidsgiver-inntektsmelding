@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.hentaapenim
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim
 
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -28,30 +28,30 @@ import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 // TODO test
-fun Route.hentAapenImRoute(
+fun Route.hentSelvbestemtImRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
     redisPoller: RedisPoller
 ) {
-    val producer = HentAapenImProducer(rapid)
+    val producer = HentSelvbestemtImProducer(rapid)
 
-    get(Routes.AAPEN_INNTEKTMELDING_MED_ID) {
-        val aapenId = call.parameters["aapenId"]
+    get(Routes.SELVBESTEMT_INNTEKTMELDING_MED_ID) {
+        val selvbestemtId = call.parameters["selvbestemtId"]
             ?.runCatching(UUID::fromString)
             ?.getOrNull()
 
-        if (aapenId == null) {
-            "Ugyldig parameter: '${call.parameters["aapenId"]}'".let {
+        if (selvbestemtId == null) {
+            "Ugyldig parameter: '${call.parameters["selvbestemtId"]}'".let {
                 logger.error(it)
                 sikkerLogger.error(it)
                 respondBadRequest(it, String.serializer())
             }
         } else {
             MdcUtils.withLogFields(
-                Log.apiRoute(Routes.AAPEN_INNTEKTMELDING_MED_ID),
-                Log.aapenId(aapenId)
+                Log.apiRoute(Routes.SELVBESTEMT_INNTEKTMELDING_MED_ID),
+                Log.selvbestemtId(selvbestemtId)
             ) {
-                val clientId = producer.publish(aapenId)
+                val clientId = producer.publish(selvbestemtId)
 
                 MdcUtils.withLogFields(
                     Log.clientId(clientId)
@@ -65,7 +65,7 @@ fun Route.hentAapenImRoute(
                             val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
 
                             if (inntektsmelding != null) {
-                                tilgangskontroll.validerTilgangTilOrg(call.request, aapenId, inntektsmelding.avsender.orgnr)
+                                tilgangskontroll.validerTilgangTilOrg(call.request, selvbestemtId, inntektsmelding.avsender.orgnr)
                                 sendOkResponse(inntektsmelding)
                             } else {
                                 val feilmelding = result.failure
@@ -76,7 +76,7 @@ fun Route.hentAapenImRoute(
                             }
                         }
                         .onFailure {
-                            sendRedisErrorResponse(aapenId, it)
+                            sendRedisErrorResponse(selvbestemtId, it)
                         }
                 }
             }
@@ -85,12 +85,12 @@ fun Route.hentAapenImRoute(
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.sendOkResponse(inntektsmelding: Inntektsmelding) {
-    "Åpen inntektsmelding hentet OK.".also {
+    "Selvbestemt inntektsmelding hentet OK.".also {
         logger.info(it)
         sikkerLogger.info("$it\n$inntektsmelding")
     }
     val response = ResultJson(
-        success = HentAapenImResponseSuccess(inntektsmelding).toJson(HentAapenImResponseSuccess.serializer())
+        success = HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer())
     )
     respondOk(response, ResultJson.serializer())
 }
@@ -101,12 +101,12 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendErrorResponse(fei
         sikkerLogger.info("$it Feilmelding: '$feilmelding'")
     }
     val response = ResultJson(
-        failure = HentAapenImResponseFailure(feilmelding).toJson(HentAapenImResponseFailure.serializer())
+        failure = HentSelvbestemtImResponseFailure(feilmelding).toJson(HentSelvbestemtImResponseFailure.serializer())
     )
     respondInternalServerError(response, ResultJson.serializer())
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorResponse(aapenId: UUID, error: Throwable) {
+private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorResponse(selvbestemtId: UUID, error: Throwable) {
     "Klarte ikke hente inntektsmelding pga. feil i Redis.".also {
         logger.info(it)
         sikkerLogger.info(it, error)
@@ -114,14 +114,14 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorRespons
     when (error) {
         is RedisPollerTimeoutException -> {
             val response = ResultJson(
-                failure = RedisTimeoutResponse(inntektsmeldingId = aapenId).toJson(RedisTimeoutResponse.serializer())
+                failure = RedisTimeoutResponse(inntektsmeldingId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
             )
             respondInternalServerError(response, ResultJson.serializer())
         }
 
         else -> {
             val response = ResultJson(
-                failure = RedisPermanentErrorResponse(aapenId).toJson(RedisPermanentErrorResponse.serializer())
+                failure = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer())
             )
             respondInternalServerError(response, ResultJson.serializer())
         }

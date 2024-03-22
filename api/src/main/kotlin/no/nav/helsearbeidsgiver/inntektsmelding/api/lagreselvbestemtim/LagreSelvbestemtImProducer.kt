@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreaapenim
+package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
@@ -15,25 +15,25 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 // TODO test
-class LagreAapenImProducer(
+class LagreSelvbestemtImProducer(
     private val rapid: RapidsConnection
 ) {
     init {
-        logger.info("Starter ${LagreAapenImProducer::class.simpleName}...")
+        logger.info("Starter ${LagreSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(aapenId: UUID, avsenderFnr: String, skjema: SkjemaInntektsmelding): UUID {
+    fun publish(selvbestemtId: UUID, avsenderFnr: String, skjema: SkjemaInntektsmelding): UUID {
         val clientId = UUID.randomUUID()
 
         MdcUtils.withLogFields(
-            Log.event(EventName.AAPEN_IM_MOTTATT),
+            Log.event(EventName.SELVBESTEMT_IM_MOTTATT),
             Log.clientId(clientId),
-            Log.aapenId(aapenId)
+            Log.selvbestemtId(selvbestemtId)
         ) {
             rapid.publish(
-                Key.EVENT_NAME to EventName.AAPEN_IM_MOTTATT.toJson(),
+                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
                 Key.CLIENT_ID to clientId.toJson(),
-                Key.AAPEN_ID to aapenId.toJson(),
+                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
                 Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
             )

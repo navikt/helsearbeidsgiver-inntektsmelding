@@ -12,22 +12,21 @@ import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.time.toJavaDuration
 
-// TODO test
-class AapenRepo(private val db: Database) {
+class SelvbestemtRepo(private val db: Database) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun lagreSakId(aapenId: UUID, sakId: String): Int {
-        "Skal lagre sak-ID for åpen inntektsmelding.".also {
+    fun lagreSakId(selvbestemtId: UUID, sakId: String): Int {
+        "Skal lagre sak-ID for selvbestemt inntektsmelding.".also {
             logger.info(it)
             sikkerLogger.info(it)
         }
 
-        return Metrics.dbAapenSak.recordTime(::lagreSakId) {
+        return Metrics.dbSelvbestemtSak.recordTime(::lagreSakId) {
             transaction(db) {
-                AapenSak.insert {
-                    it[this.aapenId] = aapenId
+                SelvbestemtSak.insert {
+                    it[this.selvbestemtId] = selvbestemtId
                     it[this.sakId] = sakId
                     it[slettes] = LocalDateTime.now().plus(sakLevetid.toJavaDuration())
                 }
@@ -35,7 +34,7 @@ class AapenRepo(private val db: Database) {
             }
         }
             .also {
-                "Lagret sak-ID for åpen inntektsmelding.".also {
+                "Lagret sak-ID for selvbestemt inntektsmelding.".also {
                     logger.info(it)
                     sikkerLogger.info(it)
                 }

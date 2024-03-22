@@ -140,7 +140,7 @@ class TrengerService(
     private fun finish(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val clientId = redisStore.get(RedisKey.of(transaksjonId, EventName.TRENGER_REQUESTED))
-            ?.let(UUID::fromString)
+            ?.fromJson(UuidSerializer)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
@@ -190,7 +190,7 @@ class TrengerService(
 
             sikkerLogger.info("terminate transaction id ${fail.transaksjonId} with evenname ${fail.event}")
 
-            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.let(UUID::fromString)
+            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.fromJson(UuidSerializer)
             if (clientId != null) {
                 redisStore.set(RedisKey.of(clientId), TrengerData(feilReport = feilReport).toJsonStr(TrengerData.serializer()))
             }

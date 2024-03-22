@@ -101,7 +101,7 @@ class ServiceRiver(
     }
 
     override fun ServiceMelding.loggfelt(): Map<String, String> =
-        mapOf(Log.klasse(this)).plus(
+        mapOf(Log.klasse(service)).plus(
             when (this) {
                 is StartMelding ->
                     mapOf(

@@ -3,11 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.log.logger
 
 class ImTestRapid : RapidsConnection() {
-
-    private val logger = logger()
 
     internal val messages = Messages()
 
@@ -37,7 +34,7 @@ class ImTestRapid : RapidsConnection() {
 
         messages.add(message)
 
-        logger.info("Rapid: $message")
+        println("Rapid: $message")
 
         notifyMessage(message, this)
     }

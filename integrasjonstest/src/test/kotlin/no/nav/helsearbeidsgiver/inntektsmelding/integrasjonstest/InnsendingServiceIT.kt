@@ -16,13 +16,13 @@ import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -47,7 +47,7 @@ class InnsendingServiceIT : EndToEndTest() {
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar
         )
 
         coEvery {
@@ -182,7 +182,7 @@ class InnsendingServiceIT : EndToEndTest() {
         val forespoerselId = randomUuid()
         val vedtaksperiodeId = randomUuid()
 
-        val forespoerselSvar = TrengerInntekt(
+        val forespoerselSvar = ForespoerselSvar.Suksess(
             type = ForespoerselType.KOMPLETT,
             orgnr = GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet,
             fnr = GYLDIG_INNSENDING_REQUEST.identitetsnummer,

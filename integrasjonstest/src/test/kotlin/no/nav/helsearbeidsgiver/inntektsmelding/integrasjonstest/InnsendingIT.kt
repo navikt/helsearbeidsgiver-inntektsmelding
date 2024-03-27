@@ -15,13 +15,13 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Periode
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
@@ -53,7 +53,7 @@ class InnsendingIT : EndToEndTest() {
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar
         )
 
         coEvery {
@@ -143,7 +143,7 @@ class InnsendingIT : EndToEndTest() {
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar
         )
 
         coEvery {
@@ -247,7 +247,7 @@ class InnsendingIT : EndToEndTest() {
             innsenderNavn = "Max Mekker",
             vedtaksperiodeId = vedtaksperiodeId
         )
-        val forespoerselSvar = TrengerInntekt(
+        val forespoerselSvar = ForespoerselSvar.Suksess(
             type = ForespoerselType.KOMPLETT,
             orgnr = innsending.orgnrUnderenhet,
             fnr = innsending.identitetsnummer,

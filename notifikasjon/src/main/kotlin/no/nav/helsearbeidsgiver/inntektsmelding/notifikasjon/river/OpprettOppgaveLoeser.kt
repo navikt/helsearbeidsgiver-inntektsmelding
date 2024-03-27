@@ -9,13 +9,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishBehov
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -82,19 +83,22 @@ class OpprettOppgaveLoeser(
                 utloesendeMelding = utloesendeMelding
             )
             publishFail(fail)
-            return
+        } else {
+            rapidsConnection.publish(
+                Key.EVENT_NAME to behov.event.toJson(),
+                Key.BEHOV to BehovType.PERSISTER_OPPGAVE_ID.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.ORGNRUNDERENHET to orgnr.toJson(),
+                Key.OPPGAVE_ID to oppgaveId.toJson()
+            )
+                .also {
+                    logger.info("Publiserte behov for '${behov.event}' med transaksjonId '$transaksjonId'.")
+                    sikkerLogger.info("Publiserte behov:\n${it.toPretty()}")
+                }
+
+            sikkerLogger.info("OpprettOppgaveLøser publiserte med transaksjonId: $transaksjonId")
         }
-
-        rapidsConnection.publishBehov(
-            eventName = behov.event,
-            behovType = BehovType.PERSISTER_OPPGAVE_ID,
-            transaksjonId = transaksjonId,
-            forespoerselId = forespoerselId,
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
-            Key.OPPGAVE_ID to oppgaveId.toJson()
-        )
-
-        sikkerLogger.info("OpprettOppgaveLøser publiserte med transaksjonId: $transaksjonId")
     }
 
     private fun opprettOppgave(

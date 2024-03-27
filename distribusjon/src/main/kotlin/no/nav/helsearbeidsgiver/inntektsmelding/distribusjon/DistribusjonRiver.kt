@@ -106,7 +106,7 @@ class DistribusjonRiver(
 
     override fun Melding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@DistribusjonRiver),
             Log.event(eventName),
             Log.transaksjonId(transaksjonId)
         )

@@ -51,7 +51,8 @@ enum class Key(override val str: String) : IKey {
     TILGANG("tilgang"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
     EKSTERN_INNTEKTSMELDING("eksternInntektsmelding"),
-    ER_DUPLIKAT_IM("er_duplikat_im");
+    ER_DUPLIKAT_IM("er_duplikat_im"),
+    RETRY("retry");
 
     override fun toString(): String =
         str

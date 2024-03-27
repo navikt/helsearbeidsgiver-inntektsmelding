@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import java.util.UUID
 
 val INNTEKTSMELDING_DOKUMENT = Inntektsmelding(
     orgnrUnderenhet = "",
@@ -41,7 +42,8 @@ val INNTEKTSMELDING_DOKUMENT = Inntektsmelding(
         begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent,
         utbetalt = 500.0
     ),
-    innsenderNavn = "Fido"
+    innsenderNavn = "Fido",
+    vedtaksperiodeId = UUID.randomUUID()
 )
 
 val EKSTERN_INNTEKTSMELDING_DOKUMENT = EksternInntektsmelding(

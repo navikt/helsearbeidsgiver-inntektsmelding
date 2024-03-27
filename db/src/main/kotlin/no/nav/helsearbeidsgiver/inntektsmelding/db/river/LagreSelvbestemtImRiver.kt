@@ -52,7 +52,7 @@ class LagreSelvbestemtImRiver(
             sikkerLogger.info(it)
         }
 
-        val nyesteIm = selvbestemtImRepo.hentNyesteIm(selvbestemtInntektsmelding.id)
+        val nyesteIm = selvbestemtImRepo.hentNyesteIm(selvbestemtInntektsmelding.type.id)
 
         val erDuplikat = nyesteIm?.erDuplikatAv(selvbestemtInntektsmelding).orDefault(false)
 
@@ -93,7 +93,7 @@ class LagreSelvbestemtImRiver(
 
         return fail.tilMelding()
             .minus(Key.FORESPOERSEL_ID)
-            .plus(Key.SELVBESTEMT_ID to selvbestemtInntektsmelding.id.toJson())
+            .plus(Key.SELVBESTEMT_ID to selvbestemtInntektsmelding.type.id.toJson())
     }
 
     override fun LagreSelvbestemtImMelding.loggfelt(): Map<String, String> =
@@ -102,7 +102,7 @@ class LagreSelvbestemtImRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(selvbestemtInntektsmelding.id)
+            Log.selvbestemtId(selvbestemtInntektsmelding.type.id)
         )
 }
 

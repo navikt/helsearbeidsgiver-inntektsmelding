@@ -4,37 +4,37 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class BehovType {
-    HENT_PERSONER,
-    FULLT_NAVN,
-    VIRKSOMHET,
-    INNTEKT,
+    // Hente data
     ARBEIDSFORHOLD,
-    JOURNALFOER,
     ARBEIDSGIVERE,
-    TILGANGSKONTROLL,
-    HENT_TRENGER_IM, // TODO: SPLEIS_FORESPOERSEL eller SPLEIS_FORESPOERSEL_DETALJER??
-
-    PERSISTER_IM,
-    HENT_PERSISTERT_IM,
-    LAGRE_SELVBESTEMT_IM,
-    HENT_SELVBESTEMT_IM,
-
-    LAGRE_JOURNALPOST_ID,
-    LAGRE_FORESPOERSEL,
-
-    NOTIFIKASJON_HENT_ID,
-    OPPRETT_SAK,
-    SLETT_SAK,
-    PERSISTER_SAK_ID,
-    OPPRETT_OPPGAVE,
-    PERSISTER_OPPGAVE_ID,
-
-    OPPRETT_SELVBESTEMT_SAK,
-
+    FULLT_NAVN,
     HENT_EKSTERN_INNTEKTSMELDING,
-    LAGRE_EKSTERN_INNTEKTSMELDING,
+    HENT_PERSISTERT_IM,
+    HENT_PERSONER,
+    HENT_SELVBESTEMT_IM,
+    HENT_TRENGER_IM, // TODO: SPLEIS_FORESPOERSEL eller SPLEIS_FORESPOERSEL_DETALJER??
+    INNTEKT,
+    NOTIFIKASJON_HENT_ID,
+    TILGANGSKONTROLL,
+    VIRKSOMHET,
 
-    // Brukt til å prøve igjen ved feil
+    // Synkrone endringer
+    LAGRE_SELVBESTEMT_IM,
+    OPPRETT_SELVBESTEMT_SAK,
+    PERSISTER_IM,
+    SLETT_SAK, // kun brukt ved manuell kjøring
+
+    // Asynkrone endringer
+    LAGRE_EKSTERN_INNTEKTSMELDING, // kan erstattes av event
+    LAGRE_FORESPOERSEL, // kan erstattes av event
+    LAGRE_JOURNALPOST_ID, // kan erstattes av event
+    OPPRETT_OPPGAVE, // blir overflødig ved flytting av notifikasjondatabase
+    OPPRETT_SAK, // blir overflødig ved flytting av notifikasjondatabase
+    PERSISTER_OPPGAVE_ID, // kan erstattes av event
+    PERSISTER_SAK_ID, // kan erstattes av event
+
+    // Asynkrone endringer, men brukt til å prøve igjen ved feil
+    JOURNALFOER,
     DISTRIBUER_IM
 }
 

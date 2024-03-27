@@ -170,7 +170,6 @@ class TrengerService(
                 personDato = sykmeldt,
                 arbeidsgiver = arbeidsgiver,
                 virksomhetNavn = virksomhetNavn,
-                inntekt = inntekt,
                 skjaeringstidspunkt = foresporselSvar.skjaeringstidspunkt,
                 fravarsPerioder = foresporselSvar.sykmeldingsperioder,
                 egenmeldingsPerioder = foresporselSvar.egenmeldingsperioder,

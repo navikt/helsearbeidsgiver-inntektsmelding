@@ -21,8 +21,6 @@ data class TrengerData(
     val personDato: PersonDato? = null,
     val arbeidsgiver: PersonDato? = null,
     val virksomhetNavn: String? = null,
-    val arbeidsforhold: List<Arbeidsforhold>? = null,
-    val inntekt: Inntekt? = null,
     val skjaeringstidspunkt: LocalDate? = null,
     val fravarsPerioder: List<Periode>? = null,
     val egenmeldingsPerioder: List<Periode>? = null,

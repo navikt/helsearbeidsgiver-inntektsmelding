@@ -1,7 +1,8 @@
 kafkaPool: nav-prod
 azure:
   enabled: true
-database: inntektsmelding
+database:
+  - name: inntektsmelding
 envFrom:
   - type: secret
     name: google-sql-im-db

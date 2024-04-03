@@ -2,7 +2,7 @@ DO
 $$
 BEGIN
         IF EXISTS
-            (SELECT 1 from pg_roles where rolname = 'im-db')
+            (SELECT 1 FROM pg_roles WHERE rolname = 'im-db')
         THEN
             ALTER USER "im-db" WITH REPLICATION;
 END IF;
@@ -12,7 +12,7 @@ DO
 $$
 BEGIN
         IF EXISTS
-            (SELECT 1 from pg_roles where rolname = 'simba_datastream_bruker')
+            (SELECT 1 FROM pg_roles WHERE rolname = 'simba_datastream_bruker')
         THEN
             ALTER USER "simba_datastream_bruker" WITH REPLICATION;
             ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO "simba_datastream_bruker";

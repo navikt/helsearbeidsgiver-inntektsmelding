@@ -12,16 +12,13 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.tilTrengerInntekt
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -178,20 +175,10 @@ class InnsendingServiceIT : EndToEndTest() {
         const val SAK_ID = "tjukk-kalender"
         const val OPPGAVE_ID = "kunstig-demon"
 
-        val clientId = randomUuid()
-        val forespoerselId = randomUuid()
-        val vedtaksperiodeId = randomUuid()
+        val clientId: UUID = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
+        val vedtaksperiodeId: UUID = UUID.randomUUID()
 
-        val forespoerselSvar = TrengerInntekt(
-            type = ForespoerselType.KOMPLETT,
-            orgnr = GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet,
-            fnr = GYLDIG_INNSENDING_REQUEST.identitetsnummer,
-            vedtaksperiodeId = vedtaksperiodeId,
-            skjaeringstidspunkt = GYLDIG_INNSENDING_REQUEST.bestemmendeFraværsdag,
-            sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder.map { Periode(it.fom, it.tom) },
-            egenmeldingsperioder = GYLDIG_INNSENDING_REQUEST.egenmeldingsperioder.map { Periode(it.fom, it.tom) },
-            forespurtData = mockForespurtData(),
-            erBesvart = false
-        )
+        val forespoerselSvar = GYLDIG_INNSENDING_REQUEST.tilTrengerInntekt(vedtaksperiodeId)
     }
 }

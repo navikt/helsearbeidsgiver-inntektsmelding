@@ -15,9 +15,12 @@ data class TrengerInntekt(
     val orgnr: String,
     val fnr: String,
     val vedtaksperiodeId: UUID,
+    // TODO fjern, erstattet av bestemmendeFravaersdager
     val skjaeringstidspunkt: LocalDate?,
     val sykmeldingsperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
+    // TODO fjern default (kun brukt for midlertidig bakoverkompabilitet)
+    val bestemmendeFravaersdager: Map<String, LocalDate> = emptyMap(),
     val forespurtData: ForespurtData,
     val erBesvart: Boolean
 )

@@ -230,6 +230,7 @@ private object Mock {
                 29.mars til 29.mars,
                 31.mars til 31.mars
             ),
+            bestemmendeFravaersdager = mapOf("123" to 25.april),
             forespurtData = mockForespurtData(),
             erBesvart = false,
             vedtaksperiodeId = randomUuid()

@@ -23,14 +23,13 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.tilTrengerInntekt
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -41,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class PersisterImLoeserTest {
 
@@ -160,18 +160,9 @@ class PersisterImLoeserTest {
         val arbeidsgiver = PersonDato("Gudrun Arbeidsgiver", null, "fnr-gudrun")
         val arbeidstaker = PersonDato("Toril Arbeidstaker", null, innsending.identitetsnummer)
 
-        val vedtaksperiodeId = randomUuid()
+        private val vedtaksperiodeId = UUID.randomUUID()
         val inntektsmelding = mapInntektsmelding(innsending, arbeidstaker.navn, "Test Virksomhet", arbeidsgiver.navn, vedtaksperiodeId)
-        val forespoerselSvar = TrengerInntekt(
-            type = ForespoerselType.KOMPLETT,
-            orgnr = innsending.orgnrUnderenhet,
-            fnr = innsending.identitetsnummer,
-            vedtaksperiodeId = vedtaksperiodeId,
-            skjaeringstidspunkt = innsending.bestemmendeFraværsdag,
-            sykmeldingsperioder = innsending.fraværsperioder.map { no.nav.helsearbeidsgiver.felles.Periode(it.fom, it.tom) },
-            egenmeldingsperioder = innsending.egenmeldingsperioder.map { no.nav.helsearbeidsgiver.felles.Periode(it.fom, it.tom) },
-            forespurtData = mockForespurtData(),
-            erBesvart = false
-        )
+
+        val forespoerselSvar = innsending.tilTrengerInntekt(vedtaksperiodeId)
     }
 }

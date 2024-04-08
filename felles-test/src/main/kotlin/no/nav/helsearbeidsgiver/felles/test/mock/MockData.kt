@@ -1,15 +1,17 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
+import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.til
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
+import java.util.UUID
 
 fun mockForespurtData(): ForespurtData =
     ForespurtData(
@@ -105,10 +107,30 @@ fun mockTrengerInntekt(): TrengerInntekt =
         type = ForespoerselType.KOMPLETT,
         orgnr = "789789789",
         fnr = "15055012345",
+        vedtaksperiodeId = UUID.randomUUID(),
         skjaeringstidspunkt = 11.januar(2018),
         sykmeldingsperioder = listOf(2.januar til 31.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
+        bestemmendeFravaersdager = mapOf("789789789" to 1.januar),
         forespurtData = mockForespurtData(),
-        erBesvart = false,
-        vedtaksperiodeId = randomUuid()
+        erBesvart = false
     )
+
+fun Innsending.tilTrengerInntekt(vedtaksperiodeId: UUID): TrengerInntekt {
+    val sykmeldingsperioder = fraværsperioder.map { Periode(it.fom, it.tom) }
+
+    return TrengerInntekt(
+        type = ForespoerselType.KOMPLETT,
+        orgnr = orgnrUnderenhet,
+        fnr = identitetsnummer,
+        vedtaksperiodeId = vedtaksperiodeId,
+        skjaeringstidspunkt = bestemmendeFraværsdag,
+        sykmeldingsperioder = sykmeldingsperioder,
+        egenmeldingsperioder = egenmeldingsperioder.map { Periode(it.fom, it.tom) },
+        bestemmendeFravaersdager = sykmeldingsperioder.lastOrNull()
+            ?.let { mapOf(orgnrUnderenhet to it.fom) }
+            .orEmpty(),
+        forespurtData = mockForespurtData(),
+        erBesvart = false
+    )
+}

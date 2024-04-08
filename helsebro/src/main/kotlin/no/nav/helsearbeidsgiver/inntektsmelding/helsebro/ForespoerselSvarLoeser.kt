@@ -149,6 +149,7 @@ fun ForespoerselSvar.Suksess.toTrengerInntekt(): TrengerInntekt =
         skjaeringstidspunkt = skjaeringstidspunkt,
         sykmeldingsperioder = sykmeldingsperioder,
         egenmeldingsperioder = egenmeldingsperioder,
+        bestemmendeFravaersdager = bestemmendeFravaersdager,
         forespurtData = forespurtData,
         erBesvart = erBesvart
     )

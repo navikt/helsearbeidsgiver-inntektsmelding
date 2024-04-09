@@ -29,7 +29,6 @@ class InnsendingProducer(
             Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
             Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),
             Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson(),
-            Key.INNTEKTSMELDING to request.toJson(Innsending.serializer()),
             Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer())
         )
             .also {

@@ -39,7 +39,7 @@ class InnsendingService(
     override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.ORGNRUNDERENHET,
-        Key.INNTEKTSMELDING,
+        Key.SKJEMA_INNTEKTSMELDING,
         Key.ARBEIDSGIVER_ID,
         Key.IDENTITETSNUMMER
     )
@@ -115,7 +115,7 @@ class InnsendingService(
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val inntektsmeldingJson = Key.INNTEKTSMELDING.les(JsonElement.serializer(), melding)
+        val inntektsmeldingJson = Key.SKJEMA_INNTEKTSMELDING.les(JsonElement.serializer(), melding)
 
         if (step1Keys.all(melding::containsKey)) {
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
@@ -130,7 +130,6 @@ class InnsendingService(
                 Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING to inntektsmeldingJson,
                 Key.SKJEMA_INNTEKTSMELDING to inntektsmeldingJson,
                 Key.VIRKSOMHET to virksomhetNavn.toJson(),
                 Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),

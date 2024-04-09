@@ -24,6 +24,7 @@ enum class Key(override val str: String) : IKey {
     DATA("data"),
     FAIL("fail"),
     SKJEMA_INNTEKTSMELDING("skjema_inntektsmelding"),
+    INNTEKTSMELDING("inntektsmelding"),
     SELVBESTEMT_INNTEKTSMELDING("selvbestemt_inntektsmelding"),
 
     // Tidligere DataFelt
@@ -39,7 +40,6 @@ enum class Key(override val str: String) : IKey {
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNRUNDERENHETER("orgnrUnderenheter"),
     ORG_RETTIGHETER("org_rettigheter"),
-    INNTEKTSMELDING("inntektsmelding"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
     TRENGER_INNTEKT("trenger-inntekt"),
     INNTEKT("inntekt"),

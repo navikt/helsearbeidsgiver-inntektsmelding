@@ -131,6 +131,7 @@ class InnsendingService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.INNTEKTSMELDING to inntektsmeldingJson,
+                Key.SKJEMA_INNTEKTSMELDING to inntektsmeldingJson,
                 Key.VIRKSOMHET to virksomhetNavn.toJson(),
                 Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),
                 Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer()),

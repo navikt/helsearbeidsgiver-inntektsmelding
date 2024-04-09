@@ -12,14 +12,11 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Periode
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.tilTrengerInntekt
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
@@ -237,9 +234,9 @@ class InnsendingIT : EndToEndTest() {
         const val SAK_ID = "forundret-lysekrone"
         const val OPPGAVE_ID = "neglisjert-sommer"
 
-        val forespoerselId: UUID = randomUuid()
+        val forespoerselId: UUID = UUID.randomUUID()
+        val vedtaksperiodeId: UUID = UUID.randomUUID()
         val innsending = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
-        val vedtaksperiodeId = randomUuid()
         val innsendtInntektsmelding = mapInntektsmelding(
             request = innsending,
             fulltnavnArbeidstaker = "Bjarne Betjent",
@@ -247,16 +244,6 @@ class InnsendingIT : EndToEndTest() {
             innsenderNavn = "Max Mekker",
             vedtaksperiodeId = vedtaksperiodeId
         )
-        val forespoerselSvar = TrengerInntekt(
-            type = ForespoerselType.KOMPLETT,
-            orgnr = innsending.orgnrUnderenhet,
-            fnr = innsending.identitetsnummer,
-            vedtaksperiodeId = vedtaksperiodeId,
-            skjaeringstidspunkt = innsending.bestemmendeFraværsdag,
-            sykmeldingsperioder = innsending.fraværsperioder.map { Periode(it.fom, it.tom) },
-            egenmeldingsperioder = innsending.egenmeldingsperioder.map { Periode(it.fom, it.tom) },
-            forespurtData = mockForespurtData(),
-            erBesvart = false
-        )
+        val forespoerselSvar = innsending.tilTrengerInntekt(vedtaksperiodeId)
     }
 }

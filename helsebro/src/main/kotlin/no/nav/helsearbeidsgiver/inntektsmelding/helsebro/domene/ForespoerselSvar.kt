@@ -34,6 +34,7 @@ data class ForespoerselSvar(
         val skjaeringstidspunkt: LocalDate?,
         val sykmeldingsperioder: List<Periode>,
         val egenmeldingsperioder: List<Periode>,
+        val bestemmendeFravaersdager: Map<String, LocalDate>,
         val forespurtData: ForespurtData,
         val erBesvart: Boolean
     )

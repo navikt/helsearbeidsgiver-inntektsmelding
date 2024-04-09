@@ -38,7 +38,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 Key.BEHOV to BehovType.PERSISTER_IM.name
             )
             it.interestedIn(
-                Key.INNTEKTSMELDING,
+                Key.SKJEMA_INNTEKTSMELDING,
                 Key.VIRKSOMHET,
                 Key.ARBEIDSTAKER_INFORMASJON,
                 Key.ARBEIDSGIVER_INFORMASJON,

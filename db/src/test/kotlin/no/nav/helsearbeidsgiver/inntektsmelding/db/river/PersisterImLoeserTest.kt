@@ -73,7 +73,7 @@ class PersisterImLoeserTest {
             Key.VIRKSOMHET to "Test Virksomhet".toJson(),
             Key.ARBEIDSGIVER_INFORMASJON to Mock.arbeidsgiver.toJson(PersonDato.serializer()),
             Key.ARBEIDSTAKER_INFORMASJON to Mock.arbeidstaker.toJson(PersonDato.serializer()),
-            Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer()),
+            Key.SKJEMA_INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer()),
             Key.FORESPOERSEL_SVAR to Mock.forespoerselSvar.toJson(TrengerInntekt.serializer())
         )
 
@@ -103,7 +103,7 @@ class PersisterImLoeserTest {
             Key.VIRKSOMHET to "Test Virksomhet".toJson(),
             Key.ARBEIDSGIVER_INFORMASJON to Mock.arbeidsgiver.toJson(PersonDato.serializer()),
             Key.ARBEIDSTAKER_INFORMASJON to Mock.arbeidstaker.toJson(PersonDato.serializer()),
-            Key.INNTEKTSMELDING to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING).toJson(Innsending.serializer()),
+            Key.SKJEMA_INNTEKTSMELDING to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING).toJson(Innsending.serializer()),
             Key.FORESPOERSEL_SVAR to Mock.forespoerselSvar.toJson(TrengerInntekt.serializer())
         )
 

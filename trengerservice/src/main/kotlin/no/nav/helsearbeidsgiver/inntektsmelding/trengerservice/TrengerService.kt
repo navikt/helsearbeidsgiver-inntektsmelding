@@ -114,33 +114,19 @@ class TrengerService(
                 Key.ARBEIDSGIVER_ID to Key.ARBEIDSGIVER_FNR.lesOrNull(String.serializer(), melding).orEmpty().toJson()
             )
 
-            val skjaeringstidspunkt = forespoersel.skjaeringstidspunkt
-                ?: finnSkjaeringstidspunkt(forespoersel.egenmeldingsperioder + forespoersel.sykmeldingsperioder)
+            val skjaeringstidspunkt = forespoersel.skjaeringstidspunkt()
+                ?: forespoersel.bestemmendeFravaersdag()
 
-            if (skjaeringstidspunkt != null) {
-                sikkerLogger.info("${simpleName()} Dispatcher INNTEKT for $transaksjonId")
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.INNTEKT.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                    Key.FNR to forespoersel.fnr.toJson(),
-                    Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson()
-                )
-            } else {
-                "Fant ikke skjaeringstidspunkt å hente inntekt for.".also {
-                    sikkerLogger.error("$it forespoersel=$forespoersel")
-                    val fail = Fail(
-                        feilmelding = it,
-                        event = event,
-                        transaksjonId = transaksjonId,
-                        forespoerselId = forespoerselId,
-                        utloesendeMelding = melding.toJson()
-                    )
-                    onError(melding, fail)
-                }
-            }
+            sikkerLogger.info("${simpleName()} Dispatcher INNTEKT for $transaksjonId")
+            rapid.publish(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.INNTEKT.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                Key.FNR to forespoersel.fnr.toJson(),
+                Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson()
+            )
         }
     }
 
@@ -165,13 +151,14 @@ class TrengerService(
             val feilReport = redisStore.get(RedisKey.of(transaksjonId, Feilmelding("")))?.fromJson(FeilReport.serializer())
 
             val trengerDataJson = TrengerData(
+                forespoersel = foresporselSvar,
                 fnr = foresporselSvar.fnr,
                 orgnr = foresporselSvar.orgnr,
                 personDato = sykmeldt,
                 arbeidsgiver = arbeidsgiver,
                 virksomhetNavn = virksomhetNavn,
                 inntekt = inntekt,
-                skjaeringstidspunkt = foresporselSvar.skjaeringstidspunkt,
+                skjaeringstidspunkt = foresporselSvar.eksternBestemmendeFravaersdag(),
                 fravarsPerioder = foresporselSvar.sykmeldingsperioder,
                 egenmeldingsPerioder = foresporselSvar.egenmeldingsperioder,
                 forespurtData = foresporselSvar.forespurtData,

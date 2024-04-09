@@ -102,19 +102,23 @@ fun mockForespurtDataMedFastsattInntekt(): ForespurtData =
         )
     )
 
-fun mockTrengerInntekt(): TrengerInntekt =
-    TrengerInntekt(
+fun mockTrengerInntekt(): TrengerInntekt {
+    val orgnr = "789789789"
+    return TrengerInntekt(
         type = ForespoerselType.KOMPLETT,
-        orgnr = "789789789",
+        orgnr = orgnr,
         fnr = "15055012345",
         vedtaksperiodeId = UUID.randomUUID(),
-        skjaeringstidspunkt = 11.januar(2018),
         sykmeldingsperioder = listOf(2.januar til 31.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
-        bestemmendeFravaersdager = mapOf("789789789" to 1.januar),
+        bestemmendeFravaersdager = mapOf(
+            orgnr to 1.januar,
+            "555767555" to 5.januar
+        ),
         forespurtData = mockForespurtData(),
         erBesvart = false
     )
+}
 
 fun Innsending.tilTrengerInntekt(vedtaksperiodeId: UUID): TrengerInntekt {
     val sykmeldingsperioder = fraværsperioder.map { Periode(it.fom, it.tom) }
@@ -124,7 +128,6 @@ fun Innsending.tilTrengerInntekt(vedtaksperiodeId: UUID): TrengerInntekt {
         orgnr = orgnrUnderenhet,
         fnr = identitetsnummer,
         vedtaksperiodeId = vedtaksperiodeId,
-        skjaeringstidspunkt = bestemmendeFraværsdag,
         sykmeldingsperioder = sykmeldingsperioder,
         egenmeldingsperioder = egenmeldingsperioder.map { Periode(it.fom, it.tom) },
         bestemmendeFravaersdager = sykmeldingsperioder.lastOrNull()

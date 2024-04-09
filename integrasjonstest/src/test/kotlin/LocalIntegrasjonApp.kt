@@ -92,7 +92,6 @@ class DummyLoeser(
                     orgnr = orgnr,
                     fnr = fnr,
                     vedtaksperiodeId = UUID.randomUUID(),
-                    skjaeringstidspunkt = 11.januar(2018),
                     sykmeldingsperioder = listOf(2.januar til 3.januar),
                     egenmeldingsperioder = listOf(1.januar til 1.januar),
                     bestemmendeFravaersdager = mapOf(orgnr to 1.januar),

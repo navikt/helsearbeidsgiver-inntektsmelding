@@ -80,6 +80,7 @@ class TrengerIT : EndToEndTest() {
         val trengerData = redisStore.get(RedisKey.of(Mock.clientId))?.fromJson(TrengerData.serializer())
 
         trengerData.shouldNotBeNull().apply {
+            forespoersel.shouldNotBeNull()
             fnr.shouldNotBeNull()
             orgnr.shouldNotBeNull()
             personDato.shouldNotBeNull()

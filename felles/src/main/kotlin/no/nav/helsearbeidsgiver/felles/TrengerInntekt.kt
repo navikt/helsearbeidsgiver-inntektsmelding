@@ -27,7 +27,7 @@ data class TrengerInntekt(
         bestemmendeFravaersdager[orgnr]
             ?: finnBestemmendeFravaersdag()
 
-    fun skjaeringstidspunkt(): LocalDate? =
+    fun inntektsdato(): LocalDate? =
         bestemmendeFravaersdager.minOfOrNull { it.value }
 
     fun eksternBestemmendeFravaersdag(): LocalDate? =

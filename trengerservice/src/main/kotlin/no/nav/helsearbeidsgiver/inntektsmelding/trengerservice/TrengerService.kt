@@ -114,7 +114,7 @@ class TrengerService(
                 Key.ARBEIDSGIVER_ID to Key.ARBEIDSGIVER_FNR.lesOrNull(String.serializer(), melding).orEmpty().toJson()
             )
 
-            val skjaeringstidspunkt = forespoersel.skjaeringstidspunkt()
+            val inntektsdato = forespoersel.inntektsdato()
                 ?: forespoersel.bestemmendeFravaersdag()
 
             sikkerLogger.info("${simpleName()} Dispatcher INNTEKT for $transaksjonId")
@@ -125,7 +125,7 @@ class TrengerService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
                 Key.FNR to forespoersel.fnr.toJson(),
-                Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson()
+                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson()
             )
         }
     }

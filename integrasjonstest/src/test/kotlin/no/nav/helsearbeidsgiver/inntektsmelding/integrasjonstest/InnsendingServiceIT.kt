@@ -65,7 +65,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
                 Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
                 Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
-                Key.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
             )
         }
 

@@ -71,7 +71,7 @@ class InnsendingIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to Mock.innsending.identitetsnummer.toJson(),
                 Key.ARBEIDSGIVER_ID to Mock.innsending.identitetsnummer.toJson(),
-                Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
             )
         }
 
@@ -163,7 +163,7 @@ class InnsendingIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to "fnr-bjarne".toJson(),
                 Key.ARBEIDSGIVER_ID to "fnr-max".toJson(),
-                Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
             )
         }
 

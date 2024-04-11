@@ -38,7 +38,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 Key.BEHOV to BehovType.PERSISTER_IM.name
             )
             it.interestedIn(
-                Key.INNTEKTSMELDING,
+                Key.SKJEMA_INNTEKTSMELDING,
                 Key.VIRKSOMHET,
                 Key.ARBEIDSTAKER_INFORMASJON,
                 Key.ARBEIDSGIVER_INFORMASJON,
@@ -56,8 +56,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             val json = behov.jsonMessage.toJson().parseJson().toMap()
 
             val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
-            val innsending = Key.SKJEMA_INNTEKTSMELDING.lesOrNull(Innsending.serializer(), json)
-                ?: Key.INNTEKTSMELDING.les(Innsending.serializer(), json)
+            val innsending = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), json)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), json)
             val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), json)
             val innsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), json)

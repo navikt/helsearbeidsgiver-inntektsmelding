@@ -8,8 +8,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.time.LocalDate
 import java.util.UUID
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode as PeriodeV1
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag as finnBestemmendeFravaersdag
 
 // TODO nytt navn
 @Serializable
@@ -25,15 +23,10 @@ data class TrengerInntekt(
     val forespurtData: ForespurtData,
     val erBesvart: Boolean
 ) {
-    fun bestemmendeFravaersdag(): LocalDate =
+    fun forslagBestemmendeFravaersdag(): LocalDate? =
         bestemmendeFravaersdager[orgnr]
-            ?: finnBestemmendeFravaersdag(
-                arbeidsgiverperioder = emptyList(),
-                egenmeldingsperioder = egenmeldingsperioder.map { PeriodeV1(it.fom, it.tom) },
-                sykmeldingsperioder = sykmeldingsperioder.map { PeriodeV1(it.fom, it.tom) }
-            )
 
-    fun inntektsdato(): LocalDate? =
+    fun forslagInntektsdato(): LocalDate? =
         bestemmendeFravaersdager.minOfOrNull { it.value }
 
     fun eksternBestemmendeFravaersdag(): LocalDate? =

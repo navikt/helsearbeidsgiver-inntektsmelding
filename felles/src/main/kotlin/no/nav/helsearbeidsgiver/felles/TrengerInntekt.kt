@@ -9,21 +9,29 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.time.LocalDate
 import java.util.UUID
 
+// TODO nytt navn
 @Serializable
 data class TrengerInntekt(
     val type: ForespoerselType,
     val orgnr: String,
     val fnr: String,
     val vedtaksperiodeId: UUID,
-    // TODO fjern, erstattet av bestemmendeFravaersdager
-    val skjaeringstidspunkt: LocalDate?,
+    // TODO bytt til domene.v1.Periode
     val sykmeldingsperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
-    // TODO fjern default (kun brukt for midlertidig bakoverkompabilitet)
-    val bestemmendeFravaersdager: Map<String, LocalDate> = emptyMap(),
+    val bestemmendeFravaersdager: Map<String, LocalDate>,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean
-)
+) {
+    fun forslagBestemmendeFravaersdag(): LocalDate? =
+        bestemmendeFravaersdager[orgnr]
+
+    fun forslagInntektsdato(): LocalDate? =
+        bestemmendeFravaersdager.minOfOrNull { it.value }
+
+    fun eksternBestemmendeFravaersdag(): LocalDate? =
+        bestemmendeFravaersdager.minus(orgnr).minOfOrNull { it.value }
+}
 
 enum class ForespoerselType {
     KOMPLETT,

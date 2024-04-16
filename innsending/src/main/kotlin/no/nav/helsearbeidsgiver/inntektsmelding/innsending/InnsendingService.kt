@@ -3,6 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -115,13 +117,21 @@ class InnsendingService(
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val inntektsmeldingJson = Key.SKJEMA_INNTEKTSMELDING.les(JsonElement.serializer(), melding)
+        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
         if (step1Keys.all(melding::containsKey)) {
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-            val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+            val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+            val innsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
             val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+
+            val inntektsmelding = mapInntektsmelding(
+                forespoersel = forespoersel,
+                skjema = skjema,
+                fulltnavnArbeidstaker = sykmeldt.navn,
+                virksomhetNavn = virksomhetNavn,
+                innsenderNavn = innsender.navn
+            )
 
             logger.info("InnsendingService: emitting behov PERSISTER_IM")
 
@@ -130,10 +140,12 @@ class InnsendingService(
                 Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to inntektsmeldingJson,
+                // TODO slett overflødige rettelser i InnsendingRoute når IM tas i bruk i PersisterImLoeser
+                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
                 Key.VIRKSOMHET to virksomhetNavn.toJson(),
-                Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),
-                Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer()),
+                Key.ARBEIDSTAKER_INFORMASJON to sykmeldt.toJson(PersonDato.serializer()),
+                Key.ARBEIDSGIVER_INFORMASJON to innsender.toJson(PersonDato.serializer()),
                 Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
             )
         }

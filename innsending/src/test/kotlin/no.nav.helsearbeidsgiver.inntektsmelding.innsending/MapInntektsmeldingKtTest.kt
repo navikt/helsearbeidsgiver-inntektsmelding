@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
-import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldNotBeEmpty
@@ -25,10 +24,13 @@ import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.test.mock.tilTrengerInntekt
 import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
+import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.date.september
 import java.time.ZonedDateTime
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
@@ -211,21 +213,29 @@ class MapInntektsmeldingKtTest : FunSpec({
             inntektsmelding.inntektsdato shouldBe forespoersel.forslagInntektsdato()
         }
 
-        test("kaster exception dersom forslag (fra Spleis) til inntektsdato mangler og AGP _ikke_ er påkrevd") {
+        test("bruker beregnet bestemmende fraværsdag som inntektsdato dersom forslag (fra Spleis) til inntektsdato mangler og AGP _ikke_ er påkrevd") {
             val forespoersel = Mock.forespoersel().utenPaakrevdAGP().copy(
+                egenmeldingsperioder = emptyList(),
+                sykmeldingsperioder = listOf(
+                    4.juli til 28.juli
+                ),
                 bestemmendeFravaersdager = emptyMap()
             )
-            val skjema = Mock.skjema()
+            val skjema = Mock.skjema().copy(
+                bestemmendeFraværsdag = 3.august
+            )
 
-            shouldThrowExactly<UgyldigForespoerselException> {
-                mapInntektsmelding(
-                    forespoersel = forespoersel,
-                    skjema = skjema,
-                    fulltnavnArbeidstaker = "Runar fra Regnskap",
-                    virksomhetNavn = "Skrekkinngytende smaker LLC",
-                    innsenderNavn = "Hege fra HR"
-                )
-            }
+            val inntektsmelding = mapInntektsmelding(
+                forespoersel = forespoersel,
+                skjema = skjema,
+                fulltnavnArbeidstaker = "Runar fra Regnskap",
+                virksomhetNavn = "Skrekkinngytende smaker LLC",
+                innsenderNavn = "Hege fra HR"
+            )
+
+            inntektsmelding.inntektsdato shouldNotBe skjema.bestemmendeFraværsdag
+            inntektsmelding.inntektsdato shouldBe forespoersel.forslagInntektsdato()
+            inntektsmelding.inntektsdato shouldBe 4.juli
         }
 
         test("bruker beregnet bestemmende fraværsdag dersom AGP er påkrevd") {
@@ -290,21 +300,33 @@ class MapInntektsmeldingKtTest : FunSpec({
             inntektsmelding.bestemmendeFraværsdag shouldBe forespoersel.forslagBestemmendeFravaersdag()
         }
 
-        test("kaster exception dersom forslag (fra Spleis) til bestemmende fraværsdag mangler og AGP _ikke_ er påkrevd") {
+        test("bruker beregnet bestemmende fraværsdag dersom forslag (fra Spleis) til bestemmende fraværsdag mangler og AGP _ikke_ er påkrevd") {
             val forespoersel = Mock.forespoersel().utenPaakrevdAGP().copy(
+                egenmeldingsperioder = emptyList(),
+                sykmeldingsperioder = listOf(
+                    10.august til 31.august
+                ),
                 bestemmendeFravaersdager = emptyMap()
             )
-            val skjema = Mock.skjema()
+            val skjema = Mock.skjema().copy(
+                egenmeldingsperioder = emptyList(),
+                fraværsperioder = listOf(
+                    7.september til 25.september
+                ),
+                arbeidsgiverperioder = emptyList()
+            )
 
-            shouldThrowExactly<UgyldigForespoerselException> {
-                mapInntektsmelding(
-                    forespoersel = forespoersel,
-                    skjema = skjema,
-                    fulltnavnArbeidstaker = "Runar fra Regnskap",
-                    virksomhetNavn = "Skrekkinngytende smaker LLC",
-                    innsenderNavn = "Hege fra HR"
-                )
-            }
+            val inntektsmelding = mapInntektsmelding(
+                forespoersel = forespoersel,
+                skjema = skjema,
+                fulltnavnArbeidstaker = "Runar fra Regnskap",
+                virksomhetNavn = "Skrekkinngytende smaker LLC",
+                innsenderNavn = "Hege fra HR"
+            )
+
+            inntektsmelding.bestemmendeFraværsdag shouldNotBe 7.september
+            inntektsmelding.bestemmendeFraværsdag shouldBe forespoersel.forslagBestemmendeFravaersdag()
+            inntektsmelding.bestemmendeFraværsdag shouldBe 10.august
         }
 
         test("bruker innsendt inntekt dersom inntekt er påkrevd") {

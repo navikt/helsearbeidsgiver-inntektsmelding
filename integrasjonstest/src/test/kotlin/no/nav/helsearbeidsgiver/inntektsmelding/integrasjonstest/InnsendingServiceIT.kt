@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -69,7 +70,18 @@ class InnsendingServiceIT : EndToEndTest() {
             )
         }
 
-        // Data hentet
+        // Forespørsel hentet
+        messages.filter(EventName.INSENDING_STARTED)
+            .filter(Key.FORESPOERSEL_SVAR)
+            .firstAsMap()
+            .verifiserTransaksjonId(transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                it shouldContainKey Key.DATA
+                it[Key.FORESPOERSEL_SVAR]?.fromJson(TrengerInntekt.serializer()) shouldBe Mock.forespoerselSvar
+            }
+
+        // Virksomhetsnavn hentet
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.VIRKSOMHET)
             .firstAsMap()
@@ -80,7 +92,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
             }
 
-        // Data hentet
+        // Arbeidsforhold hentet
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.ARBEIDSFORHOLD)
             .firstAsMap()
@@ -91,7 +103,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 it[Key.ARBEIDSFORHOLD].shouldNotBeNull()
             }
 
-        // Data hentet
+        // Sykmeldt og innsender hentet
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.ARBEIDSTAKER_INFORMASJON)
             .filter(Key.ARBEIDSGIVER_INFORMASJON)

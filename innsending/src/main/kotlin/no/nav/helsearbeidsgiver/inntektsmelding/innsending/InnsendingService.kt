@@ -41,9 +41,9 @@ class InnsendingService(
     override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.ORGNRUNDERENHET,
-        Key.SKJEMA_INNTEKTSMELDING,
+        Key.IDENTITETSNUMMER,
         Key.ARBEIDSGIVER_ID,
-        Key.IDENTITETSNUMMER
+        Key.SKJEMA_INNTEKTSMELDING
     )
     override val dataKeys = setOf(
         Key.VIRKSOMHET,
@@ -120,10 +120,10 @@ class InnsendingService(
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
         if (step1Keys.all(melding::containsKey)) {
+            val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
             val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
             val innsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
 
             val inntektsmelding = mapInntektsmelding(
                 forespoersel = forespoersel,
@@ -140,8 +140,8 @@ class InnsendingService(
                 Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                // TODO slett overflødige rettelser i InnsendingRoute når IM tas i bruk i PersisterImLoeser
                 Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                // TODO slett feltene under etter overgangsperiode
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
                 Key.VIRKSOMHET to virksomhetNavn.toJson(),
                 Key.ARBEIDSTAKER_INFORMASJON to sykmeldt.toJson(PersonDato.serializer()),

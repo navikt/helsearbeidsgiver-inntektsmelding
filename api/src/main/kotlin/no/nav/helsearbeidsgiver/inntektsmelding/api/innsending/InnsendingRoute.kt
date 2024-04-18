@@ -9,9 +9,7 @@ import io.ktor.server.routing.route
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -56,56 +54,9 @@ fun Route.innsendingRoute(
                             }
                         }
                         .fromJson(Innsending.serializer())
-                        .let {
-                            // TODO gjør denne sjekken ved opprettelse
-                            if (it.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
-                                it.copy(
-                                    fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
-                                        utbetalerFullLønn = true,
-                                        begrunnelse = null,
-                                        utbetalt = null
-                                    )
-                                )
-                            } else {
-                                it
-                            }
-                        }
-                        .let {
-                            // TODO gjør denne sjekken ved opprettelse
-                            if (!it.refusjon.utbetalerHeleEllerDeler) {
-                                it.copy(
-                                    refusjon = Refusjon(
-                                        utbetalerHeleEllerDeler = false,
-                                        refusjonPrMnd = null,
-                                        refusjonOpphører = null,
-                                        refusjonEndringer = null
-                                    )
-                                )
-                            } else {
-                                it
-                            }
-                        }
-                        .let {
-                            // TODO gjør denne sjekken ved opprettelse
-                            if (it.forespurtData?.contains("arbeidsgiverperiode") == false) {
-                                if (it.fullLønnIArbeidsgiverPerioden != null) {
-                                    "Frontend sender med ${Innsending::fullLønnIArbeidsgiverPerioden.name} når man ikke ber om AGP."
-                                        .also { feilmelding ->
-                                            logger.error(feilmelding)
-                                            sikkerLogger.error(feilmelding)
-                                        }
-                                }
-                                it.copy(
-                                    fullLønnIArbeidsgiverPerioden = null
-                                )
-                            } else {
-                                it
-                            }
-                        }
 
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 
-                    // TODO sjekk gyldighet mot forespørsel, f. eks. forespurtData matcher
                     request.validate()
                     val innloggerFnr = call.request.lesFnrFraAuthToken()
                     val clientId = producer.publish(forespoerselId, request, innloggerFnr)

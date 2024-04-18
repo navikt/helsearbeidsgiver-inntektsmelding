@@ -5,7 +5,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
@@ -18,12 +17,10 @@ fun mapInntektsmelding(
     virksomhetNavn: String,
     innsenderNavn: String
 ): Inntektsmelding {
-    val sykmeldingsperioder = forespoersel.sykmeldingsperioder.map { Periode(it.fom, it.tom) }
-
     val egenmeldingsperioder = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
         skjema.egenmeldingsperioder
     } else {
-        forespoersel.egenmeldingsperioder.map { Periode(it.fom, it.tom) }
+        forespoersel.egenmeldingsperioder
     }
 
     val arbeidsgiverperioder = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
@@ -58,7 +55,7 @@ fun mapInntektsmelding(
         bestemmendeFravaersdag(
             arbeidsgiverperioder = arbeidsgiverperioder,
             egenmeldingsperioder = egenmeldingsperioder,
-            sykmeldingsperioder = sykmeldingsperioder
+            sykmeldingsperioder = forespoersel.sykmeldingsperioder
         )
     } else {
         forespoersel.forslagBestemmendeFravaersdag()
@@ -104,7 +101,7 @@ fun mapInntektsmelding(
         virksomhetNavn = virksomhetNavn,
         behandlingsdager = emptyList(),
         egenmeldingsperioder = egenmeldingsperioder,
-        fraværsperioder = sykmeldingsperioder,
+        fraværsperioder = forespoersel.sykmeldingsperioder,
         arbeidsgiverperioder = arbeidsgiverperioder,
         beregnetInntekt = inntekt.beregnetInntekt,
         inntektsdato = inntektsdato,

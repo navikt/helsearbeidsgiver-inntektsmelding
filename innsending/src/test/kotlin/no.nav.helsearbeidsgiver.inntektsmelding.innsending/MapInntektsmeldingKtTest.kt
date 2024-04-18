@@ -18,7 +18,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NaturalytelseKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
@@ -59,7 +58,7 @@ class MapInntektsmeldingKtTest : FunSpec({
                 vedtaksperiodeId shouldBe forespoersel.vedtaksperiodeId
                 orgnrUnderenhet shouldBe forespoersel.orgnr
                 identitetsnummer shouldBe forespoersel.fnr
-                fraværsperioder shouldBe forespoersel.sykmeldingsperioder.map { Periode(it.fom, it.tom) }
+                fraværsperioder shouldBe forespoersel.sykmeldingsperioder
                 forespurtData shouldBe listOf(
                     "arbeidsgiverperiode",
                     "inntekt",
@@ -110,7 +109,7 @@ class MapInntektsmeldingKtTest : FunSpec({
             )
 
             inntektsmelding.egenmeldingsperioder shouldNotBe skjema.egenmeldingsperioder
-            inntektsmelding.egenmeldingsperioder shouldBe forespoersel.egenmeldingsperioder.map { Periode(it.fom, it.tom) }
+            inntektsmelding.egenmeldingsperioder shouldBe forespoersel.egenmeldingsperioder
         }
 
         test("fjerner AGP dersom AGP _ikke_ er påkrevd") {

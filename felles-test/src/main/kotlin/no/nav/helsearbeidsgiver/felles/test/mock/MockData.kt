@@ -1,14 +1,14 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID
@@ -120,20 +120,17 @@ fun mockTrengerInntekt(): TrengerInntekt {
     )
 }
 
-fun Innsending.tilTrengerInntekt(vedtaksperiodeId: UUID): TrengerInntekt {
-    val sykmeldingsperioder = fraværsperioder.map { Periode(it.fom, it.tom) }
-
-    return TrengerInntekt(
+fun Innsending.tilTrengerInntekt(vedtaksperiodeId: UUID): TrengerInntekt =
+    TrengerInntekt(
         type = ForespoerselType.KOMPLETT,
         orgnr = orgnrUnderenhet,
         fnr = identitetsnummer,
         vedtaksperiodeId = vedtaksperiodeId,
-        sykmeldingsperioder = sykmeldingsperioder,
-        egenmeldingsperioder = egenmeldingsperioder.map { Periode(it.fom, it.tom) },
-        bestemmendeFravaersdager = sykmeldingsperioder.lastOrNull()
+        sykmeldingsperioder = fraværsperioder,
+        egenmeldingsperioder = egenmeldingsperioder,
+        bestemmendeFravaersdager = fraværsperioder.lastOrNull()
             ?.let { mapOf(orgnrUnderenhet to it.fom) }
             .orEmpty(),
         forespurtData = mockForespurtData(),
         erBesvart = false
     )
-}

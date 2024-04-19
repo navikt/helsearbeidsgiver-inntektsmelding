@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.FeilReport
@@ -116,11 +115,6 @@ class TrengerService(
             )
 
             val inntektsdato = forespoersel.forslagInntektsdato()
-                ?: bestemmendeFravaersdag(
-                    arbeidsgiverperioder = emptyList(),
-                    egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-                    sykmeldingsperioder = forespoersel.sykmeldingsperioder
-                )
 
             sikkerLogger.info("${simpleName()} Dispatcher INNTEKT for $transaksjonId")
             rapid.publish(

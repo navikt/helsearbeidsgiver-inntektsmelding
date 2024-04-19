@@ -3,10 +3,12 @@ package no.nav.helsearbeidsgiver.felles
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mai
@@ -31,15 +33,19 @@ class TrengerInntektTest : FunSpec({
             forespoersel.forslagBestemmendeFravaersdag() shouldBe 1.juli
         }
 
-        test("gir 'null' dersom bestemmende fraværsdag mangler for eget orgnr") {
+        test("beregner bestemmende fraværsdag dersom det mangler for eget orgnr") {
             val forespoersel = mockTrengerInntekt().copy(
                 orgnr = "555898023",
+                egenmeldingsperioder = emptyList(),
+                sykmeldingsperioder = listOf(
+                    5.januar til 30.januar
+                ),
                 bestemmendeFravaersdager = mapOf(
                     "444707112" to 13.mai
                 )
             )
 
-            forespoersel.forslagBestemmendeFravaersdag().shouldBeNull()
+            forespoersel.forslagBestemmendeFravaersdag() shouldBe 5.januar
         }
     }
 
@@ -86,12 +92,16 @@ class TrengerInntektTest : FunSpec({
             forespoersel.forslagInntektsdato() shouldBe 5.juni
         }
 
-        test("gir 'null' dersom ingen bestemmende fraværsdager er tilstede") {
+        test("beregner bestemmende fraværsdag dersom ingen er tilstede") {
             val forespoersel = mockTrengerInntekt().copy(
+                egenmeldingsperioder = emptyList(),
+                sykmeldingsperioder = listOf(
+                    2.februar til 28.februar
+                ),
                 bestemmendeFravaersdager = emptyMap()
             )
 
-            forespoersel.forslagInntektsdato().shouldBeNull()
+            forespoersel.forslagInntektsdato() shouldBe 2.februar
         }
     }
 

@@ -13,14 +13,17 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
+import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
-import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -45,7 +48,7 @@ class InnsendingServiceIT : EndToEndTest() {
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar
         )
 
         coEvery {
@@ -78,7 +81,7 @@ class InnsendingServiceIT : EndToEndTest() {
             .verifiserForespoerselId()
             .also {
                 it shouldContainKey Key.DATA
-                it[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoerselSvar
+                it[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
             }
 
         // Virksomhetsnavn hentet
@@ -191,6 +194,21 @@ class InnsendingServiceIT : EndToEndTest() {
         val forespoerselId: UUID = UUID.randomUUID()
         val vedtaksperiodeId: UUID = UUID.randomUUID()
 
-        val forespoerselSvar = GYLDIG_INNSENDING_REQUEST.tilForespoersel(vedtaksperiodeId)
+        val forespoerselSvar = ForespoerselSvar.Suksess(
+            type = ForespoerselType.KOMPLETT,
+            orgnr = GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet,
+            fnr = GYLDIG_INNSENDING_REQUEST.identitetsnummer,
+            vedtaksperiodeId = vedtaksperiodeId,
+            egenmeldingsperioder = GYLDIG_INNSENDING_REQUEST.egenmeldingsperioder,
+            sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder,
+            skjaeringstidspunkt = GYLDIG_INNSENDING_REQUEST.bestemmendeFraværsdag,
+            bestemmendeFravaersdager = GYLDIG_INNSENDING_REQUEST.fraværsperioder.lastOrNull()
+                ?.let { mapOf(GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet to it.fom) }
+                .orEmpty(),
+            forespurtData = mockForespurtData(),
+            erBesvart = false
+        )
+
+        val forespoersel = forespoerselSvar.toForespoersel()
     }
 }

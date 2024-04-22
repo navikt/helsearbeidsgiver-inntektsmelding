@@ -12,12 +12,15 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -51,7 +54,7 @@ class InnsendingIT : EndToEndTest() {
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = Mock.forespoersel
+            forespoerselSvar = Mock.forespoerselSvar
         )
 
         coEvery {
@@ -141,7 +144,7 @@ class InnsendingIT : EndToEndTest() {
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = Mock.forespoersel
+            forespoerselSvar = Mock.forespoerselSvar
         )
 
         coEvery {
@@ -237,13 +240,28 @@ class InnsendingIT : EndToEndTest() {
 
         val forespoerselId: UUID = UUID.randomUUID()
         val skjema = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
-        val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
+
+        private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
+
         val innsendtInntektsmelding = mapInntektsmelding(
             forespoersel = forespoersel,
             skjema = skjema,
             fulltnavnArbeidstaker = "Bjarne Betjent",
             virksomhetNavn = "Bedrift A/S",
             innsenderNavn = "Max Mekker"
+        )
+
+        val forespoerselSvar = ForespoerselSvar.Suksess(
+            type = ForespoerselType.KOMPLETT,
+            orgnr = forespoersel.orgnr,
+            fnr = forespoersel.fnr,
+            vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+            egenmeldingsperioder = forespoersel.egenmeldingsperioder,
+            sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+            skjaeringstidspunkt = null,
+            bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
+            forespurtData = mockForespurtData(),
+            erBesvart = false
         )
     }
 }

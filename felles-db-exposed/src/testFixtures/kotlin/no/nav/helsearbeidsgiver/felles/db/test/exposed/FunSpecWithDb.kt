@@ -22,6 +22,7 @@ abstract class FunSpecWithDb(
         }
     }
 
+//    body(db.db) ???
     body(db)
 })
 

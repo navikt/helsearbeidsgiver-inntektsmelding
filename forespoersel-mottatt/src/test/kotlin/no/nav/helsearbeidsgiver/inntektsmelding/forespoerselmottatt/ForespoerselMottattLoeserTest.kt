@@ -96,7 +96,7 @@ private data class Published(
     companion object {
         fun mock(): Published =
             Published(
-                eventName = EventName.FORESPØRSEL_MOTTATT,
+                eventName = EventName.FORESPOERSEL_MOTTATT,
                 behov = BehovType.LAGRE_FORESPOERSEL,
                 orgnrUnderenhet = "certainly-stereo-facsimile",
                 identitetsnummer = "resort-cringe-huddle",

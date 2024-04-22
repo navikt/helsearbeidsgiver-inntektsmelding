@@ -50,6 +50,7 @@ fun mapInntektsmelding(
         forespoersel.forslagInntektsdato()
     }
 
+    // TODO sjekke om bf er mindre enn inntektsdato?
     val bestemmendeFravaersdag = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
         bestemmendeFravaersdag(
             arbeidsgiverperioder = arbeidsgiverperioder,

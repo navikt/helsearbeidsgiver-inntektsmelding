@@ -243,6 +243,7 @@ class TrengerService(
         val meldingMedDefault = datafeil.associate { it.key to it.defaultVerdi }
             .plus(melding)
 
+        // TODO burde feile hvis datafeil er tom?
         if (dataKeys.all(meldingMedDefault::containsKey)) {
             finalize(meldingMedDefault)
         }

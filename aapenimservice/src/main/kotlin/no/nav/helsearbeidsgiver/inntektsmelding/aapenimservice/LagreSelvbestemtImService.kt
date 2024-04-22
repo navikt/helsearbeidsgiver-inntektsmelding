@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aapenimservice
 
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -15,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
@@ -140,7 +140,7 @@ class LagreSelvbestemtImService(
                 val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
                 val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(String.serializer(), melding)
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-                val personer = Key.PERSONER.les(personerMapSerializer, melding)
+                val personer = Key.PERSONER.les(personMapSerializer, melding)
 
                 val sykmeldt = skjema.sykmeldtFnr.let {
                     personer[it] ?: tomPerson(it)
@@ -248,12 +248,6 @@ class LagreSelvbestemtImService(
         }
     }
 }
-
-private val personerMapSerializer =
-    MapSerializer(
-        String.serializer(),
-        Person.serializer()
-    )
 
 private fun tilInntektsmelding(
     selvbestemtId: UUID,

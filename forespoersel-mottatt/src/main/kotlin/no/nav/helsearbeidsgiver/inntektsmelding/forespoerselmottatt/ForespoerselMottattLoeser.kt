@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -95,13 +94,11 @@ class ForespoerselMottattLoeser(
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
-            Log.event(EventName.FORESPØRSEL_MOTTATT),
-            Log.behov(BehovType.LAGRE_FORESPOERSEL),
+            Log.event(EventName.FORESPOERSEL_MOTTATT),
             Log.forespoerselId(forespoerselId)
         ) {
             context.publish(
-                Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),
-                Key.BEHOV to BehovType.LAGRE_FORESPOERSEL.toJson(BehovType.serializer()),
+                Key.EVENT_NAME to EventName.FORESPOERSEL_MOTTATT.toJson(EventName.serializer()),
                 Key.ORGNRUNDERENHET to orgnr.toJson(),
                 Key.IDENTITETSNUMMER to fnr.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),

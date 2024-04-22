@@ -17,6 +17,7 @@ CREATE TABLE inntektsmelding
     forespoersel_id      VARCHAR(40) NOT NULL,
     journalpostid VARCHAR(30),
     innsendt TIMESTAMP NOT NULL DEFAULT now(),
+    -- må droppes (og gjøres til uuid)
     CONSTRAINT fk_forespoersel
         FOREIGN KEY(forespoersel_id)
             REFERENCES forespoersel(forespoersel_id)

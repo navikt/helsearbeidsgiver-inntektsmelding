@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtSakRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.opprettSak
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -32,8 +32,8 @@ data class OpprettSelvbestemtSakMelding(
 // TODO test
 class OpprettSelvbestemtSakRiver(
     private val linkUrl: String,
-    private val selvbestemtRepo: SelvbestemtRepo,
-    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
+    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    private val selvbestemtSakRepo: SelvbestemtSakRepo
 ) : ObjectRiver<OpprettSelvbestemtSakMelding>() {
 
     private val logger = logger()
@@ -64,7 +64,7 @@ class OpprettSelvbestemtSakRiver(
         return MdcUtils.withLogFields(
             Log.sakId(sakId)
         ) {
-            selvbestemtRepo.lagreSakId(inntektsmelding.id, sakId)
+            selvbestemtSakRepo.lagreSakId(inntektsmelding.id, sakId)
 
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -77,7 +77,7 @@ class OpprettSelvbestemtSakRiver(
 
     override fun OpprettSelvbestemtSakMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
         val fail = Fail(
-            feilmelding = "Klarte ikke lagre sak for selvbestemt inntektsmelding.",
+            feilmelding = "Klarte ikke opprette/lagre sak for selvbestemt inntektsmelding.",
             event = eventName,
             transaksjonId = transaksjonId,
             forespoerselId = null,

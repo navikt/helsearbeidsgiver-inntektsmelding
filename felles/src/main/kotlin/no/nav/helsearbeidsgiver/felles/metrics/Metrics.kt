@@ -7,6 +7,10 @@ import kotlin.reflect.KFunction
 object Metrics {
     val dbSelvbestemtIm = databaseMetric("inntektsmelding", "selvbestemt_inntektsmelding")
 
+    val dbForespoerselSak = databaseMetric("notifikasjon", "forespoersel_sak")
+
+    val dbForespoerselOppgave = databaseMetric("notifikasjon", "forespoersel_oppgave")
+
     val dbSelvbestemtSak = databaseMetric("notifikasjon", "selvbestemt_sak")
 
     val agNotifikasjonRequest = requestMetric("AG-notifikasjon")

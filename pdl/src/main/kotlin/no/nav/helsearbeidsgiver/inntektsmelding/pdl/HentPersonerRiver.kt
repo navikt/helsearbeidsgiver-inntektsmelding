@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -9,6 +8,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
@@ -70,12 +70,7 @@ class HentPersonerRiver(
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
             Key.DATA to "".toJson(),
-            Key.PERSONER to personer.toJson(
-                MapSerializer(
-                    String.serializer(),
-                    Person.serializer()
-                )
-            )
+            Key.PERSONER to personer.toJson(personMapSerializer)
         )
             .mapValuesNotNull { it }
     }

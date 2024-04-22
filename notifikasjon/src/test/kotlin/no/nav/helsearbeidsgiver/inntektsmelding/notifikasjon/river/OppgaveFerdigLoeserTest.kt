@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
+// post test til ny river?
 class OppgaveFerdigLoeserTest : FunSpec({
     val testRapid = TestRapid()
     val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)

@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
+// TODO port test for ny river?
 class SakFerdigLoeserTest : FunSpec({
     val testRapid = TestRapid()
     val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)

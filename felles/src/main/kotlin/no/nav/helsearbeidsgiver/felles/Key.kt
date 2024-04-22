@@ -35,7 +35,7 @@ enum class Key(override val str: String) : IKey {
     INNTEKTSMELDING_DOKUMENT("inntektsmelding_dokument"),
     ARBEIDSFORHOLD("arbeidsforhold"),
     SAK_ID("sak_id"),
-    PERSISTERT_SAK_ID("persistert_sak_id"),
+    PERSISTERT_SAK_ID("persistert_sak_id"), // TODO slett
     OPPGAVE_ID("oppgave_id"),
     ORGNRUNDERENHET("orgnrUnderenhet"),
     ORGNRUNDERENHETER("orgnrUnderenheter"),

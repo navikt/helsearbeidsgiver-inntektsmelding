@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
+// TODO oppdater til å matche ny chain
 class ManuellOpprettSakService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore

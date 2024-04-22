@@ -34,11 +34,11 @@ class ForespoerselMottattIT : EndToEndTest() {
             )
         }
 
-        messages.filter(EventName.FORESPØRSEL_MOTTATT)
+        messages.filter(EventName.FORESPOERSEL_MOTTATT)
             .filter(BehovType.LAGRE_FORESPOERSEL)
             .firstAsMap()
             .also {
-                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPØRSEL_MOTTATT
+                it[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.FORESPOERSEL_MOTTATT
                 it[Key.BEHOV]?.fromJson(BehovType.serializer()) shouldBe BehovType.LAGRE_FORESPOERSEL
                 it[Key.ORGNRUNDERENHET]?.fromJsonToString() shouldBe Mock.ORGNR
                 it[Key.IDENTITETSNUMMER]?.fromJsonToString() shouldBe Mock.FNR

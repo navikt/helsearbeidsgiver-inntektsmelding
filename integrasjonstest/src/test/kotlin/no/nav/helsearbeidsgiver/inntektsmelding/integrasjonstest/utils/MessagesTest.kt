@@ -29,7 +29,7 @@ class MessagesTest : FunSpec({
     }
 
     test("finner ikke manglende melding for event") {
-        Mock.meldingerMedBehov.filter(EventName.FORESPØRSEL_MOTTATT)
+        Mock.meldingerMedBehov.filter(EventName.FORESPOERSEL_MOTTATT)
             .all()
             .shouldBeEmpty()
     }

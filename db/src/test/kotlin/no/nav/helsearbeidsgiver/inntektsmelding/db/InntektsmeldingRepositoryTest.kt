@@ -1,20 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
-import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.helsearbeidsgiver.felles.db.test.exposed.FunSpecWithDb
-import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.ForespoerselEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
@@ -22,70 +17,19 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.OffsetDateTime
 import java.util.UUID
 
-class TestRepo(private val db: Database) {
+class InntektsmeldingRepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet), { db ->
 
-    fun hentRecordFraInntektsmelding(forespoerselId: UUID): ResultRow? =
-        transaction(db) {
-            InntektsmeldingEntitet
-                .selectAll()
-                .where {
-                    InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()
-                }
-                .firstOrNull()
-        }
-
-    fun hentRecordFraForespoersel(forespoerselId: UUID): ResultRow? =
-        transaction(db) {
-            ForespoerselEntitet
-                .selectAll()
-                .where {
-                    ForespoerselEntitet.forespoerselId eq forespoerselId.toString()
-                }
-                .firstOrNull()
-        }
-}
-
-class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, ForespoerselEntitet), { db ->
-
-    val foresporselRepo = ForespoerselRepository(db.db)
     val inntektsmeldingRepo = InntektsmeldingRepository(db.db)
-    val testRepo = TestRepo(db.db)
     val ORGNR = "orgnr-456"
 
-    test("skal lagre forespørsel") {
+    test("skal lagre inntektsmelding") {
         transaction {
             InntektsmeldingEntitet.selectAll().toList()
-        }.shouldBeEmpty()
-
-        val forespoerselId = "abc-123"
-
-        foresporselRepo.lagreForespoersel(forespoerselId, ORGNR)
-
-        shouldNotThrowAny {
-            transaction {
-                ForespoerselEntitet
-                    .selectAll()
-                    .where {
-                        (ForespoerselEntitet.forespoerselId eq forespoerselId) and
-                            (ForespoerselEntitet.orgnr eq ORGNR)
-                    }
-                    .single()
-            }
-        }
-    }
-
-    test("skal lagre inntektsmelding med tilsvarende forespørsel") {
-        transaction {
-            InntektsmeldingEntitet.selectAll().toList()
-        }.shouldBeEmpty()
-        transaction {
-            ForespoerselEntitet.selectAll().toList()
         }.shouldBeEmpty()
 
         val forespoerselId = UUID.randomUUID()
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = OffsetDateTime.now())
 
-        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), DOK_1)
 
         transaction {
@@ -119,14 +63,10 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         transaction {
             InntektsmeldingEntitet.selectAll().toList()
         }.shouldBeEmpty()
-        transaction {
-            ForespoerselEntitet.selectAll().toList()
-        }.shouldBeEmpty()
 
         val forespoerselId = "abc-1234"
         val DOK_1 = INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT
 
-        foresporselRepo.lagreForespoersel(forespoerselId, ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, DOK_1)
 
         transaction {
@@ -149,10 +89,9 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val DOK_1 = INNTEKTSMELDING_DOKUMENT.copy(tidspunkt = OffsetDateTime.now())
         val JOURNALPOST_1 = "jp-1"
 
-        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), DOK_1)
         inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, JOURNALPOST_1)
-        val record = testRepo.hentRecordFraInntektsmelding(forespoerselId)
+        val record = db.db.lesInntektsmelding(forespoerselId)
         record.shouldNotBeNull()
         val journalPostId = record.getOrNull(InntektsmeldingEntitet.journalpostId)
         journalPostId.shouldNotBeNull()
@@ -162,7 +101,6 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val forespoerselId = UUID.randomUUID()
         val journalpostId = "jp-mollefonken-kjele"
 
-        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
 
@@ -193,7 +131,6 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val gammelJournalpostId = "jp-traust-gevir"
         val nyJournalpostId = "jp-gallant-badehette"
 
-        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
         inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, gammelJournalpostId)
@@ -242,7 +179,6 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         val forespoerselId = UUID.randomUUID()
         val journalpostId = "jp-slem-fryser"
 
-        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
         inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId.toString(), EKSTERN_INNTEKTSMELDING_DOKUMENT)
 
@@ -266,41 +202,14 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             resultat[1][this.journalpostId].shouldBeNull()
         }
     }
-
-    test("skal oppdatere sakId") {
-        transaction {
-            InntektsmeldingEntitet.selectAll().toList()
-        }.shouldBeEmpty()
-
-        val forespoerselId = UUID.randomUUID()
-        val SAK_ID_1 = "sak1-1"
-
-        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
-        foresporselRepo.oppdaterSakId(forespoerselId.toString(), SAK_ID_1)
-        val record = testRepo.hentRecordFraForespoersel(forespoerselId)
-        record.shouldNotBeNull()
-        val sakId = record.getOrNull(ForespoerselEntitet.sakId)
-        sakId.shouldNotBeNull()
-        sakId.shouldBeEqualComparingTo(SAK_ID_1)
-    }
-
-    test("skal oppdatere oppgaveId") {
-        transaction {
-            InntektsmeldingEntitet.selectAll().toList()
-        }.shouldBeEmpty()
-
-        val forespoerselId = UUID.randomUUID()
-        val OPPGAVE_ID_1 = "oppg-1"
-
-        foresporselRepo.lagreForespoersel(forespoerselId.toString(), ORGNR)
-        foresporselRepo.oppdaterOppgaveId(forespoerselId.toString(), OPPGAVE_ID_1)
-        val rad = testRepo.hentRecordFraForespoersel(forespoerselId)
-        rad.shouldNotBeNull()
-        val oppgaveId = rad.getOrNull(ForespoerselEntitet.oppgaveId)
-        oppgaveId.shouldNotBeNull()
-        oppgaveId.shouldBeEqualComparingTo(OPPGAVE_ID_1)
-    }
 })
 
-private fun all(vararg conditions: Op<Boolean>): Op<Boolean> =
-    conditions.reduce(Expression<Boolean>::and)
+private fun Database.lesInntektsmelding(forespoerselId: UUID): ResultRow? =
+    transaction(this) {
+        InntektsmeldingEntitet
+            .selectAll()
+            .where {
+                InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()
+            }
+            .firstOrNull()
+    }

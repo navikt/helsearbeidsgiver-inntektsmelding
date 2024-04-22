@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.time.toJavaDuration
 
-class SelvbestemtRepo(private val db: Database) {
+class SelvbestemtSakRepo(private val db: Database) {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -23,7 +23,7 @@ class SelvbestemtRepo(private val db: Database) {
             sikkerLogger.info(it)
         }
 
-        return Metrics.dbSelvbestemtSak.recordTime(::lagreSakId) {
+        val antallLagret = Metrics.dbSelvbestemtSak.recordTime(::lagreSakId) {
             transaction(db) {
                 SelvbestemtSak.insert {
                     it[this.selvbestemtId] = selvbestemtId
@@ -33,11 +33,19 @@ class SelvbestemtRepo(private val db: Database) {
                     .insertedCount
             }
         }
-            .also {
-                "Lagret sak-ID for selvbestemt inntektsmelding.".also {
-                    logger.info(it)
-                    sikkerLogger.info(it)
-                }
+
+        if (antallLagret == 1) {
+            "Lagret sak-ID for selvbestemt inntektsmelding.".also {
+                logger.info(it)
+                sikkerLogger.info(it)
             }
+        } else {
+            "Lagret uventet antall ($antallLagret) rader med sak-ID '$sakId' for selvbestemt inntektsmelding.".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+        }
+
+        return antallLagret
     }
 }

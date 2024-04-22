@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
+// TODO port test til ny river?
 class OpprettSakLoeserTest : FunSpec({
 
     val testRapid = TestRapid()

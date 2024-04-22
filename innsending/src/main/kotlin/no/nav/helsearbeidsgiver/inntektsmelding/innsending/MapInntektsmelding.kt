@@ -48,7 +48,6 @@ fun mapInntektsmelding(
         skjema.bestemmendeFraværsdag
     } else {
         forespoersel.forslagInntektsdato()
-            ?: throw UgyldigForespoerselException()
     }
 
     val bestemmendeFravaersdag = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
@@ -59,7 +58,6 @@ fun mapInntektsmelding(
         )
     } else {
         forespoersel.forslagBestemmendeFravaersdag()
-            ?: throw UgyldigForespoerselException()
     }
 
     val inntekt = if (forespoersel.forespurtData.inntekt.paakrevd) {
@@ -117,5 +115,3 @@ fun mapInntektsmelding(
         bestemmendeFraværsdag = bestemmendeFravaersdag
     )
 }
-
-class UgyldigForespoerselException : Exception("Forespørsel fra Spleis mangler nødvendige verdier.")

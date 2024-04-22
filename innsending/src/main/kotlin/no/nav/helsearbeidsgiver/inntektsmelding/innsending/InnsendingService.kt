@@ -41,9 +41,9 @@ class InnsendingService(
     override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.ORGNRUNDERENHET,
-        Key.SKJEMA_INNTEKTSMELDING,
+        Key.IDENTITETSNUMMER,
         Key.ARBEIDSGIVER_ID,
-        Key.IDENTITETSNUMMER
+        Key.SKJEMA_INNTEKTSMELDING
     )
     override val dataKeys = setOf(
         Key.VIRKSOMHET,
@@ -120,10 +120,10 @@ class InnsendingService(
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
         if (step1Keys.all(melding::containsKey)) {
+            val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
             val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
             val innsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
 
             val inntektsmelding = mapInntektsmelding(
                 forespoersel = forespoersel,

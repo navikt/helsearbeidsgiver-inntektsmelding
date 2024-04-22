@@ -7,9 +7,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
@@ -59,7 +59,7 @@ class RedisPollerTest {
 
     @Test
     fun `skal parse forespurt data korrekt`() {
-        val expected = mockTrengerInntekt()
+        val expected = mockForespoersel()
         val expectedJson = """
             {
                 "type": "${expected.type}",
@@ -79,7 +79,7 @@ class RedisPollerTest {
         val resultat = runBlocking {
             redisPoller.hent(key, 5, 0)
         }
-            .fromJson(TrengerInntekt.serializer())
+            .fromJson(Forespoersel.serializer())
 
         resultat shouldBe expected
     }

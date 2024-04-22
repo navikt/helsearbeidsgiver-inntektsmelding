@@ -1,14 +1,13 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID
@@ -102,9 +101,9 @@ fun mockForespurtDataMedFastsattInntekt(): ForespurtData =
         )
     )
 
-fun mockTrengerInntekt(): TrengerInntekt {
+fun mockForespoersel(): Forespoersel {
     val orgnr = "789789789"
-    return TrengerInntekt(
+    return Forespoersel(
         type = ForespoerselType.KOMPLETT,
         orgnr = orgnr,
         fnr = "15055012345",
@@ -120,8 +119,8 @@ fun mockTrengerInntekt(): TrengerInntekt {
     )
 }
 
-fun Innsending.tilTrengerInntekt(vedtaksperiodeId: UUID): TrengerInntekt =
-    TrengerInntekt(
+fun Innsending.tilForespoersel(vedtaksperiodeId: UUID): Forespoersel =
+    Forespoersel(
         type = ForespoerselType.KOMPLETT,
         orgnr = orgnrUnderenhet,
         fnr = identitetsnummer,

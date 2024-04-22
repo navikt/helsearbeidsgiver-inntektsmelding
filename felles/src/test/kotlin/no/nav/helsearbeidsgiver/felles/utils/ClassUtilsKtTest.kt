@@ -2,15 +2,15 @@ package no.nav.helsearbeidsgiver.felles.utils
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 
 class ClassUtilsKtTest : FunSpec({
 
     context("simpleName") {
         test("gir korrekt navn på klasseinstans") {
-            val trengerInntekt = mockTrengerInntekt()
+            val forespoersel = mockForespoersel()
 
-            trengerInntekt.simpleName() shouldBe "TrengerInntekt"
+            forespoersel.simpleName() shouldBe "Forespoersel"
         }
 
         test("gir korrekt navn på primitiv") {

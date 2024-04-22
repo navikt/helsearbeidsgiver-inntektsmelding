@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
-import no.nav.helsearbeidsgiver.felles.test.mock.tilTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
@@ -237,7 +237,7 @@ class InnsendingIT : EndToEndTest() {
 
         val forespoerselId: UUID = UUID.randomUUID()
         val skjema = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
-        val forespoersel = skjema.tilTrengerInntekt(UUID.randomUUID())
+        val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
         val innsendtInntektsmelding = mapInntektsmelding(
             forespoersel = forespoersel,
             skjema = skjema,

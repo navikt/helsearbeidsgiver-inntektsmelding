@@ -16,8 +16,8 @@ import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -223,7 +223,7 @@ abstract class EndToEndTest : ContainerTest() {
         eventName: EventName,
         transaksjonId: UUID,
         forespoerselId: UUID,
-        forespoersel: TrengerInntekt
+        forespoersel: Forespoersel
     ) {
         every {
             mockPriProducer.send(
@@ -238,7 +238,7 @@ abstract class EndToEndTest : ContainerTest() {
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
                 Key.DATA to "".toJson(),
-                Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
+                Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer())
             )
 
             Result.success(JsonObject(emptyMap()))

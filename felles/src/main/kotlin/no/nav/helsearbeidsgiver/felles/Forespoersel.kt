@@ -13,7 +13,7 @@ import java.util.UUID
 
 // TODO nytt navn
 @Serializable
-data class TrengerInntekt(
+data class Forespoersel(
     val type: ForespoerselType,
     val orgnr: String,
     val fnr: String,

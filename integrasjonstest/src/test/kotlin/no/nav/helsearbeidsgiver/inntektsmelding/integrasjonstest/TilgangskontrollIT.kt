@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
-import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -45,7 +45,7 @@ class TilgangskontrollIT : EndToEndTest() {
             eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = mockTrengerInntekt().copy(
+            forespoersel = mockForespoersel().copy(
                 orgnr = Mock.ORGNR_MED_TILGANG
             )
         )
@@ -83,7 +83,7 @@ class TilgangskontrollIT : EndToEndTest() {
             eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = mockTrengerInntekt().copy(
+            forespoersel = mockForespoersel().copy(
                 orgnr = Mock.ORGNR_UTEN_TILGANG
             )
         )

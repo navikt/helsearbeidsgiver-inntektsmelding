@@ -9,9 +9,9 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NaturalytelseKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
-import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.time.LocalDate
@@ -62,10 +62,13 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         type = ForespoerselType.KOMPLETT,
         orgnr = "767434313",
         fnr = "24120012345",
-        skjaeringstidspunkt = 11.januar(2018),
-        sykmeldingsperioder = listOf(2.januar til 16.januar),
+        vedtaksperiodeId = UUID.randomUUID(),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
+        sykmeldingsperioder = listOf(2.januar til 16.januar),
+        skjaeringstidspunkt = 11.januar(2018),
+        bestemmendeFravaersdager = mapOf(
+            "767434313" to 11.januar(2018)
+        ),
         forespurtData = mockForespurtData(),
-        erBesvart = false,
-        vedtaksperiodeId = UUID.randomUUID()
+        erBesvart = false
     )

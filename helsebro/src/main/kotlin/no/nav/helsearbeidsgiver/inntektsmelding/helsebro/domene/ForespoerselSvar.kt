@@ -5,9 +5,9 @@ package no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -34,6 +34,7 @@ data class ForespoerselSvar(
         val skjaeringstidspunkt: LocalDate?,
         val sykmeldingsperioder: List<Periode>,
         val egenmeldingsperioder: List<Periode>,
+        val bestemmendeFravaersdager: Map<String, LocalDate>,
         val forespurtData: ForespurtData,
         val erBesvart: Boolean
     )

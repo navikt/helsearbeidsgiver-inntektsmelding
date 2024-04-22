@@ -1,7 +1,9 @@
 kafkaPool: nav-prod
 azure:
   enabled: true
-database: notifikasjon
+database:
+  - name: notifikasjon
+logical_decoding: true
 envFrom:
   - type: secret
     name: google-sql-im-notifikasjon

@@ -1,15 +1,17 @@
 package no.nav.helsearbeidsgiver.felles.test.mock
 
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.TrengerInntekt
-import no.nav.helsearbeidsgiver.felles.til
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
+import java.util.UUID
 
 fun mockForespurtData(): ForespurtData =
     ForespurtData(
@@ -100,15 +102,35 @@ fun mockForespurtDataMedFastsattInntekt(): ForespurtData =
         )
     )
 
-fun mockTrengerInntekt(): TrengerInntekt =
-    TrengerInntekt(
+fun mockTrengerInntekt(): TrengerInntekt {
+    val orgnr = "789789789"
+    return TrengerInntekt(
         type = ForespoerselType.KOMPLETT,
-        orgnr = "789789789",
+        orgnr = orgnr,
         fnr = "15055012345",
-        skjaeringstidspunkt = 11.januar(2018),
+        vedtaksperiodeId = UUID.randomUUID(),
         sykmeldingsperioder = listOf(2.januar til 31.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
+        bestemmendeFravaersdager = mapOf(
+            orgnr to 1.januar,
+            "555767555" to 5.januar
+        ),
         forespurtData = mockForespurtData(),
-        erBesvart = false,
-        vedtaksperiodeId = randomUuid()
+        erBesvart = false
+    )
+}
+
+fun Innsending.tilTrengerInntekt(vedtaksperiodeId: UUID): TrengerInntekt =
+    TrengerInntekt(
+        type = ForespoerselType.KOMPLETT,
+        orgnr = orgnrUnderenhet,
+        fnr = identitetsnummer,
+        vedtaksperiodeId = vedtaksperiodeId,
+        sykmeldingsperioder = fraværsperioder,
+        egenmeldingsperioder = egenmeldingsperioder,
+        bestemmendeFravaersdager = fraværsperioder.lastOrNull()
+            ?.let { mapOf(orgnrUnderenhet to it.fom) }
+            .orEmpty(),
+        forespurtData = mockForespurtData(),
+        erBesvart = false
     )

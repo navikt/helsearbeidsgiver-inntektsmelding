@@ -44,6 +44,7 @@ private fun postgres(): PostgreSQLContainer<Nothing> =
     PostgreSQLContainer<Nothing>("postgres:14").apply {
         withReuse(true)
         withLabel("app-navn", "test-database")
+        setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
         start()
         println(
             "🎩 Databasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test"

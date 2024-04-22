@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Periode
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -68,11 +67,22 @@ class InnsendingServiceIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
                 Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
                 Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
-                Key.INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
             )
         }
 
-        // Data hentet
+        // Forespørsel hentet
+        messages.filter(EventName.INSENDING_STARTED)
+            .filter(Key.FORESPOERSEL_SVAR)
+            .firstAsMap()
+            .verifiserTransaksjonId(transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                it shouldContainKey Key.DATA
+                it[Key.FORESPOERSEL_SVAR]?.fromJson(ForespoerselSvar.Suksess.serializer()) shouldBe Mock.forespoerselSvar
+            }
+
+        // Virksomhetsnavn hentet
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.VIRKSOMHET)
             .firstAsMap()
@@ -83,7 +93,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
             }
 
-        // Data hentet
+        // Arbeidsforhold hentet
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.ARBEIDSFORHOLD)
             .firstAsMap()
@@ -94,7 +104,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 it[Key.ARBEIDSFORHOLD].shouldNotBeNull()
             }
 
-        // Data hentet
+        // Sykmeldt og innsender hentet
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.ARBEIDSTAKER_INFORMASJON)
             .filter(Key.ARBEIDSGIVER_INFORMASJON)
@@ -178,18 +188,21 @@ class InnsendingServiceIT : EndToEndTest() {
         const val SAK_ID = "tjukk-kalender"
         const val OPPGAVE_ID = "kunstig-demon"
 
-        val clientId = randomUuid()
-        val forespoerselId = randomUuid()
-        val vedtaksperiodeId = randomUuid()
+        val clientId: UUID = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
+        val vedtaksperiodeId: UUID = UUID.randomUUID()
 
         val forespoerselSvar = ForespoerselSvar.Suksess(
             type = ForespoerselType.KOMPLETT,
             orgnr = GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet,
             fnr = GYLDIG_INNSENDING_REQUEST.identitetsnummer,
             vedtaksperiodeId = vedtaksperiodeId,
+            egenmeldingsperioder = GYLDIG_INNSENDING_REQUEST.egenmeldingsperioder,
+            sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder,
             skjaeringstidspunkt = GYLDIG_INNSENDING_REQUEST.bestemmendeFraværsdag,
-            sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder.map { Periode(it.fom, it.tom) },
-            egenmeldingsperioder = GYLDIG_INNSENDING_REQUEST.egenmeldingsperioder.map { Periode(it.fom, it.tom) },
+            bestemmendeFravaersdager = GYLDIG_INNSENDING_REQUEST.fraværsperioder.lastOrNull()
+                ?.let { mapOf(GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet to it.fom) }
+                .orEmpty(),
             forespurtData = mockForespurtData(),
             erBesvart = false
         )

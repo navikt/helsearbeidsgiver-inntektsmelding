@@ -57,18 +57,21 @@ fun mockInnsending(): Innsending =
         bekreftOpplysninger = true
     )
 
-fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
-    ForespoerselSvar.Suksess(
+fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess {
+    val orgnr = "767434313"
+    return ForespoerselSvar.Suksess(
         type = ForespoerselType.KOMPLETT,
-        orgnr = "767434313",
+        orgnr = orgnr,
         fnr = "24120012345",
         vedtaksperiodeId = UUID.randomUUID(),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         sykmeldingsperioder = listOf(2.januar til 16.januar),
-        skjaeringstidspunkt = 11.januar(2018),
+        skjaeringstidspunkt = 11.januar,
         bestemmendeFravaersdager = mapOf(
-            "767434313" to 11.januar(2018)
+            orgnr to 1.januar,
+            "343999567" to 11.januar
         ),
         forespurtData = mockForespurtData(),
         erBesvart = false
     )
+}

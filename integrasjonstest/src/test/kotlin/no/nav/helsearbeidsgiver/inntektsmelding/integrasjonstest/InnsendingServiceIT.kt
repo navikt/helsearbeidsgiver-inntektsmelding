@@ -12,10 +12,10 @@ import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toTrengerInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -81,7 +81,7 @@ class InnsendingServiceIT : EndToEndTest() {
             .verifiserForespoerselId()
             .also {
                 it shouldContainKey Key.DATA
-                it[Key.FORESPOERSEL_SVAR]?.fromJson(TrengerInntekt.serializer()) shouldBe Mock.forespoersel
+                it[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
             }
 
         // Virksomhetsnavn hentet
@@ -209,6 +209,6 @@ class InnsendingServiceIT : EndToEndTest() {
             erBesvart = false
         )
 
-        val forespoersel = forespoerselSvar.toTrengerInntekt()
+        val forespoersel = forespoerselSvar.toForespoersel()
     }
 }

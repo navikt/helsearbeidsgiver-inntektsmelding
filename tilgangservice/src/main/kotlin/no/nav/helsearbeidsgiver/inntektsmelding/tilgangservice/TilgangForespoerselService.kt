@@ -7,10 +7,10 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -92,7 +92,7 @@ class TilgangForespoerselService(
             Log.forespoerselId(forespoerselId)
         ) {
             if (Key.FORESPOERSEL_SVAR in melding) {
-                val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+                val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
                 val avsenderFnr = Key.FNR.les(String.serializer(), melding)
 
                 rapid.publish(

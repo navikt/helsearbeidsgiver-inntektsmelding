@@ -10,12 +10,12 @@ import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
@@ -87,7 +87,7 @@ class DummyLoeser(
 
         return when (behov) {
             BehovType.HENT_TRENGER_IM -> mapOf(
-                Key.FORESPOERSEL_SVAR to TrengerInntekt(
+                Key.FORESPOERSEL_SVAR to Forespoersel(
                     type = ForespoerselType.KOMPLETT,
                     orgnr = orgnr,
                     fnr = fnr,
@@ -97,7 +97,7 @@ class DummyLoeser(
                     bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
                     forespurtData = mockForespurtData(),
                     erBesvart = false
-                ).toJson(TrengerInntekt.serializer())
+                ).toJson(Forespoersel.serializer())
             )
             BehovType.VIRKSOMHET -> mapOf(
                 Key.VIRKSOMHET to "Din Bedrift A/S".toJson()

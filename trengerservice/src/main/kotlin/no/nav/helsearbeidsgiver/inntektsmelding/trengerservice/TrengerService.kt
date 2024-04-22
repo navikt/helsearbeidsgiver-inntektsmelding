@@ -7,11 +7,11 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.TrengerData
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -93,7 +93,7 @@ class TrengerService(
         sikkerLogger.info("Dispatcher for $transaksjonId with trans state 'in progress'")
 
         if (steg1Keys.all(melding::containsKey) && steg2Keys.none(melding::containsKey)) {
-            val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+            val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
 
             sikkerLogger.info("${simpleName()} Dispatcher VIRKSOMHET for $transaksjonId")
             rapid.publish(
@@ -141,7 +141,7 @@ class TrengerService(
                 sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
             }
         } else {
-            val foresporselSvar = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+            val foresporselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
             val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
             val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)

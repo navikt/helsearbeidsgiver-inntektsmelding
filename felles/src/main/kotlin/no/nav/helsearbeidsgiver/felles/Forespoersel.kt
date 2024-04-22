@@ -11,9 +11,8 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.time.LocalDate
 import java.util.UUID
 
-// TODO nytt navn
 @Serializable
-data class TrengerInntekt(
+data class Forespoersel(
     val type: ForespoerselType,
     val orgnr: String,
     val fnr: String,

@@ -140,13 +140,7 @@ class InnsendingService(
                 Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                // TODO slett feltene under etter overgangsperiode
-                Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
-                Key.VIRKSOMHET to virksomhetNavn.toJson(),
-                Key.ARBEIDSTAKER_INFORMASJON to sykmeldt.toJson(PersonDato.serializer()),
-                Key.ARBEIDSGIVER_INFORMASJON to innsender.toJson(PersonDato.serializer()),
-                Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
+                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
             )
         }
     }

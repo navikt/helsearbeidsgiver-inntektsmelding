@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isTelefonnummer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isValidBehandlingsdager
 import org.valiktor.functions.isGreaterThan
 import org.valiktor.functions.isGreaterThanOrEqualTo
 import org.valiktor.functions.isLessThan
@@ -56,8 +55,6 @@ fun Innsending.validate() {
         if (innsendt.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
             validate(Innsending::arbeidsgiverperioder).isNotEmpty()
         }
-        // Fraværsperiode
-        validate(Innsending::behandlingsdager).isValidBehandlingsdager() // Velg behandlingsdager
         // Egenmelding
         validate(Innsending::egenmeldingsperioder).validateForEach {
             validate(Periode::fom).isNotNull()

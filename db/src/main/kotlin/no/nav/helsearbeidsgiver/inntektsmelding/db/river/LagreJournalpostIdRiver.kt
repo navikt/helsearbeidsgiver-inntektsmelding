@@ -130,7 +130,7 @@ class LagreJournalpostIdRiver(
 
     override fun LagreJournalpostIdMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@LagreJournalpostIdRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId)

@@ -16,6 +16,8 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -40,7 +42,7 @@ class TrengerIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
                 Key.CLIENT_ID to Mock.clientId.toJson(UuidSerializer),
-                Key.ARBEIDSGIVER_ID to "12345678910".toJson(),
+                Key.ARBEIDSGIVER_ID to Fnr.genererGyldig().toJson(Fnr.serializer()),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
             )
         }

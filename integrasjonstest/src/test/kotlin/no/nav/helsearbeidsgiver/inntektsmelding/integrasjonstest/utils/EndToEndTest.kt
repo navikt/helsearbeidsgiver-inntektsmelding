@@ -58,6 +58,8 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.mai
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
@@ -121,7 +123,7 @@ abstract class EndToEndTest : ContainerTest() {
                     etternavn = "Betjent"
                 ),
                 foedselsdato = 28.mai,
-                ident = "fnr-bjarne"
+                ident = Fnr.genererGyldig().verdi
             ),
             FullPerson(
                 navn = PersonNavn(
@@ -130,7 +132,7 @@ abstract class EndToEndTest : ContainerTest() {
                     etternavn = "Mekker"
                 ),
                 foedselsdato = 6.august,
-                ident = "fnr-max"
+                ident = Fnr.genererGyldig().verdi
             )
         )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"

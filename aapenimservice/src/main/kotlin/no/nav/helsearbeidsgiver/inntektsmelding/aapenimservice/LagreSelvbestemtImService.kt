@@ -264,7 +264,7 @@ private fun tilInntektsmelding(
 ): Inntektsmelding =
     Inntektsmelding(
         id = UUID.randomUUID(),
-        Inntektsmelding.Type.Selvbestemt(
+        type = Inntektsmelding.Type.Selvbestemt(
             id = selvbestemtId
         ),
         sykmeldt = Sykmeldt(

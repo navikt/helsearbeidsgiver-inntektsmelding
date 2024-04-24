@@ -55,7 +55,7 @@ fun Route.lagreSelvbestemtImRoute(
             val skjema = lesRequestOrNull()
             when {
                 skjema == null -> {
-                    respondBadRequest(JsonErrorResponse(inntektsmeldingId = selvbestemtId), JsonErrorResponse.serializer())
+                    respondBadRequest(JsonErrorResponse(inntektsmeldingTypeId = selvbestemtId), JsonErrorResponse.serializer())
                 }
                 !skjema.erGyldig() -> {
                     "Fikk valideringsfeil.".also {
@@ -126,7 +126,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(selvbest
             sikkerLogger.info("Klarte ikke hente resultat.", it)
             when (it) {
                 is RedisPollerTimeoutException ->
-                    respondInternalServerError(RedisTimeoutResponse(inntektsmeldingId = selvbestemtId), RedisTimeoutResponse.serializer())
+                    respondInternalServerError(RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId), RedisTimeoutResponse.serializer())
 
                 else ->
                     respondInternalServerError(RedisPermanentErrorResponse(selvbestemtId), RedisPermanentErrorResponse.serializer())

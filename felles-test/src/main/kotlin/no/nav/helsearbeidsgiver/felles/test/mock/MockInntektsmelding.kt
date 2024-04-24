@@ -38,7 +38,10 @@ private const val INNTEKT = 25_000.0
 fun mockInntektsmeldingV1(): InntektsmeldingV1 =
     InntektsmeldingV1(
         id = UUID.randomUUID(),
-        type = InntektsmeldingV1.Type.FORESPURT,
+        type = InntektsmeldingV1.Type.Forespurt(
+            id = UUID.randomUUID(),
+            vedtaksperiodeId = UUID.randomUUID()
+        ),
         sykmeldt = Sykmeldt(
             fnr = "16054577777",
             navn = "Skummel Bolle"

@@ -86,7 +86,7 @@ class LagreSelvbestemtImRiverTest : FunSpec({
             publisert[Key.FAIL].shouldBeNull()
 
             verifySequence {
-                mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.id)
+                mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.type.id)
                 mockSelvbestemtImRepo.lagreIm(nyInntektsmelding)
             }
         }
@@ -131,7 +131,7 @@ class LagreSelvbestemtImRiverTest : FunSpec({
         publisert[Key.FAIL].shouldBeNull()
 
         verifySequence {
-            mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.id)
+            mockSelvbestemtImRepo.hentNyesteIm(nyInntektsmelding.type.id)
         }
         verify(exactly = 0) {
             mockSelvbestemtImRepo.lagreIm(nyInntektsmelding)

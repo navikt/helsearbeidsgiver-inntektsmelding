@@ -22,6 +22,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.UkjentErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ValideringErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
@@ -57,20 +59,31 @@ fun Route.lagreSelvbestemtImRoute(
                 skjema == null -> {
                     respondBadRequest(JsonErrorResponse(inntektsmeldingTypeId = selvbestemtId), JsonErrorResponse.serializer())
                 }
-                !skjema.erGyldig() -> {
-                    "Fikk valideringsfeil.".also {
-                        logger.info(it)
-                        sikkerLogger.info(it)
+
+                skjema.valider().isNotEmpty() -> {
+                    val valideringsfeil = skjema.valider()
+
+                    "Fikk valideringsfeil: $valideringsfeil".also {
+                        logger.error(it)
+                        sikkerLogger.error(it)
                     }
 
-                    // TODO returner (og logg) mer utfyllende feil
-                    respondBadRequest("Valideringsfeil. Mer utfyllende feil må implementeres.", String.serializer())
+                    val response = ValideringErrorResponse(selvbestemtId, valideringsfeil)
+
+                    respondBadRequest(response, ValideringErrorResponse.serializer())
                 }
+
                 (skjema.aarsakInnsending == AarsakInnsending.Ny && selvbestemtIdFraPath != null) ||
                     (skjema.aarsakInnsending == AarsakInnsending.Endring && selvbestemtIdFraPath == null) -> {
-                    // TODO returner (og logg) mer utfyllende feil
-                    respondBadRequest("Valideringsfeil pga. stiparameter. Mer utfyllende feil må implementeres.", String.serializer())
+                    "Uoverstemmelser mellom årsak til innsending og innsendt ID.".also {
+                        logger.error(it)
+                        sikkerLogger.error(it)
+                    }
+
+                    // Hvis dette skjer så er det feil i frontend
+                    respondBadRequest(UkjentErrorResponse(selvbestemtId), UkjentErrorResponse.serializer())
                 }
+
                 else -> {
                     tilgangskontroll.validerTilgangTilOrg(call.request, selvbestemtId, skjema.avsender.orgnr)
 
@@ -133,7 +146,3 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(selvbest
             }
         }
 }
-
-// TODO
-private fun SkjemaInntektsmelding.erGyldig(): Boolean =
-    true

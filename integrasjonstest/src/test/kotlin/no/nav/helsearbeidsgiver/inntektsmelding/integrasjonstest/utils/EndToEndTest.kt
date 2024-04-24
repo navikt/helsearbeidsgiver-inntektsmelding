@@ -72,6 +72,25 @@ import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
+val bjarneBetjent = FullPerson(
+    navn = PersonNavn(
+        fornavn = "Bjarne",
+        mellomnavn = null,
+        etternavn = "Betjent"
+    ),
+    foedselsdato = 28.mai,
+    ident = Fnr.genererGyldig().verdi
+)
+val maxMekker = FullPerson(
+    navn = PersonNavn(
+        fornavn = "Max",
+        mellomnavn = null,
+        etternavn = "Mekker"
+    ),
+    foedselsdato = 6.august,
+    ident = Fnr.genererGyldig().verdi
+)
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class EndToEndTest : ContainerTest() {
 
@@ -116,24 +135,8 @@ abstract class EndToEndTest : ContainerTest() {
         clearAllMocks()
 
         coEvery { pdlKlient.personBolk(any()) } returns listOf(
-            FullPerson(
-                navn = PersonNavn(
-                    fornavn = "Bjarne",
-                    mellomnavn = null,
-                    etternavn = "Betjent"
-                ),
-                foedselsdato = 28.mai,
-                ident = Fnr.genererGyldig().verdi
-            ),
-            FullPerson(
-                navn = PersonNavn(
-                    fornavn = "Max",
-                    mellomnavn = null,
-                    etternavn = "Mekker"
-                ),
-                foedselsdato = 6.august,
-                ident = Fnr.genererGyldig().verdi
-            )
+            bjarneBetjent,
+            maxMekker
         )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
         coEvery { brregClient.hentVirksomheter(any()) } answers {

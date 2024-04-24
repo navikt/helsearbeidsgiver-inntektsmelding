@@ -70,7 +70,7 @@ class OpprettSakLoeser(
 
         val sakId = runCatching {
             arbeidsgiverNotifikasjonKlient.opprettSak(
-                linkUrl = linkUrl,
+                lenke = "$linkUrl/im-dialog/$forespoerselId",
                 inntektsmeldingTypeId = forespoerselId,
                 orgnr = orgnr,
                 sykmeldtNavn = personDato.navn,

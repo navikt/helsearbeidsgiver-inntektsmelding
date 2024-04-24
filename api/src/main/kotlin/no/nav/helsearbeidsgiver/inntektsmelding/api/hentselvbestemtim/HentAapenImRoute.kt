@@ -114,7 +114,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorRespons
     when (error) {
         is RedisPollerTimeoutException -> {
             val response = ResultJson(
-                failure = RedisTimeoutResponse(inntektsmeldingId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
+                failure = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
             )
             respondInternalServerError(response, ResultJson.serializer())
         }

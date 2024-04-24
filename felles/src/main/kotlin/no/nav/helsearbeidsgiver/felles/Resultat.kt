@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.felles
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import java.time.LocalDate
 
@@ -16,6 +17,8 @@ data class TilgangData(
 
 @Serializable
 data class TrengerData(
+    // TODO fjern nullable og default, kreves kun i overgangsperiode
+    val forespoersel: Forespoersel? = null,
     val fnr: String? = null,
     val orgnr: String? = null,
     val personDato: PersonDato? = null,

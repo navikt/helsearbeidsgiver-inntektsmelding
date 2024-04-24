@@ -17,7 +17,6 @@ import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
@@ -42,6 +41,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselbesvart.createForesp
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.createMarkerForespoerselBesvart
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
@@ -55,9 +55,7 @@ import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.mai
 import org.intellij.lang.annotations.Language
@@ -74,8 +72,6 @@ private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class EndToEndTest : ContainerTest() {
-
-    private val logger = logger()
 
     private val imTestRapid = ImTestRapid()
 
@@ -160,7 +156,7 @@ abstract class EndToEndTest : ContainerTest() {
     @BeforeAll
     fun beforeAllEndToEnd() {
         // Start rivers
-        logger.info("Starter rivers...")
+        println("Starter rivers...")
         imTestRapid.apply {
             // Servicer
             createAktiveOrgnrService(redisStore)
@@ -195,17 +191,17 @@ abstract class EndToEndTest : ContainerTest() {
         CollectorRegistry.defaultRegistry.clear()
         redisStore.shutdown()
         inntektsmeldingDatabase.dataSource.close()
-        logger.info("Stopped.")
+        println("Stopped.")
     }
 
     fun publish(vararg messageFields: Pair<Key, JsonElement>) {
-        imTestRapid.publish(*messageFields).also {
-            println("Publiserte melding: $it")
-        }
+        println("Publiserer melding med felt: ${messageFields.toMap()}")
+        imTestRapid.publish(messageFields.toMap())
     }
 
-    fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>): JsonElement =
-        messageFields.toMap()
+    fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>): JsonElement {
+        println("Publiserer pri-melding med felt: ${messageFields.toMap()}")
+        return messageFields.toMap()
             .mapKeys { (key, _) -> key.toString() }
             .toJson()
             .toString()
@@ -215,15 +211,13 @@ abstract class EndToEndTest : ContainerTest() {
             .toJson()
             .also(imTestRapid::publish)
             .parseJson()
-            .also {
-                println("Publiserte melding: $it")
-            }
+    }
 
     fun mockForespoerselSvarFraHelsebro(
         eventName: EventName,
         transaksjonId: UUID,
         forespoerselId: UUID,
-        forespoersel: TrengerInntekt
+        forespoerselSvar: ForespoerselSvar.Suksess
     ) {
         every {
             mockPriProducer.send(
@@ -234,11 +228,16 @@ abstract class EndToEndTest : ContainerTest() {
             )
         } answers {
             publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
-                Key.DATA to "".toJson(),
-                Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
+                Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to ForespoerselSvar(
+                    forespoerselId = forespoerselId,
+                    resultat = forespoerselSvar,
+                    boomerang = mapOf(
+                        Key.EVENT_NAME to eventName.toJson(),
+                        Key.UUID to transaksjonId.toJson()
+                    ).toJson()
+                )
+                    .toJson(ForespoerselSvar.serializer())
             )
 
             Result.success(JsonObject(emptyMap()))

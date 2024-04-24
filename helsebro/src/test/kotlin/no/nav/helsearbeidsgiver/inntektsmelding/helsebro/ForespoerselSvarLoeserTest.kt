@@ -15,8 +15,8 @@ import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -84,7 +84,7 @@ private data class PublishedData(
     val eventName: EventName,
     val uuid: UUID,
     @JsonNames("forespoersel-svar")
-    val forespoerselSvar: TrengerInntekt
+    val forespoerselSvar: Forespoersel
 ) {
     @EncodeDefault
     val data = ""
@@ -99,7 +99,7 @@ private data class PublishedData(
             return PublishedData(
                 eventName = initiateEvent,
                 uuid = transaksjonId,
-                forespoerselSvar = forespoerselSvar.resultat?.toTrengerInntekt().shouldNotBeNull()
+                forespoerselSvar = forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull()
             )
         }
     }

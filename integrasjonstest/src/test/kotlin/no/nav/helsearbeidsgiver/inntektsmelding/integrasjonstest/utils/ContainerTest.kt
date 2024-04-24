@@ -16,7 +16,9 @@ abstract class ContainerTest {
 
     val kafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.1"))
     val redisContainer = RedisContainer(DockerImageName.parse("redis:7"))
-    val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:14")
+    val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:14").apply {
+        setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
+    }
 
     @BeforeAll
     fun startContainers() {

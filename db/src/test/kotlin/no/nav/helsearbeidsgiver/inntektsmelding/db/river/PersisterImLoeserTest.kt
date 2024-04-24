@@ -12,40 +12,29 @@ import io.mockk.mockk
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.AarsakInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.BegrunnelseIngenEllerRedusertUtbetalingKode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NaturalytelseKode
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
-import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class PersisterImLoeserTest {
 
     private val testRapid = TestRapid()
     private val repository = mockk<InntektsmeldingRepository>()
+
+    private val mockInntektsmelding = mockInntektsmelding()
 
     init {
         PersisterImLoeser(testRapid, repository)
@@ -68,13 +57,9 @@ class PersisterImLoeserTest {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
-            Key.UUID to randomUuid().toJson(),
-            Key.FORESPOERSEL_ID to randomUuid().toJson(),
-            Key.VIRKSOMHET to "Test Virksomhet".toJson(),
-            Key.ARBEIDSGIVER_INFORMASJON to Mock.arbeidsgiver.toJson(PersonDato.serializer()),
-            Key.ARBEIDSTAKER_INFORMASJON to Mock.arbeidstaker.toJson(PersonDato.serializer()),
-            Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer()),
-            Key.FORESPOERSEL_SVAR to Mock.forespoerselSvar.toJson(TrengerInntekt.serializer())
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+            Key.INNTEKTSMELDING to mockInntektsmelding.toJson(Inntektsmelding.serializer())
         )
 
         coVerify(exactly = 1) {
@@ -88,23 +73,19 @@ class PersisterImLoeserTest {
 
         Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert)
             .shouldNotBeNull()
-            .shouldBeEqualToIgnoringFields(Mock.inntektsmelding, Inntektsmelding::tidspunkt)
+            .shouldBeEqualToIgnoringFields(mockInntektsmelding, Inntektsmelding::tidspunkt)
     }
 
     @Test
     fun `ikke lagre ved duplikat`() {
-        coEvery { repository.hentNyeste(any()) } returns Mock.inntektsmelding.copy(tidspunkt = ZonedDateTime.now().minusHours(1).toOffsetDateTime())
+        coEvery { repository.hentNyeste(any()) } returns mockInntektsmelding.copy(tidspunkt = ZonedDateTime.now().minusHours(1).toOffsetDateTime())
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
-            Key.UUID to randomUuid().toJson(),
-            Key.FORESPOERSEL_ID to randomUuid().toJson(),
-            Key.VIRKSOMHET to "Test Virksomhet".toJson(),
-            Key.ARBEIDSGIVER_INFORMASJON to Mock.arbeidsgiver.toJson(PersonDato.serializer()),
-            Key.ARBEIDSTAKER_INFORMASJON to Mock.arbeidstaker.toJson(PersonDato.serializer()),
-            Key.INNTEKTSMELDING to Mock.innsending.copy(årsakInnsending = AarsakInnsending.ENDRING).toJson(Innsending.serializer()),
-            Key.FORESPOERSEL_SVAR to Mock.forespoerselSvar.toJson(TrengerInntekt.serializer())
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+            Key.INNTEKTSMELDING to mockInntektsmelding.copy(årsakInnsending = AarsakInnsending.ENDRING).toJson(Inntektsmelding.serializer())
         )
 
         coVerify(exactly = 0) {
@@ -115,63 +96,5 @@ class PersisterImLoeserTest {
 
         Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INSENDING_STARTED
         Key.ER_DUPLIKAT_IM.lesOrNull(Boolean.serializer(), publisert) shouldBe true
-    }
-
-    object Mock {
-        val innsending = Innsending(
-            orgnrUnderenhet = "orgnr-bål",
-            identitetsnummer = "fnr-fredrik",
-            behandlingsdager = listOf(LocalDate.now().plusDays(5)),
-            egenmeldingsperioder = listOf(
-                Periode(
-                    fom = LocalDate.now(),
-                    tom = LocalDate.now().plusDays(2)
-                )
-            ),
-            arbeidsgiverperioder = emptyList(),
-            bestemmendeFraværsdag = LocalDate.now(),
-            fraværsperioder = emptyList(),
-            inntekt = Inntekt(
-                bekreftet = true,
-                beregnetInntekt = 32100.0,
-                endringÅrsak = null,
-                manueltKorrigert = false
-            ),
-            fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
-                utbetalerFullLønn = true,
-                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert
-            ),
-            refusjon = Refusjon(
-                utbetalerHeleEllerDeler = true,
-                refusjonPrMnd = 200.0,
-                refusjonOpphører = LocalDate.now()
-            ),
-            naturalytelser = listOf(
-                Naturalytelse(
-                    naturalytelse = NaturalytelseKode.KOSTDOEGN,
-                    dato = LocalDate.now(),
-                    beløp = 300.0
-                )
-            ),
-            årsakInnsending = AarsakInnsending.NY,
-            bekreftOpplysninger = true
-        )
-
-        val arbeidsgiver = PersonDato("Gudrun Arbeidsgiver", null, "fnr-gudrun")
-        val arbeidstaker = PersonDato("Toril Arbeidstaker", null, innsending.identitetsnummer)
-
-        val vedtaksperiodeId = randomUuid()
-        val inntektsmelding = mapInntektsmelding(innsending, arbeidstaker.navn, "Test Virksomhet", arbeidsgiver.navn, vedtaksperiodeId)
-        val forespoerselSvar = TrengerInntekt(
-            type = ForespoerselType.KOMPLETT,
-            orgnr = innsending.orgnrUnderenhet,
-            fnr = innsending.identitetsnummer,
-            vedtaksperiodeId = vedtaksperiodeId,
-            skjaeringstidspunkt = innsending.bestemmendeFraværsdag,
-            sykmeldingsperioder = innsending.fraværsperioder.map { no.nav.helsearbeidsgiver.felles.Periode(it.fom, it.tom) },
-            egenmeldingsperioder = innsending.egenmeldingsperioder.map { no.nav.helsearbeidsgiver.felles.Periode(it.fom, it.tom) },
-            forespurtData = mockForespurtData(),
-            erBesvart = false
-        )
     }
 }

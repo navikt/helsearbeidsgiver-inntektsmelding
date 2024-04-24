@@ -8,12 +8,12 @@ import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
-// TODO vurder grense
-val sakLevetid = 150.days
+// 13x30 dager
+val sakLevetid = 390.days
 
 fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     linkUrl: String,
-    inntektsmeldingId: UUID,
+    inntektsmeldingTypeId: UUID,
     orgnr: String,
     sykmeldtNavn: String,
     sykmeldtFoedselsdato: String,
@@ -24,8 +24,8 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
             opprettNySak(
                 virksomhetsnummer = orgnr,
                 merkelapp = "Inntektsmelding",
-                grupperingsid = inntektsmeldingId.toString(),
-                lenke = "$linkUrl/im-dialog/$inntektsmeldingId",
+                grupperingsid = inntektsmeldingTypeId.toString(),
+                lenke = "$linkUrl/im-dialog/$inntektsmeldingTypeId",
                 tittel = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato",
                 statusTekst = "NAV trenger inntektsmelding",
                 initiellStatus = initiellStatus,

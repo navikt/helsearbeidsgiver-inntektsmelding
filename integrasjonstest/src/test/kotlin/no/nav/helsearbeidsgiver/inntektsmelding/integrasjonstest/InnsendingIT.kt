@@ -14,14 +14,14 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Periode
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.db.mapInntektsmelding
+import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
@@ -44,16 +44,17 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.innsending.orgnrUnderenhet)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.skjema.orgnrUnderenhet)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        val transaksjonId: UUID = randomUuid()
+
+        val transaksjonId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar
         )
 
         coEvery {
@@ -71,10 +72,10 @@ class InnsendingIT : EndToEndTest() {
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                 Key.CLIENT_ID to UUID.randomUUID().toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
-                Key.IDENTITETSNUMMER to Mock.innsending.identitetsnummer.toJson(),
-                Key.ARBEIDSGIVER_ID to Mock.innsending.identitetsnummer.toJson(),
-                Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+                Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
+                Key.IDENTITETSNUMMER to Mock.skjema.identitetsnummer.toJson(),
+                Key.ARBEIDSGIVER_ID to Mock.skjema.identitetsnummer.toJson(),
+                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer())
             )
         }
 
@@ -132,18 +133,18 @@ class InnsendingIT : EndToEndTest() {
 
     @Test
     fun `skal ikke lagre duplikat inntektsmelding`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.innsending.orgnrUnderenhet)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.skjema.orgnrUnderenhet)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
         imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), Mock.innsendtInntektsmelding)
 
-        val transaksjonId: UUID = randomUuid()
+        val transaksjonId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar
         )
 
         coEvery {
@@ -163,10 +164,10 @@ class InnsendingIT : EndToEndTest() {
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                 Key.CLIENT_ID to UUID.randomUUID().toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to Mock.innsending.orgnrUnderenhet.toJson(),
+                Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to "fnr-bjarne".toJson(),
                 Key.ARBEIDSGIVER_ID to "fnr-max".toJson(),
-                Key.INNTEKTSMELDING to Mock.innsending.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer())
             )
         }
 
@@ -237,24 +238,28 @@ class InnsendingIT : EndToEndTest() {
         const val SAK_ID = "forundret-lysekrone"
         const val OPPGAVE_ID = "neglisjert-sommer"
 
-        val forespoerselId: UUID = randomUuid()
-        val innsending = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
-        val vedtaksperiodeId = randomUuid()
+        val forespoerselId: UUID = UUID.randomUUID()
+        val skjema = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
+
+        private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
+
         val innsendtInntektsmelding = mapInntektsmelding(
-            request = innsending,
+            forespoersel = forespoersel,
+            skjema = skjema,
             fulltnavnArbeidstaker = "Bjarne Betjent",
             virksomhetNavn = "Bedrift A/S",
-            innsenderNavn = "Max Mekker",
-            vedtaksperiodeId = vedtaksperiodeId
+            innsenderNavn = "Max Mekker"
         )
-        val forespoerselSvar = TrengerInntekt(
+
+        val forespoerselSvar = ForespoerselSvar.Suksess(
             type = ForespoerselType.KOMPLETT,
-            orgnr = innsending.orgnrUnderenhet,
-            fnr = innsending.identitetsnummer,
-            vedtaksperiodeId = vedtaksperiodeId,
-            skjaeringstidspunkt = innsending.bestemmendeFraværsdag,
-            sykmeldingsperioder = innsending.fraværsperioder.map { Periode(it.fom, it.tom) },
-            egenmeldingsperioder = innsending.egenmeldingsperioder.map { Periode(it.fom, it.tom) },
+            orgnr = forespoersel.orgnr,
+            fnr = forespoersel.fnr,
+            vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+            egenmeldingsperioder = forespoersel.egenmeldingsperioder,
+            sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+            skjaeringstidspunkt = null,
+            bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
             forespurtData = mockForespurtData(),
             erBesvart = false
         )

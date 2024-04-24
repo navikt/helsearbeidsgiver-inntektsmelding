@@ -6,12 +6,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -153,7 +153,7 @@ class NotifikasjonIT : EndToEndTest() {
             Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to transactionId.toJson(),
-            Key.FORESPOERSEL_SVAR to mockTrengerInntekt().copy(fnr = Mock.FNR, orgnr = Mock.ORGNR).toJson(TrengerInntekt.serializer())
+            Key.FORESPOERSEL_SVAR to mockForespoersel().copy(fnr = Mock.FNR, orgnr = Mock.ORGNR).toJson(Forespoersel.serializer())
         )
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)

@@ -1,14 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedFastsattInntekt
-import no.nav.helsearbeidsgiver.felles.til
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -43,12 +42,13 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         type = ForespoerselType.KOMPLETT,
         orgnr = "hungry-traitor-chaplain",
         fnr = "deputize-snowy-quirk",
+        vedtaksperiodeId = UUID.randomUUID(),
         skjaeringstidspunkt = 11.januar(2018),
         sykmeldingsperioder = listOf(2.januar til 16.januar),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
+        bestemmendeFravaersdager = mapOf("hungry-traitor-chaplain" to 1.januar),
         forespurtData = mockForespurtData(),
-        erBesvart = false,
-        vedtaksperiodeId = randomUuid()
+        erBesvart = false
     )
 
 fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
@@ -56,15 +56,16 @@ fun mockForespoerselSvarSuksessMedFastsattInntekt(): ForespoerselSvar.Suksess =
         type = ForespoerselType.KOMPLETT,
         orgnr = "full-traitor-chaplain",
         fnr = "captain-snowy-quirk",
+        vedtaksperiodeId = UUID.randomUUID(),
         skjaeringstidspunkt = null,
         sykmeldingsperioder = listOf(
             2.januar til 10.januar,
             15.januar til 31.januar
         ),
         egenmeldingsperioder = listOf(1.januar til 1.januar),
+        bestemmendeFravaersdager = mapOf("full-traitor-chaplain" to 1.januar),
         forespurtData = mockForespurtDataMedFastsattInntekt(),
-        erBesvart = false,
-        vedtaksperiodeId = randomUuid()
+        erBesvart = false
     )
 
 private fun mockBoomerang(): JsonElement =

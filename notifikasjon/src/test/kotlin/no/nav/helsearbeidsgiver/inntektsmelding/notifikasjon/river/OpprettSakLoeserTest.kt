@@ -47,7 +47,7 @@ class OpprettSakLoeserTest : FunSpec({
                 tittel = "Inntektsmelding for ${mockPersonDato().navn}: f. 050120",
                 statusTekst = "NAV trenger inntektsmelding",
                 initiellStatus = SaksStatus.UNDER_BEHANDLING,
-                harddeleteOm = 150.days
+                harddeleteOm = 390.days
             )
         } returns expectedSakId
 

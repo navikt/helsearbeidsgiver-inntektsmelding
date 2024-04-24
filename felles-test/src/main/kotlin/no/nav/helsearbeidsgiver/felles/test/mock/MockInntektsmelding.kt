@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.mars
@@ -53,35 +54,17 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
             "44553399"
         ),
         sykmeldingsperioder = listOf(
-            Periode(
-                fom = 5.oktober,
-                tom = 15.oktober
-            ),
-            Periode(
-                fom = 20.oktober,
-                tom = 3.november
-            )
+            5.oktober til 15.oktober,
+            20.oktober til 3.november
         ),
         agp = Arbeidsgiverperiode(
             listOf(
-                Periode(
-                    fom = 5.oktober,
-                    tom = 15.oktober
-                ),
-                Periode(
-                    fom = 20.oktober,
-                    tom = 22.oktober
-                )
+                5.oktober til 15.oktober,
+                20.oktober til 22.oktober
             ),
             listOf(
-                Periode(
-                    fom = 28.september,
-                    tom = 28.september
-                ),
-                Periode(
-                    fom = 30.september,
-                    tom = 30.september
-                )
+                28.september til 28.september,
+                30.september til 30.september
             ),
             RedusertLoennIAgp(
                 beloep = 300.3,

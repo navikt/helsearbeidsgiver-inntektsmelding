@@ -24,7 +24,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -165,8 +167,8 @@ class InnsendingIT : EndToEndTest() {
                 Key.CLIENT_ID to UUID.randomUUID().toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
-                Key.IDENTITETSNUMMER to "fnr-bjarne".toJson(),
-                Key.ARBEIDSGIVER_ID to "fnr-max".toJson(),
+                Key.IDENTITETSNUMMER to bjarneBetjent.ident!!.toJson(),
+                Key.ARBEIDSGIVER_ID to maxMekker.ident!!.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer())
             )
         }
@@ -246,9 +248,9 @@ class InnsendingIT : EndToEndTest() {
         val innsendtInntektsmelding = mapInntektsmelding(
             forespoersel = forespoersel,
             skjema = skjema,
-            fulltnavnArbeidstaker = "Bjarne Betjent",
+            fulltnavnArbeidstaker = bjarneBetjent.navn.fulltNavn(),
             virksomhetNavn = "Bedrift A/S",
-            innsenderNavn = "Max Mekker"
+            innsenderNavn = maxMekker.navn.fulltNavn()
         )
 
         val forespoerselSvar = ForespoerselSvar.Suksess(

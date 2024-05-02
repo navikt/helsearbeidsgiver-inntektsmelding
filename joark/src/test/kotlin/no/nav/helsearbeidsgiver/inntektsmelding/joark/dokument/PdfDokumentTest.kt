@@ -116,6 +116,29 @@ class PdfDokumentTest {
         )
         val forventetInnhold = "Blå Rød Grønn${System.lineSeparator()}Blåbærebærekraftsvennligutendørsbedrift${System.lineSeparator()}AS"
         val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
+        writePDF("med langt virksomhetsnavn over flere linjer", imLangNavn)
+        assert(pdfTekst!!.contains(forventetInnhold))
+    }
+
+    @Test
+    fun `med langt navn over flere linjer`() {
+        val imLangNavn = im.copy(
+            fulltNavn = "Pippilotta Viktualia Rullegardina Krusemynte Efraimsdatter Langstrømpe"
+        )
+        val forventetInnhold = "Pippilotta Viktualia Rullegardina${System.lineSeparator()}Krusemynte Efraimsdatter Langstrømpe"
+        val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
+        writePDF("med langt navn over flere linjer", imLangNavn)
+        assert(pdfTekst!!.contains(forventetInnhold))
+    }
+
+    @Test
+    fun `med langt innsendernavn over flere linjer`() {
+        val imLangNavn = im.copy(
+            innsenderNavn = "Innsender som har veldig veldig langt navn"
+        )
+        val forventetInnhold = "Innsender som har veldig veldig langt${System.lineSeparator()}navn"
+        val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
+        writePDF("med langt innsendernavn over flere linjer", imLangNavn)
         assert(pdfTekst!!.contains(forventetInnhold))
     }
 

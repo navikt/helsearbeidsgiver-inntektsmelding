@@ -5,23 +5,23 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.app.LocalApp
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.toPretty
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
-import no.nav.helsearbeidsgiver.felles.til
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.TrengerForespoerselLoeser
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 val logger = "helsearbeidsgiver-im-integrasjon-local".logger()
 
@@ -86,16 +87,17 @@ class DummyLoeser(
 
         return when (behov) {
             BehovType.HENT_TRENGER_IM -> mapOf(
-                Key.FORESPOERSEL_SVAR to TrengerInntekt(
+                Key.FORESPOERSEL_SVAR to Forespoersel(
                     type = ForespoerselType.KOMPLETT,
                     orgnr = orgnr,
                     fnr = fnr,
-                    skjaeringstidspunkt = 11.januar(2018),
+                    vedtaksperiodeId = UUID.randomUUID(),
                     sykmeldingsperioder = listOf(2.januar til 3.januar),
                     egenmeldingsperioder = listOf(1.januar til 1.januar),
+                    bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
                     forespurtData = mockForespurtData(),
                     erBesvart = false
-                ).toJson(TrengerInntekt.serializer())
+                ).toJson(Forespoersel.serializer())
             )
             BehovType.VIRKSOMHET -> mapOf(
                 Key.VIRKSOMHET to "Din Bedrift A/S".toJson()

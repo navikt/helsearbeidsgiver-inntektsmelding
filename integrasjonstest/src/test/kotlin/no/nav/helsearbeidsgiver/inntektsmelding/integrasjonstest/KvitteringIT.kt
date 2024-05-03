@@ -40,8 +40,6 @@ class KvitteringIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
-        Thread.sleep(5000)
-
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
@@ -73,8 +71,6 @@ class KvitteringIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
-        Thread.sleep(5000)
-
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
@@ -98,8 +94,6 @@ class KvitteringIT : EndToEndTest() {
             Key.CLIENT_ID to clientId.toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson()
         )
-
-        Thread.sleep(5000)
 
         messages.filter(EventName.KVITTERING_REQUESTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)

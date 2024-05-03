@@ -45,7 +45,6 @@ class VirksomhetLoeserTest {
 
     @Test
     fun `skal håndtere at klient feiler`() {
-        coEvery { mockBrregClient.hentVirksomhetNavn(any()) } returns null
         coEvery { mockBrregClient.hentVirksomheter(any()) } returns emptyList()
 
         testRapid.sendJson(
@@ -62,7 +61,6 @@ class VirksomhetLoeserTest {
 
     @Test
     fun `skal returnere løsning når gyldige data`() {
-        coEvery { mockBrregClient.hentVirksomhetNavn(any()) } returns VIRKSOMHET_NAVN
         coEvery { mockBrregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = ORGNR, navn = VIRKSOMHET_NAVN))
 
         testRapid.sendJson(

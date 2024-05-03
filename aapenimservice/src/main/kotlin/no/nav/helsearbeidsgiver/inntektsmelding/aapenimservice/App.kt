@@ -6,25 +6,25 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.utils.log.logger
 
-private val logger = "im-aapenimservice".logger()
+private val logger = "im-selvbestemtimservice".logger()
 
 fun main() {
     val redisStore = RedisStore(Env.redisUrl)
 
     RapidApplication
         .create(System.getenv())
-        .createAapenImService(redisStore)
+        .createSelvbestemtImService(redisStore)
         .registerShutdownLifecycle {
             redisStore.shutdown()
         }
         .start()
 }
 
-fun RapidsConnection.createAapenImService(redisStore: RedisStore): RapidsConnection =
+fun RapidsConnection.createSelvbestemtImService(redisStore: RedisStore): RapidsConnection =
     also {
-        logger.info("Starter ${HentAapenImService::class.simpleName}...")
-        HentAapenImService(this, redisStore)
+        logger.info("Starter ${HentSelvbestemtImService::class.simpleName}...")
+        HentSelvbestemtImService(this, redisStore)
 
-        logger.info("Starter ${LagreAapenImService::class.simpleName}...")
-        LagreAapenImService(this, redisStore)
+        logger.info("Starter ${LagreSelvbestemtImService::class.simpleName}...")
+        LagreSelvbestemtImService(this, redisStore)
     }

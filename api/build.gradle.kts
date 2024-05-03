@@ -35,5 +35,4 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("no.nav.security:mock-oauth2-server:$mockOauth2ServerVersion")
     testImplementation(project(":felles-test"))
-    testImplementation(kotlin("test"))
 }

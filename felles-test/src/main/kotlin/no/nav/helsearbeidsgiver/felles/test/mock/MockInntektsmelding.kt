@@ -10,12 +10,94 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.NaturalytelseK
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Tariffendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.NyStillingsprosent
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.test.date.desember
+import no.nav.helsearbeidsgiver.utils.test.date.kl
+import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.date.november
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.date.september
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.UUID
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending as AarsakInnsendingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt as InntektV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse as NaturalytelseV1
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon as RefusjonV1
 
 private val dag = 24.desember(2022)
-private val inntekt = 25_000.0
+private const val INNTEKT = 25_000.0
+
+fun mockInntektsmeldingV1(): InntektsmeldingV1 =
+    InntektsmeldingV1(
+        id = UUID.randomUUID(),
+        type = InntektsmeldingV1.Type.Forespurt(
+            id = UUID.randomUUID(),
+            vedtaksperiodeId = UUID.randomUUID()
+        ),
+        sykmeldt = Sykmeldt(
+            fnr = "16054577777",
+            navn = "Skummel Bolle"
+        ),
+        avsender = Avsender(
+            "000444000",
+            "Skumle bakverk A/S",
+            "07072288888",
+            "Nifs Krumkake",
+            "44553399"
+        ),
+        sykmeldingsperioder = listOf(
+            5.oktober til 15.oktober,
+            20.oktober til 3.november
+        ),
+        agp = Arbeidsgiverperiode(
+            listOf(
+                5.oktober til 15.oktober,
+                20.oktober til 22.oktober
+            ),
+            listOf(
+                28.september til 28.september,
+                30.september til 30.september
+            ),
+            RedusertLoennIAgp(
+                beloep = 300.3,
+                begrunnelse = RedusertLoennIAgp.Begrunnelse.FerieEllerAvspasering
+            )
+        ),
+        inntekt = InntektV1(
+            beloep = 544.6,
+            inntektsdato = 28.september,
+            naturalytelser = listOf(
+                NaturalytelseV1(
+                    naturalytelse = NaturalytelseV1.Kode.BEDRIFTSBARNEHAGEPLASS,
+                    verdiBeloep = 52.5,
+                    sluttdato = 10.oktober
+                ),
+                NaturalytelseV1(
+                    naturalytelse = NaturalytelseV1.Kode.BIL,
+                    verdiBeloep = 434.0,
+                    sluttdato = 12.oktober
+                )
+            ),
+            endringAarsak = NyStillingsprosent(
+                gjelderFra = 16.oktober
+            )
+        ),
+        refusjon = RefusjonV1(
+            beloepPerMaaned = 150.2,
+            endringer = listOf(),
+            sluttdato = 31.oktober
+        ),
+        aarsakInnsending = AarsakInnsendingV1.Endring,
+        mottatt = 14.mars.kl(14, 41, 42, 0).atOffset(ZoneOffset.ofHours(1))
+    )
 
 fun mockInntektsmelding(): Inntektsmelding =
     Inntektsmelding(
@@ -28,10 +110,10 @@ fun mockInntektsmelding(): Inntektsmelding =
             Periode(dag, dag.plusDays(2)),
             Periode(dag.plusDays(3), dag.plusDays(4))
         ),
-        beregnetInntekt = inntekt,
+        beregnetInntekt = INNTEKT,
         inntekt = Inntekt(
             bekreftet = true,
-            beregnetInntekt = inntekt,
+            beregnetInntekt = INNTEKT,
             endringÅrsak = Tariffendring(dag, dag),
             manueltKorrigert = false
         ),
@@ -42,7 +124,7 @@ fun mockInntektsmelding(): Inntektsmelding =
         ),
         refusjon = Refusjon(
             utbetalerHeleEllerDeler = true,
-            refusjonPrMnd = inntekt,
+            refusjonPrMnd = INNTEKT,
             refusjonOpphører = dag.plusDays(3),
             refusjonEndringer = listOf(
                 RefusjonEndring(140.0, dag.minusDays(4)),
@@ -89,13 +171,13 @@ fun mockDelvisInntektsmeldingDokument() = mockInntektsmelding().copy(
     naturalytelser = null,
     inntekt = Inntekt(
         bekreftet = true,
-        beregnetInntekt = inntekt,
+        beregnetInntekt = INNTEKT,
         endringÅrsak = Tariffendring(dag, dag),
         manueltKorrigert = false
     ),
     refusjon = Refusjon(
         utbetalerHeleEllerDeler = true,
-        refusjonPrMnd = inntekt,
+        refusjonPrMnd = INNTEKT,
         refusjonOpphører = dag.plusDays(3),
         refusjonEndringer = listOf(
             RefusjonEndring(140.0, dag.minusDays(4)),

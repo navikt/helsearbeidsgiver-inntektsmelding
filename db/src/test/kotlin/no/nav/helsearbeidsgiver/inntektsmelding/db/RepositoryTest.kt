@@ -17,7 +17,6 @@ import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.OffsetDateTime
@@ -27,16 +26,21 @@ class TestRepo(private val db: Database) {
 
     fun hentRecordFraInntektsmelding(forespoerselId: UUID): ResultRow? =
         transaction(db) {
-            InntektsmeldingEntitet.select {
-                InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()
-            }.firstOrNull()
+            InntektsmeldingEntitet
+                .selectAll()
+                .where {
+                    InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()
+                }
+                .firstOrNull()
         }
 
     fun hentRecordFraForespoersel(forespoerselId: UUID): ResultRow? =
         transaction(db) {
-            ForespoerselEntitet.select {
-                ForespoerselEntitet.forespoerselId eq forespoerselId.toString()
-            }
+            ForespoerselEntitet
+                .selectAll()
+                .where {
+                    ForespoerselEntitet.forespoerselId eq forespoerselId.toString()
+                }
                 .firstOrNull()
         }
 }
@@ -59,12 +63,13 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
 
         shouldNotThrowAny {
             transaction {
-                ForespoerselEntitet.select {
-                    all(
-                        ForespoerselEntitet.forespoerselId eq forespoerselId,
-                        ForespoerselEntitet.orgnr eq ORGNR
-                    )
-                }.single()
+                ForespoerselEntitet
+                    .selectAll()
+                    .where {
+                        (ForespoerselEntitet.forespoerselId eq forespoerselId) and
+                            (ForespoerselEntitet.orgnr eq ORGNR)
+                    }
+                    .single()
             }
         }
     }
@@ -84,12 +89,13 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), DOK_1)
 
         transaction {
-            InntektsmeldingEntitet.select {
-                all(
-                    InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString(),
-                    InntektsmeldingEntitet.dokument eq DOK_1
-                )
-            }.single()
+            InntektsmeldingEntitet
+                .selectAll()
+                .where {
+                    (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and
+                        (InntektsmeldingEntitet.dokument eq DOK_1)
+                }
+                .single()
         }
         // lagre varianter:
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA)
@@ -124,12 +130,13 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId, DOK_1)
 
         transaction {
-            InntektsmeldingEntitet.select {
-                all(
-                    InntektsmeldingEntitet.forespoerselId eq forespoerselId,
-                    InntektsmeldingEntitet.dokument eq DOK_1
-                )
-            }.single()
+            InntektsmeldingEntitet
+                .selectAll()
+                .where {
+                    (InntektsmeldingEntitet.forespoerselId eq forespoerselId) and
+                        (InntektsmeldingEntitet.dokument eq DOK_1)
+                }
+                .single()
         }
     }
 
@@ -231,7 +238,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         }
     }
 
-    test("skal _ikke_ oppdatere journalpostId for ekstern inntektmelding") {
+    test("skal _ikke_ oppdatere journalpostId for ekstern inntektsmelding") {
         val forespoerselId = UUID.randomUUID()
         val journalpostId = "jp-slem-fryser"
 

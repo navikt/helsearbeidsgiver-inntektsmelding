@@ -3,6 +3,8 @@ azure:
   enabled: true
 database:
   - name: inntektsmelding
+    users: [ simba_datastream_bruker ]
+logical_decoding: true
 envFrom:
   - type: secret
     name: google-sql-im-db

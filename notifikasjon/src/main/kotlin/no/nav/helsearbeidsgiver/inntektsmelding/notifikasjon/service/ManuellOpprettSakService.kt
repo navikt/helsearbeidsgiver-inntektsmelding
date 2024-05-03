@@ -5,14 +5,14 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -45,7 +45,7 @@ class ManuellOpprettSakService(
     private val step4Keys = setOf(Key.SAK_ID)
 
     init {
-        StatefullEventListener(event, startKeys, rapid, redisStore, ::onPacket)
+        LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
         LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
         FailKanal(event, rapid, ::onPacket)
     }
@@ -65,7 +65,7 @@ class ManuellOpprettSakService(
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(String.serializer(), melding)
-        val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+        val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
 
         when {
             step4Keys.all(melding::containsKey) -> {

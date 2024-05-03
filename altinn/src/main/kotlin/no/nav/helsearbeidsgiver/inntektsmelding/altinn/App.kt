@@ -20,8 +20,9 @@ fun RapidsConnection.createAltinn(altinnClient: AltinnClient): RapidsConnection 
     also {
         logger.info("Starter ${TilgangLoeser::class.simpleName}...")
         TilgangLoeser(this, altinnClient)
-        logger.info("Starter ${AltinnLoeser::class.simpleName}...")
-        AltinnLoeser(altinnClient).connect(this)
+
+        logger.info("Starter ${AltinnRiver::class.simpleName}...")
+        AltinnRiver(altinnClient).connect(this)
     }
 
 private fun createAltinnClient(): AltinnClient =

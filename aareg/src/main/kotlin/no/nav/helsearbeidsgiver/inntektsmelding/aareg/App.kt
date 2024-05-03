@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.aareg.AaregClient
-import no.nav.helsearbeidsgiver.felles.oauth2.OAuth2ClientConfig
+import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-aareg".logger()
@@ -22,6 +22,6 @@ fun RapidsConnection.createAareg(aaregClient: AaregClient): RapidsConnection =
     }
 
 fun buildClient(environment: Environment): AaregClient {
-    val tokenProvider = OAuth2ClientConfig(environment.azureOAuthEnvironment)
-    return AaregClient(url = environment.aaregUrl, getAccessToken = tokenProvider::getToken)
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(environment.oauth2Environment)
+    return AaregClient(url = environment.aaregUrl, getAccessToken = tokenGetter)
 }

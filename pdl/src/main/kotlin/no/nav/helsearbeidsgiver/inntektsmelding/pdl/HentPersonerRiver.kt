@@ -45,7 +45,7 @@ class HentPersonerRiver(
         } else {
             Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
-                behovType = Key.BEHOV.krev(BehovType.PERSONER, BehovType.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.HENT_PERSONER, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 fnrListe = Key.FNR_LISTE.les(String.serializer().list(), json)
             )
@@ -68,7 +68,7 @@ class HentPersonerRiver(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.AAPEN_ID to json[Key.AAPEN_ID],
+            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
             Key.DATA to "".toJson(),
             Key.PERSONER to personer.toJson(
                 MapSerializer(
@@ -93,13 +93,13 @@ class HentPersonerRiver(
         sikkerLogger.error(fail.feilmelding, error)
 
         return fail.tilMelding()
-            .plus(Key.AAPEN_ID to json[Key.AAPEN_ID])
+            .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }
 
     override fun Melding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@HentPersonerRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId)

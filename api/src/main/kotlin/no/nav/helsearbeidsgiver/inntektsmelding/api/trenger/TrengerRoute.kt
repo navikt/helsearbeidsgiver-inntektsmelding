@@ -51,7 +51,7 @@ fun Route.trengerRoute(
 
                         val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-                        val trengerId = trengerProducer.publish(request = request, arbeidsgiverFnr = arbeidsgiverFnr)
+                        val trengerId = trengerProducer.publish(request, arbeidsgiverFnr)
                         val resultat = redisPoller.getString(trengerId, 10, 500)
 
                         sikkerLogger.info("Fikk resultat: $resultat")

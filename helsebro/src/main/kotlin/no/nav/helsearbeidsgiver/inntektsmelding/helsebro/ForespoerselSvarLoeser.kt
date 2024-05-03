@@ -8,8 +8,8 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
@@ -81,7 +81,7 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
 
     private fun sendSvar(melding: Melding, context: MessageContext) {
         if (melding.forespoerselSvar.resultat != null) {
-            val forespoersel = melding.forespoerselSvar.resultat.toTrengerInntekt()
+            val forespoersel = melding.forespoerselSvar.resultat.toForespoersel()
             context.publishSuksess(forespoersel, melding)
         } else {
             val feilmelding = if (melding.forespoerselSvar.feil != null) {
@@ -94,13 +94,13 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
         }
     }
 
-    private fun MessageContext.publishSuksess(forespoersel: TrengerInntekt, melding: Melding) {
+    private fun MessageContext.publishSuksess(forespoersel: Forespoersel, melding: Melding) {
         publish(
             Key.EVENT_NAME to melding.initiateEvent.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to melding.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to melding.forespoerselSvar.forespoerselId.toJson(),
-            Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
+            Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer())
         )
             .also {
                 logger.info("Publiserte data for ${BehovType.HENT_TRENGER_IM}.")
@@ -117,7 +117,12 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
             event = melding.initiateEvent,
             transaksjonId = melding.transaksjonId,
             forespoerselId = melding.forespoerselSvar.forespoerselId,
-            utloesendeMelding = melding.json
+            utloesendeMelding = mapOf(
+                Key.EVENT_NAME to melding.initiateEvent.toJson(),
+                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.UUID to melding.transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to melding.forespoerselSvar.forespoerselId.toJson()
+            ).toJson()
         )
 
         publish(fail.tilMelding())
@@ -135,14 +140,15 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
     }
 }
 
-fun ForespoerselSvar.Suksess.toTrengerInntekt(): TrengerInntekt =
-    TrengerInntekt(
+fun ForespoerselSvar.Suksess.toForespoersel(): Forespoersel =
+    Forespoersel(
         type = type,
         orgnr = orgnr,
         fnr = fnr,
-        skjaeringstidspunkt = skjaeringstidspunkt,
+        vedtaksperiodeId = vedtaksperiodeId,
         sykmeldingsperioder = sykmeldingsperioder,
         egenmeldingsperioder = egenmeldingsperioder,
+        bestemmendeFravaersdager = bestemmendeFravaersdager,
         forespurtData = forespurtData,
         erBesvart = erBesvart
     )

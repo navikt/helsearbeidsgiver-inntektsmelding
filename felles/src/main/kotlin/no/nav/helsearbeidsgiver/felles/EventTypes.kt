@@ -4,37 +4,38 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class BehovType {
-    PERSONER,
-    FULLT_NAVN,
-    VIRKSOMHET,
-    INNTEKT,
+    // Hente data
     ARBEIDSFORHOLD,
-    JOURNALFOER, // TODO slett etter overgangsperiode
     ARBEIDSGIVERE,
-    TILGANGSKONTROLL,
-    HENT_TRENGER_IM, // TODO: SPLEIS_FORESPOERSEL eller SPLEIS_FORESPOERSEL_DETALJER??
-
-    PERSISTER_IM,
-    HENT_PERSISTERT_IM,
-    LAGRE_AAPEN_IM,
-    HENT_AAPEN_IM,
-
-    LAGRE_JOURNALPOST_ID,
-    LAGRE_FORESPOERSEL,
-    DISTRIBUER_IM,
-
-    NOTIFIKASJON_HENT_ID,
-    OPPRETT_SAK,
-    SLETT_SAK,
-    PERSISTER_SAK_ID,
-    OPPRETT_OPPGAVE,
-    PERSISTER_OPPGAVE_ID,
-
-    OPPRETT_AAPEN_SAK,
-
+    FULLT_NAVN,
     HENT_EKSTERN_INNTEKTSMELDING,
-    LAGRE_EKSTERN_INNTEKTSMELDING,
-    TRENGER_FORESPØRSEL
+    HENT_PERSISTERT_IM,
+    HENT_PERSONER,
+    HENT_SELVBESTEMT_IM,
+    HENT_TRENGER_IM, // TODO: SPLEIS_FORESPOERSEL eller SPLEIS_FORESPOERSEL_DETALJER??
+    INNTEKT,
+    NOTIFIKASJON_HENT_ID,
+    TILGANGSKONTROLL,
+    VIRKSOMHET,
+
+    // Synkrone endringer
+    LAGRE_SELVBESTEMT_IM,
+    OPPRETT_SELVBESTEMT_SAK,
+    PERSISTER_IM,
+    SLETT_SAK, // kun brukt ved manuell kjøring
+
+    // Asynkrone endringer
+    LAGRE_EKSTERN_INNTEKTSMELDING, // kan erstattes av event
+    LAGRE_FORESPOERSEL, // kan erstattes av event
+    LAGRE_JOURNALPOST_ID, // kan erstattes av event
+    OPPRETT_OPPGAVE, // blir overflødig ved flytting av notifikasjondatabase
+    OPPRETT_SAK, // blir overflødig ved flytting av notifikasjondatabase
+    PERSISTER_OPPGAVE_ID, // kan erstattes av event
+    PERSISTER_SAK_ID, // kan erstattes av event
+
+    // Asynkrone endringer, men brukt til å prøve igjen ved feil
+    JOURNALFOER,
+    DISTRIBUER_IM
 }
 
 @Serializable
@@ -44,13 +45,13 @@ enum class EventName {
     TRENGER_REQUESTED,
     INNTEKT_REQUESTED,
     KVITTERING_REQUESTED,
-    AAPEN_IM_REQUESTED,
+    SELVBESTEMT_IM_REQUESTED,
     AKTIVE_ORGNR_REQUESTED,
 
     INSENDING_STARTED,
 
-    AAPEN_IM_MOTTATT,
-    AAPEN_IM_LAGRET,
+    SELVBESTEMT_IM_MOTTATT,
+    SELVBESTEMT_IM_LAGRET,
 
     EKSTERN_INNTEKTSMELDING_REQUESTED,
     EKSTERN_INNTEKTSMELDING_MOTTATT,

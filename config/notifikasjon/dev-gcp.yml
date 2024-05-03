@@ -3,6 +3,7 @@ azure:
   enabled: true
 database:
   - name: notifikasjon
+logical_decoding: true
 envFrom:
   - type: secret
     name: google-sql-im-notifikasjon

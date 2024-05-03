@@ -7,17 +7,17 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -29,7 +29,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
@@ -38,7 +37,6 @@ class TilgangForespoerselService(
     override val redisStore: RedisStore
 ) : CompositeEventListener() {
 
-    private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.TILGANG_FORESPOERSEL_REQUESTED
@@ -52,7 +50,7 @@ class TilgangForespoerselService(
     )
 
     init {
-        StatefullEventListener(event, startKeys, rapid, redisStore, ::onPacket)
+        LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
         LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
         FailKanal(event, rapid, ::onPacket)
     }
@@ -94,7 +92,7 @@ class TilgangForespoerselService(
             Log.forespoerselId(forespoerselId)
         ) {
             if (Key.FORESPOERSEL_SVAR in melding) {
-                val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+                val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
                 val avsenderFnr = Key.FNR.les(String.serializer(), melding)
 
                 rapid.publish(

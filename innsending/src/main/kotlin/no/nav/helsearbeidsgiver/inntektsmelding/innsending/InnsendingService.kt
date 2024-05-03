@@ -3,8 +3,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -13,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.StatefullEventListener
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
@@ -38,9 +41,9 @@ class InnsendingService(
     override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.ORGNRUNDERENHET,
-        Key.INNTEKTSMELDING,
+        Key.IDENTITETSNUMMER,
         Key.ARBEIDSGIVER_ID,
-        Key.IDENTITETSNUMMER
+        Key.SKJEMA_INNTEKTSMELDING
     )
     override val dataKeys = setOf(
         Key.VIRKSOMHET,
@@ -48,7 +51,8 @@ class InnsendingService(
         Key.ARBEIDSGIVER_INFORMASJON,
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.INNTEKTSMELDING_DOKUMENT,
-        Key.ER_DUPLIKAT_IM
+        Key.ER_DUPLIKAT_IM,
+        Key.FORESPOERSEL_SVAR
     )
 
     private val step1Keys =
@@ -56,11 +60,12 @@ class InnsendingService(
             Key.VIRKSOMHET,
             Key.ARBEIDSFORHOLD,
             Key.ARBEIDSTAKER_INFORMASJON,
-            Key.ARBEIDSGIVER_INFORMASJON
+            Key.ARBEIDSGIVER_INFORMASJON,
+            Key.FORESPOERSEL_SVAR
         )
 
     init {
-        StatefullEventListener(event, startKeys, rapid, redisStore, ::onPacket)
+        LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
         LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
         FailKanal(event, rapid, ::onPacket)
     }
@@ -71,6 +76,14 @@ class InnsendingService(
         val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
         val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
         val innsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
+
+        logger.info("InnsendingService: emitting behov HENT_TRENGER_IM")
+        rapid.publish(
+            Key.EVENT_NAME to event.toJson(),
+            Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.UUID to transaksjonId.toJson()
+        )
 
         logger.info("InnsendingService: emitting behov Virksomhet")
         rapid.publish(
@@ -104,12 +117,21 @@ class InnsendingService(
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val inntektsmeldingJson = Key.INNTEKTSMELDING.les(JsonElement.serializer(), melding)
+        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
         if (step1Keys.all(melding::containsKey)) {
+            val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-            val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+            val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+            val innsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+
+            val inntektsmelding = mapInntektsmelding(
+                forespoersel = forespoersel,
+                skjema = skjema,
+                fulltnavnArbeidstaker = sykmeldt.navn,
+                virksomhetNavn = virksomhetNavn,
+                innsenderNavn = innsender.navn
+            )
 
             logger.info("InnsendingService: emitting behov PERSISTER_IM")
 
@@ -118,10 +140,7 @@ class InnsendingService(
                 Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING to inntektsmeldingJson,
-                Key.VIRKSOMHET to virksomhetNavn.toJson(),
-                Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),
-                Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer())
+                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
             )
         }
     }

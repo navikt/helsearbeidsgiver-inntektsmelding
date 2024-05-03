@@ -14,7 +14,7 @@ import java.util.UUID
 data class JsonErrorResponse(
     // TODO slett etter endring i frontend
     val forespoerselId: String? = null,
-    val inntektsmeldingId: UUID? = null
+    val inntektsmeldingTypeId: UUID? = null
 ) {
     @EncodeDefault
     val error = "Feil under serialisering."

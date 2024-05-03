@@ -9,13 +9,15 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -31,7 +33,7 @@ class TrengerIT : EndToEndTest() {
             eventName = EventName.TRENGER_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoersel = mockTrengerInntekt()
+            forespoerselSvar = mockForespoerselSvarSuksess()
         )
 
         mockStatic(::randomUuid) {
@@ -40,11 +42,9 @@ class TrengerIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
                 Key.CLIENT_ID to Mock.clientId.toJson(UuidSerializer),
-                Key.ARBEIDSGIVER_ID to "12345678910".toJson(),
+                Key.ARBEIDSGIVER_ID to Fnr.genererGyldig().toJson(Fnr.serializer()),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
             )
-
-            waitForMessages(10000)
         }
 
         messages.filter(EventName.TRENGER_REQUESTED)
@@ -82,12 +82,12 @@ class TrengerIT : EndToEndTest() {
         val trengerData = redisStore.get(RedisKey.of(Mock.clientId))?.fromJson(TrengerData.serializer())
 
         trengerData.shouldNotBeNull().apply {
+            forespoersel.shouldNotBeNull()
             fnr.shouldNotBeNull()
             orgnr.shouldNotBeNull()
             personDato.shouldNotBeNull()
             arbeidsgiver.shouldNotBeNull()
             virksomhetNavn.shouldNotBeNull()
-            inntekt.shouldNotBeNull()
             skjaeringstidspunkt.shouldNotBeNull()
             fravarsPerioder.shouldNotBeNull()
             egenmeldingsPerioder.shouldNotBeNull()

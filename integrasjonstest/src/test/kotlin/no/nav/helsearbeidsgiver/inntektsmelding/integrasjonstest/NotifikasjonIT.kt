@@ -6,12 +6,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.mockTrengerInntekt
+import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.fromJsonToString
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -36,8 +36,6 @@ class NotifikasjonIT : EndToEndTest() {
             Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
-
-        Thread.sleep(10000)
 
         messages.filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(BehovType.FULLT_NAVN)
@@ -95,8 +93,6 @@ class NotifikasjonIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        Thread.sleep(8000)
-
         messages.filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
             .filter(BehovType.OPPRETT_OPPGAVE)
             .all()
@@ -145,8 +141,6 @@ class NotifikasjonIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
         )
 
-        Thread.sleep(10000)
-
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
@@ -159,10 +153,8 @@ class NotifikasjonIT : EndToEndTest() {
             Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to transactionId.toJson(),
-            Key.FORESPOERSEL_SVAR to mockTrengerInntekt().copy(fnr = Mock.FNR, orgnr = Mock.ORGNR).toJson(TrengerInntekt.serializer())
+            Key.FORESPOERSEL_SVAR to mockForespoersel().copy(fnr = Mock.FNR, orgnr = Mock.ORGNR).toJson(Forespoersel.serializer())
         )
-
-        Thread.sleep(8000)
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.FULLT_NAVN)
@@ -220,7 +212,6 @@ class NotifikasjonIT : EndToEndTest() {
             Key.SAK_ID to Mock.SAK_ID.toJson()
         )
 
-        Thread.sleep(5000)
         coVerify(exactly = 1) { arbeidsgiverNotifikasjonKlient.hardDeleteSak(Mock.SAK_ID) }
         messages.all().size shouldBe 1
     }
@@ -232,6 +223,6 @@ class NotifikasjonIT : EndToEndTest() {
         const val SAK_ID = "sak_id_123"
         const val OPPGAVE_ID = "oppgave_id_456"
 
-        val forespoerselId = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
     }
 }

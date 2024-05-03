@@ -53,7 +53,7 @@ fun BegrunnelseIngenEllerRedusertUtbetalingKode.tekst(): String {
     return begrunnelseRefusjonTilTekst.getOrDefault(this, this.name)
 }
 
-private const val MAX_LINJELENGDE = 37
+private const val MAX_LINJELENGDE = 36
 
 fun String.delOppLangeNavn(): List<String> {
     return when {

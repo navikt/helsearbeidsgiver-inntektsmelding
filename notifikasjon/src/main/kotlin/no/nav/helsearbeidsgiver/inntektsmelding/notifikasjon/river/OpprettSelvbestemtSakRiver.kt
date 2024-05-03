@@ -53,7 +53,7 @@ class OpprettSelvbestemtSakRiver(
 
     override fun OpprettSelvbestemtSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sakId = agNotifikasjonKlient.opprettSak(
-            linkUrl = linkUrl,
+            lenke = "$linkUrl/im-dialog/kvittering/agi/${inntektsmelding.type.id}",
             inntektsmeldingTypeId = inntektsmelding.type.id,
             orgnr = inntektsmelding.avsender.orgnr,
             sykmeldtNavn = inntektsmelding.sykmeldt.navn,

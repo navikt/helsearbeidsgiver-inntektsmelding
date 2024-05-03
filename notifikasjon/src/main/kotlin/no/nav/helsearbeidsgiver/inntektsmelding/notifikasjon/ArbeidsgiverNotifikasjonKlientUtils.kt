@@ -12,7 +12,7 @@ import kotlin.time.Duration.Companion.days
 val sakLevetid = 390.days
 
 fun ArbeidsgiverNotifikasjonKlient.opprettSak(
-    linkUrl: String,
+    lenke: String,
     inntektsmeldingTypeId: UUID,
     orgnr: String,
     sykmeldtNavn: String,
@@ -25,7 +25,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
                 virksomhetsnummer = orgnr,
                 merkelapp = "Inntektsmelding",
                 grupperingsid = inntektsmeldingTypeId.toString(),
-                lenke = "$linkUrl/im-dialog/$inntektsmeldingTypeId",
+                lenke = lenke,
                 tittel = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato",
                 statusTekst = "NAV trenger inntektsmelding",
                 initiellStatus = initiellStatus,

@@ -76,14 +76,6 @@ class InnsendingValidateKtTest : FunSpec({
         ).validate()
     }
 
-    test("skal ikke godta arbeidsgiverperioder med ugyldig periode (fom ETTER tom))") {
-        shouldThrowExactly<ConstraintViolationException> {
-            GYLDIG_INNSENDING_REQUEST.copy(
-                arbeidsgiverperioder = listOf(Periode(now, now.minusDays(5)))
-            ).validate()
-        }
-    }
-
     test("skal godta arbeidsgiverperioder med gyldig periode (fom FØR tom)") {
         GYLDIG_INNSENDING_REQUEST.copy(
             arbeidsgiverperioder = listOf(Periode(now, now.plusDays(3)))
@@ -133,23 +125,8 @@ class InnsendingValidateKtTest : FunSpec({
         GYLDIG_INNSENDING_REQUEST.copy(behandlingsdager = emptyList()).validate()
     }
 
-    context(Innsending::egenmeldingsperioder.name) {
-        test("skal godta tom liste med egenmeldinger") {
-            GYLDIG_INNSENDING_REQUEST.copy(egenmeldingsperioder = emptyList()).validate()
-        }
-
-        test("skal ikke godta egenmeldinger hvor tom er før fom") {
-            shouldThrowExactly<ConstraintViolationException> {
-                GYLDIG_INNSENDING_REQUEST.copy(
-                    egenmeldingsperioder = listOf(
-                        Periode(
-                            now.plusDays(1),
-                            now
-                        )
-                    )
-                ).validate()
-            }
-        }
+    test("skal godta tom liste med egenmeldinger") {
+        GYLDIG_INNSENDING_REQUEST.copy(egenmeldingsperioder = emptyList()).validate()
     }
 
     context(Innsending::inntekt.name) {

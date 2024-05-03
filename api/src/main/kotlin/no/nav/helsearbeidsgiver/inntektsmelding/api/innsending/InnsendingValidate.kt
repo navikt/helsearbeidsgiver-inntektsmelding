@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.RefusjonEndring
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isIdentitetsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isOrganisasjonsnummer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.isTelefonnummer
@@ -44,22 +43,10 @@ fun Innsending.validate() {
         validate(Innsending::identitetsnummer).isIdentitetsnummer()
         // valider telefon
         validate(Innsending::telefonnummer).isTelefonnummer()
-        // Arbeidsgiverperioder
-        validate(Innsending::arbeidsgiverperioder).validateForEach {
-            validate(Periode::fom).isNotNull()
-            validate(Periode::tom).isNotNull()
-            validate(Periode::tom).isGreaterThanOrEqualTo(it.fom)
-        }
         // Er tillatt å unngå arbeidsgiverperioder når:
         // - arbeidsgiver ikke betaler lønn i arbeidsgiverperioden
         if (innsendt.fullLønnIArbeidsgiverPerioden?.utbetalerFullLønn == true) {
             validate(Innsending::arbeidsgiverperioder).isNotEmpty()
-        }
-        // Egenmelding
-        validate(Innsending::egenmeldingsperioder).validateForEach {
-            validate(Periode::fom).isNotNull()
-            validate(Periode::tom).isNotNull()
-            validate(Periode::tom).isGreaterThanOrEqualTo(it.fom)
         }
         // Brutto inntekt
         validate(Innsending::inntekt).validate {

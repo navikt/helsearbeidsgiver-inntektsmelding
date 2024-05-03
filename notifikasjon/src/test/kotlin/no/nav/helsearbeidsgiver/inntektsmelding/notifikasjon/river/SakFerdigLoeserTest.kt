@@ -27,8 +27,8 @@ import java.util.UUID
 class SakFerdigLoeserTest : FunSpec({
     val testRapid = TestRapid()
     val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
-
-    SakFerdigLoeser(testRapid, mockAgNotifikasjonKlient)
+    val linkUrl = "dummyurl"
+    SakFerdigLoeser(testRapid, mockAgNotifikasjonKlient, linkUrl)
 
     beforeEach {
         testRapid.reset()
@@ -55,7 +55,8 @@ class SakFerdigLoeserTest : FunSpec({
             mockAgNotifikasjonKlient.nyStatusSak(
                 id = expected.sakId,
                 status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
+                nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/${actual.forespoerselId}"
             )
         }
     }

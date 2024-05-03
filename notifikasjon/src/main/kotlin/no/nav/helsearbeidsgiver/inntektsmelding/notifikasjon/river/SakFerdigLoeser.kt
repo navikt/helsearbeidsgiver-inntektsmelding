@@ -27,7 +27,8 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class SakFerdigLoeser(
     rapid: RapidsConnection,
-    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
+    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    private val linkUrl: String
 ) : River.PacketListener {
 
     private val logger = logger()
@@ -84,7 +85,7 @@ class SakFerdigLoeser(
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId)
         ) {
-            agNotifikasjonKlient.ferdigstillSak(sakId)
+            agNotifikasjonKlient.ferdigstillSak(sakId, linkUrl, forespoerselId)
 
             context.publish(
                 Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),

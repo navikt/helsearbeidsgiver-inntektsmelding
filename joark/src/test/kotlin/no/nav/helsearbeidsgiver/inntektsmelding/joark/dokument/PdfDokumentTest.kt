@@ -132,13 +132,13 @@ class PdfDokumentTest {
     }
 
     @Test
-    fun `med langt innsendernavn over flere linjer`() {
+    fun `med langt innsendernavn med store bokstaver over flere linjer`() {
         val imLangNavn = im.copy(
-            innsenderNavn = "Innsender som har veldig veldig langt navn"
+            innsenderNavn = "ANNASENDER CAPSLOCKUMSEN TEKSTBREKKSON"
         )
-        val forventetInnhold = "Innsender som har veldig veldig langt${System.lineSeparator()}navn"
+        val forventetInnhold = "ANNASENDER CAPSLOCKUMSEN${System.lineSeparator()}TEKSTBREKKSON"
         val pdfTekst = extractTextFromPdf(PdfDokument(imLangNavn).export())
-        writePDF("med langt innsendernavn over flere linjer", imLangNavn)
+        writePDF("med langt innsendernavn med store bokstaver over flere linjer", imLangNavn)
         assert(pdfTekst!!.contains(forventetInnhold))
     }
 

@@ -44,8 +44,6 @@ allprojects {
         val githubPassword: String by project
 
         mavenCentral()
-        maven("https://packages.confluent.io/maven/")
-        maven("https://oss.sonatype.org")
         maven {
             setUrl("https://maven.pkg.github.com/navikt/*")
             credentials {

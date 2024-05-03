@@ -40,7 +40,7 @@ class OpprettSelvbestemtSakRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): OpprettSelvbestemtSakMelding? =
-        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
             null
         } else {
             OpprettSelvbestemtSakMelding(

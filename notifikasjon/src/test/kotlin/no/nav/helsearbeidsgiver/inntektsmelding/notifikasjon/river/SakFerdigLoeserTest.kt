@@ -56,7 +56,7 @@ class SakFerdigLoeserTest : FunSpec({
                 id = expected.sakId,
                 status = SaksStatus.FERDIG,
                 statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
-                nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/${actual.forespoerselId}"
+                nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/${expected.forespoerselId}"
             )
         }
     }

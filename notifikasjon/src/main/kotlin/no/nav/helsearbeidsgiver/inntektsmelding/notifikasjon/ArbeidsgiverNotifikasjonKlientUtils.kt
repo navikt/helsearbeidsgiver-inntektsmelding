@@ -34,14 +34,14 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
         }
     }
 
-fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(sakId: String, linkUrl: String, forespoerselId: UUID) {
+fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(sakId: String, nyLenkeTilSak: String) {
     Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
         runBlocking {
             nyStatusSak(
                 id = sakId,
                 status = SaksStatus.FERDIG,
                 statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
-                nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/$forespoerselId"
+                nyLenkeTilSak = nyLenkeTilSak
             )
         }
     }

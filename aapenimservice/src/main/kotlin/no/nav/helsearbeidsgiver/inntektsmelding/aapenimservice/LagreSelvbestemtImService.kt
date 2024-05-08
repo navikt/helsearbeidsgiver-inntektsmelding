@@ -182,7 +182,7 @@ class LagreSelvbestemtImService(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(inntektsmelding.id)
+            Log.selvbestemtId(inntektsmelding.type.id)
         ) {
             val clientId = redisStore.get(RedisKey.of(transaksjonId, event))?.let(UUID::fromString)
             val inntektsmeldingJson = inntektsmelding.toJson(Inntektsmelding.serializer())
@@ -257,14 +257,16 @@ private val personerMapSerializer =
 
 private fun tilInntektsmelding(
     selvbestemtId: UUID,
-    type: Inntektsmelding.Type = Inntektsmelding.Type.SELVBESTEMT,
     skjema: SkjemaInntektsmelding,
     orgNavn: String,
     sykmeldt: Person,
     avsender: Person
 ): Inntektsmelding =
     Inntektsmelding(
-        id = selvbestemtId,
+        id = UUID.randomUUID(),
+        type = Inntektsmelding.Type.Selvbestemt(
+            id = selvbestemtId
+        ),
         sykmeldt = Sykmeldt(
             fnr = sykmeldt.fnr,
             navn = sykmeldt.navn
@@ -281,8 +283,7 @@ private fun tilInntektsmelding(
         inntekt = skjema.inntekt,
         refusjon = skjema.refusjon,
         aarsakInnsending = skjema.aarsakInnsending,
-        mottatt = OffsetDateTime.now(),
-        type = type
+        mottatt = OffsetDateTime.now()
     )
 
 private fun tomPerson(fnr: String): Person =

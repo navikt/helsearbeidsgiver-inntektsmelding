@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -22,21 +23,16 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
 data class LagreJournalpostIdMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    val inntektsmeldingType: InntektsmeldingType,
-    val inntektsmeldingId: UUID,
+    // TODO erstatt med v1.Inntektsmelding når mulig
+    val inntektsmeldingType: InntektsmeldingV1.Type,
     val journalpostId: String
 )
-
-// TODO erstatt med v1.Inntektsmelding.Type når mulig
-enum class InntektsmeldingType {
-    FORESPURT,
-    SELVBESTEMT
-}
 
 class LagreJournalpostIdRiver(
     private val imRepo: InntektsmeldingRepository,
@@ -53,26 +49,31 @@ class LagreJournalpostIdRiver(
             val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, json)
             val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, json)
 
-            val typeOgId = if (forespoerselId != null) {
-                InntektsmeldingType.FORESPURT to forespoerselId
+            val inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), json)
+            val vedtaksperiodeId = inntektsmelding.vedtaksperiodeId
+
+            val inntektsmeldingType = if (forespoerselId != null && vedtaksperiodeId != null) {
+                InntektsmeldingV1.Type.Forespurt(
+                    id = forespoerselId,
+                    vedtaksperiodeId = vedtaksperiodeId
+                )
             } else if (selvbestemtId != null) {
-                InntektsmeldingType.SELVBESTEMT to selvbestemtId
+                InntektsmeldingV1.Type.Selvbestemt(selvbestemtId)
             } else {
                 null
             }
 
-            if (typeOgId != null) {
+            if (inntektsmeldingType != null) {
                 LagreJournalpostIdMelding(
                     eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                     behovType = Key.BEHOV.krev(BehovType.LAGRE_JOURNALPOST_ID, BehovType.serializer(), json),
                     transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    inntektsmeldingType = typeOgId.first,
-                    inntektsmeldingId = typeOgId.second,
+                    inntektsmeldingType = inntektsmeldingType,
                     journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json)
                 )
             } else {
                 if (Key.BEHOV.lesOrNull(BehovType.serializer(), json) == BehovType.LAGRE_JOURNALPOST_ID) {
-                    "Klarte ikke lagre journalpost-ID. Melding mangler inntektsmelding-ID.".also {
+                    "Klarte ikke lagre journalpost-ID. Melding mangler inntektsmeldingstype-ID.".also {
                         logger.error(it)
                         sikkerLogger.error("$it\n${json.toPretty()}")
                     }
@@ -87,12 +88,12 @@ class LagreJournalpostIdRiver(
         sikkerLogger.info("Mottok melding:\n${json.toPretty()}")
 
         when (inntektsmeldingType) {
-            InntektsmeldingType.FORESPURT -> {
-                imRepo.oppdaterJournalpostId(inntektsmeldingId, journalpostId)
+            is InntektsmeldingV1.Type.Forespurt -> {
+                imRepo.oppdaterJournalpostId(inntektsmeldingType.id, journalpostId)
             }
 
-            InntektsmeldingType.SELVBESTEMT -> {
-                selvbestemtImRepo.oppdaterJournalpostId(inntektsmeldingId, journalpostId)
+            is InntektsmeldingV1.Type.Selvbestemt -> {
+                selvbestemtImRepo.oppdaterJournalpostId(inntektsmeldingType.id, journalpostId)
             }
         }
 
@@ -130,7 +131,7 @@ class LagreJournalpostIdRiver(
 
     override fun LagreJournalpostIdMelding.loggfelt(): Map<String, String> =
         mapOf(
-            Log.klasse(this),
+            Log.klasse(this@LagreJournalpostIdRiver),
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId)

@@ -2,15 +2,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntekt
 
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
-import no.nav.helsearbeidsgiver.felles.Fnr
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Orgnr
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -29,6 +26,8 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -82,8 +81,8 @@ class InntektLoeser(
         val json = behov.jsonMessage.toJson().parseJson().toMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
-        val fnr = Key.FNR.les(String.serializer(), json).let(::Fnr)
-        val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), json).let(::Orgnr)
+        val fnr = Key.FNR.les(Fnr.serializer(), json)
+        val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), json)
         val skjaeringstidspunkt = Key.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, json)
 
         val requestTimer = requestLatency.startTimer()

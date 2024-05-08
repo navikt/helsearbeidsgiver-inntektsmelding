@@ -3,11 +3,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerInntekt
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -39,9 +41,9 @@ class InnsendingService(
     override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.ORGNRUNDERENHET,
-        Key.INNTEKTSMELDING,
+        Key.IDENTITETSNUMMER,
         Key.ARBEIDSGIVER_ID,
-        Key.IDENTITETSNUMMER
+        Key.SKJEMA_INNTEKTSMELDING
     )
     override val dataKeys = setOf(
         Key.VIRKSOMHET,
@@ -115,13 +117,21 @@ class InnsendingService(
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val inntektsmeldingJson = Key.INNTEKTSMELDING.les(JsonElement.serializer(), melding)
+        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
         if (step1Keys.all(melding::containsKey)) {
+            val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-            val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val forespoersel = Key.FORESPOERSEL_SVAR.les(TrengerInntekt.serializer(), melding)
+            val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+            val innsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+
+            val inntektsmelding = mapInntektsmelding(
+                forespoersel = forespoersel,
+                skjema = skjema,
+                fulltnavnArbeidstaker = sykmeldt.navn,
+                virksomhetNavn = virksomhetNavn,
+                innsenderNavn = innsender.navn
+            )
 
             logger.info("InnsendingService: emitting behov PERSISTER_IM")
 
@@ -130,11 +140,7 @@ class InnsendingService(
                 Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING to inntektsmeldingJson,
-                Key.VIRKSOMHET to virksomhetNavn.toJson(),
-                Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),
-                Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer()),
-                Key.FORESPOERSEL_SVAR to forespoersel.toJson(TrengerInntekt.serializer())
+                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
             )
         }
     }

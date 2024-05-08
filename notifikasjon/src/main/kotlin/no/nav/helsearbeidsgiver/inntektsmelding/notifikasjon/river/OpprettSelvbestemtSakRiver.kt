@@ -40,7 +40,7 @@ class OpprettSelvbestemtSakRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): OpprettSelvbestemtSakMelding? =
-        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
             null
         } else {
             OpprettSelvbestemtSakMelding(
@@ -53,8 +53,8 @@ class OpprettSelvbestemtSakRiver(
 
     override fun OpprettSelvbestemtSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sakId = agNotifikasjonKlient.opprettSak(
-            linkUrl = linkUrl,
-            inntektsmeldingId = inntektsmelding.id,
+            lenke = "$linkUrl/im-dialog/kvittering/agi/${inntektsmelding.type.id}",
+            inntektsmeldingTypeId = inntektsmelding.type.id,
             orgnr = inntektsmelding.avsender.orgnr,
             sykmeldtNavn = inntektsmelding.sykmeldt.navn,
             sykmeldtFoedselsdato = inntektsmelding.sykmeldt.fnr.take(6),
@@ -64,7 +64,7 @@ class OpprettSelvbestemtSakRiver(
         return MdcUtils.withLogFields(
             Log.sakId(sakId)
         ) {
-            selvbestemtRepo.lagreSakId(inntektsmelding.id, sakId)
+            selvbestemtRepo.lagreSakId(inntektsmelding.type.id, sakId)
 
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
@@ -89,7 +89,7 @@ class OpprettSelvbestemtSakRiver(
 
         return fail.tilMelding()
             .minus(Key.FORESPOERSEL_ID)
-            .plus(Key.SELVBESTEMT_ID to inntektsmelding.id.toJson())
+            .plus(Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson())
     }
 
     override fun OpprettSelvbestemtSakMelding.loggfelt(): Map<String, String> =
@@ -98,6 +98,6 @@ class OpprettSelvbestemtSakRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(inntektsmelding.id)
+            Log.selvbestemtId(inntektsmelding.type.id)
         )
 }

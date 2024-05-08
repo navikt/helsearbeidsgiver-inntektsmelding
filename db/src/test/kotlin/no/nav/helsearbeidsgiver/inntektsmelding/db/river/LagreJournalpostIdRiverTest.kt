@@ -55,7 +55,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
             val forespoerselId = UUID.randomUUID()
 
             testRapid.sendJson(
-                Mock.innkommendeMeldingUtenImId(transaksjonId, journalpostId)
+                Mock.innkommendeMeldingUtenImTypeId(transaksjonId, journalpostId)
                     .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
             )
 
@@ -86,7 +86,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
             val selvbestemtId = UUID.randomUUID()
 
             testRapid.sendJson(
-                Mock.innkommendeMeldingUtenImId(transaksjonId, journalpostId)
+                Mock.innkommendeMeldingUtenImTypeId(transaksjonId, journalpostId)
                     .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
             )
 
@@ -119,7 +119,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
             val journalpostId = "1134250053"
             val forespoerselId = UUID.randomUUID()
 
-            val innkommendeMelding = Mock.innkommendeMeldingUtenImId(transaksjonId, journalpostId)
+            val innkommendeMelding = Mock.innkommendeMeldingUtenImTypeId(transaksjonId, journalpostId)
                 .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
 
             val forventetFail = Fail(
@@ -158,7 +158,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
             val journalpostId = "1134250053"
             val selvbestemtId = UUID.randomUUID()
 
-            val innkommendeMelding = Mock.innkommendeMeldingUtenImId(transaksjonId, journalpostId)
+            val innkommendeMelding = Mock.innkommendeMeldingUtenImTypeId(transaksjonId, journalpostId)
                 .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
 
             val forventetFail = Fail(
@@ -198,7 +198,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
             )
         ) { uoensketKeyMedVerdi ->
             testRapid.sendJson(
-                Mock.innkommendeMeldingUtenImId(UUID.randomUUID(), "4283487389")
+                Mock.innkommendeMeldingUtenImTypeId(UUID.randomUUID(), "4283487389")
                     .plus(Key.FORESPOERSEL_ID to UUID.randomUUID().toJson())
                     .plus(uoensketKeyMedVerdi)
             )
@@ -213,7 +213,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
 
         test("melding mangler både forespoerselId og selvbestemtId") {
             testRapid.sendJson(
-                Mock.innkommendeMeldingUtenImId(UUID.randomUUID(), "6837506")
+                Mock.innkommendeMeldingUtenImTypeId(UUID.randomUUID(), "6837506")
             )
 
             testRapid.inspektør.size shouldBeExactly 0
@@ -226,7 +226,7 @@ class LagreJournalpostIdRiverTest : FunSpec({
 
         test("melding med ukjent behov") {
             testRapid.sendJson(
-                Mock.innkommendeMeldingUtenImId(UUID.randomUUID(), "2490583")
+                Mock.innkommendeMeldingUtenImTypeId(UUID.randomUUID(), "2490583")
                     .plus(Key.FORESPOERSEL_ID to UUID.randomUUID().toJson())
                     .plus(Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson())
             )
@@ -250,7 +250,7 @@ private object Mock {
         utloesendeMelding = JsonNull
     )
 
-    fun innkommendeMeldingUtenImId(transaksjonId: UUID, journalpostId: String): Map<Key, JsonElement> =
+    fun innkommendeMeldingUtenImTypeId(transaksjonId: UUID, journalpostId: String): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),

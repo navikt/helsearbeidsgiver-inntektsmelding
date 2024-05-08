@@ -116,10 +116,6 @@ spec:
           {{/if}}
         {{/each}}{{/if}}
     inbound:
-      external:
-      {{#if externalHosts}}{{# each externalHosts as |item| }}
-          - host: {{ item }}
-      {{/each}}{{/if}}
       rules:
         {{#if inboundApps}}{{# each inboundApps as |app| }}
         - application: {{ app.name }}

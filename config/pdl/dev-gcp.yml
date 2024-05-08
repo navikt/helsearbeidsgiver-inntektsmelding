@@ -4,8 +4,8 @@ azure:
 ingress: https://helsearbeidsgiver-im-pdl.intern.dev.nav.no
 env:
 - name: PDL_URL
-  value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/pdl"
+  value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
 - name: PROXY_SCOPE
-  value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+  value: "api://dev-fss.pdl.pdl-api/.default"
 externalHosts:
-  - helsearbeidsgiver-proxy.dev-fss-pub.nais.io
+  - pdl-api.dev-fss-pub.nais.io

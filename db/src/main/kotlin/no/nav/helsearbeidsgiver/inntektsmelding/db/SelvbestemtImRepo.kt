@@ -35,8 +35,8 @@ class SelvbestemtImRepo(private val db: Database) {
         Metrics.dbSelvbestemtIm.recordTime(::lagreIm) {
             transaction(db) {
                 SelvbestemtInntektsmeldingEntitet.insert {
-                    it[inntektsmeldingId] = UUID.randomUUID()
-                    it[selvbestemtId] = im.id
+                    it[inntektsmeldingId] = im.id
+                    it[selvbestemtId] = im.type.id
                     it[inntektsmelding] = im
                 }
             }

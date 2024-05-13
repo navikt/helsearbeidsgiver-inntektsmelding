@@ -9,4 +9,6 @@ env:
     value: redis://helsearbeidsgiver-redis.helsearbeidsgiver.svc.cluster.local:6379/0
 apps:
   - name: helsearbeidsgiver-redis
+inboundApps:
+  - name: spinntektsmelding-frontend
 

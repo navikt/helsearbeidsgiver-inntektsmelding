@@ -67,16 +67,9 @@ class HentSelvbestemtImRiverTest : FunSpec({
 
     test("svarer med feil når inntektsmelding ikke finnes") {
         val innkommendeMelding = innkommendeMelding()
+        val forventetFail = innkommendeMelding.toFail("Fant ikke selvbestemt inntektsmelding.")
 
         every { mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId) } returns null
-
-        val forventetFail = Fail(
-            feilmelding = "Fant ikke selvbestemt inntektsmelding.",
-            event = EventName.SELVBESTEMT_IM_REQUESTED,
-            transaksjonId = innkommendeMelding.transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = innkommendeMelding.toMap().toJson()
-        )
 
         testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -93,16 +86,9 @@ class HentSelvbestemtImRiverTest : FunSpec({
 
     test("håndterer at repo feiler") {
         val innkommendeMelding = innkommendeMelding()
+        val forventetFail = innkommendeMelding.toFail("Klarte ikke hente selvbestemt inntektsmelding.")
 
         every { mockSelvbestemtImRepo.hentNyesteIm(any()) } throws RuntimeException("CAPTCHA time, baby!")
-
-        val forventetFail = Fail(
-            feilmelding = "Klarte ikke hente selvbestemt inntektsmelding.",
-            event = EventName.SELVBESTEMT_IM_REQUESTED,
-            transaksjonId = innkommendeMelding.transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = innkommendeMelding.toMap().toJson()
-        )
 
         testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -153,6 +139,15 @@ private fun HentSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
         Key.BEHOV to behovType.toJson(),
         Key.UUID to transaksjonId.toJson(),
         Key.SELVBESTEMT_ID to selvbestemtId.toJson()
+    )
+
+private fun HentSelvbestemtImMelding.toFail(feilmelding: String): Fail =
+    Fail(
+        feilmelding = feilmelding,
+        event = EventName.SELVBESTEMT_IM_REQUESTED,
+        transaksjonId = transaksjonId,
+        forespoerselId = null,
+        utloesendeMelding = toMap().toJson()
     )
 
 private val mockFail = Fail(

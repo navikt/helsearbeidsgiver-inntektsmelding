@@ -123,12 +123,14 @@ class SelvbestemtImRepoTest : FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEnt
         }
 
         test("inntektsmelding-ID må være unik") {
-            val inntektsmelding = mockInntektsmeldingV1()
+            val inntektsmeldingId = UUID.randomUUID()
+            val inntektsmelding1 = mockInntektsmeldingV1().copy(id = inntektsmeldingId)
+            val inntektsmelding2 = mockInntektsmeldingV1().copy(id = inntektsmeldingId)
 
-            selvbestemtImRepo.lagreIm(inntektsmelding)
+            selvbestemtImRepo.lagreIm(inntektsmelding1)
 
             shouldThrowExactly<ExposedSQLException> {
-                selvbestemtImRepo.lagreIm(inntektsmelding)
+                selvbestemtImRepo.lagreIm(inntektsmelding2)
             }
         }
     }

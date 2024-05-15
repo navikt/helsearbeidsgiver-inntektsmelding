@@ -23,7 +23,7 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
         runBlocking {
             opprettNySak(
                 virksomhetsnummer = orgnr,
-                merkelapp = "Inntektsmelding",
+                merkelapp = "Inntektsmelding sykepenger",
                 grupperingsid = inntektsmeldingTypeId.toString(),
                 lenke = lenke,
                 tittel = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato",

@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.ForespurtData
@@ -28,5 +29,7 @@ data class TrengerResponse(
     val behandlingsperiode: Periode?,
     val behandlingsdager: List<LocalDate>,
     val forespurtData: ForespurtData?,
-    val feilReport: FeilReport? = null
+    val feilReport: FeilReport? = null,
+    val success: JsonElement? = null,
+    val failure: JsonElement? = null
 )

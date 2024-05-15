@@ -112,7 +112,6 @@ class DistribusjonRiver(
         )
 
     private fun distribuerInntektsmelding(journalpostId: String, inntektsmelding: Inntektsmelding, selvbestemt: Boolean) {
-
         val journalfoertInntektsmelding = JournalfoertInntektsmelding(journalpostId, inntektsmelding, selvbestemt)
 
         val record = ProducerRecord<String, String>(

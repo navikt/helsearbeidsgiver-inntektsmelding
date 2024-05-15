@@ -228,7 +228,9 @@ private object Mock {
 
     val trengerDataOkMedForrigeInntektJson = ResultJson(
         success = TrengerData(
-            forespoersel = forespoersel,
+            forespoersel = forespoersel.copy(
+                forespurtData = mockForespurtDataMedForrigeInntekt()
+            ),
             fnr = forespoersel.fnr,
             orgnr = forespoersel.orgnr,
             personDato = PersonDato("Ola Normann", 1.mai, "123456"),

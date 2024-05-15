@@ -65,8 +65,8 @@ class DistribusjonRiver(
             logger.info(it)
             sikkerLogger.info("$it Innkommende melding:\n${json.toPretty()}")
         }
-
-        distribuerInntektsmelding(journalpostId, inntektsmelding)
+        val selvbestemt = json[Key.SELVBESTEMT_ID] != null
+        distribuerInntektsmelding(journalpostId, inntektsmelding, selvbestemt)
 
         "Distribuerte IM med journalpost-ID '$journalpostId'.".also {
             logger.info(it)
@@ -111,8 +111,9 @@ class DistribusjonRiver(
             Log.transaksjonId(transaksjonId)
         )
 
-    private fun distribuerInntektsmelding(journalpostId: String, inntektsmelding: Inntektsmelding) {
-        val journalfoertInntektsmelding = JournalfoertInntektsmelding(journalpostId, inntektsmelding)
+    private fun distribuerInntektsmelding(journalpostId: String, inntektsmelding: Inntektsmelding, selvbestemt: Boolean) {
+
+        val journalfoertInntektsmelding = JournalfoertInntektsmelding(journalpostId, inntektsmelding, selvbestemt)
 
         val record = ProducerRecord<String, String>(
             TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,

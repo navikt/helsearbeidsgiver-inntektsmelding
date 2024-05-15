@@ -99,6 +99,9 @@ fun mapTrengerResponse(trengerData: TrengerData): TrengerResponse {
         skjaeringstidspunkt = trengerData.skjaeringstidspunkt,
         fravaersperioder = trengerData.fravarsPerioder ?: emptyList(),
         egenmeldingsperioder = trengerData.egenmeldingsPerioder ?: emptyList(),
+        // TODO fjern !! når forespoersel ikke lenger er nullable
+        bestemmendeFravaersdag = trengerData.forespoersel!!.forslagBestemmendeFravaersdag(),
+        eksternBestemmendeFravaersdag = trengerData.forespoersel?.eksternBestemmendeFravaersdag(),
         bruttoinntekt = trengerData.bruttoinntekt,
         tidligereinntekter = trengerData.tidligereinntekter ?: emptyList(),
         behandlingsperiode = null,

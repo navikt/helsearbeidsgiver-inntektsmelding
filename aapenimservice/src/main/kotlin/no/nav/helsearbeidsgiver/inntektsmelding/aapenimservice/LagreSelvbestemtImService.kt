@@ -175,6 +175,7 @@ class LagreSelvbestemtImService(
 
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
         val inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding)
         val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
 
@@ -197,6 +198,7 @@ class LagreSelvbestemtImService(
                 rapid.publish(
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
                     Key.UUID to transaksjonId.toJson(),
+                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
                     Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmeldingJson
                 )
                     .also {

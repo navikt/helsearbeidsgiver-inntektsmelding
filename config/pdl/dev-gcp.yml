@@ -5,7 +5,7 @@ ingress: https://helsearbeidsgiver-im-pdl.intern.dev.nav.no
 env:
 - name: PDL_URL
   value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
-- name: PROXY_SCOPE
+- name: PDL_SCOPE
   value: "api://dev-fss.pdl.pdl-api/.default"
 externalHosts:
   - pdl-api.dev-fss-pub.nais.io

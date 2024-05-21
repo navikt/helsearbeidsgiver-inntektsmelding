@@ -3,8 +3,8 @@ azure:
   enabled: true
 env:
 - name: PDL_URL
-  value: "https://helsearbeidsgiver-proxy.prod-fss-pub.nais.io/pdl"
-- name: PROXY_SCOPE
-  value: "api://prod-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+  value: "https://pdl-api.prod-fss-pub.nais.io/graphql"
+- name: PDL_SCOPE
+  value: "api://prod-fss.pdl.pdl-api/.default"
 externalHosts:
-  - helsearbeidsgiver-proxy.prod-fss-pub.nais.io
+  - pdl-api.prod-fss-pub.nais.io

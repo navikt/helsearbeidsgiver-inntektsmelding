@@ -41,7 +41,7 @@ fun Route.lagreSelvbestemtImRoute(
 ) {
     val producer = LagreSelvbestemtImProducer(rapid)
 
-    post(Routes.SELVBESTEMT_INNTEKTMELDING_MED_VALGFRI_ID) {
+    post(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_VALGFRI_ID) {
         val selvbestemtIdFraPath = call.parameters["selvbestemtId"]
             ?.runCatching(UUID::fromString)
             ?.getOrNull()
@@ -49,7 +49,7 @@ fun Route.lagreSelvbestemtImRoute(
         val selvbestemtId: UUID = selvbestemtIdFraPath.orDefault(UUID.randomUUID())
 
         MdcUtils.withLogFields(
-            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTMELDING_MED_VALGFRI_ID),
+            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_VALGFRI_ID),
             Log.selvbestemtId(selvbestemtId)
         ) {
             val skjema = lesRequestOrNull()

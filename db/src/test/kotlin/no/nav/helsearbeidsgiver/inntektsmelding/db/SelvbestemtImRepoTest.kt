@@ -166,7 +166,7 @@ class SelvbestemtImRepoTest : FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEnt
             }
         }
 
-        test("kun nyeste journalpost-ID oppdateres") {
+        test("kun nyeste inntektsmelding oppdateres med journalpost-ID") {
             val selvbestemtId = UUID.randomUUID()
             val journalpostId = randomDigitString(5)
             val originalInntektsmelding = mockInntektsmeldingV1().copy(

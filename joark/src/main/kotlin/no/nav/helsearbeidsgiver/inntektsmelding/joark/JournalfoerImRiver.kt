@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.joark
 
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.DokArkivClient
 import no.nav.helsearbeidsgiver.dokarkiv.domene.Avsender
@@ -18,6 +19,8 @@ import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.felles.utils.Retriable
+import no.nav.helsearbeidsgiver.felles.utils.RetryID
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -38,16 +41,19 @@ data class JournalfoerImMelding(
 
 class JournalfoerImRiver(
     private val dokArkivClient: DokArkivClient
-) : ObjectRiver<JournalfoerImMelding>() {
+) : ObjectRiver<JournalfoerImMelding>(), Retriable {
 
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
+    private val LISTENER_ID = RetryID.JOURNALFOER
 
     override fun les(json: Map<Key, JsonElement>): JournalfoerImMelding? {
         val behovType = Key.BEHOV.lesOrNull(BehovType.serializer(), json)
+        val retry = Key.RETRY.lesOrNull(RetryID.serializer(), json)
         return if (
             setOf(Key.DATA, Key.FAIL).any(json::containsKey) ||
-            (behovType != null && behovType != BehovType.JOURNALFOER)
+            (behovType != null && behovType != BehovType.JOURNALFOER) || // TODO: kan fjernes
+            (!erRetryOgMatcherLytteren(LISTENER_ID, retry))
         ) {
             null
         } else {
@@ -120,7 +126,7 @@ class JournalfoerImRiver(
             transaksjonId = transaksjonId,
             forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
             utloesendeMelding = json.plus(
-                Key.BEHOV to BehovType.JOURNALFOER.toJson()
+                Key.RETRY to LISTENER_ID.toJson(RetryID.serializer())
             )
                 .toJson()
         )

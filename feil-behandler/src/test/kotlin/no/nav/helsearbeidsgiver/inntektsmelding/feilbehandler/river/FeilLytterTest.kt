@@ -130,15 +130,16 @@ fun lagRapidFeilmelding(behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID): 
 
 fun lagGyldigFeil(behov: BehovType): Fail {
     val uuid = UUID.randomUUID()
+    val forespoerselID = UUID.randomUUID()
     val jsonMessage = JsonMessage.newMessage(
         EventName.OPPGAVE_OPPRETT_REQUESTED.name,
         mapOf(
             Key.BEHOV.str to behov,
             Key.UUID.str to uuid,
-            Key.FORESPOERSEL_ID.str to uuid
+            Key.FORESPOERSEL_ID.str to forespoerselID
         )
     )
-    return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, uuid, UUID.randomUUID(), jsonMessage.toJson().parseJson())
+    return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, uuid, forespoerselID, jsonMessage.toJson().parseJson())
 }
 
 fun lagGyldigFeilUtenForespørselId(behov: BehovType): Fail {
@@ -147,7 +148,7 @@ fun lagGyldigFeilUtenForespørselId(behov: BehovType): Fail {
         EventName.OPPGAVE_OPPRETT_REQUESTED.name,
         mapOf(
             Key.BEHOV.str to behov,
-            Key.UUID.str to uuid,
+            Key.UUID.str to uuid
         )
     )
     return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, uuid, null, jsonMessage.toJson().parseJson())

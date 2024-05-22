@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.VarigLonnsendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.utils.utledEgenmeldinger
 import java.time.LocalDate
 
 private const val FORKLARING_ENDRING = "Forklaring for endring"
@@ -155,9 +156,13 @@ class PdfDokument(val dokument: Inntektsmelding) {
         val kolonneVenstreMaxY = y
 
         // --- Kolonnen til høyre ---------------------------------------------------
+        val egenmeldinger = utledEgenmeldinger(
+            arbeidsgiverperioder = dokument.arbeidsgiverperioder,
+            sykmeldingsperioder = dokument.fraværsperioder
+        )
         moveCursorTo(seksjonStartY) // Gjenopprett y-aksen fra tidligere
         addLabel("Egenmelding", x = KOLONNE_TO)
-        addPerioder(KOLONNE_TO, dokument.egenmeldingsperioder)
+        addPerioder(KOLONNE_TO, egenmeldinger)
         addLabel("Sykemeldingsperioder", x = KOLONNE_TO)
         addPerioder(KOLONNE_TO, dokument.fraværsperioder)
 

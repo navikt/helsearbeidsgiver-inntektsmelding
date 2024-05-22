@@ -54,10 +54,9 @@ class FeilLytterTest : FunSpec({
         handler.skalHaandteres(feil) shouldBe false
     }
 
-    test("skal ignorere feil uten forespørselId") {
-        // TODO: Kan egentlig tillate feil uten forespørselId..
-        val feil = lagGyldigFeil(BehovType.LAGRE_JOURNALPOST_ID).copy(forespoerselId = null)
-        handler.skalHaandteres(feil) shouldBe false
+    test("skal håndtere feil uten forespørselId") {
+        val feil = lagGyldigFeilUtenForespørselId(BehovType.LAGRE_JOURNALPOST_ID)
+        handler.skalHaandteres(feil) shouldBe true
     }
 
     test("Ny feil med forskjellig behov og samme id skal lagres") {
@@ -139,5 +138,17 @@ fun lagGyldigFeil(behov: BehovType): Fail {
             Key.FORESPOERSEL_ID.str to uuid
         )
     )
-    return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, UUID.randomUUID(), UUID.randomUUID(), jsonMessage.toJson().parseJson())
+    return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, uuid, UUID.randomUUID(), jsonMessage.toJson().parseJson())
+}
+
+fun lagGyldigFeilUtenForespørselId(behov: BehovType): Fail {
+    val uuid = UUID.randomUUID()
+    val jsonMessage = JsonMessage.newMessage(
+        EventName.OPPGAVE_OPPRETT_REQUESTED.name,
+        mapOf(
+            Key.BEHOV.str to behov,
+            Key.UUID.str to uuid,
+        )
+    )
+    return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, uuid, null, jsonMessage.toJson().parseJson())
 }

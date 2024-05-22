@@ -112,7 +112,7 @@ class DistribusjonRiverTest : FunSpec({
             every { mockKafkaProducer.send(any()) } returns CompletableFuture()
 
             val transaksjonId = UUID.randomUUID()
-            val forespoerselId = UUID.randomUUID()
+            val selvbestemtId = UUID.randomUUID()
             val journalfoertInntektsmelding = JournalfoertInntektsmelding(
                 journalpostId = "7983693",
                 inntektsmelding = mockInntektsmelding(),
@@ -128,7 +128,7 @@ class DistribusjonRiverTest : FunSpec({
 
             testRapid.sendJson(
                 innkommendeMelding.tilMap()
-                    .plus(Key.SELVBESTEMT_ID to forespoerselId.toJson())
+                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
                     .plus(Key.BEHOV to innkommendeBehov?.toJson())
                     .mapValuesNotNull { it }
             )
@@ -142,7 +142,7 @@ class DistribusjonRiverTest : FunSpec({
             Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalfoertInntektsmelding.journalpostId
             Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe journalfoertInntektsmelding.inntektsmelding
             Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
-            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert) shouldBe forespoerselId
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert) shouldBe selvbestemtId
 
             val forventetRecord = ProducerRecord<String, String>(
                 TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,

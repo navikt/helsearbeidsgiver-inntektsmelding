@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aapenimservice
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.date.shouldBeWithin
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -49,9 +48,8 @@ import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.OffsetDateTime
 import java.util.UUID
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 class LagreSelvbestemtImServiceTest : FunSpec({
 
@@ -90,19 +88,18 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
         testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
 
-        testRapid.sendJson(
-            mockSteg1Data(transaksjonId)
-        )
+        mockStatic(OffsetDateTime::class) {
+            every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
+
+            testRapid.sendJson(
+                mockSteg1Data(transaksjonId)
+            )
+        }
 
         testRapid.inspektør.size shouldBeExactly 3
         testRapid.message(2).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
-            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(
-                nyInntektsmelding,
-                Inntektsmelding::id,
-                Inntektsmelding::mottatt
-            )
-            it.lesInntektsmelding().mottatt.shouldBeWithin(5.seconds.toJavaDuration(), nyInntektsmelding.mottatt)
+            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
         }
 
         testRapid.sendJson(
@@ -120,12 +117,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         testRapid.message(4).also {
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), it.toMap()) shouldBe EventName.SELVBESTEMT_IM_LAGRET
             Key.UUID.lesOrNull(UuidSerializer, it.toMap()) shouldBe transaksjonId
-            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(
-                nyInntektsmelding,
-                Inntektsmelding::id,
-                Inntektsmelding::mottatt
-            )
-            it.lesInntektsmelding().mottatt.shouldBeWithin(5.seconds.toJavaDuration(), nyInntektsmelding.mottatt)
+            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
         }
 
         verify {
@@ -155,19 +147,18 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
         testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
 
-        testRapid.sendJson(
-            mockSteg1Data(transaksjonId)
-        )
+        mockStatic(OffsetDateTime::class) {
+            every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
+
+            testRapid.sendJson(
+                mockSteg1Data(transaksjonId)
+            )
+        }
 
         testRapid.inspektør.size shouldBeExactly 3
         testRapid.message(2).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
-            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(
-                endretInntektsmelding,
-                Inntektsmelding::id,
-                Inntektsmelding::mottatt
-            )
-            it.lesInntektsmelding().mottatt.shouldBeWithin(5.seconds.toJavaDuration(), endretInntektsmelding.mottatt)
+            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
         }
 
         testRapid.sendJson(
@@ -178,12 +169,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         testRapid.message(3).also {
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), it.toMap()) shouldBe EventName.SELVBESTEMT_IM_LAGRET
             Key.UUID.lesOrNull(UuidSerializer, it.toMap()) shouldBe transaksjonId
-            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(
-                endretInntektsmelding,
-                Inntektsmelding::id,
-                Inntektsmelding::mottatt
-            )
-            it.lesInntektsmelding().mottatt.shouldBeWithin(5.seconds.toJavaDuration(), endretInntektsmelding.mottatt)
+            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
         }
 
         verify {
@@ -209,19 +195,18 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
 
-        testRapid.sendJson(
-            mockSteg1Data(transaksjonId)
-        )
+        mockStatic(OffsetDateTime::class) {
+            every { OffsetDateTime.now() } returns duplikatInntektsmelding.mottatt
+
+            testRapid.sendJson(
+                mockSteg1Data(transaksjonId)
+            )
+        }
 
         testRapid.inspektør.size shouldBeExactly 3
         testRapid.message(2).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
-            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(
-                duplikatInntektsmelding,
-                Inntektsmelding::id,
-                Inntektsmelding::mottatt
-            )
-            it.lesInntektsmelding().mottatt.shouldBeWithin(5.seconds.toJavaDuration(), duplikatInntektsmelding.mottatt)
+            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(duplikatInntektsmelding, Inntektsmelding::id)
         }
 
         testRapid.sendJson(
@@ -287,32 +272,28 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             ).tilMelding()
         )
 
-        testRapid.sendJson(
-            Fail(
-                feilmelding = "Denne personen jobber i PST.",
-                event = EventName.SELVBESTEMT_IM_MOTTATT,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding = JsonObject(
-                    mapOf(
-                        Key.BEHOV.toString() to BehovType.FULLT_NAVN.toJson()
+        mockStatic(OffsetDateTime::class) {
+            every { OffsetDateTime.now() } returns inntektsmeldingMedDefaults.mottatt
+
+            testRapid.sendJson(
+                Fail(
+                    feilmelding = "Denne personen jobber i PST.",
+                    event = EventName.SELVBESTEMT_IM_MOTTATT,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = null,
+                    utloesendeMelding = JsonObject(
+                        mapOf(
+                            Key.BEHOV.toString() to BehovType.FULLT_NAVN.toJson()
+                        )
                     )
-                )
-            ).tilMelding()
-        )
+                ).tilMelding()
+            )
+        }
 
         testRapid.inspektør.size shouldBeExactly 3
         testRapid.message(2).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
-            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(
-                inntektsmeldingMedDefaults,
-                Inntektsmelding::id,
-                Inntektsmelding::mottatt
-            )
-            it.lesInntektsmelding().mottatt.shouldBeWithin(
-                5.seconds.toJavaDuration(),
-                inntektsmeldingMedDefaults.mottatt
-            )
+            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
         }
 
         testRapid.sendJson(
@@ -323,15 +304,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         testRapid.message(3).also {
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), it.toMap()) shouldBe EventName.SELVBESTEMT_IM_LAGRET
             Key.UUID.lesOrNull(UuidSerializer, it.toMap()) shouldBe transaksjonId
-            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(
-                inntektsmeldingMedDefaults,
-                Inntektsmelding::id,
-                Inntektsmelding::mottatt
-            )
-            it.lesInntektsmelding().mottatt.shouldBeWithin(
-                5.seconds.toJavaDuration(),
-                inntektsmeldingMedDefaults.mottatt
-            )
+            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
         }
 
         verify {
@@ -369,9 +342,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
 
-        testRapid.sendJson(
-            mockSteg1Data(transaksjonId)
-        )
+        mockStatic(OffsetDateTime::class) {
+            every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
+
+            testRapid.sendJson(
+                mockSteg1Data(transaksjonId)
+            )
+        }
 
         testRapid.sendJson(
             Fail(
@@ -390,12 +367,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         testRapid.inspektør.size shouldBeExactly 3
         testRapid.message(2).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
-            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(
-                endretInntektsmelding,
-                Inntektsmelding::id,
-                Inntektsmelding::mottatt
-            )
-            it.lesInntektsmelding().mottatt.shouldBeWithin(5.seconds.toJavaDuration(), endretInntektsmelding.mottatt)
+            it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
         }
 
         verify {

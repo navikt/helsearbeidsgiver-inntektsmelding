@@ -113,7 +113,7 @@ class OpprettOppgaveLoeser(
                     lenke = "$linkUrl/im-dialog/$forespoerselId",
                     tekst = "Send inn inntektsmelding",
                     virksomhetsnummer = orgnr,
-                    merkelapp = "Inntektsmelding",
+                    merkelapp = "Inntektsmelding sykepenger",
                     tidspunkt = null,
                     grupperingsid = forespoerselId.toString(),
                     varslingTittel = "Nav trenger inntektsmelding",

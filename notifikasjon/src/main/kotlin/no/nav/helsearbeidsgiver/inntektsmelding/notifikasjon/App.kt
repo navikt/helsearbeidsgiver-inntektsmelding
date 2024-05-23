@@ -67,7 +67,7 @@ fun RapidsConnection.createNotifikasjonRivers(
         OpprettSakLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
         logger.info("Starter ${SakFerdigLoeser::class.simpleName}...")
-        SakFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
+        SakFerdigLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
         logger.info("Starter ${OpprettOppgaveLoeser::class.simpleName}...")
         OpprettOppgaveLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)

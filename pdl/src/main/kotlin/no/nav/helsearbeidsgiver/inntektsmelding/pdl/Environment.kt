@@ -7,7 +7,7 @@ fun setUpEnvironment(): Environment {
     return Environment(
         pdlUrl = getEnvVar("PDL_URL"),
         oauth2Environment = OAuth2Environment(
-            scope = getEnvVar("PROXY_SCOPE"),
+            scope = getEnvVar("PDL_SCOPE"),
             wellKnownUrl = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
             tokenEndpointUrl = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
             clientId = getEnvVar("AZURE_APP_CLIENT_ID"),

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aapenimservice
 
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -13,8 +12,10 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Person
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
@@ -57,11 +58,11 @@ class LagreSelvbestemtImService(
         Key.SAK_ID
     )
 
-    private val step1Keys = setOf(
+    private val steg1Keys = setOf(
         Key.VIRKSOMHET,
         Key.PERSONER
     )
-    private val step2Keys = setOf(
+    private val steg2Keys = setOf(
         Key.SELVBESTEMT_INNTEKTSMELDING,
         Key.ER_DUPLIKAT_IM
     )
@@ -115,7 +116,7 @@ class LagreSelvbestemtImService(
             Log.transaksjonId(transaksjonId),
             Log.selvbestemtId(selvbestemtId)
         ) {
-            if (step2Keys.all(melding::containsKey)) {
+            if (steg2Keys.all(melding::containsKey)) {
                 val inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding)
 
                 when (inntektsmelding.aarsakInnsending) {
@@ -135,11 +136,11 @@ class LagreSelvbestemtImService(
                             }
                     }
                 }
-            } else if (step1Keys.all(melding::containsKey)) {
+            } else if (steg1Keys.all(melding::containsKey)) {
                 val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
                 val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(String.serializer(), melding)
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-                val personer = Key.PERSONER.les(personerMapSerializer, melding)
+                val personer = Key.PERSONER.les(personMapSerializer, melding)
 
                 val sykmeldt = skjema.sykmeldtFnr.let {
                     personer[it] ?: tomPerson(it)
@@ -174,6 +175,7 @@ class LagreSelvbestemtImService(
 
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
         val inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding)
         val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
 
@@ -189,13 +191,15 @@ class LagreSelvbestemtImService(
             if (clientId == null) {
                 sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
             } else {
-                redisStore.set(RedisKey.of(clientId), inntektsmeldingJson.toString())
+                val resultJson = ResultJson(success = inntektsmeldingJson).toJsonStr()
+                redisStore.set(RedisKey.of(clientId), resultJson)
             }
 
             if (!erDuplikat) {
                 rapid.publish(
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
                     Key.UUID to transaksjonId.toJson(),
+                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
                     Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmeldingJson
                 )
                     .also {
@@ -242,17 +246,12 @@ class LagreSelvbestemtImService(
                 val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding.toMap())
                 sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. selvbestemtId=$selvbestemtId")
             } else {
-                redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+                val resultJson = ResultJson(failure = fail.feilmelding.toJson()).toJsonStr()
+                redisStore.set(RedisKey.of(clientId), resultJson)
             }
         }
     }
 }
-
-private val personerMapSerializer =
-    MapSerializer(
-        String.serializer(),
-        Person.serializer()
-    )
 
 fun tilInntektsmelding(
     selvbestemtId: UUID,

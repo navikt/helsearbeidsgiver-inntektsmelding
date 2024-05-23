@@ -5,7 +5,7 @@ ingress: https://helsearbeidsgiver-im-aareg.intern.dev.nav.no
 env:
 - name: AAREG_URL
   value: "https://aareg-services.dev-fss-pub.nais.io/api/v1/arbeidstaker/arbeidsforhold?sporingsinformasjon=false&historikk=false"
-- name: PROXY_SCOPE
+- name: AAREG_SCOPE
   value: "api://dev-fss.arbeidsforhold.aareg-services-nais/.default"
 externalHosts:
   - aareg-services.dev-fss-pub.nais.io

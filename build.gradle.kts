@@ -4,7 +4,6 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
-    id("maven-publish")
     id("java")
     id("jacoco")
     id("jacoco-report-aggregation")
@@ -64,7 +63,6 @@ subprojects {
         "org.jetbrains.kotlin.jvm",
         "org.jetbrains.kotlin.plugin.serialization",
         "org.jmailen.kotlinter",
-        "maven-publish",
         "java",
         "jacoco"
     )

@@ -25,7 +25,6 @@ import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -55,7 +54,7 @@ class TrengerRouteKtTest : ApiTest() {
         mockTilgang(Tilgang.HAR_TILGANG)
 
         coEvery {
-            anyConstructed<RedisPoller>().getString(any(), any(), any())
+            mockRedisPoller.getString(any(), any(), any())
         } returns Mock.trengerDataOk.toJsonStr(TrengerData.serializer())
 
         val expectedJson = Mock.trengerResponseJson()
@@ -73,7 +72,7 @@ class TrengerRouteKtTest : ApiTest() {
         mockTilgang(Tilgang.HAR_TILGANG)
 
         coEvery {
-            anyConstructed<RedisPoller>().getString(any(), any(), any())
+            mockRedisPoller.getString(any(), any(), any())
         } returns Mock.trengerDataOkMedForrigeInntekt.toJsonStr(TrengerData.serializer())
 
         val expectedJson = Mock.trengerBareInntektResponseJson()
@@ -118,7 +117,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         every { anyConstructed<TilgangProducer>().publishForespoerselId(any(), any()) } returns mockTilgangClientId
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockTilgangClientId) } returns TilgangData(
+        coEvery { mockRedisPoller.hent(mockTilgangClientId) } returns TilgangData(
             feil = FeilReport(
                 feil = mutableListOf(
                     Feilmelding("Noe er riv ruskende galt!")
@@ -133,7 +132,7 @@ class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere Internal server error hvis Redis timer ut`() = testApi {
         coEvery {
-            anyConstructed<RedisPoller>().getString(any(), any(), any())
+            mockRedisPoller.getString(any(), any(), any())
         } throws RedisPollerTimeoutException(UUID.randomUUID())
         val response = post(PATH, Mock.request, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.InternalServerError, response.status)

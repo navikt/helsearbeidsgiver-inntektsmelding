@@ -65,9 +65,10 @@ fun startServer(env: Map<String, String> = System.getenv()) {
     rapid.start()
 }
 
-fun Application.apiModule(rapid: RapidsConnection) {
-    val redisPoller = RedisPoller()
-
+fun Application.apiModule(
+    rapid: RapidsConnection,
+    redisPoller: RedisPoller = RedisPoller()
+) {
     val tilgangskontroll = Tilgangskontroll(
         TilgangProducer(rapid),
         LocalCache(60.minutes, 1000),

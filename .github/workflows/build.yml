@@ -146,8 +146,6 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    concurrency:
-      group: deploy-dev
     permissions:
       id-token: write
     needs: [generate_vars, build]

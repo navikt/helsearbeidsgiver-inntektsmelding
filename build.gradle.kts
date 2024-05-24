@@ -4,7 +4,6 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
-    id("maven-publish")
     id("java")
     id("jacoco")
     id("jacoco-report-aggregation")
@@ -44,8 +43,6 @@ allprojects {
         val githubPassword: String by project
 
         mavenCentral()
-        maven("https://packages.confluent.io/maven/")
-        maven("https://oss.sonatype.org")
         maven {
             setUrl("https://maven.pkg.github.com/navikt/*")
             credentials {
@@ -64,7 +61,6 @@ subprojects {
         "org.jetbrains.kotlin.jvm",
         "org.jetbrains.kotlin.plugin.serialization",
         "org.jmailen.kotlinter",
-        "maven-publish",
         "java",
         "jacoco"
     )

@@ -21,6 +21,8 @@ data class TrengerResponse(
     val skjaeringstidspunkt: LocalDate?,
     val fravaersperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
+    val bestemmendeFravaersdag: LocalDate,
+    val eksternBestemmendeFravaersdag: LocalDate?,
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<InntektPerMaaned>,
     val behandlingsperiode: Periode?,

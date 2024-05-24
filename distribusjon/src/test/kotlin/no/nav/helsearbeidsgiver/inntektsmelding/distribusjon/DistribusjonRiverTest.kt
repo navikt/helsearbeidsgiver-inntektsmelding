@@ -4,6 +4,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -18,6 +20,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.JournalfoertIn
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -27,6 +30,7 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.distribusjon.Mock.toMap
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -81,7 +85,8 @@ class DistribusjonRiverTest : FunSpec({
                 TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
                 JournalfoertInntektsmelding(
                     journalpostId = innkommendeMelding.journalpostId,
-                    inntektsmelding = innkommendeMelding.inntektsmelding
+                    inntektsmelding = innkommendeMelding.inntektsmelding,
+                    selvbestemt = false
                 ).toJsonStr(JournalfoertInntektsmelding.serializer())
             )
 
@@ -91,6 +96,59 @@ class DistribusjonRiverTest : FunSpec({
         }
     }
 
+    context("distribuerer selvbestemt inntektsmelding på kafka topic") {
+        withData(
+            mapOf(
+                "for vanlig melding" to null,
+                "for retry-melding" to BehovType.DISTRIBUER_IM
+            )
+        ) { innkommendeBehov ->
+
+            every { mockKafkaProducer.send(any()) } returns CompletableFuture()
+
+            val transaksjonId = UUID.randomUUID()
+            val selvbestemtId = UUID.randomUUID()
+            val journalfoertInntektsmelding = JournalfoertInntektsmelding(
+                journalpostId = "7983693",
+                inntektsmelding = mockInntektsmelding(),
+                selvbestemt = true
+            )
+
+            val innkommendeMelding = Melding(
+                eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
+                transaksjonId = transaksjonId,
+                journalpostId = journalfoertInntektsmelding.journalpostId,
+                inntektsmelding = journalfoertInntektsmelding.inntektsmelding
+            )
+
+            testRapid.sendJson(
+                innkommendeMelding.toMap()
+                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
+                    .plus(Key.BEHOV to innkommendeBehov?.toJson())
+                    .mapValuesNotNull { it }
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            val publisert = testRapid.firstMessage().toMap()
+
+            Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INNTEKTSMELDING_DISTRIBUERT
+            Key.UUID.lesOrNull(UuidSerializer, publisert) shouldBe transaksjonId
+            Key.JOURNALPOST_ID.lesOrNull(String.serializer(), publisert) shouldBe journalfoertInntektsmelding.journalpostId
+            Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert) shouldBe journalfoertInntektsmelding.inntektsmelding
+            Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, publisert).shouldBeNull()
+            Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, publisert) shouldBe selvbestemtId
+
+            val forventetRecord = ProducerRecord<String, String>(
+                TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
+                journalfoertInntektsmelding.toJsonStr(JournalfoertInntektsmelding.serializer())
+            )
+
+            verifySequence {
+                mockKafkaProducer.send(forventetRecord)
+            }
+        }
+    }
     test("håndterer når producer feiler") {
         every { mockKafkaProducer.send(any()) } throws RuntimeException("feil og feil, fru blom")
 

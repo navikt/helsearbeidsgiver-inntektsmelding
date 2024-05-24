@@ -45,10 +45,10 @@ fun Route.aktiveOrgnrRoute(
                 }
             } catch (_: RedisPollerTimeoutException) {
                 logger.info("Fikk timeout mot redis ved henting av aktive orgnr")
-                respondInternalServerError(ResultJson(failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson()), ResultJson.serializer())
+                respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
             } catch (e: Exception) {
                 sikkerLogger.error("Feil ved henting av aktive orgnr", e)
-                respondInternalServerError(ResultJson(failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson()), ResultJson.serializer())
+                respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
             }
         }
     }

@@ -5,15 +5,12 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.FeilReport
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangData
+import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
@@ -23,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -105,13 +101,11 @@ class TilgangOrgService(
                 Log.transaksjonId(transaksjonId)
             ) {
                 val tilgang = Key.TILGANG.les(Tilgang.serializer(), melding)
-                val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
 
-                val tilgangJson = TilgangData(
-                    tilgang = tilgang,
-                    feil = feil?.fromJson(FeilReport.serializer())
+                val tilgangJson = TilgangResultat(
+                    tilgang = tilgang
                 )
-                    .toJson(TilgangData.serializer())
+                    .toJson(TilgangResultat.serializer())
 
                 RedisKey.of(clientId).write(tilgangJson)
                 sikkerLogger.info("$event fullført.")
@@ -120,20 +114,6 @@ class TilgangOrgService(
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
-
-        val feilReport = if (utloesendeBehov == BehovType.TILGANGSKONTROLL) {
-            val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, Key.TILGANG)
-
-            sikkerLogger.error("Returnerer feilmelding: '${feilmelding.melding}'")
-
-            FeilReport(
-                mutableListOf(feilmelding)
-            )
-        } else {
-            FeilReport()
-        }
-
         val clientId = RedisKey.of(fail.transaksjonId, event)
             .read()
             ?.let(UUID::fromString)
@@ -141,12 +121,13 @@ class TilgangOrgService(
         if (clientId == null) {
             sikkerLogger.error("$event forsøkt terminert, kunne ikke finne ${fail.transaksjonId} i redis!")
         } else {
-            val tilgangJson = TilgangData(
-                feil = feilReport
+            val tilgangResultat = TilgangResultat(
+                feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
             )
-                .toJson(TilgangData.serializer())
 
-            RedisKey.of(clientId).write(tilgangJson)
+            sikkerLogger.error("Returnerer feilmelding: '${tilgangResultat.feilmelding}'")
+
+            RedisKey.of(clientId).write(tilgangResultat.toJson(TilgangResultat.serializer()))
 
             MdcUtils.withLogFields(
                 Log.klasse(this),

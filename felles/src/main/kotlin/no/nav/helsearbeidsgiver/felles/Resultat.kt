@@ -9,10 +9,10 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import java.time.LocalDate
 
 @Serializable
-data class TilgangData(
+data class TilgangResultat(
     val tilgang: Tilgang? = null,
     // TODO denne kan sendes til frontend når det støttes der
-    val feil: FeilReport? = null
+    val feilmelding: String? = null
 )
 
 @Serializable

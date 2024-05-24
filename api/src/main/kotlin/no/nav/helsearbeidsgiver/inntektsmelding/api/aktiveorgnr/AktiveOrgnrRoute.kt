@@ -9,6 +9,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
@@ -36,9 +37,10 @@ fun Route.aktiveOrgnrRoute(
 
                 val resultatJson = redis.hent(clientId).fromJson(ResultJson.serializer())
 
-                val resultat = resultatJson.success?.fromJson(AktiveOrgnrResponse.serializer())
+                val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
                 if (resultat != null) {
-                    call.respond(HttpStatusCode.Created, resultat.toJson(AktiveOrgnrResponse.serializer()))
+                    val response = resultat.toResponse()
+                    call.respond(HttpStatusCode.Created, response.toJson(AktiveOrgnrResponse.serializer()))
                 } else {
                     val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
                     respondInternalServerError(feilmelding, String.serializer())
@@ -53,3 +55,14 @@ fun Route.aktiveOrgnrRoute(
         }
     }
 }
+
+private fun AktiveArbeidsgivere.toResponse(): AktiveOrgnrResponse =
+    AktiveOrgnrResponse(
+        fulltNavn = fulltNavn,
+        underenheter = underenheter.map {
+            GyldigUnderenhet(
+                orgnrUnderenhet = it.orgnrUnderenhet,
+                virksomhetsnavn = it.virksomhetsnavn
+            )
+        }
+    )

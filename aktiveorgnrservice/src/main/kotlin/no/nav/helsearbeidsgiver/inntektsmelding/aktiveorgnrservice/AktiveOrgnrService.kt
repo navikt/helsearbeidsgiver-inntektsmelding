@@ -1,10 +1,10 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
 
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -154,17 +154,17 @@ class AktiveOrgnrService(
         if (clientId != null) {
             val gyldigeUnderenheter =
                 virksomheter.map {
-                    GyldigUnderenhet(
+                    AktiveArbeidsgivere.Arbeidsgiver(
                         orgnrUnderenhet = it.key,
                         virksomhetsnavn = it.value
                     )
                 }
 
             val gyldigResponse = ResultJson(
-                success = AktiveOrgnrResponse(
+                success = AktiveArbeidsgivere(
                     fulltNavn = fulltNavn.navn,
                     underenheter = gyldigeUnderenheter
-                ).toJson(AktiveOrgnrResponse.serializer())
+                ).toJson(AktiveArbeidsgivere.serializer())
             )
                 .toJson(ResultJson.serializer())
 
@@ -233,15 +233,3 @@ class AktiveOrgnrService(
         redisStore.set(this, json.toString())
     }
 }
-
-@Serializable
-data class AktiveOrgnrResponse(
-    val fulltNavn: String? = null,
-    val underenheter: List<GyldigUnderenhet>
-)
-
-@Serializable
-data class GyldigUnderenhet(
-    val orgnrUnderenhet: String,
-    val virksomhetsnavn: String
-)

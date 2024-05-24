@@ -8,10 +8,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.FeilReport
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
@@ -160,10 +159,15 @@ class AktiveOrgnrService(
                         virksomhetsnavn = it.value
                     )
                 }
-            val gyldigResponse = AktiveOrgnrResponse(
-                fulltNavn = fulltNavn.navn,
-                underenheter = gyldigeUnderenheter
-            ).toJson(AktiveOrgnrResponse.serializer())
+
+            val gyldigResponse = ResultJson(
+                success = AktiveOrgnrResponse(
+                    fulltNavn = fulltNavn.navn,
+                    underenheter = gyldigeUnderenheter
+                ).toJson(AktiveOrgnrResponse.serializer())
+            )
+                .toJson(ResultJson.serializer())
+
             RedisKey.of(clientId).write(gyldigResponse)
         } else {
             MdcUtils.withLogFields(
@@ -185,14 +189,9 @@ class AktiveOrgnrService(
             ?.let(UUID::fromString)
 
         if (clientId != null) {
-            val feilResponse = AktiveOrgnrResponse(
-                underenheter = emptyList(),
-                feilReport = FeilReport(
-                    feil = mutableListOf(
-                        Feilmelding(melding = fail.feilmelding)
-                    )
-                )
-            ).toJson(AktiveOrgnrResponse.serializer())
+            val feilResponse = ResultJson(
+                failure = fail.feilmelding.toJson()
+            ).toJson(ResultJson.serializer())
 
             RedisKey.of(clientId).write(feilResponse)
         }
@@ -238,8 +237,7 @@ class AktiveOrgnrService(
 @Serializable
 data class AktiveOrgnrResponse(
     val fulltNavn: String? = null,
-    val underenheter: List<GyldigUnderenhet>,
-    val feilReport: FeilReport? = null
+    val underenheter: List<GyldigUnderenhet>
 )
 
 @Serializable

@@ -17,8 +17,7 @@ data class TilgangData(
 
 @Serializable
 data class TrengerData(
-    // TODO fjern nullable og default, kreves kun i overgangsperiode
-    val forespoersel: Forespoersel? = null,
+    val forespoersel: Forespoersel,
     val fnr: String? = null,
     val orgnr: String? = null,
     val personDato: PersonDato? = null,

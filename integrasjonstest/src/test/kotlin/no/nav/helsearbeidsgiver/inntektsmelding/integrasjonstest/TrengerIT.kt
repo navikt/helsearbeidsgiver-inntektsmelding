@@ -1,11 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -79,7 +81,13 @@ class TrengerIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        val trengerData = redisStore.get(RedisKey.of(Mock.clientId))?.fromJson(TrengerData.serializer())
+        val resultJson = redisStore.get(RedisKey.of(Mock.clientId))
+            ?.fromJson(ResultJson.serializer())
+            .shouldNotBeNull()
+
+        resultJson.failure.shouldBeNull()
+
+        val trengerData = resultJson.success.shouldNotBeNull().fromJson(TrengerData.serializer())
 
         trengerData.shouldNotBeNull().apply {
             forespoersel.shouldNotBeNull()

@@ -11,7 +11,6 @@ import java.time.LocalDate
 @Serializable
 data class TilgangResultat(
     val tilgang: Tilgang? = null,
-    // TODO denne kan sendes til frontend når det støttes der
     val feilmelding: String? = null
 )
 

@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Feilmelding(
     val melding: String,
+    // TODO fjern når frontend ikke lenger bruker
     val status: Int? = null,
     val datafelt: Key? = null
 )
@@ -12,7 +13,4 @@ data class Feilmelding(
 @Serializable
 data class FeilReport(
     val feil: MutableList<Feilmelding> = mutableListOf()
-) {
-    fun status(): Int =
-        feil.mapNotNull { it.status }.find { it < 0 } ?: 0
-}
+)

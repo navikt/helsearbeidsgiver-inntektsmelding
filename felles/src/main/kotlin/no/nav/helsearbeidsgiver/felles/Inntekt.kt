@@ -19,7 +19,7 @@ data class InntektPerMaaned(
 data class Inntekt(
     val maanedOversikt: List<InntektPerMaaned>
 ) {
-    fun total(): Double =
+    private fun total(): Double =
         maanedOversikt.mapNotNull { it.inntekt }
             .sumMoney()
 

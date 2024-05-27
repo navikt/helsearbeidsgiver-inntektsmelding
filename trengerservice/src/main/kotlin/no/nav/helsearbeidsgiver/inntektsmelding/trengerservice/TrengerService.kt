@@ -5,14 +5,14 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Forespoersel
+import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
-import no.nav.helsearbeidsgiver.felles.TrengerData
+import no.nav.helsearbeidsgiver.felles.json.feilMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -140,26 +140,19 @@ class TrengerService(
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
             val inntekt = melding[Key.INNTEKT].toString().takeIf { it != "\"$UNDEFINED_FELT\"" }?.fromJson(Inntekt.serializer())
 
-            val feilReport = redisStore.get(RedisKey.of(transaksjonId, Feilmelding("")))?.fromJson(FeilReport.serializer())
+            val feil = redisStore.get(RedisKey.of(transaksjonId, Feilmelding("")))?.fromJson(feilMapSerializer)
 
             val resultJson =
                 ResultJson(
-                    success = TrengerData(
+                    success = HentForespoerselResultat(
+                        sykmeldtNavn = sykmeldt.navn,
+                        avsenderNavn = arbeidsgiver.navn,
+                        orgNavn = virksomhetNavn,
+                        inntekt = inntekt,
                         forespoersel = foresporselSvar,
-                        fnr = foresporselSvar.fnr,
-                        orgnr = foresporselSvar.orgnr,
-                        personDato = sykmeldt,
-                        arbeidsgiver = arbeidsgiver,
-                        virksomhetNavn = virksomhetNavn,
-                        skjaeringstidspunkt = foresporselSvar.eksternBestemmendeFravaersdag(),
-                        fravarsPerioder = foresporselSvar.sykmeldingsperioder,
-                        egenmeldingsPerioder = foresporselSvar.egenmeldingsperioder,
-                        forespurtData = foresporselSvar.forespurtData,
-                        bruttoinntekt = inntekt?.gjennomsnitt(),
-                        tidligereinntekter = inntekt?.maanedOversikt,
-                        feilReport = feilReport
+                        feil = feil.orEmpty()
                     )
-                        .toJson(TrengerData.serializer())
+                        .toJson(HentForespoerselResultat.serializer())
                 )
                     .toJsonStr(ResultJson.serializer())
 
@@ -224,11 +217,11 @@ class TrengerService(
 
         if (datafeil.isNotEmpty()) {
             val feilKey = RedisKey.of(fail.transaksjonId, Feilmelding(""))
-            val feilReport = redisStore.get(feilKey)?.fromJson(FeilReport.serializer()) ?: FeilReport()
-            feilReport.feil.addAll(
-                datafeil.map { Feilmelding(it.feilmelding, datafelt = it.key) }
-            )
-            redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
+            val gamleFeil = redisStore.get(feilKey)?.fromJson(feilMapSerializer)
+
+            val alleFeil = gamleFeil.orEmpty() + datafeil.associate { it.key to it.feilmelding }
+
+            redisStore.set(feilKey, alleFeil.toJsonStr(feilMapSerializer))
         }
 
         datafeil.onEach {

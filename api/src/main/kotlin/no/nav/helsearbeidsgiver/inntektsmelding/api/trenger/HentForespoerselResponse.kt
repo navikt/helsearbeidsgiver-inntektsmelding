@@ -13,12 +13,13 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import java.time.LocalDate
 
 @Serializable
-data class TrengerResponse(
+data class HentForespoerselResponse(
     val navn: String,
     val orgNavn: String,
     val innsenderNavn: String,
     val identitetsnummer: String,
     val orgnrUnderenhet: String,
+    // TODO fjern når frontend støtter det
     val skjaeringstidspunkt: LocalDate?,
     val fravaersperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
@@ -26,7 +27,9 @@ data class TrengerResponse(
     val eksternBestemmendeFravaersdag: LocalDate?,
     val bruttoinntekt: Double?,
     val tidligereinntekter: List<InntektPerMaaned>,
+    // TODO fjern når frontend støtter det
     val behandlingsperiode: Periode?,
+    // TODO fjern når frontend støtter det
     val behandlingsdager: List<LocalDate>,
     val forespurtData: ForespurtData?,
     val feilReport: FeilReport? = null,

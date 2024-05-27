@@ -10,9 +10,8 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Feilmelding
-import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.ResultJson
-import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerJsonParseException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -33,7 +32,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import java.time.LocalDate
 
 fun Route.trengerRoute(
     rapid: RapidsConnection,
@@ -50,7 +48,7 @@ fun Route.trengerRoute(
         post {
             val requestTimer = requestLatency.startTimer()
             runCatching {
-                receive(TrengerRequest.serializer())
+                receive(HentForespoerselRequest.serializer())
             }
                 .onSuccess { request ->
                     logger.info("Henter data for uuid: ${request.uuid}")
@@ -61,25 +59,20 @@ fun Route.trengerRoute(
 
                         val clientId = trengerProducer.publish(request, arbeidsgiverFnr)
 
-                        val resultat = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+                        val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
 
-                        sikkerLogger.info("Fikk resultat: $resultat")
+                        sikkerLogger.info("Hentet forespørsel: $resultatJson")
 
-                        val data = resultat.success?.fromJson(TrengerData.serializer())
-                        val trengerResponse = if (data != null) {
-                            mapTrengerResponse(data)
+                        val resultat = resultatJson.success?.fromJson(HentForespoerselResultat.serializer())
+                        if (resultat != null) {
+                            respond(HttpStatusCode.Created, resultat.toResponse(), HentForespoerselResponse.serializer())
                         } else {
-                            val feilmelding = resultat.failure?.fromJson(String.serializer()) ?: "Teknisk feil, prøv igjen senere."
-                            feilTrengerResponse(feilmelding)
+                            val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: "Teknisk feil, prøv igjen senere."
+                            val response = ResultJson(
+                                failure = feilmelding.toJson()
+                            )
+                            respond(HttpStatusCode.ServiceUnavailable, response, ResultJson.serializer())
                         }
-
-                        val status = if (trengerResponse.feilReport != null && trengerResponse.feilReport.status() < 0) {
-                            HttpStatusCode.ServiceUnavailable
-                        } else {
-                            HttpStatusCode.Created
-                        }
-
-                        respond(status, trengerResponse, TrengerResponse.serializer())
                     } catch (e: ManglerAltinnRettigheterException) {
                         val response = ResultJson(
                             failure = "Du har ikke rettigheter for organisasjon.".toJson()
@@ -107,7 +100,7 @@ fun Route.trengerRoute(
                         failure = ValidationResponse(
                             listOf(
                                 ValidationError(
-                                    property = TrengerRequest::uuid.name,
+                                    property = HentForespoerselRequest::uuid.name,
                                     error = it.message.orEmpty(),
                                     value = "<ukjent>"
                                 )
@@ -121,56 +114,39 @@ fun Route.trengerRoute(
     }
 }
 
-private fun mapTrengerResponse(trengerData: TrengerData): TrengerResponse {
-    val response = TrengerResponse(
-        navn = trengerData.personDato?.navn ?: "",
-        innsenderNavn = trengerData.arbeidsgiver?.navn ?: "",
-        orgNavn = trengerData.virksomhetNavn ?: "",
-        identitetsnummer = trengerData.forespoersel.fnr,
-        orgnrUnderenhet = trengerData.forespoersel.orgnr,
-        skjaeringstidspunkt = trengerData.forespoersel.eksternBestemmendeFravaersdag(),
-        fravaersperioder = trengerData.forespoersel.sykmeldingsperioder,
-        egenmeldingsperioder = trengerData.forespoersel.egenmeldingsperioder,
-        bestemmendeFravaersdag = trengerData.forespoersel.forslagBestemmendeFravaersdag(),
-        eksternBestemmendeFravaersdag = trengerData.forespoersel.eksternBestemmendeFravaersdag(),
-        bruttoinntekt = trengerData.bruttoinntekt,
-        tidligereinntekter = trengerData.tidligereinntekter ?: emptyList(),
+private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse {
+    val response = HentForespoerselResponse(
+        navn = sykmeldtNavn,
+        innsenderNavn = avsenderNavn,
+        orgNavn = orgNavn,
+        identitetsnummer = forespoersel.fnr,
+        orgnrUnderenhet = forespoersel.orgnr,
+        skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
+        fravaersperioder = forespoersel.sykmeldingsperioder,
+        egenmeldingsperioder = forespoersel.egenmeldingsperioder,
+        bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),
+        eksternBestemmendeFravaersdag = forespoersel.eksternBestemmendeFravaersdag(),
+        bruttoinntekt = inntekt?.gjennomsnitt(),
+        tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
         behandlingsperiode = null,
         behandlingsdager = emptyList(),
-        forespurtData = trengerData.forespoersel.forespurtData,
-        feilReport = trengerData.feilReport
-    )
-
-    return response.copy(
-        success = response.toJson(TrengerResponse.serializer())
-    )
-}
-
-private fun feilTrengerResponse(feilmelding: String): TrengerResponse {
-    val response = TrengerResponse(
-        navn = "",
-        innsenderNavn = "",
-        orgNavn = "",
-        identitetsnummer = "",
-        orgnrUnderenhet = "",
-        skjaeringstidspunkt = null,
-        fravaersperioder = emptyList(),
-        egenmeldingsperioder = emptyList(),
-        bestemmendeFravaersdag = LocalDate.of(0, 1, 1),
-        eksternBestemmendeFravaersdag = null,
-        bruttoinntekt = null,
-        tidligereinntekter = emptyList(),
-        behandlingsperiode = null,
-        behandlingsdager = emptyList(),
-        forespurtData = null,
-        feilReport = FeilReport(
-            mutableListOf(
-                Feilmelding(feilmelding, -1, datafelt = Key.FORESPOERSEL_SVAR)
+        forespurtData = forespoersel.forespurtData,
+        feilReport = if (feil.isEmpty()) {
+            null
+        } else {
+            FeilReport(
+                feil = feil.map {
+                    Feilmelding(
+                        melding = it.value,
+                        status = null,
+                        datafelt = it.key
+                    )
+                }.toMutableList()
             )
-        )
+        }
     )
 
     return response.copy(
-        failure = response.toJson(TrengerResponse.serializer())
+        success = response.toJson(HentForespoerselResponse.serializer())
     )
 }

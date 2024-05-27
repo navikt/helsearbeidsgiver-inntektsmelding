@@ -17,13 +17,12 @@ import no.nav.helsearbeidsgiver.felles.ForespurtData
 import no.nav.helsearbeidsgiver.felles.ForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagInntekt
 import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
+import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
-import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
-import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -39,7 +38,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
@@ -62,16 +60,16 @@ class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker`() = testApi {
         val mockClientId = UUID.randomUUID()
-        val expectedJson = Mock.trengerResponseJson()
+        val expectedJson = Mock.responseJson()
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.trengerDataOkJson
+        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.resultatOkJson
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
 
-            post(PATH, Mock.request, TrengerRequest.serializer())
+            post(PATH, Mock.request, HentForespoerselRequest.serializer())
         }
 
         val actualJson = response.bodyAsText()
@@ -83,16 +81,16 @@ class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker med forespørsel bare inntekt`() = testApi {
         val mockClientId = UUID.randomUUID()
-        val expectedJson = Mock.trengerBareInntektResponseJson()
+        val expectedJson = Mock.responseBareInntektJson()
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.trengerDataOkMedForrigeInntektJson
+        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.resultatOkMedForrigeInntektJson
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
 
-            post(PATH, Mock.request, TrengerRequest.serializer())
+            post(PATH, Mock.request, HentForespoerselRequest.serializer())
         }
 
         val actualJson = response.bodyAsText()
@@ -112,7 +110,7 @@ class TrengerRouteKtTest : ApiTest() {
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
 
-            post(PATH, Mock.request, TrengerRequest.serializer())
+            post(PATH, Mock.request, HentForespoerselRequest.serializer())
         }
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
@@ -122,7 +120,7 @@ class TrengerRouteKtTest : ApiTest() {
     fun `skal returnere valideringsfeil ved ugyldig request`() = testApi {
         val ugyldigRequest = JsonObject(
             mapOf(
-                TrengerRequest::uuid.name to "ikke en uuid".toJson()
+                HentForespoerselRequest::uuid.name to "ikke en uuid".toJson()
             )
         )
 
@@ -146,7 +144,7 @@ class TrengerRouteKtTest : ApiTest() {
     fun `skal returnere Forbidden hvis feil ikke tilgang`() = testApi {
         mockTilgang(Tilgang.IKKE_TILGANG)
 
-        val response = post(PATH, Mock.request, TrengerRequest.serializer())
+        val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
@@ -164,13 +162,13 @@ class TrengerRouteKtTest : ApiTest() {
             )
         ).toJson(TilgangData.serializer())
 
-        val response = post(PATH, Mock.request, TrengerRequest.serializer())
+        val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 }
 
 private object Mock {
-    val request = TrengerRequest(UUID.randomUUID())
+    val request = HentForespoerselRequest(UUID.randomUUID())
 
     private val forespoersel = Forespoersel(
         type = ForespoerselType.KOMPLETT,
@@ -207,47 +205,35 @@ private object Mock {
         )
     )
 
-    val trengerDataOkJson = ResultJson(
-        success = TrengerData(
+    val resultatOkJson = ResultJson(
+        success = HentForespoerselResultat(
+            sykmeldtNavn = "Ola Normann",
+            avsenderNavn = "Arbeidsgiver",
+            orgNavn = "Norge AS",
+            inntekt = inntekt,
             forespoersel = forespoersel,
-            fnr = forespoersel.fnr,
-            orgnr = forespoersel.orgnr,
-            personDato = PersonDato("Ola Normann", null, "123456"),
-            arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
-            virksomhetNavn = "Norge AS",
-            skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
-            fravarsPerioder = forespoersel.sykmeldingsperioder,
-            egenmeldingsPerioder = forespoersel.egenmeldingsperioder,
-            forespurtData = forespoersel.forespurtData,
-            bruttoinntekt = inntekt.gjennomsnitt(),
-            tidligereinntekter = inntekt.maanedOversikt
+            feil = emptyMap()
         )
-            .toJson(TrengerData.serializer())
+            .toJson(HentForespoerselResultat.serializer())
     )
         .toJson(ResultJson.serializer())
 
-    val trengerDataOkMedForrigeInntektJson = ResultJson(
-        success = TrengerData(
+    val resultatOkMedForrigeInntektJson = ResultJson(
+        success = HentForespoerselResultat(
+            sykmeldtNavn = "Ola Normann",
+            avsenderNavn = "Arbeidsgiver",
+            orgNavn = "Norge AS",
+            inntekt = inntekt,
             forespoersel = forespoersel.copy(
                 forespurtData = mockForespurtDataMedForrigeInntekt()
             ),
-            fnr = forespoersel.fnr,
-            orgnr = forespoersel.orgnr,
-            personDato = PersonDato("Ola Normann", 1.mai, "123456"),
-            arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
-            virksomhetNavn = "Norge AS",
-            skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
-            fravarsPerioder = forespoersel.sykmeldingsperioder,
-            egenmeldingsPerioder = forespoersel.egenmeldingsperioder,
-            forespurtData = mockForespurtDataMedForrigeInntekt(),
-            bruttoinntekt = inntekt.gjennomsnitt(),
-            tidligereinntekter = inntekt.maanedOversikt
+            feil = emptyMap()
         )
-            .toJson(TrengerData.serializer())
+            .toJson(HentForespoerselResultat.serializer())
     )
         .toJson(ResultJson.serializer())
 
-    fun trengerResponseJson(): String =
+    fun responseJson(): String =
         """
         {
             "navn": "Ola Normann",
@@ -285,7 +271,7 @@ private object Mock {
         }
         """.removeJsonWhitespace()
 
-    fun trengerBareInntektResponseJson(): String =
+    fun responseBareInntektJson(): String =
         """
         {
             "navn": "Ola Normann",

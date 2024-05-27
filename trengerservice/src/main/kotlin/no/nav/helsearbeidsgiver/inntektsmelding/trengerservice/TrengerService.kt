@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -240,3 +241,9 @@ private data class Datafeil(
     val feilmelding: String,
     val defaultVerdi: JsonElement
 )
+
+private val feilMapSerializer =
+    MapSerializer(
+        Key.serializer(),
+        String.serializer()
+    )

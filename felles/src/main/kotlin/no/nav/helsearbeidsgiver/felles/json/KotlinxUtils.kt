@@ -21,12 +21,6 @@ val personMapSerializer =
         Person.serializer()
     )
 
-val feilMapSerializer =
-    MapSerializer(
-        Key.serializer(),
-        String.serializer()
-    )
-
 fun EventName.toJson(): JsonElement =
     toJson(EventName.serializer())
 

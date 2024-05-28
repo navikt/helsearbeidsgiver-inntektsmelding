@@ -97,7 +97,7 @@ class JournalfoerImRiver(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingJson,
+            Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID]

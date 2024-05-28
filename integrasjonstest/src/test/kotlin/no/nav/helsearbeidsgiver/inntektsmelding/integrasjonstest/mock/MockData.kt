@@ -33,7 +33,12 @@ fun mockInnsending(): Innsending =
         ),
         arbeidsgiverperioder = emptyList(),
         bestemmendeFraværsdag = LocalDate.now(),
-        fraværsperioder = emptyList(),
+        fraværsperioder = listOf(
+            Periode(
+                fom = LocalDate.now().plusDays(3),
+                tom = LocalDate.now().plusDays(24)
+            )
+        ),
         inntekt = Inntekt(
             bekreftet = true,
             beregnetInntekt = 32100.0,

@@ -215,7 +215,6 @@ class MapInntektsmeldingKtTest : FunSpec({
 
         test("bruker beregnet bestemmende fraværsdag som inntektsdato dersom forslag (fra Spleis) til inntektsdato mangler og AGP _ikke_ er påkrevd") {
             val forespoersel = Mock.forespoersel().utenPaakrevdAGP().copy(
-                egenmeldingsperioder = emptyList(),
                 sykmeldingsperioder = listOf(
                     4.juli til 28.juli
                 ),
@@ -241,19 +240,16 @@ class MapInntektsmeldingKtTest : FunSpec({
         test("bruker beregnet bestemmende fraværsdag dersom AGP er påkrevd") {
             val forespoersel = Mock.forespoersel().let {
                 it.copy(
+                    sykmeldingsperioder = listOf(
+                        6.mai til 9.mai,
+                        12.mai til 27.mai
+                    ),
                     bestemmendeFravaersdager = mapOf(
                         it.orgnr to 1.mai
                     )
                 )
             }
             val skjema = Mock.skjema().copy(
-                egenmeldingsperioder = listOf(
-                    5.mai til 5.mai
-                ),
-                fraværsperioder = listOf(
-                    6.mai til 9.mai,
-                    12.mai til 27.mai
-                ),
                 arbeidsgiverperioder = listOf(
                     5.mai til 9.mai,
                     12.mai til 22.mai
@@ -281,7 +277,6 @@ class MapInntektsmeldingKtTest : FunSpec({
                 )
             }
             val skjema = Mock.skjema().copy(
-                egenmeldingsperioder = emptyList(),
                 fraværsperioder = listOf(
                     15.mai til 17.juni
                 ),
@@ -302,14 +297,12 @@ class MapInntektsmeldingKtTest : FunSpec({
 
         test("bruker beregnet bestemmende fraværsdag dersom forslag (fra Spleis) til bestemmende fraværsdag mangler og AGP _ikke_ er påkrevd") {
             val forespoersel = Mock.forespoersel().utenPaakrevdAGP().copy(
-                egenmeldingsperioder = emptyList(),
                 sykmeldingsperioder = listOf(
                     10.august til 31.august
                 ),
                 bestemmendeFravaersdager = emptyMap()
             )
             val skjema = Mock.skjema().copy(
-                egenmeldingsperioder = emptyList(),
                 fraværsperioder = listOf(
                     7.september til 25.september
                 ),

@@ -32,10 +32,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-cache-
 
+      - uses: gradle/actions/setup-gradle@v3
+
       - name: Build
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: assemble --build-cache --parallel
+        run: ./gradlew assemble --build-cache --parallel
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
 
@@ -67,6 +67,7 @@ jobs:
     needs: [build, generate-matrix]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v4
@@ -82,9 +83,9 @@ jobs:
           name: build-artifacts
           path: build/libs/
 
+      - uses: gradle/actions/setup-gradle@v3
+
       - name: Integrasjonstest
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: integrasjonstest:test --build-cache --tests no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.${{ matrix.test }}
+        run: ./gradlew integrasjonstest:test --build-cache --tests no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.${{ matrix.test }}
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

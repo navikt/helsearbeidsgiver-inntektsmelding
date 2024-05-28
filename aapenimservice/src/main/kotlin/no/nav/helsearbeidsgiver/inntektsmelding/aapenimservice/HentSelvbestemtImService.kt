@@ -28,7 +28,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-// TODO test
 class HentSelvbestemtImService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
@@ -94,7 +93,7 @@ class HentSelvbestemtImService(
             if (clientId == null) {
                 sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
             } else {
-                val resultJson = ResultJson(success = inntektsmeldingJson).toJsonStr(ResultJson.serializer())
+                val resultJson = ResultJson(success = inntektsmeldingJson).toJsonStr()
                 redisStore.set(RedisKey.of(clientId), resultJson)
             }
         }
@@ -114,7 +113,7 @@ class HentSelvbestemtImService(
                 sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. selvbestemtId=$selvbestemtId")
             } else {
                 val feilmeldingJson = fail.feilmelding.toJson(String.serializer())
-                val resultJson = ResultJson(failure = feilmeldingJson).toJsonStr(ResultJson.serializer())
+                val resultJson = ResultJson(failure = feilmeldingJson).toJsonStr()
                 redisStore.set(RedisKey.of(clientId), resultJson)
             }
         }

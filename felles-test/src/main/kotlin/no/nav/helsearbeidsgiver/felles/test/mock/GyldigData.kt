@@ -33,7 +33,12 @@ val GYLDIG_INNSENDING_REQUEST = Innsending(
         )
     ),
     LocalDate.now(),
-    emptyList(),
+    listOf(
+        Periode(
+            LocalDate.now().plusDays(3),
+            LocalDate.now().plusDays(30)
+        )
+    ),
     Inntekt(true, 32100.0, endringÅrsak = null, false),
     FullLoennIArbeidsgiverPerioden(
         true,

@@ -27,7 +27,8 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class SakFerdigLoeser(
     rapid: RapidsConnection,
-    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
+    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+    private val linkUrl: String
 ) : River.PacketListener {
 
     private val logger = logger()
@@ -78,13 +79,14 @@ class SakFerdigLoeser(
         val sakId = Key.SAK_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+        val nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/$forespoerselId"
 
         MdcUtils.withLogFields(
             Log.sakId(sakId),
             Log.forespoerselId(forespoerselId),
             Log.transaksjonId(transaksjonId)
         ) {
-            agNotifikasjonKlient.ferdigstillSak(sakId)
+            agNotifikasjonKlient.ferdigstillSak(sakId = sakId, nyLenkeTilSak = nyLenkeTilSak)
 
             context.publish(
                 Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),

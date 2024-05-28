@@ -29,7 +29,7 @@ class UtilsTest {
     fun `del opp lange navn - del opp i jevne lengder hvis ingen mellomrom`() {
         val tekst = "HA"
         val tekstBuilder = StringBuilder()
-        repeat(20) {
+        repeat(18) {
             tekstBuilder.append(tekst)
         }
         val liste = (tekstBuilder.toString() + tekstBuilder.toString() + tekst).delOppLangeNavn()

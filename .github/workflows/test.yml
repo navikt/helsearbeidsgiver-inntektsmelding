@@ -29,9 +29,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-cache-
 
+      - uses: gradle/actions/setup-gradle@v3
+
       - name: Test
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: test --tests --parallel --build-cache '*Test' jacocoTestReport
+        run: ./gradlew test --tests --parallel --build-cache '*Test' jacocoTestReport
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

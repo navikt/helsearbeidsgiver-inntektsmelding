@@ -27,7 +27,6 @@ data class Forespoersel(
         bestemmendeFravaersdager[orgnr]
             ?: bestemmendeFravaersdag(
                 arbeidsgiverperioder = emptyList(),
-                egenmeldingsperioder = egenmeldingsperioder,
                 sykmeldingsperioder = sykmeldingsperioder
             )
 
@@ -35,7 +34,6 @@ data class Forespoersel(
         bestemmendeFravaersdager.minOfOrNull { it.value }
             ?: bestemmendeFravaersdag(
                 arbeidsgiverperioder = emptyList(),
-                egenmeldingsperioder = egenmeldingsperioder,
                 sykmeldingsperioder = sykmeldingsperioder
             )
 

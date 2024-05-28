@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -141,24 +142,28 @@ class TrengerService(
 
             val feilReport = redisStore.get(RedisKey.of(transaksjonId, Feilmelding("")))?.fromJson(FeilReport.serializer())
 
-            val trengerDataJson = TrengerData(
-                forespoersel = foresporselSvar,
-                fnr = foresporselSvar.fnr,
-                orgnr = foresporselSvar.orgnr,
-                personDato = sykmeldt,
-                arbeidsgiver = arbeidsgiver,
-                virksomhetNavn = virksomhetNavn,
-                skjaeringstidspunkt = foresporselSvar.eksternBestemmendeFravaersdag(),
-                fravarsPerioder = foresporselSvar.sykmeldingsperioder,
-                egenmeldingsPerioder = foresporselSvar.egenmeldingsperioder,
-                forespurtData = foresporselSvar.forespurtData,
-                bruttoinntekt = inntekt?.gjennomsnitt(),
-                tidligereinntekter = inntekt?.maanedOversikt,
-                feilReport = feilReport
-            )
-                .toJsonStr(TrengerData.serializer())
+            val resultJson =
+                ResultJson(
+                    success = TrengerData(
+                        forespoersel = foresporselSvar,
+                        fnr = foresporselSvar.fnr,
+                        orgnr = foresporselSvar.orgnr,
+                        personDato = sykmeldt,
+                        arbeidsgiver = arbeidsgiver,
+                        virksomhetNavn = virksomhetNavn,
+                        skjaeringstidspunkt = foresporselSvar.eksternBestemmendeFravaersdag(),
+                        fravarsPerioder = foresporselSvar.sykmeldingsperioder,
+                        egenmeldingsPerioder = foresporselSvar.egenmeldingsperioder,
+                        forespurtData = foresporselSvar.forespurtData,
+                        bruttoinntekt = inntekt?.gjennomsnitt(),
+                        tidligereinntekter = inntekt?.maanedOversikt,
+                        feilReport = feilReport
+                    )
+                        .toJson(TrengerData.serializer())
+                )
+                    .toJsonStr(ResultJson.serializer())
 
-            redisStore.set(RedisKey.of(clientId), trengerDataJson)
+            redisStore.set(RedisKey.of(clientId), resultJson)
         }
     }
 
@@ -166,17 +171,16 @@ class TrengerService(
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
         if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {
-            val feilReport = FeilReport(
-                mutableListOf(
-                    Feilmelding("Teknisk feil, prøv igjen senere.", -1, datafelt = Key.FORESPOERSEL_SVAR)
-                )
-            )
-
-            sikkerLogger.info("terminate transaction id ${fail.transaksjonId} with evenname ${fail.event}")
+            sikkerLogger.info("terminate transaction id ${fail.transaksjonId} with eventname ${fail.event}")
 
             val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.fromJson(UuidSerializer)
             if (clientId != null) {
-                redisStore.set(RedisKey.of(clientId), TrengerData(feilReport = feilReport).toJsonStr(TrengerData.serializer()))
+                val resultJson = ResultJson(
+                    failure = "Teknisk feil, prøv igjen senere.".toJson(String.serializer())
+                )
+                    .toJsonStr(ResultJson.serializer())
+
+                redisStore.set(RedisKey.of(clientId), resultJson)
             }
             return
         }

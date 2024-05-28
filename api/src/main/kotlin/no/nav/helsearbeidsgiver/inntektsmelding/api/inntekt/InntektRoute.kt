@@ -10,7 +10,9 @@ import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.InntektData
+import no.nav.helsearbeidsgiver.felles.Inntekt
+import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -23,7 +25,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 
 // TODO Mangler tester
 fun Route.inntektRoute(
@@ -47,15 +48,22 @@ fun Route.inntektRoute(
             try {
                 val clientId = inntektProducer.publish(request)
 
-                val resultat = redisPoller.hent(clientId)
-                sikkerLogger.info("Fikk resultat:\n${resultat.toPretty()}")
+                val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+                sikkerLogger.info("Fikk inntektresultat:\n$resultatJson")
 
-                val inntektResponse = resultat.fromJson(InntektData.serializer()).toResponse()
+                val resultat = resultatJson.success?.fromJson(Inntekt.serializer())
+                if (resultat != null) {
+                    val response = InntektResponse(
+                        bruttoinntekt = resultat.gjennomsnitt(),
+                        tidligereInntekter = resultat.maanedOversikt
+                    )
+                        .toJson(InntektResponse.serializer().nullable)
 
-                val inntektResultatJson = inntektResponse.resultat.toJson(InntektResultat.serializer().nullable)
-
-                // TODO Må fikse på frontendkoden før vi kan svare med InntektResponse, og ikke bare InntektResultat som nå
-                call.respond(inntektResponse.status(), inntektResultatJson)
+                    call.respond(HttpStatusCode.OK, response)
+                } else {
+                    val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                    respondInternalServerError(feilmelding, String.serializer())
+                }
             } catch (e: ManglerAltinnRettigheterException) {
                 respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
             } catch (_: RedisPollerTimeoutException) {
@@ -65,21 +73,3 @@ fun Route.inntektRoute(
         }
     }
 }
-
-private fun InntektData.toResponse(): InntektResponse =
-    InntektResponse(
-        resultat = inntekt?.let {
-            InntektResultat(
-                bruttoinntekt = it.gjennomsnitt(),
-                tidligereInntekter = it.maanedOversikt
-            )
-        },
-        feilReport = feil
-    )
-
-private fun InntektResponse.status() =
-    if (feilReport != null) {
-        HttpStatusCode.InternalServerError
-    } else {
-        HttpStatusCode.OK
-    }

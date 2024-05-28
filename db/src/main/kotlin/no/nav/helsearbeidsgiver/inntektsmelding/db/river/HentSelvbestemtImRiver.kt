@@ -25,7 +25,6 @@ data class HentSelvbestemtImMelding(
     val selvbestemtId: UUID
 )
 
-// TODO test
 class HentSelvbestemtImRiver(
     private val selvbestemtImRepo: SelvbestemtImRepo
 ) : ObjectRiver<HentSelvbestemtImMelding>() {

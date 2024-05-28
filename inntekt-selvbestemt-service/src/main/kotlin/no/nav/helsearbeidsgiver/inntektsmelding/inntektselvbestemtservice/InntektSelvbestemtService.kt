@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -39,7 +40,8 @@ class InntektSelvbestemtService(
     override val startKeys = setOf(
         Key.FNR,
         Key.ORGNRUNDERENHET,
-        Key.SKJAERINGSTIDSPUNKT
+        Key.SKJAERINGSTIDSPUNKT,
+        Key.UUID
     )
     override val dataKeys = setOf(
         Key.INNTEKT
@@ -80,7 +82,7 @@ class InntektSelvbestemtService(
 
             val clientId = RedisKey.of(transaksjonId, eventName)
                 .read()
-                ?.let(UUID::fromString)
+                ?.fromJson(UuidSerializer)
 
             if (clientId == null) {
                 sikkerLogger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
@@ -113,7 +115,7 @@ class InntektSelvbestemtService(
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         val clientId = RedisKey.of(fail.transaksjonId, eventName)
             .read()
-            ?.let(UUID::fromString)
+            ?.fromJson(UuidSerializer)
 
         if (clientId == null) {
             MdcUtils.withLogFields(

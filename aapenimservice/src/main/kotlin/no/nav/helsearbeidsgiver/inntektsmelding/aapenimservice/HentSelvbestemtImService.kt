@@ -28,7 +28,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-// TODO test
 class HentSelvbestemtImService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore

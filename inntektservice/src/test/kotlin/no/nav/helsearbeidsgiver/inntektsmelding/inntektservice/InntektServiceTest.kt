@@ -1,19 +1,18 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntektservice
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.matchers.nulls.shouldBeNull
-import io.mockk.Runs
+import io.kotest.matchers.result.shouldBeSuccess
 import io.mockk.clearAllMocks
 import io.mockk.every
-import io.mockk.just
 import io.mockk.spyk
 import io.mockk.verify
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.FeilReport
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -40,13 +39,12 @@ class InntektServiceTest {
     }
 
     @Test
-    fun `ukritisk feil stopper ikke flyten`() {
+    fun `svarer med feilmelding ved feil under henting av inntekt`() {
         val event = EventName.INNTEKT_REQUESTED
         val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
 
         every { mockRedis.store.get(RedisKey.of(transaksjonId, event)) } returns clientId.toString()
-        every { service.inProgress(any()) } just Runs
 
         val fail = Fail(
             feilmelding = "ikkeno",
@@ -65,18 +63,15 @@ class InntektServiceTest {
         }
 
         verify {
-            service.inProgress(any())
-        }
-
-        verify(exactly = 0) {
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 withArg {
                     runCatching {
-                        it.fromJson(FeilReport.serializer())
+                        it.fromJson(ResultJson.serializer())
+                            .failure
+                            ?.fromJson(String.serializer())
                     }
-                        .getOrNull()
-                        .shouldBeNull()
+                        .shouldBeSuccess()
                 }
             )
         }

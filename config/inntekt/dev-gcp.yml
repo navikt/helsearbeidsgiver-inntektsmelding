@@ -6,6 +6,6 @@ env:
 - name: INNTEKT_URL
   value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/inntektskomponenten-q2/rs"
 - name: PROXY_SCOPE
-  value: "api://dev-fss.team-inntekt.inntektskomponenten/.default"
+  value: "api://dev-fss.team-inntekt.inntektskomponenten-q2/.default"
 externalHosts:
   - team-inntekt-proxy.dev-fss-pub.nais.io

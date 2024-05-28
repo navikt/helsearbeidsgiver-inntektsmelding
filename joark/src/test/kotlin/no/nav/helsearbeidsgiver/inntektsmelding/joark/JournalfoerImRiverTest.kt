@@ -11,7 +11,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -31,6 +30,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.Mock.toMap
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.time.LocalDate
 import java.util.UUID
@@ -75,7 +75,10 @@ class JournalfoerImRiverTest : FunSpec({
             testRapid.firstMessage().toMap() shouldContainExactly mapOf(
                 Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
-                Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmeldingJson,
+                Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmeldingJson.let {
+                    runCatching { it.tilGammelInntektsmeldingJson() }
+                        .getOrDefault(it)
+                },
                 Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                 Key.JOURNALPOST_ID to journalpostId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson()
@@ -126,7 +129,10 @@ class JournalfoerImRiverTest : FunSpec({
             testRapid.firstMessage().toMap() shouldContainExactly mapOf(
                 Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                 Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
-                Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmeldingJson,
+                Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmeldingJson.let {
+                    runCatching { it.tilGammelInntektsmeldingJson() }
+                        .getOrDefault(it)
+                },
                 Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                 Key.JOURNALPOST_ID to journalpostId.toJson(),
                 Key.SELVBESTEMT_ID to selvbestemtId.toJson()
@@ -172,7 +178,7 @@ class JournalfoerImRiverTest : FunSpec({
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
             Key.BEHOV to BehovType.LAGRE_JOURNALPOST_ID.toJson(),
-            Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmeldingJson,
+            Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmeldingJson.tilGammelInntektsmeldingJson(),
             Key.UUID to innkommendeMelding.transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.SELVBESTEMT_ID to selvbestemtId.toJson()
@@ -329,3 +335,8 @@ private object Mock {
             dokumenter = emptyList()
         )
 }
+
+private fun JsonElement.tilGammelInntektsmeldingJson(): JsonElement =
+    fromJson(InntektsmeldingV1.serializer())
+        .convert()
+        .toJson(Inntektsmelding.serializer())

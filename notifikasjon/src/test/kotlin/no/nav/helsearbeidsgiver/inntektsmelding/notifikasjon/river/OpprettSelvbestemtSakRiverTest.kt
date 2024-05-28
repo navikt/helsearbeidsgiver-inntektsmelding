@@ -66,7 +66,7 @@ class OpprettSelvbestemtSakRiverTest : FunSpec({
         coVerifySequence {
             mockagNotifikasjonKlient.opprettNySak(
                 virksomhetsnummer = innkommendeMelding.inntektsmelding.avsender.orgnr,
-                merkelapp = "Inntektsmelding",
+                merkelapp = "Inntektsmelding sykepenger",
                 grupperingsid = innkommendeMelding.inntektsmelding.type.id.toString(),
                 lenke = "$mockUrl/im-dialog/kvittering/agi/${innkommendeMelding.inntektsmelding.type.id}",
                 tittel = "Inntektsmelding for ${innkommendeMelding.inntektsmelding.sykmeldt.navn}: " +

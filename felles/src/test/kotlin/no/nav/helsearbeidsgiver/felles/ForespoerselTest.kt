@@ -36,7 +36,6 @@ class ForespoerselTest : FunSpec({
         test("beregner bestemmende fraværsdag dersom det mangler for eget orgnr") {
             val forespoersel = mockForespoersel().copy(
                 orgnr = "555898023",
-                egenmeldingsperioder = emptyList(),
                 sykmeldingsperioder = listOf(
                     5.januar til 30.januar
                 ),
@@ -94,7 +93,6 @@ class ForespoerselTest : FunSpec({
 
         test("beregner bestemmende fraværsdag dersom ingen er tilstede") {
             val forespoersel = mockForespoersel().copy(
-                egenmeldingsperioder = emptyList(),
                 sykmeldingsperioder = listOf(
                     2.februar til 28.februar
                 ),

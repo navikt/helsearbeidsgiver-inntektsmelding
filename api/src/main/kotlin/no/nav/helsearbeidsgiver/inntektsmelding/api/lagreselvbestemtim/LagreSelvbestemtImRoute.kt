@@ -12,6 +12,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -22,6 +23,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.UkjentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
@@ -57,6 +59,7 @@ fun Route.lagreSelvbestemtImRoute(
                 skjema == null -> {
                     respondBadRequest(JsonErrorResponse(inntektsmeldingTypeId = selvbestemtId), JsonErrorResponse.serializer())
                 }
+
                 !skjema.erGyldig() -> {
                     "Fikk valideringsfeil.".also {
                         logger.info(it)
@@ -66,11 +69,13 @@ fun Route.lagreSelvbestemtImRoute(
                     // TODO returner (og logg) mer utfyllende feil
                     respondBadRequest("Valideringsfeil. Mer utfyllende feil må implementeres.", String.serializer())
                 }
+
                 (skjema.aarsakInnsending == AarsakInnsending.Ny && selvbestemtIdFraPath != null) ||
                     (skjema.aarsakInnsending == AarsakInnsending.Endring && selvbestemtIdFraPath == null) -> {
                     // TODO returner (og logg) mer utfyllende feil
                     respondBadRequest("Valideringsfeil pga. stiparameter. Mer utfyllende feil må implementeres.", String.serializer())
                 }
+
                 else -> {
                     tilgangskontroll.validerTilgangTilOrg(call.request, selvbestemtId, skjema.avsender.orgnr)
 
@@ -116,10 +121,22 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): S
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(selvbestemtId: UUID, result: Result<JsonElement>) {
     result
+        .map {
+            it.fromJson(ResultJson.serializer())
+        }
         .onSuccess {
-            logger.info("Selvbestemt inntektsmelding mottatt OK.")
-            sikkerLogger.info("Selvbestemt inntektsmelding mottatt OK:\n${it.toPretty()}")
-            respond(HttpStatusCode.OK, LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
+            val success = it.success
+            if (success != null) {
+                logger.info("Selvbestemt inntektsmelding mottatt OK.")
+                sikkerLogger.info("Selvbestemt inntektsmelding mottatt OK:\n${success.toPretty()}")
+                respond(HttpStatusCode.OK, LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
+            } else {
+                val feilmelding = it.failure?.fromJson(String.serializer()).orDefault("Tomt resultat i Redis.")
+
+                logger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding.")
+                sikkerLogger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding: $feilmelding")
+                respondInternalServerError(UkjentErrorResponse(selvbestemtId), UkjentErrorResponse.serializer())
+            }
         }
         .onFailure {
             logger.info("Klarte ikke hente resultat.")

@@ -41,7 +41,7 @@ class OpprettSakLoeserTest : FunSpec({
         coEvery {
             mockArbeidsgiverNotifikasjonKlient.opprettNySak(
                 virksomhetsnummer = "org-456",
-                merkelapp = "Inntektsmelding",
+                merkelapp = "Inntektsmelding sykepenger",
                 grupperingsid = forespoerselId.toString(),
                 lenke = "enSlagsUrl/im-dialog/$forespoerselId",
                 tittel = "Inntektsmelding for ${mockPersonDato().navn}: f. 050120",

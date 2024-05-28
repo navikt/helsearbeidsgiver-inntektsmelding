@@ -58,7 +58,7 @@ private val pathUtenId =
     Routes.PREFIX +
         Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID.replaceFirst("{selvbestemtId}", "")
 
-class HentAapenImRouteKtTest : ApiTest() {
+class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @BeforeEach
     fun setup() {

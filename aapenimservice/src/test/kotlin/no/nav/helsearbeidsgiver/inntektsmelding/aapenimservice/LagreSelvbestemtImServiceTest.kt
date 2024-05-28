@@ -67,17 +67,17 @@ class LagreSelvbestemtImServiceTest : FunSpec({
     test("helt ny inntektsmelding lagres og sak opprettes") {
         val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
-        val nyInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny)
+        val nyInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                mockStartMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
                     .plus(
                         Pair(
                             Key.SKJEMA_INNTEKTSMELDING,
-                            Mock.skjema.copy(aarsakInnsending = AarsakInnsending.Ny)
+                            MockLagre.skjema.copy(aarsakInnsending = AarsakInnsending.Ny)
                                 .toJson(SkjemaInntektsmelding.serializer())
                         )
                     )
@@ -92,7 +92,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
 
             testRapid.sendJson(
-                mockSteg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId)
             )
         }
 
@@ -103,14 +103,14 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            mockSteg2Data(transaksjonId, nyInntektsmelding)
+            MockLagre.steg2Data(transaksjonId, nyInntektsmelding)
         )
 
         testRapid.inspektør.size shouldBeExactly 4
         testRapid.message(3).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
 
         testRapid.sendJson(
-            mockSteg3Data(transaksjonId)
+            MockLagre.steg3Data(transaksjonId)
         )
 
         testRapid.inspektør.size shouldBeExactly 5
@@ -133,13 +133,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
     test("endret inntektsmelding lagres uten at sak opprettes") {
         val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
-        val endretInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+        val endretInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                mockStartMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
             )
         }
 
@@ -151,7 +151,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
             testRapid.sendJson(
-                mockSteg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId)
             )
         }
 
@@ -162,7 +162,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            mockSteg2Data(transaksjonId, endretInntektsmelding)
+            MockLagre.steg2Data(transaksjonId, endretInntektsmelding)
         )
 
         testRapid.inspektør.size shouldBeExactly 4
@@ -185,13 +185,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
     test("duplikat inntektsmelding lagres uten at sluttevent publiseres") {
         val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
-        val duplikatInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+        val duplikatInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                mockStartMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
             )
         }
 
@@ -199,7 +199,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns duplikatInntektsmelding.mottatt
 
             testRapid.sendJson(
-                mockSteg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId)
             )
         }
 
@@ -210,7 +210,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            mockSteg2Data(transaksjonId, duplikatInntektsmelding)
+            MockLagre.steg2Data(transaksjonId, duplikatInntektsmelding)
                 .plus(
                     Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())
                 )
@@ -237,7 +237,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         val virksomhetDefault = "Ukjent virksomhet"
-        val inntektsmeldingMedDefaults = Mock.inntektsmelding.let {
+        val inntektsmeldingMedDefaults = MockLagre.inntektsmelding.let {
             it.copy(
                 sykmeldt = it.sykmeldt.copy(
                     navn = ""
@@ -254,7 +254,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                mockStartMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
             )
         }
 
@@ -297,7 +297,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            mockSteg2Data(transaksjonId, inntektsmeldingMedDefaults)
+            MockLagre.steg2Data(transaksjonId, inntektsmeldingMedDefaults)
         )
 
         testRapid.inspektør.size shouldBeExactly 4
@@ -332,13 +332,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         val feilmelding = "Databasen er full :("
-        val endretInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+        val endretInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                mockStartMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
             )
         }
 
@@ -346,7 +346,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
             testRapid.sendJson(
-                mockSteg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId)
             )
         }
 
@@ -381,65 +381,23 @@ class LagreSelvbestemtImServiceTest : FunSpec({
     }
 })
 
-fun mockStartMelding(clientId: UUID, transaksjonId: UUID): Map<Key, JsonElement> =
-    mapOf(
-        Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-        Key.CLIENT_ID to clientId.toJson(),
-        Key.UUID to transaksjonId.toJson(),
-        Key.SELVBESTEMT_ID to Mock.selvbestemtId.toJson(),
-        Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmelding.serializer()),
-        Key.ARBEIDSGIVER_FNR to Mock.avsender.fnr.toJson()
-    )
-
-fun mockSteg1Data(transaksjonId: UUID): Map<Key, JsonElement> =
-    mapOf(
-        Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-        Key.UUID to transaksjonId.toJson(),
-        Key.SELVBESTEMT_ID to Mock.selvbestemtId.toJson(),
-        Key.DATA to "".toJson(),
-        Key.VIRKSOMHET to Mock.ORG_NAVN.toJson(),
-        Key.PERSONER to mapOf(
-            Mock.sykmeldt.fnr to Mock.sykmeldt,
-            Mock.avsender.fnr to Mock.avsender
-        ).toJson(personMapSerializer)
-    )
-
-fun mockSteg2Data(transaksjonId: UUID, inntektsmelding: Inntektsmelding): Map<Key, JsonElement> =
-    mapOf(
-        Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-        Key.UUID to transaksjonId.toJson(),
-        Key.SELVBESTEMT_ID to Mock.selvbestemtId.toJson(),
-        Key.DATA to "".toJson(),
-        Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-        Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer())
-    )
-
-fun mockSteg3Data(transaksjonId: UUID): Map<Key, JsonElement> =
-    mapOf(
-        Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-        Key.UUID to transaksjonId.toJson(),
-        Key.SELVBESTEMT_ID to Mock.selvbestemtId.toJson(),
-        Key.DATA to "".toJson(),
-        Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson()
-    )
-
 private fun JsonElement.lesBehov(): BehovType? =
     Key.BEHOV.lesOrNull(BehovType.serializer(), this.toMap())
 
 private fun JsonElement.lesInntektsmelding(): Inntektsmelding =
     Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), this.toMap()).shouldNotBeNull()
 
-private object Mock {
-    const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
-    val selvbestemtId: UUID = UUID.randomUUID()
-    val sykmeldt = Fnr.genererGyldig().verdi.let {
+private object MockLagre {
+    private const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
+    private val selvbestemtId: UUID = UUID.randomUUID()
+    private val sykmeldt = Fnr.genererGyldig().verdi.let {
         Person(
             fnr = it,
             navn = "Ponnius Pilatus",
             foedselsdato = Person.foedselsdato(it)
         )
     }
-    val avsender = Fnr.genererGyldig().verdi.let {
+    private val avsender = Fnr.genererGyldig().verdi.let {
         Person(
             fnr = it,
             navn = "King Kong Keiser",
@@ -509,4 +467,46 @@ private object Mock {
         sykmeldt = sykmeldt,
         avsender = avsender
     )
+
+    fun startMelding(clientId: UUID, transaksjonId: UUID): Map<Key, JsonElement> =
+        mapOf(
+            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+            Key.CLIENT_ID to clientId.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+            Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson()
+        )
+
+    fun steg1Data(transaksjonId: UUID): Map<Key, JsonElement> =
+        mapOf(
+            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.VIRKSOMHET to ORG_NAVN.toJson(),
+            Key.PERSONER to mapOf(
+                sykmeldt.fnr to sykmeldt,
+                avsender.fnr to avsender
+            ).toJson(personMapSerializer)
+        )
+
+    fun steg2Data(transaksjonId: UUID, inntektsmelding: Inntektsmelding): Map<Key, JsonElement> =
+        mapOf(
+            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+            Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer())
+        )
+
+    fun steg3Data(transaksjonId: UUID): Map<Key, JsonElement> =
+        mapOf(
+            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson()
+        )
 }

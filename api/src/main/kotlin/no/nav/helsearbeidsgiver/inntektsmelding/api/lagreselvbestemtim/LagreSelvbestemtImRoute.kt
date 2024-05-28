@@ -77,7 +77,7 @@ fun Route.lagreSelvbestemtImRoute(
                 }
 
                 else -> {
-                    tilgangskontroll.validerTilgangTilOrg(call.request, selvbestemtId, skjema.avsender.orgnr)
+                    tilgangskontroll.validerTilgangTilOrg(call.request, skjema.avsender.orgnr)
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 

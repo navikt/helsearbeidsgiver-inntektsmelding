@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
+import no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt.inntektSelvbestemtRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim.lagreSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -41,6 +42,7 @@ object Routes {
 
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
+    const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
     const val INNSENDING = "/inntektsmelding"
     const val SELVBESTEMT_INNTEKTMELDING_MED_ID = "$PREFIX_SELVBESTEMT_INNTEKTMELDING/{selvbestemtId}"
     const val SELVBESTEMT_INNTEKTMELDING_MED_VALGFRI_ID = "$PREFIX_SELVBESTEMT_INNTEKTMELDING/{selvbestemtId?}"
@@ -105,6 +107,7 @@ fun Application.apiModule(rapid: RapidsConnection) {
             route(Routes.PREFIX) {
                 trengerRoute(rapid, tilgangskontroll, redisPoller)
                 inntektRoute(rapid, tilgangskontroll, redisPoller)
+                inntektSelvbestemtRoute(rapid, tilgangskontroll, redisPoller)
                 innsendingRoute(rapid, tilgangskontroll, redisPoller)
                 kvitteringRoute(rapid, tilgangskontroll, redisPoller)
                 lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisPoller)

@@ -108,6 +108,7 @@ class InntektLoeser(
                 )
             }
             .onFailure {
+                sikkerLogger.error("Klarte ikke hente inntekt.", it)
                 publishFail(behov.createFail("Klarte ikke hente inntekt."))
             }
 

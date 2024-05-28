@@ -126,7 +126,7 @@ class InntektLoeser(
                     fnr = fnr.verdi,
                     fom = fom,
                     tom = tom,
-                    navConsumerId = "helsearbeidsgiver-im-inntekt",
+                    navConsumerId = "im-inntekt",
                     callId = callId
                 )
             }

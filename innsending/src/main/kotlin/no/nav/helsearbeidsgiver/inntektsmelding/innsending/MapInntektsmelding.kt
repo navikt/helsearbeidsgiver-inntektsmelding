@@ -53,7 +53,6 @@ fun mapInntektsmelding(
     val bestemmendeFravaersdag = if (forespoersel.forespurtData.arbeidsgiverperiode.paakrevd) {
         bestemmendeFravaersdag(
             arbeidsgiverperioder = arbeidsgiverperioder,
-            egenmeldingsperioder = egenmeldingsperioder,
             sykmeldingsperioder = forespoersel.sykmeldingsperioder
         )
     } else {

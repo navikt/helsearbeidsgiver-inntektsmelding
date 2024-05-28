@@ -1,20 +1,16 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.inntektservice
 
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.FeilReport
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Inntekt
-import no.nav.helsearbeidsgiver.felles.InntektData
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
@@ -24,7 +20,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -133,15 +128,12 @@ class InntektService(
         } else {
             val inntekt = Key.INNTEKT.les(Inntekt.serializer(), melding)
 
-            val feil = RedisKey.of(transaksjonId, Feilmelding("")).read()
-
-            val inntektJson = InntektData(
-                inntekt = inntekt,
-                feil = feil?.fromJson(FeilReport.serializer())
+            val resultJson = ResultJson(
+                success = inntekt.toJson(Inntekt.serializer())
             )
-                .toJson(InntektData.serializer())
+                .toJson(ResultJson.serializer())
 
-            RedisKey.of(clientId).write(inntektJson)
+            RedisKey.of(clientId).write(resultJson)
 
             MdcUtils.withLogFields(
                 Log.clientId(clientId),
@@ -153,51 +145,6 @@ class InntektService(
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
-
-        if (utloesendeBehov == BehovType.INNTEKT) {
-            val feilmelding = Feilmelding(
-                "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
-                datafelt = Key.INNTEKT
-            )
-
-            "Legger til feilmelding: '${feilmelding.melding}'".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-
-            RedisKey.of(fail.transaksjonId, feilmelding).write(
-                FeilReport(
-                    mutableListOf(feilmelding)
-                ).toJson(FeilReport.serializer())
-            )
-
-            RedisKey.of(fail.transaksjonId, Key.INNTEKT).write(JsonObject(emptyMap()))
-
-            val meldingMedDefault = mapOf(
-                Key.INNTEKT to JsonObject(emptyMap())
-            )
-                .plus(melding)
-
-            // TODO bruk finalize (sjekk andre servicer for tilsvarende feil)
-            return inProgress(meldingMedDefault)
-        }
-
-        val feilReport = if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {
-            val feilmelding = Feilmelding("Teknisk feil, prøv igjen senere.", -1, Key.FORESPOERSEL_SVAR)
-
-            "Returnerer feilmelding: '${feilmelding.melding}'".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-
-            FeilReport(
-                mutableListOf(feilmelding)
-            )
-        } else {
-            FeilReport()
-        }
-
         val clientId = RedisKey.of(fail.transaksjonId, event)
             .read()
             ?.let(UUID::fromString)
@@ -210,12 +157,18 @@ class InntektService(
                 logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
             }
         } else {
-            val feilResponse = InntektData(
-                feil = feilReport
+            val feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
+            val resultJson = ResultJson(
+                failure = feilmelding.toJson()
             )
-                .toJson(InntektData.serializer())
+                .toJson(ResultJson.serializer())
 
-            RedisKey.of(clientId).write(feilResponse)
+            "Returnerer feilmelding: '$feilmelding'".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
+
+            RedisKey.of(clientId).write(resultJson)
 
             MdcUtils.withLogFields(
                 Log.clientId(clientId),

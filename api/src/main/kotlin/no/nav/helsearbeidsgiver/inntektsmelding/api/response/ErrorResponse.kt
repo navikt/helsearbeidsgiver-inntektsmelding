@@ -19,3 +19,12 @@ data class JsonErrorResponse(
     @EncodeDefault
     val error = "Feil under serialisering."
 }
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+data class UkjentErrorResponse(
+    val inntektsmeldingTypeId: UUID
+) {
+    @EncodeDefault
+    val error = "Ukjent feil."
+}

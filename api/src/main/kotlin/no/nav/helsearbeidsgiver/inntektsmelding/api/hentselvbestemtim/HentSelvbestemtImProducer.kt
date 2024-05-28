@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
-// TODO test
 class HentSelvbestemtImProducer(
     private val rapid: RapidsConnection
 ) {

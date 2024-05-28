@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import kotlinx.serialization.json.JsonElement
@@ -19,6 +20,7 @@ import no.nav.helsearbeidsgiver.felles.ForslagRefusjon
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangData
 import no.nav.helsearbeidsgiver.felles.TrengerData
@@ -35,7 +37,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.februar
@@ -43,8 +44,11 @@ import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mai
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -52,17 +56,25 @@ private const val PATH = Routes.PREFIX + Routes.TRENGER
 
 class TrengerRouteKtTest : ApiTest() {
 
+    @BeforeEach
+    fun setup() {
+        clearAllMocks()
+    }
+
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker`() = testApi {
-        mockTilgang(Tilgang.HAR_TILGANG)
-
-        coEvery {
-            anyConstructed<RedisPoller>().getString(any(), any(), any())
-        } returns Mock.trengerDataOk.toJsonStr(TrengerData.serializer())
-
+        val mockClientId = UUID.randomUUID()
         val expectedJson = Mock.trengerResponseJson()
 
-        val response = post(PATH, Mock.request, TrengerRequest.serializer())
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.trengerDataOkJson
+
+        val response = mockConstructor(TrengerProducer::class) {
+            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
+
+            post(PATH, Mock.request, TrengerRequest.serializer())
+        }
 
         val actualJson = response.bodyAsText()
 
@@ -72,20 +84,40 @@ class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker med forespørsel bare inntekt`() = testApi {
-        mockTilgang(Tilgang.HAR_TILGANG)
-
-        coEvery {
-            anyConstructed<RedisPoller>().getString(any(), any(), any())
-        } returns Mock.trengerDataOkMedForrigeInntekt.toJsonStr(TrengerData.serializer())
-
+        val mockClientId = UUID.randomUUID()
         val expectedJson = Mock.trengerBareInntektResponseJson()
 
-        val response = post(PATH, Mock.request, TrengerRequest.serializer())
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.trengerDataOkMedForrigeInntektJson
+
+        val response = mockConstructor(TrengerProducer::class) {
+            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
+
+            post(PATH, Mock.request, TrengerRequest.serializer())
+        }
 
         val actualJson = response.bodyAsText()
 
         assertEquals(HttpStatusCode.Created, response.status)
         assertEquals(expectedJson, actualJson)
+    }
+
+    @Test
+    fun `skal returnere Internal server error hvis Redis timer ut`() = testApi {
+        val mockClientId = UUID.randomUUID()
+
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+
+        val response = mockConstructor(TrengerProducer::class) {
+            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
+
+            post(PATH, Mock.request, TrengerRequest.serializer())
+        }
+
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
     }
 
     @Test
@@ -97,10 +129,16 @@ class TrengerRouteKtTest : ApiTest() {
         )
 
         val response = post(PATH, ugyldigRequest, JsonElement.serializer())
+
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertNotNull(response.bodyAsText())
 
-        val violations = response.bodyAsText().fromJson(ValidationResponse.serializer()).errors
+        val result = response.bodyAsText().fromJson(ResultJson.serializer())
+
+        assertNull(result.success)
+        assertNotNull(result.failure)
+
+        val violations = result.failure!!.fromJson(ValidationResponse.serializer()).errors
 
         assertEquals(1, violations.size)
         assertEquals("uuid", violations[0].property)
@@ -130,15 +168,6 @@ class TrengerRouteKtTest : ApiTest() {
 
         val response = post(PATH, Mock.request, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
-    }
-
-    @Test
-    fun `skal returnere Internal server error hvis Redis timer ut`() = testApi {
-        coEvery {
-            anyConstructed<RedisPoller>().getString(any(), any(), any())
-        } throws RedisPollerTimeoutException(UUID.randomUUID())
-        val response = post(PATH, Mock.request, TrengerRequest.serializer())
-        assertEquals(HttpStatusCode.InternalServerError, response.status)
     }
 }
 
@@ -180,35 +209,45 @@ private object Mock {
         )
     )
 
-    val trengerDataOk = TrengerData(
-        forespoersel = forespoersel,
-        fnr = forespoersel.fnr,
-        orgnr = forespoersel.orgnr,
-        personDato = PersonDato("Ola Normann", null, "123456"),
-        arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
-        virksomhetNavn = "Norge AS",
-        skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
-        fravarsPerioder = forespoersel.sykmeldingsperioder,
-        egenmeldingsPerioder = forespoersel.egenmeldingsperioder,
-        forespurtData = forespoersel.forespurtData,
-        bruttoinntekt = inntekt.gjennomsnitt(),
-        tidligereinntekter = inntekt.maanedOversikt
+    val trengerDataOkJson = ResultJson(
+        success = TrengerData(
+            forespoersel = forespoersel,
+            fnr = forespoersel.fnr,
+            orgnr = forespoersel.orgnr,
+            personDato = PersonDato("Ola Normann", null, "123456"),
+            arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
+            virksomhetNavn = "Norge AS",
+            skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
+            fravarsPerioder = forespoersel.sykmeldingsperioder,
+            egenmeldingsPerioder = forespoersel.egenmeldingsperioder,
+            forespurtData = forespoersel.forespurtData,
+            bruttoinntekt = inntekt.gjennomsnitt(),
+            tidligereinntekter = inntekt.maanedOversikt
+        )
+            .toJson(TrengerData.serializer())
     )
+        .toJson(ResultJson.serializer())
 
-    val trengerDataOkMedForrigeInntekt = TrengerData(
-        forespoersel = forespoersel,
-        fnr = forespoersel.fnr,
-        orgnr = forespoersel.orgnr,
-        personDato = PersonDato("Ola Normann", 1.mai, "123456"),
-        arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
-        virksomhetNavn = "Norge AS",
-        skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
-        fravarsPerioder = forespoersel.sykmeldingsperioder,
-        egenmeldingsPerioder = forespoersel.egenmeldingsperioder,
-        forespurtData = mockForespurtDataMedForrigeInntekt(),
-        bruttoinntekt = inntekt.gjennomsnitt(),
-        tidligereinntekter = inntekt.maanedOversikt
+    val trengerDataOkMedForrigeInntektJson = ResultJson(
+        success = TrengerData(
+            forespoersel = forespoersel.copy(
+                forespurtData = mockForespurtDataMedForrigeInntekt()
+            ),
+            fnr = forespoersel.fnr,
+            orgnr = forespoersel.orgnr,
+            personDato = PersonDato("Ola Normann", 1.mai, "123456"),
+            arbeidsgiver = PersonDato("Arbeidsgiver", null, "654321"),
+            virksomhetNavn = "Norge AS",
+            skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
+            fravarsPerioder = forespoersel.sykmeldingsperioder,
+            egenmeldingsPerioder = forespoersel.egenmeldingsperioder,
+            forespurtData = mockForespurtDataMedForrigeInntekt(),
+            bruttoinntekt = inntekt.gjennomsnitt(),
+            tidligereinntekter = inntekt.maanedOversikt
+        )
+            .toJson(TrengerData.serializer())
     )
+        .toJson(ResultJson.serializer())
 
     fun trengerResponseJson(): String =
         """
@@ -227,7 +266,24 @@ private object Mock {
             "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
             "behandlingsperiode": null,
             "behandlingsdager": [],
-            "forespurtData": ${forespoersel.forespurtData.hardcodedJson()}
+            "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
+            "success": {
+                "navn": "Ola Normann",
+                "orgNavn": "Norge AS",
+                "innsenderNavn": "Arbeidsgiver",
+                "identitetsnummer": "${forespoersel.fnr}",
+                "orgnrUnderenhet": "${forespoersel.orgnr}",
+                "skjaeringstidspunkt": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
+                "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+                "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+                "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
+                "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
+                "bruttoinntekt": ${inntekt.gjennomsnitt()},
+                "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
+                "behandlingsperiode": null,
+                "behandlingsdager": [],
+                "forespurtData": ${forespoersel.forespurtData.hardcodedJson()}
+            }
         }
         """.removeJsonWhitespace()
 
@@ -248,7 +304,24 @@ private object Mock {
             "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
             "behandlingsperiode": null,
             "behandlingsdager": [],
-            "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()}
+            "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
+            "success": {
+                "navn": "Ola Normann",
+                "orgNavn": "Norge AS",
+                "innsenderNavn": "Arbeidsgiver",
+                "identitetsnummer": "${forespoersel.fnr}",
+                "orgnrUnderenhet": "${forespoersel.orgnr}",
+                "skjaeringstidspunkt": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
+                "fravaersperioder": [${forespoersel.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+                "egenmeldingsperioder": [${forespoersel.egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+                "bestemmendeFravaersdag": "${forespoersel.forslagBestemmendeFravaersdag()}",
+                "eksternBestemmendeFravaersdag": ${forespoersel.eksternBestemmendeFravaersdag().jsonStrOrNull()},
+                "bruttoinntekt": ${inntekt.gjennomsnitt()},
+                "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
+                "behandlingsperiode": null,
+                "behandlingsdager": [],
+                "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()}
+            }
         }
         """.removeJsonWhitespace()
 }

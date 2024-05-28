@@ -4,8 +4,8 @@ azure:
 ingress: https://helsearbeidsgiver-im-inntekt.intern.dev.nav.no
 env:
 - name: INNTEKT_URL
-  value: "https://helsearbeidsgiver-proxy.dev-fss-pub.nais.io/inntekt"
+  value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/inntektskomponenten-q2/rs"
 - name: PROXY_SCOPE
-  value: "api://dev-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+  value: "api://dev-fss.team-inntekt.team-inntekt-proxy/.default"
 externalHosts:
-  - helsearbeidsgiver-proxy.dev-fss-pub.nais.io
+  - team-inntekt-proxy.dev-fss-pub.nais.io

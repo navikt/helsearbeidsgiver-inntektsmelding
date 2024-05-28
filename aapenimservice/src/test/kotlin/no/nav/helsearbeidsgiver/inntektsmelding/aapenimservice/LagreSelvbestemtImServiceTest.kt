@@ -388,16 +388,16 @@ private fun JsonElement.lesInntektsmelding(): Inntektsmelding =
     Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), this.toMap()).shouldNotBeNull()
 
 private object MockLagre {
-    const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
-    val selvbestemtId: UUID = UUID.randomUUID()
-    val sykmeldt = Fnr.genererGyldig().verdi.let {
+    private const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
+    private val selvbestemtId: UUID = UUID.randomUUID()
+    private val sykmeldt = Fnr.genererGyldig().verdi.let {
         Person(
             fnr = it,
             navn = "Ponnius Pilatus",
             foedselsdato = Person.foedselsdato(it)
         )
     }
-    val avsender = Fnr.genererGyldig().verdi.let {
+    private val avsender = Fnr.genererGyldig().verdi.let {
         Person(
             fnr = it,
             navn = "King Kong Keiser",

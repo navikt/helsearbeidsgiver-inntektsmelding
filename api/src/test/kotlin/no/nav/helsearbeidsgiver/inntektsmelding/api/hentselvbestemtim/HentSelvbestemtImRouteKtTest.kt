@@ -35,7 +35,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
@@ -72,7 +71,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.successResult(expectedInntektsmelding)
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.successResult(expectedInntektsmelding)
 
         val response = mockConstructor(HentSelvbestemtImProducer::class) {
             every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
@@ -92,7 +91,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.IKKE_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.successResult(mockInntektsmeldingV1())
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.successResult(mockInntektsmeldingV1())
 
         val response = mockConstructor(HentSelvbestemtImProducer::class) {
             every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
@@ -113,7 +112,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.failureResult(expectedFeilmelding)
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.failureResult(expectedFeilmelding)
 
         val response = mockConstructor(HentSelvbestemtImProducer::class) {
             every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
@@ -134,7 +133,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.emptyResult()
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.emptyResult()
 
         val response = mockConstructor(HentSelvbestemtImProducer::class) {
             every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
@@ -154,7 +153,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
         val selvbestemtId = UUID.randomUUID()
         val expectedFeilobjekt = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
         val response = mockConstructor(HentSelvbestemtImProducer::class) {
             every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
@@ -174,7 +173,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
         val selvbestemtId = UUID.randomUUID()
         val expectedFeilobjekt = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer())
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } throws IllegalStateException()
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } throws IllegalStateException()
 
         val response = mockConstructor(HentSelvbestemtImProducer::class) {
             every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId

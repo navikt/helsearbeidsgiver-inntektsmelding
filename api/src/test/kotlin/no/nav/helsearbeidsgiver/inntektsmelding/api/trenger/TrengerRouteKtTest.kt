@@ -27,7 +27,6 @@ import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -68,7 +67,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.trengerDataOkJson
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.trengerDataOkJson
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
@@ -89,7 +88,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.trengerDataOkMedForrigeInntektJson
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.trengerDataOkMedForrigeInntektJson
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
@@ -109,7 +108,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
@@ -158,7 +157,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         every { anyConstructed<TilgangProducer>().publishForespoerselId(any(), any()) } returns mockTilgangClientId
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockTilgangClientId) } returns TilgangData(
+        coEvery { mockRedisPoller.hent(mockTilgangClientId) } returns TilgangData(
             feil = FeilReport(
                 feil = mutableListOf(
                     Feilmelding("Noe er riv ruskende galt!")

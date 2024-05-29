@@ -5,6 +5,8 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -107,8 +109,15 @@ abstract class EndToEndTest : ContainerTest() {
             .createTruncateFunction()
     }
 
+    // Vent på rediscontainer
     val redisStore by lazy {
-        RedisStore(redisContainer.redisURI)
+        repeat(5) {
+            runCatching { RedisStore(redisContainer.redisURI) }
+                .onSuccess { return@lazy it }
+                .onFailure { runBlocking { delay(1000) } }
+
+        }
+        throw IllegalStateException("Klarte ikke koble til Redis.")
     }
 
     val messages get() = imTestRapid.messages

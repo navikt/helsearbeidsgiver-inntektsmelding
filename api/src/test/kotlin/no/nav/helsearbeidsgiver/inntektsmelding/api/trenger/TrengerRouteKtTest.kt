@@ -31,6 +31,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -391,14 +393,3 @@ private fun ForslagRefusjon.Periode.hardcodedJson(): String =
         "beloep": $beloep
     }
     """
-
-private fun Periode.hardcodedJson(): String =
-    """
-    {
-        "fom": "$fom",
-        "tom": "$tom"
-    }
-    """
-
-private fun <T : Any> T?.jsonStrOrNull(): String? =
-    this?.let { "\"$it\"" }

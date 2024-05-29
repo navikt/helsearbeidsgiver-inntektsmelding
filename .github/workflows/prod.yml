@@ -143,6 +143,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.generate_vars.outputs.deploy_matrix) }}
+    concurrency:
+      group: deploy-prod-${{ matrix.project }}
     steps:
       - name: Check if docker image exists
         run: |

@@ -47,9 +47,9 @@ class TestRepo(private val db: Database) {
 
 class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, ForespoerselEntitet), { db ->
 
-    val foresporselRepo = ForespoerselRepository(db.db)
-    val inntektsmeldingRepo = InntektsmeldingRepository(db.db)
-    val testRepo = TestRepo(db.db)
+    val foresporselRepo = ForespoerselRepository(db)
+    val inntektsmeldingRepo = InntektsmeldingRepository(db)
+    val testRepo = TestRepo(db)
     val ORGNR = "orgnr-456"
 
     test("skal lagre forespørsel") {
@@ -169,7 +169,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         // Skal kun oppdatere siste
         inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
 
-        val resultat = transaction(db.db) {
+        val resultat = transaction(db) {
             InntektsmeldingEntitet.selectAll()
                 .orderBy(InntektsmeldingEntitet.innsendt)
                 .toList()
@@ -198,7 +198,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
         inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, gammelJournalpostId)
 
-        val resultatFoerNyJournalpostId = transaction(db.db) {
+        val resultatFoerNyJournalpostId = transaction(db) {
             InntektsmeldingEntitet.selectAll()
                 .orderBy(InntektsmeldingEntitet.innsendt)
                 .toList()
@@ -219,7 +219,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         // Skal ha null effekt
         inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, nyJournalpostId)
 
-        val resultsEtterNyJournalpostId = transaction(db.db) {
+        val resultsEtterNyJournalpostId = transaction(db) {
             InntektsmeldingEntitet.selectAll()
                 .orderBy(InntektsmeldingEntitet.innsendt)
                 .toList()
@@ -248,7 +248,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
 
         inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
 
-        val resultat = transaction(db.db) {
+        val resultat = transaction(db) {
             InntektsmeldingEntitet.selectAll()
                 .orderBy(InntektsmeldingEntitet.innsendt)
                 .toList()

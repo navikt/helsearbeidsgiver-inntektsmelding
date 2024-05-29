@@ -29,7 +29,6 @@ data class OpprettSelvbestemtSakMelding(
     val inntektsmelding: Inntektsmelding
 )
 
-// TODO test
 class OpprettSelvbestemtSakRiver(
     private val linkUrl: String,
     private val selvbestemtRepo: SelvbestemtRepo,

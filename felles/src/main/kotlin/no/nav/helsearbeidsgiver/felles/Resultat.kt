@@ -22,9 +22,3 @@ data class HentForespoerselResultat(
     val forespoersel: Forespoersel,
     val feil: Map<Key, String>
 )
-
-@Serializable
-data class InntektData(
-    val inntekt: Inntekt? = null,
-    val feil: FeilReport? = null
-)

@@ -26,11 +26,12 @@ import no.nav.helsearbeidsgiver.felles.TilgangData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -64,7 +65,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.resultatOkJson
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.resultatOkJson
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
@@ -85,7 +86,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } returns Mock.resultatOkMedForrigeInntektJson
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.resultatOkMedForrigeInntektJson
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
@@ -105,7 +106,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockClientId, any(), any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
@@ -154,7 +155,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         every { anyConstructed<TilgangProducer>().publishForespoerselId(any(), any()) } returns mockTilgangClientId
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockTilgangClientId) } returns TilgangData(
+        coEvery { mockRedisPoller.hent(mockTilgangClientId) } returns TilgangData(
             feil = FeilReport(
                 feil = mutableListOf(
                     Feilmelding("Noe er riv ruskende galt!")
@@ -378,14 +379,3 @@ private fun ForslagRefusjon.Periode.hardcodedJson(): String =
         "beloep": $beloep
     }
     """
-
-private fun Periode.hardcodedJson(): String =
-    """
-    {
-        "fom": "$fom",
-        "tom": "$tom"
-    }
-    """
-
-private fun <T : Any> T?.jsonStrOrNull(): String? =
-    this?.let { "\"$it\"" }

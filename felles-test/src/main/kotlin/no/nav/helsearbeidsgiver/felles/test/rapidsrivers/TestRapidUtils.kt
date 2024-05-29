@@ -18,6 +18,9 @@ fun <K : IKey> TestRapid.sendJson(messageFields: Map<K, JsonElement>) {
 }
 
 fun TestRapid.firstMessage(): JsonElement =
-    inspektør.message(0)
+    message(0)
+
+fun TestRapid.message(index: Int): JsonElement =
+    inspektør.message(index)
         .toString()
         .parseJson()

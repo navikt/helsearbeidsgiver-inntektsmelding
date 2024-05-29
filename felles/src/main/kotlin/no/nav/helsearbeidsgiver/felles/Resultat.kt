@@ -30,9 +30,3 @@ data class TrengerData(
     val tidligereinntekter: List<InntektPerMaaned>? = null,
     val feilReport: FeilReport? = null
 )
-
-@Serializable
-data class InntektData(
-    val inntekt: Inntekt? = null,
-    val feil: FeilReport? = null
-)

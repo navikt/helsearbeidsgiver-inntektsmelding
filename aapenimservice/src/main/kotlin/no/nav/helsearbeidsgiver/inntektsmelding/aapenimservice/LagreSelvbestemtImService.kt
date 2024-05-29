@@ -36,7 +36,6 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.OffsetDateTime
 import java.util.UUID
 
-// TODO test
 class LagreSelvbestemtImService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
@@ -254,7 +253,7 @@ class LagreSelvbestemtImService(
     }
 }
 
-private fun tilInntektsmelding(
+fun tilInntektsmelding(
     selvbestemtId: UUID,
     skjema: SkjemaInntektsmelding,
     orgNavn: String,

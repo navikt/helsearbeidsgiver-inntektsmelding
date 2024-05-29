@@ -7,7 +7,6 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.ResultJson
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -28,7 +27,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
     @Test
     fun `skal godta og returnere liste med organisasjoner`() = testApi {
-        coEvery { anyConstructed<RedisPoller>().hent(any(), any(), any()) } returns ResultJson(
+        coEvery { mockRedisPoller.hent(any(), any(), any()) } returns ResultJson(
             success = Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson()
         ).toJson(ResultJson.serializer())
 

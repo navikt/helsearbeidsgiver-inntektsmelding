@@ -14,6 +14,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
@@ -27,6 +28,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.trengerRoute
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import kotlin.time.Duration.Companion.minutes
@@ -37,13 +39,13 @@ val sikkerLogger = sikkerLogger()
 object Routes {
     const val PREFIX = "/api/v1"
 
-    private const val PREFIX_SELVBESTEMT_INNTEKTMELDING = "/selvbestemt-inntektsmelding"
+    private const val PREFIX_SELVBESTEMT_INNTEKTSMELDING = "/selvbestemt-inntektsmelding"
 
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
     const val INNSENDING = "/inntektsmelding"
-    const val SELVBESTEMT_INNTEKTMELDING_MED_ID = "$PREFIX_SELVBESTEMT_INNTEKTMELDING/{selvbestemtId}"
-    const val SELVBESTEMT_INNTEKTMELDING_MED_VALGFRI_ID = "$PREFIX_SELVBESTEMT_INNTEKTMELDING/{selvbestemtId?}"
+    const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$PREFIX_SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId}"
+    const val SELVBESTEMT_INNTEKTSMELDING_MED_VALGFRI_ID = "$PREFIX_SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId?}"
     const val KVITTERING = "/kvittering"
     const val AKTIVEORGNR = "/aktiveorgnr"
 }
@@ -65,9 +67,10 @@ fun startServer(env: Map<String, String> = System.getenv()) {
     rapid.start()
 }
 
-fun Application.apiModule(rapid: RapidsConnection) {
-    val redisPoller = RedisPoller()
-
+fun Application.apiModule(
+    rapid: RapidsConnection,
+    redisPoller: RedisPoller = RedisPoller()
+) {
     val tilgangskontroll = Tilgangskontroll(
         TilgangProducer(rapid),
         LocalCache(60.minutes, 1000),
@@ -88,7 +91,7 @@ fun Application.apiModule(rapid: RapidsConnection) {
             }
 
             call.respondText(
-                text = "Error 500: $cause",
+                text = "Error 500: $cause".toJsonStr(String.serializer()),
                 status = HttpStatusCode.InternalServerError
             )
         }

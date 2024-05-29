@@ -16,7 +16,7 @@ import java.util.UUID
 
 class SelvbestemtRepoTest : FunSpecWithDb(listOf(SelvbestemtSak), { db ->
 
-    val selvbestemtRepo = SelvbestemtRepo(db.db)
+    val selvbestemtRepo = SelvbestemtRepo(db)
 
     test("lagrer sak-ID") {
         val selvbestemtId = UUID.randomUUID()
@@ -26,7 +26,7 @@ class SelvbestemtRepoTest : FunSpecWithDb(listOf(SelvbestemtSak), { db ->
 
         antallLagret shouldBeExactly 1
 
-        val alleSaker = lesAlleSaker(db.db)
+        val alleSaker = lesAlleSaker(db)
 
         alleSaker shouldHaveSize 1
         alleSaker.first().also { lagret ->
@@ -43,7 +43,7 @@ class SelvbestemtRepoTest : FunSpecWithDb(listOf(SelvbestemtSak), { db ->
 
         selvbestemtRepo.lagreSakId(selvbestemtId, sakId1)
 
-        lesAlleSaker(db.db) shouldHaveSize 1
+        lesAlleSaker(db) shouldHaveSize 1
 
         shouldThrowExactly<ExposedSQLException> {
             selvbestemtRepo.lagreSakId(selvbestemtId, sakId2)
@@ -57,7 +57,7 @@ class SelvbestemtRepoTest : FunSpecWithDb(listOf(SelvbestemtSak), { db ->
 
         selvbestemtRepo.lagreSakId(selvbestemtId1, sakId)
 
-        lesAlleSaker(db.db) shouldHaveSize 1
+        lesAlleSaker(db) shouldHaveSize 1
 
         shouldThrowExactly<ExposedSQLException> {
             selvbestemtRepo.lagreSakId(selvbestemtId2, sakId)

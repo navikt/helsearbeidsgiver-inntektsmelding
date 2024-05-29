@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.mockDelvisInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
@@ -47,7 +46,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val mockClientId = UUID.randomUUID()
 
         coEvery {
-            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
+            mockRedisPoller.hent(mockClientId, any(), any())
         } returns mockInntektsmelding().toJson(Inntektsmelding.serializer())
 
         val response = mockConstructor(InnsendingProducer::class) {
@@ -80,7 +79,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val mockClientId = UUID.randomUUID()
 
         coEvery {
-            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
+            mockRedisPoller.hent(mockClientId, any(), any())
         } throws RedisPollerTimeoutException(Mock.forespoerselId)
 
         val response = mockConstructor(InnsendingProducer::class) {
@@ -102,7 +101,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val mockClientId = UUID.randomUUID()
 
         coEvery {
-            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
+            mockRedisPoller.hent(mockClientId, any(), any())
         } returns mockDelvisInntektsmeldingDokument().toJson(Inntektsmelding.serializer())
 
         val response = mockConstructor(InnsendingProducer::class) {

@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
@@ -74,7 +73,7 @@ class KvitteringRouteKtTest : ApiTest() {
         mockTilgang(Tilgang.HAR_TILGANG)
 
         coEvery {
-            anyConstructed<RedisPoller>().getString(any(), any(), any())
+            mockRedisPoller.getString(any(), any(), any())
         } returns RESULTAT_OK
         val response = get(PATH + "?uuid=" + UUID.randomUUID())
         assertEquals(HttpStatusCode.OK, response.status)

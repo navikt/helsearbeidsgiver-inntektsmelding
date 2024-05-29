@@ -66,7 +66,8 @@ fun Route.inntektSelvbestemtRoute(
             } catch (e: ManglerAltinnRettigheterException) {
                 respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
             } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout for inntekt for selvbestemt inntektsmelding.")
+                logger.error("Fikk timeout for inntekt for selvbestemt inntektsmelding.")
+                sikkerLogger.error("Fikk timeout for inntekt for selvbestemt inntektsmelding.")
                 respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
             }
         }

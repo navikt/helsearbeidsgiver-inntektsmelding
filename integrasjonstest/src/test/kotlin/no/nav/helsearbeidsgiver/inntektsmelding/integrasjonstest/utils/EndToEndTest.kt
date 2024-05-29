@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
@@ -46,6 +47,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.createInntektSelvbestemtService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
@@ -115,7 +117,6 @@ abstract class EndToEndTest : ContainerTest() {
             runCatching { RedisStore(redisContainer.redisURI) }
                 .onSuccess { return@lazy it }
                 .onFailure { runBlocking { delay(1000) } }
-
         }
         throw IllegalStateException("Klarte ikke koble til Redis.")
     }
@@ -135,6 +136,7 @@ abstract class EndToEndTest : ContainerTest() {
     val brregClient = mockk<BrregClient>(relaxed = true)
     val mockPriProducer = mockk<PriProducer>()
     val aaregClient = mockk<AaregClient>(relaxed = true)
+    val inntektClient = mockk<InntektKlient>(relaxed = true)
 
     val pdlKlient = mockk<PdlClient>()
 
@@ -176,6 +178,7 @@ abstract class EndToEndTest : ContainerTest() {
             createAktiveOrgnrService(redisStore)
             createInnsending(redisStore)
             createInntektService(redisStore)
+            createInntektSelvbestemtService(redisStore)
             createSpinnService(redisStore)
             createTilgangService(redisStore)
             createTrengerService(redisStore)
@@ -191,7 +194,7 @@ abstract class EndToEndTest : ContainerTest() {
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
             createHelsebro(mockPriProducer)
-            createInntekt(mockk(relaxed = true))
+            createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)

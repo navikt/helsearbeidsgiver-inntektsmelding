@@ -8,10 +8,11 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.testcontainers.containers.PostgreSQLContainer
+import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
 abstract class FunSpecWithDb(
     table: List<Table>,
-    body: FunSpec.(Database) -> Unit
+    body: FunSpec.(ExposedDatabase) -> Unit
 ) : FunSpec({
     val db = Database(dbConfig())
         .configureFlyway()
@@ -22,7 +23,7 @@ abstract class FunSpecWithDb(
         }
     }
 
-    body(db)
+    body(db.db)
 })
 
 private fun dbConfig(): HikariConfig {

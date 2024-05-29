@@ -27,7 +27,6 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
-// TODO test
 fun Route.hentSelvbestemtImRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
@@ -35,7 +34,7 @@ fun Route.hentSelvbestemtImRoute(
 ) {
     val producer = HentSelvbestemtImProducer(rapid)
 
-    get(Routes.SELVBESTEMT_INNTEKTMELDING_MED_ID) {
+    get(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID) {
         val selvbestemtId = call.parameters["selvbestemtId"]
             ?.runCatching(UUID::fromString)
             ?.getOrNull()
@@ -48,7 +47,7 @@ fun Route.hentSelvbestemtImRoute(
             }
         } else {
             MdcUtils.withLogFields(
-                Log.apiRoute(Routes.SELVBESTEMT_INNTEKTMELDING_MED_ID),
+                Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
                 Log.selvbestemtId(selvbestemtId)
             ) {
                 val clientId = producer.publish(selvbestemtId)

@@ -8,10 +8,9 @@ import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.FeilReport
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.TilgangData
+import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -60,16 +59,10 @@ class TilgangForespoerselServiceTest {
             service.onError(emptyMap(), fail)
         }
 
-        val expectedFeilReport = FeilReport(
-            mutableListOf(
-                Feilmelding("Teknisk feil, prøv igjen senere.", -1, Key.TILGANG)
-            )
+        val expectedResultJson = TilgangResultat(
+            feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
         )
-
-        val expectedResultJson = TilgangData(
-            feil = expectedFeilReport
-        )
-            .toJsonStr(TilgangData.serializer())
+            .toJsonStr(TilgangResultat.serializer())
 
         verify {
             mockRedis.store.set(RedisKey.of(clientId), expectedResultJson)

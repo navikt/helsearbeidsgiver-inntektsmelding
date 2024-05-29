@@ -26,7 +26,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
-import java.util.UUID
 
 class InntektSelvbestemtService(
     private val rapid: RapidsConnection,
@@ -85,8 +84,10 @@ class InntektSelvbestemtService(
                 ?.fromJson(UuidSerializer)
 
             if (clientId == null) {
-                sikkerLogger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
-                logger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
+                "Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!".also {
+                    sikkerLogger.error(it)
+                    logger.error(it)
+                }
             } else {
                 val inntekt = Key.INNTEKT.les(Inntekt.serializer(), melding)
 
@@ -121,8 +122,10 @@ class InntektSelvbestemtService(
             MdcUtils.withLogFields(
                 Log.transaksjonId(fail.transaksjonId)
             ) {
-                sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
-                logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
+                "Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
+                }
             }
         } else {
             val feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE

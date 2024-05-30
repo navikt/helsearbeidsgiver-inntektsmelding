@@ -40,7 +40,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `gi OK med inntektsmelding`() = testApi {
+    fun `gi OK med inntekt`() = testApi {
         val mockClientId = UUID.randomUUID()
         val expectedInntekt = Mock.inntekt
 
@@ -62,17 +62,9 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
     @Test
     fun `manglende tilgang gir 500-feil`() = testApi {
-        val mockClientId = UUID.randomUUID()
-
         mockTilgang(Tilgang.IKKE_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.successResult(Mock.inntekt)
-
-        val response = mockConstructor(InntektSelvbestemtProducer::class) {
-            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockClientId
-
-            post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
-        }
+        val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
 
         val actualJson = response.bodyAsText()
 

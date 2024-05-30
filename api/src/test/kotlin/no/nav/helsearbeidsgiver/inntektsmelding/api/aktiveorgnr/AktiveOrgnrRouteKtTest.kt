@@ -25,9 +25,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
     @Test
     fun `skal godta og returnere liste med organisasjoner`() = testApi {
-        coEvery {
-            mockRedisPoller.hent(any(), any(), any())
-        } returns Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson()
+        coEvery { mockRedisPoller.hent(any()) } returns Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson()
         val requestBody = """
             {"identitetsnummer":"test-fnr"}
         """

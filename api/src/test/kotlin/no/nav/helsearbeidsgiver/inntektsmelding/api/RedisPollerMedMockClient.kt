@@ -7,7 +7,9 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
-fun mockRedisPoller(answers: List<String?>): RedisPoller {
+fun redisPollerMedMockClient(answerOnAttemptNo: Int, answer: String): RedisPoller {
+    val answers = List(answerOnAttemptNo - 1) { null }.plus(answer)
+
     val command = mockk<RedisCommands<String, String>> {
         every { this@mockk.get(any()) } returnsMany answers
     }

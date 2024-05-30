@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -25,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -154,7 +156,9 @@ class InnsendingService(
         val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
 
         logger.info("publiserer under clientID $clientId")
-        redisStore.set(RedisKey.of(clientId), inntektsmeldingJson.toString())
+
+        val resultJson = ResultJson(success = inntektsmeldingJson)
+        redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
 
         if (!erDuplikat) {
             logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
@@ -216,7 +220,8 @@ class InnsendingService(
                     sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
                 }
             } else {
-                redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+                val resultJson = ResultJson(failure = fail.feilmelding.toJson())
+                redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
             }
         }
     }

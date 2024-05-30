@@ -9,8 +9,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
-import no.nav.helsearbeidsgiver.felles.FeilReport
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.ForespurtData
@@ -22,7 +20,7 @@ import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangData
+import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
@@ -157,13 +155,9 @@ class TrengerRouteKtTest : ApiTest() {
 
         every { anyConstructed<TilgangProducer>().publishForespoerselId(any(), any()) } returns mockTilgangClientId
 
-        coEvery { mockRedisPoller.hent(mockTilgangClientId) } returns TilgangData(
-            feil = FeilReport(
-                feil = mutableListOf(
-                    Feilmelding("Noe er riv ruskende galt!")
-                )
-            )
-        ).toJson(TilgangData.serializer())
+        coEvery { mockRedisPoller.hent(mockTilgangClientId) } returns TilgangResultat(
+            feilmelding = "Noe er riv ruskende galt!"
+        ).toJson(TilgangResultat.serializer())
 
         val response = post(PATH, Mock.request, TrengerRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)

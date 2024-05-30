@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.auth
 import io.ktor.server.request.ApplicationRequest
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangData
+import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -48,7 +48,7 @@ class Tilgangskontroll(
                 val clientId = publish(innloggerFnr)
 
                 val resultat = redisPoller.hent(clientId)
-                    .fromJson(TilgangData.serializer())
+                    .fromJson(TilgangResultat.serializer())
 
                 resultat.tilgang ?: throw ManglerAltinnRettigheterException()
             }

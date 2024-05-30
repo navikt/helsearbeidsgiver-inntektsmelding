@@ -39,8 +39,7 @@ class InntektSelvbestemtService(
     override val startKeys = setOf(
         Key.FNR,
         Key.ORGNRUNDERENHET,
-        Key.SKJAERINGSTIDSPUNKT,
-        Key.UUID
+        Key.SKJAERINGSTIDSPUNKT
     )
     override val dataKeys = setOf(
         Key.INNTEKT

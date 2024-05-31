@@ -5,7 +5,7 @@ ingress: https://helsearbeidsgiver-im-inntekt.intern.dev.nav.no
 env:
 - name: INNTEKT_URL
   value: "https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/inntektskomponenten-q2/rs"
-- name: PROXY_SCOPE
+- name: INNTEKT_SCOPE
   value: "api://dev-fss.team-inntekt.inntektskomponenten/.default"
 externalHosts:
   - team-inntekt-proxy.dev-fss-pub.nais.io

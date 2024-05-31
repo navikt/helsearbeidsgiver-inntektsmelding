@@ -4,7 +4,7 @@ azure:
 env:
 - name: INNTEKT_URL
   value: "https://team-inntekt-proxy.prod-fss-pub.nais.io/proxy/inntektskomponenten/rs"
-- name: PROXY_SCOPE
+- name: INNTEKT_SCOPE
   value: "api://prod-fss.team-inntekt.inntektskomponenten/.default"
 externalHosts:
   - team-inntekt-proxy.prod-fss-pub.nais.io

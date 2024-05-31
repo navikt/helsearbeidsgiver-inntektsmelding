@@ -4,12 +4,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.felles.test.mock.redisMedMockRedisClient
+import no.nav.helsearbeidsgiver.felles.test.mock.redisWithMockRedisClient
 
 class RedisConnectionTest : FunSpec({
 
     test(RedisConnection::get.name) {
-        val redis = redisMedMockRedisClient(
+        val redis = redisWithMockRedisClient(
             mockStorageInit = mapOf(
                 "atreides" to "good guys",
                 "harkonnen" to null
@@ -22,7 +22,7 @@ class RedisConnectionTest : FunSpec({
     }
 
     test(RedisConnection::getAll.name) {
-        val redis = redisMedMockRedisClient(
+        val redis = redisWithMockRedisClient(
             mockStorageInit = mapOf(
                 "atreides" to "good guys",
                 "harkonnen" to "bad guys",
@@ -42,7 +42,7 @@ class RedisConnectionTest : FunSpec({
     }
 
     test(RedisConnection::set.name) {
-        val redis = redisMedMockRedisClient(
+        val redis = redisWithMockRedisClient(
             mockStorageInit = emptyMap()
         )
 

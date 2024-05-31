@@ -9,7 +9,7 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.test.mock.redisMedMockRedisClient
+import no.nav.helsearbeidsgiver.felles.test.mock.redisWithMockRedisClient
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -21,7 +21,7 @@ class RedisStoreClassSpecificTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         val redisStore = RedisStoreClassSpecific(
-            redis = redisMedMockRedisClient(
+            redis = redisWithMockRedisClient(
                 mockStorageInit = mapOf(
                     "$keyPrefix#$transaksjonId" to "\"mango\"",
                     "$keyPrefix#$transaksjonId#${EventName.SELVBESTEMT_IM_REQUESTED}" to "\"ananas\"",
@@ -56,7 +56,7 @@ class RedisStoreClassSpecificTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         val redisStore = RedisStoreClassSpecific(
-            redis = redisMedMockRedisClient(
+            redis = redisWithMockRedisClient(
                 mockStorageInit = mapOf(
                     "$keyPrefix#$transaksjonId" to "\"eple\"",
                     "$keyPrefix#$transaksjonId#${EventName.SELVBESTEMT_IM_REQUESTED}" to "\"pære\"",
@@ -96,7 +96,7 @@ class RedisStoreClassSpecificTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         val redisStore = RedisStoreClassSpecific(
-            redis = redisMedMockRedisClient(
+            redis = redisWithMockRedisClient(
                 mockStorageInit = mapOf(
                     "$keyPrefix#$transaksjonId" to "\"durian\"",
                     "$keyPrefix#$transaksjonId#${Key.TILGANG}" to null
@@ -147,7 +147,7 @@ class RedisStoreClassSpecificTest : FunSpec({
             val transaksjonId = UUID.randomUUID()
 
             val redisStore = RedisStoreClassSpecific(
-                redis = redisMedMockRedisClient(
+                redis = redisWithMockRedisClient(
                     mockStorageInit = mapOf(
                         "$transaksjonId" to "\"mango\"",
                         "$transaksjonId${EventName.SELVBESTEMT_IM_REQUESTED}" to "\"ananas\"",
@@ -182,7 +182,7 @@ class RedisStoreClassSpecificTest : FunSpec({
             val transaksjonId = UUID.randomUUID()
 
             val redisStore = RedisStoreClassSpecific(
-                redis = redisMedMockRedisClient(
+                redis = redisWithMockRedisClient(
                     mockStorageInit = mapOf(
                         "$transaksjonId" to "\"eple\"",
                         "$transaksjonId${EventName.SELVBESTEMT_IM_REQUESTED}" to "\"pære\"",

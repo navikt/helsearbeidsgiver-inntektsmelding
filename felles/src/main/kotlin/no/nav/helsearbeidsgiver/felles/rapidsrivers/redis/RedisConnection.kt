@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 class RedisConnection(
     redisUrl: String
 ) {
-    private val client: RedisClient = redisUrl.let(RedisClient::create)
+    private val client: RedisClient = RedisClient.create(redisUrl)
     private val connection: StatefulRedisConnection<String, String> = client.connect()
     private val syncCommands: RedisCommands<String, String> = connection.sync()
 

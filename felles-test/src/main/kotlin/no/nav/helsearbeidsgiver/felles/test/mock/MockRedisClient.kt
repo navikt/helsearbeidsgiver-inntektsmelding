@@ -10,7 +10,7 @@ import io.mockk.slot
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 
-fun redisMedMockRedisClient(mockStorageInit: Map<String, String?>): RedisConnection {
+fun redisWithMockRedisClient(mockStorageInit: Map<String, String?>): RedisConnection {
     val mockCommands = mockk<RedisCommands<String, String>>().setupMock(mockStorageInit)
     return mockStatic(RedisClient::class) {
         every { RedisClient.create(any<String>()) } returns mockRedisClient(mockCommands)

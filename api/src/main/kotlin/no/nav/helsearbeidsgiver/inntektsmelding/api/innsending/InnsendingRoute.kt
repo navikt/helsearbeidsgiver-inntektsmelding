@@ -10,6 +10,8 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -26,7 +28,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import org.valiktor.ConstraintViolationException
 import java.util.UUID
 
@@ -62,10 +63,15 @@ fun Route.innsendingRoute(
                     val clientId = producer.publish(forespoerselId, request, innloggerFnr)
                     logger.info("Publiserte til rapid med forespørselId: $forespoerselId og clientId=$clientId")
 
-                    val resultat = redisPoller.hent(clientId)
-                    sikkerLogger.info("Fikk resultat: ${resultat.toPretty()}")
+                    val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+                    sikkerLogger.info("Fikk resultat for innsending:\n$resultatJson")
 
-                    respond(HttpStatusCode.Created, InnsendingResponse(forespoerselId), InnsendingResponse.serializer())
+                    if (resultatJson.success != null) {
+                        respond(HttpStatusCode.Created, InnsendingResponse(forespoerselId), InnsendingResponse.serializer())
+                    } else {
+                        val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                        respondInternalServerError(feilmelding, String.serializer())
+                    }
                 } catch (e: ConstraintViolationException) {
                     logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
                     respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())

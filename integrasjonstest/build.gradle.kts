@@ -28,6 +28,7 @@ dependencies {
     testImplementation(project(":innsending"))
     testImplementation(project(":inntekt"))
     testImplementation(project(":inntektservice"))
+    testImplementation(project(":inntekt-selvbestemt-service"))
     testImplementation(project(":joark"))
     testImplementation(project(":notifikasjon"))
     testImplementation(project(":pdl"))

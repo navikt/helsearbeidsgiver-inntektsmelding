@@ -20,7 +20,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangData
+import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -68,7 +68,7 @@ class TestClient(
         every { anyConstructed<TilgangProducer>().publishForespoerselId(any(), any()) } returns mockTilgangClientId
         every { anyConstructed<TilgangProducer>().publishOrgnr(any(), any()) } returns mockTilgangClientId
 
-        coEvery { mockRedisPoller.hent(mockTilgangClientId) } returns TilgangData(tilgang).toJson(TilgangData.serializer())
+        coEvery { mockRedisPoller.hent(mockTilgangClientId) } returns TilgangResultat(tilgang).toJson(TilgangResultat.serializer())
     }
 
     fun get(

@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -169,7 +170,7 @@ class TrengerService(
             val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.fromJson(UuidSerializer)
             if (clientId != null) {
                 val resultJson = ResultJson(
-                    failure = "Teknisk feil, prøv igjen senere.".toJson(String.serializer())
+                    failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer())
                 )
                     .toJsonStr(ResultJson.serializer())
 

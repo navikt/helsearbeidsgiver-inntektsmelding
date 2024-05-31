@@ -3,8 +3,8 @@ azure:
   enabled: true
 env:
 - name: INNTEKT_URL
-  value: "https://helsearbeidsgiver-proxy.prod-fss-pub.nais.io/inntekt"
+  value: "https://team-inntekt-proxy.prod-fss-pub.nais.io/proxy/inntektskomponenten/rs"
 - name: PROXY_SCOPE
-  value: "api://prod-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+  value: "api://prod-fss.team-inntekt.inntektskomponenten/.default"
 externalHosts:
-  - helsearbeidsgiver-proxy.prod-fss-pub.nais.io
+  - team-inntekt-proxy.prod-fss-pub.nais.io

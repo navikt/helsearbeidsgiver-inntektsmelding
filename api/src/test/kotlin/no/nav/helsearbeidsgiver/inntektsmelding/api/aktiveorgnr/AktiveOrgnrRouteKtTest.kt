@@ -6,10 +6,12 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -25,13 +27,16 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
     @Test
     fun `skal godta og returnere liste med organisasjoner`() = testApi {
-        coEvery {
-            mockRedisPoller.hent(any(), any(), any())
-        } returns Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson()
+        coEvery { mockRedisPoller.hent(any(), any(), any()) } returns ResultJson(
+            success = Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson()
+        ).toJson(ResultJson.serializer())
+
         val requestBody = """
             {"identitetsnummer":"test-fnr"}
         """
+
         val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
+
         assertEquals(HttpStatusCode.Created, response.status)
         assertEquals(Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE, response.bodyAsText())
     }

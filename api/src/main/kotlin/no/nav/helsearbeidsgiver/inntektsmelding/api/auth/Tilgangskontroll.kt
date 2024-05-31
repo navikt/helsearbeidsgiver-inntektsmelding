@@ -20,31 +20,30 @@ class Tilgangskontroll(
         request: ApplicationRequest,
         forespoerselId: UUID
     ) {
-        validerTilgang(request, forespoerselId) { fnr ->
+        validerTilgang(request, forespoerselId.toString()) { fnr ->
             tilgangProducer.publishForespoerselId(forespoerselId, fnr)
         }
     }
 
     fun validerTilgangTilOrg(
         request: ApplicationRequest,
-        id: UUID,
         orgnr: String
     ) {
-        validerTilgang(request, id) { fnr ->
+        validerTilgang(request, orgnr) { fnr ->
             tilgangProducer.publishOrgnr(orgnr, fnr)
         }
     }
 
     private fun validerTilgang(
         request: ApplicationRequest,
-        id: UUID,
+        cacheKeyPostfix: String,
         publish: (String) -> UUID
     ) {
         val innloggerFnr = request.lesFnrFraAuthToken()
 
         val tilgang = runBlocking {
-            cache.get("$innloggerFnr:$id") {
-                logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll for '$id'.")
+            cache.get("$innloggerFnr:$cacheKeyPostfix") {
+                logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll.")
 
                 val clientId = publish(innloggerFnr)
 
@@ -56,7 +55,7 @@ class Tilgangskontroll(
         }
 
         if (tilgang != Tilgang.HAR_TILGANG) {
-            logger.warn("Kall for ID '$id' har ikke tilgang.")
+            logger.warn("Kall for ID '$cacheKeyPostfix' har ikke tilgang.")
             throw ManglerAltinnRettigheterException()
         }
     }

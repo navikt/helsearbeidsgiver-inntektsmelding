@@ -47,7 +47,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val mockClientId = UUID.randomUUID()
 
         coEvery {
-            mockRedisPoller.hent(mockClientId, any(), any())
+            mockRedisPoller.hent(mockClientId)
         } returns ResultJson(
             success = mockInntektsmelding().toJson(Inntektsmelding.serializer())
         ).toJson(ResultJson.serializer())
@@ -71,7 +71,7 @@ class InnsendingRouteKtTest : ApiTest() {
         val mockClientId = UUID.randomUUID()
 
         coEvery {
-            mockRedisPoller.hent(mockClientId, any(), any())
+            mockRedisPoller.hent(mockClientId)
         } returns ResultJson(
             success = mockDelvisInntektsmeldingDokument().toJson(Inntektsmelding.serializer())
         ).toJson(ResultJson.serializer())
@@ -105,9 +105,7 @@ class InnsendingRouteKtTest : ApiTest() {
 
         val mockClientId = UUID.randomUUID()
 
-        coEvery {
-            mockRedisPoller.hent(mockClientId, any(), any())
-        } throws RedisPollerTimeoutException(Mock.forespoerselId)
+        coEvery { mockRedisPoller.hent(mockClientId) } throws RedisPollerTimeoutException(Mock.forespoerselId)
 
         val response = mockConstructor(InnsendingProducer::class) {
             every {

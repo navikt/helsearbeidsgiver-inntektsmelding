@@ -65,7 +65,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.trengerDataOkJson
+        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.trengerDataOkJson
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
@@ -86,7 +86,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.trengerDataOkMedForrigeInntektJson
+        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.trengerDataOkMedForrigeInntektJson
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
@@ -106,7 +106,7 @@ class TrengerRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+        coEvery { mockRedisPoller.hent(mockClientId) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
         val response = mockConstructor(TrengerProducer::class) {
             every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId

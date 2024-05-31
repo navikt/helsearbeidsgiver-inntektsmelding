@@ -1,13 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 
 import kotlinx.serialization.Serializable
-import no.nav.helsearbeidsgiver.felles.FeilReport
 
 @Serializable
 data class AktiveOrgnrResponse(
     val fulltNavn: String? = null,
-    val underenheter: List<GyldigUnderenhet>,
-    val feilReport: FeilReport? = null
+    val underenheter: List<GyldigUnderenhet>
 )
 
 @Serializable

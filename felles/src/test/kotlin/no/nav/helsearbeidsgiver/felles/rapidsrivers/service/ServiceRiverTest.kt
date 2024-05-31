@@ -20,8 +20,9 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisAppSpecific
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -31,7 +32,7 @@ import java.util.UUID
 class ServiceRiverTest : FunSpec({
 
     val testRapid = TestRapid()
-    val mockRedis = MockRedis()
+    val mockRedis = MockRedisAppSpecific(RedisPrefix.HentForespoerselService)
     val mockService = spyk(
         MockService(mockRedis.store)
     )
@@ -46,7 +47,7 @@ class ServiceRiverTest : FunSpec({
         // For å passere sjekk for inaktivitet
         every {
             mockRedis.store.getAll(any())
-        } returns Mock.values(mockService.startKeys).toStringMap()
+        } returns Mock.values(mockService.startKeys).mapKeys { it.key.toString() }
     }
 
     context("fail-melding har presedens") {
@@ -98,8 +99,8 @@ class ServiceRiverTest : FunSpec({
 
         val clientIdRedisKey = RedisKey.of(transaksjonId, mockService.eventName)
 
-        val redisStartValues = Mock.values(mockService.startKeys).map {
-            RedisKey.of(transaksjonId, it.key) to it.value.toString()
+        val redisStartValues = Mock.values(mockService.startKeys).mapKeys {
+            RedisKey.of(transaksjonId, it.key)
         }
 
         verifyOrder {
@@ -107,7 +108,7 @@ class ServiceRiverTest : FunSpec({
                 mockRedis.store.set(key, value)
             }
             mockRedis.store.get(clientIdRedisKey)
-            mockRedis.store.set(clientIdRedisKey, clientId.toJson().toString())
+            mockRedis.store.set(clientIdRedisKey, clientId.toJson())
             mockService.onStart(
                 innkommendeMelding.plus(Key.UUID to transaksjonId.toJson())
             )
@@ -135,8 +136,8 @@ class ServiceRiverTest : FunSpec({
 
         val clientIdRedisKey = RedisKey.of(generertTransaksjonId, mockService.eventName)
 
-        val redisStartValues = Mock.values(mockService.startKeys).map {
-            RedisKey.of(generertTransaksjonId, it.key) to it.value.toString()
+        val redisStartValues = Mock.values(mockService.startKeys).mapKeys {
+            RedisKey.of(generertTransaksjonId, it.key)
         }
 
         verifyOrder {
@@ -161,7 +162,7 @@ class ServiceRiverTest : FunSpec({
     test("startmelding trigger ikke service ved eksisterende client-ID") {
         val eksisterendeClientId = UUID.randomUUID()
 
-        every { mockRedis.store.get(any()) } returns eksisterendeClientId.toString()
+        every { mockRedis.store.get(any()) } returns eksisterendeClientId.toJson()
 
         val transaksjonId = UUID.randomUUID()
 
@@ -177,8 +178,8 @@ class ServiceRiverTest : FunSpec({
 
         val clientIdRedisKey = RedisKey.of(transaksjonId, mockService.eventName)
 
-        val redisStartValues = Mock.values(mockService.startKeys).map {
-            RedisKey.of(transaksjonId, it.key) to it.value.toString()
+        val redisStartValues = Mock.values(mockService.startKeys).mapKeys {
+            RedisKey.of(transaksjonId, it.key)
         }
 
         verifyOrder {
@@ -200,7 +201,7 @@ class ServiceRiverTest : FunSpec({
 
         every {
             mockRedis.store.getAll(any())
-        } returns eksisterendeRedisValues.toStringMap()
+        } returns eksisterendeRedisValues.mapKeys { it.key.toString() }
 
         val transaksjonId = UUID.randomUUID()
         val virksomhetNavn = "Fredrikssons Fabrikk"
@@ -219,7 +220,7 @@ class ServiceRiverTest : FunSpec({
         val allKeys = (mockService.startKeys + mockService.dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
 
         verifyOrder {
-            mockRedis.store.set(RedisKey.of(transaksjonId, Key.VIRKSOMHETER), virksomhetNavn.toJson().toString())
+            mockRedis.store.set(RedisKey.of(transaksjonId, Key.VIRKSOMHETER), virksomhetNavn.toJson())
             mockRedis.store.getAll(allKeys)
             mockService.onData(beriketMelding)
         }
@@ -234,7 +235,7 @@ class ServiceRiverTest : FunSpec({
 
         every {
             mockRedis.store.getAll(any())
-        } returns eksisterendeRedisValues.toStringMap()
+        } returns eksisterendeRedisValues.mapKeys { it.key.toString() }
 
         val transaksjonId = UUID.randomUUID()
 
@@ -289,13 +290,12 @@ class ServiceRiverTest : FunSpec({
 
         val validRedisValues = Mock.values(mockService.startKeys)
         val invalidRedisValues = mapOf(
-            Key.PERSONER.toString() to "ugyldig json",
-            "ugyldig key" to validJson.toString()
+            "ugyldig key" to validJson
         )
 
         every {
             mockRedis.store.getAll(any())
-        } returns validRedisValues.toStringMap().plus(invalidRedisValues)
+        } returns validRedisValues.mapKeys { it.key.toString() }.plus(invalidRedisValues)
 
         val transaksjonId = UUID.randomUUID()
 
@@ -328,7 +328,7 @@ class ServiceRiverTest : FunSpec({
     test("datamelding trigger ikke service ved manglende startdata (inaktiv service)") {
         every {
             mockRedis.store.getAll(any())
-        } returns Mock.values(setOf(Key.PERSONER)).toStringMap()
+        } returns Mock.values(setOf(Key.PERSONER)).mapKeys { it.key.toString() }
 
         val transaksjonId = UUID.randomUUID()
         val virksomhetNavn = "Terkels Sabeltannisbutikk"
@@ -343,7 +343,7 @@ class ServiceRiverTest : FunSpec({
         testRapid.sendJson(innkommendeMelding)
 
         verifyOrder {
-            mockRedis.store.set(RedisKey.of(transaksjonId, Key.VIRKSOMHETER), virksomhetNavn.toJson().toString())
+            mockRedis.store.set(RedisKey.of(transaksjonId, Key.VIRKSOMHETER), virksomhetNavn.toJson())
             mockRedis.store.getAll(any())
         }
         verify(exactly = 0) {
@@ -356,7 +356,7 @@ class ServiceRiverTest : FunSpec({
     test("fail-melding trigger ikke service ved manglende startdata (inaktiv service)") {
         every {
             mockRedis.store.getAll(any())
-        } returns Mock.values(setOf(Key.VIRKSOMHETER)).toStringMap()
+        } returns Mock.values(setOf(Key.VIRKSOMHETER)).mapKeys { it.key.toString() }
 
         val transaksjonId = UUID.randomUUID()
 
@@ -489,7 +489,7 @@ class ServiceRiverTest : FunSpec({
 })
 
 private class MockService(
-    override val redisStore: RedisStore
+    override val redisStore: RedisStoreClassSpecific
 ) : Service() {
     override val eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED
     override val startKeys = setOf(
@@ -518,7 +518,3 @@ private object Mock {
     fun values(keys: Set<Key>): Map<Key, JsonElement> =
         keys.associateWith { "mock $it".toJson() }
 }
-
-private fun Map<Key, JsonElement>.toStringMap(): Map<String, String> =
-    mapKeys { it.key.toString() }
-        .mapValues { it.value.toString() }

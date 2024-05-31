@@ -1,6 +1,8 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.service
 
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
@@ -13,8 +15,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -125,7 +125,7 @@ class ServiceRiver(
 
     private fun StartMelding.haandterStart(melding: Map<Key, JsonElement>) {
         startDataMap.forEach { (key, data) ->
-            service.redisStore.set(RedisKey.of(transaksjonId, key), data.toString())
+            service.redisStore.set(RedisKey.of(transaksjonId, key), data)
         }
 
         "Lagret startdata for event ${service.eventName}.".also {
@@ -136,8 +136,12 @@ class ServiceRiver(
         val clientIdRedisKey = RedisKey.of(transaksjonId, service.eventName)
 
         // if-sjekk trengs trolig ikke, men beholder midlertidig for sikkerhets skyld
-        if (service.redisStore.get(clientIdRedisKey).isNullOrEmpty()) {
-            val clientId = clientId.orDefault {
+        val clientIdJson = service.redisStore.get(clientIdRedisKey)
+        if (
+            clientIdJson == null ||
+            (clientIdJson is JsonPrimitive && clientIdJson.contentOrNull.isNullOrEmpty())
+        ) {
+            val clientIdOrDefault = clientId.orDefault {
                 "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
                     logger.warn(it)
                     sikkerLogger.warn(it)
@@ -145,7 +149,7 @@ class ServiceRiver(
                 transaksjonId
             }
 
-            service.redisStore.set(clientIdRedisKey, clientId.toJson().toString())
+            service.redisStore.set(clientIdRedisKey, clientIdOrDefault.toJson())
 
             service.onStart(melding)
         } else {
@@ -157,14 +161,13 @@ class ServiceRiver(
     }
 
     private fun DataMelding.haandterData(melding: Map<Key, JsonElement>) {
-        val antallLagret = dataMap.onEach { (key, data) ->
-            service.redisStore.set(RedisKey.of(transaksjonId, key), data.toString())
+        dataMap.forEach { (key, data) ->
+            service.redisStore.set(RedisKey.of(transaksjonId, key), data)
         }
-            .size
 
         // if-sjekk trengs trolig ikke, men beholder midlertidig for sikkerhets skyld
-        if (antallLagret > 0) {
-            "Lagret $antallLagret nøkler (med data) i Redis.".also {
+        if (dataMap.isNotEmpty()) {
+            "Lagret ${dataMap.size} nøkler (med data) i Redis.".also {
                 logger.info(it)
                 sikkerLogger.info("$it\n${melding.toPretty()}")
             }
@@ -212,23 +215,14 @@ class ServiceRiver(
         return service.redisStore.getAll(allDataKeys)
             .mapKeysNotNull { key ->
                 key.removePrefix(transaksjonId.toString())
+                    .removePrefix(service.redisStore.keyPartSeparator)
+                    // TODO erstatter de to foregående 'removePrefix' etter overgangsperiode
+//                    .removePrefix("$transaksjonId${service.redisStore.keyPartSeparator}")
                     .runCatching(Key::fromString)
                     .getOrElse { error ->
                         "Feil med nøkkel '$key' i Redis.".also {
                             logger.error(it)
                             sikkerLogger.error(it, error)
-                        }
-                        null
-                    }
-            }
-            .mapValuesNotNull { value ->
-                runCatching {
-                    value.parseJson()
-                }
-                    .getOrElse { error ->
-                        "Klarte ikke parse redis-verdi.".also {
-                            logger.error(it)
-                            sikkerLogger.error("$it\nvalue=$value", error)
                         }
                         null
                     }

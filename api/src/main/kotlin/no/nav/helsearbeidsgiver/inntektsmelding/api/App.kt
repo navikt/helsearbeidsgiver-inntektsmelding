@@ -17,6 +17,7 @@ import io.ktor.server.routing.routing
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
@@ -58,20 +59,24 @@ fun main() {
 
 fun startServer(env: Map<String, String> = System.getenv()) {
     val rapid = RapidApplication.create(env)
+    val redisPoller = RedisPoller()
 
     embeddedServer(
         factory = Netty,
         port = 8080,
-        module = { apiModule(rapid) }
+        module = { apiModule(rapid, redisPoller) }
     )
         .start(wait = true)
 
-    rapid.start()
+    rapid.registerShutdownLifecycle {
+        redisPoller.close()
+    }
+        .start()
 }
 
 fun Application.apiModule(
     rapid: RapidsConnection,
-    redisPoller: RedisPoller = RedisPoller()
+    redisPoller: RedisPoller
 ) {
     val tilgangskontroll = Tilgangskontroll(
         TilgangProducer(rapid),

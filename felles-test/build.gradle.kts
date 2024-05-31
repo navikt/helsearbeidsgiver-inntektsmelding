@@ -1,3 +1,4 @@
+val lettuceVersion: String by project
 val kotestVersion: String by project
 val ktorVersion: String by project
 val mockkVersion: String by project
@@ -12,5 +13,6 @@ dependencies {
     implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     implementation("io.mockk:mockk:$mockkVersion")
 
+    implementation("io.lettuce:lettuce-core:$lettuceVersion")
     implementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
 }

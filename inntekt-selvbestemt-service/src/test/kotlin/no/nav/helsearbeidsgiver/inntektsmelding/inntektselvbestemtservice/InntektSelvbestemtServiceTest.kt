@@ -20,8 +20,9 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisAppSpecific
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -37,7 +38,7 @@ import java.util.UUID
 
 class InntektSelvbestemtServiceTest : FunSpec({
     val testRapid = TestRapid()
-    val mockRedis = MockRedis()
+    val mockRedis = MockRedisAppSpecific(RedisPrefix.InntektSelvbestemtService)
 
     ServiceRiver(
         InntektSelvbestemtService(testRapid, mockRedis.store)
@@ -75,7 +76,7 @@ class InntektSelvbestemtServiceTest : FunSpec({
                 RedisKey.of(clientId),
                 ResultJson(
                     success = Mock.inntekt.toJson(Inntekt.serializer())
-                ).toJsonStr()
+                ).toJson(ResultJson.serializer())
             )
         }
     }
@@ -115,7 +116,7 @@ class InntektSelvbestemtServiceTest : FunSpec({
                 RedisKey.of(clientId),
                 ResultJson(
                     failure = feilmelding.toJson()
-                ).toJsonStr()
+                ).toJson(ResultJson.serializer())
             )
         }
     }

@@ -46,7 +46,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.successResult(expectedInntekt)
+        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.successResult(expectedInntekt)
 
         val response = mockConstructor(InntektSelvbestemtProducer::class) {
             every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockClientId
@@ -79,7 +79,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns Mock.failureResult(expectedFeilmelding)
+        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.failureResult(expectedFeilmelding)
 
         val response = mockConstructor(InntektSelvbestemtProducer::class) {
             every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockClientId
@@ -100,7 +100,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+        coEvery { mockRedisPoller.hent(mockClientId) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
         val response = mockConstructor(InntektSelvbestemtProducer::class) {
             every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockClientId
@@ -121,7 +121,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } throws IllegalStateException()
+        coEvery { mockRedisPoller.hent(mockClientId) } throws IllegalStateException()
 
         val response = mockConstructor(InntektSelvbestemtProducer::class) {
             every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockClientId

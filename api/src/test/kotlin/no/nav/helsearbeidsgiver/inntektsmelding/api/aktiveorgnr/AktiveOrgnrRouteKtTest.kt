@@ -27,7 +27,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
     @Test
     fun `skal godta og returnere liste med organisasjoner`() = testApi {
-        coEvery { mockRedisPoller.hent(any(), any(), any()) } returns ResultJson(
+        coEvery { mockRedisPoller.hent(any()) } returns ResultJson(
             success = Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson()
         ).toJson(ResultJson.serializer())
 

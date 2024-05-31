@@ -36,7 +36,7 @@ class KvitteringRouteKtTest : ApiTest() {
         val mockClientId = UUID.randomUUID()
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId, any(), any()) } returns ResultJson(
+        coEvery { mockRedisPoller.hent(mockClientId) } returns ResultJson(
             success = resultatMedInntektsmelding.parseJson()
         ).toJson(ResultJson.serializer())
 

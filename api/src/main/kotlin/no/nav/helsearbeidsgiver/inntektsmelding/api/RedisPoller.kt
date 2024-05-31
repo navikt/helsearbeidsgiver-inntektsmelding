@@ -7,6 +7,9 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
+private const val MAX_RETRIES = 10
+private const val WAIT_MILLIS = 500L
+
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
     private val sikkerLogger = sikkerLogger()
@@ -15,9 +18,8 @@ class RedisPoller {
     private val connection = redisClient.connect()
     private val syncCommands = connection.sync()
 
-    // TODO hardkod maxRetries og waitMillis
-    suspend fun hent(key: UUID, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
-        val json = hentJsonString(key, maxRetries, waitMillis)
+    suspend fun hent(key: UUID): JsonElement {
+        val json = hentJsonString(key)
 
         sikkerLogger.info("Hentet verdi for: '$key' = $json")
 
@@ -31,8 +33,8 @@ class RedisPoller {
         }
     }
 
-    private suspend fun hentJsonString(key: UUID, maxRetries: Int, waitMillis: Long): String {
-        repeat(maxRetries) {
+    private suspend fun hentJsonString(key: UUID): String {
+        repeat(MAX_RETRIES) {
             sikkerLogger.debug("Polling redis: $it time(s) for key $key")
 
             val result = syncCommands.get(key.toString())
@@ -40,7 +42,7 @@ class RedisPoller {
             if (result != null) {
                 return result
             } else {
-                delay(waitMillis)
+                delay(WAIT_MILLIS)
             }
         }
 

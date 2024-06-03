@@ -6,7 +6,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.Inntekt
@@ -141,7 +140,7 @@ class TrengerService(
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
             val inntekt = melding[Key.INNTEKT].toString().takeIf { it != "\"$UNDEFINED_FELT\"" }?.fromJson(Inntekt.serializer())
 
-            val feil = redisStore.get(RedisKey.of(transaksjonId, Feilmelding("")))?.fromJson(feilMapSerializer)
+            val feil = redisStore.get(RedisKey.feilmelding(transaksjonId))?.fromJson(feilMapSerializer)
 
             val resultJson =
                 ResultJson(
@@ -217,7 +216,7 @@ class TrengerService(
         }
 
         if (datafeil.isNotEmpty()) {
-            val feilKey = RedisKey.of(fail.transaksjonId, Feilmelding(""))
+            val feilKey = RedisKey.feilmelding(fail.transaksjonId)
             val gamleFeil = redisStore.get(feilKey)?.fromJson(feilMapSerializer)
 
             val alleFeil = gamleFeil.orEmpty() + datafeil.associate { it.key to it.feilmelding }

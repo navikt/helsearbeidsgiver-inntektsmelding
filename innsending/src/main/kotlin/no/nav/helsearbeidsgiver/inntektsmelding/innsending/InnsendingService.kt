@@ -120,6 +120,11 @@ class InnsendingService(
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
+        if (Key.FORESPOERSEL_SVAR in melding.keys) {
+            // Logger for å danne et bilde av tiden det tar å hente forespørsler.
+            logger.info("InnsendingService: forespørsel svar mottatt")
+        }
+
         if (step1Keys.all(melding::containsKey)) {
             val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)

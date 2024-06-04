@@ -134,6 +134,13 @@ class InnsendingService(
                 innsenderNavn = innsender.navn
             )
 
+            if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
+                "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
+                }
+            }
+
             logger.info("InnsendingService: emitting behov PERSISTER_IM")
 
             rapid.publish(

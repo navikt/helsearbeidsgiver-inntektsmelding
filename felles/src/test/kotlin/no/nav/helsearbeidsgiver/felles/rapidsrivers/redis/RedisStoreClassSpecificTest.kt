@@ -7,7 +7,6 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.mock.redisWithMockRedisClient
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -36,7 +35,7 @@ class RedisStoreClassSpecificTest : FunSpec({
         mapOf(
             RedisKey.of(transaksjonId) to "mango",
             RedisKey.of(transaksjonId, EventName.SELVBESTEMT_IM_REQUESTED) to "ananas",
-            RedisKey.of(transaksjonId, Feilmelding("")) to "papaya",
+            RedisKey.feilmelding(transaksjonId) to "papaya",
             RedisKey.of(transaksjonId, Key.FNR) to "kokosnøtt"
         ).forEach { (key, expected) ->
             redisStore.get(key)?.fromJson(String.serializer()) shouldBe expected
@@ -71,7 +70,7 @@ class RedisStoreClassSpecificTest : FunSpec({
         val keysWithValues = setOf(
             RedisKey.of(transaksjonId),
             RedisKey.of(transaksjonId, EventName.SELVBESTEMT_IM_REQUESTED),
-            RedisKey.of(transaksjonId, Feilmelding("")),
+            RedisKey.feilmelding(transaksjonId),
             RedisKey.of(transaksjonId, Key.FNR)
         )
 
@@ -162,7 +161,7 @@ class RedisStoreClassSpecificTest : FunSpec({
             mapOf(
                 RedisKey.of(transaksjonId) to "mango",
                 RedisKey.of(transaksjonId, EventName.SELVBESTEMT_IM_REQUESTED) to "ananas",
-                RedisKey.of(transaksjonId, Feilmelding("")) to "papaya",
+                RedisKey.feilmelding(transaksjonId) to "papaya",
                 RedisKey.of(transaksjonId, Key.FNR) to "kokosnøtt"
             ).forEach { (key, expected) ->
                 redisStore.get(key)?.fromJson(String.serializer()) shouldBe expected
@@ -197,7 +196,7 @@ class RedisStoreClassSpecificTest : FunSpec({
             val keysWithValues = setOf(
                 RedisKey.of(transaksjonId),
                 RedisKey.of(transaksjonId, EventName.SELVBESTEMT_IM_REQUESTED),
-                RedisKey.of(transaksjonId, Feilmelding("")),
+                RedisKey.feilmelding(transaksjonId),
                 RedisKey.of(transaksjonId, Key.FNR)
             )
 

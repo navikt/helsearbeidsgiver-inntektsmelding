@@ -8,6 +8,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.util.UUID
 
 @Serializable
-data class TrengerRequest(
+data class HentForespoerselRequest(
     val uuid: UUID
 )

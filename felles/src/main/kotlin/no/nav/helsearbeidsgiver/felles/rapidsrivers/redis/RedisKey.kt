@@ -1,9 +1,7 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import java.util.UUID
 
 sealed class RedisKey {
@@ -21,8 +19,8 @@ sealed class RedisKey {
             KeyKey(uuid, key)
 
         // @TODO ikke bra nok
-        fun of(uuid: UUID, feilMelding: Feilmelding): RedisKey =
-            FeilKey(uuid, feilMelding)
+        fun feilmelding(uuid: UUID): RedisKey =
+            FeilKey(uuid)
     }
 }
 
@@ -41,7 +39,7 @@ private data class ClientKey(override val uuid: UUID) : RedisKey() {
         uuid.toString()
 }
 
-private data class FeilKey(override val uuid: UUID, val feilMeldingClass: Feilmelding) : RedisKey() {
+private data class FeilKey(override val uuid: UUID) : RedisKey() {
     override fun toString(): String =
-        uuid.toString() + feilMeldingClass.simpleName()
+        uuid.toString() + "Feilmelding"
 }

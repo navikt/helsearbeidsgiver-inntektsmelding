@@ -17,7 +17,7 @@ class TrengerProducer(
         logger.info("Starter ${TrengerProducer::class.simpleName}...")
     }
 
-    fun publish(request: TrengerRequest, arbeidsgiverFnr: String): UUID {
+    fun publish(request: HentForespoerselRequest, arbeidsgiverFnr: String): UUID {
         val clientId = UUID.randomUUID()
 
         rapid.publish(

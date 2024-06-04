@@ -1,14 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ResultJson
-import no.nav.helsearbeidsgiver.felles.TrengerData
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -87,21 +88,15 @@ class TrengerIT : EndToEndTest() {
 
         resultJson.failure.shouldBeNull()
 
-        val trengerData = resultJson.success.shouldNotBeNull().fromJson(TrengerData.serializer())
+        val hentForespoerselResultat = resultJson.success.shouldNotBeNull().fromJson(HentForespoerselResultat.serializer())
 
-        trengerData.shouldNotBeNull().apply {
+        hentForespoerselResultat.shouldNotBeNull().apply {
+            sykmeldtNavn.shouldNotBeNull()
+            avsenderNavn.shouldNotBeNull()
+            orgNavn.shouldNotBeNull()
+            inntekt.shouldNotBeNull()
             forespoersel.shouldNotBeNull()
-            fnr.shouldNotBeNull()
-            orgnr.shouldNotBeNull()
-            personDato.shouldNotBeNull()
-            arbeidsgiver.shouldNotBeNull()
-            virksomhetNavn.shouldNotBeNull()
-            skjaeringstidspunkt.shouldNotBeNull()
-            fravarsPerioder.shouldNotBeNull()
-            egenmeldingsPerioder.shouldNotBeNull()
-            forespurtData.shouldNotBeNull()
-            bruttoinntekt.shouldNotBeNull()
-            tidligereinntekter.shouldNotBeNull()
+            feil.shouldBeEmpty()
         }
     }
 

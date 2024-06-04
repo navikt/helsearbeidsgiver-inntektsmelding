@@ -48,7 +48,6 @@ class InnsendingService(
     )
     override val dataKeys = setOf(
         Key.VIRKSOMHET,
-        Key.ARBEIDSFORHOLD,
         Key.ARBEIDSGIVER_INFORMASJON,
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.INNTEKTSMELDING_DOKUMENT,
@@ -59,7 +58,6 @@ class InnsendingService(
     private val step1Keys =
         setOf(
             Key.VIRKSOMHET,
-            Key.ARBEIDSFORHOLD,
             Key.ARBEIDSTAKER_INFORMASJON,
             Key.ARBEIDSGIVER_INFORMASJON,
             Key.FORESPOERSEL_SVAR
@@ -91,15 +89,6 @@ class InnsendingService(
             Key.EVENT_NAME to event.toJson(),
             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
             Key.ORGNRUNDERENHET to orgnr.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
-        )
-
-        logger.info("InnsendingService: emitting behov ARBEIDSFORHOLD")
-        rapid.publish(
-            Key.EVENT_NAME to event.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-            Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )

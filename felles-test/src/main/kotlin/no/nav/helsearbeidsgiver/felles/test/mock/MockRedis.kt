@@ -47,7 +47,7 @@ class MockRedis {
     }
 }
 
-class MockRedisAppSpecific(keyPrefix: RedisPrefix) {
+class MockRedisClassSpecific(keyPrefix: RedisPrefix) {
     private val mockCommands = mockk<RedisCommands<String, String>>()
     private val redis = mockStatic(RedisClient::class) {
         every { RedisClient.create(any<String>()) } returns mockRedisClient(mockCommands)

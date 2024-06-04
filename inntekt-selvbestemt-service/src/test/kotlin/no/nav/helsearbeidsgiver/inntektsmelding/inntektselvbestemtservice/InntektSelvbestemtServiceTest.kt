@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisAppSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -38,7 +38,7 @@ import java.util.UUID
 
 class InntektSelvbestemtServiceTest : FunSpec({
     val testRapid = TestRapid()
-    val mockRedis = MockRedisAppSpecific(RedisPrefix.InntektSelvbestemtService)
+    val mockRedis = MockRedisClassSpecific(RedisPrefix.InntektSelvbestemtService)
 
     ServiceRiver(
         InntektSelvbestemtService(testRapid, mockRedis.store)

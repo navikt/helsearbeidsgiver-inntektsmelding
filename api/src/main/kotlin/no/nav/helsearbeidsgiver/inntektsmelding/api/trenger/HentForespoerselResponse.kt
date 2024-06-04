@@ -32,6 +32,7 @@ data class HentForespoerselResponse(
     @Deprecated("fjern når det ikke lenger brukes i frontend")
     val behandlingsdager: List<LocalDate>,
     val forespurtData: ForespurtData?,
+    val erBesvart: Boolean,
     val feilReport: FeilReport? = null,
     val success: JsonElement? = null,
     val failure: JsonElement? = null

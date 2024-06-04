@@ -129,6 +129,7 @@ private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse {
         behandlingsperiode = null,
         behandlingsdager = emptyList(),
         forespurtData = forespoersel.forespurtData,
+        erBesvart = forespoersel.erBesvart,
         feilReport = if (feil.isEmpty()) {
             null
         } else {

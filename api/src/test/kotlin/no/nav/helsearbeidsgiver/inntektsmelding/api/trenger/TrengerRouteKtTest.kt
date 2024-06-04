@@ -246,6 +246,7 @@ private object Mock {
             "behandlingsperiode": null,
             "behandlingsdager": [],
             "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
+            "erBesvart": ${forespoersel.erBesvart},
             "success": {
                 "navn": "Ola Normann",
                 "orgNavn": "Norge AS",
@@ -261,7 +262,8 @@ private object Mock {
                 "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
                 "behandlingsperiode": null,
                 "behandlingsdager": [],
-                "forespurtData": ${forespoersel.forespurtData.hardcodedJson()}
+                "forespurtData": ${forespoersel.forespurtData.hardcodedJson()},
+                "erBesvart": ${forespoersel.erBesvart}
             }
         }
         """.removeJsonWhitespace()
@@ -284,6 +286,7 @@ private object Mock {
             "behandlingsperiode": null,
             "behandlingsdager": [],
             "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
+            "erBesvart": ${forespoersel.erBesvart},
             "success": {
                 "navn": "Ola Normann",
                 "orgNavn": "Norge AS",
@@ -299,7 +302,8 @@ private object Mock {
                 "tidligereinntekter": [${inntekt.maanedOversikt.joinToString(transform = InntektPerMaaned::hardcodedJson)}],
                 "behandlingsperiode": null,
                 "behandlingsdager": [],
-                "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()}
+                "forespurtData": ${mockForespurtDataMedForrigeInntekt().hardcodedJson()},
+                "erBesvart": ${forespoersel.erBesvart}
             }
         }
         """.removeJsonWhitespace()

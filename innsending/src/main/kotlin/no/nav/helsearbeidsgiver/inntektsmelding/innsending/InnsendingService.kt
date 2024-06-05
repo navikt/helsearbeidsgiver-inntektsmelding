@@ -160,6 +160,10 @@ class InnsendingService(
         val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
         val inntektsmeldingJson = Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), melding)
 
+        val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
+
+        logger.info("publiserer under clientID $clientId")
+
         if (!erDuplikat) {
             logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
             logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")

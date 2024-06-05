@@ -3,7 +3,6 @@ azure:
   enabled: true
 database:
   - name: notifikasjon
-    tier: db-custom-1-3840
 logical_decoding: true
 envFrom:
   - type: secret

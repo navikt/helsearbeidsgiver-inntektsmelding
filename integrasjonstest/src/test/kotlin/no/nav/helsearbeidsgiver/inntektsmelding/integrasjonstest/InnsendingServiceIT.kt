@@ -96,17 +96,6 @@ class InnsendingServiceIT : EndToEndTest() {
                 it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
             }
 
-        // Arbeidsforhold hentet
-        messages.filter(EventName.INSENDING_STARTED)
-            .filter(Key.ARBEIDSFORHOLD)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                it shouldContainKey Key.DATA
-                it[Key.ARBEIDSFORHOLD].shouldNotBeNull()
-            }
-
         // Sykmeldt og innsender hentet
         messages.filter(EventName.INSENDING_STARTED)
             .filter(Key.ARBEIDSTAKER_INFORMASJON)

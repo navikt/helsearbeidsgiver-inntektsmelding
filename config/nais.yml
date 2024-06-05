@@ -60,12 +60,12 @@ spec:
         databases:
         {{#each database as |db| }}
           - name: {{ db.name }}
-          {{#if db.users}}
-          users:
+        {{#if db.users}}
+        users:
             {{#each db.users as |user| }}
-            - name: {{ user }}
+          - name: {{ user }}
              {{/each }}
-          {{/if }}
+        {{/if }}
         {{#if db.tier}}
         tier: {{ db.tier }}
         {{/if }}

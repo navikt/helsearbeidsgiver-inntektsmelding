@@ -60,16 +60,17 @@ spec:
         databases:
         {{#each database as |db| }}
           - name: {{ db.name }}
+          {{#if db.users}}
+          users:
+            {{#each db.users as |user| }}
+            - name: {{ user }}
+             {{/each }}
+          {{/if }}
         {{#if db.tier}}
         tier: {{ db.tier }}
         {{/if }}
         diskAutoresize: true
-        {{#if db.users}}
-        users:
-        {{#each db.users as |user| }}
-          - name: {{ user }}
-        {{/each}}
-        {{/if}}
+
         {{#if logical_decoding}}
         flags:
           - name: cloudsql.logical_decoding

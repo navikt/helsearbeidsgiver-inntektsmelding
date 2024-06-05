@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
@@ -23,13 +24,11 @@ import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 
-// TODO : Duplisert mesteparten av InnsendingService, skal trekke ut i super / generisk løsning.
 class KvitteringService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
@@ -79,14 +78,18 @@ class KvitteringService(
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
+
         // TODO: Skriv bort fra empty payload hvis mulig
-        val im = InnsendtInntektsmelding(
-            Key.INNTEKTSMELDING_DOKUMENT.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(Inntektsmelding.serializer()),
-            Key.EKSTERN_INNTEKTSMELDING.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(EksternInntektsmelding.serializer())
-        ).toJsonStr(InnsendtInntektsmelding.serializer())
+        val resultJson = ResultJson(
+            success = InnsendtInntektsmelding(
+                Key.INNTEKTSMELDING_DOKUMENT.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(Inntektsmelding.serializer()),
+                Key.EKSTERN_INNTEKTSMELDING.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(EksternInntektsmelding.serializer())
+            ).toJson(InnsendtInntektsmelding.serializer())
+        )
 
         logger.info("Finalize kvittering med transaksjonId=$transaksjonId")
-        redisStore.set(RedisKey.of(clientId), im)
+
+        redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
@@ -101,7 +104,10 @@ class KvitteringService(
             }
         } else {
             logger.info("Terminate kvittering med forespoerselId=${fail.forespoerselId} og transaksjonId ${fail.transaksjonId}")
-            redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+            val resultJson = ResultJson(
+                failure = fail.feilmelding.toJson()
+            )
+            redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
         }
     }
 }

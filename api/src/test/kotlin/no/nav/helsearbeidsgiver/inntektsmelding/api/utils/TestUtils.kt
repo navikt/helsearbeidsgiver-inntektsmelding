@@ -20,7 +20,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Tilgang
-import no.nav.helsearbeidsgiver.felles.TilgangData
+import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -31,17 +31,17 @@ import org.junit.jupiter.api.AfterEach
 import java.util.UUID
 
 abstract class ApiTest : MockAuthToken() {
+    val mockRedisPoller = mockk<RedisPoller>()
+
     fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {
         application {
-            apiModule(mockk(relaxed = true))
+            apiModule(mockk(relaxed = true), mockRedisPoller)
         }
 
-        val testClient = TestClient(this) { mockAuthToken() }
+        val testClient = TestClient(this, mockRedisPoller) { mockAuthToken() }
 
-        mockConstructor(RedisPoller::class) {
-            mockConstructor(TilgangProducer::class) {
-                testClient.block()
-            }
+        mockConstructor(TilgangProducer::class) {
+            testClient.block()
         }
     }
 
@@ -53,7 +53,8 @@ abstract class ApiTest : MockAuthToken() {
 
 class TestClient(
     appTestBuilder: ApplicationTestBuilder,
-    val authToken: () -> String
+    private val mockRedisPoller: RedisPoller,
+    private val authToken: () -> String
 ) {
     private val httpClient = appTestBuilder.createClient {
         install(ContentNegotiation) {
@@ -65,8 +66,9 @@ class TestClient(
         val mockTilgangClientId = UUID.randomUUID()
 
         every { anyConstructed<TilgangProducer>().publishForespoerselId(any(), any()) } returns mockTilgangClientId
+        every { anyConstructed<TilgangProducer>().publishOrgnr(any(), any()) } returns mockTilgangClientId
 
-        coEvery { anyConstructed<RedisPoller>().hent(mockTilgangClientId) } returns TilgangData(tilgang).toJson(TilgangData.serializer())
+        coEvery { mockRedisPoller.hent(mockTilgangClientId) } returns TilgangResultat(tilgang).toJson(TilgangResultat.serializer())
     }
 
     fun get(

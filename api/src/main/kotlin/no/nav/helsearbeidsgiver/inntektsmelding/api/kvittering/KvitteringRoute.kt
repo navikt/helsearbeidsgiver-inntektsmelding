@@ -7,13 +7,16 @@ import io.ktor.server.routing.route
 import io.prometheus.client.Summary
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Kvittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringEkstern
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.KvitteringSimba
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
+import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -30,13 +33,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerE
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.time.ZoneId
 import java.util.UUID
 import kotlin.system.measureTimeMillis
-
-private const val EMPTY_PAYLOAD = "{}"
 
 fun Route.kvitteringRoute(
     rapid: RapidsConnection,
@@ -74,32 +74,20 @@ fun Route.kvitteringRoute(
                         }
 
                         val clientId = kvitteringProducer.publish(forespoerselId)
-                        var resultat: String?
-                        measureTimeMillis {
-                            resultat = redisPoller.getString(clientId, 10, 500)
-                        }.also {
-                            logger.info("redis polling took $it")
-                        }
-                        sikkerLogger.info("Forespørsel $forespoerselId ga resultat: $resultat")
+                        val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
 
-                        if (resultat == EMPTY_PAYLOAD) {
-                            // kvitteringService svarer med "{}" hvis det ikke er noen kvittering
-                            respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
-                        } else {
-                            val innsendtInntektsmelding = resultat!!.fromJson(InnsendtInntektsmelding.serializer())
+                        sikkerLogger.info("Resultat for henting av kvittering for $forespoerselId: $resultatJson")
 
-                            if (innsendtInntektsmelding.dokument == null && innsendtInntektsmelding.eksternInntektsmelding == null) {
+                        val resultat = resultatJson.success?.fromJson(InnsendtInntektsmelding.serializer())
+                        if (resultat != null) {
+                            if (resultat.dokument == null && resultat.eksternInntektsmelding == null) {
                                 respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
+                            } else {
+                                respondOk(resultat.tilKvittering(), Kvittering.serializer())
                             }
-                            measureTimeMillis {
-                                val innsending = tilKvittering(innsendtInntektsmelding)
-                                respondOk(
-                                    innsending.toJson(Kvittering.serializer()),
-                                    JsonElement.serializer()
-                                )
-                            }.also {
-                                logger.info("Mapping og respond took $it")
-                            }
+                        } else {
+                            val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                            respondInternalServerError(feilmelding, String.serializer())
                         }
                     } catch (e: ManglerAltinnRettigheterException) {
                         respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
@@ -122,42 +110,44 @@ fun Route.kvitteringRoute(
     }
 }
 
-private fun tilKvittering(innsendtInntektsmelding: InnsendtInntektsmelding): Kvittering =
+private fun InnsendtInntektsmelding.tilKvittering(): Kvittering =
     Kvittering(
-        kvitteringDokument = innsendtInntektsmelding.dokument?.let { inntektsmeldingDokument ->
-            KvitteringSimba(
-                orgnrUnderenhet = inntektsmeldingDokument.orgnrUnderenhet,
-                identitetsnummer = inntektsmeldingDokument.identitetsnummer,
-                fulltNavn = inntektsmeldingDokument.fulltNavn,
-                virksomhetNavn = inntektsmeldingDokument.virksomhetNavn,
-                behandlingsdager = inntektsmeldingDokument.behandlingsdager,
-                egenmeldingsperioder = inntektsmeldingDokument.egenmeldingsperioder,
-                arbeidsgiverperioder = inntektsmeldingDokument.arbeidsgiverperioder,
-                bestemmendeFraværsdag = inntektsmeldingDokument.bestemmendeFraværsdag,
-                fraværsperioder = inntektsmeldingDokument.fraværsperioder,
-                inntekt = Inntekt(
-                    bekreftet = true,
-                    // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
-                    beregnetInntekt = inntektsmeldingDokument.inntekt?.beregnetInntekt ?: inntektsmeldingDokument.beregnetInntekt,
-                    endringÅrsak = inntektsmeldingDokument.inntekt?.endringÅrsak,
-                    manueltKorrigert = inntektsmeldingDokument.inntekt?.manueltKorrigert.orDefault(false)
-                ),
-                fullLønnIArbeidsgiverPerioden = inntektsmeldingDokument.fullLønnIArbeidsgiverPerioden,
-                refusjon = inntektsmeldingDokument.refusjon,
-                naturalytelser = inntektsmeldingDokument.naturalytelser,
-                årsakInnsending = inntektsmeldingDokument.årsakInnsending,
-                bekreftOpplysninger = true,
-                tidspunkt = inntektsmeldingDokument.tidspunkt,
-                forespurtData = inntektsmeldingDokument.forespurtData,
-                telefonnummer = inntektsmeldingDokument.telefonnummer,
-                innsenderNavn = inntektsmeldingDokument.innsenderNavn
-            )
-        },
-        kvitteringEkstern = innsendtInntektsmelding.eksternInntektsmelding?.let { eIm ->
-            KvitteringEkstern(
-                eIm.avsenderSystemNavn,
-                eIm.arkivreferanse,
-                eIm.tidspunkt.atZone(ZoneId.systemDefault()).toOffsetDateTime()
-            )
-        }
+        kvitteringDokument = dokument?.tilKvitteringSimba(),
+        kvitteringEkstern = eksternInntektsmelding?.tilKvitteringEkstern()
+    )
+
+private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
+    KvitteringSimba(
+        orgnrUnderenhet = orgnrUnderenhet,
+        identitetsnummer = identitetsnummer,
+        fulltNavn = fulltNavn,
+        virksomhetNavn = virksomhetNavn,
+        behandlingsdager = behandlingsdager,
+        egenmeldingsperioder = egenmeldingsperioder,
+        arbeidsgiverperioder = arbeidsgiverperioder,
+        bestemmendeFraværsdag = bestemmendeFraværsdag,
+        fraværsperioder = fraværsperioder,
+        inntekt = Inntekt(
+            bekreftet = true,
+            // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
+            beregnetInntekt = inntekt?.beregnetInntekt ?: beregnetInntekt,
+            endringÅrsak = inntekt?.endringÅrsak,
+            manueltKorrigert = inntekt?.manueltKorrigert.orDefault(false)
+        ),
+        fullLønnIArbeidsgiverPerioden = fullLønnIArbeidsgiverPerioden,
+        refusjon = refusjon,
+        naturalytelser = naturalytelser,
+        årsakInnsending = årsakInnsending,
+        bekreftOpplysninger = true,
+        tidspunkt = tidspunkt,
+        forespurtData = forespurtData,
+        telefonnummer = telefonnummer,
+        innsenderNavn = innsenderNavn
+    )
+
+private fun EksternInntektsmelding.tilKvitteringEkstern(): KvitteringEkstern =
+    KvitteringEkstern(
+        avsenderSystemNavn,
+        arkivreferanse,
+        tidspunkt.atZone(ZoneId.systemDefault()).toOffsetDateTime()
     )

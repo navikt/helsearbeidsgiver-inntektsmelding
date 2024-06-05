@@ -16,6 +16,7 @@ import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -168,6 +169,9 @@ class InnsendingServiceIT : EndToEndTest() {
         // API besvart gjennom redis
         shouldNotThrowAny {
             redisStore.get(RedisKey.of(Mock.clientId))
+                .shouldNotBeNull()
+                .fromJson(ResultJson.serializer())
+                .success
                 .shouldNotBeNull()
                 .fromJson(Inntektsmelding.serializer())
         }

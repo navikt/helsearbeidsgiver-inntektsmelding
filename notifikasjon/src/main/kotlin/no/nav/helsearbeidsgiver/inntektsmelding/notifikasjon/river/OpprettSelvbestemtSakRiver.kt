@@ -29,7 +29,6 @@ data class OpprettSelvbestemtSakMelding(
     val inntektsmelding: Inntektsmelding
 )
 
-// TODO test
 class OpprettSelvbestemtSakRiver(
     private val linkUrl: String,
     private val selvbestemtRepo: SelvbestemtRepo,
@@ -40,7 +39,7 @@ class OpprettSelvbestemtSakRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): OpprettSelvbestemtSakMelding? =
-        if (setOf(Key.BEHOV, Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
             null
         } else {
             OpprettSelvbestemtSakMelding(
@@ -53,7 +52,7 @@ class OpprettSelvbestemtSakRiver(
 
     override fun OpprettSelvbestemtSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
         val sakId = agNotifikasjonKlient.opprettSak(
-            linkUrl = linkUrl,
+            lenke = "$linkUrl/im-dialog/kvittering/agi/${inntektsmelding.type.id}",
             inntektsmeldingTypeId = inntektsmelding.type.id,
             orgnr = inntektsmelding.avsender.orgnr,
             sykmeldtNavn = inntektsmelding.sykmeldt.navn,

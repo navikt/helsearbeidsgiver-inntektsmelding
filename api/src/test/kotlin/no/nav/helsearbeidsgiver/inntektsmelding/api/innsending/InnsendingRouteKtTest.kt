@@ -9,12 +9,12 @@ import io.mockk.coEvery
 import io.mockk.every
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.test.mock.DELVIS_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.felles.test.mock.mockDelvisInntektsmeldingDokument
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
@@ -41,14 +41,16 @@ class InnsendingRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `skal godta og returnere kvittering`() = testApi {
+    fun `mottar inntektsmelding og svarer OK`() = testApi {
         mockTilgang(Tilgang.HAR_TILGANG)
 
         val mockClientId = UUID.randomUUID()
 
         coEvery {
-            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
-        } returns mockInntektsmelding().toJson(Inntektsmelding.serializer())
+            mockRedisPoller.hent(mockClientId)
+        } returns ResultJson(
+            success = mockInntektsmelding().toJson(Inntektsmelding.serializer())
+        ).toJson(ResultJson.serializer())
 
         val response = mockConstructor(InnsendingProducer::class) {
             every {
@@ -56,6 +58,30 @@ class InnsendingRouteKtTest : ApiTest() {
             } returns mockClientId
 
             post(path, GYLDIG_REQUEST)
+        }
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals(InnsendingResponse(Mock.forespoerselId).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
+    }
+
+    @Test
+    fun `mottar delvis inntektsmelding og svarer OK`() = testApi {
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        val mockClientId = UUID.randomUUID()
+
+        coEvery {
+            mockRedisPoller.hent(mockClientId)
+        } returns ResultJson(
+            success = mockDelvisInntektsmeldingDokument().toJson(Inntektsmelding.serializer())
+        ).toJson(ResultJson.serializer())
+
+        val response = mockConstructor(InnsendingProducer::class) {
+            every {
+                anyConstructed<InnsendingProducer>().publish(any(), any(), any())
+            } returns mockClientId
+
+            post(path, GYLDIG_DELVIS_REQUEST)
         }
 
         assertEquals(HttpStatusCode.Created, response.status)
@@ -79,9 +105,7 @@ class InnsendingRouteKtTest : ApiTest() {
 
         val mockClientId = UUID.randomUUID()
 
-        coEvery {
-            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
-        } throws RedisPollerTimeoutException(Mock.forespoerselId)
+        coEvery { mockRedisPoller.hent(mockClientId) } throws RedisPollerTimeoutException(Mock.forespoerselId)
 
         val response = mockConstructor(InnsendingProducer::class) {
             every {
@@ -93,28 +117,6 @@ class InnsendingRouteKtTest : ApiTest() {
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
         assertEquals(RedisTimeoutResponse(Mock.forespoerselId).toJsonStr(RedisTimeoutResponse.serializer()), response.bodyAsText())
-    }
-
-    @Test
-    fun `skal godta delvis im og returnere kvittering`() = testApi {
-        mockTilgang(Tilgang.HAR_TILGANG)
-
-        val mockClientId = UUID.randomUUID()
-
-        coEvery {
-            anyConstructed<RedisPoller>().hent(mockClientId, any(), any())
-        } returns mockDelvisInntektsmeldingDokument().toJson(Inntektsmelding.serializer())
-
-        val response = mockConstructor(InnsendingProducer::class) {
-            every {
-                anyConstructed<InnsendingProducer>().publish(any(), any(), any())
-            } returns mockClientId
-
-            post(path, GYLDIG_DELVIS_REQUEST)
-        }
-
-        assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals(InnsendingResponse(Mock.forespoerselId).toJsonStr(InnsendingResponse.serializer()), response.bodyAsText())
     }
 
     private object Mock {

@@ -5,6 +5,8 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -23,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
@@ -44,6 +47,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
+import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.createInntektSelvbestemtService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
@@ -58,6 +62,8 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.mai
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
@@ -69,6 +75,25 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
+
+val bjarneBetjent = FullPerson(
+    navn = PersonNavn(
+        fornavn = "Bjarne",
+        mellomnavn = null,
+        etternavn = "Betjent"
+    ),
+    foedselsdato = 28.mai,
+    ident = Fnr.genererGyldig().verdi
+)
+val maxMekker = FullPerson(
+    navn = PersonNavn(
+        fornavn = "Max",
+        mellomnavn = null,
+        etternavn = "Mekker"
+    ),
+    foedselsdato = 6.august,
+    ident = Fnr.genererGyldig().verdi
+)
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class EndToEndTest : ContainerTest() {
@@ -86,8 +111,14 @@ abstract class EndToEndTest : ContainerTest() {
             .createTruncateFunction()
     }
 
+    // Vent på rediscontainer
     val redisStore by lazy {
-        RedisStore(redisContainer.redisURI)
+        repeat(5) {
+            runCatching { RedisStore(redisContainer.redisURI) }
+                .onSuccess { return@lazy it }
+                .onFailure { runBlocking { delay(1000) } }
+        }
+        throw IllegalStateException("Klarte ikke koble til Redis.")
     }
 
     val messages get() = imTestRapid.messages
@@ -105,6 +136,7 @@ abstract class EndToEndTest : ContainerTest() {
     val brregClient = mockk<BrregClient>(relaxed = true)
     val mockPriProducer = mockk<PriProducer>()
     val aaregClient = mockk<AaregClient>(relaxed = true)
+    val inntektClient = mockk<InntektKlient>(relaxed = true)
 
     val pdlKlient = mockk<PdlClient>()
 
@@ -114,24 +146,8 @@ abstract class EndToEndTest : ContainerTest() {
         clearAllMocks()
 
         coEvery { pdlKlient.personBolk(any()) } returns listOf(
-            FullPerson(
-                navn = PersonNavn(
-                    fornavn = "Bjarne",
-                    mellomnavn = null,
-                    etternavn = "Betjent"
-                ),
-                foedselsdato = 28.mai,
-                ident = "fnr-bjarne"
-            ),
-            FullPerson(
-                navn = PersonNavn(
-                    fornavn = "Max",
-                    mellomnavn = null,
-                    etternavn = "Mekker"
-                ),
-                foedselsdato = 6.august,
-                ident = "fnr-max"
-            )
+            bjarneBetjent,
+            maxMekker
         )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
         coEvery { brregClient.hentVirksomheter(any()) } answers {
@@ -162,6 +178,7 @@ abstract class EndToEndTest : ContainerTest() {
             createAktiveOrgnrService(redisStore)
             createInnsending(redisStore)
             createInntektService(redisStore)
+            createInntektSelvbestemtService(redisStore)
             createSpinnService(redisStore)
             createTilgangService(redisStore)
             createTrengerService(redisStore)
@@ -177,7 +194,7 @@ abstract class EndToEndTest : ContainerTest() {
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
             createHelsebro(mockPriProducer)
-            createInntekt(mockk(relaxed = true))
+            createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
             createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)

@@ -6,10 +6,13 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import io.prometheus.client.Summary
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -26,9 +29,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.validationResponseMapper
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.toPretty
 import org.valiktor.ConstraintViolationException
 import java.util.UUID
+import kotlin.system.measureTimeMillis
 
 fun Route.innsendingRoute(
     rapid: RapidsConnection,
@@ -37,6 +40,11 @@ fun Route.innsendingRoute(
 ) {
     val producer = InnsendingProducer(rapid)
 
+    val requestLatency = Summary.build()
+        .name("simba_innsending_latency_seconds")
+        .help("innsending endpoint latency in seconds")
+        .register()
+
     route(Routes.INNSENDING + "/{forespoerselId}") {
         post {
             val forespoerselId = call.parameters["forespoerselId"]
@@ -44,40 +52,51 @@ fun Route.innsendingRoute(
                 ?.getOrNull()
 
             if (forespoerselId != null) {
-                try {
-                    val request = call.receiveText()
-                        .parseJson()
-                        .also { json ->
-                            "Mottok innsending med forespørselId: $forespoerselId".let {
-                                logger.info(it)
-                                sikkerLogger.info("$it og request:\n$json")
+                val requestTimer = requestLatency.startTimer()
+                measureTimeMillis {
+                    try {
+                        val request = call.receiveText()
+                            .parseJson()
+                            .also { json ->
+                                "Mottok innsending med forespørselId: $forespoerselId".let {
+                                    logger.info(it)
+                                    sikkerLogger.info("$it og request:\n$json")
+                                }
                             }
+                            .fromJson(Innsending.serializer())
+
+                        tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
+
+                        request.validate()
+                        val innloggerFnr = call.request.lesFnrFraAuthToken()
+                        val clientId = producer.publish(forespoerselId, request, innloggerFnr)
+                        logger.info("Publiserte til rapid med forespørselId: $forespoerselId og clientId=$clientId")
+
+                        val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+                        sikkerLogger.info("Fikk resultat for innsending:\n$resultatJson")
+
+                        if (resultatJson.success != null) {
+                            respond(HttpStatusCode.Created, InnsendingResponse(forespoerselId), InnsendingResponse.serializer())
+                        } else {
+                            val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                            respondInternalServerError(feilmelding, String.serializer())
                         }
-                        .fromJson(Innsending.serializer())
-
-                    tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
-
-                    request.validate()
-                    val innloggerFnr = call.request.lesFnrFraAuthToken()
-                    val clientId = producer.publish(forespoerselId, request, innloggerFnr)
-                    logger.info("Publiserte til rapid med forespørselId: $forespoerselId og clientId=$clientId")
-
-                    val resultat = redisPoller.hent(clientId)
-                    sikkerLogger.info("Fikk resultat: ${resultat.toPretty()}")
-
-                    respond(HttpStatusCode.Created, InnsendingResponse(forespoerselId), InnsendingResponse.serializer())
-                } catch (e: ConstraintViolationException) {
-                    logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
-                    respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
-                } catch (e: SerializationException) {
-                    "Kunne ikke parse json for $forespoerselId".let {
-                        logger.error(it)
-                        sikkerLogger.error(it, e)
-                        respondBadRequest(JsonErrorResponse(forespoerselId.toString()), JsonErrorResponse.serializer())
+                    } catch (e: ConstraintViolationException) {
+                        logger.info("Fikk valideringsfeil for forespørselId: $forespoerselId")
+                        respondBadRequest(validationResponseMapper(e.constraintViolations), ValidationResponse.serializer())
+                    } catch (e: SerializationException) {
+                        "Kunne ikke parse json for $forespoerselId".let {
+                            logger.error(it)
+                            sikkerLogger.error(it, e)
+                            respondBadRequest(JsonErrorResponse(forespoerselId.toString()), JsonErrorResponse.serializer())
+                        }
+                    } catch (e: RedisPollerTimeoutException) {
+                        logger.info("Fikk timeout for forespørselId: $forespoerselId", e)
+                        respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
                     }
-                } catch (e: RedisPollerTimeoutException) {
-                    logger.info("Fikk timeout for forespørselId: $forespoerselId", e)
-                    respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
+                }.also {
+                    requestTimer.observeDuration()
+                    logger.info("Api call to ${Routes.INNSENDING} took $it ms")
                 }
             } else {
                 val feilmelding = "Forespørsel-ID mangler som stiparameter."

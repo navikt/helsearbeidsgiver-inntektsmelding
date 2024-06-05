@@ -103,10 +103,6 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
     }
 
     fun skalHaandteres(fail: Fail): Boolean {
-        if (fail.forespoerselId == null) {
-            sikkerLogger.info("Mangler forespørselId, ignorerer")
-            return false
-        }
         val behovFraMelding = fail.utloesendeMelding.toMap()[Key.BEHOV]?.fromJson(BehovType.serializer())
         val skalHaandteres = behovSomHaandteres.contains(behovFraMelding)
         sikkerLogger.info("Behov: $behovFraMelding skal håndteres: $skalHaandteres")

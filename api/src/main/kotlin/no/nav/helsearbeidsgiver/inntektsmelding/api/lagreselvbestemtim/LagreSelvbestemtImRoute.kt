@@ -12,6 +12,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -43,7 +44,7 @@ fun Route.lagreSelvbestemtImRoute(
 ) {
     val producer = LagreSelvbestemtImProducer(rapid)
 
-    post(Routes.SELVBESTEMT_INNTEKTMELDING_MED_VALGFRI_ID) {
+    post(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_VALGFRI_ID) {
         val selvbestemtIdFraPath = call.parameters["selvbestemtId"]
             ?.runCatching(UUID::fromString)
             ?.getOrNull()
@@ -51,7 +52,7 @@ fun Route.lagreSelvbestemtImRoute(
         val selvbestemtId: UUID = selvbestemtIdFraPath.orDefault(UUID.randomUUID())
 
         MdcUtils.withLogFields(
-            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTMELDING_MED_VALGFRI_ID),
+            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_VALGFRI_ID),
             Log.selvbestemtId(selvbestemtId)
         ) {
             val skjema = lesRequestOrNull()
@@ -85,7 +86,7 @@ fun Route.lagreSelvbestemtImRoute(
                 }
 
                 else -> {
-                    tilgangskontroll.validerTilgangTilOrg(call.request, selvbestemtId, skjema.avsender.orgnr)
+                    tilgangskontroll.validerTilgangTilOrg(call.request, skjema.avsender.orgnr)
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
@@ -129,10 +130,22 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): S
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(selvbestemtId: UUID, result: Result<JsonElement>) {
     result
+        .map {
+            it.fromJson(ResultJson.serializer())
+        }
         .onSuccess {
-            logger.info("Selvbestemt inntektsmelding mottatt OK.")
-            sikkerLogger.info("Selvbestemt inntektsmelding mottatt OK:\n${it.toPretty()}")
-            respond(HttpStatusCode.OK, LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
+            val success = it.success
+            if (success != null) {
+                logger.info("Selvbestemt inntektsmelding mottatt OK.")
+                sikkerLogger.info("Selvbestemt inntektsmelding mottatt OK:\n${success.toPretty()}")
+                respond(HttpStatusCode.OK, LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
+            } else {
+                val feilmelding = it.failure?.fromJson(String.serializer()).orDefault("Tomt resultat i Redis.")
+
+                logger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding.")
+                sikkerLogger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding: $feilmelding")
+                respondInternalServerError(UkjentErrorResponse(selvbestemtId), UkjentErrorResponse.serializer())
+            }
         }
         .onFailure {
             logger.info("Klarte ikke hente resultat.")

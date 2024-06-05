@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -20,15 +20,14 @@ import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
-import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.AktiveOrgnrResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
@@ -189,11 +188,11 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         }
 
         val response = redisStore.get(RedisKey.of(Mock.clientId))
-            ?.fromJson(AktiveOrgnrResponse.serializer())
+            ?.fromJson(ResultJson.serializer())
             .shouldNotBeNull()
 
-        response.underenheter.shouldBeEmpty()
-        response.feilReport.shouldNotBeNull().feil shouldContainExactly listOf(Feilmelding(expectedFail.feilmelding))
+        response.success.shouldBeNull()
+        response.failure.shouldNotBeNull().fromJson(String.serializer()) shouldBe expectedFail.feilmelding
 
         val actualFail = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
             .filterFeil()
@@ -210,16 +209,15 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
             {
-                "fulltNavn": "Bjarne Betjent",
-                "underenheter": [{"orgnrUnderenhet": "810007842", "virksomhetsnavn": "ANSTENDIG PIGGSVIN BARNEHAGE"}]
+                "success": {
+                    "fulltNavn": "Bjarne Betjent",
+                    "underenheter": [{"orgnrUnderenhet": "810007842", "virksomhetsnavn": "ANSTENDIG PIGGSVIN BARNEHAGE"}]
+                }
             }
         """.removeJsonWhitespace()
         val FEILTET_AKTIVE_ORGNR_RESPONSE = """
             {
-                "underenheter": [],
-                "feilReport": {
-                    "feil": [{"melding": "Fant ingen aktive arbeidsforhold"}]
-                 }
+                "failure": "Fant ingen aktive arbeidsforhold"
             }
         """.removeJsonWhitespace()
         const val FNR = "kongelig-albatross"

@@ -14,11 +14,9 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Fnr
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.Orgnr
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.json.readFail
@@ -32,6 +30,9 @@ import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.YearMonth
 import java.util.UUID
 
@@ -246,8 +247,8 @@ class InntektLoeserTest : FunSpec({
 
 private object Mock {
     val uuid: UUID = UUID.randomUUID()
-    val orgnr = Orgnr("123456785")
-    val fnr = Fnr("10107400000")
+    val orgnr = Orgnr.genererGyldig()
+    val fnr = Fnr.genererGyldig()
     val skjaeringstidspunkt = 14.april
 }
 

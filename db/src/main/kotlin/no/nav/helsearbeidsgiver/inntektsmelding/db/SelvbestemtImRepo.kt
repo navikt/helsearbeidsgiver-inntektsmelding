@@ -17,7 +17,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.util.UUID
 
-// TODO test
 class SelvbestemtImRepo(private val db: Database) {
 
     private val logger = logger()
@@ -35,8 +34,8 @@ class SelvbestemtImRepo(private val db: Database) {
         Metrics.dbSelvbestemtIm.recordTime(::lagreIm) {
             transaction(db) {
                 SelvbestemtInntektsmeldingEntitet.insert {
-                    it[inntektsmeldingId] = UUID.randomUUID()
-                    it[selvbestemtId] = im.id
+                    it[inntektsmeldingId] = im.id
+                    it[selvbestemtId] = im.type.id
                     it[inntektsmelding] = im
                 }
             }

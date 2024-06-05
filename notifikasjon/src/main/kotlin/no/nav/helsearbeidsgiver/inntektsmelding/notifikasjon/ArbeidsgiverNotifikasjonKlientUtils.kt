@@ -12,7 +12,7 @@ import kotlin.time.Duration.Companion.days
 val sakLevetid = 390.days
 
 fun ArbeidsgiverNotifikasjonKlient.opprettSak(
-    linkUrl: String,
+    lenke: String,
     inntektsmeldingTypeId: UUID,
     orgnr: String,
     sykmeldtNavn: String,
@@ -23,9 +23,9 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
         runBlocking {
             opprettNySak(
                 virksomhetsnummer = orgnr,
-                merkelapp = "Inntektsmelding",
+                merkelapp = "Inntektsmelding sykepenger",
                 grupperingsid = inntektsmeldingTypeId.toString(),
-                lenke = "$linkUrl/im-dialog/$inntektsmeldingTypeId",
+                lenke = lenke,
                 tittel = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato",
                 statusTekst = "NAV trenger inntektsmelding",
                 initiellStatus = initiellStatus,
@@ -34,13 +34,14 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
         }
     }
 
-fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(sakId: String) {
+fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(sakId: String, nyLenkeTilSak: String) {
     Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
         runBlocking {
             nyStatusSak(
                 id = sakId,
                 status = SaksStatus.FERDIG,
-                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding"
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
+                nyLenkeTilSak = nyLenkeTilSak
             )
         }
     }

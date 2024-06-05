@@ -1,33 +1,25 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
 import io.lettuce.core.RedisClient
-import io.lettuce.core.api.StatefulRedisConnection
-import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
+private const val MAX_RETRIES = 10
+private const val WAIT_MILLIS = 500L
+
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
-    private val redisClient = RedisClient.create(
-        Env.Redis.url
-    )
-    private lateinit var connection: StatefulRedisConnection<String, String>
-    private lateinit var syncCommands: RedisCommands<String, String>
     private val sikkerLogger = sikkerLogger()
 
-    private fun redisCommand(): RedisCommands<String, String> {
-        if (!::connection.isInitialized) {
-            connection = redisClient.connect()
-            syncCommands = connection.sync()
-        }
-        return syncCommands
-    }
+    private val redisClient = Env.Redis.url.let(RedisClient::create)
+    private val connection = redisClient.connect()
+    private val syncCommands = connection.sync()
 
-    suspend fun hent(key: UUID, maxRetries: Int = 10, waitMillis: Long = 500): JsonElement {
-        val json = getString(key, maxRetries, waitMillis)
+    suspend fun hent(key: UUID): JsonElement {
+        val json = hentJsonString(key)
 
         sikkerLogger.info("Hentet verdi for: '$key' = $json")
 
@@ -41,13 +33,17 @@ class RedisPoller {
         }
     }
 
-    suspend fun getString(key: UUID, maxRetries: Int, waitMillis: Long): String {
-        repeat(maxRetries) {
+    private suspend fun hentJsonString(key: UUID): String {
+        repeat(MAX_RETRIES) {
             sikkerLogger.debug("Polling redis: $it time(s) for key $key")
-            if (redisCommand().exists(key.toString()) == 1.toLong()) {
-                return syncCommands.get(key.toString())
+
+            val result = syncCommands.get(key.toString())
+
+            if (result != null) {
+                return result
+            } else {
+                delay(WAIT_MILLIS)
             }
-            delay(waitMillis)
         }
 
         throw RedisPollerTimeoutException(key)

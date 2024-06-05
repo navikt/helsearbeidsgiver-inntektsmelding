@@ -1,29 +1,27 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.trengerservice
 
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.FeilReport
-import no.nav.helsearbeidsgiver.felles.Feilmelding
 import no.nav.helsearbeidsgiver.felles.Forespoersel
+import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.TrengerData
+import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -32,18 +30,17 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.UUID
 
 const val UNDEFINED_FELT: String = "{}"
 
 class TrengerService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore
-) : CompositeEventListener() {
+) : Service() {
 
     private val sikkerLogger = sikkerLogger()
 
-    override val event = EventName.TRENGER_REQUESTED
+    override val eventName = EventName.TRENGER_REQUESTED
     override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
         Key.ARBEIDSGIVER_ID
@@ -66,38 +63,34 @@ class TrengerService(
         Key.INNTEKT
     )
 
-    init {
-        LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
-        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
-        FailKanal(event, rapid, ::onPacket)
-    }
-
-    override fun new(melding: Map<Key, JsonElement>) {
+    override fun onStart(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         sikkerLogger.info("${simpleName()} Dispatcher HENT_TRENGER_IM for $transaksjonId")
 
         rapid.publish(
-            Key.EVENT_NAME to event.toJson(),
+            Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.UUID to transaksjonId.toJson()
         )
     }
 
-    override fun inProgress(melding: Map<Key, JsonElement>) {
+    override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
         sikkerLogger.info("Dispatcher for $transaksjonId with trans state 'in progress'")
 
-        if (steg1Keys.all(melding::containsKey) && steg2Keys.none(melding::containsKey)) {
+        if (isFinished(melding)) {
+            finish(melding)
+        } else if (steg1Keys.all(melding::containsKey) && steg2Keys.none(melding::containsKey)) {
             val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
 
             sikkerLogger.info("${simpleName()} Dispatcher VIRKSOMHET for $transaksjonId")
             rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
+                Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
@@ -106,7 +99,7 @@ class TrengerService(
 
             sikkerLogger.info("${simpleName()} dispatcher FULLT_NAVN for $transaksjonId")
             rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
+                Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
@@ -118,7 +111,7 @@ class TrengerService(
 
             sikkerLogger.info("${simpleName()} Dispatcher INNTEKT for $transaksjonId")
             rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
+                Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.INNTEKT.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.UUID to transaksjonId.toJson(),
@@ -129,10 +122,10 @@ class TrengerService(
         }
     }
 
-    override fun finalize(melding: Map<Key, JsonElement>) {
+    private fun finish(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val clientId = redisStore.get(RedisKey.of(transaksjonId, EventName.TRENGER_REQUESTED))
-            ?.let(UUID::fromString)
+            ?.fromJson(UuidSerializer)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
@@ -147,26 +140,23 @@ class TrengerService(
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
             val inntekt = melding[Key.INNTEKT].toString().takeIf { it != "\"$UNDEFINED_FELT\"" }?.fromJson(Inntekt.serializer())
 
-            val feilReport = redisStore.get(RedisKey.of(transaksjonId, Feilmelding("")))?.fromJson(FeilReport.serializer())
+            val feil = redisStore.get(RedisKey.feilmelding(transaksjonId))?.fromJson(feilMapSerializer)
 
-            val trengerDataJson = TrengerData(
-                forespoersel = foresporselSvar,
-                fnr = foresporselSvar.fnr,
-                orgnr = foresporselSvar.orgnr,
-                personDato = sykmeldt,
-                arbeidsgiver = arbeidsgiver,
-                virksomhetNavn = virksomhetNavn,
-                skjaeringstidspunkt = foresporselSvar.eksternBestemmendeFravaersdag(),
-                fravarsPerioder = foresporselSvar.sykmeldingsperioder,
-                egenmeldingsPerioder = foresporselSvar.egenmeldingsperioder,
-                forespurtData = foresporselSvar.forespurtData,
-                bruttoinntekt = inntekt?.gjennomsnitt(),
-                tidligereinntekter = inntekt?.maanedOversikt,
-                feilReport = feilReport
-            )
-                .toJsonStr(TrengerData.serializer())
+            val resultJson =
+                ResultJson(
+                    success = HentForespoerselResultat(
+                        sykmeldtNavn = sykmeldt.navn,
+                        avsenderNavn = arbeidsgiver.navn,
+                        orgNavn = virksomhetNavn,
+                        inntekt = inntekt,
+                        forespoersel = foresporselSvar,
+                        feil = feil.orEmpty()
+                    )
+                        .toJson(HentForespoerselResultat.serializer())
+                )
+                    .toJsonStr(ResultJson.serializer())
 
-            redisStore.set(RedisKey.of(clientId), trengerDataJson)
+            redisStore.set(RedisKey.of(clientId), resultJson)
         }
     }
 
@@ -174,17 +164,16 @@ class TrengerService(
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
         if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {
-            val feilReport = FeilReport(
-                mutableListOf(
-                    Feilmelding("Teknisk feil, prøv igjen senere.", -1, datafelt = Key.FORESPOERSEL_SVAR)
-                )
-            )
+            sikkerLogger.info("terminate transaction id ${fail.transaksjonId} with eventname ${fail.event}")
 
-            sikkerLogger.info("terminate transaction id ${fail.transaksjonId} with evenname ${fail.event}")
-
-            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.let(UUID::fromString)
+            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.fromJson(UuidSerializer)
             if (clientId != null) {
-                redisStore.set(RedisKey.of(clientId), TrengerData(feilReport = feilReport).toJsonStr(TrengerData.serializer()))
+                val resultJson = ResultJson(
+                    failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer())
+                )
+                    .toJsonStr(ResultJson.serializer())
+
+                redisStore.set(RedisKey.of(clientId), resultJson)
             }
             return
         }
@@ -227,12 +216,12 @@ class TrengerService(
         }
 
         if (datafeil.isNotEmpty()) {
-            val feilKey = RedisKey.of(fail.transaksjonId, Feilmelding(""))
-            val feilReport = redisStore.get(feilKey)?.fromJson(FeilReport.serializer()) ?: FeilReport()
-            feilReport.feil.addAll(
-                datafeil.map { Feilmelding(it.feilmelding, datafelt = it.key) }
-            )
-            redisStore.set(feilKey, feilReport.toJsonStr(FeilReport.serializer()))
+            val feilKey = RedisKey.feilmelding(fail.transaksjonId)
+            val gamleFeil = redisStore.get(feilKey)?.fromJson(feilMapSerializer)
+
+            val alleFeil = gamleFeil.orEmpty() + datafeil.associate { it.key to it.feilmelding }
+
+            redisStore.set(feilKey, alleFeil.toJsonStr(feilMapSerializer))
         }
 
         datafeil.onEach {
@@ -242,9 +231,7 @@ class TrengerService(
         val meldingMedDefault = datafeil.associate { it.key to it.defaultVerdi }
             .plus(melding)
 
-        if (dataKeys.all(meldingMedDefault::containsKey)) {
-            finalize(meldingMedDefault)
-        }
+        onData(meldingMedDefault)
     }
 }
 
@@ -253,3 +240,9 @@ private data class Datafeil(
     val feilmelding: String,
     val defaultVerdi: JsonElement
 )
+
+private val feilMapSerializer =
+    MapSerializer(
+        Key.serializer(),
+        String.serializer()
+    )

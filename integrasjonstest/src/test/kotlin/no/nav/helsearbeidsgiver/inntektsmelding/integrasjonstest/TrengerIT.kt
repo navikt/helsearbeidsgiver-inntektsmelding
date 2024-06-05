@@ -1,12 +1,15 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.maps.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.TrengerData
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
@@ -16,6 +19,8 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -40,7 +45,7 @@ class TrengerIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
                 Key.CLIENT_ID to Mock.clientId.toJson(UuidSerializer),
-                Key.ARBEIDSGIVER_ID to "12345678910".toJson(),
+                Key.ARBEIDSGIVER_ID to Fnr.genererGyldig().toJson(Fnr.serializer()),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
             )
         }
@@ -77,21 +82,21 @@ class TrengerIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        val trengerData = redisStore.get(RedisKey.of(Mock.clientId))?.fromJson(TrengerData.serializer())
+        val resultJson = redisStore.get(RedisKey.of(Mock.clientId))
+            ?.fromJson(ResultJson.serializer())
+            .shouldNotBeNull()
 
-        trengerData.shouldNotBeNull().apply {
+        resultJson.failure.shouldBeNull()
+
+        val hentForespoerselResultat = resultJson.success.shouldNotBeNull().fromJson(HentForespoerselResultat.serializer())
+
+        hentForespoerselResultat.shouldNotBeNull().apply {
+            sykmeldtNavn.shouldNotBeNull()
+            avsenderNavn.shouldNotBeNull()
+            orgNavn.shouldNotBeNull()
+            inntekt.shouldNotBeNull()
             forespoersel.shouldNotBeNull()
-            fnr.shouldNotBeNull()
-            orgnr.shouldNotBeNull()
-            personDato.shouldNotBeNull()
-            arbeidsgiver.shouldNotBeNull()
-            virksomhetNavn.shouldNotBeNull()
-            skjaeringstidspunkt.shouldNotBeNull()
-            fravarsPerioder.shouldNotBeNull()
-            egenmeldingsPerioder.shouldNotBeNull()
-            forespurtData.shouldNotBeNull()
-            bruttoinntekt.shouldNotBeNull()
-            tidligereinntekter.shouldNotBeNull()
+            feil.shouldBeEmpty()
         }
     }
 

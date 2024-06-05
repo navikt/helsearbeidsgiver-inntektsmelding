@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -119,6 +120,11 @@ class InnsendingService(
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
+        if (Key.FORESPOERSEL_SVAR in melding.keys) {
+            // Logger for å danne et bilde av tiden det tar å hente forespørsler.
+            logger.info("InnsendingService: forespørsel svar mottatt")
+        }
+
         if (step1Keys.all(melding::containsKey)) {
             val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
@@ -132,6 +138,13 @@ class InnsendingService(
                 virksomhetNavn = virksomhetNavn,
                 innsenderNavn = innsender.navn
             )
+
+            if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
+                "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
+                    logger.error(it)
+                    sikkerLogger.error(it)
+                }
+            }
 
             logger.info("InnsendingService: emitting behov PERSISTER_IM")
 
@@ -154,7 +167,9 @@ class InnsendingService(
         val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
 
         logger.info("publiserer under clientID $clientId")
-        redisStore.set(RedisKey.of(clientId), inntektsmeldingJson.toString())
+
+        val resultJson = ResultJson(success = inntektsmeldingJson)
+        redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
 
         if (!erDuplikat) {
             logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
@@ -216,7 +231,8 @@ class InnsendingService(
                     sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
                 }
             } else {
-                redisStore.set(RedisKey.of(clientId), fail.feilmelding)
+                val resultJson = ResultJson(failure = fail.feilmelding.toJson())
+                redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
             }
         }
     }

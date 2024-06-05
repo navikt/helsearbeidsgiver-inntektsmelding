@@ -162,7 +162,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 .fromJson(ResultJson.serializer())
                 .success
                 .shouldNotBeNull()
-                .fromJson(Inntektsmelding.serializer())
+                .fromJson(Innsending.serializer())
         }
     }
 

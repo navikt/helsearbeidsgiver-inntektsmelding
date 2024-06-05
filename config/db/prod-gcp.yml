@@ -3,6 +3,7 @@ azure:
   enabled: true
 database:
   - name: inntektsmelding
+    tier: db-custom-1-3840
     users: [ simba_datastream_bruker ]
 logical_decoding: true
 envFrom:

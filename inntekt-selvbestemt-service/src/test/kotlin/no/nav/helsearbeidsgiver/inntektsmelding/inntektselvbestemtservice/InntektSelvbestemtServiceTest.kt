@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
-import io.mockk.every
 import io.mockk.verify
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -25,12 +24,10 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mai
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -51,16 +48,11 @@ class InntektSelvbestemtServiceTest : FunSpec({
     }
 
     test("hent inntekt") {
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            testRapid.sendJson(
-                mockStartMelding(clientId, transaksjonId)
-            )
-        }
+        testRapid.sendJson(
+            mockStartMelding(transaksjonId)
+        )
 
         testRapid.inspektør.size shouldBeExactly 1
         testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
@@ -73,7 +65,7 @@ class InntektSelvbestemtServiceTest : FunSpec({
 
         verify {
             mockRedis.store.set(
-                RedisKey.of(clientId),
+                RedisKey.of(transaksjonId),
                 ResultJson(
                     success = Mock.inntekt.toJson(Inntekt.serializer())
                 ).toJson(ResultJson.serializer())
@@ -82,17 +74,12 @@ class InntektSelvbestemtServiceTest : FunSpec({
     }
 
     test("svar med feilmelding ved uhåndterbare feil") {
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
         val feilmelding = "Teknisk feil, prøv igjen senere."
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            testRapid.sendJson(
-                mockStartMelding(clientId, transaksjonId)
-            )
-        }
+        testRapid.sendJson(
+            mockStartMelding(transaksjonId)
+        )
 
         testRapid.sendJson(
             Fail(
@@ -113,7 +100,7 @@ class InntektSelvbestemtServiceTest : FunSpec({
 
         verify {
             mockRedis.store.set(
-                RedisKey.of(clientId),
+                RedisKey.of(transaksjonId),
                 ResultJson(
                     failure = feilmelding.toJson()
                 ).toJson(ResultJson.serializer())
@@ -122,10 +109,9 @@ class InntektSelvbestemtServiceTest : FunSpec({
     }
 })
 
-fun mockStartMelding(clientId: UUID, transaksjonId: UUID): Map<Key, JsonElement> =
+fun mockStartMelding(transaksjonId: UUID): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-        Key.CLIENT_ID to clientId.toJson(),
         Key.UUID to transaksjonId.toJson(),
         Key.FNR to Fnr.genererGyldig().toJson(Fnr.serializer()),
         Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(Orgnr.serializer()),

@@ -1,26 +1,20 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.service
 
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 class ServiceRiver(
@@ -51,15 +45,10 @@ class ServiceRiver(
 
             setOf(Key.BEHOV, Key.DATA).none(json::containsKey) &&
                 service.startKeys.all(json::containsKey) -> {
-                // TODO les fra melding når client-ID er død
-                val transaksjonId = randomUuid()
-
                 StartMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
-                    clientId = Key.CLIENT_ID.lesOrNull(UuidSerializer, json),
-                    transaksjonId = transaksjonId,
-                    startDataMap = json.plus(Key.UUID to transaksjonId.toJson())
-                        .filterKeys(service.startKeys::contains)
+                    transaksjonId = Key.UUID.les(UuidSerializer, json),
+                    startDataMap = json.filterKeys(service.startKeys::contains)
                 )
             }
 
@@ -70,11 +59,7 @@ class ServiceRiver(
 
     override fun ServiceMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         when (this) {
-            is StartMelding -> {
-                val jsonMedNyTransaksjonId = json.plus(Key.UUID to transaksjonId.toJson())
-                haandterStart(jsonMedNyTransaksjonId)
-            }
-
+            is StartMelding -> haandterStart(json)
             is DataMelding -> haandterData(json)
             is FailMelding -> haandterFail(json)
         }
@@ -133,31 +118,7 @@ class ServiceRiver(
             sikkerLogger.info("$it\n${melding.toPretty()}")
         }
 
-        val clientIdRedisKey = RedisKey.of(transaksjonId, service.eventName)
-
-        // if-sjekk trengs trolig ikke, men beholder midlertidig for sikkerhets skyld
-        val clientIdJson = service.redisStore.get(clientIdRedisKey)
-        if (
-            clientIdJson == null ||
-            (clientIdJson is JsonPrimitive && clientIdJson.contentOrNull.isNullOrEmpty())
-        ) {
-            val clientIdOrDefault = clientId.orDefault {
-                "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
-                    logger.warn(it)
-                    sikkerLogger.warn(it)
-                }
-                transaksjonId
-            }
-
-            service.redisStore.set(clientIdRedisKey, clientIdOrDefault.toJson())
-
-            service.onStart(melding)
-        } else {
-            "Client-ID eksisterte fra før. Dette skal aldri skje.".also {
-                logger.error(it)
-                sikkerLogger.error("$it\n${melding.toPretty()}")
-            }
-        }
+        service.onStart(melding)
     }
 
     private fun DataMelding.haandterData(melding: Map<Key, JsonElement>) {

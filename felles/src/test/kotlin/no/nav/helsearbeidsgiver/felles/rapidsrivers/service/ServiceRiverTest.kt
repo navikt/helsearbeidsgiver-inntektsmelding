@@ -24,9 +24,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import java.util.UUID
 
 class ServiceRiverTest : FunSpec({
@@ -82,22 +80,15 @@ class ServiceRiverTest : FunSpec({
     }
 
     test("startmelding håndteres korrekt") {
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
 
         val innkommendeMelding = mapOf(
             Key.EVENT_NAME to mockService.eventName.toJson(),
-            Key.CLIENT_ID to clientId.toJson()
+            Key.UUID to transaksjonId.toJson()
         )
             .plus(Mock.values(mockService.startKeys))
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            testRapid.sendJson(innkommendeMelding)
-        }
-
-        val clientIdRedisKey = RedisKey.of(transaksjonId, mockService.eventName)
+        testRapid.sendJson(innkommendeMelding)
 
         val redisStartValues = Mock.values(mockService.startKeys).mapKeys {
             RedisKey.of(transaksjonId, it.key)
@@ -107,90 +98,9 @@ class ServiceRiverTest : FunSpec({
             redisStartValues.forEach { (key, value) ->
                 mockRedis.store.set(key, value)
             }
-            mockRedis.store.get(clientIdRedisKey)
-            mockRedis.store.set(clientIdRedisKey, clientId.toJson())
-            mockService.onStart(
-                innkommendeMelding.plus(Key.UUID to transaksjonId.toJson())
-            )
+            mockService.onStart(innkommendeMelding)
         }
         verify(exactly = 0) {
-            mockService.onData(any())
-            mockService.onError(any(), any())
-        }
-    }
-
-    test("startmelding overskriver transaksjon-ID") {
-        val innkommendeTransaksjonId = UUID.randomUUID()
-        val generertTransaksjonId = UUID.randomUUID()
-
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns generertTransaksjonId
-
-            testRapid.sendJson(
-                Key.EVENT_NAME to mockService.eventName.toJson(),
-                Key.CLIENT_ID to UUID.randomUUID().toJson(),
-                Key.UUID to innkommendeTransaksjonId.toJson(),
-                *Mock.values(mockService.startKeys).toList().toTypedArray()
-            )
-        }
-
-        val clientIdRedisKey = RedisKey.of(generertTransaksjonId, mockService.eventName)
-
-        val redisStartValues = Mock.values(mockService.startKeys).mapKeys {
-            RedisKey.of(generertTransaksjonId, it.key)
-        }
-
-        verifyOrder {
-            redisStartValues.forEach { (key, value) ->
-                mockRedis.store.set(key, value)
-            }
-            mockRedis.store.get(clientIdRedisKey)
-            mockRedis.store.set(clientIdRedisKey, any())
-            mockService.onStart(
-                withArg {
-                    it[Key.UUID] shouldBe generertTransaksjonId.toJson()
-                    it shouldNotContainValue innkommendeTransaksjonId.toJson()
-                }
-            )
-        }
-        verify(exactly = 0) {
-            mockService.onData(any())
-            mockService.onError(any(), any())
-        }
-    }
-
-    test("startmelding trigger ikke service ved eksisterende client-ID") {
-        val eksisterendeClientId = UUID.randomUUID()
-
-        every { mockRedis.store.get(any()) } returns eksisterendeClientId.toJson()
-
-        val transaksjonId = UUID.randomUUID()
-
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            testRapid.sendJson(
-                Key.EVENT_NAME to mockService.eventName.toJson(),
-                Key.CLIENT_ID to UUID.randomUUID().toJson(),
-                *Mock.values(mockService.startKeys).toList().toTypedArray()
-            )
-        }
-
-        val clientIdRedisKey = RedisKey.of(transaksjonId, mockService.eventName)
-
-        val redisStartValues = Mock.values(mockService.startKeys).mapKeys {
-            RedisKey.of(transaksjonId, it.key)
-        }
-
-        verifyOrder {
-            redisStartValues.forEach { (key, value) ->
-                mockRedis.store.set(key, value)
-            }
-            mockRedis.store.get(clientIdRedisKey)
-        }
-        verify(exactly = 0) {
-            mockRedis.store.set(clientIdRedisKey, any())
-            mockService.onStart(any())
             mockService.onData(any())
             mockService.onError(any(), any())
         }

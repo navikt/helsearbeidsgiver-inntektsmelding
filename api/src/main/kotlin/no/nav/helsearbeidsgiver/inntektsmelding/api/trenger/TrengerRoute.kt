@@ -55,9 +55,9 @@ fun Route.trengerRoute(
 
                         val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-                        val clientId = trengerProducer.publish(request, arbeidsgiverFnr)
+                        val transaksjonId = trengerProducer.publish(request, arbeidsgiverFnr)
 
-                        val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+                        val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
 
                         sikkerLogger.info("Hentet forespørsel: $resultatJson")
 

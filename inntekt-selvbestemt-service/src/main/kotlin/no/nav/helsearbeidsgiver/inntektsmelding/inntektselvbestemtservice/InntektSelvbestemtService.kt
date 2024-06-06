@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -29,7 +29,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 class InntektSelvbestemtService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStoreClassSpecific
 ) : Service() {
 
     private val logger = logger()
@@ -150,9 +150,9 @@ class InntektSelvbestemtService(
     }
 
     private fun RedisKey.write(json: JsonElement) {
-        redisStore.set(this, json.toString())
+        redisStore.set(this, json)
     }
 
-    private fun RedisKey.read(): String? =
+    private fun RedisKey.read(): JsonElement? =
         redisStore.get(this)
 }

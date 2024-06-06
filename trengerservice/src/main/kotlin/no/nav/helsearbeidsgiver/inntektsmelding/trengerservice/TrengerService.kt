@@ -20,14 +20,13 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
@@ -35,7 +34,7 @@ const val UNDEFINED_FELT: String = "{}"
 
 class TrengerService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStoreClassSpecific
 ) : Service() {
 
     private val sikkerLogger = sikkerLogger()
@@ -154,7 +153,7 @@ class TrengerService(
                     )
                         .toJson(HentForespoerselResultat.serializer())
                 )
-                    .toJsonStr(ResultJson.serializer())
+                    .toJson(ResultJson.serializer())
 
             redisStore.set(RedisKey.of(clientId), resultJson)
         }
@@ -171,7 +170,7 @@ class TrengerService(
                 val resultJson = ResultJson(
                     failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer())
                 )
-                    .toJsonStr(ResultJson.serializer())
+                    .toJson(ResultJson.serializer())
 
                 redisStore.set(RedisKey.of(clientId), resultJson)
             }
@@ -221,11 +220,11 @@ class TrengerService(
 
             val alleFeil = gamleFeil.orEmpty() + datafeil.associate { it.key to it.feilmelding }
 
-            redisStore.set(feilKey, alleFeil.toJsonStr(feilMapSerializer))
+            redisStore.set(feilKey, alleFeil.toJson(feilMapSerializer))
         }
 
         datafeil.onEach {
-            redisStore.set(RedisKey.of(fail.transaksjonId, it.key), it.defaultVerdi.toString())
+            redisStore.set(RedisKey.of(fail.transaksjonId, it.key), it.defaultVerdi)
         }
 
         val meldingMedDefault = datafeil.associate { it.key to it.defaultVerdi }

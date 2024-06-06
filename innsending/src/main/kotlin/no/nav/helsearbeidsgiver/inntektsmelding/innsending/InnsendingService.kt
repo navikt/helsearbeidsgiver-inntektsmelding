@@ -55,13 +55,7 @@ class InnsendingService(
         Key.FORESPOERSEL_SVAR
     )
 
-    private val writeResultToRedisKeys =
-        setOf(
-            Key.VIRKSOMHET,
-            Key.FORESPOERSEL_SVAR
-        )
-
-    private val persisterIMKeys =
+    private val step1Keys =
         setOf(
             Key.VIRKSOMHET,
             Key.ARBEIDSTAKER_INFORMASJON,
@@ -115,13 +109,7 @@ class InnsendingService(
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
-        if (writeResultToRedisKeys.all(melding::containsKey)) {
-            val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
-            val resultJson = ResultJson(success = skjema.toJson(Innsending.serializer()))
-            redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
-        }
-
-        if (persisterIMKeys.all(melding::containsKey)) {
+        if (step1Keys.all(melding::containsKey)) {
             val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
             val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
@@ -163,6 +151,9 @@ class InnsendingService(
         val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
 
         logger.info("publiserer under clientID $clientId")
+
+        val resultJson = ResultJson(success = inntektsmeldingJson)
+        redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
 
         if (!erDuplikat) {
             logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")

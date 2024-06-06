@@ -8,7 +8,8 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 private const val MAX_RETRIES = 10
-private val WAIT_MILLIS = List(MAX_RETRIES) { 100 + (it * it * 50L) } // Gir [100, 150, 300, 550, 900, 1350, 1900, 2550, 3300, 4150]
+private const val WAIT_MILLIS_DEFAULT = 500L
+private val WAIT_MILLIS = List(MAX_RETRIES) { 100L * (1 + it) }
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller {
@@ -42,7 +43,7 @@ class RedisPoller {
             if (result != null) {
                 return result
             } else {
-                delay(WAIT_MILLIS[it])
+                delay(WAIT_MILLIS.getOrNull(it) ?: WAIT_MILLIS_DEFAULT)
             }
         }
 

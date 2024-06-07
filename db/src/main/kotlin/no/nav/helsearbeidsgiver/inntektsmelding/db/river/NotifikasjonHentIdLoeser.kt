@@ -106,8 +106,8 @@ class NotifikasjonHentIdLoeser(
             )
         } else {
             "Fant ikke sakId.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
+                logger.warn(it)
+                sikkerLogger.warn(it)
             }
         }
 
@@ -120,8 +120,8 @@ class NotifikasjonHentIdLoeser(
             )
         } else {
             "Fant ikke oppgaveId.".also {
-                logger.error(it)
-                sikkerLogger.error(it)
+                logger.warn(it)
+                sikkerLogger.warn(it)
             }
         }
     }

@@ -44,38 +44,10 @@ class InntektSelvbestemtService(
         Key.INNTEKT
     )
 
-    override fun onStart(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val fnr = Key.FNR.les(Fnr.serializer(), melding)
-        val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding)
-        val inntektsdato = Key.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, melding)
-
-        MdcUtils.withLogFields(
-            Log.klasse(this),
-            Log.event(eventName),
-            Log.transaksjonId(transaksjonId)
-        ) {
-            rapid.publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.INNTEKT.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
-                Key.FNR to fnr.toJson(Fnr.serializer()),
-                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(LocalDateSerializer),
-                Key.UUID to transaksjonId.toJson()
-            )
-                .also {
-                    MdcUtils.withLogFields(
-                        Log.behov(BehovType.INNTEKT)
-                    ) {
-                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                    }
-                }
-        }
-    }
-
     override fun onData(melding: Map<Key, JsonElement>) {
+        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
+
         if (isFinished(melding)) {
-            val transaksjonId = Key.UUID.les(UuidSerializer, melding)
             val inntekt = Key.INNTEKT.les(Inntekt.serializer(), melding)
 
             val resultJson = ResultJson(
@@ -85,16 +57,21 @@ class InntektSelvbestemtService(
 
             RedisKey.of(transaksjonId).write(resultJson)
 
-            MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonId)
-            ) {
-                sikkerLogger.info("$eventName fullført.")
-            }
+            sikkerLogger.info("$eventName fullført.")
         } else {
-            "Service skal aldri være \"underveis\".".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
+            val fnr = Key.FNR.les(Fnr.serializer(), melding)
+            val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding)
+            val inntektsdato = Key.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, melding)
+
+            rapid.publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.INNTEKT.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FNR to fnr.toJson(Fnr.serializer()),
+                Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
+                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(LocalDateSerializer)
+            )
+                .also { loggBehovPublisert(BehovType.INNTEKT, it) }
         }
     }
 
@@ -121,5 +98,16 @@ class InntektSelvbestemtService(
 
     private fun RedisKey.write(json: JsonElement) {
         redisStore.set(this, json)
+    }
+
+    private fun loggBehovPublisert(behovType: BehovType, publisert: JsonElement) {
+        MdcUtils.withLogFields(
+            Log.behov(behovType)
+        ) {
+            "Publiserte melding med behov $behovType.".let {
+                logger.info(it)
+                sikkerLogger.info("$it\n${publisert.toPretty()}")
+            }
+        }
     }
 }

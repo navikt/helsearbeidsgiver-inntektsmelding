@@ -23,6 +23,7 @@ class TrengerProducer(
         rapid.publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to transaksjonId.toString().toJson(),
+            Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to request.uuid.toJson(),
             Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson()
         )

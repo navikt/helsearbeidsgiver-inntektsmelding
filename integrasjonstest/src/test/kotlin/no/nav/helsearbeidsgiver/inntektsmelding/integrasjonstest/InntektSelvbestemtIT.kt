@@ -33,6 +33,7 @@ class InntektSelvbestemtIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
             Key.FNR to Mock.fnr.toJson(Fnr.serializer()),
             Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
             Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson()

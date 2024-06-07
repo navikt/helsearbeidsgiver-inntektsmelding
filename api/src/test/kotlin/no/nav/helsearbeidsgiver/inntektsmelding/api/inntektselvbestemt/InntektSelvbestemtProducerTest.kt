@@ -30,6 +30,7 @@ class InntektSelvbestemtProducerTest : FunSpec({
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
             Key.FNR to sykmeldtFnr.toJson(Fnr.serializer()),
             Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
             Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson()

@@ -22,10 +22,13 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
-import no.nav.helsearbeidsgiver.felles.utils.simpleName
+import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 const val UNDEFINED_FELT: String = "{}"
@@ -35,6 +38,7 @@ class TrengerService(
     override val redisStore: RedisStoreClassSpecific
 ) : Service() {
 
+    private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.TRENGER_REQUESTED
@@ -60,32 +64,16 @@ class TrengerService(
         Key.INNTEKT
     )
 
-    override fun onStart(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-
-        sikkerLogger.info("${simpleName()} Dispatcher HENT_TRENGER_IM for $transaksjonId")
-
-        rapid.publish(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.UUID to transaksjonId.toJson()
-        )
-    }
-
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-
-        sikkerLogger.info("Dispatcher for $transaksjonId with trans state 'in progress'")
 
         if (isFinished(melding)) {
             finish(melding)
         } else if (steg1Keys.all(melding::containsKey) && steg2Keys.none(melding::containsKey)) {
             val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
+            val inntektsdato = forespoersel.forslagInntektsdato()
 
-            sikkerLogger.info("${simpleName()} Dispatcher VIRKSOMHET for $transaksjonId")
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
@@ -93,8 +81,8 @@ class TrengerService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson()
             )
+                .also { loggBehovPublisert(BehovType.VIRKSOMHET, it) }
 
-            sikkerLogger.info("${simpleName()} dispatcher FULLT_NAVN for $transaksjonId")
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
@@ -103,10 +91,8 @@ class TrengerService(
                 Key.IDENTITETSNUMMER to forespoersel.fnr.toJson(),
                 Key.ARBEIDSGIVER_ID to Key.ARBEIDSGIVER_FNR.lesOrNull(String.serializer(), melding).orEmpty().toJson()
             )
+                .also { loggBehovPublisert(BehovType.FULLT_NAVN, it) }
 
-            val inntektsdato = forespoersel.forslagInntektsdato()
-
-            sikkerLogger.info("${simpleName()} Dispatcher INNTEKT for $transaksjonId")
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.INNTEKT.toJson(),
@@ -116,6 +102,15 @@ class TrengerService(
                 Key.FNR to forespoersel.fnr.toJson(),
                 Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson()
             )
+                .also { loggBehovPublisert(BehovType.INNTEKT, it) }
+        } else if (startKeys.all(melding::containsKey) && steg1Keys.none(melding::containsKey)) {
+            rapid.publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            )
+                .also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
         }
     }
 
@@ -216,6 +211,17 @@ class TrengerService(
             .plus(melding)
 
         onData(meldingMedDefault)
+    }
+
+    private fun loggBehovPublisert(behovType: BehovType, publisert: JsonElement) {
+        MdcUtils.withLogFields(
+            Log.behov(behovType)
+        ) {
+            "Publiserte melding med behov $behovType.".let {
+                logger.info(it)
+                sikkerLogger.info("$it\n${publisert.toPretty()}")
+            }
+        }
     }
 }
 

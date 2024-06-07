@@ -73,18 +73,18 @@ class ServiceRiverTest : FunSpec({
                 mockService.onError(any(), any())
             }
             verify(exactly = 0) {
-                mockService.onStart(any())
                 mockService.onData(any())
             }
         }
     }
 
-    test("startmelding håndteres korrekt") {
+    test("datamelding med startdata håndteres korrekt") {
         val transaksjonId = UUID.randomUUID()
 
         val innkommendeMelding = mapOf(
             Key.EVENT_NAME to mockService.eventName.toJson(),
-            Key.UUID to transaksjonId.toJson()
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson()
         )
             .plus(Mock.values(mockService.startKeys))
 
@@ -98,10 +98,9 @@ class ServiceRiverTest : FunSpec({
             redisStartValues.forEach { (key, value) ->
                 mockRedis.store.set(key, value)
             }
-            mockService.onStart(innkommendeMelding)
+            mockService.onData(innkommendeMelding)
         }
         verify(exactly = 0) {
-            mockService.onData(any())
             mockService.onError(any(), any())
         }
     }
@@ -135,7 +134,6 @@ class ServiceRiverTest : FunSpec({
             mockService.onData(beriketMelding)
         }
         verify(exactly = 0) {
-            mockService.onStart(any())
             mockService.onError(any(), any())
         }
     }
@@ -166,7 +164,6 @@ class ServiceRiverTest : FunSpec({
             mockService.onError(beriketMelding, Mock.fail)
         }
         verify(exactly = 0) {
-            mockService.onStart(any())
             mockService.onData(any())
         }
     }
@@ -189,7 +186,6 @@ class ServiceRiverTest : FunSpec({
             mockRedis.store.set(any(), any())
         }
         verify(exactly = 0) {
-            mockService.onStart(any())
             mockService.onData(any())
             mockService.onError(any(), any())
         }
@@ -230,7 +226,6 @@ class ServiceRiverTest : FunSpec({
             )
         }
         verify(exactly = 0) {
-            mockService.onStart(any())
             mockService.onData(any())
         }
     }
@@ -257,7 +252,6 @@ class ServiceRiverTest : FunSpec({
             mockRedis.store.getAll(any())
         }
         verify(exactly = 0) {
-            mockService.onStart(any())
             mockService.onData(any())
             mockService.onError(any(), any())
         }
@@ -282,7 +276,6 @@ class ServiceRiverTest : FunSpec({
             mockRedis.store.getAll(any())
         }
         verify(exactly = 0) {
-            mockService.onStart(any())
             mockService.onData(any())
             mockService.onError(any(), any())
         }
@@ -308,7 +301,6 @@ class ServiceRiverTest : FunSpec({
                 testRapid.sendJson(innkommendeMelding)
 
                 verify(exactly = 0) {
-                    mockService.onStart(any())
                     mockService.onData(any())
                     mockService.onError(any(), any())
                 }
@@ -318,7 +310,14 @@ class ServiceRiverTest : FunSpec({
         context("datamelding") {
             withData(
                 mapOf(
-                    "uten dataverdier" to mapOf(
+                    "uten alle startdataverdier" to mapOf(
+                        Key.EVENT_NAME to mockService.eventName.toJson(),
+                        Key.UUID to UUID.randomUUID().toJson(),
+                        Key.DATA to "".toJson(),
+                        Key.FNR_LISTE to "mock fnr_liste".toJson()
+                    ),
+
+                    "uten noen dataverdier" to mapOf(
                         Key.EVENT_NAME to mockService.eventName.toJson(),
                         Key.UUID to UUID.randomUUID().toJson(),
                         Key.DATA to "".toJson()
@@ -336,61 +335,19 @@ class ServiceRiverTest : FunSpec({
                 testRapid.sendJson(innkommendeMelding)
 
                 verify(exactly = 0) {
-                    mockService.onStart(any())
                     mockService.onData(any())
                     mockService.onError(any(), any())
                 }
             }
         }
 
-        context("startmelding") {
-            withData(
-                mapOf(
-                    "med behov" to mapOf(
-                        Key.EVENT_NAME to mockService.eventName.toJson(),
-                        Key.UUID to UUID.randomUUID().toJson(),
-                        Key.BEHOV to "mock behov".toJson()
-                    )
-                        .plus(Mock.values(mockService.startKeys)),
-
-                    "med data" to mapOf(
-                        Key.EVENT_NAME to mockService.eventName.toJson(),
-                        Key.UUID to UUID.randomUUID().toJson(),
-                        Key.DATA to "mock data".toJson()
-                    )
-                        .plus(Mock.values(mockService.startKeys)),
-
-                    "uten alle startdataverdier" to mapOf(
-                        Key.EVENT_NAME to mockService.eventName.toJson(),
-                        Key.UUID to UUID.randomUUID().toJson(),
-                        Key.FNR_LISTE to "mock fnr_liste".toJson()
-                    ),
-
-                    "med uønsket event" to mapOf(
-                        Key.EVENT_NAME to EventName.MANUELL_SLETT_SAK_REQUESTED.toJson(),
-                        Key.UUID to UUID.randomUUID().toJson()
-                    )
-                        .plus(Mock.values(mockService.startKeys))
-                )
-            ) { innkommendeMelding ->
-                testRapid.sendJson(innkommendeMelding)
-
-                verify(exactly = 0) {
-                    mockService.onStart(any())
-                    mockService.onData(any())
-                    mockService.onError(any(), any())
-                }
-            }
-        }
-
-        test("melding som er hverken start-, data- eller fail-melding") {
+        test("melding som er hverken data- eller fail-melding") {
             testRapid.sendJson(
                 Key.EVENT_NAME to mockService.eventName.toJson(),
                 Key.UUID to UUID.randomUUID().toJson()
             )
 
             verify(exactly = 0) {
-                mockService.onStart(any())
                 mockService.onData(any())
                 mockService.onError(any(), any())
             }
@@ -411,7 +368,6 @@ private class MockService(
         Key.VIRKSOMHETER
     )
 
-    override fun onStart(melding: Map<Key, JsonElement>) {}
     override fun onData(melding: Map<Key, JsonElement>) {}
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {}
 }

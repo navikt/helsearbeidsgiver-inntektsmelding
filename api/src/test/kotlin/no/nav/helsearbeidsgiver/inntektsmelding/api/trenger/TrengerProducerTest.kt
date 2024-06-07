@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt
+package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
@@ -10,29 +10,26 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.util.UUID
 
-class InntektSelvbestemtProducerTest : FunSpec({
+class TrengerProducerTest : FunSpec({
     val testRapid = TestRapid()
-    val producer = InntektSelvbestemtProducer(testRapid)
+    val producer = TrengerProducer(testRapid)
 
     test("publiserer melding på forventet format") {
-        val sykmeldtFnr = Fnr.genererGyldig()
-        val orgnr = Orgnr.genererGyldig()
-        val inntektsdato = 12.april
+        val forespoerselId = UUID.randomUUID()
+        val avsenderFnr = Fnr.genererGyldig().verdi
 
-        val transaksjonId = producer.publish(InntektSelvbestemtRequest(sykmeldtFnr, orgnr, inntektsdato))
+        val transaksjonId = producer.publish(HentForespoerselRequest(forespoerselId), avsenderFnr)
 
         testRapid.inspektør.size shouldBeExactly 1
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FNR to sykmeldtFnr.toJson(Fnr.serializer()),
-            Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
-            Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.ARBEIDSGIVER_ID to avsenderFnr.toJson()
         )
     }
 })

@@ -22,12 +22,10 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
-import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 const val UNDEFINED_FELT: String = "{}"
@@ -123,40 +121,29 @@ class TrengerService(
 
     private fun finish(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val clientId = redisStore.get(RedisKey.of(transaksjonId, EventName.TRENGER_REQUESTED))
-            ?.fromJson(UuidSerializer)
+        val foresporselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
+        val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+        val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+        val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
+        val inntekt = melding[Key.INNTEKT].toString().takeIf { it != "\"$UNDEFINED_FELT\"" }?.fromJson(Inntekt.serializer())
 
-        if (clientId == null) {
-            MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonId)
-            ) {
-                sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
-            }
-        } else {
-            val foresporselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
-            val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-            val inntekt = melding[Key.INNTEKT].toString().takeIf { it != "\"$UNDEFINED_FELT\"" }?.fromJson(Inntekt.serializer())
+        val feil = redisStore.get(RedisKey.feilmelding(transaksjonId))?.fromJson(feilMapSerializer)
 
-            val feil = redisStore.get(RedisKey.feilmelding(transaksjonId))?.fromJson(feilMapSerializer)
-
-            val resultJson =
-                ResultJson(
-                    success = HentForespoerselResultat(
-                        sykmeldtNavn = sykmeldt.navn,
-                        avsenderNavn = arbeidsgiver.navn,
-                        orgNavn = virksomhetNavn,
-                        inntekt = inntekt,
-                        forespoersel = foresporselSvar,
-                        feil = feil.orEmpty()
-                    )
-                        .toJson(HentForespoerselResultat.serializer())
+        val resultJson =
+            ResultJson(
+                success = HentForespoerselResultat(
+                    sykmeldtNavn = sykmeldt.navn,
+                    avsenderNavn = arbeidsgiver.navn,
+                    orgNavn = virksomhetNavn,
+                    inntekt = inntekt,
+                    forespoersel = foresporselSvar,
+                    feil = feil.orEmpty()
                 )
-                    .toJson(ResultJson.serializer())
+                    .toJson(HentForespoerselResultat.serializer())
+            )
+                .toJson(ResultJson.serializer())
 
-            redisStore.set(RedisKey.of(clientId), resultJson)
-        }
+        redisStore.set(RedisKey.of(transaksjonId), resultJson)
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
@@ -165,15 +152,13 @@ class TrengerService(
         if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {
             sikkerLogger.info("terminate transaction id ${fail.transaksjonId} with eventname ${fail.event}")
 
-            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.fromJson(UuidSerializer)
-            if (clientId != null) {
-                val resultJson = ResultJson(
-                    failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer())
-                )
-                    .toJson(ResultJson.serializer())
+            val resultJson = ResultJson(
+                failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer())
+            )
+                .toJson(ResultJson.serializer())
 
-                redisStore.set(RedisKey.of(clientId), resultJson)
-            }
+            redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
+
             return
         }
 

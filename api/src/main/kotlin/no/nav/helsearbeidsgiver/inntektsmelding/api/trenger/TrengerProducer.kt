@@ -18,19 +18,19 @@ class TrengerProducer(
     }
 
     fun publish(request: HentForespoerselRequest, arbeidsgiverFnr: String): UUID {
-        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
 
         rapid.publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-            Key.CLIENT_ID to clientId.toString().toJson(),
+            Key.UUID to transaksjonId.toString().toJson(),
             Key.FORESPOERSEL_ID to request.uuid.toJson(),
             Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson()
         )
             .also {
-                logger.info("Publiserte trenger behov med clientId=$clientId")
-                sikkerLogger.info("Publiserte trenger behov med clientId=$clientId json=${it.toPretty()}")
+                logger.info("Publiserte trenger behov med transaksjonId=$transaksjonId")
+                sikkerLogger.info("Publiserte trenger behov med transaksjonId=$transaksjonId json=${it.toPretty()}")
             }
 
-        return clientId
+        return transaksjonId
     }
 }

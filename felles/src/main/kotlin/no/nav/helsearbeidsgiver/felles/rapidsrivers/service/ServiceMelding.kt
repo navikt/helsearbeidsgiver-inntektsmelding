@@ -10,7 +10,6 @@ sealed class ServiceMelding
 
 data class StartMelding(
     val eventName: EventName,
-    val clientId: UUID?,
     val transaksjonId: UUID,
     val startDataMap: Map<Key, JsonElement>
 ) : ServiceMelding()

@@ -4,7 +4,6 @@ import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
@@ -12,13 +11,11 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.Test
@@ -31,24 +28,21 @@ class TrengerIT : EndToEndTest() {
     @Test
     fun `Test trengerIM meldingsflyt`() {
         val transaksjonId: UUID = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
             eventName = EventName.TRENGER_REQUESTED,
             transaksjonId = transaksjonId,
-            forespoerselId = Mock.forespoerselId,
+            forespoerselId = forespoerselId,
             forespoerselSvar = mockForespoerselSvarSuksess()
         )
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            publish(
-                Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-                Key.CLIENT_ID to Mock.clientId.toJson(UuidSerializer),
-                Key.ARBEIDSGIVER_ID to Fnr.genererGyldig().toJson(Fnr.serializer()),
-                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(UuidSerializer)
-            )
-        }
+        publish(
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(UuidSerializer),
+            Key.ARBEIDSGIVER_ID to Fnr.genererGyldig().toJson(Fnr.serializer()),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer)
+        )
 
         messages.filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
@@ -82,7 +76,7 @@ class TrengerIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        val resultJson = redisStore.get(RedisKey.of(Mock.clientId))
+        val resultJson = redisStore.get(RedisKey.of(transaksjonId))
             ?.fromJson(ResultJson.serializer())
             .shouldNotBeNull()
 
@@ -98,10 +92,5 @@ class TrengerIT : EndToEndTest() {
             forespoersel.shouldNotBeNull()
             feil.shouldBeEmpty()
         }
-    }
-
-    private object Mock {
-        val clientId: UUID = UUID.randomUUID()
-        val forespoerselId: UUID = UUID.randomUUID()
     }
 }

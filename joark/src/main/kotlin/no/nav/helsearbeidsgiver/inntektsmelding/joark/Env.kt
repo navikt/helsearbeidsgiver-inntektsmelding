@@ -7,7 +7,7 @@ object Env {
     val dokArkivUrl = "DOKARKIV_URL".fromEnv()
 
     val oauth2Environment = OAuth2Environment(
-        scope = "PROXY_SCOPE".fromEnv(),
+        scope = "DOKARKIV_SCOPE".fromEnv(),
         wellKnownUrl = "AZURE_APP_WELL_KNOWN_URL".fromEnv(),
         tokenEndpointUrl = "AZURE_OPENID_CONFIG_TOKEN_ENDPOINT".fromEnv(),
         clientId = "AZURE_APP_CLIENT_ID".fromEnv(),

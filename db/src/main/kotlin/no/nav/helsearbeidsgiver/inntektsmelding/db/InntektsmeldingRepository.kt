@@ -1,9 +1,11 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.prometheus.client.Summary
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
+import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingSkjemaEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
@@ -32,6 +34,19 @@ class InntektsmeldingRepository(private val db: Database) {
         val requestTimer = requestLatency.labels("lagreInntektsmelding").startTimer()
         transaction(db) {
             InntektsmeldingEntitet.insert {
+                it[this.forespoerselId] = forespoerselId
+                it[dokument] = inntektsmeldingDokument
+                it[innsendt] = LocalDateTime.now()
+            }
+        }.also {
+            requestTimer.observeDuration()
+        }
+    }
+
+    fun lagreInntektsmeldingSkjema(forespoerselId: String, inntektsmeldingDokument: Innsending) {
+        val requestTimer = requestLatency.labels("lagreInntektsmeldingSkjema").startTimer()
+        transaction(db) {
+            InntektsmeldingSkjemaEntitet.insert {
                 it[this.forespoerselId] = forespoerselId
                 it[dokument] = inntektsmeldingDokument
                 it[innsendt] = LocalDateTime.now()

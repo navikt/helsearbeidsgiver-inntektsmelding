@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
@@ -35,7 +35,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             )
             it.interestedIn(
                 Key.FORESPOERSEL_ID,
-                Key.INNTEKTSMELDING
+                Key.SKJEMA_INNTEKTSMELDING
             )
         }
 
@@ -48,15 +48,15 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             val json = behov.jsonMessage.toJson().parseJson().toMap()
 
             val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
-            val inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json)
+            val inntektsmelding = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), json)
 
             val sisteIm = repository.hentNyeste(forespoerselId)
-            val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false
+            val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false // TODO: Spør Mikael om ikke det blir kluss med duplikatsjekken når vi begynner å lagre inntektsmeldingeskjemaene istedenfor inntektsmeldingene
 
             if (erDuplikat) {
                 sikkerLogger.warn("Fant duplikat av inntektsmelding for forespoerselId: $forespoerselId")
             } else {
-                repository.lagreInntektsmelding(forespoerselId.toString(), inntektsmelding)
+                repository.lagreInntektsmeldingSkjema(forespoerselId.toString(), inntektsmelding)
                 sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: $forespoerselId")
             }
 
@@ -64,7 +64,6 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 eventName = behov.event,
                 transaksjonId = transaksjonId,
                 forespoerselId = forespoerselId,
-                Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
                 Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
             )
         } catch (ex: Exception) {

@@ -66,7 +66,7 @@ subprojects {
     )
 
     tasks {
-        if (!project.erFellesModul() && !project.erFellesDatabaseModul() && !project.erFellesTestModul()) {
+        if (!project.erFellesModul() && !project.erFellesDatabaseModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
 
@@ -116,9 +116,7 @@ subprojects {
     dependencies {
         if (!erFellesModul()) {
             implementation(project(":felles"))
-        }
-        if (!erFellesTestModul()) {
-            testImplementation(project(":felles-test"))
+            testImplementation(testFixtures(project(":felles")))
         }
 
         implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
@@ -271,9 +269,6 @@ fun Project.erFellesModul(): Boolean =
 
 fun Project.erFellesDatabaseModul(): Boolean =
     name == "felles-db-exposed"
-
-fun Project.erFellesTestModul(): Boolean =
-    name == "felles-test"
 
 fun List<String>.containsAny(vararg others: String): Boolean =
     this.intersect(others.toSet()).isNotEmpty()

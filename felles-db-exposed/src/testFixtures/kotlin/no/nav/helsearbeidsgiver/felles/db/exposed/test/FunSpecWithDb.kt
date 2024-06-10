@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.felles.db.test.exposed
+package no.nav.helsearbeidsgiver.felles.db.exposed.test
 
 import com.zaxxer.hikari.HikariConfig
 import io.kotest.core.spec.style.FunSpec

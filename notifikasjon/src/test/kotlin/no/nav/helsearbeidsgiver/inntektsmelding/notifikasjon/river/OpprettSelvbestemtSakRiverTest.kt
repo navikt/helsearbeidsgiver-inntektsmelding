@@ -71,7 +71,7 @@ class OpprettSelvbestemtSakRiverTest : FunSpec({
                 lenke = "$mockUrl/im-dialog/kvittering/agi/${innkommendeMelding.inntektsmelding.type.id}",
                 tittel = "Inntektsmelding for ${innkommendeMelding.inntektsmelding.sykmeldt.navn}: " +
                     "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.take(6)}",
-                statusTekst = "NAV trenger inntektsmelding",
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
                 initiellStatus = SaksStatus.FERDIG,
                 harddeleteOm = any()
             )

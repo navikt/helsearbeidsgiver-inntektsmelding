@@ -2,9 +2,9 @@ kafkaPool: nav-prod
 azure:
   enabled: true
 env:
-- name: PROXY_SCOPE
-  value: "api://prod-fss.helsearbeidsgiver.helsearbeidsgiver-proxy/.default"
+- name: DOKARKIV_SCOPE
+  value: "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
 - name: DOKARKIV_URL
-  value: "https://helsearbeidsgiver-proxy.prod-fss-pub.nais.io/dokarkiv/rest/journalpostapi/v1/"
+  value: "https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1"
 externalHosts:
-  - helsearbeidsgiver-proxy.prod-fss-pub.nais.io
+  - dokarkiv.prod-fss-pub.nais.io

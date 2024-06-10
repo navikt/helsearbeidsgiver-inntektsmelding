@@ -42,9 +42,9 @@ fun Route.lagreSelvbestemtImRoute(
 ) {
     val producer = LagreSelvbestemtImProducer(rapid)
 
-    post(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_VALGFRI_ID) {
+    post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
         MdcUtils.withLogFields(
-            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_VALGFRI_ID)
+            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING)
         ) {
             val skjema = lesRequestOrNull()
             when {

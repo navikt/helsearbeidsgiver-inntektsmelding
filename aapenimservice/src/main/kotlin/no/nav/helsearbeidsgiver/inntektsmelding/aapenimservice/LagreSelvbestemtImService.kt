@@ -183,12 +183,11 @@ class LagreSelvbestemtImService(
             Log.selvbestemtId(inntektsmelding.type.id)
         ) {
             val clientId = redisStore.get(RedisKey.of(transaksjonId, event))?.let(UUID::fromString)
-            val inntektsmeldingJson = inntektsmelding.toJson(Inntektsmelding.serializer())
 
             if (clientId == null) {
                 sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
             } else {
-                val resultJson = ResultJson(success = inntektsmeldingJson).toJsonStr()
+                val resultJson = ResultJson(success = inntektsmelding.type.id.toJson()).toJsonStr()
                 redisStore.set(RedisKey.of(clientId), resultJson)
             }
 
@@ -197,7 +196,7 @@ class LagreSelvbestemtImService(
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
                     Key.UUID to transaksjonId.toJson(),
                     Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson(),
-                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmeldingJson
+                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
                 )
                     .also {
                         MdcUtils.withLogFields(

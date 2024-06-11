@@ -26,3 +26,8 @@ fun Inntektsmelding.erDuplikatAv(other: Innsending): Boolean =
         this.årsakInnsending == other.årsakInnsending &&
         this.telefonnummer == other.telefonnummer &&
         this.forespurtData == other.forespurtData
+
+fun Innsending.erDuplikatAv(other: Innsending): Boolean =
+    this == other.copy(
+        årsakInnsending = årsakInnsending
+    )

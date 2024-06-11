@@ -98,7 +98,7 @@ class InnsendingService(
             logger.info("Publiserer INNTEKTSMELDING_SKJEMA_MOTTATT under uuid $transaksjonId")
             logger.info("InnsendingService: emitting event INNTEKTSMELDING_SKJEMA_MOTTATT")
             rapid.publish(
-                Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_MOTTATT.toJson(),
+                Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to orgnr.toJson(),

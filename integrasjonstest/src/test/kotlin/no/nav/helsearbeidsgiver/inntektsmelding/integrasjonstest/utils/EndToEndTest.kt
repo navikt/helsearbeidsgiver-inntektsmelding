@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
@@ -182,6 +183,7 @@ abstract class EndToEndTest : ContainerTest() {
             createSpinnService(redisStore)
             createTilgangService(redisStore)
             createTrengerService(redisStore)
+            createBerikInntektsmeldingService(redisStore)
 
             // Rivers
             createAareg(aaregClient)

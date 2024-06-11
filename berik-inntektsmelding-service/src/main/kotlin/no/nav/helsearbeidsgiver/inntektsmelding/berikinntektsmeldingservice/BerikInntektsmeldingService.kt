@@ -40,17 +40,18 @@ class BerikInntektsmeldingService(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override val eventName = EventName.INNTEKTSMELDING_SKJEMA_MOTTATT
+    override val eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET
     override val startKeys = setOf(
         Key.FORESPOERSEL_ID,
-        Key.SKJEMA_INNTEKTSMELDING,
-        Key.ORGNRUNDERENHET
+        Key.ORGNRUNDERENHET,
+        Key.IDENTITETSNUMMER,
+        Key.ARBEIDSGIVER_ID,
+        Key.SKJEMA_INNTEKTSMELDING
     )
     override val dataKeys = setOf(
         Key.VIRKSOMHET,
         Key.ARBEIDSGIVER_INFORMASJON,
         Key.ARBEIDSTAKER_INFORMASJON,
-        Key.INNTEKTSMELDING_DOKUMENT,
         Key.FORESPOERSEL_SVAR
     )
 
@@ -133,6 +134,7 @@ class BerikInntektsmeldingService(
                 val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
                 val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
                 val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
+
                 val inntektsmelding = mapInntektsmelding(
                     forespoersel = forespoersel,
                     skjema = skjema,
@@ -148,7 +150,7 @@ class BerikInntektsmeldingService(
                     }
                 }
 
-                logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId") // TODO: Endre loggingen her.
+                logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
                 logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
                 rapid.publish(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),

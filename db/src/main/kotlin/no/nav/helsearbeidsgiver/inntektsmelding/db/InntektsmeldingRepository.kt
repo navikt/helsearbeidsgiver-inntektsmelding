@@ -56,12 +56,23 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun hentNyeste(forespoerselId: UUID): Inntektsmelding? {
+    fun hentNyesteInntektsmelding(forespoerselId: UUID): Inntektsmelding? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
             hentNyesteImQuery(forespoerselId)
                 .firstOrNull()
                 ?.getOrNull(InntektsmeldingEntitet.dokument)
+        }.also {
+            requestTimer.observeDuration()
+        }
+    }
+
+    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): Innsending? {
+        val requestTimer = requestLatency.labels("hentNyeste").startTimer()
+        return transaction(db) {
+            hentNyesteImSkjemaQuery(forespoerselId)
+                .firstOrNull()
+                ?.getOrNull(InntektsmeldingSkjemaEntitet.dokument)
         }.also {
             requestTimer.observeDuration()
         }
@@ -134,5 +145,12 @@ class InntektsmeldingRepository(private val db: Database) {
             .selectAll()
             .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull() }
             .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+            .limit(1)
+
+    private fun hentNyesteImSkjemaQuery(forespoerselId: UUID): Query =
+        InntektsmeldingSkjemaEntitet
+            .selectAll()
+            .where { (InntektsmeldingSkjemaEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingSkjemaEntitet.dokument.isNotNull() }
+            .orderBy(InntektsmeldingSkjemaEntitet.innsendt, SortOrder.DESC)
             .limit(1)
 }

@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.felles.test.mock
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Naturalytelse
@@ -177,6 +178,64 @@ fun mockInntektsmelding(): Inntektsmelding =
         årsakInnsending = AarsakInnsending.NY,
         innsenderNavn = "Snill Arbeidsgiver",
         telefonnummer = "22222222"
+    )
+
+fun mockInnsending(): Innsending =
+    Innsending(
+        orgnrUnderenhet = "123456789",
+        identitetsnummer = "12345678901",
+        behandlingsdager = listOf(dag),
+        egenmeldingsperioder = listOf(
+            Periode(dag, dag.plusDays(2)),
+            Periode(dag.plusDays(3), dag.plusDays(4))
+        ),
+        inntekt = Inntekt(
+            bekreftet = true,
+            beregnetInntekt = INNTEKT,
+            endringÅrsak = Tariffendring(dag, dag),
+            manueltKorrigert = false
+        ),
+        fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
+            utbetalerFullLønn = true,
+            begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.BeskjedGittForSent,
+            utbetalt = 10_000.0
+        ),
+        refusjon = Refusjon(
+            utbetalerHeleEllerDeler = true,
+            refusjonPrMnd = INNTEKT,
+            refusjonOpphører = dag.plusDays(3),
+            refusjonEndringer = listOf(
+                RefusjonEndring(140.0, dag.minusDays(4)),
+                RefusjonEndring(150.0, dag.minusDays(5)),
+                RefusjonEndring(160.0, dag.minusDays(6))
+            )
+        ),
+        naturalytelser = listOf(
+            Naturalytelse(
+                NaturalytelseKode.BIL,
+                dag.plusDays(5),
+                350.0
+            ),
+            Naturalytelse(
+                NaturalytelseKode.BIL,
+                dag.plusDays(5),
+                350.0
+            )
+        ),
+        fraværsperioder = listOf(
+            Periode(dag, dag.plusDays(55)),
+            Periode(dag, dag.plusDays(22)),
+            Periode(dag, dag.plusDays(32))
+        ),
+        arbeidsgiverperioder = listOf(
+            Periode(dag, dag.plusDays(30)),
+            Periode(dag, dag.plusDays(40)),
+            Periode(dag, dag.plusDays(40))
+        ),
+        bestemmendeFraværsdag = dag.plusDays(90),
+        årsakInnsending = AarsakInnsending.NY,
+        telefonnummer = "22222222",
+        bekreftOpplysninger = true
     )
 
 fun mockDelvisInntektsmeldingDokument() = mockInntektsmelding().copy(

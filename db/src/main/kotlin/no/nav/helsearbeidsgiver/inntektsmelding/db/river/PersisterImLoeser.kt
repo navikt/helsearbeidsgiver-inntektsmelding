@@ -50,8 +50,10 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
             val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
             val inntektsmelding = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), json)
 
-            val sisteIm = repository.hentNyeste(forespoerselId)
-            val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false // TODO: Spør Mikael om ikke det blir kluss med duplikatsjekken når vi begynner å lagre inntektsmeldingeskjemaene istedenfor inntektsmeldingene
+            val sisteIm = repository.hentNyesteInntektsmelding(forespoerselId)
+            val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
+            val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false ||
+                sisteImSkjema?.erDuplikatAv(inntektsmelding) ?: false
 
             if (erDuplikat) {
                 sikkerLogger.warn("Fant duplikat av inntektsmelding for forespoerselId: $forespoerselId")
@@ -64,6 +66,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 eventName = behov.event,
                 transaksjonId = transaksjonId,
                 forespoerselId = forespoerselId,
+                Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Innsending.serializer()),
                 Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
             )
         } catch (ex: Exception) {

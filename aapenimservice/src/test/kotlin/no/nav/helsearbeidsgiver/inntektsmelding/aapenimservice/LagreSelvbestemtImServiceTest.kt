@@ -134,7 +134,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    success = nyInntektsmelding.toJson(Inntektsmelding.serializer())
+                    success = nyInntektsmelding.type.id.toJson()
                 ).toJsonStr()
             )
         }
@@ -186,7 +186,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    success = endretInntektsmelding.toJson(Inntektsmelding.serializer())
+                    success = endretInntektsmelding.type.id.toJson()
                 ).toJsonStr()
             )
         }
@@ -236,7 +236,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    success = duplikatInntektsmelding.toJson(Inntektsmelding.serializer())
+                    success = duplikatInntektsmelding.type.id.toJson()
                 ).toJsonStr()
             )
         }
@@ -331,7 +331,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    success = inntektsmeldingMedDefaults.toJson(Inntektsmelding.serializer())
+                    success = inntektsmeldingMedDefaults.type.id.toJson()
                 ).toJsonStr()
             )
         }

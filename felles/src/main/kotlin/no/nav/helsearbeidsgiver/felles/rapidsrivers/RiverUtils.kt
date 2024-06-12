@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -63,6 +64,7 @@ fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonEl
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
     messageFields
         .mapKeys { (key, _) -> key.toString() }
+        .filterValues { it !is JsonNull }
         .toJson()
         .toString()
         .let {

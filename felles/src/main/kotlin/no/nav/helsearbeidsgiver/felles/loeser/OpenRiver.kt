@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.felles.loeser
 
+import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -27,6 +28,7 @@ internal class OpenRiver(
         packet.toJson()
             .parseJson()
             .toMap()
+            .filterValues { it !is JsonNull }
             .let(messageHandler::lesOgHaandter)
             ?.also(context::publish)
     }

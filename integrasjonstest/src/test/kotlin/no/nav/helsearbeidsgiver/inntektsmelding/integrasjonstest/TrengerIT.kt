@@ -40,6 +40,7 @@ class TrengerIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(UuidSerializer),
+            Key.DATA to "".toJson(),
             Key.ARBEIDSGIVER_ID to Fnr.genererGyldig().toJson(Fnr.serializer()),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer)
         )

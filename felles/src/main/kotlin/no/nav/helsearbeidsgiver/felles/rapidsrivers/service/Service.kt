@@ -12,7 +12,6 @@ abstract class Service {
     abstract val startKeys: Set<Key>
     abstract val dataKeys: Set<Key>
 
-    abstract fun onStart(melding: Map<Key, JsonElement>)
     abstract fun onData(melding: Map<Key, JsonElement>)
     abstract fun onError(melding: Map<Key, JsonElement>, fail: Fail)
 

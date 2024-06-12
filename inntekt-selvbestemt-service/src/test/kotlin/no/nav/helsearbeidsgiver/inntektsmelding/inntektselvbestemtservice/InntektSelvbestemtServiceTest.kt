@@ -113,6 +113,7 @@ fun mockStartMelding(transaksjonId: UUID): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
         Key.UUID to transaksjonId.toJson(),
+        Key.DATA to "".toJson(),
         Key.FNR to Fnr.genererGyldig().toJson(Fnr.serializer()),
         Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(Orgnr.serializer()),
         Key.SKJAERINGSTIDSPUNKT to 14.april.toJson()

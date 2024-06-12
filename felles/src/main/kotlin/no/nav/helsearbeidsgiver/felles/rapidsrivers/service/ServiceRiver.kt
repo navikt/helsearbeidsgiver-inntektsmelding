@@ -35,20 +35,16 @@ class ServiceRiver(
             }
 
             Key.DATA in json &&
-                service.dataKeys.any(json::containsKey) -> {
+                (
+                    service.startKeys.all(json::containsKey) ||
+                        service.dataKeys.any(json::containsKey)
+                    ) -> {
                 DataMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
                     transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    dataMap = json.filterKeys(service.dataKeys::contains)
-                )
-            }
-
-            setOf(Key.BEHOV, Key.DATA).none(json::containsKey) &&
-                service.startKeys.all(json::containsKey) -> {
-                StartMelding(
-                    eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
-                    transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    startDataMap = json.filterKeys(service.startKeys::contains)
+                    dataMap = json.filterKeys {
+                        (service.startKeys + service.dataKeys).contains(it)
+                    }
                 )
             }
 
@@ -59,7 +55,6 @@ class ServiceRiver(
 
     override fun ServiceMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         when (this) {
-            is StartMelding -> haandterStart(json)
             is DataMelding -> haandterData(json)
             is FailMelding -> haandterFail(json)
         }
@@ -69,9 +64,6 @@ class ServiceRiver(
 
     override fun ServiceMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement>? {
         val feilmelding = when (this) {
-            is StartMelding ->
-                "Noe gikk galt under håndtering av melding som starter service."
-
             is DataMelding ->
                 "Noe gikk galt under håndtering av melding med data."
 
@@ -88,12 +80,6 @@ class ServiceRiver(
     override fun ServiceMelding.loggfelt(): Map<String, String> =
         mapOf(Log.klasse(service)).plus(
             when (this) {
-                is StartMelding ->
-                    mapOf(
-                        Log.event(eventName),
-                        Log.transaksjonId(transaksjonId)
-                    )
-
                 is DataMelding ->
                     mapOf(
                         Log.event(eventName),
@@ -107,19 +93,6 @@ class ServiceRiver(
                     )
             }
         )
-
-    private fun StartMelding.haandterStart(melding: Map<Key, JsonElement>) {
-        startDataMap.forEach { (key, data) ->
-            service.redisStore.set(RedisKey.of(transaksjonId, key), data)
-        }
-
-        "Lagret startdata for event ${service.eventName}.".also {
-            logger.info(it)
-            sikkerLogger.info("$it\n${melding.toPretty()}")
-        }
-
-        service.onStart(melding)
-    }
 
     private fun DataMelding.haandterData(melding: Map<Key, JsonElement>) {
         dataMap.forEach { (key, data) ->

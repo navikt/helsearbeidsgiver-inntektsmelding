@@ -102,6 +102,13 @@ spec:
     - name: {{ item.name }}
       value: "{{ item.value }}"
     {{/each}}{{/if}}
+  {{#if maskinporten}}
+  maskinporten:
+    enabled: true
+    scopes:
+      consumes:
+        - name: "altinn:serviceowner/reportees"
+  {{/if}}
   accessPolicy:
     outbound:
       external:

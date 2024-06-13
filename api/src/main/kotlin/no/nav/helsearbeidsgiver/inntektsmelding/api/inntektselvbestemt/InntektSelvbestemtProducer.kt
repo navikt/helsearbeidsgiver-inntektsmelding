@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -24,16 +23,17 @@ class InntektSelvbestemtProducer(
     }
 
     fun publish(request: InntektSelvbestemtRequest): UUID {
-        val clientId = randomUuid()
+        val transaksjonId = UUID.randomUUID()
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.INNTEKT_SELVBESTEMT_REQUESTED),
-            Log.clientId(clientId)
+            Log.transaksjonId(transaksjonId)
         ) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-                Key.CLIENT_ID to clientId.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
                 Key.FNR to request.sykmeldtFnr.toJson(Fnr.serializer()),
                 Key.ORGNRUNDERENHET to request.orgnr.toJson(Orgnr.serializer()),
                 Key.SKJAERINGSTIDSPUNKT to request.inntektsdato.toJson()
@@ -46,6 +46,6 @@ class InntektSelvbestemtProducer(
                 }
         }
 
-        return clientId
+        return transaksjonId
     }
 }

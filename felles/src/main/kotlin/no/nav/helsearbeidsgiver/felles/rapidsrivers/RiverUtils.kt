@@ -2,11 +2,13 @@ package no.nav.helsearbeidsgiver.felles.rapidsrivers
 
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helsearbeidsgiver.felles.IKey
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -57,12 +59,20 @@ fun JsonMessage.interestedIn(vararg keys: IKey) {
     interestedIn(*keysAsStr)
 }
 
+fun MessageContext.publishNotNull(vararg messageFields: Pair<Key, JsonElement?>): JsonElement =
+    publishNotNull(messageFields.toMap())
+
 fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement =
     publish(messageFields.toMap())
+
+fun MessageContext.publishNotNull(messageFields: Map<Key, JsonElement?>): JsonElement =
+    messageFields.mapValuesNotNull { it }
+        .let(::publish)
 
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
     messageFields
         .mapKeys { (key, _) -> key.toString() }
+        .filterValues { it !is JsonNull }
         .toJson()
         .toString()
         .let {

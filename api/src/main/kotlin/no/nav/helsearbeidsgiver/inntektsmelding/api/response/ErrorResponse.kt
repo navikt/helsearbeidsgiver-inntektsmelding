@@ -12,7 +12,7 @@ import java.util.UUID
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class UkjentErrorResponse(
-    val inntektsmeldingTypeId: UUID
+    val inntektsmeldingTypeId: UUID? = null
 ) {
     @EncodeDefault
     val error = "Ukjent feil."
@@ -32,7 +32,6 @@ data class JsonErrorResponse(
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class ValideringErrorResponse(
-    val inntektsmeldingTypeId: UUID,
     val valideringsfeil: Set<String>
 ) {
     @EncodeDefault
@@ -53,7 +52,7 @@ data class RedisTimeoutResponse(
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class RedisPermanentErrorResponse(
-    val inntektsmeldingTypeId: UUID
+    val inntektsmeldingTypeId: UUID? = null
 ) {
     @EncodeDefault
     val error = "Permanent feil mot redis."

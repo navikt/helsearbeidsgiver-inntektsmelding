@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RedusertLoennIAgp
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.kl
@@ -25,6 +25,9 @@ import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.date.september
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -37,9 +40,10 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Refusjon as RefusjonV1
 private val dag = 24.desember(2022)
 private const val INNTEKT = 25_000.0
 
-fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
+fun mockSkjemaInntektsmeldingSelvbestemt(): SkjemaInntektsmeldingSelvbestemt {
     val inntektsmelding = mockInntektsmeldingV1()
-    return SkjemaInntektsmelding(
+    return SkjemaInntektsmeldingSelvbestemt(
+        selvbestemtId = UUID.randomUUID(),
         sykmeldtFnr = inntektsmelding.sykmeldt.fnr,
         avsender = SkjemaAvsender(
             orgnr = inntektsmelding.avsender.orgnr,
@@ -47,9 +51,8 @@ fun mockSkjemaInntektsmelding(): SkjemaInntektsmelding {
         ),
         sykmeldingsperioder = inntektsmelding.sykmeldingsperioder,
         agp = inntektsmelding.agp,
-        inntekt = inntektsmelding.inntekt,
-        refusjon = inntektsmelding.refusjon,
-        aarsakInnsending = inntektsmelding.aarsakInnsending
+        inntekt = inntektsmelding.inntekt!!,
+        refusjon = inntektsmelding.refusjon
     )
 }
 
@@ -61,15 +64,14 @@ fun mockInntektsmeldingV1(): InntektsmeldingV1 =
             vedtaksperiodeId = UUID.randomUUID()
         ),
         sykmeldt = Sykmeldt(
-            fnr = "16054577777",
+            fnr = Fnr.genererGyldig(),
             navn = "Skummel Bolle"
         ),
         avsender = Avsender(
-            "000444000",
-            "Skumle bakverk A/S",
-            "07072288888",
-            "Nifs Krumkake",
-            "44553399"
+            orgnr = Orgnr.genererGyldig(),
+            orgNavn = "Skumle bakverk A/S",
+            navn = "Nifs Krumkake",
+            tlf = "44553399"
         ),
         sykmeldingsperioder = listOf(
             5.oktober til 15.oktober,

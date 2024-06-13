@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
-import io.kotest.assertions.any
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
@@ -65,13 +64,13 @@ class OpprettSelvbestemtSakRiverTest : FunSpec({
 
         coVerifySequence {
             mockagNotifikasjonKlient.opprettNySak(
-                virksomhetsnummer = innkommendeMelding.inntektsmelding.avsender.orgnr,
+                virksomhetsnummer = innkommendeMelding.inntektsmelding.avsender.orgnr.verdi,
                 merkelapp = "Inntektsmelding sykepenger",
                 grupperingsid = innkommendeMelding.inntektsmelding.type.id.toString(),
                 lenke = "$mockUrl/im-dialog/kvittering/agi/${innkommendeMelding.inntektsmelding.type.id}",
                 tittel = "Inntektsmelding for ${innkommendeMelding.inntektsmelding.sykmeldt.navn}: " +
-                    "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.take(6)}",
-                statusTekst = "NAV trenger inntektsmelding",
+                    "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.verdi.take(6)}",
+                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
                 initiellStatus = SaksStatus.FERDIG,
                 harddeleteOm = any()
             )

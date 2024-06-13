@@ -41,15 +41,15 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
     @Test
     fun `gi OK med inntekt`() = testApi {
-        val mockClientId = UUID.randomUUID()
+        val mockTransaksjonId = UUID.randomUUID()
         val expectedInntekt = Mock.inntekt
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.successResult(expectedInntekt)
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.successResult(expectedInntekt)
 
         val response = mockConstructor(InntektSelvbestemtProducer::class) {
-            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockClientId
+            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockTransaksjonId
 
             post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
         }
@@ -74,15 +74,15 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
     @Test
     fun `feilresultat gir 500-feil`() = testApi {
-        val mockClientId = UUID.randomUUID()
+        val mockTransaksjonId = UUID.randomUUID()
         val expectedFeilmelding = "Du får vente til freddan'!"
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.failureResult(expectedFeilmelding)
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.failureResult(expectedFeilmelding)
 
         val response = mockConstructor(InntektSelvbestemtProducer::class) {
-            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockClientId
+            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockTransaksjonId
 
             post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
         }
@@ -95,15 +95,15 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
     @Test
     fun `timeout mot redis gir 500-feil`() = testApi {
-        val mockClientId = UUID.randomUUID()
+        val mockTransaksjonId = UUID.randomUUID()
         val expectedFeilJson = RedisTimeoutResponse().toJsonStr(RedisTimeoutResponse.serializer())
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId) } throws RedisPollerTimeoutException(UUID.randomUUID())
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
         val response = mockConstructor(InntektSelvbestemtProducer::class) {
-            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockClientId
+            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockTransaksjonId
 
             post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
         }
@@ -116,15 +116,15 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
     @Test
     fun `ukjent feil mot redis gir 500-feil`() = testApi {
-        val mockClientId = UUID.randomUUID()
+        val mockTransaksjonId = UUID.randomUUID()
         val expectedFeilJson = "Error 500: java.lang.IllegalStateException".toJsonStr(String.serializer())
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId) } throws IllegalStateException()
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } throws IllegalStateException()
 
         val response = mockConstructor(InntektSelvbestemtProducer::class) {
-            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockClientId
+            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockTransaksjonId
 
             post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
         }

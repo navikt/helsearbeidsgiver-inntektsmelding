@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Naturalytelse
-import no.nav.helsearbeidsgiver.felles.db.test.exposed.FunSpecWithDb
+import no.nav.helsearbeidsgiver.felles.db.exposed.test.FunSpecWithDb
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.SelvbestemtInntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.test.date.oktober

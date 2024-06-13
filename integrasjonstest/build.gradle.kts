@@ -18,9 +18,6 @@ dependencies {
     testImplementation(project(":brreg"))
     testImplementation(project(":db"))
     testImplementation(project(":distribusjon"))
-    testImplementation(project(":felles"))
-    testImplementation(project(":felles-db-exposed"))
-    testImplementation(project(":felles-test"))
     testImplementation(project(":forespoersel-besvart"))
     testImplementation(project(":forespoersel-marker-besvart"))
     testImplementation(project(":forespoersel-mottatt"))
@@ -35,6 +32,10 @@ dependencies {
     testImplementation(project(":tilgangservice"))
     testImplementation(project(":trengerservice"))
 
+    testImplementation(project(":felles"))
+    testImplementation(project(":felles-db-exposed"))
+
+    testImplementation(testFixtures(project(":felles")))
     testImplementation(testFixtures(project(":felles-db-exposed")))
 
     // Klienter

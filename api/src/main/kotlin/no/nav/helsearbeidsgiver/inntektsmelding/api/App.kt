@@ -17,6 +17,7 @@ import io.ktor.server.routing.routing
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
@@ -40,14 +41,12 @@ val sikkerLogger = sikkerLogger()
 object Routes {
     const val PREFIX = "/api/v1"
 
-    private const val PREFIX_SELVBESTEMT_INNTEKTSMELDING = "/selvbestemt-inntektsmelding"
-
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
     const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
     const val INNSENDING = "/inntektsmelding"
-    const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$PREFIX_SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId}"
-    const val SELVBESTEMT_INNTEKTSMELDING_MED_VALGFRI_ID = "$PREFIX_SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId?}"
+    const val SELVBESTEMT_INNTEKTSMELDING = "/selvbestemt-inntektsmelding"
+    const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId}"
     const val KVITTERING = "/kvittering"
     const val AKTIVEORGNR = "/aktiveorgnr"
 }
@@ -58,20 +57,24 @@ fun main() {
 
 fun startServer(env: Map<String, String> = System.getenv()) {
     val rapid = RapidApplication.create(env)
+    val redisPoller = RedisPoller()
 
     embeddedServer(
         factory = Netty,
         port = 8080,
-        module = { apiModule(rapid) }
+        module = { apiModule(rapid, redisPoller) }
     )
         .start(wait = true)
 
-    rapid.start()
+    rapid.registerShutdownLifecycle {
+        redisPoller.close()
+    }
+        .start()
 }
 
 fun Application.apiModule(
     rapid: RapidsConnection,
-    redisPoller: RedisPoller = RedisPoller()
+    redisPoller: RedisPoller
 ) {
     val tilgangskontroll = Tilgangskontroll(
         TilgangProducer(rapid),

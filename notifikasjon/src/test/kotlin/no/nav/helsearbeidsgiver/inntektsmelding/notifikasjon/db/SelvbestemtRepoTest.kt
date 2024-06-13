@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.felles.db.test.exposed.FunSpecWithDb
+import no.nav.helsearbeidsgiver.felles.db.exposed.test.FunSpecWithDb
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.sakLevetid
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database

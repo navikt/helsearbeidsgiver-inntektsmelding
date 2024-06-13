@@ -24,7 +24,10 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
@@ -121,6 +124,16 @@ abstract class EndToEndTest : ContainerTest() {
         throw IllegalStateException("Klarte ikke koble til Redis.")
     }
 
+    // Vent på rediscontainer
+    val redisConnection by lazy {
+        repeat(5) {
+            runCatching { RedisConnection(redisContainer.redisURI) }
+                .onSuccess { return@lazy it }
+                .onFailure { runBlocking { delay(1000) } }
+        }
+        throw IllegalStateException("Klarte ikke koble til Redis.")
+    }
+
     val messages get() = imTestRapid.messages
 
     val tilgangProducer by lazy { TilgangProducer(imTestRapid) }
@@ -178,10 +191,20 @@ abstract class EndToEndTest : ContainerTest() {
             createAktiveOrgnrService(redisStore)
             createInnsending(redisStore)
             createInntektService(redisStore)
-            createInntektSelvbestemtService(redisStore)
+            createInntektSelvbestemtService(
+                RedisStoreClassSpecific(
+                    redis = redisConnection,
+                    keyPrefix = RedisPrefix.InntektSelvbestemtService
+                )
+            )
             createSpinnService(redisStore)
             createTilgangService(redisStore)
-            createTrengerService(redisStore)
+            createTrengerService(
+                RedisStoreClassSpecific(
+                    redis = redisConnection,
+                    keyPrefix = RedisPrefix.HentForespoerselService
+                )
+            )
 
             // Rivers
             createAareg(aaregClient)

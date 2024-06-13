@@ -20,24 +20,25 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.simpleName
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 const val UNDEFINED_FELT: String = "{}"
 
 class TrengerService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStoreClassSpecific
 ) : Service() {
 
+    private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.TRENGER_REQUESTED
@@ -63,32 +64,16 @@ class TrengerService(
         Key.INNTEKT
     )
 
-    override fun onStart(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-
-        sikkerLogger.info("${simpleName()} Dispatcher HENT_TRENGER_IM for $transaksjonId")
-
-        rapid.publish(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.UUID to transaksjonId.toJson()
-        )
-    }
-
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-
-        sikkerLogger.info("Dispatcher for $transaksjonId with trans state 'in progress'")
 
         if (isFinished(melding)) {
             finish(melding)
         } else if (steg1Keys.all(melding::containsKey) && steg2Keys.none(melding::containsKey)) {
             val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
+            val inntektsdato = forespoersel.forslagInntektsdato()
 
-            sikkerLogger.info("${simpleName()} Dispatcher VIRKSOMHET for $transaksjonId")
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
@@ -96,8 +81,8 @@ class TrengerService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson()
             )
+                .also { loggBehovPublisert(BehovType.VIRKSOMHET, it) }
 
-            sikkerLogger.info("${simpleName()} dispatcher FULLT_NAVN for $transaksjonId")
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
@@ -106,10 +91,8 @@ class TrengerService(
                 Key.IDENTITETSNUMMER to forespoersel.fnr.toJson(),
                 Key.ARBEIDSGIVER_ID to Key.ARBEIDSGIVER_FNR.lesOrNull(String.serializer(), melding).orEmpty().toJson()
             )
+                .also { loggBehovPublisert(BehovType.FULLT_NAVN, it) }
 
-            val inntektsdato = forespoersel.forslagInntektsdato()
-
-            sikkerLogger.info("${simpleName()} Dispatcher INNTEKT for $transaksjonId")
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.INNTEKT.toJson(),
@@ -119,45 +102,43 @@ class TrengerService(
                 Key.FNR to forespoersel.fnr.toJson(),
                 Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson()
             )
+                .also { loggBehovPublisert(BehovType.INNTEKT, it) }
+        } else if (startKeys.all(melding::containsKey) && steg1Keys.none(melding::containsKey)) {
+            rapid.publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to transaksjonId.toJson()
+            )
+                .also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
         }
     }
 
     private fun finish(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val clientId = redisStore.get(RedisKey.of(transaksjonId, EventName.TRENGER_REQUESTED))
-            ?.fromJson(UuidSerializer)
+        val foresporselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
+        val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+        val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+        val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
+        val inntekt = melding[Key.INNTEKT].toString().takeIf { it != "\"$UNDEFINED_FELT\"" }?.fromJson(Inntekt.serializer())
 
-        if (clientId == null) {
-            MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonId)
-            ) {
-                sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
-            }
-        } else {
-            val foresporselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
-            val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-            val inntekt = melding[Key.INNTEKT].toString().takeIf { it != "\"$UNDEFINED_FELT\"" }?.fromJson(Inntekt.serializer())
+        val feil = redisStore.get(RedisKey.feilmelding(transaksjonId))?.fromJson(feilMapSerializer)
 
-            val feil = redisStore.get(RedisKey.feilmelding(transaksjonId))?.fromJson(feilMapSerializer)
-
-            val resultJson =
-                ResultJson(
-                    success = HentForespoerselResultat(
-                        sykmeldtNavn = sykmeldt.navn,
-                        avsenderNavn = arbeidsgiver.navn,
-                        orgNavn = virksomhetNavn,
-                        inntekt = inntekt,
-                        forespoersel = foresporselSvar,
-                        feil = feil.orEmpty()
-                    )
-                        .toJson(HentForespoerselResultat.serializer())
+        val resultJson =
+            ResultJson(
+                success = HentForespoerselResultat(
+                    sykmeldtNavn = sykmeldt.navn,
+                    avsenderNavn = arbeidsgiver.navn,
+                    orgNavn = virksomhetNavn,
+                    inntekt = inntekt,
+                    forespoersel = foresporselSvar,
+                    feil = feil.orEmpty()
                 )
-                    .toJsonStr(ResultJson.serializer())
+                    .toJson(HentForespoerselResultat.serializer())
+            )
+                .toJson(ResultJson.serializer())
 
-            redisStore.set(RedisKey.of(clientId), resultJson)
-        }
+        redisStore.set(RedisKey.of(transaksjonId), resultJson)
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
@@ -166,15 +147,13 @@ class TrengerService(
         if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {
             sikkerLogger.info("terminate transaction id ${fail.transaksjonId} with eventname ${fail.event}")
 
-            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.fromJson(UuidSerializer)
-            if (clientId != null) {
-                val resultJson = ResultJson(
-                    failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer())
-                )
-                    .toJsonStr(ResultJson.serializer())
+            val resultJson = ResultJson(
+                failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer())
+            )
+                .toJson(ResultJson.serializer())
 
-                redisStore.set(RedisKey.of(clientId), resultJson)
-            }
+            redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
+
             return
         }
 
@@ -221,17 +200,28 @@ class TrengerService(
 
             val alleFeil = gamleFeil.orEmpty() + datafeil.associate { it.key to it.feilmelding }
 
-            redisStore.set(feilKey, alleFeil.toJsonStr(feilMapSerializer))
+            redisStore.set(feilKey, alleFeil.toJson(feilMapSerializer))
         }
 
         datafeil.onEach {
-            redisStore.set(RedisKey.of(fail.transaksjonId, it.key), it.defaultVerdi.toString())
+            redisStore.set(RedisKey.of(fail.transaksjonId, it.key), it.defaultVerdi)
         }
 
         val meldingMedDefault = datafeil.associate { it.key to it.defaultVerdi }
             .plus(melding)
 
         onData(meldingMedDefault)
+    }
+
+    private fun loggBehovPublisert(behovType: BehovType, publisert: JsonElement) {
+        MdcUtils.withLogFields(
+            Log.behov(behovType)
+        ) {
+            "Publiserte melding med behov $behovType.".let {
+                logger.info(it)
+                sikkerLogger.info("$it\n${publisert.toPretty()}")
+            }
+        }
     }
 }
 

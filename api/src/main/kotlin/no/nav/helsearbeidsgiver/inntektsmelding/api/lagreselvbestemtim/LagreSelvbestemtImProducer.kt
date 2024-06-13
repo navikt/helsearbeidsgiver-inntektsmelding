@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
 
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -21,19 +21,17 @@ class LagreSelvbestemtImProducer(
         logger.info("Starter ${LagreSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(selvbestemtId: UUID, avsenderFnr: String, skjema: SkjemaInntektsmelding): UUID {
+    fun publish(skjema: SkjemaInntektsmeldingSelvbestemt, avsenderFnr: String): UUID {
         val clientId = UUID.randomUUID()
 
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_MOTTATT),
-            Log.clientId(clientId),
-            Log.selvbestemtId(selvbestemtId)
+            Log.clientId(clientId)
         ) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
                 Key.CLIENT_ID to clientId.toJson(),
-                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
                 Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
             )
                 .also {

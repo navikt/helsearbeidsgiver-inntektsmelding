@@ -3,14 +3,12 @@ package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.coEvery
-import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -18,7 +16,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mai
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -33,18 +30,14 @@ class InntektSelvbestemtIT : EndToEndTest() {
     fun `skal hente inntekt for selvbestemt inntektsmelding`() {
         coEvery { inntektClient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any()) } returns Mock.inntektPerOrgnrOgMaaned
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns Mock.transaksjonId
-
-            publish(
-                Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-                Key.CLIENT_ID to UUID.randomUUID().toJson(),
-                Key.UUID to Mock.transaksjonId.toJson(),
-                Key.FNR to Mock.fnr.toJson(Fnr.serializer()),
-                Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
-                Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson()
-            )
-        }
+        publish(
+            Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
+            Key.UUID to Mock.transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FNR to Mock.fnr.toJson(Fnr.serializer()),
+            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
+            Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson()
+        )
 
         messages.filter(BehovType.INNTEKT)
             .firstAsMap()
@@ -52,10 +45,10 @@ class InntektSelvbestemtIT : EndToEndTest() {
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.BEHOV to BehovType.INNTEKT.toJson(),
+                    Key.UUID to Mock.transaksjonId.toJson(),
                     Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
                     Key.FNR to Mock.fnr.toJson(Fnr.serializer()),
-                    Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson(LocalDateSerializer),
-                    Key.UUID to Mock.transaksjonId.toJson()
+                    Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson(LocalDateSerializer)
                 )
             )
 

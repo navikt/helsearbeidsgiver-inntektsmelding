@@ -54,9 +54,9 @@ class OpprettSelvbestemtSakRiver(
         val sakId = agNotifikasjonKlient.opprettSak(
             lenke = "$linkUrl/im-dialog/kvittering/agi/${inntektsmelding.type.id}",
             inntektsmeldingTypeId = inntektsmelding.type.id,
-            orgnr = inntektsmelding.avsender.orgnr,
+            orgnr = inntektsmelding.avsender.orgnr.verdi,
             sykmeldtNavn = inntektsmelding.sykmeldt.navn,
-            sykmeldtFoedselsdato = inntektsmelding.sykmeldt.fnr.take(6),
+            sykmeldtFoedselsdato = inntektsmelding.sykmeldt.fnr.verdi.take(6),
             initiellStatus = SaksStatus.FERDIG
         )
 

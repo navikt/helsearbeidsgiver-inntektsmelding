@@ -64,7 +64,7 @@ fun Route.hentSelvbestemtImRoute(
                             val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
 
                             if (inntektsmelding != null) {
-                                tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr)
+                                tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr.verdi)
                                 sendOkResponse(inntektsmelding)
                             } else {
                                 val feilmelding = result.failure

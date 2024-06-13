@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.publishNotNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
@@ -33,6 +34,8 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -46,7 +49,6 @@ class LagreSelvbestemtImService(
 
     override val event = EventName.SELVBESTEMT_IM_MOTTATT
     override val startKeys = setOf(
-        Key.SELVBESTEMT_ID,
         Key.SKJEMA_INNTEKTSMELDING,
         Key.ARBEIDSGIVER_FNR
     )
@@ -75,46 +77,42 @@ class LagreSelvbestemtImService(
 
     override fun new(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
-        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
-        val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(String.serializer(), melding)
+        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmeldingSelvbestemt.serializer(), melding)
+        val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
-            Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(selvbestemtId)
+            Log.transaksjonId(transaksjonId)
         ) {
-            rapid.publish(
+            rapid.publishNotNull(
                 Key.EVENT_NAME to event.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                Key.SELVBESTEMT_ID to skjema.selvbestemtId?.toJson(),
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                Key.ORGNRUNDERENHET to skjema.avsender.orgnr.toJson()
+                Key.ORGNRUNDERENHET to skjema.avsender.orgnr.toJson(Orgnr.serializer())
             )
 
-            rapid.publish(
+            rapid.publishNotNull(
                 Key.EVENT_NAME to event.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                Key.SELVBESTEMT_ID to skjema.selvbestemtId?.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.FNR_LISTE to listOf(
                     skjema.sykmeldtFnr,
                     avsenderFnr
-                ).toJson(String.serializer())
+                ).toJson(Fnr.serializer())
             )
         }
     }
 
     override fun inProgress(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
-            Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(selvbestemtId)
+            Log.transaksjonId(transaksjonId)
         ) {
             if (steg2Keys.all(melding::containsKey)) {
                 val inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding)
@@ -123,6 +121,7 @@ class LagreSelvbestemtImService(
                     AarsakInnsending.Endring -> {
                         finalize(melding)
                     }
+
                     AarsakInnsending.Ny -> {
                         rapid.publish(
                             Key.EVENT_NAME to event.toJson(),
@@ -137,20 +136,19 @@ class LagreSelvbestemtImService(
                     }
                 }
             } else if (steg1Keys.all(melding::containsKey)) {
-                val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmelding.serializer(), melding)
-                val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(String.serializer(), melding)
+                val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmeldingSelvbestemt.serializer(), melding)
+                val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding)
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
                 val personer = Key.PERSONER.les(personMapSerializer, melding)
 
                 val sykmeldt = skjema.sykmeldtFnr.let {
-                    personer[it] ?: tomPerson(it)
+                    personer[it.verdi] ?: tomPerson(it.verdi)
                 }
                 val avsender = avsenderFnr.let {
-                    personer[it] ?: tomPerson(it)
+                    personer[it.verdi] ?: tomPerson(it.verdi)
                 }
 
                 val inntektsmelding = tilInntektsmelding(
-                    selvbestemtId = selvbestemtId,
                     skjema = skjema,
                     orgNavn = orgNavn,
                     sykmeldt = sykmeldt,
@@ -175,7 +173,6 @@ class LagreSelvbestemtImService(
 
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
         val inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding)
         val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
 
@@ -186,12 +183,11 @@ class LagreSelvbestemtImService(
             Log.selvbestemtId(inntektsmelding.type.id)
         ) {
             val clientId = redisStore.get(RedisKey.of(transaksjonId, event))?.let(UUID::fromString)
-            val inntektsmeldingJson = inntektsmelding.toJson(Inntektsmelding.serializer())
 
             if (clientId == null) {
                 sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
             } else {
-                val resultJson = ResultJson(success = inntektsmeldingJson).toJsonStr()
+                val resultJson = ResultJson(success = inntektsmelding.type.id.toJson()).toJsonStr()
                 redisStore.set(RedisKey.of(clientId), resultJson)
             }
 
@@ -199,8 +195,8 @@ class LagreSelvbestemtImService(
                 rapid.publish(
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmeldingJson
+                    Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson(),
+                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
                 )
                     .also {
                         MdcUtils.withLogFields(
@@ -254,25 +250,30 @@ class LagreSelvbestemtImService(
 }
 
 fun tilInntektsmelding(
-    selvbestemtId: UUID,
-    skjema: SkjemaInntektsmelding,
+    skjema: SkjemaInntektsmeldingSelvbestemt,
     orgNavn: String,
     sykmeldt: Person,
     avsender: Person
-): Inntektsmelding =
-    Inntektsmelding(
+): Inntektsmelding {
+    val aarsakInnsending =
+        if (skjema.selvbestemtId == null) {
+            AarsakInnsending.Ny
+        } else {
+            AarsakInnsending.Endring
+        }
+
+    return Inntektsmelding(
         id = UUID.randomUUID(),
         type = Inntektsmelding.Type.Selvbestemt(
-            id = selvbestemtId
+            id = skjema.selvbestemtId ?: UUID.randomUUID()
         ),
         sykmeldt = Sykmeldt(
-            fnr = sykmeldt.fnr,
+            fnr = sykmeldt.fnr.let(::Fnr),
             navn = sykmeldt.navn
         ),
         avsender = Avsender(
             orgnr = skjema.avsender.orgnr,
             orgNavn = orgNavn,
-            fnr = avsender.fnr,
             navn = avsender.navn,
             tlf = skjema.avsender.tlf
         ),
@@ -280,9 +281,10 @@ fun tilInntektsmelding(
         agp = skjema.agp,
         inntekt = skjema.inntekt,
         refusjon = skjema.refusjon,
-        aarsakInnsending = skjema.aarsakInnsending,
+        aarsakInnsending = aarsakInnsending,
         mottatt = OffsetDateTime.now()
     )
+}
 
 private fun tomPerson(fnr: String): Person =
     Person(

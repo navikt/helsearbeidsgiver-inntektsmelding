@@ -41,14 +41,12 @@ val sikkerLogger = sikkerLogger()
 object Routes {
     const val PREFIX = "/api/v1"
 
-    private const val PREFIX_SELVBESTEMT_INNTEKTSMELDING = "/selvbestemt-inntektsmelding"
-
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
     const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
     const val INNSENDING = "/inntektsmelding"
-    const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$PREFIX_SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId}"
-    const val SELVBESTEMT_INNTEKTSMELDING_MED_VALGFRI_ID = "$PREFIX_SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId?}"
+    const val SELVBESTEMT_INNTEKTSMELDING = "/selvbestemt-inntektsmelding"
+    const val SELVBESTEMT_INNTEKTSMELDING_MED_ID = "$SELVBESTEMT_INNTEKTSMELDING/{selvbestemtId}"
     const val KVITTERING = "/kvittering"
     const val AKTIVEORGNR = "/aktiveorgnr"
 }

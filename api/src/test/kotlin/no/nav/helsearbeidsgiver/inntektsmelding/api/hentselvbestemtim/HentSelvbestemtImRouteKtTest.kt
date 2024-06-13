@@ -307,7 +307,6 @@ private fun Avsender.hardcodedJson(): String =
     {
         "orgnr": "$orgnr",
         "orgNavn": "$orgNavn",
-        "fnr": "$fnr",
         "navn": "$navn",
         "tlf": "$tlf"
     }
@@ -370,14 +369,14 @@ private fun InntektEndringAarsak.hardcodedJson(): String =
     when (this) {
         Bonus -> """{ "aarsak": "Bonus" }"""
         Feilregistrert -> """{ "aarsak": "Feilregistrert" }"""
-        is Ferie -> """{ "aarsak": "Ferie", "perioder": [${perioder.joinToString(transform = Periode::hardcodedJson)}" }"""
+        is Ferie -> """{ "aarsak": "Ferie", "ferier": [${ferier.joinToString(transform = Periode::hardcodedJson)}" }"""
         Ferietrekk -> """{ "aarsak": "Ferietrekk"}"""
         is NyStilling -> """{ "aarsak": "NyStilling", "gjelderFra": "$gjelderFra" }"""
         is NyStillingsprosent -> """{ "aarsak": "NyStillingsprosent", "gjelderFra": "$gjelderFra" }"""
         Nyansatt -> """{ "aarsak": "Nyansatt" }"""
-        is Permisjon -> """{ "aarsak": "Permisjon", "perioder": [${perioder.joinToString(transform = Periode::hardcodedJson)}" }"""
-        is Permittering -> """{ "aarsak": "Permittering", "perioder": [${perioder.joinToString(transform = Periode::hardcodedJson)}" }"""
-        is Sykefravaer -> """{ "aarsak": "Sykefravaer", "perioder": [${perioder.joinToString(transform = Periode::hardcodedJson)}" }"""
+        is Permisjon -> """{ "aarsak": "Permisjon", "permisjoner": [${permisjoner.joinToString(transform = Periode::hardcodedJson)}" }"""
+        is Permittering -> """{ "aarsak": "Permittering", "permitteringer": [${permitteringer.joinToString(transform = Periode::hardcodedJson)}" }"""
+        is Sykefravaer -> """{ "aarsak": "Sykefravaer", "sykefravaer": [${sykefravaer.joinToString(transform = Periode::hardcodedJson)}" }"""
         is Tariffendring -> """{ "aarsak": "Tariffendring", "gjelderFra": "$gjelderFra", "bleKjent": "$bleKjent" }"""
         is VarigLoennsendring -> """{ "aarsak": "VarigLoennsendring", "gjelderFra": "$gjelderFra" }"""
     }

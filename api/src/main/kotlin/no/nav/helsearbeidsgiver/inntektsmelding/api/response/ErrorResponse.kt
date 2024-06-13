@@ -23,7 +23,7 @@ data class JsonErrorResponse(
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class UkjentErrorResponse(
-    val inntektsmeldingTypeId: UUID
+    val inntektsmeldingTypeId: UUID? = null
 ) {
     @EncodeDefault
     val error = "Ukjent feil."

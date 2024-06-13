@@ -53,7 +53,7 @@ class JournalfoerImRiverTest : FunSpec({
         withData(
             mapOf(
                 "forespurt inntektsmelding (gammel versjon)" to Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer()),
-                "forespurt inntektsmelding (ny versjon, ikke i bruk)" to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer())
+                "forespurt inntektsmelding (ny versjon, ikke i bruk)" to Mock.inntektsmeldingNyVersjon.toJson(InntektsmeldingV1.serializer())
             )
         ) { inntektsmeldingJson ->
             val journalpostId = UUID.randomUUID().toString()
@@ -105,13 +105,12 @@ class JournalfoerImRiverTest : FunSpec({
 
         withData(
             mapOf(
-                "selvbestemt inntektsmelding (ny versjon)" to mockInntektsmeldingV1().toJson(InntektsmeldingV1.serializer()),
+                "selvbestemt inntektsmelding (ny versjon)" to Mock.inntektsmeldingNyVersjon.toJson(InntektsmeldingV1.serializer()),
                 "selvbestemt inntektsmelding (gammel versjon, ikke i bruk)" to Mock.inntektsmeldingGammelVersjon.toJson(Inntektsmelding.serializer())
             )
         ) { inntektsmeldingJson ->
             val journalpostId = UUID.randomUUID().toString()
             val selvbestemtId = UUID.randomUUID()
-            val inntektsmeldingNyVersjon = mockInntektsmeldingV1()
 
             val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, inntektsmeldingJson)
 
@@ -141,10 +140,10 @@ class JournalfoerImRiverTest : FunSpec({
             coVerifySequence {
                 mockDokArkivKlient.opprettOgFerdigstillJournalpost(
                     tittel = "Inntektsmelding",
-                    gjelderPerson = GjelderPerson(inntektsmeldingNyVersjon.sykmeldt.fnr),
+                    gjelderPerson = GjelderPerson(Mock.inntektsmeldingNyVersjon.sykmeldt.fnr.verdi),
                     avsender = KlientAvsender.Organisasjon(
-                        orgnr = inntektsmeldingNyVersjon.avsender.orgnr,
-                        navn = inntektsmeldingNyVersjon.avsender.orgNavn
+                        orgnr = Mock.inntektsmeldingNyVersjon.avsender.orgnr.verdi,
+                        navn = Mock.inntektsmeldingNyVersjon.avsender.orgNavn
                     ),
                     datoMottatt = LocalDate.now(),
                     dokumenter = withArg {
@@ -161,9 +160,8 @@ class JournalfoerImRiverTest : FunSpec({
     test("håndterer retries (med BehovType.JOURNALFOER)") {
         val journalpostId = UUID.randomUUID().toString()
         val selvbestemtId = UUID.randomUUID()
-        val inntektsmeldingNyVersjon = mockInntektsmeldingV1()
 
-        val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, inntektsmeldingNyVersjon.toJson(InntektsmeldingV1.serializer()))
+        val innkommendeMelding = Mock.innkommendeMelding(EventName.SELVBESTEMT_IM_LAGRET, Mock.inntektsmeldingNyVersjon.toJson(InntektsmeldingV1.serializer()))
 
         coEvery {
             mockDokArkivKlient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -187,10 +185,10 @@ class JournalfoerImRiverTest : FunSpec({
         coVerifySequence {
             mockDokArkivKlient.opprettOgFerdigstillJournalpost(
                 tittel = "Inntektsmelding",
-                gjelderPerson = GjelderPerson(inntektsmeldingNyVersjon.sykmeldt.fnr),
+                gjelderPerson = GjelderPerson(Mock.inntektsmeldingNyVersjon.sykmeldt.fnr.verdi),
                 avsender = KlientAvsender.Organisasjon(
-                    orgnr = inntektsmeldingNyVersjon.avsender.orgnr,
-                    navn = inntektsmeldingNyVersjon.avsender.orgNavn
+                    orgnr = Mock.inntektsmeldingNyVersjon.avsender.orgnr.verdi,
+                    navn = Mock.inntektsmeldingNyVersjon.avsender.orgNavn
                 ),
                 datoMottatt = LocalDate.now(),
                 dokumenter = withArg {
@@ -303,7 +301,8 @@ class JournalfoerImRiverTest : FunSpec({
 })
 
 private object Mock {
-    val inntektsmeldingGammelVersjon = mockInntektsmeldingV1().convert()
+    val inntektsmeldingNyVersjon = mockInntektsmeldingV1()
+    val inntektsmeldingGammelVersjon = inntektsmeldingNyVersjon.convert()
 
     val fail = Fail(
         feilmelding = "I don't think we're in Kansas anymore.",

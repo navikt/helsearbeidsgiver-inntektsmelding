@@ -23,7 +23,7 @@ data class RedisTimeoutResponse(
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class RedisPermanentErrorResponse(
-    val inntektsmeldingTypeId: UUID
+    val inntektsmeldingTypeId: UUID? = null
 ) {
     @EncodeDefault
     val error = "Permanent feil mot redis."

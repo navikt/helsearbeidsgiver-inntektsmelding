@@ -88,7 +88,6 @@ class LagreSelvbestemtImRiverTest : FunSpec({
 
         val duplikatIm = nyInntektsmelding.copy(
             avsender = nyInntektsmelding.avsender.copy(
-                fnr = "03067211111",
                 navn = "Intens Delfia",
                 tlf = "35350404"
             ),

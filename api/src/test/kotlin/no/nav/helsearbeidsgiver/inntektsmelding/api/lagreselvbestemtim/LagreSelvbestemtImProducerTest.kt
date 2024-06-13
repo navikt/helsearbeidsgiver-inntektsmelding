@@ -5,12 +5,12 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
 import io.mockk.every
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
@@ -25,22 +25,20 @@ class LagreSelvbestemtImProducerTest : FunSpec({
 
     test("publiserer melding på forventet format") {
         val clientId = UUID.randomUUID()
-        val selvbestemtId = UUID.randomUUID()
         val avsenderFnr = Fnr.genererGyldig().verdi
-        val skjema = mockSkjemaInntektsmelding()
+        val skjema = mockSkjemaInntektsmeldingSelvbestemt()
 
         mockStatic(UUID::randomUUID) {
             every { UUID.randomUUID() } returns clientId
 
-            producer.publish(selvbestemtId, avsenderFnr, skjema)
+            producer.publish(skjema, avsenderFnr)
         }
 
         testRapid.inspektør.size shouldBeExactly 1
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
-            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
         )
     }

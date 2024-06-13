@@ -111,7 +111,7 @@ class HentSelvbestemtImService(
                 val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding.toMap())
                 sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. selvbestemtId=$selvbestemtId")
             } else {
-                val feilmeldingJson = fail.feilmelding.toJson(String.serializer())
+                val feilmeldingJson = fail.feilmelding.toJson()
                 val resultJson = ResultJson(failure = feilmeldingJson).toJsonStr()
                 redisStore.set(RedisKey.of(clientId), resultJson)
             }

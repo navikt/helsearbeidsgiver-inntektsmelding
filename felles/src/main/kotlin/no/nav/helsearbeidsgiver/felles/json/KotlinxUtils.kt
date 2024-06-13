@@ -14,10 +14,12 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 val personMapSerializer =
     MapSerializer(
-        String.serializer(),
+        Fnr.serializer(),
         Person.serializer()
     )
 
@@ -26,6 +28,12 @@ fun EventName.toJson(): JsonElement =
 
 fun BehovType.toJson(): JsonElement =
     toJson(BehovType.serializer())
+
+fun Fnr.toJson(): JsonElement =
+    toJson(Fnr.serializer())
+
+fun Orgnr.toJson(): JsonElement =
+    toJson(Orgnr.serializer())
 
 @JvmName("toJsonMapKeyStringValueString")
 fun Map<String, String>.toJson(): JsonElement =

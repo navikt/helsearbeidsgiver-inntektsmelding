@@ -17,9 +17,7 @@ class TrengerProducer(
         logger.info("Starter ${TrengerProducer::class.simpleName}...")
     }
 
-    fun publish(request: HentForespoerselRequest, arbeidsgiverFnr: String): UUID {
-        val transaksjonId = UUID.randomUUID()
-
+    fun publish(transaksjonId: UUID, request: HentForespoerselRequest, arbeidsgiverFnr: String) {
         rapid.publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to transaksjonId.toString().toJson(),
@@ -31,7 +29,5 @@ class TrengerProducer(
                 logger.info("Publiserte trenger behov med transaksjonId=$transaksjonId")
                 sikkerLogger.info("Publiserte trenger behov med transaksjonId=$transaksjonId json=${it.toPretty()}")
             }
-
-        return transaksjonId
     }
 }

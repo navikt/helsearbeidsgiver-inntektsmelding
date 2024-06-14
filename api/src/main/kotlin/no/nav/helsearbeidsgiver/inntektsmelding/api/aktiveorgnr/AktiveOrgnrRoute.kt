@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
 
 fun Route.aktiveOrgnrRoute(
     connection: RapidsConnection,
@@ -27,11 +28,13 @@ fun Route.aktiveOrgnrRoute(
 ) {
     val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
     post(Routes.AKTIVEORGNR) {
+        val clientId = UUID.randomUUID()
+
         try {
             val request = call.receive<AktiveOrgnrRequest>()
             val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-            val clientId = aktiveOrgnrProducer.publish(arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
+            aktiveOrgnrProducer.publish(clientId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
 
             val resultatJson = redis.hent(clientId).fromJson(ResultJson.serializer())
 

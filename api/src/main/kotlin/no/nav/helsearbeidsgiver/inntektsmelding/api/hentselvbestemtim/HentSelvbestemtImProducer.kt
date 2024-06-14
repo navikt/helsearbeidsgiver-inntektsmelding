@@ -20,9 +20,7 @@ class HentSelvbestemtImProducer(
         logger.info("Starter ${HentSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(selvbestemtId: UUID): UUID {
-        val clientId = UUID.randomUUID()
-
+    fun publish(clientId: UUID, selvbestemtId: UUID) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_REQUESTED),
             Log.clientId(clientId),
@@ -38,7 +36,5 @@ class HentSelvbestemtImProducer(
                     sikkerLogger.info("Publiserte til kafka:\n${it.toPretty()}")
                 }
         }
-
-        return clientId
     }
 }

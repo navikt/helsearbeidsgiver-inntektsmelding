@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -21,9 +20,7 @@ class InntektProducer(
         logger.info("Starter ${InntektProducer::class.simpleName}...")
     }
 
-    fun publish(request: InntektRequest): UUID {
-        val clientId = randomUuid()
-
+    fun publish(clientId: UUID, request: InntektRequest) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.INNTEKT_REQUESTED),
@@ -43,7 +40,5 @@ class InntektProducer(
                     }
                 }
         }
-
-        return clientId
     }
 }

@@ -33,6 +33,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.util.UUID
 
 // TODO test
 fun Route.lagreSelvbestemtImRoute(
@@ -43,8 +44,11 @@ fun Route.lagreSelvbestemtImRoute(
     val producer = LagreSelvbestemtImProducer(rapid)
 
     post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
+        val clientId = UUID.randomUUID()
+
         MdcUtils.withLogFields(
-            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING)
+            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING),
+            Log.clientId(clientId)
         ) {
             val skjema = lesRequestOrNull()
             when {
@@ -67,18 +71,14 @@ fun Route.lagreSelvbestemtImRoute(
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    val clientId = producer.publish(skjema, avsenderFnr)
+                    producer.publish(clientId, skjema, avsenderFnr)
 
-                    MdcUtils.withLogFields(
-                        Log.clientId(clientId)
-                    ) {
-                        runCatching {
-                            redisPoller.hent(clientId)
-                        }
-                            .let {
-                                sendResponse(it)
-                            }
+                    runCatching {
+                        redisPoller.hent(clientId)
                     }
+                        .let {
+                            sendResponse(it)
+                        }
                 }
             }
         }

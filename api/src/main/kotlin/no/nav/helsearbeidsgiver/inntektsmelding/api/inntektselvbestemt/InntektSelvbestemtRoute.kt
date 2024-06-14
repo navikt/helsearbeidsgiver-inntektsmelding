@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
 
 fun Route.inntektSelvbestemtRoute(
     rapid: RapidsConnection,
@@ -33,6 +34,8 @@ fun Route.inntektSelvbestemtRoute(
     val inntektSelvbestemtProducer = InntektSelvbestemtProducer(rapid)
 
     post(Routes.INNTEKT_SELVBESTEMT) {
+        val transaksjonId = UUID.randomUUID()
+
         val request = call.receive<InntektSelvbestemtRequest>()
 
         tilgangskontroll.validerTilgangTilOrg(call.request, request.orgnr.verdi)
@@ -43,7 +46,7 @@ fun Route.inntektSelvbestemtRoute(
         }
 
         try {
-            val transaksjonId = inntektSelvbestemtProducer.publish(request)
+            inntektSelvbestemtProducer.publish(transaksjonId, request)
 
             val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
             sikkerLogger.info("Fikk inntektsresultat for selvbestemt inntektsmelding:\n$resultatJson")

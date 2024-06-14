@@ -52,7 +52,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
 
             val sisteIm = repository.hentNyesteInntektsmelding(forespoerselId)
             val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
-            val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false ||
+            val erDuplikat = sisteIm?.erDuplikatAv(inntektsmelding) ?: false || // TODO: Fikse logikken her dersom vi har treff både på skjema og im. Og lagre ned im i berikingsservicen.
                 sisteImSkjema?.erDuplikatAv(inntektsmelding) ?: false
 
             if (erDuplikat) {

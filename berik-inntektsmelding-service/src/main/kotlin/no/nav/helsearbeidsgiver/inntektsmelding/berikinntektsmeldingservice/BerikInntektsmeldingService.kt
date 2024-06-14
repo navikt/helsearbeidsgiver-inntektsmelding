@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 class BerikInntektsmeldingService(
@@ -59,8 +60,8 @@ class BerikInntektsmeldingService(
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
-        val innsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
+        val sykmeldtFnr = Key.IDENTITETSNUMMER.les(Fnr.serializer(), melding)
+        val innsenderFnr = Key.ARBEIDSGIVER_ID.les(Fnr.serializer(), melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),
@@ -99,8 +100,8 @@ class BerikInntektsmeldingService(
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-                Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(),
-                Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(),
+                Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(Fnr.serializer()),
+                Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(Fnr.serializer()),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson()
             ).also {

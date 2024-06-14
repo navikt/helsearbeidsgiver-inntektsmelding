@@ -8,6 +8,7 @@ import io.mockk.every
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
@@ -35,16 +36,14 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BerikInntektsmeldingServiceIT : EndToEndTest() {
-
     @Ignore
     @Test
-    fun `antall meldinger ser bra ut`() {
-
+    fun `skal berike og lagre inntektsmeldinger`() {
         mockForespoerselSvarFraHelsebro(
             eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = Mock.transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar,
         )
 
         mockStatic(::randomUuid) {
@@ -53,15 +52,16 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to Mock.orgnr.toString().toJson(),
-                Key.IDENTITETSNUMMER to Mock.fnr.toString().toJson(), // TODO: Gjøre om til Fnr
-                Key.ARBEIDSGIVER_ID to Mock.fnr.toString().toJson(), // TODO: Gjøre om til Fnr
-                Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
+                Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
+                Key.IDENTITETSNUMMER to Mock.fnr.toJson(Fnr.serializer()),
+                Key.ARBEIDSGIVER_ID to Mock.fnr.toJson(Fnr.serializer()),
+                Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer()),
             )
         }
 
         // Forespørsel hentet
-        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
@@ -72,7 +72,8 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             }
 
         // Virksomhetsnavn hentet
-        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.VIRKSOMHET)
             .firstAsMap()
             .verifiserTransaksjonId(Mock.transaksjonId)
@@ -83,7 +84,8 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
             }
 
         // Sykmeldt og innsender hentet
-        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
+        messages
+            .filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.ARBEIDSTAKER_INFORMASJON)
             .filter(Key.ARBEIDSGIVER_INFORMASJON)
             .firstAsMap()
@@ -93,13 +95,40 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 it shouldContainKey Key.DATA
 
                 shouldNotThrowAny {
-                    it[Key.ARBEIDSTAKER_INFORMASJON].shouldNotBeNull()
+                    it[Key.ARBEIDSTAKER_INFORMASJON]
+                        .shouldNotBeNull()
                         .fromJson(PersonDato.serializer())
 
-                    it[Key.ARBEIDSGIVER_INFORMASJON].shouldNotBeNull()
+                    it[Key.ARBEIDSGIVER_INFORMASJON]
+                        .shouldNotBeNull()
                         .fromJson(PersonDato.serializer())
                 }
             }
+
+        // Siste melding fra service
+        messages
+            .filter(EventName.INNTEKTSMELDING_MOTTATT)
+            .firstAsMap()
+            .verifiserTransaksjonId(Mock.transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                shouldNotThrowAny {
+                    it[Key.UUID]
+                        .shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    it[Key.FORESPOERSEL_ID]
+                        .shouldNotBeNull()
+                        .fromJson(UuidSerializer)
+
+                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                        .shouldNotBeNull()
+                        .fromJson(Inntektsmelding.serializer())
+                }
+            }
+
+        // Ingen feil
+        messages.filterFeil().all().size shouldBe 0
     }
 
     private fun Map<Key, JsonElement>.verifiserTransaksjonId(transaksjonId: UUID): Map<Key, JsonElement> =
@@ -120,20 +149,23 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         val forespoerselId: UUID = UUID.randomUUID()
         val vedtaksperiodeId: UUID = UUID.randomUUID()
 
-        val forespoerselSvar = ForespoerselSvar.Suksess(
-            type = ForespoerselType.KOMPLETT,
-            orgnr = GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet,
-            fnr = GYLDIG_INNSENDING_REQUEST.identitetsnummer,
-            vedtaksperiodeId = vedtaksperiodeId,
-            egenmeldingsperioder = GYLDIG_INNSENDING_REQUEST.egenmeldingsperioder,
-            sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder,
-            skjaeringstidspunkt = GYLDIG_INNSENDING_REQUEST.bestemmendeFraværsdag,
-            bestemmendeFravaersdager = GYLDIG_INNSENDING_REQUEST.fraværsperioder.lastOrNull()
-                ?.let { mapOf(GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet to it.fom) }
-                .orEmpty(),
-            forespurtData = mockForespurtData(),
-            erBesvart = false
-        )
+        val forespoerselSvar =
+            ForespoerselSvar.Suksess(
+                type = ForespoerselType.KOMPLETT,
+                orgnr = GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet,
+                fnr = GYLDIG_INNSENDING_REQUEST.identitetsnummer,
+                vedtaksperiodeId = vedtaksperiodeId,
+                egenmeldingsperioder = GYLDIG_INNSENDING_REQUEST.egenmeldingsperioder,
+                sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder,
+                skjaeringstidspunkt = GYLDIG_INNSENDING_REQUEST.bestemmendeFraværsdag,
+                bestemmendeFravaersdager =
+                    GYLDIG_INNSENDING_REQUEST.fraværsperioder
+                        .lastOrNull()
+                        ?.let { mapOf(GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet to it.fom) }
+                        .orEmpty(),
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
+            )
 
         val forespoersel = forespoerselSvar.toForespoersel()
     }

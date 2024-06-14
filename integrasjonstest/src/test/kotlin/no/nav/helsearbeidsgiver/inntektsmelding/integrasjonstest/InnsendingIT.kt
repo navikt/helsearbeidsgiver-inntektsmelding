@@ -10,6 +10,7 @@ import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.ForespoerselType
@@ -31,6 +32,9 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -53,7 +57,7 @@ class InnsendingIT : EndToEndTest() {
         val transaksjonId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INSENDING_STARTED,
+            eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar
@@ -143,7 +147,7 @@ class InnsendingIT : EndToEndTest() {
         val transaksjonId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INSENDING_STARTED,
+            eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar
@@ -239,9 +243,16 @@ class InnsendingIT : EndToEndTest() {
         const val JOURNALPOST_ID = "journalpost-id-skoleboller"
         const val SAK_ID = "forundret-lysekrone"
         const val OPPGAVE_ID = "neglisjert-sommer"
+        val orgnr = Orgnr.genererGyldig()
+        val innsenderFnr = Fnr.genererGyldig()
 
         val forespoerselId: UUID = UUID.randomUUID()
-        val skjema = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
+        val skjema =
+            mockInnsending().let { innsending -> innsending.copy(
+                identitetsnummer = innsenderFnr.toString(),
+                orgnrUnderenhet = orgnr.toString(),
+                bestemmendeFraværsdag = innsending.fraværsperioder.lastOrNull()?.fom ?: innsending.bestemmendeFraværsdag,
+            ) }
 
         private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
 
@@ -263,7 +274,7 @@ class InnsendingIT : EndToEndTest() {
             skjaeringstidspunkt = null,
             bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
             forespurtData = mockForespurtData(),
-            erBesvart = false
+            erBesvart = false,
         )
     }
 }

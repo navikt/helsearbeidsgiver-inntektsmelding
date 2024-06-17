@@ -6,7 +6,6 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -33,43 +32,41 @@ fun Route.inntektSelvbestemtRoute(
 ) {
     val inntektSelvbestemtProducer = InntektSelvbestemtProducer(rapid)
 
-    route(Routes.INNTEKT_SELVBESTEMT) {
-        post {
-            val request = call.receive<InntektSelvbestemtRequest>()
+    post(Routes.INNTEKT_SELVBESTEMT) {
+        val request = call.receive<InntektSelvbestemtRequest>()
 
-            tilgangskontroll.validerTilgangTilOrg(call.request, request.orgnr.verdi)
+        tilgangskontroll.validerTilgangTilOrg(call.request, request.orgnr.verdi)
 
-            "Henter oppdatert inntekt for selvbestemt inntektsmelding".let {
-                logger.info(it)
-                sikkerLogger.info("$it og request:\n$request")
+        "Henter oppdatert inntekt for selvbestemt inntektsmelding".let {
+            logger.info(it)
+            sikkerLogger.info("$it og request:\n$request")
+        }
+
+        try {
+            val transaksjonId = inntektSelvbestemtProducer.publish(request)
+
+            val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
+            sikkerLogger.info("Fikk inntektsresultat for selvbestemt inntektsmelding:\n$resultatJson")
+
+            val resultat = resultatJson.success?.fromJson(Inntekt.serializer())
+            if (resultat != null) {
+                val response = InntektSelvbestemtResponse(
+                    bruttoinntekt = resultat.gjennomsnitt(),
+                    tidligereInntekter = resultat.maanedOversikt
+                )
+                    .toJson(InntektSelvbestemtResponse.serializer().nullable)
+
+                call.respond(HttpStatusCode.OK, response)
+            } else {
+                val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                respondInternalServerError(feilmelding, String.serializer())
             }
-
-            try {
-                val transaksjonId = inntektSelvbestemtProducer.publish(request)
-
-                val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
-                sikkerLogger.info("Fikk inntektsresultat for selvbestemt inntektsmelding:\n$resultatJson")
-
-                val resultat = resultatJson.success?.fromJson(Inntekt.serializer())
-                if (resultat != null) {
-                    val response = InntektSelvbestemtResponse(
-                        bruttoinntekt = resultat.gjennomsnitt(),
-                        tidligereInntekter = resultat.maanedOversikt
-                    )
-                        .toJson(InntektSelvbestemtResponse.serializer().nullable)
-
-                    call.respond(HttpStatusCode.OK, response)
-                } else {
-                    val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                    respondInternalServerError(feilmelding, String.serializer())
-                }
-            } catch (e: ManglerAltinnRettigheterException) {
-                respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-            } catch (_: RedisPollerTimeoutException) {
-                logger.error("Fikk timeout for inntekt for selvbestemt inntektsmelding.")
-                sikkerLogger.error("Fikk timeout for inntekt for selvbestemt inntektsmelding.")
-                respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
-            }
+        } catch (e: ManglerAltinnRettigheterException) {
+            respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
+        } catch (_: RedisPollerTimeoutException) {
+            logger.error("Fikk timeout for inntekt for selvbestemt inntektsmelding.")
+            sikkerLogger.error("Fikk timeout for inntekt for selvbestemt inntektsmelding.")
+            respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
         }
     }
 }

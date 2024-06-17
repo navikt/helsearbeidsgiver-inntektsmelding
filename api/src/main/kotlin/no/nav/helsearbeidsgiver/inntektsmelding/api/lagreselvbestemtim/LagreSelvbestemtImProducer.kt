@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class LagreSelvbestemtImProducer(
@@ -21,7 +22,7 @@ class LagreSelvbestemtImProducer(
         logger.info("Starter ${LagreSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(skjema: SkjemaInntektsmeldingSelvbestemt, avsenderFnr: String): UUID {
+    fun publish(skjema: SkjemaInntektsmeldingSelvbestemt, avsenderFnr: Fnr): UUID {
         val clientId = UUID.randomUUID()
 
         MdcUtils.withLogFields(

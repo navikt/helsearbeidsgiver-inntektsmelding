@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class Tilgangskontroll(
@@ -37,7 +38,7 @@ class Tilgangskontroll(
     private fun validerTilgang(
         request: ApplicationRequest,
         cacheKeyPostfix: String,
-        publish: (String) -> UUID
+        publish: (Fnr) -> UUID
     ) {
         val innloggerFnr = request.lesFnrFraAuthToken()
 

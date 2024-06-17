@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class InnsendingProducer(
@@ -19,7 +20,7 @@ class InnsendingProducer(
         logger.info("Starter ${InnsendingProducer::class.simpleName}...")
     }
 
-    fun publish(forespoerselId: UUID, request: Innsending, arbeidsgiverFnr: String): UUID {
+    fun publish(forespoerselId: UUID, request: Innsending, arbeidsgiverFnr: Fnr): UUID {
         val clientId = UUID.randomUUID()
 
         rapid.publish(

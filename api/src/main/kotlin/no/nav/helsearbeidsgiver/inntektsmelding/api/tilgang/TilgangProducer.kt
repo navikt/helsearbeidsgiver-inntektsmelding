@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class TilgangProducer(
@@ -22,14 +23,14 @@ class TilgangProducer(
         logger.info("Starter ${TilgangProducer::class.simpleName}...")
     }
 
-    fun publishForespoerselId(forespoerselId: UUID, fnr: String): UUID =
+    fun publishForespoerselId(forespoerselId: UUID, fnr: Fnr): UUID =
         publish(
             EventName.TILGANG_FORESPOERSEL_REQUESTED,
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.FNR to fnr.toJson()
         )
 
-    fun publishOrgnr(orgnr: String, fnr: String): UUID =
+    fun publishOrgnr(orgnr: String, fnr: Fnr): UUID =
         publish(
             EventName.TILGANG_ORG_REQUESTED,
             Key.ORGNRUNDERENHET to orgnr.toJson(),

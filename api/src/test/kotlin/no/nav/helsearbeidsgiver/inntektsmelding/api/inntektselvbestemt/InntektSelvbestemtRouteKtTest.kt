@@ -94,6 +94,27 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
     }
 
     @Test
+    fun `tomt resultat gir 500-feil`() = testApi {
+        val mockTransaksjonId = UUID.randomUUID()
+        val expectedFeilmelding = "Ukjent feil."
+
+        mockTilgang(Tilgang.HAR_TILGANG)
+
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.emptyResult()
+
+        val response = mockConstructor(InntektSelvbestemtProducer::class) {
+            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockTransaksjonId
+
+            post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
+        }
+
+        val actualJson = response.bodyAsText()
+
+        response.status shouldBe HttpStatusCode.InternalServerError
+        actualJson shouldBe expectedFeilmelding.toJsonStr(String.serializer())
+    }
+
+    @Test
     fun `timeout mot redis gir 500-feil`() = testApi {
         val mockTransaksjonId = UUID.randomUUID()
         val expectedFeilJson = RedisTimeoutResponse().toJsonStr(RedisTimeoutResponse.serializer())
@@ -172,7 +193,7 @@ private object Mock {
 
     fun failureResult(feilmelding: String): JsonElement =
         ResultJson(
-            failure = feilmelding.toJson(String.serializer())
+            failure = feilmelding.toJson()
         ).toJson(ResultJson.serializer())
 
     fun emptyResult(): JsonElement =

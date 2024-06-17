@@ -20,7 +20,7 @@ class TrengerProducerTest : FunSpec({
 
     test("publiserer melding på forventet format") {
         val forespoerselId = UUID.randomUUID()
-        val avsenderFnr = Fnr.genererGyldig().verdi
+        val avsenderFnr = Fnr.genererGyldig()
 
         val transaksjonId = producer.publish(HentForespoerselRequest(forespoerselId), avsenderFnr)
 

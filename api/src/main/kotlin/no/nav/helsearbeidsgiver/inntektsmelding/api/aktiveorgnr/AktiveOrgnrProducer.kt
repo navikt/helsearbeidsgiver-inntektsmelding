@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class AktiveOrgnrProducer(
@@ -20,7 +21,7 @@ class AktiveOrgnrProducer(
     init {
         logger.info("Starter ${AktiveOrgnrProducer::class.simpleName}...")
     }
-    fun publish(arbeidsgiverFnr: String, arbeidstagerFnr: String): UUID {
+    fun publish(arbeidsgiverFnr: Fnr, arbeidstagerFnr: Fnr): UUID {
         val clientId = randomUuid()
         MdcUtils.withLogFields(
             Log.klasse(this),

@@ -5,6 +5,8 @@ import io.mockk.mockk
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -18,6 +20,6 @@ class InnsendingProducerTest {
         every {
             rapidsConnection.publish(any())
         } returns Unit
-        assertNotNull(producer.publish(UUID.randomUUID(), GYLDIG_INNSENDING_REQUEST, "gyldig-fnr"))
+        assertNotNull(producer.publish(UUID.randomUUID(), GYLDIG_INNSENDING_REQUEST, Fnr.genererGyldig()))
     }
 }

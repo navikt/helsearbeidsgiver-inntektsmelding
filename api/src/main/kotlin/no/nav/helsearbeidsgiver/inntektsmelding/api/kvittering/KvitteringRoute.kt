@@ -50,6 +50,8 @@ fun Route.kvitteringRoute(
         .register()
 
     get(Routes.KVITTERING) {
+        val clientId = UUID.randomUUID()
+
         val forespoerselId = call.parameters["uuid"]
             ?.let(::fjernLedendeSlash)
             ?.runCatching(UUID::fromString)
@@ -71,7 +73,7 @@ fun Route.kvitteringRoute(
                         logger.info("Authorize took $it")
                     }
 
-                    val clientId = kvitteringProducer.publish(forespoerselId)
+                    kvitteringProducer.publish(clientId, forespoerselId)
                     val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
 
                     sikkerLogger.info("Resultat for henting av kvittering for $forespoerselId: $resultatJson")

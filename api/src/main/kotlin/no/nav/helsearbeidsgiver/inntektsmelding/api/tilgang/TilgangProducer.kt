@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -22,23 +21,23 @@ class TilgangProducer(
         logger.info("Starter ${TilgangProducer::class.simpleName}...")
     }
 
-    fun publishForespoerselId(forespoerselId: UUID, fnr: String): UUID =
+    fun publishForespoerselId(clientId: UUID, fnr: String, forespoerselId: UUID) =
         publish(
             EventName.TILGANG_FORESPOERSEL_REQUESTED,
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.FNR to fnr.toJson()
+            clientId,
+            Key.FNR to fnr.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
-    fun publishOrgnr(orgnr: String, fnr: String): UUID =
+    fun publishOrgnr(clientId: UUID, fnr: String, orgnr: String) =
         publish(
             EventName.TILGANG_ORG_REQUESTED,
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
-            Key.FNR to fnr.toJson()
+            clientId,
+            Key.FNR to fnr.toJson(),
+            Key.ORGNRUNDERENHET to orgnr.toJson()
         )
 
-    private fun publish(eventName: EventName, vararg messageFields: Pair<Key, JsonElement>): UUID {
-        val clientId = randomUuid()
-
+    private fun publish(eventName: EventName, clientId: UUID, vararg messageFields: Pair<Key, JsonElement>) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
@@ -56,7 +55,5 @@ class TilgangProducer(
                     }
                 }
         }
-
-        return clientId
     }
 }

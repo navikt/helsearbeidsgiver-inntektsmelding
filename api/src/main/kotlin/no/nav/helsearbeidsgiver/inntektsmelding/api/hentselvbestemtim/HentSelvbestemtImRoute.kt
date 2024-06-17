@@ -35,6 +35,8 @@ fun Route.hentSelvbestemtImRoute(
     val producer = HentSelvbestemtImProducer(rapid)
 
     get(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID) {
+        val transaksjonId = UUID.randomUUID()
+
         val selvbestemtId = call.parameters["selvbestemtId"]
             ?.runCatching(UUID::fromString)
             ?.getOrNull()
@@ -48,9 +50,10 @@ fun Route.hentSelvbestemtImRoute(
         } else {
             MdcUtils.withLogFields(
                 Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
-                Log.selvbestemtId(selvbestemtId)
+                Log.selvbestemtId(selvbestemtId),
+                Log.transaksjonId(transaksjonId)
             ) {
-                val transaksjonId = producer.publish(selvbestemtId)
+                producer.publish(transaksjonId, selvbestemtId)
 
                 MdcUtils.withLogFields(
                     Log.transaksjonId(transaksjonId)

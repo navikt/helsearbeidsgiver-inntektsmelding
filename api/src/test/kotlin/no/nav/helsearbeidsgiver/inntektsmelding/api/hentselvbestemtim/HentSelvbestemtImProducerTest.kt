@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly
-import io.mockk.every
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -11,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import java.util.UUID
 
 class HentSelvbestemtImProducerTest : FunSpec({
@@ -23,11 +21,7 @@ class HentSelvbestemtImProducerTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
         val selvbestemtId = UUID.randomUUID()
 
-        mockStatic(UUID::randomUUID) {
-            every { UUID.randomUUID() } returns transaksjonId
-
-            producer.publish(selvbestemtId)
-        }
+        producer.publish(transaksjonId, selvbestemtId)
 
         testRapid.inspektør.size shouldBeExactly 1
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(

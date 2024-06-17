@@ -21,9 +21,7 @@ class LagreSelvbestemtImProducer(
         logger.info("Starter ${LagreSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(skjema: SkjemaInntektsmeldingSelvbestemt, avsenderFnr: String): UUID {
-        val clientId = UUID.randomUUID()
-
+    fun publish(clientId: UUID, skjema: SkjemaInntektsmeldingSelvbestemt, avsenderFnr: String) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_MOTTATT),
             Log.clientId(clientId)
@@ -39,7 +37,5 @@ class LagreSelvbestemtImProducer(
                     sikkerLogger.info("Publiserte til kafka:\n${it.toPretty()}")
                 }
         }
-
-        return clientId
     }
 }

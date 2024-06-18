@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
 
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
-import java.time.LocalDate
 
 fun List<Arbeidsforhold>.filterOrgnr(vararg organisasjoner: String): List<Arbeidsforhold> {
     return this

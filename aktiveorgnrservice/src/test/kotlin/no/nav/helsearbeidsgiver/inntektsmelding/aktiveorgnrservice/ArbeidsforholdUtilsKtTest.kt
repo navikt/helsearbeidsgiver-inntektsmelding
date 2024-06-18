@@ -55,6 +55,10 @@ class ArbeidsforholdUtilsKtTest : FunSpec({
                 registrert = minDate
             )
         )
-        arbeidsforholdListe.orgnrMedHistoriskArbeidsforhold() shouldBe listOf(arbeidsgiver1.organisasjonsnummer, arbeidsgiver2.organisasjonsnummer, arbeidsgiver3.organisasjonsnummer)
+        arbeidsforholdListe.orgnrMedHistoriskArbeidsforhold() shouldBe listOf(
+            arbeidsgiver1.organisasjonsnummer,
+            arbeidsgiver2.organisasjonsnummer,
+            arbeidsgiver3.organisasjonsnummer
+        )
     }
 })

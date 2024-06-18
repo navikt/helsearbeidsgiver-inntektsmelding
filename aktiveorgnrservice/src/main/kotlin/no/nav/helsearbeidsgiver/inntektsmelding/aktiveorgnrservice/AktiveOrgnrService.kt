@@ -217,7 +217,7 @@ class AktiveOrgnrService(
                     .filterOrgnr(
                         *orgrettigheter.toTypedArray()
                     )
-                    .orgnrMedAktivtArbeidsforhold()
+                    .orgnrMedHistoriskArbeidsforhold()
             if (arbeidsgivere.isEmpty()) {
                 Result.failure(Exception("Fant ingen aktive arbeidsforhold"))
             } else {

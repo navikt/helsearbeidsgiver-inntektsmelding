@@ -7,8 +7,6 @@ import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
-import no.nav.helsearbeidsgiver.utils.test.date.februar
-import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -18,65 +16,43 @@ class ArbeidsforholdInnenforPeriodeKtTest : FunSpec({
     val arbeidsgiver2 = Arbeidsgiver("ORG", "987654321")
     val arbeidsgiver3 = Arbeidsgiver("ORG", "000000001")
     val minDate = LocalDateTime.MIN
-
-    test("Evig arbeidsforhold støttes") {
-        val arbeidsforholdListe = listOf(
-            Arbeidsforhold(
-                arbeidsgiver = arbeidsgiver1,
-                ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(LocalDate.MIN, LocalDate.MAX)),
-                registrert = minDate
+    test("Ansatt slutter fram i tid") {
+        listOf(
+            Periode(
+                LocalDate.of(2021, 1, 15),
+                LocalDate.of(2021, 1, 20)
             )
-        )
-        listOf(Periode(1.januar, 16.januar)).aktivtArbeidsforholdIPeriode(arbeidsforholdListe) shouldBe true
-    }
-    test("Arbeidsforhold uten sluttdato støttes") {
-        val arbeidsforholdListe = listOf(
-            Arbeidsforhold(
-                arbeidsgiver = arbeidsgiver1,
-                ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(1.januar, null)),
-                registrert = minDate
-            )
-        )
-        listOf(Periode(1.januar, 16.januar)).aktivtArbeidsforholdIPeriode(arbeidsforholdListe) shouldBe true
-    }
-    test("Avsluttede arbeidsforhold som dekker sykeperiode støttes") {
-        val arbeidsforholdListe = listOf(
-            Arbeidsforhold(
-                arbeidsgiver = arbeidsgiver1,
-                ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(1.januar, 1.februar)),
-                registrert = minDate
-            )
-        )
-        listOf(Periode(1.januar, 16.januar)).aktivtArbeidsforholdIPeriode(arbeidsforholdListe) shouldBe true
+        ).aktivtArbeidsforholdIPeriode(AaregTestData.arbeidsforholdMedSluttDato) shouldBe true
     }
 
-    test("Avsluttede arbeidsforhold som ikke dekker sykeperiode stoppes") {
-        val arbeidsforholdListe = listOf(
-            Arbeidsforhold(
-                arbeidsgiver = arbeidsgiver1,
-                ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(1.januar, 1.februar)),
-                registrert = minDate
+    test("Perode er innenfor Arbeidsforholdet") {
+        listOf(
+            Periode(
+                LocalDate.of(2021, 1, 15),
+                LocalDate.of(2021, 1, 28)
             )
-        )
-        listOf(Periode(20.januar, 5.februar)).aktivtArbeidsforholdIPeriode(arbeidsforholdListe) shouldBe false
+        ).aktivtArbeidsforholdIPeriode(AaregTestData.evigArbeidsForholdListe) shouldBe true
     }
 
-    test("Slår sammen arbeidsforhold") {
+    test("Sammenhengende arbeidsforhold slås sammen til en periode") {
         val arbeidsforholdListe = listOf(
             Arbeidsforhold(
                 arbeidsgiver = arbeidsgiver1,
                 ansettelsesperiode = Ansettelsesperiode(
                     PeriodeNullable(
-                    LocalDate.of(2019, 1, 1),
-                    LocalDate.of(2021, 2, 28))),
+                        LocalDate.of(2019, 1, 1),
+                        LocalDate.of(2021, 2, 28)
+                    )
+                ),
                 registrert = minDate
             ),
             Arbeidsforhold(
                 arbeidsgiver = arbeidsgiver1,
-                ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(
-                    LocalDate.of(2021, 3, 1),
-                    null
-                )
+                ansettelsesperiode = Ansettelsesperiode(
+                    PeriodeNullable(
+                        LocalDate.of(2021, 3, 1),
+                        null
+                    )
                 ),
                 registrert = minDate
             )
@@ -88,8 +64,35 @@ class ArbeidsforholdInnenforPeriodeKtTest : FunSpec({
             ),
             Periode(
                 LocalDate.of(2021, 2, 26),
-                LocalDate.of(2021, 3, 10),
+                LocalDate.of(2021, 3, 10)
             )
         ).aktivtArbeidsforholdIPeriode(arbeidsforholdListe) shouldBe true
+    }
+
+    test("Periode er før Arbeidsforholdet har begynt") {
+        listOf(
+            Periode(
+                LocalDate.of(2021, 1, 1),
+                LocalDate.of(2021, 1, 5)
+            )
+        ).aktivtArbeidsforholdIPeriode(AaregTestData.pågåendeArbeidsforholdListe) shouldBe false
+    }
+
+    test("Periode begynner samtidig som Arbeidsforholdet") {
+        listOf(
+            Periode(
+                LocalDate.of(2021, 2, 5),
+                LocalDate.of(2021, 2, 9)
+            )
+        ).aktivtArbeidsforholdIPeriode(AaregTestData.pågåendeArbeidsforholdListe) shouldBe true
+    }
+
+    test("Periode etter Arbeidsforholdet er avsluttet") {
+        listOf(
+            Periode(
+                LocalDate.of(2021, 5, 15),
+                LocalDate.of(2021, 5, 18)
+            )
+        ).aktivtArbeidsforholdIPeriode(AaregTestData.avsluttetArbeidsforholdListe) shouldBe false
     }
 })

@@ -20,7 +20,7 @@ fun List<Arbeidsforhold>.orgnrMedHistoriskArbeidsforhold(): List<String> {
 fun List<Periode>.aktivtArbeidsforholdIPeriode(arbeidsforhold: List<Arbeidsforhold>):Boolean {
     val ansattPerioder = arbeidsforhold.map { it.ansettelsesperiode.periode }
     val ansattPerioderSammenslaatt = slaaSammenPerioder(ansattPerioder)
-    return this.any {  !it.innenforArbeidsforhold(ansattPerioderSammenslaatt) } || this.any{ !it.innenforArbeidsforhold(ansattPerioder)}
+    return this.any {  it.innenforArbeidsforhold(ansattPerioderSammenslaatt) } || this.any{ it.innenforArbeidsforhold(ansattPerioder)}
 }
 
 fun Periode.innenforArbeidsforhold(ansattPerioder: List<PeriodeNullable>): Boolean {

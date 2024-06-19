@@ -6,7 +6,6 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -34,42 +33,40 @@ fun Route.inntektRoute(
 ) {
     val inntektProducer = InntektProducer(rapid)
 
-    route(Routes.INNTEKT) {
-        post {
-            val request = call.receive<InntektRequest>()
+    post(Routes.INNTEKT) {
+        val request = call.receive<InntektRequest>()
 
-            tilgangskontroll.validerTilgangTilForespoersel(call.request, request.forespoerselId)
+        tilgangskontroll.validerTilgangTilForespoersel(call.request, request.forespoerselId)
 
-            "Henter oppdatert inntekt for forespørselId: ${request.forespoerselId}".let {
-                logger.info(it)
-                sikkerLogger.info("$it og request:\n$request")
+        "Henter oppdatert inntekt for forespørselId: ${request.forespoerselId}".let {
+            logger.info(it)
+            sikkerLogger.info("$it og request:\n$request")
+        }
+
+        try {
+            val clientId = inntektProducer.publish(request)
+
+            val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+            sikkerLogger.info("Fikk inntektresultat:\n$resultatJson")
+
+            val resultat = resultatJson.success?.fromJson(Inntekt.serializer())
+            if (resultat != null) {
+                val response = InntektResponse(
+                    bruttoinntekt = resultat.gjennomsnitt(),
+                    tidligereInntekter = resultat.maanedOversikt
+                )
+                    .toJson(InntektResponse.serializer().nullable)
+
+                call.respond(HttpStatusCode.OK, response)
+            } else {
+                val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                respondInternalServerError(feilmelding, String.serializer())
             }
-
-            try {
-                val clientId = inntektProducer.publish(request)
-
-                val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
-                sikkerLogger.info("Fikk inntektresultat:\n$resultatJson")
-
-                val resultat = resultatJson.success?.fromJson(Inntekt.serializer())
-                if (resultat != null) {
-                    val response = InntektResponse(
-                        bruttoinntekt = resultat.gjennomsnitt(),
-                        tidligereInntekter = resultat.maanedOversikt
-                    )
-                        .toJson(InntektResponse.serializer().nullable)
-
-                    call.respond(HttpStatusCode.OK, response)
-                } else {
-                    val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                    respondInternalServerError(feilmelding, String.serializer())
-                }
-            } catch (e: ManglerAltinnRettigheterException) {
-                respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-            } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout for forespørselId: ${request.forespoerselId}")
-                respondInternalServerError(RedisTimeoutResponse(request.forespoerselId), RedisTimeoutResponse.serializer())
-            }
+        } catch (e: ManglerAltinnRettigheterException) {
+            respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
+        } catch (_: RedisPollerTimeoutException) {
+            logger.info("Fikk timeout for forespørselId: ${request.forespoerselId}")
+            respondInternalServerError(RedisTimeoutResponse(request.forespoerselId), RedisTimeoutResponse.serializer())
         }
     }
 }

@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.UkjentErrorResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ValideringErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
@@ -52,14 +53,17 @@ fun Route.lagreSelvbestemtImRoute(
                     respondBadRequest(JsonErrorResponse(), JsonErrorResponse.serializer())
                 }
 
-                !skjema.erGyldig() -> {
-                    "Fikk valideringsfeil.".also {
-                        logger.info(it)
-                        sikkerLogger.info(it)
+                skjema.valider().isNotEmpty() -> {
+                    val valideringsfeil = skjema.valider()
+
+                    "Fikk valideringsfeil: $valideringsfeil".also {
+                        logger.error(it)
+                        sikkerLogger.error(it)
                     }
 
-                    // TODO returner (og logg) mer utfyllende feil
-                    respondBadRequest("Valideringsfeil. Mer utfyllende feil må implementeres.", String.serializer())
+                    val response = ValideringErrorResponse(valideringsfeil)
+
+                    respondBadRequest(response, ValideringErrorResponse.serializer())
                 }
 
                 else -> {
@@ -142,7 +146,3 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
             }
         }
 }
-
-// TODO
-private fun SkjemaInntektsmeldingSelvbestemt.erGyldig(): Boolean =
-    true

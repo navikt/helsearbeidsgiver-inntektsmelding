@@ -434,7 +434,6 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
     }
-
 })
 
 private fun JsonElement.lesBehov(): BehovType? =

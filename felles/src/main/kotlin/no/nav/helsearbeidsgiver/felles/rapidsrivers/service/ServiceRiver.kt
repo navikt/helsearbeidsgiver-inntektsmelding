@@ -5,6 +5,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -24,8 +25,13 @@ class ServiceRiver(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): ServiceMelding? =
-        when {
+    override fun les(json: Map<Key, JsonElement>): ServiceMelding? {
+        val nestedData = json[Key.DATA]
+            ?.runCatching { toMap() }
+            ?.getOrNull()
+            .orEmpty()
+
+        return when {
             Key.FAIL in json -> {
                 FailMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
@@ -34,6 +40,7 @@ class ServiceRiver(
                 )
             }
 
+            // Støtter Key.DATA som flagg med datafelt på rot (metode på vei ut)
             Key.DATA in json &&
                 (
                     service.startKeys.all(json::containsKey) ||
@@ -48,10 +55,24 @@ class ServiceRiver(
                 )
             }
 
+            // Støtter Key.DATA som objekt som inneholder datafelt (metode på vei inn)
+            // TODO Når all data er nested under Key.DATA så kan startKeys og dataKeys få visibility protected
+            service.startKeys.all(nestedData::containsKey) ||
+                service.dataKeys.any(nestedData::containsKey) -> {
+                DataMelding(
+                    eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
+                    transaksjonId = Key.UUID.les(UuidSerializer, json),
+                    dataMap = nestedData.filterKeys {
+                        (service.startKeys + service.dataKeys).contains(it)
+                    }
+                )
+            }
+
             else -> {
                 null
             }
         }
+    }
 
     override fun ServiceMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         when (this) {

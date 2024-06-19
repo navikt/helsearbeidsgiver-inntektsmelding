@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ArbeidsforholdErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
@@ -128,10 +129,13 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
                 respond(HttpStatusCode.OK, LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
             } else {
                 val feilmelding = resultat.failure?.fromJson(String.serializer()).orDefault("Tomt resultat i Redis.")
-
                 logger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding.")
                 sikkerLogger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding: $feilmelding")
-                respondInternalServerError(UkjentErrorResponse(), UkjentErrorResponse.serializer())
+                if ("Mangler arbeidsforhold i perioden" == feilmelding) {
+                    respondBadRequest(ArbeidsforholdErrorResponse(), ArbeidsforholdErrorResponse.serializer())
+                } else {
+                    respondInternalServerError(UkjentErrorResponse(), UkjentErrorResponse.serializer())
+                }
             }
         }
         .onFailure {

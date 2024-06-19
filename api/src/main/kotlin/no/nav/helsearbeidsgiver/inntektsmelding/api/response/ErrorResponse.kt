@@ -57,3 +57,12 @@ data class RedisPermanentErrorResponse(
     @EncodeDefault
     val error = "Permanent feil mot redis."
 }
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+data class ArbeidsforholdErrorResponse(
+    val inntektsmeldingTypeId: UUID? = null
+) {
+    @EncodeDefault
+    val error = "Mangler arbeidsforhold i perioden"
+}

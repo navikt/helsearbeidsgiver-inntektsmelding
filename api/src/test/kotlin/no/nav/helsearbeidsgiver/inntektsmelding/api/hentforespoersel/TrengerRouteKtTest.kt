@@ -46,7 +46,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-// TODO dupliser for nytt endepunkt HENT_FORESPOERSEL etter merget PR som fikset route-tester
 private const val PATH = Routes.PREFIX + Routes.TRENGER
 
 class TrengerRouteKtTest : ApiTest() {

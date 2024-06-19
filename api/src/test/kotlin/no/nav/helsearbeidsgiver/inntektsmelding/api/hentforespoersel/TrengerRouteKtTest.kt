@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -46,6 +46,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
+// TODO dupliser for nytt endepunkt HENT_FORESPOERSEL etter merget PR som fikset route-tester
 private const val PATH = Routes.PREFIX + Routes.TRENGER
 
 class TrengerRouteKtTest : ApiTest() {
@@ -58,16 +59,16 @@ class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker`() = testApi {
         val mockTransaksjonId = UUID.randomUUID()
-        val expectedJson = Mock.responseJson()
+        val expectedJson = MockTrenger.responseJson()
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.resultatOkJson
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns MockTrenger.resultatOkJson
 
-        val response = mockConstructor(TrengerProducer::class) {
-            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockTransaksjonId
+        val response = mockConstructor(HentForespoerselProducer::class) {
+            every { anyConstructed<HentForespoerselProducer>().publish(any(), any()) } returns mockTransaksjonId
 
-            post(PATH, Mock.request, HentForespoerselRequest.serializer())
+            post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
         }
 
         val actualJson = response.bodyAsText()
@@ -79,16 +80,16 @@ class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker med forespørsel bare inntekt`() = testApi {
         val mockTransaksjonId = UUID.randomUUID()
-        val expectedJson = Mock.responseBareInntektJson()
+        val expectedJson = MockTrenger.responseBareInntektJson()
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.resultatOkMedForrigeInntektJson
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns MockTrenger.resultatOkMedForrigeInntektJson
 
-        val response = mockConstructor(TrengerProducer::class) {
-            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockTransaksjonId
+        val response = mockConstructor(HentForespoerselProducer::class) {
+            every { anyConstructed<HentForespoerselProducer>().publish(any(), any()) } returns mockTransaksjonId
 
-            post(PATH, Mock.request, HentForespoerselRequest.serializer())
+            post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
         }
 
         val actualJson = response.bodyAsText()
@@ -105,10 +106,10 @@ class TrengerRouteKtTest : ApiTest() {
 
         coEvery { mockRedisPoller.hent(mockTransaksjonId) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
-        val response = mockConstructor(TrengerProducer::class) {
-            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockTransaksjonId
+        val response = mockConstructor(HentForespoerselProducer::class) {
+            every { anyConstructed<HentForespoerselProducer>().publish(any(), any()) } returns mockTransaksjonId
 
-            post(PATH, Mock.request, HentForespoerselRequest.serializer())
+            post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
         }
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
@@ -142,7 +143,7 @@ class TrengerRouteKtTest : ApiTest() {
     fun `skal returnere Forbidden hvis feil ikke tilgang`() = testApi {
         mockTilgang(Tilgang.IKKE_TILGANG)
 
-        val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
@@ -156,12 +157,12 @@ class TrengerRouteKtTest : ApiTest() {
             feilmelding = "Noe er riv ruskende galt!"
         ).toJson(TilgangResultat.serializer())
 
-        val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 }
 
-private object Mock {
+private object MockTrenger {
     val request = HentForespoerselRequest(UUID.randomUUID())
 
     private val forespoersel = Forespoersel(

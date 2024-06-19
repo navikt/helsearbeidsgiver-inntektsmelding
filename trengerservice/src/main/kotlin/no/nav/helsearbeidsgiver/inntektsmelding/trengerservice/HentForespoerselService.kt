@@ -33,7 +33,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 const val UNDEFINED_FELT: String = "{}"
 
-class TrengerService(
+class HentForespoerselService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStoreClassSpecific
 ) : Service() {

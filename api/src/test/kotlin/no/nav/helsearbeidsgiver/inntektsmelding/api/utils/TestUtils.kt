@@ -30,6 +30,9 @@ import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 import org.junit.jupiter.api.AfterEach
 import java.util.UUID
 
+val harTilgangResultat = TilgangResultat(Tilgang.HAR_TILGANG).toJson(TilgangResultat.serializer())
+val ikkeTilgangResultat = TilgangResultat(Tilgang.IKKE_TILGANG).toJson(TilgangResultat.serializer())
+
 abstract class ApiTest : MockAuthToken() {
     val mockRedisPoller = mockk<RedisPoller>()
 

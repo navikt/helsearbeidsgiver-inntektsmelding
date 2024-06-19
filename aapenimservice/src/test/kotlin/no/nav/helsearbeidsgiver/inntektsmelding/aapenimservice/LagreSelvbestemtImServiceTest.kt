@@ -26,10 +26,13 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
+import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
@@ -50,6 +53,8 @@ import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -395,6 +400,41 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
     }
+
+    test("stopp flyt ved ikke aktivt arbeidsforhold") {
+        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
+        val duplikatInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+
+        mockStatic(::randomUuid) {
+            every { randomUuid() } returns transaksjonId
+
+            testRapid.sendJson(
+                MockLagre.startMelding(clientId, transaksjonId)
+            )
+        }
+
+        mockStatic(OffsetDateTime::class) {
+            every { OffsetDateTime.now() } returns duplikatInntektsmelding.mottatt
+
+            testRapid.sendJson(
+                MockLagre.steg1Data(transaksjonId)
+                    .plus(Key.ARBEIDSFORHOLD to MockLagre.lagArbeidsforhold("123456789").toJson(Arbeidsforhold.serializer()))
+            )
+        }
+
+        testRapid.inspektør.size shouldBeExactly 3
+
+        verify {
+            mockRedis.store.set(
+                RedisKey.of(clientId),
+                ResultJson(
+                    failure = "Mangler arbeidsforhold i perioden".toJson()
+                ).toJsonStr()
+            )
+        }
+    }
+
 })
 
 private fun JsonElement.lesBehov(): BehovType? =
@@ -501,7 +541,7 @@ private object MockLagre {
                 sykmeldt.fnr to sykmeldt,
                 avsender.fnr to avsender
             ).toJson(personMapSerializer),
-            Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())
+            Key.ARBEIDSFORHOLD to lagArbeidsforhold(orgnr = skjema.avsender.orgnr.verdi).toJson(Arbeidsforhold.serializer())
         )
 
     fun steg2Data(transaksjonId: UUID, inntektsmelding: Inntektsmelding): Map<Key, JsonElement> =
@@ -520,4 +560,12 @@ private object MockLagre {
             Key.DATA to "".toJson(),
             Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson()
         )
+
+    fun lagArbeidsforhold(orgnr: String) = listOf(
+        Arbeidsforhold(
+            arbeidsgiver = Arbeidsgiver("ORG", orgnr),
+            ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(LocalDate.MIN, LocalDate.MAX)),
+            registrert = LocalDateTime.MIN
+        )
+    )
 }

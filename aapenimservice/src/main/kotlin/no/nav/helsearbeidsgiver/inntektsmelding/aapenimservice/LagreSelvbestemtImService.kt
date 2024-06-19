@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
@@ -168,20 +169,35 @@ class LagreSelvbestemtImService(
                     avsender = avsender
                 )
 
-                val arbeidsforholdListe = Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding).filter { it.arbeidsgiver.organisasjonsnummer == skjema.avsender.orgnr.verdi }
+                val arbeidsforholdListe = Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
+                    .filter { it.arbeidsgiver.organisasjonsnummer == skjema.avsender.orgnr.verdi }
                 val sykeperioder = skjema.sykmeldingsperioder
                 val erAktivtArbeidsforhold = sykeperioder.aktivtArbeidsforholdIPeriode(arbeidsforholdListe)
+                if (erAktivtArbeidsforhold) {
 
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
-                )
-                    .also {
-                        logger.info("Publiserte melding med behov '${BehovType.LAGRE_SELVBESTEMT_IM}'.")
-                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                    rapid.publish(
+                        Key.EVENT_NAME to event.toJson(),
+                        Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                    )
+                        .also {
+                            logger.info("Publiserte melding med behov '${BehovType.LAGRE_SELVBESTEMT_IM}'.")
+                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                        }
+                } else {
+                    val clientId = redisStore.get(RedisKey.of(transaksjonId, event))?.let(UUID::fromString)
+                    if (clientId == null) {
+                        sikkerLogger.error("Forsøkte å fullføre, men clientId mangler i Redis.")
+                    } else {
+                        "Mangler arbeidsforhold i perioden".also { feilmelding ->
+                            logger.warn(feilmelding)
+                            sikkerLogger.warn(feilmelding)
+                            val resultJson = ResultJson(failure = feilmelding.toJson()).toJsonStr()
+                            redisStore.set(RedisKey.of(clientId), resultJson)
+                        }
                     }
+                }
             } else {
                 Unit
             }

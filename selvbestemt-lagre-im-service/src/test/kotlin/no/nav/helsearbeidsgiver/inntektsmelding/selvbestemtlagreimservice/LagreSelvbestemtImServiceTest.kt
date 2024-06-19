@@ -68,17 +68,17 @@ class LagreSelvbestemtImServiceTest : FunSpec({
     test("helt ny inntektsmelding lagres og sak opprettes") {
         val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
-        val nyInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny)
+        val nyInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                Mock.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
                     .plus(
                         Pair(
                             Key.SKJEMA_INNTEKTSMELDING,
-                            Mock.skjema.copy(selvbestemtId = null)
+                            MockLagre.skjema.copy(selvbestemtId = null)
                                 .toJson(SkjemaInntektsmeldingSelvbestemt.serializer())
                         )
                     )
@@ -93,7 +93,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
 
             testRapid.sendJson(
-                Mock.steg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId)
                     .minus(Key.SELVBESTEMT_ID)
             )
         }
@@ -111,7 +111,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            Mock.steg2Data(transaksjonId, nyInntektsmelding)
+            MockLagre.steg2Data(transaksjonId, nyInntektsmelding)
                 .minus(Key.SELVBESTEMT_ID)
         )
 
@@ -119,7 +119,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         testRapid.message(3).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
 
         testRapid.sendJson(
-            Mock.steg3Data(transaksjonId)
+            MockLagre.steg3Data(transaksjonId)
                 .minus(Key.SELVBESTEMT_ID)
         )
 
@@ -143,13 +143,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
     test("endret inntektsmelding lagres uten at sak opprettes") {
         val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
-        val endretInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+        val endretInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                Mock.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
             )
         }
 
@@ -161,7 +161,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
             testRapid.sendJson(
-                Mock.steg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId)
             )
         }
 
@@ -172,7 +172,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            Mock.steg2Data(transaksjonId, endretInntektsmelding)
+            MockLagre.steg2Data(transaksjonId, endretInntektsmelding)
         )
 
         testRapid.inspektør.size shouldBeExactly 4
@@ -195,13 +195,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
     test("duplikat inntektsmelding lagres uten at sluttevent publiseres") {
         val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
-        val duplikatInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+        val duplikatInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                Mock.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
             )
         }
 
@@ -209,7 +209,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns duplikatInntektsmelding.mottatt
 
             testRapid.sendJson(
-                Mock.steg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId)
             )
         }
 
@@ -220,7 +220,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            Mock.steg2Data(transaksjonId, duplikatInntektsmelding)
+            MockLagre.steg2Data(transaksjonId, duplikatInntektsmelding)
                 .plus(
                     Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())
                 )
@@ -247,7 +247,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         val virksomhetDefault = "Ukjent virksomhet"
-        val inntektsmeldingMedDefaults = Mock.inntektsmelding.let {
+        val inntektsmeldingMedDefaults = MockLagre.inntektsmelding.let {
             it.copy(
                 sykmeldt = it.sykmeldt.copy(
                     navn = ""
@@ -264,7 +264,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                Mock.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
             )
         }
 
@@ -307,7 +307,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            Mock.steg2Data(transaksjonId, inntektsmeldingMedDefaults)
+            MockLagre.steg2Data(transaksjonId, inntektsmeldingMedDefaults)
         )
 
         testRapid.inspektør.size shouldBeExactly 4
@@ -342,13 +342,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         val feilmelding = "Databasen er full :("
-        val endretInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+        val endretInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                Mock.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId)
             )
         }
 
@@ -356,7 +356,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
             testRapid.sendJson(
-                Mock.steg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId)
             )
         }
 
@@ -397,7 +397,7 @@ private fun JsonElement.lesBehov(): BehovType? =
 private fun JsonElement.lesInntektsmelding(): Inntektsmelding =
     Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), this.toMap()).shouldNotBeNull()
 
-private object Mock {
+private object MockLagre {
     private const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
     private val sykmeldt = Fnr.genererGyldig().verdi.let {
         Person(

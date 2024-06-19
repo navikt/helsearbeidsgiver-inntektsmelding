@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.RefusjonEndring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -85,9 +86,10 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
 
-        testRapid.inspektør.size shouldBeExactly 2
+        testRapid.inspektør.size shouldBeExactly 3
         testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
         testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
+        testRapid.message(2).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
 
         mockStatic(OffsetDateTime::class) {
             every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
@@ -98,8 +100,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
 
-        testRapid.inspektør.size shouldBeExactly 3
-        testRapid.message(2).also {
+        testRapid.inspektør.size shouldBeExactly 4
+        testRapid.message(3).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
             it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id, Inntektsmelding::type)
 
@@ -115,16 +117,16 @@ class LagreSelvbestemtImServiceTest : FunSpec({
                 .minus(Key.SELVBESTEMT_ID)
         )
 
-        testRapid.inspektør.size shouldBeExactly 4
-        testRapid.message(3).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
+        testRapid.inspektør.size shouldBeExactly 5
+        testRapid.message(4).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
 
         testRapid.sendJson(
             MockLagre.steg3Data(transaksjonId)
                 .minus(Key.SELVBESTEMT_ID)
         )
 
-        testRapid.inspektør.size shouldBeExactly 5
-        testRapid.message(4).also {
+        testRapid.inspektør.size shouldBeExactly 6
+        testRapid.message(5).also {
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), it.toMap()) shouldBe EventName.SELVBESTEMT_IM_LAGRET
             Key.UUID.lesOrNull(UuidSerializer, it.toMap()) shouldBe transaksjonId
             it.lesInntektsmelding().shouldBeEqualToIgnoringFields(nyInntektsmelding, Inntektsmelding::id)
@@ -153,9 +155,10 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
 
-        testRapid.inspektør.size shouldBeExactly 2
+        testRapid.inspektør.size shouldBeExactly 3
         testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
         testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
+        testRapid.message(2).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
 
         mockStatic(OffsetDateTime::class) {
             every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
@@ -165,8 +168,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
 
-        testRapid.inspektør.size shouldBeExactly 3
-        testRapid.message(2).also {
+        testRapid.inspektør.size shouldBeExactly 4
+        testRapid.message(3).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
             it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
         }
@@ -175,8 +178,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             MockLagre.steg2Data(transaksjonId, endretInntektsmelding)
         )
 
-        testRapid.inspektør.size shouldBeExactly 4
-        testRapid.message(3).also {
+        testRapid.inspektør.size shouldBeExactly 5
+        testRapid.message(4).also {
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), it.toMap()) shouldBe EventName.SELVBESTEMT_IM_LAGRET
             Key.UUID.lesOrNull(UuidSerializer, it.toMap()) shouldBe transaksjonId
             it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
@@ -213,8 +216,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
 
-        testRapid.inspektør.size shouldBeExactly 3
-        testRapid.message(2).also {
+        testRapid.inspektør.size shouldBeExactly 4
+        testRapid.message(3).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
             it.lesInntektsmelding().shouldBeEqualToIgnoringFields(duplikatInntektsmelding, Inntektsmelding::id)
         }
@@ -226,10 +229,10 @@ class LagreSelvbestemtImServiceTest : FunSpec({
                 )
         )
 
-        testRapid.inspektør.size shouldBeExactly 3
+        testRapid.inspektør.size shouldBeExactly 4
         Key.EVENT_NAME.lesOrNull(
             EventName.serializer(),
-            testRapid.message(2).toMap()
+            testRapid.message(3).toMap()
         ) shouldNotBe EventName.SELVBESTEMT_IM_LAGRET
 
         verify {
@@ -267,6 +270,9 @@ class LagreSelvbestemtImServiceTest : FunSpec({
                 MockLagre.startMelding(clientId, transaksjonId)
             )
         }
+        testRapid.sendJson(
+            MockLagre.steg1Data(transaksjonId).minus(Key.VIRKSOMHET).minus(Key.PERSONER)
+        )
 
         testRapid.sendJson(
             Fail(
@@ -300,8 +306,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             )
         }
 
-        testRapid.inspektør.size shouldBeExactly 3
-        testRapid.message(2).also {
+        testRapid.inspektør.size shouldBeExactly 4
+        testRapid.message(3).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
             it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
         }
@@ -310,8 +316,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             MockLagre.steg2Data(transaksjonId, inntektsmeldingMedDefaults)
         )
 
-        testRapid.inspektør.size shouldBeExactly 4
-        testRapid.message(3).also {
+        testRapid.inspektør.size shouldBeExactly 5
+        testRapid.message(4).also {
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), it.toMap()) shouldBe EventName.SELVBESTEMT_IM_LAGRET
             Key.UUID.lesOrNull(UuidSerializer, it.toMap()) shouldBe transaksjonId
             it.lesInntektsmelding().shouldBeEqualToIgnoringFields(inntektsmeldingMedDefaults, Inntektsmelding::id)
@@ -374,8 +380,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             ).tilMelding()
         )
 
-        testRapid.inspektør.size shouldBeExactly 3
-        testRapid.message(2).also {
+        testRapid.inspektør.size shouldBeExactly 4
+        testRapid.message(3).also {
             it.lesBehov() shouldBe BehovType.LAGRE_SELVBESTEMT_IM
             it.lesInntektsmelding().shouldBeEqualToIgnoringFields(endretInntektsmelding, Inntektsmelding::id)
         }
@@ -494,7 +500,8 @@ private object MockLagre {
             Key.PERSONER to mapOf(
                 sykmeldt.fnr to sykmeldt,
                 avsender.fnr to avsender
-            ).toJson(personMapSerializer)
+            ).toJson(personMapSerializer),
+            Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())
         )
 
     fun steg2Data(transaksjonId: UUID, inntektsmelding: Inntektsmelding): Map<Key, JsonElement> =

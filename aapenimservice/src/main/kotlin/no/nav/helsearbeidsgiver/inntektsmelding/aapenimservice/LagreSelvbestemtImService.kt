@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
@@ -28,7 +29,9 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publishNotNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.felles.utils.aktivtArbeidsforholdIPeriode
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
@@ -57,12 +60,14 @@ class LagreSelvbestemtImService(
         Key.PERSONER,
         Key.SELVBESTEMT_INNTEKTSMELDING,
         Key.ER_DUPLIKAT_IM,
-        Key.SAK_ID
+        Key.SAK_ID,
+        Key.ARBEIDSFORHOLD
     )
 
     private val steg1Keys = setOf(
         Key.VIRKSOMHET,
-        Key.PERSONER
+        Key.PERSONER,
+        Key.ARBEIDSFORHOLD
     )
     private val steg2Keys = setOf(
         Key.SELVBESTEMT_INNTEKTSMELDING,
@@ -102,6 +107,14 @@ class LagreSelvbestemtImService(
                     skjema.sykmeldtFnr,
                     avsenderFnr
                 ).toJson(Fnr.serializer())
+            )
+
+            rapid.publishNotNull(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
+                Key.IDENTITETSNUMMER to skjema.sykmeldtFnr.verdi.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.SELVBESTEMT_ID to skjema.selvbestemtId?.toJson()
             )
         }
     }
@@ -154,6 +167,10 @@ class LagreSelvbestemtImService(
                     sykmeldt = sykmeldt,
                     avsender = avsender
                 )
+
+                val arbeidsforholdListe = Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding).filter { it.arbeidsgiver.organisasjonsnummer == skjema.avsender.orgnr.verdi }
+                val sykeperioder = skjema.sykmeldingsperioder
+                val erAktivtArbeidsforhold = sykeperioder.aktivtArbeidsforholdIPeriode(arbeidsforholdListe)
 
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),

@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.Arbeidsgiver
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
+import no.nav.helsearbeidsgiver.felles.utils.orgnrMedHistoriskArbeidsforhold
 import java.time.LocalDate
 import java.time.LocalDateTime
 

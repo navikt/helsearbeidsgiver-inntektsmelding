@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice
+package no.nav.helsearbeidsgiver.felles.utils
 
 import no.nav.helsearbeidsgiver.felles.Ansettelsesperiode
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold

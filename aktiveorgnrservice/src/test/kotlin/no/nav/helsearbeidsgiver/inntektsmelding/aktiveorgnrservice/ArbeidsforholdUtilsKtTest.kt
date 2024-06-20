@@ -16,7 +16,7 @@ class ArbeidsforholdUtilsKtTest : FunSpec({
     val arbeidsgiver3 = Arbeidsgiver("ORG", "000000001")
     val minDate = LocalDateTime.MIN
 
-    test("arbeidsforhold innenfor periode beholdes") {
+    test("arbeidsforhold innenfor periode beholdes ") {
         val arbeidsforholdListe = listOf(
             Arbeidsforhold(
                 arbeidsgiver = arbeidsgiver1,
@@ -24,9 +24,9 @@ class ArbeidsforholdUtilsKtTest : FunSpec({
                 registrert = minDate
             )
         )
-        arbeidsforholdListe.orgnrMedAktivtArbeidsforhold() shouldBe listOf(arbeidsgiver1.organisasjonsnummer)
+        arbeidsforholdListe.orgnrMedHistoriskArbeidsforhold() shouldBe listOf(arbeidsgiver1.organisasjonsnummer)
     }
-    test("null-verdier i fom skal fjernes") {
+    test("null-verdier i fom skal ikke fjernes") {
         val arbeidsforholdListe = listOf(
             Arbeidsforhold(
                 arbeidsgiver = arbeidsgiver1,
@@ -34,9 +34,9 @@ class ArbeidsforholdUtilsKtTest : FunSpec({
                 registrert = minDate
             )
         )
-        arbeidsforholdListe.orgnrMedAktivtArbeidsforhold() shouldBe emptyList()
+        arbeidsforholdListe.orgnrMedHistoriskArbeidsforhold() shouldBe listOf(arbeidsgiver1.organisasjonsnummer)
     }
-    test("Avsluttede og fremtidige arbeidsforhold skal fjernes, kun aktiv beholdes") {
+    test("Avsluttede og fremtidige arbeidsforhold skal ikke fjernes") {
         val today = LocalDate.now()
         val arbeidsforholdListe = listOf(
             Arbeidsforhold(
@@ -55,6 +55,10 @@ class ArbeidsforholdUtilsKtTest : FunSpec({
                 registrert = minDate
             )
         )
-        arbeidsforholdListe.orgnrMedAktivtArbeidsforhold() shouldBe listOf(arbeidsgiver1.organisasjonsnummer)
+        arbeidsforholdListe.orgnrMedHistoriskArbeidsforhold() shouldBe listOf(
+            arbeidsgiver1.organisasjonsnummer,
+            arbeidsgiver2.organisasjonsnummer,
+            arbeidsgiver3.organisasjonsnummer
+        )
     }
 })

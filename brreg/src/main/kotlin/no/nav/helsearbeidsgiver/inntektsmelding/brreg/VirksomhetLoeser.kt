@@ -115,6 +115,7 @@ class VirksomhetLoeser(
                 Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
                 Key.VIRKSOMHET to navnListe.values.first().toJson(),
                 Key.VIRKSOMHETER to navnListe.toJson(),
+                Key.DATA to "".toJson(),
                 *messagePairs,
             )
         } catch (ex: FantIkkeVirksomhetException) {

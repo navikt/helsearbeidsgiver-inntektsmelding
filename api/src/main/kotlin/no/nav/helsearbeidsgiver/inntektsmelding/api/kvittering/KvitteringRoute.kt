@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import io.ktor.server.routing.route
 import io.prometheus.client.Summary
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
@@ -50,61 +49,59 @@ fun Route.kvitteringRoute(
         .help("kvittering endpoint latency in seconds")
         .register()
 
-    route(Routes.KVITTERING) {
-        get {
-            val forespoerselId = call.parameters["uuid"]
-                ?.let(::fjernLedendeSlash)
-                ?.runCatching(UUID::fromString)
-                ?.getOrNull()
+    get(Routes.KVITTERING) {
+        val forespoerselId = call.parameters["uuid"]
+            ?.let(::fjernLedendeSlash)
+            ?.runCatching(UUID::fromString)
+            ?.getOrNull()
 
-            if (forespoerselId == null) {
-                "Ugyldig parameter: ${call.parameters["uuid"]}".let {
-                    logger.warn(it)
-                    respondBadRequest(it, String.serializer())
-                }
-            } else {
-                logger.info("Henter data for forespørselId: $forespoerselId")
-                val requestTimer = requestLatency.startTimer()
-                measureTimeMillis {
-                    try {
-                        measureTimeMillis {
-                            tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
-                        }.also {
-                            logger.info("Authorize took $it")
-                        }
-
-                        val clientId = kvitteringProducer.publish(forespoerselId)
-                        val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
-
-                        sikkerLogger.info("Resultat for henting av kvittering for $forespoerselId: $resultatJson")
-
-                        val resultat = resultatJson.success?.fromJson(InnsendtInntektsmelding.serializer())
-                        if (resultat != null) {
-                            if (resultat.dokument == null && resultat.eksternInntektsmelding == null) {
-                                respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
-                            } else {
-                                respondOk(resultat.tilKvittering(), Kvittering.serializer())
-                            }
-                        } else {
-                            val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                            respondInternalServerError(feilmelding, String.serializer())
-                        }
-                    } catch (e: ManglerAltinnRettigheterException) {
-                        respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
-                    } catch (e: SerializationException) {
-                        "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
-                            logger.error(it)
-                            sikkerLogger.error(it, e)
-                            respondInternalServerError(JsonErrorResponse(forespoerselId.toString()), JsonErrorResponse.serializer())
-                        }
-                    } catch (_: RedisPollerTimeoutException) {
-                        logger.error("Fikk timeout for forespørselId: $forespoerselId")
-                        respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
+        if (forespoerselId == null) {
+            "Ugyldig parameter: ${call.parameters["uuid"]}".let {
+                logger.warn(it)
+                respondBadRequest(it, String.serializer())
+            }
+        } else {
+            logger.info("Henter data for forespørselId: $forespoerselId")
+            val requestTimer = requestLatency.startTimer()
+            measureTimeMillis {
+                try {
+                    measureTimeMillis {
+                        tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
+                    }.also {
+                        logger.info("Authorize took $it")
                     }
-                }.also {
-                    requestTimer.observeDuration()
-                    logger.info("api call took $it")
+
+                    val clientId = kvitteringProducer.publish(forespoerselId)
+                    val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+
+                    sikkerLogger.info("Resultat for henting av kvittering for $forespoerselId: $resultatJson")
+
+                    val resultat = resultatJson.success?.fromJson(InnsendtInntektsmelding.serializer())
+                    if (resultat != null) {
+                        if (resultat.dokument == null && resultat.eksternInntektsmelding == null) {
+                            respondNotFound("Kvittering ikke funnet for forespørselId: $forespoerselId", String.serializer())
+                        } else {
+                            respondOk(resultat.tilKvittering(), Kvittering.serializer())
+                        }
+                    } else {
+                        val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                        respondInternalServerError(feilmelding, String.serializer())
+                    }
+                } catch (e: ManglerAltinnRettigheterException) {
+                    respondForbidden("Du har ikke rettigheter for organisasjon.", String.serializer())
+                } catch (e: SerializationException) {
+                    "Kunne ikke parse json-resultat for forespørselId: $forespoerselId".let {
+                        logger.error(it)
+                        sikkerLogger.error(it, e)
+                        respondInternalServerError(JsonErrorResponse(forespoerselId.toString()), JsonErrorResponse.serializer())
+                    }
+                } catch (_: RedisPollerTimeoutException) {
+                    logger.error("Fikk timeout for forespørselId: $forespoerselId")
+                    respondInternalServerError(RedisTimeoutResponse(forespoerselId), RedisTimeoutResponse.serializer())
                 }
+            }.also {
+                requestTimer.observeDuration()
+                logger.info("api call took $it")
             }
         }
     }

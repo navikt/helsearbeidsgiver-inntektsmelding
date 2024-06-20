@@ -95,12 +95,14 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
     }
 
     private fun MessageContext.publishSuksess(forespoersel: Forespoersel, melding: Melding) {
+
         publish(
             Key.EVENT_NAME to melding.initiateEvent.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to melding.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to melding.forespoerselSvar.forespoerselId.toJson(),
-            Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer())
+            Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
+
         )
             .also {
                 logger.info("Publiserte data for ${BehovType.HENT_TRENGER_IM}.")

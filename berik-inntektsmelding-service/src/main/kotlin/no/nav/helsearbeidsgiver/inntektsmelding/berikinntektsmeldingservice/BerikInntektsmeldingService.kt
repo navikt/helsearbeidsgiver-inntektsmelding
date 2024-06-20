@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -36,7 +36,7 @@ import java.util.UUID
 
 class BerikInntektsmeldingService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStoreClassSpecific,
 ) : Service() {
 
     private val logger = logger()
@@ -63,31 +63,6 @@ class BerikInntektsmeldingService(
 
     private val step2Key = Key.VIRKSOMHET
 
-    override fun onStart(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val startDataPar = lesStartDataPar(melding)
-
-        MdcUtils.withLogFields(
-            Log.klasse(this),
-            Log.event(eventName),
-            Log.transaksjonId(transaksjonId)
-        ) {
-            rapid.publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                *startDataPar,
-            ).also {
-                MdcUtils.withLogFields(
-                    Log.behov(BehovType.HENT_TRENGER_IM)
-                ) {
-                    logger.info("BerikInntektsmeldingService: emitting behov HENT_TRENGER_IM")
-                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
-                }
-            }
-        }
-    }
-
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val startDataPar = lesStartDataPar(melding)
@@ -99,7 +74,38 @@ class BerikInntektsmeldingService(
 
             isOnStep1(melding) -> onStep1(melding, transaksjonId, startDataPar)
 
-            else -> logger.error("Noe gikk galt") // TODO: Hva skal vi gjøre her?
+            isOnStep0(melding) -> onStep0(melding, transaksjonId, startDataPar)
+
+            else -> logger.info("Noe gikk galt") // TODO: Hva gjør vi her?
+        }
+    }
+
+    private fun onStep0(
+        melding: Map<Key, JsonElement>,
+        transaksjonId: UUID,
+        startDataPar: Array<Pair<Key, JsonElement>>,
+    ) {
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
+        MdcUtils.withLogFields(
+            Log.klasse(this),
+            Log.event(eventName),
+            Log.transaksjonId(transaksjonId),
+        ) {
+            rapid
+                .publish(
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    *startDataPar,
+                ).also {
+                    MdcUtils.withLogFields(
+                        Log.behov(BehovType.HENT_TRENGER_IM),
+                    ) {
+                        logger.info("BerikInntektsmeldingService: emitting behov HENT_TRENGER_IM")
+                        sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
+                    }
+                }
         }
     }
 
@@ -157,59 +163,45 @@ class BerikInntektsmeldingService(
         melding: Map<Key, JsonElement>,
         startDataPar: Array<Pair<Key, JsonElement>>,
     ) {
-        val clientId =
-            RedisKey
-                .of(transaksjonId, eventName)
-                .read()
-                ?.fromJson(UuidSerializer)
+        val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
+        val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+        val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+        val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
+        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
-        if (clientId == null) {
-            "Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!".also {
-                sikkerLogger.error(it)
-                logger.error(it)
-            }
-        } else {
-            val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
-            val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-            val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
-
-            val inntektsmelding =
-                mapInntektsmelding(
-                    forespoersel = forespoersel,
+        val inntektsmelding =
+            mapInntektsmelding(
+                forespoersel = forespoersel,
                     skjema = skjema,
                     fulltnavnArbeidstaker = sykmeldt.navn,
                     virksomhetNavn = virksomhetNavn,
                     innsenderNavn = arbeidsgiver.navn,
                 )
 
-            if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
-                "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
-                    logger.error(it)
+        if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
+            "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
+                logger.error(it)
                     sikkerLogger.error(it)
                 }
             }
 
-            logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
-            logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
-            rapid
-                .publish(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
+        logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
+        logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
+        rapid
+            .publish(
+                Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+                Key.UUID to transaksjonId.toJson(),
                     Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
                     *startDataPar,
                 ).also {
                     logger.info("Submitting INNTEKTSMELDING_MOTTATT")
                     sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT ${it.toPretty()}")
                 }
-        }
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         val clientId = RedisKey.of(fail.transaksjonId, eventName)
             .read()
-            ?.fromJson(UuidSerializer)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
@@ -231,11 +223,10 @@ class BerikInntektsmeldingService(
                 val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.fromJson(UuidSerializer)
                 if (clientId != null) {
                     val resultJson = ResultJson(
-                        failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer())
-                    )
-                        .toJsonStr(ResultJson.serializer())
+                        failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer()),
+                    ).toJsonStr(ResultJson.serializer())
 
-                    redisStore.set(RedisKey.of(clientId), resultJson)
+                    // redisStore.set(RedisKey.of(clientId), resultJson) // TODO: Sjekke hvordan vi gjør dette
                 }
                 return
             }
@@ -263,9 +254,10 @@ class BerikInntektsmeldingService(
             }
 
             if (datafeil.isNotEmpty()) {
-                datafeil.onEach { (key, defaultVerdi) ->
-                    redisStore.set(RedisKey.of(fail.transaksjonId, key), defaultVerdi.toString())
-                }
+                // TODO: Sjekke hvordan vi ønske å gjøre dette
+//                datafeil.onEach { (key, defaultVerdi) ->
+//                    redisStore.set(RedisKey.of(fail.transaksjonId, key), defaultVerdi.toString())
+//                }
 
                 val meldingMedDefault = datafeil.toMap().plus(melding)
 
@@ -274,12 +266,7 @@ class BerikInntektsmeldingService(
         }
     }
 
-    private fun RedisKey.write(json: JsonElement) {
-        redisStore.set(this, json.toString())
-    }
-
-    private fun RedisKey.read(): String? =
-        redisStore.get(this)
+    private fun RedisKey.read(): UUID? = redisStore.get(this)?.fromJson(UuidSerializer)
 
     private fun tomPerson(fnr: String): PersonDato =
         PersonDato(
@@ -306,4 +293,7 @@ class BerikInntektsmeldingService(
         melding.containsKey(step1Key) && melding.containsKey(step2Key) && !melding.containsKey(Key.BEHOV) // TODO: Kan vi ta bord !behov ?
 
     private fun isOnStep1(melding: Map<Key, JsonElement>) = !isOnStep2(melding) && melding.containsKey(step1Key) && !melding.containsKey(Key.BEHOV)
+
+    private fun isOnStep0(melding: Map<Key, JsonElement>) =
+        !isOnStep1(melding) && !isOnStep2(melding) && !isFinished(melding) && !melding.containsKey(Key.BEHOV)
 }

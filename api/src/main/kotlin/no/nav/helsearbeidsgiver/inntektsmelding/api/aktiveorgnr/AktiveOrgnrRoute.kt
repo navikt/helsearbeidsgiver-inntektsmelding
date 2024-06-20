@@ -6,7 +6,6 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
@@ -27,31 +26,29 @@ fun Route.aktiveOrgnrRoute(
     redis: RedisPoller
 ) {
     val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
-    route(Routes.AKTIVEORGNR) {
-        post {
-            try {
-                val request = call.receive<AktiveOrgnrRequest>()
-                val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
+    post(Routes.AKTIVEORGNR) {
+        try {
+            val request = call.receive<AktiveOrgnrRequest>()
+            val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-                val clientId = aktiveOrgnrProducer.publish(arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
+            val clientId = aktiveOrgnrProducer.publish(arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
 
-                val resultatJson = redis.hent(clientId).fromJson(ResultJson.serializer())
+            val resultatJson = redis.hent(clientId).fromJson(ResultJson.serializer())
 
-                val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
-                if (resultat != null) {
-                    val response = resultat.toResponse()
-                    call.respond(HttpStatusCode.Created, response.toJson(AktiveOrgnrResponse.serializer()))
-                } else {
-                    val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                    respondInternalServerError(feilmelding, String.serializer())
-                }
-            } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout mot redis ved henting av aktive orgnr")
-                respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
-            } catch (e: Exception) {
-                sikkerLogger.error("Feil ved henting av aktive orgnr", e)
-                respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
+            val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
+            if (resultat != null) {
+                val response = resultat.toResponse()
+                call.respond(HttpStatusCode.Created, response.toJson(AktiveOrgnrResponse.serializer()))
+            } else {
+                val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                respondInternalServerError(feilmelding, String.serializer())
             }
+        } catch (_: RedisPollerTimeoutException) {
+            logger.info("Fikk timeout mot redis ved henting av aktive orgnr")
+            respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
+        } catch (e: Exception) {
+            sikkerLogger.error("Feil ved henting av aktive orgnr", e)
+            respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
         }
     }
 }

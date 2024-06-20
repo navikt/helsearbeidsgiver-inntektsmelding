@@ -20,11 +20,11 @@ class HentSelvbestemtImProducerTest : FunSpec({
     val producer = HentSelvbestemtImProducer(testRapid)
 
     test("publiserer melding på forventet format") {
-        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
         val selvbestemtId = UUID.randomUUID()
 
         mockStatic(UUID::randomUUID) {
-            every { UUID.randomUUID() } returns clientId
+            every { UUID.randomUUID() } returns transaksjonId
 
             producer.publish(selvbestemtId)
         }
@@ -32,7 +32,8 @@ class HentSelvbestemtImProducerTest : FunSpec({
         testRapid.inspektør.size shouldBeExactly 1
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-            Key.CLIENT_ID to clientId.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
             Key.SELVBESTEMT_ID to selvbestemtId.toJson()
         )
     }

@@ -50,13 +50,13 @@ fun Route.hentSelvbestemtImRoute(
                 Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
                 Log.selvbestemtId(selvbestemtId)
             ) {
-                val clientId = producer.publish(selvbestemtId)
+                val transaksjonId = producer.publish(selvbestemtId)
 
                 MdcUtils.withLogFields(
-                    Log.clientId(clientId)
+                    Log.transaksjonId(transaksjonId)
                 ) {
                     runCatching {
-                        redisPoller.hent(clientId)
+                        redisPoller.hent(transaksjonId)
                     }
                         .onSuccess {
                             val result = it.fromJson(ResultJson.serializer())
@@ -64,7 +64,7 @@ fun Route.hentSelvbestemtImRoute(
                             val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
 
                             if (inntektsmelding != null) {
-                                tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr)
+                                tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr.verdi)
                                 sendOkResponse(inntektsmelding)
                             } else {
                                 val feilmelding = result.failure

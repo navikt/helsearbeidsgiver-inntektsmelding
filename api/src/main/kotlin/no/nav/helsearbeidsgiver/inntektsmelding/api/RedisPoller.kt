@@ -1,8 +1,8 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import io.lettuce.core.RedisClient
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
@@ -15,9 +15,7 @@ private val WAIT_MILLIS = List(MAX_RETRIES) { 100L * (1 + it) }
 class RedisPoller {
     private val sikkerLogger = sikkerLogger()
 
-    private val redisClient = Env.Redis.url.let(RedisClient::create)
-    private val connection = redisClient.connect()
-    private val syncCommands = connection.sync()
+    private val redis = RedisConnection(Env.Redis.url)
 
     suspend fun hent(key: UUID): JsonElement {
         val json = hentJsonString(key)
@@ -38,7 +36,7 @@ class RedisPoller {
         repeat(MAX_RETRIES) {
             sikkerLogger.debug("Polling redis: $it time(s) for key $key")
 
-            val result = syncCommands.get(key.toString())
+            val result = redis.get(key.toString())
 
             if (result != null) {
                 return result
@@ -48,6 +46,10 @@ class RedisPoller {
         }
 
         throw RedisPollerTimeoutException(key)
+    }
+
+    fun close() {
+        redis.close()
     }
 }
 

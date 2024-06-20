@@ -23,7 +23,6 @@ import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtDataMedForrigeInntekt
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -58,15 +57,15 @@ class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker`() = testApi {
-        val mockClientId = UUID.randomUUID()
+        val mockTransaksjonId = UUID.randomUUID()
         val expectedJson = Mock.responseJson()
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.resultatOkJson
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.resultatOkJson
 
         val response = mockConstructor(TrengerProducer::class) {
-            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
+            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockTransaksjonId
 
             post(PATH, Mock.request, HentForespoerselRequest.serializer())
         }
@@ -79,15 +78,15 @@ class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker med forespørsel bare inntekt`() = testApi {
-        val mockClientId = UUID.randomUUID()
+        val mockTransaksjonId = UUID.randomUUID()
         val expectedJson = Mock.responseBareInntektJson()
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.resultatOkMedForrigeInntektJson
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.resultatOkMedForrigeInntektJson
 
         val response = mockConstructor(TrengerProducer::class) {
-            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
+            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockTransaksjonId
 
             post(PATH, Mock.request, HentForespoerselRequest.serializer())
         }
@@ -100,14 +99,14 @@ class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere Internal server error hvis Redis timer ut`() = testApi {
-        val mockClientId = UUID.randomUUID()
+        val mockTransaksjonId = UUID.randomUUID()
 
         mockTilgang(Tilgang.HAR_TILGANG)
 
-        coEvery { mockRedisPoller.hent(mockClientId) } throws RedisPollerTimeoutException(UUID.randomUUID())
+        coEvery { mockRedisPoller.hent(mockTransaksjonId) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
         val response = mockConstructor(TrengerProducer::class) {
-            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockClientId
+            every { anyConstructed<TrengerProducer>().publish(any(), any()) } returns mockTransaksjonId
 
             post(PATH, Mock.request, HentForespoerselRequest.serializer())
         }
@@ -180,7 +179,7 @@ private object Mock {
         bestemmendeFravaersdager = mapOf("123" to 25.april),
         forespurtData = mockForespurtData(),
         erBesvart = false,
-        vedtaksperiodeId = randomUuid()
+        vedtaksperiodeId = UUID.randomUUID()
     )
 
     private val inntekt = Inntekt(

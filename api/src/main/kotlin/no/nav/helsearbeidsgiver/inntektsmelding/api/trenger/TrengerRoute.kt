@@ -4,7 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import io.ktor.server.routing.route
 import io.prometheus.client.Summary
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -42,73 +41,71 @@ fun Route.trengerRoute(
         .help("trenger endpoint latency in seconds")
         .register()
 
-    route(Routes.TRENGER) {
-        post {
-            val requestTimer = requestLatency.startTimer()
-            runCatching {
-                receive(HentForespoerselRequest.serializer())
-            }
-                .onSuccess { request ->
-                    logger.info("Henter data for uuid: ${request.uuid}")
-                    try {
-                        tilgangskontroll.validerTilgangTilForespoersel(call.request, request.uuid)
-
-                        val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
-
-                        val clientId = trengerProducer.publish(request, arbeidsgiverFnr)
-
-                        val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
-
-                        sikkerLogger.info("Hentet forespørsel: $resultatJson")
-
-                        val resultat = resultatJson.success?.fromJson(HentForespoerselResultat.serializer())
-                        if (resultat != null) {
-                            respond(HttpStatusCode.Created, resultat.toResponse(), HentForespoerselResponse.serializer())
-                        } else {
-                            val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: "Teknisk feil, prøv igjen senere."
-                            val response = ResultJson(
-                                failure = feilmelding.toJson()
-                            )
-                            respond(HttpStatusCode.ServiceUnavailable, response, ResultJson.serializer())
-                        }
-                    } catch (e: ManglerAltinnRettigheterException) {
-                        val response = ResultJson(
-                            failure = "Du har ikke rettigheter for organisasjon.".toJson()
-                        )
-                        respondForbidden(response, ResultJson.serializer())
-                    } catch (_: RedisPollerJsonParseException) {
-                        logger.info("Fikk parsefeil for ${request.uuid}")
-                        val response = ResultJson(
-                            failure = RedisPermanentErrorResponse(request.uuid).toJson(RedisPermanentErrorResponse.serializer())
-                        )
-                        respondInternalServerError(response, ResultJson.serializer())
-                    } catch (_: RedisPollerTimeoutException) {
-                        logger.info("Fikk timeout for ${request.uuid}")
-                        val response = ResultJson(
-                            failure = RedisTimeoutResponse(request.uuid).toJson(RedisTimeoutResponse.serializer())
-                        )
-                        respondInternalServerError(response, ResultJson.serializer())
-                    }
-                }.also {
-                    requestTimer.observeDuration()
-                }
-                .onFailure {
-                    logger.error("Klarte ikke lese request.", it)
-                    val response = ResultJson(
-                        failure = ValidationResponse(
-                            listOf(
-                                ValidationError(
-                                    property = HentForespoerselRequest::uuid.name,
-                                    error = it.message.orEmpty(),
-                                    value = "<ukjent>"
-                                )
-                            )
-                        )
-                            .toJson(ValidationResponse.serializer())
-                    )
-                    respondBadRequest(response, ResultJson.serializer())
-                }
+    post(Routes.TRENGER) {
+        val requestTimer = requestLatency.startTimer()
+        runCatching {
+            receive(HentForespoerselRequest.serializer())
         }
+            .onSuccess { request ->
+                logger.info("Henter data for uuid: ${request.uuid}")
+                try {
+                    tilgangskontroll.validerTilgangTilForespoersel(call.request, request.uuid)
+
+                    val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
+
+                    val transaksjonId = trengerProducer.publish(request, arbeidsgiverFnr)
+
+                    val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
+
+                    sikkerLogger.info("Hentet forespørsel: $resultatJson")
+
+                    val resultat = resultatJson.success?.fromJson(HentForespoerselResultat.serializer())
+                    if (resultat != null) {
+                        respond(HttpStatusCode.Created, resultat.toResponse(), HentForespoerselResponse.serializer())
+                    } else {
+                        val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: "Teknisk feil, prøv igjen senere."
+                        val response = ResultJson(
+                            failure = feilmelding.toJson()
+                        )
+                        respond(HttpStatusCode.ServiceUnavailable, response, ResultJson.serializer())
+                    }
+                } catch (e: ManglerAltinnRettigheterException) {
+                    val response = ResultJson(
+                        failure = "Du har ikke rettigheter for organisasjon.".toJson()
+                    )
+                    respondForbidden(response, ResultJson.serializer())
+                } catch (_: RedisPollerJsonParseException) {
+                    logger.info("Fikk parsefeil for ${request.uuid}")
+                    val response = ResultJson(
+                        failure = RedisPermanentErrorResponse(request.uuid).toJson(RedisPermanentErrorResponse.serializer())
+                    )
+                    respondInternalServerError(response, ResultJson.serializer())
+                } catch (_: RedisPollerTimeoutException) {
+                    logger.info("Fikk timeout for ${request.uuid}")
+                    val response = ResultJson(
+                        failure = RedisTimeoutResponse(request.uuid).toJson(RedisTimeoutResponse.serializer())
+                    )
+                    respondInternalServerError(response, ResultJson.serializer())
+                }
+            }.also {
+                requestTimer.observeDuration()
+            }
+            .onFailure {
+                logger.error("Klarte ikke lese request.", it)
+                val response = ResultJson(
+                    failure = ValidationResponse(
+                        listOf(
+                            ValidationError(
+                                property = HentForespoerselRequest::uuid.name,
+                                error = it.message.orEmpty(),
+                                value = "<ukjent>"
+                            )
+                        )
+                    )
+                        .toJson(ValidationResponse.serializer())
+                )
+                respondBadRequest(response, ResultJson.serializer())
+            }
     }
 }
 

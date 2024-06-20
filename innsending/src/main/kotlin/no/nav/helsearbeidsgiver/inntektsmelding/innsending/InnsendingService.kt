@@ -100,6 +100,7 @@ class InnsendingService(
             rapid.publish(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
                 Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to orgnr.toJson(),
                 Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(),

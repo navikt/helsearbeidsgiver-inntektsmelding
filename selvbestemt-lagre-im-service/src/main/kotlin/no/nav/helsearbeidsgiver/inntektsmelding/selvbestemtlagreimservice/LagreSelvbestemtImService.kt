@@ -50,32 +50,28 @@ class LagreSelvbestemtImService(
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.SELVBESTEMT_IM_MOTTATT
-    override val startKeys =
-        setOf(
-            Key.SKJEMA_INNTEKTSMELDING,
-            Key.ARBEIDSGIVER_FNR
-        )
-    override val dataKeys =
-        setOf(
-            Key.VIRKSOMHET,
-            Key.PERSONER,
-            Key.SELVBESTEMT_INNTEKTSMELDING,
-            Key.ER_DUPLIKAT_IM,
-            Key.SAK_ID,
-            Key.ARBEIDSFORHOLD
-        )
+    override val startKeys = setOf(
+        Key.SKJEMA_INNTEKTSMELDING,
+        Key.ARBEIDSGIVER_FNR
+    )
+    override val dataKeys = setOf(
+        Key.VIRKSOMHET,
+        Key.PERSONER,
+        Key.SELVBESTEMT_INNTEKTSMELDING,
+        Key.ER_DUPLIKAT_IM,
+        Key.SAK_ID,
+        Key.ARBEIDSFORHOLD
+    )
 
-    private val steg1Keys =
-        setOf(
-            Key.VIRKSOMHET,
-            Key.PERSONER,
-            Key.ARBEIDSFORHOLD
-        )
-    private val steg2Keys =
-        setOf(
-            Key.SELVBESTEMT_INNTEKTSMELDING,
-            Key.ER_DUPLIKAT_IM
-        )
+    private val steg1Keys = setOf(
+        Key.VIRKSOMHET,
+        Key.PERSONER,
+        Key.ARBEIDSFORHOLD
+    )
+    private val steg2Keys = setOf(
+        Key.SELVBESTEMT_INNTEKTSMELDING,
+        Key.ER_DUPLIKAT_IM
+    )
 
     init {
         LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
@@ -106,11 +102,10 @@ class LagreSelvbestemtImService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.SELVBESTEMT_ID to skjema.selvbestemtId?.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                Key.FNR_LISTE to
-                    listOf(
-                        skjema.sykmeldtFnr,
-                        avsenderFnr
-                    ).toJson(Fnr.serializer())
+                Key.FNR_LISTE to listOf(
+                    skjema.sykmeldtFnr,
+                    avsenderFnr
+                ).toJson(Fnr.serializer())
             )
 
             rapid.publishNotNull(
@@ -157,27 +152,23 @@ class LagreSelvbestemtImService(
                 val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding)
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
                 val personer = Key.PERSONER.les(personMapSerializer, melding)
+                val arbeidsforholdListe = Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
+                    .filter { it.arbeidsgiver.organisasjonsnummer == skjema.avsender.orgnr.verdi }
 
-                val sykmeldt =
-                    skjema.sykmeldtFnr.let {
-                        personer[it.verdi] ?: tomPerson(it.verdi)
-                    }
-                val avsender =
-                    avsenderFnr.let {
-                        personer[it.verdi] ?: tomPerson(it.verdi)
-                    }
+                val sykmeldt = skjema.sykmeldtFnr.let {
+                    personer[it.verdi] ?: tomPerson(it.verdi)
+                }
+                val avsender = avsenderFnr.let {
+                    personer[it.verdi] ?: tomPerson(it.verdi)
+                }
 
-                val inntektsmelding =
-                    tilInntektsmelding(
-                        skjema = skjema,
-                        orgNavn = orgNavn,
-                        sykmeldt = sykmeldt,
-                        avsender = avsender
-                    )
+                val inntektsmelding = tilInntektsmelding(
+                    skjema = skjema,
+                    orgNavn = orgNavn,
+                    sykmeldt = sykmeldt,
+                    avsender = avsender
+                )
 
-                val arbeidsforholdListe =
-                    Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
-                        .filter { it.arbeidsgiver.organisasjonsnummer == skjema.avsender.orgnr.verdi }
                 val sykeperioder = skjema.agp?.perioder.orEmpty() + skjema.sykmeldingsperioder
                 val erAktivtArbeidsforhold = sykeperioder.aktivtArbeidsforholdIPeriode(arbeidsforholdListe)
                 if (erAktivtArbeidsforhold) {
@@ -249,10 +240,7 @@ class LagreSelvbestemtImService(
         }
     }
 
-    override fun onError(
-        melding: Map<Key, JsonElement>,
-        fail: Fail
-    ) {
+    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
@@ -277,9 +265,8 @@ class LagreSelvbestemtImService(
                 return inProgress(meldingMedDefault)
             }
 
-            val clientId =
-                redisStore.get(RedisKey.of(fail.transaksjonId, event))
-                    ?.let(UUID::fromString)
+            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
+                ?.let(UUID::fromString)
 
             if (clientId == null) {
                 val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding.toMap())
@@ -307,17 +294,14 @@ fun tilInntektsmelding(
 
     return Inntektsmelding(
         id = UUID.randomUUID(),
-        type =
-        Inntektsmelding.Type.Selvbestemt(
+        type = Inntektsmelding.Type.Selvbestemt(
             id = skjema.selvbestemtId ?: UUID.randomUUID()
         ),
-        sykmeldt =
-        Sykmeldt(
+        sykmeldt = Sykmeldt(
             fnr = sykmeldt.fnr.let(::Fnr),
             navn = sykmeldt.navn
         ),
-        avsender =
-        Avsender(
+        avsender = Avsender(
             orgnr = skjema.avsender.orgnr,
             orgNavn = orgNavn,
             navn = avsender.navn,

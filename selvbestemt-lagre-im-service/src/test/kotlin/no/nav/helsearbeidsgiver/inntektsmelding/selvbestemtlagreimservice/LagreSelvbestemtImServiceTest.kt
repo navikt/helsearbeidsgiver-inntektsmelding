@@ -404,7 +404,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
     test("stopp flyt ved ikke aktivt arbeidsforhold") {
         val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
-        val duplikatInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+        val inntektsmelding = MockLagre.inntektsmelding
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
@@ -415,7 +415,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         mockStatic(OffsetDateTime::class) {
-            every { OffsetDateTime.now() } returns duplikatInntektsmelding.mottatt
+            every { OffsetDateTime.now() } returns inntektsmelding.mottatt
 
             testRapid.sendJson(
                 MockLagre.steg1Data(transaksjonId)

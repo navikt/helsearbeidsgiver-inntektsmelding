@@ -9,9 +9,9 @@ import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
@@ -48,15 +48,15 @@ class AktiveOrgnrService(
         Key.ARBEIDSGIVER_FNR
     )
     override val dataKeys = setOf(
-        Key.ARBEIDSFORHOLD,
         Key.ORG_RETTIGHETER,
-        Key.ARBEIDSTAKER_INFORMASJON,
+        Key.ARBEIDSFORHOLD,
+        Key.PERSONER,
         Key.VIRKSOMHETER
     )
 
     private val step1Keys = setOf(
-        Key.ARBEIDSFORHOLD,
-        Key.ORG_RETTIGHETER
+        Key.ORG_RETTIGHETER,
+        Key.ARBEIDSFORHOLD
     )
     private val step2Keys = setOf(
         Key.VIRKSOMHETER
@@ -72,8 +72,8 @@ class AktiveOrgnrService(
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         val innloggetFnr = melding[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
-        val sykemeldtFnr = melding[Key.FNR]?.fromJson(String.serializer())
-        if (innloggetFnr != null && sykemeldtFnr != null) {
+        val sykmeldtFnr = melding[Key.FNR]?.fromJson(String.serializer())
+        if (innloggetFnr != null && sykmeldtFnr != null) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
@@ -83,13 +83,16 @@ class AktiveOrgnrService(
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-                Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
+                Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(),
                 Key.UUID to transaksjonId.toJson()
             )
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-                Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
+                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
+                Key.FNR_LISTE to listOf(
+                    innloggetFnr,
+                    sykmeldtFnr
+                ).toJson(String.serializer()),
                 Key.UUID to transaksjonId.toJson()
             )
         } else {
@@ -147,11 +150,15 @@ class AktiveOrgnrService(
             .read()
             ?.let(UUID::fromString)
 
+        val sykmeldtFnr = Key.FNR.les(String.serializer(), melding)
+        val innloggetFnr = Key.ARBEIDSGIVER_FNR.les(String.serializer(), melding)
         val virksomheter = Key.VIRKSOMHETER.les(
             MapSerializer(String.serializer(), String.serializer()),
             melding
         )
-        val fulltNavn = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+        val personer = Key.PERSONER.les(personMapSerializer, melding)
+        val sykmeldtNavn = personer[sykmeldtFnr]?.navn.orEmpty()
+        val avsenderNavn = personer[innloggetFnr]?.navn.orEmpty()
 
         if (clientId != null) {
             val gyldigeUnderenheter =
@@ -164,7 +171,8 @@ class AktiveOrgnrService(
 
             val gyldigResponse = ResultJson(
                 success = AktiveArbeidsgivere(
-                    fulltNavn = fulltNavn.navn,
+                    fulltNavn = sykmeldtNavn,
+                    avsenderNavn = avsenderNavn,
                     underenheter = gyldigeUnderenheter
                 ).toJson(AktiveArbeidsgivere.serializer())
             )

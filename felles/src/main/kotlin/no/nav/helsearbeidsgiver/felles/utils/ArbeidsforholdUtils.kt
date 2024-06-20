@@ -26,7 +26,7 @@ fun List<Periode>.aktivtArbeidsforholdIPeriode(arbeidsforhold: List<Arbeidsforho
 fun Periode.innenforArbeidsforhold(ansattPerioder: List<PeriodeNullable>): Boolean {
     return ansattPerioder.any { ansPeriode ->
         (ansPeriode.tom == null || this.tom.isBefore(ansPeriode.tom) || this.tom == ansPeriode.tom) &&
-            (ansPeriode.fom!!.isBefore(this.fom) || ansPeriode.fom!!.isEqual(this.fom))
+            (ansPeriode.fom!!.isBefore(this.fom) || ansPeriode.fom.isEqual(this.fom))
     }
 }
 fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {

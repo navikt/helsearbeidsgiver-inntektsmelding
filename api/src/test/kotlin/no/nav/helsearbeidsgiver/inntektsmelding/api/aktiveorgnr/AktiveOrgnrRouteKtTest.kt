@@ -54,6 +54,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
         val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
             {
                 "fulltNavn": "test-navn",
+                "avsenderNavn": "Arild Avsender",
                 "underenheter": [{"orgnrUnderenhet": "test-orgnr", "virksomhetsnavn": "test-orgnavn"}]
             }
         """.removeJsonWhitespace()

@@ -90,8 +90,8 @@ class AktiveOrgnrService(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.FNR_LISTE to listOf(
-                    innloggetFnr,
-                    sykmeldtFnr
+                    sykmeldtFnr,
+                    innloggetFnr
                 ).toJson(String.serializer()),
                 Key.UUID to transaksjonId.toJson()
             )

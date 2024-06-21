@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.helsebro
 
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -53,6 +54,12 @@ class TrengerForespoerselLoeser(
 
             val json = behov.jsonMessage.toJson().parseJson().toMap()
 
+            val bumerangdata =
+                json
+                    .minus(listOf(Key.BEHOV, Key.EVENT_NAME))
+                    .toList()
+                    .toTypedArray()
+
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
             val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
 
@@ -61,18 +68,19 @@ class TrengerForespoerselLoeser(
                 Log.transaksjonId(transaksjonId),
                 Log.forespoerselId(forespoerselId)
             ) {
-                spoerrEtterForespoersel(behov.event, transaksjonId, forespoerselId)
+                spoerrEtterForespoersel(behov.event, transaksjonId, forespoerselId, bumerangdata)
             }
         }
     }
 
-    private fun spoerrEtterForespoersel(event: EventName, transaksjonId: UUID, forespoerselId: UUID) {
+    private fun spoerrEtterForespoersel(event: EventName, transaksjonId: UUID, forespoerselId: UUID, bumerangdata: Array<Pair<Key, JsonElement>>) {
         priProducer.send(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
             Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Pri.Key.BOOMERANG to mapOf(
                 Key.EVENT_NAME to event.toJson(),
-                Key.UUID to transaksjonId.toJson()
+                Key.UUID to transaksjonId.toJson(),
+                *bumerangdata
             ).toJson()
         )
             .onSuccess {

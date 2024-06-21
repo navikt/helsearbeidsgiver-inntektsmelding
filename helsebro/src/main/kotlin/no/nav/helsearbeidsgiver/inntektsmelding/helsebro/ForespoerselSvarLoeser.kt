@@ -95,6 +95,10 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
     }
 
     private fun MessageContext.publishSuksess(forespoersel: Forespoersel, melding: Melding) {
+        val bumerangdata =
+            melding.forespoerselSvar.boomerang.toMap()
+                .toList()
+                .toTypedArray()
 
         publish(
             Key.EVENT_NAME to melding.initiateEvent.toJson(),
@@ -102,7 +106,7 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
             Key.UUID to melding.transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to melding.forespoerselSvar.forespoerselId.toJson(),
             Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer()),
-
+            *bumerangdata
         )
             .also {
                 logger.info("Publiserte data for ${BehovType.HENT_TRENGER_IM}.")
@@ -171,7 +175,7 @@ private data class Melding(
                     initiateEvent = Key.EVENT_NAME.les(EventName.serializer(), boomerang),
                     transaksjonId = Key.UUID.les(UuidSerializer, boomerang),
                     forespoerselSvar = forespoerselSvar,
-                    json = json
+                    json = json,
                 )
             }
     }

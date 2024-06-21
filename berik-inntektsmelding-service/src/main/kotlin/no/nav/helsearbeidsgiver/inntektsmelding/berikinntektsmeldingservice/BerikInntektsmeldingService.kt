@@ -65,16 +65,16 @@ class BerikInntektsmeldingService(
 
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val startDataPar = lesStartDataPar(melding)
+        val startdata = lesStartdata(melding)
 
         when {
-            isFinished(melding) -> onFinished(transaksjonId, melding, startDataPar)
+            isFinished(melding) -> onFinished(transaksjonId, melding, startdata)
 
-            isOnStep2(melding) -> onStep2(melding, transaksjonId, startDataPar)
+            isOnStep2(melding) -> onStep2(melding, transaksjonId, startdata)
 
-            isOnStep1(melding) -> onStep1(melding, transaksjonId, startDataPar)
+            isOnStep1(melding) -> onStep1(melding, transaksjonId, startdata)
 
-            isOnStep0(melding) -> onStep0(melding, transaksjonId, startDataPar)
+            isOnStep0(melding) -> onStep0(melding, transaksjonId, startdata)
 
             else -> logger.info("Noe gikk galt") // TODO: Hva gjør vi her?
         }
@@ -161,7 +161,7 @@ class BerikInntektsmeldingService(
     private fun onFinished(
         transaksjonId: UUID,
         melding: Map<Key, JsonElement>,
-        startDataPar: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>,
     ) {
         val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
         val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
@@ -185,6 +185,8 @@ class BerikInntektsmeldingService(
                 }
             }
 
+        // TODO: Persistere inntektsmelding.
+
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
         logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
         rapid
@@ -192,7 +194,7 @@ class BerikInntektsmeldingService(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                     Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    *startDataPar,
+                    *startdata,
                 ).also {
                     logger.info("Submitting INNTEKTSMELDING_MOTTATT")
                     sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT ${it.toPretty()}")
@@ -275,17 +277,19 @@ class BerikInntektsmeldingService(
             ident = fnr,
         )
 
-    private fun lesStartDataPar(melding: Map<Key, JsonElement>): Array<Pair<Key, JsonElement>> {
+    private fun lesStartdata(melding: Map<Key, JsonElement>): Array<Pair<Key, JsonElement>> {
         val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val innsenderFnr = Key.ARBEIDSGIVER_ID.les(Fnr.serializer(), melding)
         val sykmeldtFnr = Key.IDENTITETSNUMMER.les(Fnr.serializer(), melding)
+        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
 
         return listOf(
             Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(Fnr.serializer()),
             Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(Fnr.serializer()),
+            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
         ).toTypedArray()
     }
 

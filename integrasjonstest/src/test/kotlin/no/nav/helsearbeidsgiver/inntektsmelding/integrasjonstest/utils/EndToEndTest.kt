@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
+import io.mockk.Call
+import io.mockk.InternalPlatformDsl.toArray
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -274,15 +276,12 @@ abstract class EndToEndTest : ContainerTest() {
         } answers {
             publish(
                 Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to ForespoerselSvar(
-                    forespoerselId = forespoerselId,
-                    resultat = forespoerselSvar,
-                    boomerang = mapOf(
-                        Key.EVENT_NAME to eventName.toJson(),
-                        Key.UUID to transaksjonId.toJson()
-                    ).toJson()
-                )
-                    .toJson(ForespoerselSvar.serializer())
+                Pri.Key.LØSNING to
+                    ForespoerselSvar(
+                        forespoerselId = forespoerselId,
+                        resultat = forespoerselSvar,
+                        boomerang = getBoomerangData(it, eventName, transaksjonId),
+                    ).toJson(ForespoerselSvar.serializer()),
             )
 
             Result.success(JsonObject(emptyMap()))
@@ -294,6 +293,29 @@ abstract class EndToEndTest : ContainerTest() {
             exec("SELECT truncate_tables()")
         }
     }
+
+    private fun getBoomerangData(
+        call: Call,
+        eventName: EventName,
+        transaksjonId: UUID,
+    ): JsonElement = getBoomerangDataFromInvocationCall(call) ?: mockBoomerangData(eventName, transaksjonId)
+
+    private fun getBoomerangDataFromInvocationCall(call: Call): JsonElement? =
+        call.invocation.args
+            .firstOrNull()
+            ?.toArray()
+            ?.map { it as Pair<Pri.Key, JsonElement> }
+            ?.firstOrNull { it.first == Pri.Key.BOOMERANG }
+            ?.second
+
+    private fun mockBoomerangData(
+        eventName: EventName,
+        transaksjonId: UUID,
+    ): JsonElement =
+        mapOf(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+        ).toJson()
 }
 
 private fun Database.createTruncateFunction() =

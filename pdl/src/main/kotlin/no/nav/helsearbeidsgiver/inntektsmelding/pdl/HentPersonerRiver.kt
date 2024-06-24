@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -9,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
@@ -23,13 +22,14 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 data class Melding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    val fnrListe: List<String>
+    val fnrListe: List<Fnr>
 )
 
 class HentPersonerRiver(
@@ -47,7 +47,7 @@ class HentPersonerRiver(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_PERSONER, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                fnrListe = Key.FNR_LISTE.les(String.serializer().list(), json)
+                fnrListe = Key.FNR_LISTE.les(Fnr.serializer().list(), json)
             )
         }
 
@@ -70,12 +70,7 @@ class HentPersonerRiver(
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
             Key.DATA to "".toJson(),
-            Key.PERSONER to personer.toJson(
-                MapSerializer(
-                    String.serializer(),
-                    Person.serializer()
-                )
-            )
+            Key.PERSONER to personer.toJson(personMapSerializer)
         )
             .mapValuesNotNull { it }
     }
@@ -105,15 +100,17 @@ class HentPersonerRiver(
             Log.transaksjonId(transaksjonId)
         )
 
-    private fun hentPersoner(fnrListe: List<String>): List<Person> =
+    private fun hentPersoner(fnrListe: List<Fnr>): List<Person> =
         Metrics.pdlRequest.recordTime(pdlClient::personBolk) {
-            pdlClient.personBolk(fnrListe)
+            pdlClient.personBolk(
+                fnrListe.map(Fnr::verdi)
+            )
         }
             .orEmpty()
             .mapNotNull { person ->
                 person.ident?.let { fnr ->
                     Person(
-                        fnr = fnr,
+                        fnr = Fnr(fnr),
                         navn = person.navn.fulltNavn(),
                         foedselsdato = person.foedselsdato
                     )

@@ -10,8 +10,6 @@ import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -19,6 +17,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Person
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -48,7 +47,7 @@ class HentPersonerRiverTest : FunSpec({
     }
 
     test("finner én person") {
-        val olaFnr = Fnr.genererGyldig().verdi
+        val olaFnr = Fnr.genererGyldig()
 
         val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr))
 
@@ -72,13 +71,13 @@ class HentPersonerRiverTest : FunSpec({
         )
 
         coVerifySequence {
-            mockPdlClient.personBolk(listOf(olaFnr))
+            mockPdlClient.personBolk(listOf(olaFnr.verdi))
         }
     }
 
     test("finner flere personer") {
-        val olaFnr = Fnr.genererGyldig().verdi
-        val kariFnr = Fnr.genererGyldig(somDnr = true).verdi
+        val olaFnr = Fnr.genererGyldig()
+        val kariFnr = Fnr.genererGyldig(somDnr = true)
 
         val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr, kariFnr))
 
@@ -112,13 +111,13 @@ class HentPersonerRiverTest : FunSpec({
         )
 
         coVerifySequence {
-            mockPdlClient.personBolk(listOf(olaFnr, kariFnr))
+            mockPdlClient.personBolk(listOf(olaFnr.verdi, kariFnr.verdi))
         }
     }
 
     test("returnerer kun personer som blir funnet") {
-        val olaFnr = Fnr.genererGyldig().verdi
-        val kariFnr = Fnr.genererGyldig().verdi
+        val olaFnr = Fnr.genererGyldig()
+        val kariFnr = Fnr.genererGyldig()
 
         val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr, kariFnr))
 
@@ -142,13 +141,13 @@ class HentPersonerRiverTest : FunSpec({
         )
 
         coVerifySequence {
-            mockPdlClient.personBolk(listOf(olaFnr, kariFnr))
+            mockPdlClient.personBolk(listOf(olaFnr.verdi, kariFnr.verdi))
         }
     }
 
     test("sender med forespoerselId dersom det finnes i utløsende melding") {
         val forespoerselId = UUID.randomUUID()
-        val olaFnr = Fnr.genererGyldig().verdi
+        val olaFnr = Fnr.genererGyldig()
 
         val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr))
 
@@ -178,7 +177,7 @@ class HentPersonerRiverTest : FunSpec({
 
     test("sender med selvbestemtId dersom det finnes i utløsende melding") {
         val selvbestemtId = UUID.randomUUID()
-        val olaFnr = Fnr.genererGyldig().verdi
+        val olaFnr = Fnr.genererGyldig()
 
         val innkommendeMelding = Mock.innkommendeMelding(listOf(olaFnr))
 
@@ -209,7 +208,7 @@ class HentPersonerRiverTest : FunSpec({
     test("håndterer ukjente feil") {
         val forespoerselId = UUID.randomUUID()
         val selvbestemtId = UUID.randomUUID()
-        val randomFnr = Fnr.genererGyldig().verdi
+        val randomFnr = Fnr.genererGyldig()
 
         val innkommendeMelding = Mock.innkommendeMelding(listOf(randomFnr))
 
@@ -236,7 +235,7 @@ class HentPersonerRiverTest : FunSpec({
             .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
 
         coVerifySequence {
-            mockPdlClient.personBolk(listOf(randomFnr))
+            mockPdlClient.personBolk(listOf(randomFnr.verdi))
         }
     }
 
@@ -248,7 +247,7 @@ class HentPersonerRiverTest : FunSpec({
                 "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer()))
             )
         ) { uoensketKeyMedVerdi ->
-            val fnrListe = listOf(Fnr.genererGyldig().verdi)
+            val fnrListe = listOf(Fnr.genererGyldig())
 
             testRapid.sendJson(
                 Mock.innkommendeMelding(fnrListe).toMap()
@@ -264,12 +263,6 @@ class HentPersonerRiverTest : FunSpec({
     }
 })
 
-private val personMapSerializer =
-    MapSerializer(
-        String.serializer(),
-        Person.serializer()
-    )
-
 private object Mock {
     val fail = Fail(
         feilmelding = "They have a cave troll.",
@@ -279,7 +272,7 @@ private object Mock {
         utloesendeMelding = JsonNull
     )
 
-    fun innkommendeMelding(fnrListe: List<String>): Melding =
+    fun innkommendeMelding(fnrListe: List<Fnr>): Melding =
         Melding(
             eventName = EventName.TRENGER_REQUESTED,
             behovType = BehovType.HENT_PERSONER,
@@ -292,10 +285,10 @@ private object Mock {
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FNR_LISTE to fnrListe.toJson(String.serializer())
+            Key.FNR_LISTE to fnrListe.toJson(Fnr.serializer())
         )
 
-    fun fullPerson(fornavn: String, ident: String): FullPerson =
+    fun fullPerson(fornavn: String, fnr: Fnr): FullPerson =
         FullPerson(
             navn = PersonNavn(
                 fornavn = fornavn,
@@ -303,6 +296,6 @@ private object Mock {
                 etternavn = "Normann"
             ),
             foedselsdato = 13.juni(1956),
-            ident = ident
+            ident = fnr.verdi
         )
 }

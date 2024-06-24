@@ -6,7 +6,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import io.mockk.every
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
@@ -33,18 +32,18 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
 import no.nav.helsearbeidsgiver.felles.ResultJson
-import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
-import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -66,18 +65,14 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `gi OK med inntektsmelding`() = testApi {
-        val mockTransaksjonId = UUID.randomUUID()
         val expectedInntektsmelding = mockInntektsmeldingV1()
 
-        mockTilgang(Tilgang.HAR_TILGANG)
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.successResult(expectedInntektsmelding),
+            harTilgangResultat
+        )
 
-        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.successResult(expectedInntektsmelding)
-
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockTransaksjonId
-
-            get(pathMedId)
-        }
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 
@@ -87,17 +82,12 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `manglende tilgang gir 500-feil`() = testApi {
-        val mockTransaksjonId = UUID.randomUUID()
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.successResult(mockInntektsmeldingV1()),
+            ikkeTilgangResultat
+        )
 
-        mockTilgang(Tilgang.IKKE_TILGANG)
-
-        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.successResult(mockInntektsmeldingV1())
-
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockTransaksjonId
-
-            get(pathMedId)
-        }
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 
@@ -107,18 +97,14 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `feilresultat gir 500-feil`() = testApi {
-        val mockTransaksjonId = UUID.randomUUID()
         val expectedFeilmelding = "Du får vente til freddan'!"
 
-        mockTilgang(Tilgang.HAR_TILGANG)
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.failureResult(expectedFeilmelding),
+            harTilgangResultat
+        )
 
-        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.failureResult(expectedFeilmelding)
-
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockTransaksjonId
-
-            get(pathMedId)
-        }
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 
@@ -128,18 +114,14 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `tomt resultat gir 500-feil`() = testApi {
-        val mockTransaksjonId = UUID.randomUUID()
         val expectedFeilmelding = "Ukjent feil."
 
-        mockTilgang(Tilgang.HAR_TILGANG)
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.emptyResult(),
+            harTilgangResultat
+        )
 
-        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.emptyResult()
-
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockTransaksjonId
-
-            get(pathMedId)
-        }
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 
@@ -149,17 +131,12 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `timeout mot redis gir 500-feil`() = testApi {
-        val mockTransaksjonId = UUID.randomUUID()
         val selvbestemtId = UUID.randomUUID()
         val expectedFeilobjekt = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
 
-        coEvery { mockRedisPoller.hent(mockTransaksjonId) } throws RedisPollerTimeoutException(UUID.randomUUID())
+        coEvery { mockRedisPoller.hent(any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockTransaksjonId
-
-            get("$pathUtenId$selvbestemtId")
-        }
+        val response = get("$pathUtenId$selvbestemtId")
 
         val actualJson = response.bodyAsText()
 
@@ -169,17 +146,12 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `ukjent feil mot redis gir 500-feil`() = testApi {
-        val mockTransaksjonId = UUID.randomUUID()
         val selvbestemtId = UUID.randomUUID()
         val expectedFeilobjekt = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer())
 
-        coEvery { mockRedisPoller.hent(mockTransaksjonId) } throws IllegalStateException()
+        coEvery { mockRedisPoller.hent(any()) } throws IllegalStateException()
 
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockTransaksjonId
-
-            get("$pathUtenId$selvbestemtId")
-        }
+        val response = get("$pathUtenId$selvbestemtId")
 
         val actualJson = response.bodyAsText()
 
@@ -189,11 +161,9 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `ukjent feil gir 500-feil`() = testApi {
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } throws NullPointerException()
+        coEvery { mockRedisPoller.hent(any()) } returns Mock.successResult(mockInntektsmeldingV1()) andThenThrows NullPointerException()
 
-            get(pathMedId)
-        }
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 

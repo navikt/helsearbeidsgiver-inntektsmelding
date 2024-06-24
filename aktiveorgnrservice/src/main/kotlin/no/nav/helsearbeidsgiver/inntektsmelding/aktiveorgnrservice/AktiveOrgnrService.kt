@@ -22,6 +22,8 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.felles.utils.filterOrgnr
+import no.nav.helsearbeidsgiver.felles.utils.orgnrMedHistoriskArbeidsforhold
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
@@ -217,7 +219,7 @@ class AktiveOrgnrService(
                     .filterOrgnr(
                         *orgrettigheter.toTypedArray()
                     )
-                    .orgnrMedAktivtArbeidsforhold()
+                    .orgnrMedHistoriskArbeidsforhold()
             if (arbeidsgivere.isEmpty()) {
                 Result.failure(Exception("Fant ingen aktive arbeidsforhold"))
             } else {

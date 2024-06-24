@@ -55,7 +55,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
-            tilgangProducer.publishForespoerselId(Mock.forespoerselId, Mock.innloggetFnr)
+            tilgangProducer.publishForespoerselId(UUID.randomUUID(), Mock.innloggetFnr, Mock.forespoerselId)
         }
 
         messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
@@ -93,7 +93,7 @@ class TilgangskontrollIT : EndToEndTest() {
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
-            tilgangProducer.publishForespoerselId(Mock.forespoerselId, Mock.innloggetFnr)
+            tilgangProducer.publishForespoerselId(UUID.randomUUID(), Mock.innloggetFnr, Mock.forespoerselId)
         }
 
         val result = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
@@ -109,7 +109,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
     @Test
     fun `organisasjon - skal få tilgang`() {
-        tilgangProducer.publishOrgnr(Mock.ORGNR_MED_TILGANG, Mock.innloggetFnr)
+        tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.ORGNR_MED_TILGANG)
 
         val result = messages.filter(EventName.TILGANG_ORG_REQUESTED)
             .filter(Key.TILGANG)
@@ -124,7 +124,7 @@ class TilgangskontrollIT : EndToEndTest() {
 
     @Test
     fun `organisasjon - skal bli nektet tilgang`() {
-        tilgangProducer.publishOrgnr(Mock.ORGNR_UTEN_TILGANG, Mock.innloggetFnr)
+        tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.ORGNR_UTEN_TILGANG)
 
         val result = messages.filter(EventName.TILGANG_ORG_REQUESTED)
             .filter(Key.TILGANG)

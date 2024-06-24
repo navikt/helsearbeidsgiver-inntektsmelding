@@ -29,6 +29,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationError
 import no.nav.helsearbeidsgiver.inntektsmelding.api.validation.ValidationResponse
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
 
 fun Route.trengerRoute(
     rapid: RapidsConnection,
@@ -42,6 +43,8 @@ fun Route.trengerRoute(
         .register()
 
     post(Routes.TRENGER) {
+        val transaksjonId = UUID.randomUUID()
+
         val requestTimer = requestLatency.startTimer()
         runCatching {
             receive(HentForespoerselRequest.serializer())
@@ -53,7 +56,7 @@ fun Route.trengerRoute(
 
                     val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-                    val transaksjonId = trengerProducer.publish(request, arbeidsgiverFnr)
+                    trengerProducer.publish(transaksjonId, request, arbeidsgiverFnr)
 
                     val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
 

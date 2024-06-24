@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -21,8 +20,7 @@ class AktiveOrgnrProducer(
     init {
         logger.info("Starter ${AktiveOrgnrProducer::class.simpleName}...")
     }
-    fun publish(arbeidsgiverFnr: Fnr, arbeidstagerFnr: Fnr): UUID {
-        val clientId = randomUuid()
+    fun publish(clientId: UUID, arbeidsgiverFnr: Fnr, arbeidstagerFnr: Fnr) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.AKTIVE_ORGNR_REQUESTED),
@@ -41,6 +39,5 @@ class AktiveOrgnrProducer(
                     }
                 }
         }
-        return clientId
     }
 }

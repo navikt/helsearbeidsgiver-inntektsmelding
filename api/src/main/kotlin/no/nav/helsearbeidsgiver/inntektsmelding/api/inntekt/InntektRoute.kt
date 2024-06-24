@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondForbidden
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
 
 // TODO Mangler tester
 fun Route.inntektRoute(
@@ -34,6 +35,8 @@ fun Route.inntektRoute(
     val inntektProducer = InntektProducer(rapid)
 
     post(Routes.INNTEKT) {
+        val clientId = UUID.randomUUID()
+
         val request = call.receive<InntektRequest>()
 
         tilgangskontroll.validerTilgangTilForespoersel(call.request, request.forespoerselId)
@@ -44,7 +47,7 @@ fun Route.inntektRoute(
         }
 
         try {
-            val clientId = inntektProducer.publish(request)
+            inntektProducer.publish(clientId, request)
 
             val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
             sikkerLogger.info("Fikk inntektresultat:\n$resultatJson")

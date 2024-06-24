@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 val personMapSerializer =
     MapSerializer(
-        String.serializer(),
+        Fnr.serializer(),
         Person.serializer()
     )
 

@@ -86,18 +86,14 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
     @Test
     fun `tomt resultat gir 500-feil`() = testApi {
-        val mockTransaksjonId = UUID.randomUUID()
         val expectedFeilmelding = "Ukjent feil."
 
-        mockTilgang(Tilgang.HAR_TILGANG)
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            harTilgangResultat,
+            Mock.emptyResult()
+        )
 
-        coEvery { mockRedisPoller.hent(mockTransaksjonId) } returns Mock.emptyResult()
-
-        val response = mockConstructor(InntektSelvbestemtProducer::class) {
-            every { anyConstructed<InntektSelvbestemtProducer>().publish(any()) } returns mockTransaksjonId
-
-            post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
-        }
+        val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
 
         val actualJson = response.bodyAsText()
 

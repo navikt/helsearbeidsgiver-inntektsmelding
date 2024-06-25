@@ -45,6 +45,8 @@ fun Route.innsendingRoute(
         .register()
 
     post(Routes.INNSENDING + "/{forespoerselId}") {
+        val clientId = UUID.randomUUID()
+
         val forespoerselId = call.parameters["forespoerselId"]
             ?.runCatching(UUID::fromString)
             ?.getOrNull()
@@ -67,7 +69,7 @@ fun Route.innsendingRoute(
 
                     request.validate()
                     val innloggerFnr = call.request.lesFnrFraAuthToken()
-                    val clientId = producer.publish(forespoerselId, request, innloggerFnr)
+                    producer.publish(clientId, forespoerselId, request, innloggerFnr)
                     logger.info("Publiserte til rapid med forespørselId: $forespoerselId og clientId=$clientId")
 
                     val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())

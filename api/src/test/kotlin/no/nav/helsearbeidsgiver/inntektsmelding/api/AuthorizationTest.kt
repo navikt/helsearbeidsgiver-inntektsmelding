@@ -65,7 +65,7 @@ class AuthorizationTest : ApiTest() {
             }
         }
 
-        val testClient = TestClient(this, mockk()) { mockAuthToken() }
+        val testClient = TestClient(this, ::mockAuthToken)
 
         val response = testClient.get(path)
 

@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ArbeidsforholdErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
@@ -34,6 +35,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.util.UUID
 
 // TODO test
 fun Route.lagreSelvbestemtImRoute(
@@ -44,8 +46,11 @@ fun Route.lagreSelvbestemtImRoute(
     val producer = LagreSelvbestemtImProducer(rapid)
 
     post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
+        val clientId = UUID.randomUUID()
+
         MdcUtils.withLogFields(
-            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING)
+            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING),
+            Log.clientId(clientId)
         ) {
             val skjema = lesRequestOrNull()
             when {
@@ -71,18 +76,14 @@ fun Route.lagreSelvbestemtImRoute(
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    val clientId = producer.publish(skjema, avsenderFnr)
+                    producer.publish(clientId, skjema, avsenderFnr)
 
-                    MdcUtils.withLogFields(
-                        Log.clientId(clientId)
-                    ) {
-                        runCatching {
-                            redisPoller.hent(clientId)
-                        }
-                            .let {
-                                sendResponse(it)
-                            }
+                    runCatching {
+                        redisPoller.hent(clientId)
                     }
+                        .let {
+                            sendResponse(it)
+                        }
                 }
             }
         }
@@ -128,10 +129,13 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
                 respond(HttpStatusCode.OK, LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
             } else {
                 val feilmelding = resultat.failure?.fromJson(String.serializer()).orDefault("Tomt resultat i Redis.")
-
                 logger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding.")
                 sikkerLogger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding: $feilmelding")
-                respondInternalServerError(UkjentErrorResponse(), UkjentErrorResponse.serializer())
+                if ("Mangler arbeidsforhold i perioden" == feilmelding) {
+                    respondBadRequest(ArbeidsforholdErrorResponse(), ArbeidsforholdErrorResponse.serializer())
+                } else {
+                    respondInternalServerError(UkjentErrorResponse(), UkjentErrorResponse.serializer())
+                }
             }
         }
         .onFailure {

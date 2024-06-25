@@ -12,8 +12,6 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
-import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.runBlocking
@@ -28,7 +26,6 @@ import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 import org.junit.jupiter.api.AfterEach
-import java.util.UUID
 
 val harTilgangResultat = TilgangResultat(Tilgang.HAR_TILGANG).toJson(TilgangResultat.serializer())
 val ikkeTilgangResultat = TilgangResultat(Tilgang.IKKE_TILGANG).toJson(TilgangResultat.serializer())
@@ -41,7 +38,7 @@ abstract class ApiTest : MockAuthToken() {
             apiModule(mockk(relaxed = true), mockRedisPoller)
         }
 
-        val testClient = TestClient(this, mockRedisPoller) { mockAuthToken() }
+        val testClient = TestClient(this, ::mockAuthToken)
 
         mockConstructor(TilgangProducer::class) {
             testClient.block()
@@ -56,22 +53,12 @@ abstract class ApiTest : MockAuthToken() {
 
 class TestClient(
     appTestBuilder: ApplicationTestBuilder,
-    private val mockRedisPoller: RedisPoller,
     private val authToken: () -> String
 ) {
     private val httpClient = appTestBuilder.createClient {
         install(ContentNegotiation) {
             json(jsonConfig)
         }
-    }
-
-    fun mockTilgang(tilgang: Tilgang) {
-        val mockTilgangClientId = UUID.randomUUID()
-
-        every { anyConstructed<TilgangProducer>().publishForespoerselId(any(), any()) } returns mockTilgangClientId
-        every { anyConstructed<TilgangProducer>().publishOrgnr(any(), any()) } returns mockTilgangClientId
-
-        coEvery { mockRedisPoller.hent(mockTilgangClientId) } returns TilgangResultat(tilgang).toJson(TilgangResultat.serializer())
     }
 
     fun get(

@@ -14,8 +14,7 @@ class KvitteringProducer(
         logger.info("Starter ${KvitteringProducer::class.simpleName}...")
     }
 
-    fun publish(foresporselId: UUID): UUID {
-        val clientId = UUID.randomUUID()
+    fun publish(clientId: UUID, foresporselId: UUID) {
         val packet: JsonMessage = JsonMessage.newMessage(
             mapOf(
                 Key.EVENT_NAME.str to EventName.KVITTERING_REQUESTED.name,
@@ -25,6 +24,5 @@ class KvitteringProducer(
         )
         rapid.publish(packet.toJson())
         logger.info("Publiserte kvittering requested, forespørselid=$foresporselId")
-        return clientId
     }
 }

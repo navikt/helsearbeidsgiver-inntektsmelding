@@ -22,9 +22,7 @@ class InntektSelvbestemtProducer(
         logger.info("Starter ${InntektSelvbestemtProducer::class.simpleName}...")
     }
 
-    fun publish(request: InntektSelvbestemtRequest): UUID {
-        val transaksjonId = UUID.randomUUID()
-
+    fun publish(transaksjonId: UUID, request: InntektSelvbestemtRequest) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.INNTEKT_SELVBESTEMT_REQUESTED),
@@ -45,7 +43,5 @@ class InntektSelvbestemtProducer(
                     }
                 }
         }
-
-        return transaksjonId
     }
 }

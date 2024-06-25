@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
@@ -86,7 +87,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
 
     @Test
     fun `tomt resultat gir 500-feil`() = testApi {
-        val expectedFeilmelding = "Ukjent feil."
+        val expectedFeilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
 
         coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
             harTilgangResultat,

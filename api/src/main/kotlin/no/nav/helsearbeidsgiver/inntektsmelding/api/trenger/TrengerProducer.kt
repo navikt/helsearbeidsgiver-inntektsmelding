@@ -23,7 +23,7 @@ class TrengerProducer(
             Key.UUID to transaksjonId.toString().toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to request.uuid.toJson(),
-            Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson()
+            Key.ARBEIDSGIVER_FNR to arbeidsgiverFnr.toJson()
         )
             .also {
                 logger.info("Publiserte trenger behov med transaksjonId=$transaksjonId")

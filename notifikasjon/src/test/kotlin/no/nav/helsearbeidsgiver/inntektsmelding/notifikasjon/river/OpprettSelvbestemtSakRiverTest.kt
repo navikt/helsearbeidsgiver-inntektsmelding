@@ -55,11 +55,13 @@ class OpprettSelvbestemtSakRiverTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
+        val dataField = Key.SAK_ID to sakId.toJson()
+
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
             Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SAK_ID to sakId.toJson()
+            Key.DATA to mapOf(dataField).toJson(),
+            dataField
         )
 
         coVerifySequence {

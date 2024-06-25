@@ -41,6 +41,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -435,9 +436,6 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
     }
 })
-
-private fun JsonElement.lesBehov(): BehovType? =
-    Key.BEHOV.lesOrNull(BehovType.serializer(), this.toMap())
 
 private fun JsonElement.lesInntektsmelding(): Inntektsmelding =
     Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), this.toMap()).shouldNotBeNull()

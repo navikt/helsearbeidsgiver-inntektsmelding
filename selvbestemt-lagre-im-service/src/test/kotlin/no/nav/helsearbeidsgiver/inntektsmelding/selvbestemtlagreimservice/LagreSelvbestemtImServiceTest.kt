@@ -304,7 +304,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
                     forespoerselId = null,
                     utloesendeMelding = JsonObject(
                         mapOf(
-                            Key.BEHOV.toString() to BehovType.FULLT_NAVN.toJson()
+                            Key.BEHOV.toString() to BehovType.HENT_PERSONER.toJson()
                         )
                     )
                 ).tilMelding()
@@ -444,14 +444,14 @@ private fun JsonElement.lesInntektsmelding(): Inntektsmelding =
 
 private object MockLagre {
     private const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
-    private val sykmeldt = Fnr.genererGyldig().verdi.let {
+    private val sykmeldt = Fnr.genererGyldig().let {
         Person(
             fnr = it,
             navn = "Ponnius Pilatus",
             foedselsdato = Person.foedselsdato(it)
         )
     }
-    private val avsender = Fnr.genererGyldig().verdi.let {
+    private val avsender = Fnr.genererGyldig().let {
         Person(
             fnr = it,
             navn = "King Kong Keiser",
@@ -461,7 +461,7 @@ private object MockLagre {
 
     val skjema = SkjemaInntektsmeldingSelvbestemt(
         selvbestemtId = UUID.randomUUID(),
-        sykmeldtFnr = sykmeldt.fnr.let(::Fnr),
+        sykmeldtFnr = sykmeldt.fnr,
         avsender = SkjemaAvsender(
             orgnr = Orgnr.genererGyldig(),
             tlf = "43431234"
@@ -517,8 +517,8 @@ private object MockLagre {
     val inntektsmelding = tilInntektsmelding(
         skjema = skjema,
         orgNavn = ORG_NAVN,
-        sykmeldt = sykmeldt,
-        avsender = avsender
+        sykmeldtNavn = sykmeldt.navn,
+        avsenderNavn = avsender.navn
     )
 
     fun startMelding(clientId: UUID, transaksjonId: UUID): Map<Key, JsonElement> =

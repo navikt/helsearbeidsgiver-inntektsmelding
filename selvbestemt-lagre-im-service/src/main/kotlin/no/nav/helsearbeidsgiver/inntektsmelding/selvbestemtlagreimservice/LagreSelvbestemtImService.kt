@@ -38,7 +38,6 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -94,7 +93,7 @@ class LagreSelvbestemtImService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.SELVBESTEMT_ID to skjema.selvbestemtId?.toJson(),
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                Key.ORGNRUNDERENHET to skjema.avsender.orgnr.toJson(Orgnr.serializer())
+                Key.ORGNRUNDERENHET to skjema.avsender.orgnr.toJson()
             )
 
             rapid.publishNotNull(
@@ -155,18 +154,14 @@ class LagreSelvbestemtImService(
                 val arbeidsforholdListe = Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
                     .filter { it.arbeidsgiver.organisasjonsnummer == skjema.avsender.orgnr.verdi }
 
-                val sykmeldt = skjema.sykmeldtFnr.let {
-                    personer[it.verdi] ?: tomPerson(it.verdi)
-                }
-                val avsender = avsenderFnr.let {
-                    personer[it.verdi] ?: tomPerson(it.verdi)
-                }
+                val sykmeldtNavn = personer[skjema.sykmeldtFnr]?.navn.orEmpty()
+                val avsenderNavn = personer[avsenderFnr]?.navn.orEmpty()
 
                 val inntektsmelding = tilInntektsmelding(
                     skjema = skjema,
                     orgNavn = orgNavn,
-                    sykmeldt = sykmeldt,
-                    avsender = avsender
+                    sykmeldtNavn = sykmeldtNavn,
+                    avsenderNavn = avsenderNavn
                 )
 
                 val sykeperioder = skjema.agp?.perioder.orEmpty() + skjema.sykmeldingsperioder
@@ -252,7 +247,7 @@ class LagreSelvbestemtImService(
                     BehovType.VIRKSOMHET -> Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
 
                     // Lesing av personer bruker allerede defaults, så trenger bare map-struktur her
-                    BehovType.FULLT_NAVN -> Key.PERSONER to emptyMap<String, JsonElement>().toJson()
+                    BehovType.HENT_PERSONER -> Key.PERSONER to emptyMap<Fnr, Person>().toJson(personMapSerializer)
 
                     else -> null
                 }
@@ -282,8 +277,8 @@ class LagreSelvbestemtImService(
 fun tilInntektsmelding(
     skjema: SkjemaInntektsmeldingSelvbestemt,
     orgNavn: String,
-    sykmeldt: Person,
-    avsender: Person
+    sykmeldtNavn: String,
+    avsenderNavn: String
 ): Inntektsmelding {
     val aarsakInnsending =
         if (skjema.selvbestemtId == null) {
@@ -298,13 +293,13 @@ fun tilInntektsmelding(
             id = skjema.selvbestemtId ?: UUID.randomUUID()
         ),
         sykmeldt = Sykmeldt(
-            fnr = sykmeldt.fnr.let(::Fnr),
-            navn = sykmeldt.navn
+            fnr = skjema.sykmeldtFnr,
+            navn = sykmeldtNavn
         ),
         avsender = Avsender(
             orgnr = skjema.avsender.orgnr,
             orgNavn = orgNavn,
-            navn = avsender.navn,
+            navn = avsenderNavn,
             tlf = skjema.avsender.tlf
         ),
         sykmeldingsperioder = skjema.sykmeldingsperioder,
@@ -315,10 +310,3 @@ fun tilInntektsmelding(
         mottatt = OffsetDateTime.now()
     )
 }
-
-private fun tomPerson(fnr: String): Person =
-    Person(
-        fnr = fnr,
-        navn = "",
-        foedselsdato = Person.foedselsdato(fnr)
-    )

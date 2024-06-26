@@ -13,6 +13,8 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -32,7 +34,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
         ).toJson(ResultJson.serializer())
 
         val requestBody = """
-            {"identitetsnummer":"test-fnr"}
+            {"identitetsnummer":"${Fnr.genererGyldig()}"}
         """
 
         val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
@@ -43,11 +45,13 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
     @Test
     fun `test request data`() {
+        val fnr = Fnr.genererGyldig()
         val requestBody = """
-            {"identitetsnummer":"test-fnr"}
+            {"identitetsnummer":"$fnr"}
         """.removeJsonWhitespace()
+
         val requestObj = requestBody.fromJson(AktiveOrgnrRequest.serializer())
-        assertEquals("test-fnr", requestObj.identitetsnummer)
+        assertEquals(fnr, requestObj.identitetsnummer)
     }
 
     private object Mock {

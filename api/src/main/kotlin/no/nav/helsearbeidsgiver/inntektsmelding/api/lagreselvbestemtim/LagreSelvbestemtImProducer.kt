@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class LagreSelvbestemtImProducer(
@@ -21,9 +22,7 @@ class LagreSelvbestemtImProducer(
         logger.info("Starter ${LagreSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(skjema: SkjemaInntektsmeldingSelvbestemt, avsenderFnr: String): UUID {
-        val clientId = UUID.randomUUID()
-
+    fun publish(clientId: UUID, skjema: SkjemaInntektsmeldingSelvbestemt, avsenderFnr: Fnr) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_MOTTATT),
             Log.clientId(clientId)
@@ -39,7 +38,5 @@ class LagreSelvbestemtImProducer(
                     sikkerLogger.info("Publiserte til kafka:\n${it.toPretty()}")
                 }
         }
-
-        return clientId
     }
 }

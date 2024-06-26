@@ -23,7 +23,7 @@ import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TrengerIT : EndToEndTest() {
+class HentForespoerselIT : EndToEndTest() {
 
     @Test
     fun `Test trengerIM meldingsflyt`() {

@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemthentimservice
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -62,7 +61,7 @@ class HentSelvbestemtImService(
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val feilmeldingJson = fail.feilmelding.toJson(String.serializer())
+        val feilmeldingJson = fail.feilmelding.toJson()
         val resultJson = ResultJson(failure = feilmeldingJson).toJson(ResultJson.serializer())
         redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
     }

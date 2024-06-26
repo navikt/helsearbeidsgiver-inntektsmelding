@@ -21,6 +21,7 @@ class AuthorizationTest : ApiTest() {
     @Test
     fun `stopp uautoriserte kall mot API`() = testApi {
         listOf(
+            Routes.HENT_FORESPOERSEL to ::postUtenAuth,
             Routes.TRENGER to ::postUtenAuth,
             Routes.INNTEKT to ::postUtenAuth,
             Routes.INNTEKT_SELVBESTEMT to ::postUtenAuth,
@@ -64,7 +65,7 @@ class AuthorizationTest : ApiTest() {
             }
         }
 
-        val testClient = TestClient(this, mockk()) { mockAuthToken() }
+        val testClient = TestClient(this, ::mockAuthToken)
 
         val response = testClient.get(path)
 

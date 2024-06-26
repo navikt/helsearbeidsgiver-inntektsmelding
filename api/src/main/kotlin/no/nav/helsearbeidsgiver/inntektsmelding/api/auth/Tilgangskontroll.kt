@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class Tilgangskontroll(
@@ -20,8 +21,8 @@ class Tilgangskontroll(
         request: ApplicationRequest,
         forespoerselId: UUID
     ) {
-        validerTilgang(request, forespoerselId.toString()) { fnr ->
-            tilgangProducer.publishForespoerselId(forespoerselId, fnr)
+        validerTilgang(request, forespoerselId.toString()) { clientId, fnr ->
+            tilgangProducer.publishForespoerselId(clientId, fnr, forespoerselId)
         }
     }
 
@@ -29,23 +30,24 @@ class Tilgangskontroll(
         request: ApplicationRequest,
         orgnr: String
     ) {
-        validerTilgang(request, orgnr) { fnr ->
-            tilgangProducer.publishOrgnr(orgnr, fnr)
+        validerTilgang(request, orgnr) { clientId, fnr ->
+            tilgangProducer.publishOrgnr(clientId, fnr, orgnr)
         }
     }
 
     private fun validerTilgang(
         request: ApplicationRequest,
         cacheKeyPostfix: String,
-        publish: (String) -> UUID
+        publish: (UUID, Fnr) -> Unit
     ) {
+        val clientId = UUID.randomUUID()
         val innloggerFnr = request.lesFnrFraAuthToken()
 
         val tilgang = runBlocking {
             cache.get("$innloggerFnr:$cacheKeyPostfix") {
                 logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll.")
 
-                val clientId = publish(innloggerFnr)
+                publish(clientId, innloggerFnr)
 
                 val resultat = redisPoller.hent(clientId)
                     .fromJson(TilgangResultat.serializer())

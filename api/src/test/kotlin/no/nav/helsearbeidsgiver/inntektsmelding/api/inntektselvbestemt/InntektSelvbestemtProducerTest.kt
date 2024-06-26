@@ -14,25 +14,27 @@ import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.util.UUID
 
 class InntektSelvbestemtProducerTest : FunSpec({
     val testRapid = TestRapid()
     val producer = InntektSelvbestemtProducer(testRapid)
 
     test("publiserer melding på forventet format") {
+        val transaksjonId = UUID.randomUUID()
         val sykmeldtFnr = Fnr.genererGyldig()
         val orgnr = Orgnr.genererGyldig()
         val inntektsdato = 12.april
 
-        val transaksjonId = producer.publish(InntektSelvbestemtRequest(sykmeldtFnr, orgnr, inntektsdato))
+        producer.publish(transaksjonId, InntektSelvbestemtRequest(sykmeldtFnr, orgnr, inntektsdato))
 
         testRapid.inspektør.size shouldBeExactly 1
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
-            Key.FNR to sykmeldtFnr.toJson(Fnr.serializer()),
-            Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
+            Key.FNR to sykmeldtFnr.toJson(),
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
             Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson()
         )
     }

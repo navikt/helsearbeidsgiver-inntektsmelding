@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class InnsendingProducer(
@@ -19,9 +20,7 @@ class InnsendingProducer(
         logger.info("Starter ${InnsendingProducer::class.simpleName}...")
     }
 
-    fun publish(forespoerselId: UUID, request: Innsending, arbeidsgiverFnr: String): UUID {
-        val clientId = UUID.randomUUID()
-
+    fun publish(clientId: UUID, forespoerselId: UUID, request: Innsending, arbeidsgiverFnr: Fnr) {
         rapid.publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
@@ -35,7 +34,5 @@ class InnsendingProducer(
                 logger.info("Publiserte til kafka forespørselId: $forespoerselId og clientId=$clientId")
                 sikkerLogger.info("Publiserte til kafka forespørselId: $forespoerselId json=${it.toPretty()}")
             }
-
-        return clientId
     }
 }

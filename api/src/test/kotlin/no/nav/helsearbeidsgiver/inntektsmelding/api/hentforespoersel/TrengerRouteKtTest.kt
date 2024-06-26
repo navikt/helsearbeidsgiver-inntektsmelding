@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -55,14 +55,14 @@ class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker`() = testApi {
-        val expectedJson = Mock.responseJson()
+        val expectedJson = MockTrenger.responseJson()
 
         coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
             harTilgangResultat,
-            Mock.resultatOkJson
+            MockTrenger.resultatOkJson
         )
 
-        val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
 
         val actualJson = response.bodyAsText()
 
@@ -72,14 +72,14 @@ class TrengerRouteKtTest : ApiTest() {
 
     @Test
     fun `skal returnere resultat og status CREATED når trenger virker med forespørsel bare inntekt`() = testApi {
-        val expectedJson = Mock.responseBareInntektJson()
+        val expectedJson = MockTrenger.responseBareInntektJson()
 
         coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
             harTilgangResultat,
-            Mock.resultatOkMedForrigeInntektJson
+            MockTrenger.resultatOkMedForrigeInntektJson
         )
 
-        val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
 
         val actualJson = response.bodyAsText()
 
@@ -91,7 +91,7 @@ class TrengerRouteKtTest : ApiTest() {
     fun `skal returnere Internal server error hvis Redis timer ut`() = testApi {
         coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
 
-        val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
     }
@@ -124,7 +124,7 @@ class TrengerRouteKtTest : ApiTest() {
     fun `skal returnere Forbidden hvis feil ikke tilgang`() = testApi {
         coEvery { mockRedisPoller.hent(any()) } returns ikkeTilgangResultat
 
-        val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
@@ -134,12 +134,12 @@ class TrengerRouteKtTest : ApiTest() {
             feilmelding = "Noe er riv ruskende galt!"
         ).toJson(TilgangResultat.serializer())
 
-        val response = post(PATH, Mock.request, HentForespoerselRequest.serializer())
+        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 }
 
-private object Mock {
+private object MockTrenger {
     val request = HentForespoerselRequest(UUID.randomUUID())
 
     private val forespoersel = Forespoersel(

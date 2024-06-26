@@ -20,8 +20,8 @@ class AktiveOrgnrProducerTest : FunSpec({
 
     test("publiserer melding på forventet format") {
         val clientId = UUID.randomUUID()
-        val arbeidsgiverFnr = Fnr.genererGyldig().verdi
-        val arbeidstagerFnr = Fnr.genererGyldig().verdi
+        val arbeidsgiverFnr = Fnr.genererGyldig()
+        val arbeidstagerFnr = Fnr.genererGyldig()
 
         producer.publish(clientId, arbeidsgiverFnr, arbeidstagerFnr)
 

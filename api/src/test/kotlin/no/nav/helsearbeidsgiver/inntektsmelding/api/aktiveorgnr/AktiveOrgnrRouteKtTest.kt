@@ -2,10 +2,12 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 
+import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
@@ -13,6 +15,8 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -32,7 +36,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
         ).toJson(ResultJson.serializer())
 
         val requestBody = """
-            {"identitetsnummer":"test-fnr"}
+            {"identitetsnummer":"${Fnr.genererGyldig()}"}
         """
 
         val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
@@ -42,18 +46,39 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     }
 
     @Test
+    fun `gir 404 dersom ingen arbeidsforhold finnes`() = testApi {
+        val resultatUtenArbeidsforhold = AktiveArbeidsgivere(
+            fulltNavn = "Johnny Jobblaus",
+            avsenderNavn = "Håvard Hå-Err",
+            underenheter = emptyList()
+        )
+
+        coEvery { mockRedisPoller.hent(any()) } returns ResultJson(
+            success = resultatUtenArbeidsforhold.toJson(AktiveArbeidsgivere.serializer())
+        ).toJson(ResultJson.serializer())
+
+        val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig()), AktiveOrgnrRequest.serializer())
+
+        response.status shouldBe HttpStatusCode.NotFound
+        response.bodyAsText() shouldBe "\"Fant ingen arbeidsforhold.\""
+    }
+
+    @Test
     fun `test request data`() {
+        val fnr = Fnr.genererGyldig()
         val requestBody = """
-            {"identitetsnummer":"test-fnr"}
+            {"identitetsnummer":"$fnr"}
         """.removeJsonWhitespace()
+
         val requestObj = requestBody.fromJson(AktiveOrgnrRequest.serializer())
-        assertEquals("test-fnr", requestObj.identitetsnummer)
+        assertEquals(fnr, requestObj.identitetsnummer)
     }
 
     private object Mock {
         val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
             {
                 "fulltNavn": "test-navn",
+                "avsenderNavn": "Arild Avsender",
                 "underenheter": [{"orgnrUnderenhet": "test-orgnr", "virksomhetsnavn": "test-orgnavn"}]
             }
         """.removeJsonWhitespace()

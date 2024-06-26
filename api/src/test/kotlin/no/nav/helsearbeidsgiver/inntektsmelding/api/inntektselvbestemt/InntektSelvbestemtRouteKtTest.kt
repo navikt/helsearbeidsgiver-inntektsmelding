@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
@@ -85,6 +86,23 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
     }
 
     @Test
+    fun `tomt resultat gir 500-feil`() = testApi {
+        val expectedFeilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
+
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            harTilgangResultat,
+            Mock.emptyResult()
+        )
+
+        val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
+
+        val actualJson = response.bodyAsText()
+
+        response.status shouldBe HttpStatusCode.InternalServerError
+        actualJson shouldBe expectedFeilmelding.toJsonStr(String.serializer())
+    }
+
+    @Test
     fun `timeout mot redis gir 500-feil`() = testApi {
         val expectedFeilJson = RedisTimeoutResponse().toJsonStr(RedisTimeoutResponse.serializer())
 
@@ -145,7 +163,7 @@ private object Mock {
 
     fun failureResult(feilmelding: String): JsonElement =
         ResultJson(
-            failure = feilmelding.toJson(String.serializer())
+            failure = feilmelding.toJson()
         ).toJson(ResultJson.serializer())
 
     fun emptyResult(): JsonElement =

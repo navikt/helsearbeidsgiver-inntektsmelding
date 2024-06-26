@@ -6,11 +6,6 @@ import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 
 const val MAKS_DAGER_OPPHOLD = 3L
 
-fun List<Arbeidsforhold>.filterOrgnr(vararg organisasjoner: String): List<Arbeidsforhold> {
-    return this
-        .filter { it.arbeidsgiver.organisasjonsnummer in organisasjoner }
-}
-
 fun List<Arbeidsforhold>.orgnrMedHistoriskArbeidsforhold(): List<String> {
     return this
         .mapNotNull { it.arbeidsgiver.organisasjonsnummer }
@@ -26,7 +21,7 @@ fun List<Periode>.aktivtArbeidsforholdIPeriode(arbeidsforhold: List<Arbeidsforho
 fun Periode.innenforArbeidsforhold(ansattPerioder: List<PeriodeNullable>): Boolean {
     return ansattPerioder.any { ansPeriode ->
         (ansPeriode.tom == null || this.tom.isBefore(ansPeriode.tom) || this.tom == ansPeriode.tom) &&
-            (ansPeriode.fom!!.isBefore(this.fom) || ansPeriode.fom!!.isEqual(this.fom))
+            (ansPeriode.fom!!.isBefore(this.fom) || ansPeriode.fom.isEqual(this.fom))
     }
 }
 fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {

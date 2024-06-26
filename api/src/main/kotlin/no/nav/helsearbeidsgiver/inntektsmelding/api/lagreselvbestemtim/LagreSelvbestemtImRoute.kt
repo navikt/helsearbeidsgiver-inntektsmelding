@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
@@ -26,9 +25,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutRespons
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.UkjentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ValideringErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -37,7 +36,6 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
-// TODO test
 fun Route.lagreSelvbestemtImRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
@@ -78,12 +76,11 @@ fun Route.lagreSelvbestemtImRoute(
 
                     producer.publish(clientId, skjema, avsenderFnr)
 
-                    runCatching {
+                    val resultat = runCatching {
                         redisPoller.hent(clientId)
                     }
-                        .let {
-                            sendResponse(it)
-                        }
+
+                    sendResponse(resultat)
                 }
             }
         }
@@ -126,11 +123,15 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
                         sikkerLogger.info(it)
                     }
                 }
-                respond(HttpStatusCode.OK, LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
+                respondOk(LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
             } else {
                 val feilmelding = resultat.failure?.fromJson(String.serializer()).orDefault("Tomt resultat i Redis.")
-                logger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding.")
-                sikkerLogger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding: $feilmelding")
+
+                "Klarte ikke motta selvbestemt inntektsmelding pga. feil.".also {
+                    logger.error(it)
+                    sikkerLogger.error("$it Feilmelding: '$feilmelding'")
+                }
+
                 if ("Mangler arbeidsforhold i perioden" == feilmelding) {
                     respondBadRequest(ArbeidsforholdErrorResponse(), ArbeidsforholdErrorResponse.serializer())
                 } else {
@@ -138,10 +139,12 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
                 }
             }
         }
-        .onFailure {
-            logger.info("Klarte ikke hente resultat.")
-            sikkerLogger.info("Klarte ikke hente resultat.", it)
-            when (it) {
+        .onFailure { error ->
+            "Klarte ikke hente resultat fra Redis.".also {
+                logger.error(it)
+                sikkerLogger.error(it, error)
+            }
+            when (error) {
                 is RedisPollerTimeoutException ->
                     respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
 

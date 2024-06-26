@@ -67,8 +67,8 @@ class InntektSelvbestemtService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.INNTEKT.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.FNR to fnr.toJson(Fnr.serializer()),
-                Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
+                Key.FNR to fnr.toJson(),
+                Key.ORGNRUNDERENHET to orgnr.toJson(),
                 Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(LocalDateSerializer)
             )
                 .also { loggBehovPublisert(BehovType.INNTEKT, it) }

@@ -33,8 +33,8 @@ class InntektSelvbestemtProducerTest : FunSpec({
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
-            Key.FNR to sykmeldtFnr.toJson(Fnr.serializer()),
-            Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
+            Key.FNR to sykmeldtFnr.toJson(),
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
             Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson()
         )
     }

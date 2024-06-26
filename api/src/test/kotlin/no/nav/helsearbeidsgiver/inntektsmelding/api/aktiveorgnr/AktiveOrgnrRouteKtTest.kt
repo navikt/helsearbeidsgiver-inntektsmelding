@@ -2,10 +2,12 @@
 
 package no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr
 
+import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
@@ -41,6 +43,24 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
         assertEquals(HttpStatusCode.Created, response.status)
         assertEquals(Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE, response.bodyAsText())
+    }
+
+    @Test
+    fun `gir 404 dersom ingen arbeidsforhold finnes`() = testApi {
+        val resultatUtenArbeidsforhold = AktiveArbeidsgivere(
+            fulltNavn = "Johnny Jobblaus",
+            avsenderNavn = "Håvard Hå-Err",
+            underenheter = emptyList()
+        )
+
+        coEvery { mockRedisPoller.hent(any()) } returns ResultJson(
+            success = resultatUtenArbeidsforhold.toJson(AktiveArbeidsgivere.serializer())
+        ).toJson(ResultJson.serializer())
+
+        val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig()), AktiveOrgnrRequest.serializer())
+
+        response.status shouldBe HttpStatusCode.NotFound
+        response.bodyAsText() shouldBe "\"Fant ingen arbeidsforhold.\""
     }
 
     @Test

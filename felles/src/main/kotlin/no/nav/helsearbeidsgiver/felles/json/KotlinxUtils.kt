@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -34,6 +35,11 @@ fun Fnr.toJson(): JsonElement =
 
 fun Orgnr.toJson(): JsonElement =
     toJson(Orgnr.serializer())
+
+fun <T> Set<T>.toJson(elementSerializer: KSerializer<T>): JsonElement =
+    toJson(
+        elementSerializer.set()
+    )
 
 @JvmName("toJsonMapKeyStringValueString")
 fun Map<String, String>.toJson(): JsonElement =

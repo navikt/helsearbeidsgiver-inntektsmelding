@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
+import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -32,6 +33,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndT
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -66,8 +68,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
-            Key.FNR to Mock.FNR.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
+            Key.FNR to Mock.fnr.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson()
         )
 
         redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
@@ -77,17 +79,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR_AG
+            ?.fromJson(String.serializer()) shouldBe Mock.fnrAg
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+            ?.fromJson(String.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.FNR, Mock.FNR_AG)
+            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -113,7 +115,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     }
 
     @Test
-    fun `Aareg kall feiler`() {
+    fun `ingen arbeidsforhold`() {
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
         coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
@@ -122,28 +124,28 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.CLIENT_ID to Mock.clientId.toJson(),
-            Key.FNR to Mock.FNR.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
+            Key.FNR to Mock.fnr.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson()
         )
 
-        redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.FEILTET_AKTIVE_ORGNR_RESPONSE
+        redisStore.get(RedisKey.of(Mock.clientId))?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR_AG
+            ?.fromJson(String.serializer()) shouldBe Mock.fnrAg
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+            ?.fromJson(String.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.FNR, Mock.FNR_AG)
+            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -175,8 +177,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.FNR_LISTE to listOf(
-                    Mock.FNR,
-                    Mock.FNR_AG
+                    Mock.fnr,
+                    Mock.fnrAg
                 ).toJson(String.serializer()),
                 Key.UUID to transaksjonId.toJson()
             ).toJson()
@@ -188,8 +190,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
                 Key.CLIENT_ID to Mock.clientId.toJson(),
-                Key.FNR to Mock.FNR.toJson(),
-                Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
+                Key.FNR to Mock.fnr.toJson(),
+                Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson()
             )
         }
 
@@ -222,14 +224,18 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 }
             }
         """.removeJsonWhitespace()
-        val FEILTET_AKTIVE_ORGNR_RESPONSE = """
-            {
-                "failure": "Fant ingen aktive arbeidsforhold"
-            }
-        """.removeJsonWhitespace()
-        val FNR = Fnr.genererGyldig().verdi
-        val FNR_AG = Fnr.genererGyldig().verdi
 
+        val resultatIngenArbeidsforholdJson = ResultJson(
+            success = AktiveArbeidsgivere(
+                fulltNavn = "Bjarne Betjent",
+                avsenderNavn = "Max Mekker",
+                underenheter = emptyList()
+            ).toJson(AktiveArbeidsgivere.serializer())
+        )
+            .toJson(ResultJson.serializer())
+
+        val fnr = Fnr.genererGyldig().verdi
+        val fnrAg = Fnr.genererGyldig().verdi
         val clientId = randomUuid()
 
         val arbeidsforholdListe = listOf(
@@ -288,12 +294,12 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             FullPerson(
                 navn = PersonNavn(fornavn = "Bjarne", mellomnavn = null, etternavn = "Betjent"),
                 foedselsdato = 1.januar,
-                ident = FNR
+                ident = fnr
             ),
             FullPerson(
                 navn = PersonNavn(fornavn = "Max", mellomnavn = null, etternavn = "Mekker"),
                 foedselsdato = 27.april,
-                ident = FNR_AG
+                ident = fnrAg
             )
         )
     }

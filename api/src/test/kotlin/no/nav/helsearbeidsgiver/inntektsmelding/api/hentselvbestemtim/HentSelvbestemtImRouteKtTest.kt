@@ -6,7 +6,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
@@ -221,7 +220,7 @@ private object Mock {
 
     fun failureResult(feilmelding: String): JsonElement =
         ResultJson(
-            failure = feilmelding.toJson(String.serializer())
+            failure = feilmelding.toJson()
         ).toJson(ResultJson.serializer())
 
     fun emptyResult(): JsonElement =

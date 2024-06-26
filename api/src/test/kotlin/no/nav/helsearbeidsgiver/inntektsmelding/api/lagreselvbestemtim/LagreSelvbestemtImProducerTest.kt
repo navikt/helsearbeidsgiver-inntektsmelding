@@ -23,7 +23,7 @@ class LagreSelvbestemtImProducerTest : FunSpec({
 
     test("publiserer melding på forventet format") {
         val clientId = UUID.randomUUID()
-        val avsenderFnr = Fnr.genererGyldig().verdi
+        val avsenderFnr = Fnr.genererGyldig()
         val skjema = mockSkjemaInntektsmeldingSelvbestemt()
 
         producer.publish(clientId, skjema, avsenderFnr)

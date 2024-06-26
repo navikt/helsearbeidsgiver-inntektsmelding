@@ -21,7 +21,7 @@ class HentForespoerselProducerTest : FunSpec({
     test("publiserer melding på forventet format") {
         val transaksjonId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
-        val avsenderFnr = Fnr.genererGyldig().verdi
+        val avsenderFnr = Fnr.genererGyldig()
 
         producer.publish(transaksjonId, HentForespoerselRequest(forespoerselId), avsenderFnr)
 

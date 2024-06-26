@@ -11,7 +11,7 @@ abstract class MockAuthToken {
     private val mockOAuth2Server = MockOAuth2Server()
     private val port = 6666
 
-    val mockPid = Fnr.genererGyldig().verdi
+    val mockPid = Fnr.genererGyldig()
 
     fun mockAuthToken(): String =
         mockOAuth2Server.issueToken(
@@ -19,7 +19,7 @@ abstract class MockAuthToken {
             subject = "mockSubject",
             audience = "aud-localhost",
             claims = mapOf(
-                Auth.CLAIM_PID to mockPid
+                Auth.CLAIM_PID to mockPid.verdi
             )
         )
             .serialize()

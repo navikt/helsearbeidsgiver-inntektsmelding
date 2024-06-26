@@ -3,11 +3,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class TrengerProducer(
@@ -17,7 +19,7 @@ class TrengerProducer(
         logger.info("Starter ${TrengerProducer::class.simpleName}...")
     }
 
-    fun publish(transaksjonId: UUID, request: HentForespoerselRequest, arbeidsgiverFnr: String) {
+    fun publish(transaksjonId: UUID, request: HentForespoerselRequest, arbeidsgiverFnr: Fnr) {
         rapid.publish(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
             Key.UUID to transaksjonId.toString().toJson(),

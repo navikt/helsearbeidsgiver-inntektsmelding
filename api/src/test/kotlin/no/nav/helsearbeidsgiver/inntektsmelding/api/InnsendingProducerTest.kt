@@ -24,7 +24,7 @@ class InnsendingProducerTest : FunSpec({
     test("publiserer melding på forventet format") {
         val clientId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
-        val avsenderFnr = Fnr.genererGyldig().verdi
+        val avsenderFnr = Fnr.genererGyldig()
 
         producer.publish(clientId, forespoerselId, GYLDIG_INNSENDING_REQUEST, avsenderFnr)
 

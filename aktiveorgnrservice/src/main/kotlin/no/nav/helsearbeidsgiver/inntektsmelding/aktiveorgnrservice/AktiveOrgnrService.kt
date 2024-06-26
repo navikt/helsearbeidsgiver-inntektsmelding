@@ -32,6 +32,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class AktiveOrgnrService(
@@ -71,8 +72,8 @@ class AktiveOrgnrService(
     override fun new(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
-        val innloggetFnr = melding[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
-        val sykmeldtFnr = melding[Key.FNR]?.fromJson(String.serializer())
+        val innloggetFnr = melding[Key.ARBEIDSGIVER_FNR]?.fromJson(Fnr.serializer())
+        val sykmeldtFnr = melding[Key.FNR]?.fromJson(Fnr.serializer())
         if (innloggetFnr != null && sykmeldtFnr != null) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
@@ -92,7 +93,7 @@ class AktiveOrgnrService(
                 Key.FNR_LISTE to listOf(
                     sykmeldtFnr,
                     innloggetFnr
-                ).toJson(String.serializer()),
+                ).toJson(Fnr.serializer()),
                 Key.UUID to transaksjonId.toJson()
             )
         } else {
@@ -150,8 +151,8 @@ class AktiveOrgnrService(
             .read()
             ?.let(UUID::fromString)
 
-        val sykmeldtFnr = Key.FNR.les(String.serializer(), melding)
-        val innloggetFnr = Key.ARBEIDSGIVER_FNR.les(String.serializer(), melding)
+        val sykmeldtFnr = Key.FNR.les(Fnr.serializer(), melding)
+        val innloggetFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding)
         val virksomheter = Key.VIRKSOMHETER.les(
             MapSerializer(String.serializer(), String.serializer()),
             melding

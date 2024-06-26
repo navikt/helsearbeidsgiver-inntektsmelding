@@ -18,8 +18,9 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PeriodeNullable
-import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
@@ -67,7 +68,7 @@ class AktiveOrgnrServiceTest : FunSpec({
         testRapid.inspektør.size shouldBeExactly 3
         testRapid.message(0).lesBehov() shouldBe BehovType.ARBEIDSGIVERE
         testRapid.message(1).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
-        testRapid.message(2).lesBehov() shouldBe BehovType.FULLT_NAVN
+        testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
 
         testRapid.sendJson(
             Mock.steg1Data(transaksjonId, orgnr)
@@ -208,13 +209,29 @@ class AktiveOrgnrServiceTest : FunSpec({
 })
 
 private object Mock {
-    const val SYKMELDT_NAVN = "Ole Idole"
-    const val ORG_NAVN = "Mexican Standup A/S"
+    private const val SYKMELDT_NAVN = "Ole Idole"
+    private const val AVSENDER_NAVN = "Ole Jacob Evenrud"
+    private const val ORG_NAVN = "Mexican Standup A/S"
+
+    private val sykmeldtFnr = Fnr.genererGyldig()
+    private val avsenderFnr = Fnr.genererGyldig()
+
+    private val personer = listOf(
+        sykmeldtFnr to SYKMELDT_NAVN,
+        avsenderFnr to AVSENDER_NAVN
+    ).associate { (fnr, navn) ->
+        fnr to Person(
+            fnr = fnr,
+            navn = navn,
+            foedselsdato = Person.foedselsdato(fnr)
+        )
+    }
 
     fun successResult(orgnr: Orgnr): JsonElement =
         ResultJson(
             success = AktiveArbeidsgivere(
                 fulltNavn = SYKMELDT_NAVN,
+                avsenderNavn = AVSENDER_NAVN,
                 underenheter = listOf(
                     AktiveArbeidsgivere.Arbeidsgiver(
                         orgnrUnderenhet = orgnr.verdi,
@@ -229,6 +246,7 @@ private object Mock {
         ResultJson(
             success = AktiveArbeidsgivere(
                 fulltNavn = SYKMELDT_NAVN,
+                avsenderNavn = AVSENDER_NAVN,
                 underenheter = emptyList()
             ).toJson(AktiveArbeidsgivere.serializer())
         )
@@ -245,8 +263,8 @@ private object Mock {
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FNR to Fnr.genererGyldig().toJson(),
-            Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson()
+            Key.FNR to sykmeldtFnr.toJson(),
+            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
         )
 
     fun steg1Data(transaksjonId: UUID, orgnr: Orgnr): Map<Key, JsonElement> =
@@ -265,11 +283,7 @@ private object Mock {
                 )
             ).toJson(Arbeidsforhold.serializer()),
             Key.ORG_RETTIGHETER to setOf(orgnr).toJson(Orgnr.serializer()),
-            Key.ARBEIDSTAKER_INFORMASJON to PersonDato(
-                navn = SYKMELDT_NAVN,
-                fødselsdato = null,
-                ident = Fnr.genererGyldig().verdi
-            ).toJson(PersonDato.serializer())
+            Key.PERSONER to personer.toJson(personMapSerializer)
         )
 
     fun steg2Data(transaksjonId: UUID, orgnr: Orgnr): Map<Key, JsonElement> =

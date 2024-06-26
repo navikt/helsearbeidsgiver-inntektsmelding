@@ -36,7 +36,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
         ).toJson(ResultJson.serializer())
 
         val requestBody = """
-            {"identitetsnummer":"test-fnr"}
+            {"identitetsnummer":"${Fnr.genererGyldig()}"}
         """
 
         val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
@@ -49,6 +49,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     fun `gir 404 dersom ingen arbeidsforhold finnes`() = testApi {
         val resultatUtenArbeidsforhold = AktiveArbeidsgivere(
             fulltNavn = "Johnny Jobblaus",
+            avsenderNavn = "Håvard Hå-Err",
             underenheter = emptyList()
         )
 
@@ -56,7 +57,7 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
             success = resultatUtenArbeidsforhold.toJson(AktiveArbeidsgivere.serializer())
         ).toJson(ResultJson.serializer())
 
-        val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig().verdi), AktiveOrgnrRequest.serializer())
+        val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig()), AktiveOrgnrRequest.serializer())
 
         response.status shouldBe HttpStatusCode.NotFound
         response.bodyAsText() shouldBe "\"Fant ingen arbeidsforhold.\""
@@ -64,17 +65,20 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
 
     @Test
     fun `test request data`() {
+        val fnr = Fnr.genererGyldig()
         val requestBody = """
-            {"identitetsnummer":"test-fnr"}
+            {"identitetsnummer":"$fnr"}
         """.removeJsonWhitespace()
+
         val requestObj = requestBody.fromJson(AktiveOrgnrRequest.serializer())
-        assertEquals("test-fnr", requestObj.identitetsnummer)
+        assertEquals(fnr, requestObj.identitetsnummer)
     }
 
     private object Mock {
         val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
             {
                 "fulltNavn": "test-navn",
+                "avsenderNavn": "Arild Avsender",
                 "underenheter": [{"orgnrUnderenhet": "test-orgnr", "virksomhetsnavn": "test-orgnavn"}]
             }
         """.removeJsonWhitespace()

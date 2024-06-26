@@ -20,6 +20,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
+import no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel.hentForespoerselRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.hentselvbestemtim.hentSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.innsendingRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.inntekt.inntektRoute
@@ -27,7 +28,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.inntektselvbestemt.inntektSe
 import no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering.kvitteringRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim.lagreSelvbestemtImRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
-import no.nav.helsearbeidsgiver.inntektsmelding.api.trenger.trengerRoute
 import no.nav.helsearbeidsgiver.utils.cache.LocalCache
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -41,6 +41,7 @@ val sikkerLogger = sikkerLogger()
 object Routes {
     const val PREFIX = "/api/v1"
 
+    const val HENT_FORESPOERSEL = "/hent-forespoersel"
     const val TRENGER = "/trenger"
     const val INNTEKT = "/inntekt"
     const val INNTEKT_SELVBESTEMT = "/inntekt-selvbestemt"
@@ -111,7 +112,7 @@ fun Application.apiModule(
 
         authenticate {
             route(Routes.PREFIX) {
-                trengerRoute(rapid, tilgangskontroll, redisPoller)
+                hentForespoerselRoute(rapid, tilgangskontroll, redisPoller)
                 inntektRoute(rapid, tilgangskontroll, redisPoller)
                 inntektSelvbestemtRoute(rapid, tilgangskontroll, redisPoller)
                 innsendingRoute(rapid, tilgangskontroll, redisPoller)

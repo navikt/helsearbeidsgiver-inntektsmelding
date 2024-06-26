@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -12,11 +12,11 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
-class TrengerProducer(
+class HentForespoerselProducer(
     private val rapid: RapidsConnection
 ) {
     init {
-        logger.info("Starter ${TrengerProducer::class.simpleName}...")
+        logger.info("Starter ${HentForespoerselProducer::class.simpleName}...")
     }
 
     fun publish(transaksjonId: UUID, request: HentForespoerselRequest, arbeidsgiverFnr: Fnr) {

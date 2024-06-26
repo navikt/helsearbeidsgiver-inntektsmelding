@@ -59,6 +59,7 @@ fun Route.aktiveOrgnrRoute(
 private fun AktiveArbeidsgivere.toResponse(): AktiveOrgnrResponse =
     AktiveOrgnrResponse(
         fulltNavn = fulltNavn,
+        avsenderNavn = avsenderNavn,
         underenheter = underenheter.map {
             GyldigUnderenhet(
                 orgnrUnderenhet = it.orgnrUnderenhet,

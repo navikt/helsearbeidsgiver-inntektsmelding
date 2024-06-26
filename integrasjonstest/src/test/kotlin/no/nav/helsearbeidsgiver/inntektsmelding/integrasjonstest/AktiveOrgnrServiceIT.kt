@@ -35,10 +35,13 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -58,7 +61,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
         coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
-        coEvery { pdlKlient.personBolk(any()) } returns listOf(Mock.person)
+        coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
@@ -82,9 +85,9 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             ?.fromJson(String.serializer()) shouldBe Mock.FNR
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.FULLT_NAVN)
-            .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+            .filter(BehovType.HENT_PERSONER)
+            .firstAsMap()[Key.FNR_LISTE]
+            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.FNR, Mock.FNR_AG)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -114,7 +117,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
         coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
-        coEvery { pdlKlient.personBolk(any()) } returns listOf(Mock.person)
+        coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
@@ -138,9 +141,9 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             ?.fromJson(String.serializer()) shouldBe Mock.FNR
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.FULLT_NAVN)
-            .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+            .filter(BehovType.HENT_PERSONER)
+            .firstAsMap()[Key.FNR_LISTE]
+            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.FNR, Mock.FNR_AG)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -164,14 +167,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val transaksjonId = UUID.randomUUID()
 
         val expectedFail = Fail(
-            feilmelding = "Klarte ikke hente navn",
+            feilmelding = "Klarte ikke hente personer fra PDL.",
             event = EventName.AKTIVE_ORGNR_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = null,
             utloesendeMelding = mapOf(
                 Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-                Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
+                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
+                Key.FNR_LISTE to listOf(
+                    Mock.FNR,
+                    Mock.FNR_AG
+                ).toJson(String.serializer()),
                 Key.UUID to transaksjonId.toJson()
             ).toJson()
         )
@@ -211,6 +217,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             {
                 "success": {
                     "fulltNavn": "Bjarne Betjent",
+                    "avsenderNavn": "Max Mekker",
                     "underenheter": [{"orgnrUnderenhet": "810007842", "virksomhetsnavn": "ANSTENDIG PIGGSVIN BARNEHAGE"}]
                 }
             }
@@ -220,8 +227,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 "failure": "Fant ingen aktive arbeidsforhold"
             }
         """.removeJsonWhitespace()
-        const val FNR = "kongelig-albatross"
-        const val FNR_AG = "uutgrunnelig-koffert"
+        val FNR = Fnr.genererGyldig().verdi
+        val FNR_AG = Fnr.genererGyldig().verdi
 
         val clientId = randomUuid()
 
@@ -277,10 +284,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         val underenheter = listOf("810007842")
 
-        val person = FullPerson(
-            navn = PersonNavn(fornavn = "Bjarne", mellomnavn = null, etternavn = "Betjent"),
-            foedselsdato = 1.januar,
-            ident = FNR
+        val personer = listOf(
+            FullPerson(
+                navn = PersonNavn(fornavn = "Bjarne", mellomnavn = null, etternavn = "Betjent"),
+                foedselsdato = 1.januar,
+                ident = FNR
+            ),
+            FullPerson(
+                navn = PersonNavn(fornavn = "Max", mellomnavn = null, etternavn = "Mekker"),
+                foedselsdato = 27.april,
+                ident = FNR_AG
+            )
         )
     }
 }

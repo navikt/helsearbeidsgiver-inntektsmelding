@@ -76,6 +76,8 @@ class InnsendingIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                 Key.CLIENT_ID to UUID.randomUUID().toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to Mock.skjema.identitetsnummer.toJson(),

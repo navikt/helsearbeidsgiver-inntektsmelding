@@ -25,6 +25,7 @@ class InnsendingProducer(
         rapid.publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
+            Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
             Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),

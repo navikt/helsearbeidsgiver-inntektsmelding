@@ -51,7 +51,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.create
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsendingService
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createKvitteringService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.createInntektSelvbestemtService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
@@ -192,7 +193,11 @@ abstract class EndToEndTest : ContainerTest() {
         imTestRapid.apply {
             // Servicer
             createAktiveOrgnrService(redisStore)
-            createInnsending(redisStore)
+            createInnsendingService(RedisStoreClassSpecific(
+                redis = redisConnection,
+                keyPrefix = RedisPrefix.InnsendingService
+            ))
+            createKvitteringService(redisStore)
             createInntektService(redisStore)
             createInntektSelvbestemtService(
                 RedisStoreClassSpecific(
@@ -204,7 +209,7 @@ abstract class EndToEndTest : ContainerTest() {
             createTilgangService(redisStore)
             createBerikInntektsmeldingService(RedisStoreClassSpecific(
                 redis = redisConnection,
-                keyPrefix = RedisPrefix.HentForespoerselService
+                keyPrefix = RedisPrefix.BerikInntektsmeldingService
             ))
             createTrengerService(
                 RedisStoreClassSpecific(

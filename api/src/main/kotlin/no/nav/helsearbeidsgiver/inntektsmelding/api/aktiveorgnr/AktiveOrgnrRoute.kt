@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -40,8 +41,12 @@ fun Route.aktiveOrgnrRoute(
 
             val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
             if (resultat != null) {
-                val response = resultat.toResponse()
-                call.respond(HttpStatusCode.Created, response.toJson(AktiveOrgnrResponse.serializer()))
+                if (resultat.underenheter.isEmpty()) {
+                    respondNotFound("Fant ingen arbeidsforhold.", String.serializer())
+                } else {
+                    val response = resultat.toResponse()
+                    call.respond(HttpStatusCode.Created, response.toJson(AktiveOrgnrResponse.serializer()))
+                }
             } else {
                 val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
                 respondInternalServerError(feilmelding, String.serializer())
@@ -59,6 +64,7 @@ fun Route.aktiveOrgnrRoute(
 private fun AktiveArbeidsgivere.toResponse(): AktiveOrgnrResponse =
     AktiveOrgnrResponse(
         fulltNavn = fulltNavn,
+        avsenderNavn = avsenderNavn,
         underenheter = underenheter.map {
             GyldigUnderenhet(
                 orgnrUnderenhet = it.orgnrUnderenhet,

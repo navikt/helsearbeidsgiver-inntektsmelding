@@ -13,8 +13,6 @@ import java.time.LocalDateTime
 class ArbeidsforholdInnenforPeriodeKtTest : FunSpec({
 
     val arbeidsgiver1 = Arbeidsgiver("ORG", "123456789")
-    val arbeidsgiver2 = Arbeidsgiver("ORG", "987654321")
-    val arbeidsgiver3 = Arbeidsgiver("ORG", "000000001")
     val minDate = LocalDateTime.MIN
     test("Ansatt slutter fram i tid") {
         listOf(

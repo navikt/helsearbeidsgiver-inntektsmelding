@@ -23,7 +23,7 @@ import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TrengerIT : EndToEndTest() {
+class HentForespoerselIT : EndToEndTest() {
 
     @Test
     fun `Test trengerIM meldingsflyt`() {
@@ -41,7 +41,7 @@ class TrengerIT : EndToEndTest() {
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(UuidSerializer),
             Key.DATA to "".toJson(),
-            Key.ARBEIDSGIVER_ID to Fnr.genererGyldig().toJson(),
+            Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer)
         )
 
@@ -62,7 +62,7 @@ class TrengerIT : EndToEndTest() {
             }
 
         messages.filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.FULLT_NAVN)
+            .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .let {
                 // Ble lagret i databasen

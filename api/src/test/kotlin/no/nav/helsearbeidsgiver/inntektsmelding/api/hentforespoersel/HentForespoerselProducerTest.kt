@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.inntektsmelding.api.trenger
+package no.nav.helsearbeidsgiver.inntektsmelding.api.hentforespoersel
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
@@ -14,14 +14,14 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
-class TrengerProducerTest : FunSpec({
+class HentForespoerselProducerTest : FunSpec({
     val testRapid = TestRapid()
-    val producer = TrengerProducer(testRapid)
+    val producer = HentForespoerselProducer(testRapid)
 
     test("publiserer melding på forventet format") {
         val transaksjonId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
-        val avsenderFnr = Fnr.genererGyldig().verdi
+        val avsenderFnr = Fnr.genererGyldig()
 
         producer.publish(transaksjonId, HentForespoerselRequest(forespoerselId), avsenderFnr)
 
@@ -31,7 +31,7 @@ class TrengerProducerTest : FunSpec({
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_ID to avsenderFnr.toJson()
+            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
         )
     }
 })

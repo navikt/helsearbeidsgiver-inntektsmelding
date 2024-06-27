@@ -424,7 +424,7 @@ class ServiceRiverTest : FunSpec({
                     "med ugyldig fail" to mapOf(
                         Key.EVENT_NAME to mockService.eventName.toJson(),
                         Key.UUID to UUID.randomUUID().toJson(),
-                        Key.FAIL to "ugyldig fail".toJson(String.serializer())
+                        Key.FAIL to "ugyldig fail".toJson()
                     )
                 )
             ) { innkommendeMelding ->

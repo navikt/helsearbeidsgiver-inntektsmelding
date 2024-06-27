@@ -95,12 +95,16 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
     }
 
     private fun MessageContext.publishSuksess(forespoersel: Forespoersel, melding: Melding) {
-        publish(
-            Key.EVENT_NAME to melding.initiateEvent.toJson(),
-            Key.DATA to "".toJson(),
-            Key.UUID to melding.transaksjonId.toJson(),
+        val dataFields = arrayOf(
             Key.FORESPOERSEL_ID to melding.forespoerselSvar.forespoerselId.toJson(),
             Key.FORESPOERSEL_SVAR to forespoersel.toJson(Forespoersel.serializer())
+        )
+
+        publish(
+            Key.EVENT_NAME to melding.initiateEvent.toJson(),
+            Key.UUID to melding.transaksjonId.toJson(),
+            Key.DATA to dataFields.toMap().toJson(),
+            *dataFields
         )
             .also {
                 logger.info("Publiserte data for ${BehovType.HENT_TRENGER_IM}.")

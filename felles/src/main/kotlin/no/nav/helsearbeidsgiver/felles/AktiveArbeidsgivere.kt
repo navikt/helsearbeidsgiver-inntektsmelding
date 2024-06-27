@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AktiveArbeidsgivere(
     val fulltNavn: String? = null,
+    val avsenderNavn: String,
     val underenheter: List<Arbeidsgiver>
 ) {
     @Serializable

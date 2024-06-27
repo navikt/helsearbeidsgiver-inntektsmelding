@@ -52,14 +52,16 @@ class InntektSelvbestemtIT : EndToEndTest() {
                 )
             )
 
+        val dataField = Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer())
+
         messages.filter(Key.INNTEKT)
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer())
+                    Key.DATA to mapOf(dataField).toJson(),
+                    dataField
                 )
             )
     }

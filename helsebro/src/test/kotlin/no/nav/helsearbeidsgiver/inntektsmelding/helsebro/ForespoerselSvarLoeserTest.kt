@@ -7,10 +7,10 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNames
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -83,12 +83,10 @@ private data class PublishedData(
     @JsonNames("@event_name")
     val eventName: EventName,
     val uuid: UUID,
+    val data: Map<Key, JsonElement>,
     @JsonNames("forespoersel-svar")
     val forespoerselSvar: Forespoersel
 ) {
-    @EncodeDefault
-    val data = ""
-
     companion object {
         fun mock(forespoerselSvar: ForespoerselSvar): PublishedData {
             val boomerangMap = forespoerselSvar.boomerang.toMap()
@@ -99,6 +97,10 @@ private data class PublishedData(
             return PublishedData(
                 eventName = initiateEvent,
                 uuid = transaksjonId,
+                data = mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
+                    Key.FORESPOERSEL_SVAR to forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull().toJson(Forespoersel.serializer())
+                ),
                 forespoerselSvar = forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull()
             )
         }

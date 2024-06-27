@@ -64,15 +64,19 @@ class HentPersonerRiver(
             sikkerLogger.info(it)
         }
 
-        return mapOf(
-            Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+        val dataMap = mapOf(
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
-            Key.DATA to "".toJson(),
             Key.PERSONER to personer.toJson(personMapSerializer)
         )
             .mapValuesNotNull { it }
+
+        return mapOf(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to dataMap.toJson(),
+            *dataMap.toList().toTypedArray()
+        )
     }
 
     override fun Melding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {

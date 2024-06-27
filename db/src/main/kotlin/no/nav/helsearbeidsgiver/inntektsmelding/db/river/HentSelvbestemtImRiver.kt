@@ -58,12 +58,16 @@ class HentSelvbestemtImRiver(
                 sikkerLogger.info(it)
             }
 
+            val dataFields = arrayOf(
+                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+            )
+
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                Key.DATA to "".toJson(),
-                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                Key.DATA to dataFields.toMap().toJson(),
+                *dataFields
             )
         } else {
             haandterFeil("Fant ikke selvbestemt inntektsmelding.", json)

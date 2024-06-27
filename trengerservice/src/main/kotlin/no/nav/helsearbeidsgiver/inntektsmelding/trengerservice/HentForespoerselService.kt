@@ -36,7 +36,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 private const val UNDEFINED_FELT = "{}"
 private const val UKJENT_NAVN = "Ukjent navn"
 
-class TrengerService(
+class HentForespoerselService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStoreClassSpecific
 ) : Service() {

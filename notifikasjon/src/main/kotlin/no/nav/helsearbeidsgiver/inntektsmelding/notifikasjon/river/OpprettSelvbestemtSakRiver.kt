@@ -65,11 +65,13 @@ class OpprettSelvbestemtSakRiver(
         ) {
             selvbestemtRepo.lagreSakId(inntektsmelding.type.id, sakId)
 
+            val dataField = Key.SAK_ID to sakId.toJson()
+
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                Key.SAK_ID to sakId.toJson()
+                Key.DATA to mapOf(dataField).toJson(),
+                dataField
             )
         }
     }

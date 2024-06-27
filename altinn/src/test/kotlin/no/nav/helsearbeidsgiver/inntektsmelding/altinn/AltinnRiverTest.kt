@@ -41,10 +41,12 @@ class AltinnRiverTest : FunSpec({
         val mockId = "long-john-silver"
         val mockUuid = randomUuid()
 
+        val dataField = Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().mapNotNull { it.orgnr }.toSet().toJson(String.serializer().set())
+
         val expectedPublished = mapOf(
-            Key.DATA to "".toJson(),
             Key.UUID to mockUuid.toJson(),
-            Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().mapNotNull { it.orgnr }.toSet().toJson(String.serializer().set())
+            Key.DATA to mapOf(dataField).toJson(),
+            dataField
         )
 
         testRapid.sendJson(

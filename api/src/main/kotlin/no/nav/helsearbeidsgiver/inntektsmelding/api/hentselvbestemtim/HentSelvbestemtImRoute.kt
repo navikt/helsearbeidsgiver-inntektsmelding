@@ -55,32 +55,28 @@ fun Route.hentSelvbestemtImRoute(
             ) {
                 producer.publish(transaksjonId, selvbestemtId)
 
-                MdcUtils.withLogFields(
-                    Log.transaksjonId(transaksjonId)
-                ) {
-                    runCatching {
-                        redisPoller.hent(transaksjonId)
-                    }
-                        .onSuccess {
-                            val result = it.fromJson(ResultJson.serializer())
-
-                            val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
-
-                            if (inntektsmelding != null) {
-                                tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr.verdi)
-                                sendOkResponse(inntektsmelding)
-                            } else {
-                                val feilmelding = result.failure
-                                    ?.fromJson(String.serializer())
-                                    .orDefault("Ukjent feil.")
-
-                                sendErrorResponse(feilmelding)
-                            }
-                        }
-                        .onFailure {
-                            sendRedisErrorResponse(selvbestemtId, it)
-                        }
+                runCatching {
+                    redisPoller.hent(transaksjonId)
                 }
+                    .onSuccess {
+                        val result = it.fromJson(ResultJson.serializer())
+
+                        val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
+
+                        if (inntektsmelding != null) {
+                            tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr.verdi)
+                            sendOkResponse(inntektsmelding)
+                        } else {
+                            val feilmelding = result.failure
+                                ?.fromJson(String.serializer())
+                                .orDefault("Ukjent feil.")
+
+                            sendErrorResponse(feilmelding)
+                        }
+                    }
+                    .onFailure {
+                        sendRedisErrorResponse(selvbestemtId, it)
+                    }
             }
         }
     }
@@ -99,8 +95,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendOkResponse(inntek
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.sendErrorResponse(feilmelding: String) {
     "Klarte ikke hente inntektsmelding pga. feil.".also {
-        logger.info(it)
-        sikkerLogger.info("$it Feilmelding: '$feilmelding'")
+        logger.error(it)
+        sikkerLogger.error("$it Feilmelding: '$feilmelding'")
     }
     val response = ResultJson(
         failure = HentSelvbestemtImResponseFailure(feilmelding).toJson(HentSelvbestemtImResponseFailure.serializer())
@@ -110,8 +106,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendErrorResponse(fei
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorResponse(selvbestemtId: UUID, error: Throwable) {
     "Klarte ikke hente inntektsmelding pga. feil i Redis.".also {
-        logger.info(it)
-        sikkerLogger.info(it, error)
+        logger.error(it)
+        sikkerLogger.error(it, error)
     }
     when (error) {
         is RedisPollerTimeoutException -> {

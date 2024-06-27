@@ -61,8 +61,9 @@ class HentSelvbestemtImService(
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val feilmeldingJson = fail.feilmelding.toJson()
-        val resultJson = ResultJson(failure = feilmeldingJson).toJson(ResultJson.serializer())
+        val resultJson = ResultJson(
+            failure = fail.feilmelding.toJson()
+        ).toJson(ResultJson.serializer())
         redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
     }
 

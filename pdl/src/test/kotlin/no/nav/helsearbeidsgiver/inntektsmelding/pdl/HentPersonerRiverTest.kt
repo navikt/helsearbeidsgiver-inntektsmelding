@@ -55,19 +55,21 @@ class HentPersonerRiverTest : FunSpec({
 
         testRapid.sendJson(innkommendeMelding.toMap())
 
+        val dataField = Key.PERSONER to mapOf(
+            olaFnr to Person(
+                fnr = olaFnr,
+                navn = "Ola Normann",
+                foedselsdato = 13.juni(1956)
+            )
+        ).toJson(personMapSerializer)
+
         testRapid.inspektør.size shouldBeExactly 1
 
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.PERSONER to mapOf(
-                olaFnr to Person(
-                    fnr = olaFnr,
-                    navn = "Ola Normann",
-                    foedselsdato = 13.juni(1956)
-                )
-            ).toJson(personMapSerializer)
+            Key.DATA to mapOf(dataField).toJson(),
+            dataField
         )
 
         coVerifySequence {
@@ -90,24 +92,26 @@ class HentPersonerRiverTest : FunSpec({
 
         testRapid.sendJson(innkommendeMelding.toMap())
 
+        val dataField = Key.PERSONER to mapOf(
+            olaFnr to Person(
+                fnr = olaFnr,
+                navn = "Ola Normann",
+                foedselsdato = 13.juni(1956)
+            ),
+            kariFnr to Person(
+                fnr = kariFnr,
+                navn = "Kari Normann",
+                foedselsdato = 13.juni(1956)
+            )
+        ).toJson(personMapSerializer)
+
         testRapid.inspektør.size shouldBeExactly 1
 
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.PERSONER to mapOf(
-                olaFnr to Person(
-                    fnr = olaFnr,
-                    navn = "Ola Normann",
-                    foedselsdato = 13.juni(1956)
-                ),
-                kariFnr to Person(
-                    fnr = kariFnr,
-                    navn = "Kari Normann",
-                    foedselsdato = 13.juni(1956)
-                )
-            ).toJson(personMapSerializer)
+            Key.DATA to mapOf(dataField).toJson(),
+            dataField
         )
 
         coVerifySequence {
@@ -125,19 +129,21 @@ class HentPersonerRiverTest : FunSpec({
 
         testRapid.sendJson(innkommendeMelding.toMap())
 
+        val dataField = Key.PERSONER to mapOf(
+            kariFnr to Person(
+                fnr = kariFnr,
+                navn = "Kari Normann",
+                foedselsdato = 13.juni(1956)
+            )
+        ).toJson(personMapSerializer)
+
         testRapid.inspektør.size shouldBeExactly 1
 
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
             Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.PERSONER to mapOf(
-                kariFnr to Person(
-                    fnr = kariFnr,
-                    navn = "Kari Normann",
-                    foedselsdato = 13.juni(1956)
-                )
-            ).toJson(personMapSerializer)
+            Key.DATA to mapOf(dataField).toJson(),
+            dataField
         )
 
         coVerifySequence {
@@ -158,13 +164,8 @@ class HentPersonerRiverTest : FunSpec({
                 .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
         )
 
-        testRapid.inspektør.size shouldBeExactly 1
-
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+        val dataFields = arrayOf(
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.DATA to "".toJson(),
             Key.PERSONER to mapOf(
                 olaFnr to Person(
                     fnr = olaFnr,
@@ -172,6 +173,15 @@ class HentPersonerRiverTest : FunSpec({
                     foedselsdato = 13.juni(1956)
                 )
             ).toJson(personMapSerializer)
+        )
+
+        testRapid.inspektør.size shouldBeExactly 1
+
+        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+            Key.DATA to dataFields.toMap().toJson(),
+            *dataFields
         )
     }
 
@@ -188,13 +198,8 @@ class HentPersonerRiverTest : FunSpec({
                 .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
         )
 
-        testRapid.inspektør.size shouldBeExactly 1
-
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+        val dataFields = arrayOf(
             Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-            Key.DATA to "".toJson(),
             Key.PERSONER to mapOf(
                 olaFnr to Person(
                     fnr = olaFnr,
@@ -202,6 +207,15 @@ class HentPersonerRiverTest : FunSpec({
                     foedselsdato = 13.juni(1956)
                 )
             ).toJson(personMapSerializer)
+        )
+
+        testRapid.inspektør.size shouldBeExactly 1
+
+        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
+            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+            Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+            Key.DATA to dataFields.toMap().toJson(),
+            *dataFields
         )
     }
 

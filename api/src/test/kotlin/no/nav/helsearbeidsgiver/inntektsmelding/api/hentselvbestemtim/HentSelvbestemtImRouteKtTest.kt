@@ -63,7 +63,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `gi OK med inntektsmelding`() = testApi {
+    fun `gir OK med inntektsmelding`() = testApi {
         val expectedInntektsmelding = mockInntektsmeldingV1()
 
         coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(

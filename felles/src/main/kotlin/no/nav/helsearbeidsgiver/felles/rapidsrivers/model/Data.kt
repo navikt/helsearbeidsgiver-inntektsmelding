@@ -30,16 +30,13 @@ fun MessageContext.publishData(
         .toList()
         .toTypedArray()
 
-    val nonNullMessageFields = messageFields.toMap()
-        .mapValuesNotNull { it }
-        .toList()
-        .toTypedArray()
+    val nonNullMessageFields = messageFields.toMap().mapValuesNotNull { it }
 
     return publish(
         Key.EVENT_NAME to eventName.toJson(),
-        Key.DATA to "".toJson(),
+        Key.DATA to nonNullMessageFields.toJson(),
         *optionalIdFields,
-        *nonNullMessageFields
+        *nonNullMessageFields.toList().toTypedArray()
     )
         .also {
             logger.info("Publiserte data for '$eventName' med transaksjonId '$transaksjonId'.")

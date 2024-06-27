@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -133,17 +132,9 @@ class InnsendingService(
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, eventName))?.fromJson(UuidSerializer)
+        val clientId = Key.CLIENT_ID.les(UuidSerializer, melding)
+        val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
-        if (clientId == null) {
-            MdcUtils.withLogFields(
-                Log.transaksjonId(fail.transaksjonId)
-            ) {
-                sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
-            }
-        } else {
-            val resultJson = ResultJson(failure = fail.feilmelding.toJson())
-            redisStore.set(RedisKey.of(clientId), resultJson.toJson(ResultJson.serializer()))
-        }
+        redisStore.set(RedisKey.of(clientId), resultJson.toJson(ResultJson.serializer()))
     }
 }

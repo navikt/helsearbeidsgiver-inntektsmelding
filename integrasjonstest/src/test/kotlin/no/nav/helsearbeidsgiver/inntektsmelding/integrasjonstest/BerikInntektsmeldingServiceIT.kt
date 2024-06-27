@@ -4,9 +4,11 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.every
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -39,6 +41,20 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
     @Ignore
     @Test
     fun `skal berike og lagre inntektsmeldinger`() {
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.toString())
+        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
+        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+
+        coEvery {
+            dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
+        } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = "journalpost-id-sukkerspinn",
+                journalpostFerdigstilt = true,
+                melding = "Ha en brillefin dag!",
+                dokumenter = emptyList(),
+        )
+
         mockForespoerselSvarFraHelsebro(
             eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = Mock.transaksjonId,
@@ -51,6 +67,8 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
 
             publish(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
+                Key.UUID to Mock.transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
                 Key.IDENTITETSNUMMER to Mock.fnr.toJson(Fnr.serializer()),
@@ -145,6 +163,8 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
         val fnr = Fnr.genererGyldig()
         val orgnr = Orgnr.genererGyldig()
         val transaksjonId: UUID = UUID.randomUUID()
+        const val SAK_ID = "tjukk-kalender"
+        const val OPPGAVE_ID = "kunstig-demon"
 
         val forespoerselId: UUID = UUID.randomUUID()
         val vedtaksperiodeId: UUID = UUID.randomUUID()

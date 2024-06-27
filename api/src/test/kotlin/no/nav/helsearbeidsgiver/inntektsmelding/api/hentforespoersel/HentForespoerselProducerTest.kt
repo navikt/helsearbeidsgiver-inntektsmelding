@@ -31,7 +31,7 @@ class HentForespoerselProducerTest : FunSpec({
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_ID to avsenderFnr.toJson()
+            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
         )
     }
 })

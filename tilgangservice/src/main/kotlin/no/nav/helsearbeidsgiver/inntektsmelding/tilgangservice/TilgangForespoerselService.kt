@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -26,6 +25,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class TilgangForespoerselService(
@@ -89,7 +89,7 @@ class TilgangForespoerselService(
         ) {
             if (Key.FORESPOERSEL_SVAR in melding) {
                 val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
-                val avsenderFnr = Key.FNR.les(String.serializer(), melding)
+                val avsenderFnr = Key.FNR.les(Fnr.serializer(), melding)
 
                 rapid.publish(
                     Key.EVENT_NAME to event.toJson(),

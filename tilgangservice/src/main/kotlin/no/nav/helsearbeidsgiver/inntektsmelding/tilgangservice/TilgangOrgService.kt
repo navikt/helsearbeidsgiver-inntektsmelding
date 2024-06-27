@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -26,6 +25,8 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class TilgangOrgService(
@@ -53,8 +54,8 @@ class TilgangOrgService(
 
     override fun new(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
-        val fnr = Key.FNR.les(String.serializer(), melding)
+        val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding)
+        val fnr = Key.FNR.les(Fnr.serializer(), melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),

@@ -42,7 +42,8 @@ class InnsendingService(
         Key.SKJEMA_INNTEKTSMELDING
     )
     override val dataKeys = setOf(
-        Key.ER_DUPLIKAT_IM
+        Key.ER_DUPLIKAT_IM,
+        Key.PERSISTERT_SKJEMA_INNTEKTSMELDING
     )
 
     init {
@@ -63,7 +64,7 @@ class InnsendingService(
         ) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
+                Key.BEHOV to BehovType.PERSISTER_IM_SKJEMA.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer())

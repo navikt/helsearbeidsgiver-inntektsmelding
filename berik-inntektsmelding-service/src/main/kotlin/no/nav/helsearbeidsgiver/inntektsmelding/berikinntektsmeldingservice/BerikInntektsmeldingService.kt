@@ -57,11 +57,15 @@ class BerikInntektsmeldingService(
         Key.VIRKSOMHET,
         Key.ARBEIDSGIVER_INFORMASJON,
         Key.ARBEIDSTAKER_INFORMASJON,
+        Key.INNTEKTSMELDING_DOKUMENT,
+        Key.ER_DUPLIKAT_IM,
     )
 
     private val step1Key = Key.FORESPOERSEL_SVAR
 
     private val step2Key = Key.VIRKSOMHET
+
+    private val step3Keys = listOf(Key.ARBEIDSGIVER_INFORMASJON, Key.ARBEIDSTAKER_INFORMASJON)
 
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
@@ -69,6 +73,8 @@ class BerikInntektsmeldingService(
 
         when {
             isFinished(melding) -> onFinished(transaksjonId, melding, startdata)
+
+            isOnStep3(melding) -> onStep3(melding, transaksjonId, startdata)
 
             isOnStep2(melding) -> onStep2(melding, transaksjonId, startdata)
 
@@ -158,11 +164,14 @@ class BerikInntektsmeldingService(
             }
     }
 
-    private fun onFinished(
-        transaksjonId: UUID,
+    private fun onStep3(
         melding: Map<Key, JsonElement>,
-        startdata: Array<Pair<Key, JsonElement>>,
+        transaksjonId: UUID,
+        startDataPar: Array<Pair<Key, JsonElement>>,
     ) {
+        val forespoerselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
+        val virksomhet = Key.VIRKSOMHET.les(String.serializer(), melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(String.serializer(), melding)
         val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
         val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
         val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
@@ -172,24 +181,52 @@ class BerikInntektsmeldingService(
         val inntektsmelding =
             mapInntektsmelding(
                 forespoersel = forespoersel,
-                    skjema = skjema,
-                    fulltnavnArbeidstaker = sykmeldt.navn,
-                    virksomhetNavn = virksomhetNavn,
-                    innsenderNavn = arbeidsgiver.navn,
-                )
+                skjema = skjema,
+                fulltnavnArbeidstaker = sykmeldt.navn,
+                virksomhetNavn = virksomhetNavn,
+                innsenderNavn = arbeidsgiver.navn,
+            )
 
         if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
             "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
                 logger.error(it)
-                    sikkerLogger.error(it)
+                sikkerLogger.error(it)
+            }
+        }
+
+        rapid
+            .publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.FORESPOERSEL_SVAR to forespoerselSvar.toJson(Forespoersel.serializer()),
+                Key.VIRKSOMHET to virksomhet.toJson(String.serializer()),
+                *startDataPar,
+            ).also {
+                MdcUtils.withLogFields(
+                    Log.behov(BehovType.PERSISTER_IM),
+                ) {
+                    logger.info("BerikInntektsmeldingService: emitting behov PERSISTER_IM")
+                    sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                 }
             }
+    }
 
-        // TODO: Persistere inntektsmelding.
+    private fun onFinished(
+        transaksjonId: UUID,
+        melding: Map<Key, JsonElement>,
+        startdata: Array<Pair<Key, JsonElement>>,
+    ) {
+        val inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), melding)
+        val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
 
         logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
         logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
-        rapid
+
+        if (!erDuplikat) {
+            rapid
             .publish(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.UUID to transaksjonId.toJson(),
@@ -199,6 +236,7 @@ class BerikInntektsmeldingService(
                     logger.info("Submitting INNTEKTSMELDING_MOTTATT")
                     sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT ${it.toPretty()}")
                 }
+        }
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
@@ -293,8 +331,11 @@ class BerikInntektsmeldingService(
         ).toTypedArray()
     }
 
+    private fun isOnStep3(melding: Map<Key, JsonElement>) =
+        melding.containsKey(step1Key) && melding.containsKey(step2Key) && step3Keys.all { it in melding } && !melding.containsKey(Key.BEHOV)
+
     private fun isOnStep2(melding: Map<Key, JsonElement>) =
-        melding.containsKey(step1Key) && melding.containsKey(step2Key) && !melding.containsKey(Key.BEHOV) // TODO: Kan vi ta bord !behov ?
+        !isOnStep3(melding) && melding.containsKey(step1Key) && melding.containsKey(step2Key) && !melding.containsKey(Key.BEHOV) // TODO: Kan vi ta bort !behov ?
 
     private fun isOnStep1(melding: Map<Key, JsonElement>) = !isOnStep2(melding) && melding.containsKey(step1Key) && !melding.containsKey(Key.BEHOV)
 

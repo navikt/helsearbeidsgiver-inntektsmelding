@@ -84,14 +84,14 @@ class InnsendingIT : EndToEndTest() {
             )
         }
 
-        messages.filter(EventName.INSENDING_STARTED)
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .firstAsMap()
             .also {
                 // Ble lagret i databasen
                 it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
             }
-        messages.filter(EventName.INSENDING_STARTED)
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
@@ -176,7 +176,7 @@ class InnsendingIT : EndToEndTest() {
             )
         }
 
-        messages.filter(EventName.INSENDING_STARTED)
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {

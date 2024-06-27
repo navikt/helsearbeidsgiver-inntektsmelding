@@ -50,11 +50,13 @@ class AltinnRiver(
                     .toSet()
             }
 
+        val dataField = Key.ORG_RETTIGHETER to rettigheterForenklet.toJson(String.serializer().set())
+
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.ORG_RETTIGHETER to rettigheterForenklet.toJson(String.serializer().set())
+            Key.DATA to mapOf(dataField).toJson(),
+            dataField
         )
     }
 

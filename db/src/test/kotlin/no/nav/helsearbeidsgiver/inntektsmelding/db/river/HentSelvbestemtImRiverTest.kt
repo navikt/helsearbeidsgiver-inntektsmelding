@@ -52,12 +52,16 @@ class HentSelvbestemtImRiverTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
+        val dataFields = arrayOf(
+            Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
+            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+        )
+
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
             Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+            Key.DATA to dataFields.toMap().toJson(),
+            *dataFields
         )
 
         verifySequence {

@@ -56,8 +56,9 @@ class PersisterImSkjemaLoeser(
             val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
             val inntektsmeldingSkjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), json)
 
+            // TODO: Trenger vi egentlig noen duplikatsjekk her, eller skal vi bare lagre ned alt?
             val sisteIm =
-                repository.hentNyesteInntektsmeldingSkjema(forespoerselId) // TODO: Trenger vi egentlig noen duplikatsjekk her, eller skal vi bare lagre ned alt?
+                repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
             val sisteImSkjema = repository.hentNyesteInntektsmeldingSkjema(forespoerselId)
             val erDuplikat =
                 sisteIm?.erDuplikatAv(inntektsmeldingSkjema) ?: false ||

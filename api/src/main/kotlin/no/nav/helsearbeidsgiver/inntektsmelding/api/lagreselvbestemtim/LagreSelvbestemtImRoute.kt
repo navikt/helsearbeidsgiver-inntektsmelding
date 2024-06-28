@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveText
@@ -19,23 +18,24 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ArbeidsforholdErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.UkjentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ValideringErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondOk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
+import java.util.UUID
 
-// TODO test
 fun Route.lagreSelvbestemtImRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
@@ -44,8 +44,11 @@ fun Route.lagreSelvbestemtImRoute(
     val producer = LagreSelvbestemtImProducer(rapid)
 
     post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
+        val clientId = UUID.randomUUID()
+
         MdcUtils.withLogFields(
-            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING)
+            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING),
+            Log.clientId(clientId)
         ) {
             val skjema = lesRequestOrNull()
             when {
@@ -71,18 +74,13 @@ fun Route.lagreSelvbestemtImRoute(
 
                     val avsenderFnr = call.request.lesFnrFraAuthToken()
 
-                    val clientId = producer.publish(skjema, avsenderFnr)
+                    producer.publish(clientId, skjema, avsenderFnr)
 
-                    MdcUtils.withLogFields(
-                        Log.clientId(clientId)
-                    ) {
-                        runCatching {
-                            redisPoller.hent(clientId)
-                        }
-                            .let {
-                                sendResponse(it)
-                            }
+                    val resultat = runCatching {
+                        redisPoller.hent(clientId)
                     }
+
+                    sendResponse(resultat)
                 }
             }
         }
@@ -125,19 +123,28 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
                         sikkerLogger.info(it)
                     }
                 }
-                respond(HttpStatusCode.OK, LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
+                respondOk(LagreSelvbestemtImResponse(selvbestemtId), LagreSelvbestemtImResponse.serializer())
             } else {
                 val feilmelding = resultat.failure?.fromJson(String.serializer()).orDefault("Tomt resultat i Redis.")
 
-                logger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding.")
-                sikkerLogger.info("Fikk feil under mottagelse av selvbestemt inntektsmelding: $feilmelding")
-                respondInternalServerError(UkjentErrorResponse(), UkjentErrorResponse.serializer())
+                "Klarte ikke motta selvbestemt inntektsmelding pga. feil.".also {
+                    logger.error(it)
+                    sikkerLogger.error("$it Feilmelding: '$feilmelding'")
+                }
+
+                if ("Mangler arbeidsforhold i perioden" == feilmelding) {
+                    respondBadRequest(ArbeidsforholdErrorResponse(), ArbeidsforholdErrorResponse.serializer())
+                } else {
+                    respondInternalServerError(UkjentErrorResponse(), UkjentErrorResponse.serializer())
+                }
             }
         }
-        .onFailure {
-            logger.info("Klarte ikke hente resultat.")
-            sikkerLogger.info("Klarte ikke hente resultat.", it)
-            when (it) {
+        .onFailure { error ->
+            "Klarte ikke hente resultat fra Redis.".also {
+                logger.error(it)
+                sikkerLogger.error(it, error)
+            }
+            when (error) {
                 is RedisPollerTimeoutException ->
                     respondInternalServerError(RedisTimeoutResponse(), RedisTimeoutResponse.serializer())
 

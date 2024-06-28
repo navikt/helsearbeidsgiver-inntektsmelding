@@ -60,7 +60,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
-import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createTrengerService
+import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createHentForespoerselService
 import no.nav.helsearbeidsgiver.pdl.PdlClient
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
 import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
@@ -211,7 +211,7 @@ abstract class EndToEndTest : ContainerTest() {
                 redis = redisConnection,
                 keyPrefix = RedisPrefix.BerikInntektsmeldingService
             ))
-            createTrengerService(
+            createHentForespoerselService(
                 RedisStoreClassSpecific(
                     redis = redisConnection,
                     keyPrefix = RedisPrefix.HentForespoerselService

@@ -9,9 +9,9 @@ import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class AktiveOrgnrService(
@@ -46,15 +47,16 @@ class AktiveOrgnrService(
         Key.ARBEIDSGIVER_FNR
     )
     override val dataKeys = setOf(
-        Key.ARBEIDSFORHOLD,
         Key.ORG_RETTIGHETER,
-        Key.ARBEIDSTAKER_INFORMASJON,
+        Key.ARBEIDSFORHOLD,
+        Key.PERSONER,
         Key.VIRKSOMHETER
     )
 
     private val step1Keys = setOf(
+        Key.ORG_RETTIGHETER,
         Key.ARBEIDSFORHOLD,
-        Key.ORG_RETTIGHETER
+        Key.PERSONER
     )
     private val step2Keys = setOf(
         Key.VIRKSOMHETER
@@ -69,9 +71,9 @@ class AktiveOrgnrService(
     override fun new(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
-        val innloggetFnr = melding[Key.ARBEIDSGIVER_FNR]?.fromJson(String.serializer())
-        val sykemeldtFnr = melding[Key.FNR]?.fromJson(String.serializer())
-        if (innloggetFnr != null && sykemeldtFnr != null) {
+        val innloggetFnr = melding[Key.ARBEIDSGIVER_FNR]?.fromJson(Fnr.serializer())
+        val sykmeldtFnr = melding[Key.FNR]?.fromJson(Fnr.serializer())
+        if (innloggetFnr != null && sykmeldtFnr != null) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
@@ -81,13 +83,16 @@ class AktiveOrgnrService(
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-                Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
+                Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(),
                 Key.UUID to transaksjonId.toJson()
             )
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-                Key.IDENTITETSNUMMER to sykemeldtFnr.toJson(),
+                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
+                Key.FNR_LISTE to listOf(
+                    sykmeldtFnr,
+                    innloggetFnr
+                ).toJson(Fnr.serializer()),
                 Key.UUID to transaksjonId.toJson()
             )
         } else {
@@ -114,8 +119,20 @@ class AktiveOrgnrService(
             val arbeidsforholdListe = Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
             val orgrettigheter = Key.ORG_RETTIGHETER.les(String.serializer().set(), melding)
 
-            trekkUtArbeidsforhold(arbeidsforholdListe, orgrettigheter)
-                .onSuccess { arbeidsgivere ->
+            val arbeidsgivere = trekkUtArbeidsforhold(arbeidsforholdListe, orgrettigheter)
+
+            MdcUtils.withLogFields(
+                Log.klasse(this),
+                Log.event(event),
+                Log.transaksjonId(transaksjonId)
+            ) {
+                if (orgrettigheter.isEmpty()) {
+                    val feilmelding = "Må ha orgrettigheter for å kunne hente virksomheter."
+                    onError(melding, melding.createFail(feilmelding, transaksjonId))
+                } else if (arbeidsgivere.isEmpty()) {
+                    val meldingMedDefault = melding.plus(Key.VIRKSOMHETER to emptyMap<String, String>().toJson())
+                    finalize(meldingMedDefault)
+                } else {
                     rapid.publish(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
@@ -123,18 +140,7 @@ class AktiveOrgnrService(
                         Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer())
                     )
                 }
-                .onFailure {
-                    val feilmelding = it.message ?: "Ukjent feil oppstod"
-                    MdcUtils.withLogFields(
-                        Log.klasse(this),
-                        Log.event(event),
-                        Log.transaksjonId(transaksjonId)
-                    ) {
-                        sikkerLogger.error(feilmelding)
-                        logger.error(feilmelding)
-                    }
-                    onError(melding, melding.createFail(feilmelding, transaksjonId))
-                }
+            }
         }
     }
 
@@ -145,11 +151,15 @@ class AktiveOrgnrService(
             .read()
             ?.let(UUID::fromString)
 
+        val sykmeldtFnr = Key.FNR.les(Fnr.serializer(), melding)
+        val innloggetFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding)
         val virksomheter = Key.VIRKSOMHETER.les(
             MapSerializer(String.serializer(), String.serializer()),
             melding
         )
-        val fulltNavn = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+        val personer = Key.PERSONER.les(personMapSerializer, melding)
+        val sykmeldtNavn = personer[sykmeldtFnr]?.navn.orEmpty()
+        val avsenderNavn = personer[innloggetFnr]?.navn.orEmpty()
 
         if (clientId != null) {
             val gyldigeUnderenheter =
@@ -162,7 +172,8 @@ class AktiveOrgnrService(
 
             val gyldigResponse = ResultJson(
                 success = AktiveArbeidsgivere(
-                    fulltNavn = fulltNavn.navn,
+                    fulltNavn = sykmeldtNavn,
+                    avsenderNavn = avsenderNavn,
                     underenheter = gyldigeUnderenheter
                 ).toJson(AktiveArbeidsgivere.serializer())
             )
@@ -189,6 +200,9 @@ class AktiveOrgnrService(
             ?.let(UUID::fromString)
 
         if (clientId != null) {
+            logger.error(fail.feilmelding)
+            sikkerLogger.error(fail.feilmelding)
+
             val feilResponse = ResultJson(
                 failure = fail.feilmelding.toJson()
             ).toJson(ResultJson.serializer())
@@ -206,25 +220,11 @@ class AktiveOrgnrService(
             utloesendeMelding = toJson()
         )
 
-    private fun trekkUtArbeidsforhold(arbeidsforholdListe: List<Arbeidsforhold>?, orgrettigheter: Set<String>?): Result<List<String>> {
-        return if (arbeidsforholdListe.isNullOrEmpty()) {
-            Result.failure(Exception("Fant ingen aktive arbeidsforhold"))
-        } else if (orgrettigheter.isNullOrEmpty()) {
-            Result.failure(Exception("Må ha orgrettigheter for å kunne hente virksomheter"))
-        } else {
-            val arbeidsgivere =
-                arbeidsforholdListe
-                    .filterOrgnr(
-                        *orgrettigheter.toTypedArray()
-                    )
-                    .orgnrMedHistoriskArbeidsforhold()
-            if (arbeidsgivere.isEmpty()) {
-                Result.failure(Exception("Fant ingen aktive arbeidsforhold"))
-            } else {
-                Result.success(arbeidsgivere)
-            }
-        }
-    }
+    private fun trekkUtArbeidsforhold(arbeidsforholdListe: List<Arbeidsforhold>, orgrettigheter: Set<String>): Set<String> =
+        arbeidsforholdListe
+            .mapNotNull { it.arbeidsgiver.organisasjonsnummer }
+            .filter { it in orgrettigheter }
+            .toSet()
 
     private fun RedisKey.read(): String? =
         redisStore.get(this)

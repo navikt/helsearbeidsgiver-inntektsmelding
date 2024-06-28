@@ -1,23 +1,42 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api
 
-import io.mockk.every
-import io.mockk.mockk
-import no.nav.helse.rapids_rivers.RapidsConnection
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.maps.shouldContainExactly
+import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Test
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
-class InnsendingProducerTest {
+class InnsendingProducerTest : FunSpec({
+    val testRapid = TestRapid()
+    val producer = InnsendingProducer(testRapid)
 
-    @Test
-    fun skal_returnere_uuid() {
-        val rapidsConnection = mockk<RapidsConnection>()
-        val producer = InnsendingProducer(rapidsConnection)
-        every {
-            rapidsConnection.publish(any())
-        } returns Unit
-        assertNotNull(producer.publish(UUID.randomUUID(), GYLDIG_INNSENDING_REQUEST, "gyldig-fnr"))
+    test("publiserer melding på forventet format") {
+        val clientId = UUID.randomUUID()
+        val forespoerselId = UUID.randomUUID()
+        val avsenderFnr = Fnr.genererGyldig()
+
+        producer.publish(clientId, forespoerselId, GYLDIG_INNSENDING_REQUEST, avsenderFnr)
+
+        testRapid.inspektør.size shouldBeExactly 1
+        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.CLIENT_ID to clientId.toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.ORGNRUNDERENHET to GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet.toJson(),
+            Key.IDENTITETSNUMMER to GYLDIG_INNSENDING_REQUEST.identitetsnummer.toJson(),
+            Key.ARBEIDSGIVER_ID to avsenderFnr.toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
+        )
     }
-}
+})

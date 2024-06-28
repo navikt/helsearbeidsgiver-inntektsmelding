@@ -16,7 +16,10 @@ enum class Key(override val str: String) : IKey {
     // Egendefinerte
     SELVBESTEMT_ID("selvbestemt_id"),
     IDENTITETSNUMMER("identitetsnummer"),
+
+    @Deprecated("Bruk 'Key.ARBEIDSGIVER_FNR'.")
     ARBEIDSGIVER_ID("arbeidsgiverId"),
+    ARBEIDSGIVER_FNR("arbeidsgiver_fnr"),
     UUID("uuid"),
     CLIENT_ID("client_id"),
     FORESPOERSEL_ID("forespoerselId"),
@@ -42,12 +45,10 @@ enum class Key(override val str: String) : IKey {
     ORGNRUNDERENHETER("orgnrUnderenheter"),
     ORG_RETTIGHETER("org_rettigheter"),
     FORESPOERSEL_SVAR("forespoersel-svar"),
-    TRENGER_INNTEKT("trenger-inntekt"),
     INNTEKT("inntekt"),
     FNR("fnr"),
     FNR_LISTE("fnr_liste"),
     PERSONER("personer"),
-    ARBEIDSGIVER_FNR("arbeidsgiverFnr"), // pga trengerService....
     SKJAERINGSTIDSPUNKT("skjaeringstidspunkt"),
     TILGANG("tilgang"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),

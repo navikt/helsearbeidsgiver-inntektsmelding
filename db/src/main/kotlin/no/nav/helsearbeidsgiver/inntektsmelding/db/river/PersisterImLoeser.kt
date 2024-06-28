@@ -60,7 +60,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: $forespoerselId")
             }
 
-            val messagePairs =
+            val bumerangdata =
                 json
                     .minus(listOf(Key.BEHOV, Key.EVENT_NAME))
                     .toList()
@@ -72,7 +72,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 forespoerselId = forespoerselId,
                 Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
                 Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
-                *messagePairs
+                *bumerangdata
 
             )
         } catch (ex: Exception) {

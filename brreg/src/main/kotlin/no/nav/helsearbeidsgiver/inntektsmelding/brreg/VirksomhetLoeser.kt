@@ -102,7 +102,7 @@ class VirksomhetLoeser(
                 hentVirksomheter(orgnr)
                     .associate { it.organisasjonsnummer to it.navn }
 
-            val messagePairs =
+            val bumerangdata =
                 json
                     .minus(listOf(Key.BEHOV, Key.EVENT_NAME))
                     .toList()
@@ -116,7 +116,7 @@ class VirksomhetLoeser(
                 Key.VIRKSOMHET to navnListe.values.first().toJson(),
                 Key.VIRKSOMHETER to navnListe.toJson(),
                 Key.DATA to "".toJson(),
-                *messagePairs,
+                *bumerangdata,
             )
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")

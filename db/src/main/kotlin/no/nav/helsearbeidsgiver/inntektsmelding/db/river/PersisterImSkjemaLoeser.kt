@@ -70,7 +70,7 @@ class PersisterImSkjemaLoeser(
                 sikkerLogger.info("Lagret Inntektsmelding for forespoerselId: $forespoerselId")
             }
 
-            val messagePairs =
+            val bumerangdata =
                 json
                     .minus(listOf(Key.BEHOV, Key.EVENT_NAME))
                     .toList()
@@ -82,7 +82,7 @@ class PersisterImSkjemaLoeser(
                 forespoerselId = forespoerselId,
                 Key.PERSISTERT_SKJEMA_INNTEKTSMELDING to inntektsmeldingSkjema.toJson(Innsending.serializer()),
                 Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
-                *messagePairs
+                *bumerangdata
             )
         } catch (ex: Exception) {
             "Klarte ikke persistere skjema: $forespoerselId".also {

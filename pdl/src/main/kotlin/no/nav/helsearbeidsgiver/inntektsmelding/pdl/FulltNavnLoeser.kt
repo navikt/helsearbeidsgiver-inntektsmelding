@@ -67,7 +67,7 @@ class FulltNavnLoeser(
                 val arbeidstakerInfo = personer.firstOrNull { it.ident == arbeidstakerId }.orDefault(PersonDato("", null, arbeidstakerId))
                 val arbeidsgiverInfo = personer.firstOrNull { it.ident == arbeidsgiverId }.orDefault(PersonDato("", null, arbeidsgiverId))
 
-                val messagePairs =
+                val bumerangdata =
                     json
                         .minus(listOf(Key.BEHOV, Key.EVENT_NAME))
                         .toList()
@@ -81,7 +81,7 @@ class FulltNavnLoeser(
                     Key.ARBEIDSTAKER_INFORMASJON to arbeidstakerInfo.toJson(PersonDato.serializer()),
                     Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo.toJson(PersonDato.serializer()),
                     Key.DATA to "".toJson(),
-                    *messagePairs
+                    *bumerangdata
                 )
             } catch (ex: Exception) {
                 logger.error("Klarte ikke hente navn for transaksjonId $transaksjonId.")

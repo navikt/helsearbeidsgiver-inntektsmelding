@@ -10,22 +10,17 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
-import no.nav.helsearbeidsgiver.felles.ResultJson
-import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -65,7 +60,7 @@ class BerikInntektsmeldingService(
 
     private val step2Key = Key.VIRKSOMHET
 
-    private val step3Keys = listOf(Key.ARBEIDSGIVER_INFORMASJON, Key.ARBEIDSTAKER_INFORMASJON)
+    private val step3Keys = setOf(Key.ARBEIDSGIVER_INFORMASJON, Key.ARBEIDSTAKER_INFORMASJON)
 
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
@@ -80,18 +75,16 @@ class BerikInntektsmeldingService(
 
             isOnStep1(melding) -> onStep1(melding, transaksjonId, startdata)
 
-            isOnStep0(melding) -> onStep0(melding, transaksjonId, startdata)
+            isOnStep0(melding) -> onStep0(transaksjonId, startdata)
 
             else -> logger.info("Noe gikk galt") // TODO: Hva gjør vi her?
         }
     }
 
     private fun onStep0(
-        melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startDataPar: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>,
     ) {
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
@@ -102,8 +95,7 @@ class BerikInntektsmeldingService(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    *startDataPar,
+                    *startdata,
                 ).also {
                     MdcUtils.withLogFields(
                         Log.behov(BehovType.HENT_TRENGER_IM),
@@ -118,7 +110,7 @@ class BerikInntektsmeldingService(
     private fun onStep1(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startDataPar: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>,
     ) {
         val forespoerselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
         rapid
@@ -127,7 +119,7 @@ class BerikInntektsmeldingService(
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_SVAR to forespoerselSvar.toJson(Forespoersel.serializer()),
-                *startDataPar,
+                *startdata,
             ).also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.VIRKSOMHET),
@@ -141,7 +133,7 @@ class BerikInntektsmeldingService(
     private fun onStep2(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startDataPar: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>,
     ) {
         val forespoerselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
         val virksomhet = Key.VIRKSOMHET.les(String.serializer(), melding)
@@ -153,7 +145,7 @@ class BerikInntektsmeldingService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_SVAR to forespoerselSvar.toJson(Forespoersel.serializer()),
                 Key.VIRKSOMHET to virksomhet.toJson(String.serializer()),
-                *startDataPar,
+                *startdata,
             ).also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.FULLT_NAVN),
@@ -167,13 +159,13 @@ class BerikInntektsmeldingService(
     private fun onStep3(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startDataPar: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>,
     ) {
         val forespoerselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
         val virksomhet = Key.VIRKSOMHET.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(String.serializer(), melding)
         val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
-        val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
+        val arbeidstaker = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
         val arbeidsgiver = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
         val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
@@ -182,7 +174,7 @@ class BerikInntektsmeldingService(
             mapInntektsmelding(
                 forespoersel = forespoersel,
                 skjema = skjema,
-                fulltnavnArbeidstaker = sykmeldt.navn,
+                fulltnavnArbeidstaker = arbeidstaker.navn,
                 virksomhetNavn = virksomhetNavn,
                 innsenderNavn = arbeidsgiver.navn,
             )
@@ -203,7 +195,9 @@ class BerikInntektsmeldingService(
                 Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
                 Key.FORESPOERSEL_SVAR to forespoerselSvar.toJson(Forespoersel.serializer()),
                 Key.VIRKSOMHET to virksomhet.toJson(String.serializer()),
-                *startDataPar,
+                Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),
+                Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer()),
+                *startdata,
             ).also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.PERSISTER_IM),
@@ -240,38 +234,15 @@ class BerikInntektsmeldingService(
     }
 
     override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val clientId = RedisKey.of(fail.transaksjonId, eventName)
-            .read()
+        val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
-        if (clientId == null) {
-            MdcUtils.withLogFields(
-                Log.transaksjonId(fail.transaksjonId)
-            ) {
-                "Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
-                }
-            }
-        } else {
-            val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
+        if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {
+            // TODO: Hva gjør vi her dersom vi ikke klarte å hente forespørselen? Retry-mekanisme?
+            return
+        }
 
-            if (utloesendeBehov == BehovType.HENT_TRENGER_IM) {
-                sikkerLogger.info("terminate transaction id ${fail.transaksjonId} with eventname ${fail.event}")
-
-                // TODO: Gir det mening å drive å skrive til Redis når vi er i async-verden? Hvordan behandler vi feil nå som ikke lenger Routen står og venter på svar?
-
-                val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, fail.event))?.fromJson(UuidSerializer)
-                if (clientId != null) {
-                    val resultJson = ResultJson(
-                        failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(String.serializer()),
-                    ).toJsonStr(ResultJson.serializer())
-
-                    // redisStore.set(RedisKey.of(clientId), resultJson) // TODO: Sjekke hvordan vi gjør dette
-                }
-                return
-            }
-
-            val datafeil = when (utloesendeBehov) {
+        val datafeil =
+            when (utloesendeBehov) {
                 BehovType.VIRKSOMHET -> {
                     listOf(
                         Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
@@ -293,20 +264,15 @@ class BerikInntektsmeldingService(
                 }
             }
 
-            if (datafeil.isNotEmpty()) {
-                // TODO: Sjekke hvordan vi ønske å gjøre dette
-//                datafeil.onEach { (key, defaultVerdi) ->
-//                    redisStore.set(RedisKey.of(fail.transaksjonId, key), defaultVerdi.toString())
-//                }
-
-                val meldingMedDefault = datafeil.toMap().plus(melding)
-
-                onData(meldingMedDefault)
-            } // TODO: Hvordan bør vi håndtere feil her?
+        if (datafeil.isNotEmpty()) {
+            val bumerangdata = fail.utloesendeMelding.toMap()
+                .minus(listOf(Key.BEHOV, Key.EVENT_NAME))
+                .toList()
+                .toTypedArray()
+            val meldingMedDefault = datafeil.toMap().plus(melding).plus(bumerangdata)
+            onData(meldingMedDefault)
         }
     }
-
-    private fun RedisKey.read(): UUID? = redisStore.get(this)?.fromJson(UuidSerializer)
 
     private fun tomPerson(fnr: String): PersonDato =
         PersonDato(
@@ -331,14 +297,29 @@ class BerikInntektsmeldingService(
         ).toTypedArray()
     }
 
-    private fun isOnStep3(melding: Map<Key, JsonElement>) =
-        melding.containsKey(step1Key) && melding.containsKey(step2Key) && step3Keys.all { it in melding } && !melding.containsKey(Key.BEHOV)
+    private fun isOnStep3(melding: Map<Key, JsonElement>): Boolean =
+        melding.containsKey(step1Key) &&
+            melding.containsKey(step2Key) &&
+            melding.containsKeys(step3Keys) &&
+            !isFinished(melding)
 
-    private fun isOnStep2(melding: Map<Key, JsonElement>) =
-        !isOnStep3(melding) && melding.containsKey(step1Key) && melding.containsKey(step2Key) && !melding.containsKey(Key.BEHOV) // TODO: Kan vi ta bort !behov ?
+    private fun isOnStep2(melding: Map<Key, JsonElement>): Boolean =
+        melding.containsKey(step1Key) &&
+            melding.containsKey(step2Key) &&
+            !isOnStep3(melding) &&
+            !isFinished(melding)
 
-    private fun isOnStep1(melding: Map<Key, JsonElement>) = !isOnStep2(melding) && melding.containsKey(step1Key) && !melding.containsKey(Key.BEHOV)
+    private fun isOnStep1(melding: Map<Key, JsonElement>): Boolean =
+        melding.containsKey(step1Key) &&
+            !isOnStep2(melding) &&
+            !isOnStep3(melding) &&
+            !isFinished(melding)
 
-    private fun isOnStep0(melding: Map<Key, JsonElement>) =
-        !isOnStep1(melding) && !isOnStep2(melding) && !isFinished(melding) && !melding.containsKey(Key.BEHOV)
+    private fun isOnStep0(melding: Map<Key, JsonElement>): Boolean =
+        !isOnStep1(melding) &&
+            !isOnStep2(melding) &&
+            !isOnStep3(melding) &&
+            !isFinished(melding)
+
+    private fun <K, V> Map<K, V>.containsKeys(keys: Set<K>): Boolean = keys.all { this.containsKey(it) }
 }

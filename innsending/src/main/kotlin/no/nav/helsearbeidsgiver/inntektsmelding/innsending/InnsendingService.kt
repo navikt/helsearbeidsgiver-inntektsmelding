@@ -58,26 +58,6 @@ class InnsendingService(
         }
     }
 
-    private fun lesStartdata(melding: Map<Key, JsonElement>): Array<Pair<Key, JsonElement>> {
-        val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val innsenderFnr = Key.ARBEIDSGIVER_ID.les(Fnr.serializer(), melding)
-        val sykmeldtFnr = Key.IDENTITETSNUMMER.les(Fnr.serializer(), melding)
-        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
-        val clientId = Key.CLIENT_ID.les(UuidSerializer, melding)
-
-        return listOf(
-            Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(Fnr.serializer()),
-            Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(Fnr.serializer()),
-            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
-            Key.CLIENT_ID to clientId.toJson(),
-        ).toTypedArray()
-    }
-
-    private fun isOnStep0(melding: Map<Key, JsonElement>) = !isFinished(melding) && !melding.containsKey(Key.BEHOV) && startKeys.all { it in melding }
-
     private fun onStep0(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
@@ -137,4 +117,24 @@ class InnsendingService(
 
         redisStore.set(RedisKey.of(clientId), resultJson.toJson(ResultJson.serializer()))
     }
+
+    private fun lesStartdata(melding: Map<Key, JsonElement>): Array<Pair<Key, JsonElement>> {
+        val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding)
+        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
+        val innsenderFnr = Key.ARBEIDSGIVER_ID.les(Fnr.serializer(), melding)
+        val sykmeldtFnr = Key.IDENTITETSNUMMER.les(Fnr.serializer(), melding)
+        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
+        val clientId = Key.CLIENT_ID.les(UuidSerializer, melding)
+
+        return listOf(
+            Key.ORGNRUNDERENHET to orgnr.toJson(Orgnr.serializer()),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(Fnr.serializer()),
+            Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(Fnr.serializer()),
+            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
+            Key.CLIENT_ID to clientId.toJson(),
+        ).toTypedArray()
+    }
+
+    private fun isOnStep0(melding: Map<Key, JsonElement>) = !isFinished(melding) && startKeys.all { it in melding }
 }

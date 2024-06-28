@@ -38,6 +38,7 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -81,6 +82,7 @@ class LagreSelvbestemtImService(
     override fun new(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(SkjemaInntektsmeldingSelvbestemt.serializer(), melding)
+        kontrollerSkjema(skjema)
         val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding)
 
         MdcUtils.withLogFields(
@@ -269,6 +271,25 @@ class LagreSelvbestemtImService(
             } else {
                 val resultJson = ResultJson(failure = fail.feilmelding.toJson()).toJsonStr()
                 redisStore.set(RedisKey.of(clientId), resultJson)
+            }
+        }
+    }
+
+    private fun kontrollerSkjema(skjema: SkjemaInntektsmeldingSelvbestemt) {
+        skjema.agp?.let { arbeidsgiverperiode ->
+            if (arbeidsgiverperiode.perioder.sumOf
+                {
+                    it.fom.datesUntil(it.tom).count() + 1 // datesuntil er eksklusiv t.o.m, så legg til 1
+                } < 16
+            ) {
+                sikkerLogger.info("Skjema ${skjema.selvbestemtId} har kort AGP")
+            }
+        }
+        skjema.sykmeldingsperioder.let { smp ->
+            smp.forEach {
+                if (it.tom.isAfter(LocalDate.now())) {
+                    sikkerLogger.warn("Skjema ${skjema.selvbestemtId} har sykemeldingsperiode med tom-dato fram i tid")
+                }
             }
         }
     }

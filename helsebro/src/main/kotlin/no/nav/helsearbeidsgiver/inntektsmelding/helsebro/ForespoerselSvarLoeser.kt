@@ -97,6 +97,7 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
     private fun MessageContext.publishSuksess(forespoersel: Forespoersel, melding: Melding) {
         val bumerangdata =
             melding.forespoerselSvar.boomerang.toMap()
+                .minus(listOf(Key.BEHOV, Key.EVENT_NAME, Key.FORESPOERSEL_ID, Key.UUID))
                 .toList()
                 .toTypedArray()
 

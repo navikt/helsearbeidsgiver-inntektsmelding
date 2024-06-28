@@ -282,13 +282,13 @@ class LagreSelvbestemtImService(
                     it.fom.datesUntil(it.tom).count() + 1 // datesuntil er eksklusiv t.o.m, så legg til 1
                 } < 16
             ) {
-                sikkerLogger.info("Skjema ${skjema.selvbestemtId} har kort AGP")
+                sikkerLogger.info("Skjema fra orgnr ${skjema.avsender.orgnr} har kort AGP")
             }
         }
         skjema.sykmeldingsperioder.let { smp ->
             smp.forEach {
                 if (it.tom.isAfter(LocalDate.now())) {
-                    sikkerLogger.warn("Skjema ${skjema.selvbestemtId} har sykemeldingsperiode med tom-dato fram i tid")
+                    sikkerLogger.warn("Skjema fra orgnr ${skjema.avsender.orgnr} har sykemeldingsperiode med tom-dato fram i tid")
                 }
             }
         }

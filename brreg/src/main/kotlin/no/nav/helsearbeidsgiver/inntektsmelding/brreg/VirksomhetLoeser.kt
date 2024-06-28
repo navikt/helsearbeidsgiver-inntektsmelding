@@ -116,7 +116,7 @@ class VirksomhetLoeser(
                 Key.VIRKSOMHET to navnListe.values.first().toJson(),
                 Key.VIRKSOMHETER to navnListe.toJson(),
                 Key.DATA to "".toJson(),
-                *bumerangdata,
+                *bumerangdata
             )
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")

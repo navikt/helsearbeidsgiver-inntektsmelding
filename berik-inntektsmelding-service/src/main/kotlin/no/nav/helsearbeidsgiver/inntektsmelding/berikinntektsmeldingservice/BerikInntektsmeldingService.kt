@@ -31,7 +31,7 @@ import java.util.UUID
 
 class BerikInntektsmeldingService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific,
+    override val redisStore: RedisStoreClassSpecific
 ) : Service() {
 
     private val logger = logger()
@@ -53,7 +53,7 @@ class BerikInntektsmeldingService(
         Key.ARBEIDSGIVER_INFORMASJON,
         Key.ARBEIDSTAKER_INFORMASJON,
         Key.INNTEKTSMELDING_DOKUMENT,
-        Key.ER_DUPLIKAT_IM,
+        Key.ER_DUPLIKAT_IM
     )
 
     private val step1Key = Key.FORESPOERSEL_SVAR
@@ -83,22 +83,22 @@ class BerikInntektsmeldingService(
 
     private fun onStep0(
         transaksjonId: UUID,
-        startdata: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId),
+            Log.transaksjonId(transaksjonId)
         ) {
             rapid
                 .publish(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    *startdata,
+                    *startdata
                 ).also {
                     MdcUtils.withLogFields(
-                        Log.behov(BehovType.HENT_TRENGER_IM),
+                        Log.behov(BehovType.HENT_TRENGER_IM)
                     ) {
                         logger.info("BerikInntektsmeldingService: emitting behov HENT_TRENGER_IM")
                         sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
@@ -110,7 +110,7 @@ class BerikInntektsmeldingService(
     private fun onStep1(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startdata: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>
     ) {
         val forespoerselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
         rapid
@@ -119,10 +119,10 @@ class BerikInntektsmeldingService(
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_SVAR to forespoerselSvar.toJson(Forespoersel.serializer()),
-                *startdata,
+                *startdata
             ).also {
                 MdcUtils.withLogFields(
-                    Log.behov(BehovType.VIRKSOMHET),
+                    Log.behov(BehovType.VIRKSOMHET)
                 ) {
                     logger.info("BerikInntektsmeldingService: emitting behov VIRKSOMHET")
                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
@@ -133,7 +133,7 @@ class BerikInntektsmeldingService(
     private fun onStep2(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startdata: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>
     ) {
         val forespoerselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
         val virksomhet = Key.VIRKSOMHET.les(String.serializer(), melding)
@@ -145,10 +145,10 @@ class BerikInntektsmeldingService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_SVAR to forespoerselSvar.toJson(Forespoersel.serializer()),
                 Key.VIRKSOMHET to virksomhet.toJson(String.serializer()),
-                *startdata,
+                *startdata
             ).also {
                 MdcUtils.withLogFields(
-                    Log.behov(BehovType.FULLT_NAVN),
+                    Log.behov(BehovType.FULLT_NAVN)
                 ) {
                     logger.info("BerikInntektsmeldingService: emitting behov FULLT_NAVN")
                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
@@ -159,7 +159,7 @@ class BerikInntektsmeldingService(
     private fun onStep3(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startdata: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>
     ) {
         val forespoerselSvar = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
         val virksomhet = Key.VIRKSOMHET.les(String.serializer(), melding)
@@ -176,7 +176,7 @@ class BerikInntektsmeldingService(
                 skjema = skjema,
                 fulltnavnArbeidstaker = arbeidstaker.navn,
                 virksomhetNavn = virksomhetNavn,
-                innsenderNavn = arbeidsgiver.navn,
+                innsenderNavn = arbeidsgiver.navn
             )
 
         if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
@@ -197,10 +197,10 @@ class BerikInntektsmeldingService(
                 Key.VIRKSOMHET to virksomhet.toJson(String.serializer()),
                 Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),
                 Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiver.toJson(PersonDato.serializer()),
-                *startdata,
+                *startdata
             ).also {
                 MdcUtils.withLogFields(
-                    Log.behov(BehovType.PERSISTER_IM),
+                    Log.behov(BehovType.PERSISTER_IM)
                 ) {
                     logger.info("BerikInntektsmeldingService: emitting behov PERSISTER_IM")
                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
@@ -211,7 +211,7 @@ class BerikInntektsmeldingService(
     private fun onFinished(
         transaksjonId: UUID,
         melding: Map<Key, JsonElement>,
-        startdata: Array<Pair<Key, JsonElement>>,
+        startdata: Array<Pair<Key, JsonElement>>
     ) {
         val inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), melding)
         val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
@@ -221,11 +221,11 @@ class BerikInntektsmeldingService(
 
         if (!erDuplikat) {
             rapid
-            .publish(
-                Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                Key.UUID to transaksjonId.toJson(),
+                .publish(
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
                     Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    *startdata,
+                    *startdata
                 ).also {
                     logger.info("Submitting INNTEKTSMELDING_MOTTATT")
                     sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT ${it.toPretty()}")
@@ -278,7 +278,7 @@ class BerikInntektsmeldingService(
         PersonDato(
             navn = "",
             fødselsdato = null,
-            ident = fnr,
+            ident = fnr
         )
 
     private fun lesStartdata(melding: Map<Key, JsonElement>): Array<Pair<Key, JsonElement>> {
@@ -293,7 +293,7 @@ class BerikInntektsmeldingService(
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(Fnr.serializer()),
             Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(Fnr.serializer()),
-            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
+            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer())
         ).toTypedArray()
     }
 

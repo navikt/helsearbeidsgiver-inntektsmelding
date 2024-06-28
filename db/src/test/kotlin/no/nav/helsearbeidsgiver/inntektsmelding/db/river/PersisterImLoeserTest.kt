@@ -59,7 +59,7 @@ class PersisterImLoeserTest {
             Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-            Key.INNTEKTSMELDING to mockInntektsmelding.toJson(Inntektsmelding.serializer()),
+            Key.INNTEKTSMELDING to mockInntektsmelding.toJson(Inntektsmelding.serializer())
         )
 
         coVerify(exactly = 1) {

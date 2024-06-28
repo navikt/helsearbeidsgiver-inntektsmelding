@@ -52,14 +52,14 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 journalpostId = "journalpost-id-sukkerspinn",
                 journalpostFerdigstilt = true,
                 melding = "Ha en brillefin dag!",
-                dokumenter = emptyList(),
-        )
+                dokumenter = emptyList()
+            )
 
         mockForespoerselSvarFraHelsebro(
             eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = Mock.transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar,
+            forespoerselSvar = Mock.forespoerselSvar
         )
 
         mockStatic(::randomUuid) {
@@ -73,7 +73,7 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
                 Key.IDENTITETSNUMMER to Mock.fnr.toJson(Fnr.serializer()),
                 Key.ARBEIDSGIVER_ID to Mock.fnr.toJson(Fnr.serializer()),
-                Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer()),
+                Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
             )
         }
 
@@ -179,12 +179,12 @@ class BerikInntektsmeldingServiceIT : EndToEndTest() {
                 sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder,
                 skjaeringstidspunkt = GYLDIG_INNSENDING_REQUEST.bestemmendeFraværsdag,
                 bestemmendeFravaersdager =
-                    GYLDIG_INNSENDING_REQUEST.fraværsperioder
-                        .lastOrNull()
-                        ?.let { mapOf(GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet to it.fom) }
-                        .orEmpty(),
+                GYLDIG_INNSENDING_REQUEST.fraværsperioder
+                    .lastOrNull()
+                    ?.let { mapOf(GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet to it.fom) }
+                    .orEmpty(),
                 forespurtData = mockForespurtData(),
-                erBesvart = false,
+                erBesvart = false
             )
 
         val forespoersel = forespoerselSvar.toForespoersel()

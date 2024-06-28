@@ -91,5 +91,5 @@ enum class RedisPrefix {
     SpinnService,
     TilgangForespoerselService,
     TilgangOrgService,
-    BerikInntektsmeldingService,
+    BerikInntektsmeldingService
 }

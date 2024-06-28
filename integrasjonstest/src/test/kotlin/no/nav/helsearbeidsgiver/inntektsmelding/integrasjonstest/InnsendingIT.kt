@@ -251,11 +251,13 @@ class InnsendingIT : EndToEndTest() {
 
         val forespoerselId: UUID = UUID.randomUUID()
         val skjema =
-            mockInnsending().let { innsending -> innsending.copy(
-                identitetsnummer = innsenderFnr.toString(),
-                orgnrUnderenhet = orgnr.toString(),
-                bestemmendeFraværsdag = innsending.fraværsperioder.lastOrNull()?.fom ?: innsending.bestemmendeFraværsdag,
-            ) }
+            mockInnsending().let { innsending ->
+                innsending.copy(
+                    identitetsnummer = innsenderFnr.toString(),
+                    orgnrUnderenhet = orgnr.toString(),
+                    bestemmendeFraværsdag = innsending.fraværsperioder.lastOrNull()?.fom ?: innsending.bestemmendeFraværsdag
+                )
+            }
 
         private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
 
@@ -277,7 +279,7 @@ class InnsendingIT : EndToEndTest() {
             skjaeringstidspunkt = null,
             bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
             forespurtData = mockForespurtData(),
-            erBesvart = false,
+            erBesvart = false
         )
     }
 }

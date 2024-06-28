@@ -25,7 +25,7 @@ import java.util.UUID
 
 class PersisterImSkjemaLoeser(
     rapidsConnection: RapidsConnection,
-    private val repository: InntektsmeldingRepository,
+    private val repository: InntektsmeldingRepository
 ) : Loeser(rapidsConnection) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -33,11 +33,11 @@ class PersisterImSkjemaLoeser(
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BehovType.PERSISTER_IM_SKJEMA.name,
+                Key.BEHOV to BehovType.PERSISTER_IM_SKJEMA.name
             )
             it.interestedIn(
                 Key.FORESPOERSEL_ID,
-                Key.SKJEMA_INNTEKTSMELDING,
+                Key.SKJEMA_INNTEKTSMELDING
             )
         }
 

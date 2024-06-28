@@ -34,7 +34,7 @@ fun RapidsConnection.createInnsendingService(redisStore: RedisStoreClassSpecific
     also {
         logger.info("Starter ${InnsendingService::class.simpleName}...")
         ServiceRiver(
-            InnsendingService(this, redisStore),
+            InnsendingService(this, redisStore)
         ).connect(this)
     }
 

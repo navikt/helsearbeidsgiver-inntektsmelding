@@ -27,7 +27,7 @@ import java.util.UUID
 
 class InnsendingService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific,
+    override val redisStore: RedisStoreClassSpecific
 ) : Service() {
     private val logger = logger()
 
@@ -38,7 +38,7 @@ class InnsendingService(
         Key.IDENTITETSNUMMER,
         Key.ARBEIDSGIVER_ID,
         Key.SKJEMA_INNTEKTSMELDING,
-        Key.CLIENT_ID,
+        Key.CLIENT_ID
     )
     override val dataKeys = setOf(
         Key.ER_DUPLIKAT_IM,
@@ -61,7 +61,7 @@ class InnsendingService(
     private fun onStep0(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startData: Array<Pair<Key, JsonElement>>,
+        startData: Array<Pair<Key, JsonElement>>
     ) {
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
@@ -77,7 +77,7 @@ class InnsendingService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
-                *startData,
+                *startData
             )
         }
     }
@@ -85,7 +85,7 @@ class InnsendingService(
     private fun onFinished(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
-        startData: Array<Pair<Key, JsonElement>>,
+        startData: Array<Pair<Key, JsonElement>>
     ) {
         val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
         val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
@@ -102,7 +102,7 @@ class InnsendingService(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to "".toJson(),
-                *startData,
+                *startData
             )
                 .also {
                     logger.info("Submitting INNTEKTSMELDING_SKJEMA_LAGRET")
@@ -132,7 +132,7 @@ class InnsendingService(
             Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(Fnr.serializer()),
             Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(Fnr.serializer()),
             Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(Innsending.serializer()),
-            Key.CLIENT_ID to clientId.toJson(),
+            Key.CLIENT_ID to clientId.toJson()
         ).toTypedArray()
     }
 

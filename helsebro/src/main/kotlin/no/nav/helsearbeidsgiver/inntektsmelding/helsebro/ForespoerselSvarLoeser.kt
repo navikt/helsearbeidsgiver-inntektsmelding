@@ -110,7 +110,7 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
             Key.EVENT_NAME to melding.initiateEvent.toJson(),
             Key.UUID to melding.transaksjonId.toJson(),
             Key.DATA to dataFields.toMap().toJson(),
-            *dataFields,
+            *dataFields
         )
             .also {
                 logger.info("Publiserte data for ${BehovType.HENT_TRENGER_IM}.")
@@ -179,7 +179,7 @@ private data class Melding(
                     initiateEvent = Key.EVENT_NAME.les(EventName.serializer(), boomerang),
                     transaksjonId = Key.UUID.les(UuidSerializer, boomerang),
                     forespoerselSvar = forespoerselSvar,
-                    json = json,
+                    json = json
                 )
             }
     }

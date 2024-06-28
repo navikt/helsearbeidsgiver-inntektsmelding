@@ -193,10 +193,12 @@ abstract class EndToEndTest : ContainerTest() {
         imTestRapid.apply {
             // Servicer
             createAktiveOrgnrService(redisStore)
-            createInnsendingService(RedisStoreClassSpecific(
-                redis = redisConnection,
-                keyPrefix = RedisPrefix.InnsendingService
-            ))
+            createInnsendingService(
+                RedisStoreClassSpecific(
+                    redis = redisConnection,
+                    keyPrefix = RedisPrefix.InnsendingService
+                )
+            )
             createKvitteringService(redisStore)
             createInntektService(redisStore)
             createInntektSelvbestemtService(
@@ -207,10 +209,12 @@ abstract class EndToEndTest : ContainerTest() {
             )
             createSpinnService(redisStore)
             createTilgangService(redisStore)
-            createBerikInntektsmeldingService(RedisStoreClassSpecific(
-                redis = redisConnection,
-                keyPrefix = RedisPrefix.BerikInntektsmeldingService
-            ))
+            createBerikInntektsmeldingService(
+                RedisStoreClassSpecific(
+                    redis = redisConnection,
+                    keyPrefix = RedisPrefix.BerikInntektsmeldingService
+                )
+            )
             createHentForespoerselService(
                 RedisStoreClassSpecific(
                     redis = redisConnection,
@@ -285,8 +289,8 @@ abstract class EndToEndTest : ContainerTest() {
                     ForespoerselSvar(
                         forespoerselId = forespoerselId,
                         resultat = forespoerselSvar,
-                        boomerang = getBoomerangData(it, eventName, transaksjonId),
-                    ).toJson(ForespoerselSvar.serializer()),
+                        boomerang = getBoomerangData(it, eventName, transaksjonId)
+                    ).toJson(ForespoerselSvar.serializer())
             )
 
             Result.success(JsonObject(emptyMap()))
@@ -302,7 +306,7 @@ abstract class EndToEndTest : ContainerTest() {
     private fun getBoomerangData(
         call: Call,
         eventName: EventName,
-        transaksjonId: UUID,
+        transaksjonId: UUID
     ): JsonElement = getBoomerangDataFromInvocationCall(call) ?: mockBoomerangData(eventName, transaksjonId)
 
     private fun getBoomerangDataFromInvocationCall(call: Call): JsonElement? =
@@ -315,11 +319,11 @@ abstract class EndToEndTest : ContainerTest() {
 
     private fun mockBoomerangData(
         eventName: EventName,
-        transaksjonId: UUID,
+        transaksjonId: UUID
     ): JsonElement =
         mapOf(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.UUID to transaksjonId.toJson(),
+            Key.UUID to transaksjonId.toJson()
         ).toJson()
 }
 

@@ -56,7 +56,7 @@ class TrengerForespoerselLoeser(
 
             val bumerangdata =
                 json
-                    .minus(listOf(Key.BEHOV, Key.EVENT_NAME))
+                    .minus(listOf(Key.BEHOV, Key.EVENT_NAME, Key.FORESPOERSEL_ID, Key.UUID))
                     .toList()
                     .toTypedArray()
 

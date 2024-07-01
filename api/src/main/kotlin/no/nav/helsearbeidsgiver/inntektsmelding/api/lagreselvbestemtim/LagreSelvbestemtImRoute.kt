@@ -51,45 +51,49 @@ fun Route.lagreSelvbestemtImRoute(
     redisPoller: RedisPoller
 ) {
     val producer = LagreSelvbestemtImProducer(rapid)
+    if ("prod-gcp" == System.getProperty("NAIS_CLUSTER_NAME")) {
+        logger.info("Lagreselvbestemt-endepunktet er disablet i produksjon!")
+        // TODO: Disablet endepunktet i prod -enable når vi kan sende med vedtaksperiodeID fra flex!
+    } else {
+        post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
+            val clientId = UUID.randomUUID()
 
-    post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
-        val clientId = UUID.randomUUID()
-
-        MdcUtils.withLogFields(
-            Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING),
-            Log.clientId(clientId)
-        ) {
-            val skjema = lesRequestOrNull()
-            when {
-                skjema == null -> {
-                    respondBadRequest(JsonErrorResponse(), JsonErrorResponse.serializer())
-                }
-
-                skjema.valider().isNotEmpty() -> {
-                    val valideringsfeil = skjema.valider()
-
-                    "Fikk valideringsfeil: $valideringsfeil".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
+            MdcUtils.withLogFields(
+                Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING),
+                Log.clientId(clientId)
+            ) {
+                val skjema = lesRequestOrNull()
+                when {
+                    skjema == null -> {
+                        respondBadRequest(JsonErrorResponse(), JsonErrorResponse.serializer())
                     }
 
-                    val response = ValideringErrorResponse(valideringsfeil)
+                    skjema.valider().isNotEmpty() -> {
+                        val valideringsfeil = skjema.valider()
 
-                    respondBadRequest(response, ValideringErrorResponse.serializer())
-                }
+                        "Fikk valideringsfeil: $valideringsfeil".also {
+                            logger.error(it)
+                            sikkerLogger.error(it)
+                        }
 
-                else -> {
-                    tilgangskontroll.validerTilgangTilOrg(call.request, skjema.avsender.orgnr.verdi)
+                        val response = ValideringErrorResponse(valideringsfeil)
 
-                    val avsenderFnr = call.request.lesFnrFraAuthToken()
-
-                    producer.publish(clientId, skjema, avsenderFnr)
-
-                    val resultat = runCatching {
-                        redisPoller.hent(clientId)
+                        respondBadRequest(response, ValideringErrorResponse.serializer())
                     }
 
-                    sendResponse(resultat)
+                    else -> {
+                        tilgangskontroll.validerTilgangTilOrg(call.request, skjema.avsender.orgnr.verdi)
+
+                        val avsenderFnr = call.request.lesFnrFraAuthToken()
+
+                        producer.publish(clientId, skjema, avsenderFnr)
+
+                        val resultat = runCatching {
+                            redisPoller.hent(clientId)
+                        }
+
+                        sendResponse(resultat)
+                    }
                 }
             }
         }

@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Permittering
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.getEnvVar
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -51,7 +52,7 @@ fun Route.lagreSelvbestemtImRoute(
     redisPoller: RedisPoller
 ) {
     val producer = LagreSelvbestemtImProducer(rapid)
-    if ("prod-gcp" == System.getProperty("NAIS_CLUSTER_NAME")) {
+    if (getEnvVar("NAIS_CLUSTER_NAME", "") == "prod-gcp") {
         logger.info("Lagreselvbestemt-endepunktet er disablet i produksjon!")
         // TODO: Disablet endepunktet i prod -enable når vi kan sende med vedtaksperiodeID fra flex!
     } else {

@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -42,6 +43,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -65,6 +67,34 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     @Test
     fun `gir OK med inntektsmelding`() = testApi {
         val expectedInntektsmelding = mockInntektsmeldingV1()
+
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.successResult(expectedInntektsmelding),
+            harTilgangResultat
+        )
+
+        val response = get(pathMedId)
+
+        val actualJson = response.bodyAsText()
+
+        response.status shouldBe HttpStatusCode.OK
+        actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
+    }
+
+    @Test
+    fun `gir OK med inntektsmelding med ekstra 'perioder'-felt i inntektsendringsårsak`() = testApi {
+        val expectedInntektsmelding = mockInntektsmeldingV1().let {
+            it.copy(
+                inntekt = it.inntekt?.copy(
+                    endringAarsak = Ferie(
+                        ferier = listOf(
+                            15.februar(2024) til 16.februar(2024),
+                            22.februar(2024) til 23.februar(2024)
+                        )
+                    )
+                )
+            )
+        }
 
         coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
             Mock.successResult(expectedInntektsmelding),
@@ -338,14 +368,35 @@ private fun InntektEndringAarsak.hardcodedJson(): String =
     when (this) {
         Bonus -> """{ "aarsak": "Bonus" }"""
         Feilregistrert -> """{ "aarsak": "Feilregistrert" }"""
-        is Ferie -> """{ "aarsak": "Ferie", "ferier": [${ferier.joinToString(transform = Periode::hardcodedJson)}" }"""
+//        is Ferie -> """{ "aarsak": "Ferie", "ferier": [${ferier.joinToString(transform = Periode::hardcodedJson)}] }"""
+        is Ferie -> """{ "aarsak": "Ferie", "ferier": [${ferier.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
+        ferier.joinToString(
+            transform = Periode::hardcodedJson
+        )
+        }] }"""
         Ferietrekk -> """{ "aarsak": "Ferietrekk"}"""
         is NyStilling -> """{ "aarsak": "NyStilling", "gjelderFra": "$gjelderFra" }"""
         is NyStillingsprosent -> """{ "aarsak": "NyStillingsprosent", "gjelderFra": "$gjelderFra" }"""
         Nyansatt -> """{ "aarsak": "Nyansatt" }"""
-        is Permisjon -> """{ "aarsak": "Permisjon", "permisjoner": [${permisjoner.joinToString(transform = Periode::hardcodedJson)}" }"""
-        is Permittering -> """{ "aarsak": "Permittering", "permitteringer": [${permitteringer.joinToString(transform = Periode::hardcodedJson)}" }"""
-        is Sykefravaer -> """{ "aarsak": "Sykefravaer", "sykefravaer": [${sykefravaer.joinToString(transform = Periode::hardcodedJson)}" }"""
+//        is Permisjon -> """{ "aarsak": "Permisjon", "permisjoner": [${permisjoner.joinToString(transform = Periode::hardcodedJson)}] }"""
+        is Permisjon -> """{ "aarsak": "Permisjon", "permisjoner": [${permisjoner.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
+        permisjoner.joinToString(
+            transform = Periode::hardcodedJson
+        )
+        }] }"""
+//        is Permittering -> """{ "aarsak": "Permittering", "permitteringer": [${permitteringer.joinToString(transform = Periode::hardcodedJson)}] }"""
+        is Permittering -> """{ "aarsak": "Permittering", "permitteringer": [${permitteringer.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
+        permitteringer.joinToString(
+            transform = Periode::hardcodedJson
+        )
+        }] }"""
+//        is Sykefravaer -> """{ "aarsak": "Sykefravaer", "sykefravaer": [${sykefravaer.joinToString(transform = Periode::hardcodedJson)}] }"""
+        is Sykefravaer -> """{ "aarsak": "Sykefravaer", "sykefravaer": [${sykefravaer.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
+        sykefravaer.joinToString(
+            transform = Periode::hardcodedJson
+        )
+        }] }"""
+
         is Tariffendring -> """{ "aarsak": "Tariffendring", "gjelderFra": "$gjelderFra", "bleKjent": "$bleKjent" }"""
         is VarigLoennsendring -> """{ "aarsak": "VarigLoennsendring", "gjelderFra": "$gjelderFra" }"""
     }

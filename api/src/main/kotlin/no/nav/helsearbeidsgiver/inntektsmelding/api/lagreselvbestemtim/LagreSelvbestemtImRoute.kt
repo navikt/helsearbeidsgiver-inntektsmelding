@@ -51,6 +51,7 @@ fun Route.lagreSelvbestemtImRoute(
     redisPoller: RedisPoller
 ) {
     val producer = LagreSelvbestemtImProducer(rapid)
+
     post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
         val clientId = UUID.randomUUID()
 

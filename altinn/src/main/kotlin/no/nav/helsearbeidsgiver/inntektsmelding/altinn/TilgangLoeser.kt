@@ -22,6 +22,8 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 // TODO test
@@ -65,12 +67,12 @@ class TilgangLoeser(
     }
 
     private fun hentTilgang(behov: Behov, json: Map<Key, JsonElement>, transaksjonId: UUID) {
-        val fnr = Key.FNR.les(String.serializer(), json)
-        val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), json)
+        val fnr = Key.FNR.les(Fnr.serializer(), json)
+        val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), json)
 
         runCatching {
             Metrics.altinnRequest.recordTime(altinnClient::harRettighetForOrganisasjon) {
-                altinnClient.harRettighetForOrganisasjon(fnr, orgnr)
+                altinnClient.harRettighetForOrganisasjon(fnr.verdi, orgnr.verdi)
             }
         }
             .onSuccess { harTilgang ->

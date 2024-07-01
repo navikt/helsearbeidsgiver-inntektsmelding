@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db
 
 import io.prometheus.client.Summary
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
@@ -41,12 +42,36 @@ class InntektsmeldingRepository(private val db: Database) {
         }
     }
 
-    fun hentNyeste(forespoerselId: UUID): Inntektsmelding? {
+    fun lagreInntektsmeldingSkjema(forespoerselId: String, inntektsmeldingSkjema: Innsending) {
+        val requestTimer = requestLatency.labels("lagreInntektsmeldingSkjema").startTimer()
+        transaction(db) {
+            InntektsmeldingEntitet.insert {
+                it[this.forespoerselId] = forespoerselId
+                it[skjema] = inntektsmeldingSkjema
+                it[innsendt] = LocalDateTime.now()
+            }
+        }.also {
+            requestTimer.observeDuration()
+        }
+    }
+
+    fun hentNyesteInntektsmelding(forespoerselId: UUID): Inntektsmelding? {
         val requestTimer = requestLatency.labels("hentNyeste").startTimer()
         return transaction(db) {
             hentNyesteImQuery(forespoerselId)
                 .firstOrNull()
                 ?.getOrNull(InntektsmeldingEntitet.dokument)
+        }.also {
+            requestTimer.observeDuration()
+        }
+    }
+
+    fun hentNyesteInntektsmeldingSkjema(forespoerselId: UUID): Innsending? {
+        val requestTimer = requestLatency.labels("hentNyeste").startTimer()
+        return transaction(db) {
+            hentNyesteImSkjemaQuery(forespoerselId)
+                .firstOrNull()
+                ?.getOrNull(InntektsmeldingEntitet.skjema)
         }.also {
             requestTimer.observeDuration()
         }
@@ -118,6 +143,13 @@ class InntektsmeldingRepository(private val db: Database) {
         InntektsmeldingEntitet
             .selectAll()
             .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.dokument.isNotNull() }
+            .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
+            .limit(1)
+
+    private fun hentNyesteImSkjemaQuery(forespoerselId: UUID): Query =
+        InntektsmeldingEntitet
+            .selectAll()
+            .where { (InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString()) and InntektsmeldingEntitet.skjema.isNotNull() }
             .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
             .limit(1)
 }

@@ -99,11 +99,11 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
         }
         // lagre varianter:
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA)
-        val im = inntektsmeldingRepo.hentNyeste(forespoerselId)
+        val im = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
         im shouldBe INNTEKTSMELDING_DOKUMENT_MED_TOM_FORESPURT_DATA
 
         inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA)
-        val im2 = inntektsmeldingRepo.hentNyeste(forespoerselId)
+        val im2 = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
         im2?.forespurtData shouldNotBe (null)
         im2?.forespurtData shouldBe INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.forespurtData
 
@@ -111,7 +111,7 @@ class RepositoryTest : FunSpecWithDb(listOf(InntektsmeldingEntitet, Forespoersel
             forespoerselId.toString(),
             INNTEKTSMELDING_DOKUMENT_MED_FORESPURT_DATA.copy(fullLønnIArbeidsgiverPerioden = null)
         )
-        val im3 = inntektsmeldingRepo.hentNyeste(forespoerselId)
+        val im3 = inntektsmeldingRepo.hentNyesteInntektsmelding(forespoerselId)
         im3?.fullLønnIArbeidsgiverPerioden shouldBe null
     }
 

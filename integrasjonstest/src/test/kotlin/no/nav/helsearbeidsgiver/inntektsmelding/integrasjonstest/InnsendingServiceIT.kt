@@ -10,26 +10,22 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
-import no.nav.helsearbeidsgiver.felles.Forespoersel
-import no.nav.helsearbeidsgiver.felles.ForespoerselType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
-import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -39,18 +35,7 @@ class InnsendingServiceIT : EndToEndTest() {
 
     @Test
     fun `Test at innsending er mottatt`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
-        forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
-        forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-
-        val transaksjonId: UUID = randomUuid()
-
-        mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INSENDING_STARTED,
-            transaksjonId = transaksjonId,
-            forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar
-        )
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR.toString())
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
@@ -62,83 +47,34 @@ class InnsendingServiceIT : EndToEndTest() {
         )
 
         mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
+            every { randomUuid() } returns Mock.transaksjonId
             publish(
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                 Key.CLIENT_ID to Mock.clientId.toJson(),
+                Key.UUID to Mock.transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
-                Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-                Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
+                Key.ORGNRUNDERENHET to Mock.ORGNR.toString().toJson(),
+                Key.IDENTITETSNUMMER to Mock.FNR.toString().toJson(),
+                Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toString().toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
             )
         }
 
-        // Forespørsel hentet
-        messages.filter(EventName.INSENDING_STARTED)
-            .filter(Key.FORESPOERSEL_SVAR)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                it shouldContainKey Key.DATA
-                it[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
-            }
-
-        // Virksomhetsnavn hentet
-        messages.filter(EventName.INSENDING_STARTED)
-            .filter(Key.VIRKSOMHET)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                it shouldContainKey Key.DATA
-                it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
-            }
-
-        // Arbeidsforhold hentet
-        messages.filter(EventName.INSENDING_STARTED)
-            .filter(Key.ARBEIDSFORHOLD)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                it shouldContainKey Key.DATA
-                it[Key.ARBEIDSFORHOLD].shouldNotBeNull()
-            }
-
-        // Sykmeldt og innsender hentet
-        messages.filter(EventName.INSENDING_STARTED)
-            .filter(Key.ARBEIDSTAKER_INFORMASJON)
-            .filter(Key.ARBEIDSGIVER_INFORMASJON)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                it shouldContainKey Key.DATA
-
-                shouldNotThrowAny {
-                    it[Key.ARBEIDSTAKER_INFORMASJON].shouldNotBeNull()
-                        .fromJson(PersonDato.serializer())
-
-                    it[Key.ARBEIDSGIVER_INFORMASJON].shouldNotBeNull()
-                        .fromJson(PersonDato.serializer())
-                }
-            }
-
         // Inntektsmelding lagret
         messages.filter(EventName.INSENDING_STARTED)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT)
+            .filter(Key.PERSISTERT_SKJEMA_INNTEKTSMELDING)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
+            .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselId()
             .also {
                 it shouldContainKey Key.DATA
 
                 shouldNotThrowAny {
-                    it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
-                        .fromJson(Inntektsmelding.serializer())
+                    it[Key.PERSISTERT_SKJEMA_INNTEKTSMELDING]
+                        .shouldNotBeNull()
+                        .fromJson(Innsending.serializer())
 
                     it[Key.ER_DUPLIKAT_IM].shouldNotBeNull()
                         .fromJson(Boolean.serializer())
@@ -146,9 +82,9 @@ class InnsendingServiceIT : EndToEndTest() {
             }
 
         // Siste melding fra service
-        messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
+            .verifiserTransaksjonId(Mock.transaksjonId)
             .verifiserForespoerselId()
             .also {
                 shouldNotThrowAny {
@@ -158,8 +94,17 @@ class InnsendingServiceIT : EndToEndTest() {
                     it[Key.FORESPOERSEL_ID].shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
-                        .fromJson(Inntektsmelding.serializer())
+                    it[Key.ORGNRUNDERENHET].shouldNotBeNull()
+                        .fromJson(Orgnr.serializer())
+
+                    it[Key.IDENTITETSNUMMER].shouldNotBeNull()
+                        .fromJson(Fnr.serializer())
+
+                    it[Key.ARBEIDSGIVER_ID].shouldNotBeNull()
+                        .fromJson(Fnr.serializer())
+
+                    it[Key.SKJEMA_INNTEKTSMELDING].shouldNotBeNull()
+                        .fromJson(Innsending.serializer())
                 }
             }
 
@@ -173,7 +118,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 .fromJson(ResultJson.serializer())
                 .success
                 .shouldNotBeNull()
-                .fromJson(Inntektsmelding.serializer())
+                .fromJson(Innsending.serializer())
         }
     }
 
@@ -188,31 +133,12 @@ class InnsendingServiceIT : EndToEndTest() {
         }
 
     private object Mock {
-        const val ORGNR = "stolt-krakk"
-        const val FNR = "kongelig-albatross"
-        const val FNR_AG = "uutgrunnelig-koffert"
-        const val SAK_ID = "tjukk-kalender"
-        const val OPPGAVE_ID = "kunstig-demon"
+        val ORGNR = Orgnr.genererGyldig()
+        val FNR = Fnr.genererGyldig()
+        val FNR_AG = Fnr.genererGyldig()
+        val transaksjonId: UUID = randomUuid()
 
         val clientId: UUID = UUID.randomUUID()
         val forespoerselId: UUID = UUID.randomUUID()
-        val vedtaksperiodeId: UUID = UUID.randomUUID()
-
-        val forespoerselSvar = ForespoerselSvar.Suksess(
-            type = ForespoerselType.KOMPLETT,
-            orgnr = GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet,
-            fnr = GYLDIG_INNSENDING_REQUEST.identitetsnummer,
-            vedtaksperiodeId = vedtaksperiodeId,
-            egenmeldingsperioder = GYLDIG_INNSENDING_REQUEST.egenmeldingsperioder,
-            sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder,
-            skjaeringstidspunkt = GYLDIG_INNSENDING_REQUEST.bestemmendeFraværsdag,
-            bestemmendeFravaersdager = GYLDIG_INNSENDING_REQUEST.fraværsperioder.lastOrNull()
-                ?.let { mapOf(GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet to it.fom) }
-                .orEmpty(),
-            forespurtData = mockForespurtData(),
-            erBesvart = false
-        )
-
-        val forespoersel = forespoerselSvar.toForespoersel()
     }
 }

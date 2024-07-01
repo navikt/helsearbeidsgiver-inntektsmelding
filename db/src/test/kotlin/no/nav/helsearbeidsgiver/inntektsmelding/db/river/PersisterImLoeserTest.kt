@@ -52,10 +52,10 @@ class PersisterImLoeserTest {
             repository.lagreInntektsmelding(any(), any())
         } just Runs
 
-        coEvery { repository.hentNyeste(any()) } returns null
+        coEvery { repository.hentNyesteInntektsmelding(any()) } returns null
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
             Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
@@ -68,20 +68,23 @@ class PersisterImLoeserTest {
 
         val publisert = testRapid.firstMessage().toMap()
 
-        Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INSENDING_STARTED
+        Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INNTEKTSMELDING_SKJEMA_LAGRET
         Key.ER_DUPLIKAT_IM.lesOrNull(Boolean.serializer(), publisert) shouldBe false
 
-        Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert)
+        Key.INNTEKTSMELDING_DOKUMENT
+            .lesOrNull(Inntektsmelding.serializer(), publisert)
             .shouldNotBeNull()
             .shouldBeEqualToIgnoringFields(mockInntektsmelding, Inntektsmelding::tidspunkt)
     }
 
     @Test
     fun `ikke lagre ved duplikat`() {
-        coEvery { repository.hentNyeste(any()) } returns mockInntektsmelding.copy(tidspunkt = ZonedDateTime.now().minusHours(1).toOffsetDateTime())
+        coEvery { repository.hentNyesteInntektsmelding(any()) } returns mockInntektsmelding.copy(
+            tidspunkt = ZonedDateTime.now().minusHours(1).toOffsetDateTime()
+        )
 
         testRapid.sendJson(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.EVENT_NAME to EventName.INNTEKTSMELDING_SKJEMA_LAGRET.toJson(),
             Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
@@ -94,7 +97,7 @@ class PersisterImLoeserTest {
 
         val publisert = testRapid.firstMessage().toMap()
 
-        Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INSENDING_STARTED
+        Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INNTEKTSMELDING_SKJEMA_LAGRET
         Key.ER_DUPLIKAT_IM.lesOrNull(Boolean.serializer(), publisert) shouldBe true
     }
 }

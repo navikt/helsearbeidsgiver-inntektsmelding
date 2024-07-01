@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock
 
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.AarsakInnsending
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.BegrunnelseIngenEllerRedusertUtbetalingKode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbeidsgiverPerioden
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
@@ -24,7 +23,7 @@ fun mockInnsending(): Innsending =
     Innsending(
         orgnrUnderenhet = "orgnr-bål",
         identitetsnummer = "fnr-fredrik",
-        behandlingsdager = listOf(LocalDate.now().plusDays(5)),
+        behandlingsdager = emptyList(),
         egenmeldingsperioder = listOf(
             Periode(
                 fom = LocalDate.now(),
@@ -46,8 +45,7 @@ fun mockInnsending(): Innsending =
             manueltKorrigert = false
         ),
         fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
-            utbetalerFullLønn = true,
-            begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert
+            utbetalerFullLønn = true
         ),
         refusjon = Refusjon(
             utbetalerHeleEllerDeler = true,
@@ -62,7 +60,8 @@ fun mockInnsending(): Innsending =
             )
         ),
         årsakInnsending = AarsakInnsending.ENDRING,
-        bekreftOpplysninger = true
+        bekreftOpplysninger = true,
+        forespurtData = listOf("arbeidsgiverperiode", "inntekt", "refusjon")
     )
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess {

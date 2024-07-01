@@ -31,6 +31,7 @@ dependencies {
     testImplementation(project(":pdl"))
     testImplementation(project(":tilgangservice"))
     testImplementation(project(":trengerservice"))
+    testImplementation(project(":berik-inntektsmelding-service"))
 
     testImplementation(project(":felles"))
     testImplementation(project(":felles-db-exposed"))

@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
+import io.mockk.Call
+import io.mockk.InternalPlatformDsl.toArray
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -33,6 +35,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
+import no.nav.helsearbeidsgiver.inntektsmelding.berikinntektsmeldingservice.createBerikInntektsmeldingService
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
@@ -48,7 +51,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmarkerbesvart.create
 import no.nav.helsearbeidsgiver.inntektsmelding.forespoerselmottatt.createForespoerselMottatt
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.createHelsebro
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsending
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createInnsendingService
+import no.nav.helsearbeidsgiver.inntektsmelding.innsending.createKvitteringService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntekt.createInntekt
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.createInntektSelvbestemtService
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
@@ -189,7 +193,13 @@ abstract class EndToEndTest : ContainerTest() {
         imTestRapid.apply {
             // Servicer
             createAktiveOrgnrService(redisStore)
-            createInnsending(redisStore)
+            createInnsendingService(
+                RedisStoreClassSpecific(
+                    redis = redisConnection,
+                    keyPrefix = RedisPrefix.InnsendingService
+                )
+            )
+            createKvitteringService(redisStore)
             createInntektService(redisStore)
             createInntektSelvbestemtService(
                 RedisStoreClassSpecific(
@@ -199,6 +209,12 @@ abstract class EndToEndTest : ContainerTest() {
             )
             createSpinnService(redisStore)
             createTilgangService(redisStore)
+            createBerikInntektsmeldingService(
+                RedisStoreClassSpecific(
+                    redis = redisConnection,
+                    keyPrefix = RedisPrefix.BerikInntektsmeldingService
+                )
+            )
             createHentForespoerselService(
                 RedisStoreClassSpecific(
                     redis = redisConnection,
@@ -269,15 +285,12 @@ abstract class EndToEndTest : ContainerTest() {
         } answers {
             publish(
                 Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to ForespoerselSvar(
-                    forespoerselId = forespoerselId,
-                    resultat = forespoerselSvar,
-                    boomerang = mapOf(
-                        Key.EVENT_NAME to eventName.toJson(),
-                        Key.UUID to transaksjonId.toJson()
-                    ).toJson()
-                )
-                    .toJson(ForespoerselSvar.serializer())
+                Pri.Key.LØSNING to
+                    ForespoerselSvar(
+                        forespoerselId = forespoerselId,
+                        resultat = forespoerselSvar,
+                        boomerang = getBoomerangData(it, eventName, transaksjonId)
+                    ).toJson(ForespoerselSvar.serializer())
             )
 
             Result.success(JsonObject(emptyMap()))
@@ -289,6 +302,29 @@ abstract class EndToEndTest : ContainerTest() {
             exec("SELECT truncate_tables()")
         }
     }
+
+    private fun getBoomerangData(
+        call: Call,
+        eventName: EventName,
+        transaksjonId: UUID
+    ): JsonElement = getBoomerangDataFromInvocationCall(call) ?: mockBoomerangData(eventName, transaksjonId)
+
+    private fun getBoomerangDataFromInvocationCall(call: Call): JsonElement? =
+        call.invocation.args
+            .firstOrNull()
+            ?.toArray()
+            ?.map { it as Pair<Pri.Key, JsonElement> }
+            ?.firstOrNull { it.first == Pri.Key.BOOMERANG }
+            ?.second
+
+    private fun mockBoomerangData(
+        eventName: EventName,
+        transaksjonId: UUID
+    ): JsonElement =
+        mapOf(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.UUID to transaksjonId.toJson()
+        ).toJson()
 }
 
 private fun Database.createTruncateFunction() =

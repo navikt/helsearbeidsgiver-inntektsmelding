@@ -32,6 +32,7 @@ class InnsendingProducerTest : FunSpec({
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
+            Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.ORGNRUNDERENHET to GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet.toJson(),
             Key.IDENTITETSNUMMER to GYLDIG_INNSENDING_REQUEST.identitetsnummer.toJson(),

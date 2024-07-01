@@ -67,13 +67,21 @@ class FulltNavnLoeser(
                 val arbeidstakerInfo = personer.firstOrNull { it.ident == arbeidstakerId }.orDefault(PersonDato("", null, arbeidstakerId))
                 val arbeidsgiverInfo = personer.firstOrNull { it.ident == arbeidsgiverId }.orDefault(PersonDato("", null, arbeidsgiverId))
 
+                val bumerangdata =
+                    json
+                        .minus(listOf(Key.BEHOV, Key.EVENT_NAME))
+                        .toList()
+                        .toTypedArray()
+
                 rapidsConnection.publishData(
                     eventName = behov.event,
                     transaksjonId = transaksjonId,
                     forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                     Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
                     Key.ARBEIDSTAKER_INFORMASJON to arbeidstakerInfo.toJson(PersonDato.serializer()),
-                    Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo.toJson(PersonDato.serializer())
+                    Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo.toJson(PersonDato.serializer()),
+                    Key.DATA to "".toJson(),
+                    *bumerangdata
                 )
             } catch (ex: Exception) {
                 logger.error("Klarte ikke hente navn for transaksjonId $transaksjonId.")

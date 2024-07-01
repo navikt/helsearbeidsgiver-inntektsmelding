@@ -102,13 +102,21 @@ class VirksomhetLoeser(
                 hentVirksomheter(orgnr)
                     .associate { it.organisasjonsnummer to it.navn }
 
+            val bumerangdata =
+                json
+                    .minus(listOf(Key.BEHOV, Key.EVENT_NAME))
+                    .toList()
+                    .toTypedArray()
+
             rapidsConnection.publishData(
                 eventName = behov.event,
                 transaksjonId = transaksjonId,
                 forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                 Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
                 Key.VIRKSOMHET to navnListe.values.first().toJson(),
-                Key.VIRKSOMHETER to navnListe.toJson()
+                Key.VIRKSOMHETER to navnListe.toJson(),
+                Key.DATA to "".toJson(),
+                *bumerangdata
             )
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")

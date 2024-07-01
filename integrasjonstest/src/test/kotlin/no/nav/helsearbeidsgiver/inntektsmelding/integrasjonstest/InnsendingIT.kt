@@ -31,6 +31,9 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -53,7 +56,7 @@ class InnsendingIT : EndToEndTest() {
         val transaksjonId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INSENDING_STARTED,
+            eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar
@@ -73,6 +76,8 @@ class InnsendingIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                 Key.CLIENT_ID to UUID.randomUUID().toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to Mock.skjema.identitetsnummer.toJson(),
@@ -81,14 +86,14 @@ class InnsendingIT : EndToEndTest() {
             )
         }
 
-        messages.filter(EventName.INSENDING_STARTED)
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .firstAsMap()
             .also {
                 // Ble lagret i databasen
                 it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
             }
-        messages.filter(EventName.INSENDING_STARTED)
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
@@ -143,7 +148,7 @@ class InnsendingIT : EndToEndTest() {
         val transaksjonId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
-            eventName = EventName.INSENDING_STARTED,
+            eventName = EventName.INNTEKTSMELDING_SKJEMA_LAGRET,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
             forespoerselSvar = Mock.forespoerselSvar
@@ -165,6 +170,8 @@ class InnsendingIT : EndToEndTest() {
             publish(
                 Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                 Key.CLIENT_ID to UUID.randomUUID().toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
                 Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to bjarneBetjent.ident!!.toJson(),
@@ -173,7 +180,7 @@ class InnsendingIT : EndToEndTest() {
             )
         }
 
-        messages.filter(EventName.INSENDING_STARTED)
+        messages.filter(EventName.INNTEKTSMELDING_SKJEMA_LAGRET)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
@@ -239,9 +246,18 @@ class InnsendingIT : EndToEndTest() {
         const val JOURNALPOST_ID = "journalpost-id-skoleboller"
         const val SAK_ID = "forundret-lysekrone"
         const val OPPGAVE_ID = "neglisjert-sommer"
+        val orgnr = Orgnr.genererGyldig()
+        val innsenderFnr = Fnr.genererGyldig()
 
         val forespoerselId: UUID = UUID.randomUUID()
-        val skjema = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
+        val skjema =
+            mockInnsending().let { innsending ->
+                innsending.copy(
+                    identitetsnummer = innsenderFnr.toString(),
+                    orgnrUnderenhet = orgnr.toString(),
+                    bestemmendeFraværsdag = innsending.fraværsperioder.lastOrNull()?.fom ?: innsending.bestemmendeFraværsdag
+                )
+            }
 
         private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
 

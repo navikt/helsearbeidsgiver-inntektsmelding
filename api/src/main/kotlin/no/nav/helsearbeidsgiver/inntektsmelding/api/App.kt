@@ -17,6 +17,7 @@ import io.ktor.server.routing.routing
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.felles.getEnvVar
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.inntektsmelding.api.aktiveorgnr.aktiveOrgnrRoute
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
@@ -117,7 +118,12 @@ fun Application.apiModule(
                 inntektSelvbestemtRoute(rapid, tilgangskontroll, redisPoller)
                 innsendingRoute(rapid, tilgangskontroll, redisPoller)
                 kvitteringRoute(rapid, tilgangskontroll, redisPoller)
-                lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisPoller)
+                if (getEnvVar("NAIS_CLUSTER_NAME", "") != "prod-gcp") {
+                    lagreSelvbestemtImRoute(rapid, tilgangskontroll, redisPoller)
+                    // TODO: Disablet endepunktet i prod -enable når vi kan sende med vedtaksperiodeID fra flex!
+                } else {
+                    logger.info("Lagreselvbestemt-endepunktet er disablet i produksjon!")
+                }
                 hentSelvbestemtImRoute(rapid, tilgangskontroll, redisPoller)
                 aktiveOrgnrRoute(rapid, redisPoller)
             }

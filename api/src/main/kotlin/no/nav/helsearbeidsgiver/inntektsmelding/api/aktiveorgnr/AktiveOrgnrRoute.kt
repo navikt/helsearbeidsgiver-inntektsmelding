@@ -29,15 +29,15 @@ fun Route.aktiveOrgnrRoute(
 ) {
     val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
     post(Routes.AKTIVEORGNR) {
-        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
 
         try {
             val request = call.receive<AktiveOrgnrRequest>()
             val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-            aktiveOrgnrProducer.publish(clientId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
+            aktiveOrgnrProducer.publish(transaksjonId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
 
-            val resultatJson = redis.hent(clientId).fromJson(ResultJson.serializer())
+            val resultatJson = redis.hent(transaksjonId).fromJson(ResultJson.serializer())
 
             val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
             if (resultat != null) {

@@ -91,6 +91,7 @@ class LagreSelvbestemtImRiverTest : FunSpec({
         val nyInntektsmelding = mockInntektsmeldingV1()
 
         val duplikatIm = nyInntektsmelding.copy(
+            id = UUID.randomUUID(),
             avsender = nyInntektsmelding.avsender.copy(
                 navn = "Intens Delfia",
                 tlf = "35350404"

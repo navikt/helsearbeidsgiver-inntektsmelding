@@ -57,10 +57,10 @@ class LagreSelvbestemtImService(
     override val dataKeys = setOf(
         Key.VIRKSOMHET,
         Key.PERSONER,
+        Key.ARBEIDSFORHOLD,
         Key.SELVBESTEMT_INNTEKTSMELDING,
         Key.ER_DUPLIKAT_IM,
-        Key.SAK_ID,
-        Key.ARBEIDSFORHOLD
+        Key.SAK_ID
     )
 
     private val steg1Keys = setOf(

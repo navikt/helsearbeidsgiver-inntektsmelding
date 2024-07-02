@@ -19,9 +19,9 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.json.readFail
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
+import java.util.UUID
 
 val eksternInntektsmelding = EksternInntektsmelding(
     avsenderSystemNavn = "NAV_NO",
@@ -64,7 +64,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-            Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+            Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson()
         )
 
         val actual = testRapid.firstMessage().readFail()
@@ -80,7 +80,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-            Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+            Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson()
         )
 
         val actual = testRapid.firstMessage().toMap()
@@ -97,7 +97,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-            Key.SPINN_INNTEKTSMELDING_ID to randomUuid().toJson()
+            Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson()
         )
 
         val actual = testRapid.firstMessage().readFail()

@@ -197,7 +197,7 @@ abstract class EndToEndTest : ContainerTest() {
                     keyPrefix = RedisPrefix.InntektSelvbestemtService
                 )
             )
-            createSpinnService(redisStore)
+            createSpinnService(redisConnection)
             createTilgangService(redisStore)
             createHentForespoerselService(
                 RedisStoreClassSpecific(

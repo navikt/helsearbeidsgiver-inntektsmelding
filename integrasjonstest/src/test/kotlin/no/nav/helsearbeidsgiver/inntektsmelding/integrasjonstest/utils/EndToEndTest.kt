@@ -106,8 +106,8 @@ abstract class EndToEndTest : ContainerTest() {
     private val imTestRapid = ImTestRapid()
 
     private val inntektsmeldingDatabase by lazy {
-        println("Database jdbcUrl for im-db: ${postgreSQLContainerOne.jdbcUrl}")
-        postgreSQLContainerOne.toHikariConfig()
+        println("Database jdbcUrl for im-db: ${postgresContainerOne.jdbcUrl}")
+        postgresContainerOne.toHikariConfig()
             .let(::Database)
             .also {
                 val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
@@ -117,8 +117,8 @@ abstract class EndToEndTest : ContainerTest() {
     }
 
     private val notifikasjonDatabase by lazy {
-        println("Database jdbcUrl for im-notifikasjon: ${postgreSQLContainerTwo.jdbcUrl}")
-        postgreSQLContainerTwo.toHikariConfig()
+        println("Database jdbcUrl for im-notifikasjon: ${postgresContainerTwo.jdbcUrl}")
+        postgresContainerTwo.toHikariConfig()
             .let(::Database)
             .also {
                 val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()

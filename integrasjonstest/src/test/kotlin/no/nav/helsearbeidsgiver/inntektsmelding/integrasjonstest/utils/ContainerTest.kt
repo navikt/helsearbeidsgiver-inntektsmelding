@@ -56,6 +56,7 @@ abstract class ContainerTest {
         println("Stopper containere...")
         kafkaContainer.stop()
         postgreSQLContainerOne.stop()
+        postgreSQLContainerTwo.stop()
         redisContainer.stop()
         println("Containere er stoppet!")
     }

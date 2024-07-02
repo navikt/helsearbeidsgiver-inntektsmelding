@@ -198,7 +198,7 @@ abstract class EndToEndTest : ContainerTest() {
                 )
             )
             createSpinnService(redisStore)
-            createTilgangService(redisStore)
+            createTilgangService(redisConnection)
             createHentForespoerselService(
                 RedisStoreClassSpecific(
                     redis = redisConnection,

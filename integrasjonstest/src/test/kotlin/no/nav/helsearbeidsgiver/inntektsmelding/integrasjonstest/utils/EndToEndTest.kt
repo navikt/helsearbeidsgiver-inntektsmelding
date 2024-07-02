@@ -54,7 +54,9 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.create
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
+import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.createTilgangService
 import no.nav.helsearbeidsgiver.inntektsmelding.trengerservice.createHentForespoerselService
 import no.nav.helsearbeidsgiver.pdl.PdlClient
@@ -104,11 +106,22 @@ abstract class EndToEndTest : ContainerTest() {
     private val imTestRapid = ImTestRapid()
 
     private val inntektsmeldingDatabase by lazy {
-        println("Database jdbcUrl: ${postgreSQLContainer.jdbcUrl}")
-        postgreSQLContainer.toHikariConfig()
+        println("Database jdbcUrl for im-db: ${postgreSQLContainerOne.jdbcUrl}")
+        postgreSQLContainerOne.toHikariConfig()
             .let(::Database)
             .also {
                 val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
+                it.migrate(migrationLocation)
+            }
+            .createTruncateFunction()
+    }
+
+    private val notifikasjonDatabase by lazy {
+        println("Database jdbcUrl for im-notifikasjon: ${postgreSQLContainerTwo.jdbcUrl}")
+        postgreSQLContainerTwo.toHikariConfig()
+            .let(::Database)
+            .also {
+                val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
                 it.migrate(migrationLocation)
             }
             .createTruncateFunction()
@@ -125,7 +138,7 @@ abstract class EndToEndTest : ContainerTest() {
     }
 
     // Vent på rediscontainer
-    val redisConnection by lazy {
+    private val redisConnection by lazy {
         repeat(5) {
             runCatching { RedisConnection(redisContainer.redisURI) }
                 .onSuccess { return@lazy it }
@@ -141,6 +154,8 @@ abstract class EndToEndTest : ContainerTest() {
     val imRepository by lazy { InntektsmeldingRepository(inntektsmeldingDatabase.db) }
     val selvbestemtImRepo by lazy { SelvbestemtImRepo(inntektsmeldingDatabase.db) }
     val forespoerselRepository by lazy { ForespoerselRepository(inntektsmeldingDatabase.db) }
+
+    private val selvbestemtRepo by lazy { SelvbestemtRepo(notifikasjonDatabase.db) }
 
     val altinnClient = mockk<AltinnClient>()
     val arbeidsgiverNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
@@ -197,6 +212,7 @@ abstract class EndToEndTest : ContainerTest() {
                     keyPrefix = RedisPrefix.InntektSelvbestemtService
                 )
             )
+            createLagreSelvbestemtImService(redisStore)
             createSpinnService(redisStore)
             createTilgangService(redisStore)
             createHentForespoerselService(
@@ -220,7 +236,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, mockk(), redisStore, arbeidsgiverNotifikasjonKlient)
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, redisStore, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
         }
     }
@@ -231,6 +247,7 @@ abstract class EndToEndTest : ContainerTest() {
         CollectorRegistry.defaultRegistry.clear()
         redisStore.shutdown()
         inntektsmeldingDatabase.dataSource.close()
+        notifikasjonDatabase.dataSource.close()
         println("Stopped.")
     }
 
@@ -286,6 +303,9 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun truncateDatabase() {
         transaction(inntektsmeldingDatabase.db) {
+            exec("SELECT truncate_tables()")
+        }
+        transaction(notifikasjonDatabase.db) {
             exec("SELECT truncate_tables()")
         }
     }

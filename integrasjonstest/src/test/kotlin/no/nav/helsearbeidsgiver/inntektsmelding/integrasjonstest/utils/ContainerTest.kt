@@ -12,11 +12,14 @@ import org.testcontainers.utility.DockerImageName
 import java.util.Properties
 
 abstract class ContainerTest {
-    val topic = "helsearbeidsgiver.inntektsmelding"
+    private val topic = "helsearbeidsgiver.inntektsmelding"
 
-    val kafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.1"))
+    private val kafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.1"))
     val redisContainer = RedisContainer(DockerImageName.parse("redis:7"))
-    val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:14").apply {
+    val postgreSQLContainerOne = PostgreSQLContainer<Nothing>("postgres:14").apply {
+        setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
+    }
+    val postgreSQLContainerTwo = PostgreSQLContainer<Nothing>("postgres:14").apply {
         setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
     }
 
@@ -42,7 +45,8 @@ abstract class ContainerTest {
         redisContainer.start()
 
         println("Starter Postgres...")
-        postgreSQLContainer.start()
+        postgreSQLContainerOne.start()
+        postgreSQLContainerTwo.start()
 
         println("Containerne er klare!")
     }
@@ -51,7 +55,7 @@ abstract class ContainerTest {
     fun stopContainers() {
         println("Stopper containere...")
         kafkaContainer.stop()
-        postgreSQLContainer.stop()
+        postgreSQLContainerOne.stop()
         redisContainer.stop()
         println("Containere er stoppet!")
     }

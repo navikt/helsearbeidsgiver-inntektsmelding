@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.utils.Log
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -89,11 +88,16 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
             Log.transaksjonId(melding.transaksjonId)
         ) {
             if (melding.spinnInntektsmeldingId != null) {
+                val dataFields = arrayOf(
+                    Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
+                    Key.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson()
+                )
+
                 context.publish(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
-                    Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
-                    Key.UUID to randomUuid().toJson(),
-                    Key.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson()
+                    Key.UUID to UUID.randomUUID().toJson(),
+                    Key.DATA to dataFields.toMap().toJson(),
+                    *dataFields
                 ).also {
                     logger.info("Publiserte melding om ekstern avsender")
                     sikkerLogger.info("Publiserte melding om ekstern avsender:\n${it.toPretty()}")

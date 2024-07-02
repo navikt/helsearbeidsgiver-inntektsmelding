@@ -39,14 +39,10 @@ class ForespoerselBesvartFraSimbaLoeserTest : FunSpec({
     }
 
     test("Ved feil så republiseres _ikke_ den innkommende meldingen") {
-        val expectedRepublisert = mapOf(
+        testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.FORESPOERSEL_ID to "ikke en uuid".toJson(),
             Key.UUID to "heller ikke en uuid".toJson()
-        )
-
-        testRapid.sendJson(
-            *expectedRepublisert.toList().toTypedArray()
         )
 
         testRapid.inspektør.size shouldBeExactly 0

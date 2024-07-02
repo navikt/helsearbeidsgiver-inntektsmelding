@@ -4,18 +4,15 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.BeforeEach
@@ -52,11 +49,7 @@ class TilgangskontrollIT : EndToEndTest() {
             )
         )
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            tilgangProducer.publishForespoerselId(UUID.randomUUID(), Mock.innloggetFnr, Mock.forespoerselId)
-        }
+        tilgangProducer.publishForespoerselId(transaksjonId, Mock.innloggetFnr, Mock.forespoerselId)
 
         messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
@@ -90,11 +83,7 @@ class TilgangskontrollIT : EndToEndTest() {
             )
         )
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            tilgangProducer.publishForespoerselId(UUID.randomUUID(), Mock.innloggetFnr, Mock.forespoerselId)
-        }
+        tilgangProducer.publishForespoerselId(transaksjonId, Mock.innloggetFnr, Mock.forespoerselId)
 
         val result = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filter(Key.TILGANG)

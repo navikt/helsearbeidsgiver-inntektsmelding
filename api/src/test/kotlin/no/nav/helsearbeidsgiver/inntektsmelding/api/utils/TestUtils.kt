@@ -21,10 +21,8 @@ import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
-import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 import org.junit.jupiter.api.AfterEach
 
 val harTilgangResultat = TilgangResultat(Tilgang.HAR_TILGANG).toJson(TilgangResultat.serializer())
@@ -40,9 +38,7 @@ abstract class ApiTest : MockAuthToken() {
 
         val testClient = TestClient(this, ::mockAuthToken)
 
-        mockConstructor(TilgangProducer::class) {
-            testClient.block()
-        }
+        testClient.block()
     }
 
     @AfterEach

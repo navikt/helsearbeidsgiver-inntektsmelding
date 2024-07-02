@@ -22,31 +22,32 @@ class TilgangProducer(
         logger.info("Starter ${TilgangProducer::class.simpleName}...")
     }
 
-    fun publishForespoerselId(clientId: UUID, fnr: Fnr, forespoerselId: UUID) =
+    fun publishForespoerselId(transaksjonId: UUID, fnr: Fnr, forespoerselId: UUID) =
         publish(
             EventName.TILGANG_FORESPOERSEL_REQUESTED,
-            clientId,
+            transaksjonId,
             Key.FNR to fnr.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 
-    fun publishOrgnr(clientId: UUID, fnr: Fnr, orgnr: String) =
+    fun publishOrgnr(transaksjonId: UUID, fnr: Fnr, orgnr: String) =
         publish(
             EventName.TILGANG_ORG_REQUESTED,
-            clientId,
+            transaksjonId,
             Key.FNR to fnr.toJson(),
             Key.ORGNRUNDERENHET to orgnr.toJson()
         )
 
-    private fun publish(eventName: EventName, clientId: UUID, vararg messageFields: Pair<Key, JsonElement>) {
+    private fun publish(eventName: EventName, transaksjonId: UUID, vararg messageFields: Pair<Key, JsonElement>) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.clientId(clientId)
+            Log.transaksjonId(transaksjonId)
         ) {
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.CLIENT_ID to clientId.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
                 *messageFields
             )
                 .also { json ->

@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
-import io.mockk.every
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
@@ -24,15 +23,15 @@ import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.mars
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -41,9 +40,11 @@ import java.util.UUID
 class AktiveOrgnrServiceTest : FunSpec({
 
     val testRapid = TestRapid()
-    val mockRedis = MockRedis()
+    val mockRedis = MockRedisClassSpecific(RedisPrefix.AktiveOrgnrService)
 
-    AktiveOrgnrService(testRapid, mockRedis.store)
+    ServiceRiver(
+        AktiveOrgnrService(testRapid, mockRedis.store)
+    ).connect(testRapid)
 
     beforeEach {
         testRapid.reset()
@@ -52,18 +53,13 @@ class AktiveOrgnrServiceTest : FunSpec({
     }
 
     test("henter aktive orgnr") {
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
         val orgnr = Orgnr.genererGyldig()
         val expectedSuccess = Mock.successResult(orgnr)
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            testRapid.sendJson(
-                Mock.startmelding(clientId, transaksjonId)
-            )
-        }
+        testRapid.sendJson(
+            Mock.startmelding(transaksjonId)
+        )
 
         testRapid.inspektør.size shouldBeExactly 3
         testRapid.message(0).lesBehov() shouldBe BehovType.ARBEIDSGIVERE
@@ -82,23 +78,18 @@ class AktiveOrgnrServiceTest : FunSpec({
         )
 
         verify {
-            mockRedis.store.set(RedisKey.of(clientId), expectedSuccess.toString())
+            mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
         }
     }
 
     test("svarer med tom liste dersom sykmeldt mangler arbeidsforhold") {
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
         val orgnr = Orgnr.genererGyldig()
         val expectedSuccess = Mock.successResultTomListe()
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            testRapid.sendJson(
-                Mock.startmelding(clientId, transaksjonId)
-            )
-        }
+        testRapid.sendJson(
+            Mock.startmelding(transaksjonId)
+        )
 
         testRapid.inspektør.size shouldBeExactly 3
 
@@ -111,23 +102,18 @@ class AktiveOrgnrServiceTest : FunSpec({
         testRapid.inspektør.size shouldBeExactly 3
 
         verify {
-            mockRedis.store.set(RedisKey.of(clientId), expectedSuccess.toString())
+            mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
         }
     }
 
     test("svarer med tom liste dersom sykmeldtes arbeidsforhold og avsenders org-rettigheter ikke gjelder samme org") {
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
         val orgnr = Orgnr.genererGyldig()
         val expectedSuccess = Mock.successResultTomListe()
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            testRapid.sendJson(
-                Mock.startmelding(clientId, transaksjonId)
-            )
-        }
+        testRapid.sendJson(
+            Mock.startmelding(transaksjonId)
+        )
 
         testRapid.inspektør.size shouldBeExactly 3
 
@@ -140,24 +126,19 @@ class AktiveOrgnrServiceTest : FunSpec({
         testRapid.inspektør.size shouldBeExactly 3
 
         verify {
-            mockRedis.store.set(RedisKey.of(clientId), expectedSuccess.toString())
+            mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
         }
     }
 
     test("svarer med feilmelding dersom avsender mangler org-rettigheter") {
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
         val orgnr = Orgnr.genererGyldig()
         val feilmelding = "Må ha orgrettigheter for å kunne hente virksomheter."
         val expectedFailure = Mock.failureResult(feilmelding)
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            testRapid.sendJson(
-                Mock.startmelding(clientId, transaksjonId)
-            )
-        }
+        testRapid.sendJson(
+            Mock.startmelding(transaksjonId)
+        )
 
         testRapid.inspektør.size shouldBeExactly 3
 
@@ -170,23 +151,18 @@ class AktiveOrgnrServiceTest : FunSpec({
         testRapid.inspektør.size shouldBeExactly 3
 
         verify {
-            mockRedis.store.set(RedisKey.of(clientId), expectedFailure.toString())
+            mockRedis.store.set(RedisKey.of(transaksjonId), expectedFailure)
         }
     }
 
     test("svarer med feilmelding dersom man ikke klarer å hente noe") {
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
         val feilmelding = "Kafka streiker for bedre vilkår :("
         val expectedFailure = Mock.failureResult(feilmelding)
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            testRapid.sendJson(
-                Mock.startmelding(clientId, transaksjonId)
-            )
-        }
+        testRapid.sendJson(
+            Mock.startmelding(transaksjonId)
+        )
 
         testRapid.sendJson(
             Fail(
@@ -203,7 +179,7 @@ class AktiveOrgnrServiceTest : FunSpec({
         )
 
         verify {
-            mockRedis.store.set(RedisKey.of(clientId), expectedFailure.toString())
+            mockRedis.store.set(RedisKey.of(transaksjonId), expectedFailure)
         }
     }
 })
@@ -258,11 +234,11 @@ private object Mock {
         )
             .toJson(ResultJson.serializer())
 
-    fun startmelding(clientId: UUID, transaksjonId: UUID): Map<Key, JsonElement> =
+    fun startmelding(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.CLIENT_ID to clientId.toJson(),
             Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
             Key.FNR to sykmeldtFnr.toJson(),
             Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
         )

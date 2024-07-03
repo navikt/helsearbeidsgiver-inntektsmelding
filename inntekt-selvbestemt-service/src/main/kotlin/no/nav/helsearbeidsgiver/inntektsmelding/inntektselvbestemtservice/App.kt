@@ -13,21 +13,23 @@ private val logger = "helsearbeidsgiver-im-inntektselvbestemtservice".logger()
 
 fun main() {
     val redisConnection = RedisConnection(Env.redisUrl)
-    val redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.InntektSelvbestemtService)
 
     RapidApplication
         .create(System.getenv())
-        .createInntektSelvbestemtService(redisStore)
+        .createInntektSelvbestemtService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
         }
         .start()
 }
 
-fun RapidsConnection.createInntektSelvbestemtService(redisStore: RedisStoreClassSpecific): RapidsConnection =
+fun RapidsConnection.createInntektSelvbestemtService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${InntektSelvbestemtService::class.simpleName}...")
         ServiceRiver(
-            InntektSelvbestemtService(this, redisStore)
+            InntektSelvbestemtService(
+                rapid = this,
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.InntektSelvbestemtService)
+            )
         ).connect(this)
     }

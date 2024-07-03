@@ -13,21 +13,23 @@ private val logger = "helsearbeidsgiver-im-hent-forespoersel-service".logger()
 
 fun main() {
     val redisConnection = RedisConnection(Env.redisUrl)
-    val redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentForespoerselService)
 
     RapidApplication
         .create(System.getenv())
-        .createHentForespoerselService(redisStore)
+        .createHentForespoerselService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
         }
         .start()
 }
 
-fun RapidsConnection.createHentForespoerselService(redisStore: RedisStoreClassSpecific): RapidsConnection =
+fun RapidsConnection.createHentForespoerselService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${HentForespoerselService::class.simpleName}...")
         ServiceRiver(
-            HentForespoerselService(this, redisStore)
+            HentForespoerselService(
+                rapid = this,
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentForespoerselService)
+            )
         ).connect(this)
     }

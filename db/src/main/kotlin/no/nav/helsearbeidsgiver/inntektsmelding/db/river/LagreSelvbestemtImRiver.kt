@@ -112,6 +112,7 @@ class LagreSelvbestemtImRiver(
 
 private fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =
     this == other.copy(
+        id = id,
         avsender = other.avsender.copy(
             navn = avsender.navn,
             tlf = avsender.tlf

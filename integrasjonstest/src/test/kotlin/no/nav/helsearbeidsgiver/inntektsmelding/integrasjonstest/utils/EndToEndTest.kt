@@ -25,9 +25,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
@@ -203,24 +201,14 @@ abstract class EndToEndTest : ContainerTest() {
         println("Starter rivers...")
         imTestRapid.apply {
             // Servicer
-            createAktiveOrgnrService(redisStore)
+            createAktiveOrgnrService(redisConnection)
             createInnsending(redisStore)
             createInntektService(redisStore)
-            createInntektSelvbestemtService(
-                RedisStoreClassSpecific(
-                    redis = redisConnection,
-                    keyPrefix = RedisPrefix.InntektSelvbestemtService
-                )
-            )
+            createInntektSelvbestemtService(redisConnection)
             createLagreSelvbestemtImService(redisStore)
             createSpinnService(redisStore)
             createTilgangService(redisStore)
-            createHentForespoerselService(
-                RedisStoreClassSpecific(
-                    redis = redisConnection,
-                    keyPrefix = RedisPrefix.HentForespoerselService
-                )
-            )
+            createHentForespoerselService(redisConnection)
 
             // Rivers
             createAareg(aaregClient)

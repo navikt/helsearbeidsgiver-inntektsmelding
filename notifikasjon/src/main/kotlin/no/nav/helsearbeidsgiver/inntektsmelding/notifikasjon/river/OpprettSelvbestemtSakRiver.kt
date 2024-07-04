@@ -54,9 +54,9 @@ class OpprettSelvbestemtSakRiver(
         val sakId = agNotifikasjonKlient.opprettSak(
             lenke = "$linkUrl/im-dialog/kvittering/agi/${inntektsmelding.type.id}",
             inntektsmeldingTypeId = inntektsmelding.type.id,
-            orgnr = inntektsmelding.avsender.orgnr,
+            orgnr = inntektsmelding.avsender.orgnr.verdi,
             sykmeldtNavn = inntektsmelding.sykmeldt.navn,
-            sykmeldtFoedselsdato = inntektsmelding.sykmeldt.fnr.take(6),
+            sykmeldtFoedselsdato = inntektsmelding.sykmeldt.fnr.verdi.take(6),
             initiellStatus = SaksStatus.FERDIG
         )
 
@@ -65,11 +65,13 @@ class OpprettSelvbestemtSakRiver(
         ) {
             selvbestemtRepo.lagreSakId(inntektsmelding.type.id, sakId)
 
+            val dataField = Key.SAK_ID to sakId.toJson()
+
             mapOf(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                Key.SAK_ID to sakId.toJson()
+                Key.DATA to mapOf(dataField).toJson(),
+                dataField
             )
         }
     }

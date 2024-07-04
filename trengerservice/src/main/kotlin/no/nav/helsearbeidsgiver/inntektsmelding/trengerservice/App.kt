@@ -9,25 +9,27 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.utils.log.logger
 
-private val logger = "helsearbeidsgiver-im-trengerservice".logger()
+private val logger = "helsearbeidsgiver-im-hent-forespoersel-service".logger()
 
 fun main() {
     val redisConnection = RedisConnection(Env.redisUrl)
-    val redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentForespoerselService)
 
     RapidApplication
         .create(System.getenv())
-        .createTrengerService(redisStore)
+        .createHentForespoerselService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
         }
         .start()
 }
 
-fun RapidsConnection.createTrengerService(redisStore: RedisStoreClassSpecific): RapidsConnection =
+fun RapidsConnection.createHentForespoerselService(redisConnection: RedisConnection): RapidsConnection =
     also {
-        logger.info("Starter ${TrengerService::class.simpleName}...")
+        logger.info("Starter ${HentForespoerselService::class.simpleName}...")
         ServiceRiver(
-            TrengerService(this, redisStore)
+            HentForespoerselService(
+                rapid = this,
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentForespoerselService)
+            )
         ).connect(this)
     }

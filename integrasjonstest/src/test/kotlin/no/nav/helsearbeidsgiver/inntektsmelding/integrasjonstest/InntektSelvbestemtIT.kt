@@ -34,8 +34,8 @@ class InntektSelvbestemtIT : EndToEndTest() {
             Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
             Key.DATA to "".toJson(),
-            Key.FNR to Mock.fnr.toJson(Fnr.serializer()),
-            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
+            Key.FNR to Mock.fnr.toJson(),
+            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
             Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson()
         )
 
@@ -46,11 +46,13 @@ class InntektSelvbestemtIT : EndToEndTest() {
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.BEHOV to BehovType.INNTEKT.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.ORGNRUNDERENHET to Mock.orgnr.toJson(Orgnr.serializer()),
-                    Key.FNR to Mock.fnr.toJson(Fnr.serializer()),
+                    Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+                    Key.FNR to Mock.fnr.toJson(),
                     Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson(LocalDateSerializer)
                 )
             )
+
+        val dataField = Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer())
 
         messages.filter(Key.INNTEKT)
             .firstAsMap()
@@ -58,8 +60,8 @@ class InntektSelvbestemtIT : EndToEndTest() {
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer())
+                    Key.DATA to mapOf(dataField).toJson(),
+                    dataField
                 )
             )
     }

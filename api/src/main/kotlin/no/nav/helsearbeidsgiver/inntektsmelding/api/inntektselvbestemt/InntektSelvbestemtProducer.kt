@@ -11,8 +11,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class InntektSelvbestemtProducer(
@@ -22,9 +20,7 @@ class InntektSelvbestemtProducer(
         logger.info("Starter ${InntektSelvbestemtProducer::class.simpleName}...")
     }
 
-    fun publish(request: InntektSelvbestemtRequest): UUID {
-        val transaksjonId = UUID.randomUUID()
-
+    fun publish(transaksjonId: UUID, request: InntektSelvbestemtRequest) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.INNTEKT_SELVBESTEMT_REQUESTED),
@@ -34,8 +30,8 @@ class InntektSelvbestemtProducer(
                 Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to "".toJson(),
-                Key.FNR to request.sykmeldtFnr.toJson(Fnr.serializer()),
-                Key.ORGNRUNDERENHET to request.orgnr.toJson(Orgnr.serializer()),
+                Key.FNR to request.sykmeldtFnr.toJson(),
+                Key.ORGNRUNDERENHET to request.orgnr.toJson(),
                 Key.SKJAERINGSTIDSPUNKT to request.inntektsdato.toJson()
             )
                 .also { json ->
@@ -45,7 +41,5 @@ class InntektSelvbestemtProducer(
                     }
                 }
         }
-
-        return transaksjonId
     }
 }

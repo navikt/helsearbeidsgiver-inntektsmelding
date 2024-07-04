@@ -6,8 +6,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import io.mockk.every
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Avsender
@@ -32,19 +30,21 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykefravaer
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Tariffendring
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.VarigLoennsendring
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
 import no.nav.helsearbeidsgiver.felles.ResultJson
-import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.hardcodedJson
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.jsonStrOrNull
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
-import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -65,19 +65,43 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `gi OK med inntektsmelding`() = testApi {
-        val mockClientId = UUID.randomUUID()
+    fun `gir OK med inntektsmelding`() = testApi {
         val expectedInntektsmelding = mockInntektsmeldingV1()
 
-        mockTilgang(Tilgang.HAR_TILGANG)
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.successResult(expectedInntektsmelding),
+            harTilgangResultat
+        )
 
-        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.successResult(expectedInntektsmelding)
+        val response = get(pathMedId)
 
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
+        val actualJson = response.bodyAsText()
 
-            get(pathMedId)
+        response.status shouldBe HttpStatusCode.OK
+        actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
+    }
+
+    @Test
+    fun `gir OK med inntektsmelding med ekstra 'perioder'-felt i inntektsendringsårsak`() = testApi {
+        val expectedInntektsmelding = mockInntektsmeldingV1().let {
+            it.copy(
+                inntekt = it.inntekt?.copy(
+                    endringAarsak = Ferie(
+                        ferier = listOf(
+                            15.februar(2024) til 16.februar(2024),
+                            22.februar(2024) til 23.februar(2024)
+                        )
+                    )
+                )
+            )
         }
+
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.successResult(expectedInntektsmelding),
+            harTilgangResultat
+        )
+
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 
@@ -87,17 +111,12 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `manglende tilgang gir 500-feil`() = testApi {
-        val mockClientId = UUID.randomUUID()
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.successResult(mockInntektsmeldingV1()),
+            ikkeTilgangResultat
+        )
 
-        mockTilgang(Tilgang.IKKE_TILGANG)
-
-        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.successResult(mockInntektsmeldingV1())
-
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
-
-            get(pathMedId)
-        }
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 
@@ -107,18 +126,14 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `feilresultat gir 500-feil`() = testApi {
-        val mockClientId = UUID.randomUUID()
         val expectedFeilmelding = "Du får vente til freddan'!"
 
-        mockTilgang(Tilgang.HAR_TILGANG)
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.failureResult(expectedFeilmelding),
+            harTilgangResultat
+        )
 
-        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.failureResult(expectedFeilmelding)
-
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
-
-            get(pathMedId)
-        }
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 
@@ -128,18 +143,14 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `tomt resultat gir 500-feil`() = testApi {
-        val mockClientId = UUID.randomUUID()
         val expectedFeilmelding = "Ukjent feil."
 
-        mockTilgang(Tilgang.HAR_TILGANG)
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            Mock.emptyResult(),
+            harTilgangResultat
+        )
 
-        coEvery { mockRedisPoller.hent(mockClientId) } returns Mock.emptyResult()
-
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
-
-            get(pathMedId)
-        }
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 
@@ -149,17 +160,12 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `timeout mot redis gir 500-feil`() = testApi {
-        val mockClientId = UUID.randomUUID()
         val selvbestemtId = UUID.randomUUID()
         val expectedFeilobjekt = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
 
-        coEvery { mockRedisPoller.hent(mockClientId) } throws RedisPollerTimeoutException(UUID.randomUUID())
+        coEvery { mockRedisPoller.hent(any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
-
-            get("$pathUtenId$selvbestemtId")
-        }
+        val response = get("$pathUtenId$selvbestemtId")
 
         val actualJson = response.bodyAsText()
 
@@ -169,17 +175,12 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `ukjent feil mot redis gir 500-feil`() = testApi {
-        val mockClientId = UUID.randomUUID()
         val selvbestemtId = UUID.randomUUID()
         val expectedFeilobjekt = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer())
 
-        coEvery { mockRedisPoller.hent(mockClientId) } throws IllegalStateException()
+        coEvery { mockRedisPoller.hent(any()) } throws IllegalStateException()
 
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } returns mockClientId
-
-            get("$pathUtenId$selvbestemtId")
-        }
+        val response = get("$pathUtenId$selvbestemtId")
 
         val actualJson = response.bodyAsText()
 
@@ -189,11 +190,9 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
 
     @Test
     fun `ukjent feil gir 500-feil`() = testApi {
-        val response = mockConstructor(HentSelvbestemtImProducer::class) {
-            every { anyConstructed<HentSelvbestemtImProducer>().publish(any()) } throws NullPointerException()
+        coEvery { mockRedisPoller.hent(any()) } returns Mock.successResult(mockInntektsmeldingV1()) andThenThrows NullPointerException()
 
-            get(pathMedId)
-        }
+        val response = get(pathMedId)
 
         val actualJson = response.bodyAsText()
 
@@ -251,7 +250,7 @@ private object Mock {
 
     fun failureResult(feilmelding: String): JsonElement =
         ResultJson(
-            failure = feilmelding.toJson(String.serializer())
+            failure = feilmelding.toJson()
         ).toJson(ResultJson.serializer())
 
     fun emptyResult(): JsonElement =
@@ -307,7 +306,6 @@ private fun Avsender.hardcodedJson(): String =
     {
         "orgnr": "$orgnr",
         "orgNavn": "$orgNavn",
-        "fnr": "$fnr",
         "navn": "$navn",
         "tlf": "$tlf"
     }
@@ -370,14 +368,35 @@ private fun InntektEndringAarsak.hardcodedJson(): String =
     when (this) {
         Bonus -> """{ "aarsak": "Bonus" }"""
         Feilregistrert -> """{ "aarsak": "Feilregistrert" }"""
-        is Ferie -> """{ "aarsak": "Ferie", "perioder": [${perioder.joinToString(transform = Periode::hardcodedJson)}" }"""
+//        is Ferie -> """{ "aarsak": "Ferie", "ferier": [${ferier.joinToString(transform = Periode::hardcodedJson)}] }"""
+        is Ferie -> """{ "aarsak": "Ferie", "ferier": [${ferier.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
+        ferier.joinToString(
+            transform = Periode::hardcodedJson
+        )
+        }] }"""
         Ferietrekk -> """{ "aarsak": "Ferietrekk"}"""
         is NyStilling -> """{ "aarsak": "NyStilling", "gjelderFra": "$gjelderFra" }"""
         is NyStillingsprosent -> """{ "aarsak": "NyStillingsprosent", "gjelderFra": "$gjelderFra" }"""
         Nyansatt -> """{ "aarsak": "Nyansatt" }"""
-        is Permisjon -> """{ "aarsak": "Permisjon", "perioder": [${perioder.joinToString(transform = Periode::hardcodedJson)}" }"""
-        is Permittering -> """{ "aarsak": "Permittering", "perioder": [${perioder.joinToString(transform = Periode::hardcodedJson)}" }"""
-        is Sykefravaer -> """{ "aarsak": "Sykefravaer", "perioder": [${perioder.joinToString(transform = Periode::hardcodedJson)}" }"""
+//        is Permisjon -> """{ "aarsak": "Permisjon", "permisjoner": [${permisjoner.joinToString(transform = Periode::hardcodedJson)}] }"""
+        is Permisjon -> """{ "aarsak": "Permisjon", "permisjoner": [${permisjoner.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
+        permisjoner.joinToString(
+            transform = Periode::hardcodedJson
+        )
+        }] }"""
+//        is Permittering -> """{ "aarsak": "Permittering", "permitteringer": [${permitteringer.joinToString(transform = Periode::hardcodedJson)}] }"""
+        is Permittering -> """{ "aarsak": "Permittering", "permitteringer": [${permitteringer.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
+        permitteringer.joinToString(
+            transform = Periode::hardcodedJson
+        )
+        }] }"""
+//        is Sykefravaer -> """{ "aarsak": "Sykefravaer", "sykefravaer": [${sykefravaer.joinToString(transform = Periode::hardcodedJson)}] }"""
+        is Sykefravaer -> """{ "aarsak": "Sykefravaer", "sykefravaer": [${sykefravaer.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
+        sykefravaer.joinToString(
+            transform = Periode::hardcodedJson
+        )
+        }] }"""
+
         is Tariffendring -> """{ "aarsak": "Tariffendring", "gjelderFra": "$gjelderFra", "bleKjent": "$bleKjent" }"""
         is VarigLoennsendring -> """{ "aarsak": "VarigLoennsendring", "gjelderFra": "$gjelderFra" }"""
     }

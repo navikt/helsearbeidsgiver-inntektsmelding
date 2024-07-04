@@ -70,12 +70,16 @@ class LagreSelvbestemtImRiver(
             }
         }
 
+        val dataFields = arrayOf(
+            Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
+            Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
+        )
+
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SELVBESTEMT_INNTEKTSMELDING to selvbestemtInntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
+            Key.DATA to dataFields.toMap().toJson(),
+            *dataFields
         )
     }
 
@@ -108,8 +112,8 @@ class LagreSelvbestemtImRiver(
 
 private fun Inntektsmelding.erDuplikatAv(other: Inntektsmelding): Boolean =
     this == other.copy(
+        id = id,
         avsender = other.avsender.copy(
-            fnr = avsender.fnr,
             navn = avsender.navn,
             tlf = avsender.tlf
         ),

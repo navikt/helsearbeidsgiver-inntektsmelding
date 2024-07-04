@@ -6,7 +6,6 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import io.ktor.server.routing.route
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
@@ -19,39 +18,45 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondInternalServerError
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondNotFound
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.util.UUID
 
 fun Route.aktiveOrgnrRoute(
     connection: RapidsConnection,
     redis: RedisPoller
 ) {
     val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
-    route(Routes.AKTIVEORGNR) {
-        post {
-            try {
-                val request = call.receive<AktiveOrgnrRequest>()
-                val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
+    post(Routes.AKTIVEORGNR) {
+        val transaksjonId = UUID.randomUUID()
 
-                val clientId = aktiveOrgnrProducer.publish(arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
+        try {
+            val request = call.receive<AktiveOrgnrRequest>()
+            val arbeidsgiverFnr = call.request.lesFnrFraAuthToken()
 
-                val resultatJson = redis.hent(clientId).fromJson(ResultJson.serializer())
+            aktiveOrgnrProducer.publish(transaksjonId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
 
-                val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
-                if (resultat != null) {
+            val resultatJson = redis.hent(transaksjonId).fromJson(ResultJson.serializer())
+
+            val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
+            if (resultat != null) {
+                if (resultat.underenheter.isEmpty()) {
+                    respondNotFound("Fant ingen arbeidsforhold.", String.serializer())
+                } else {
                     val response = resultat.toResponse()
                     call.respond(HttpStatusCode.Created, response.toJson(AktiveOrgnrResponse.serializer()))
-                } else {
-                    val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
-                    respondInternalServerError(feilmelding, String.serializer())
                 }
-            } catch (_: RedisPollerTimeoutException) {
-                logger.info("Fikk timeout mot redis ved henting av aktive orgnr")
-                respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
-            } catch (e: Exception) {
-                sikkerLogger.error("Feil ved henting av aktive orgnr", e)
-                respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
+            } else {
+                val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: Tekst.TEKNISK_FEIL_FORBIGAAENDE
+                respondInternalServerError(feilmelding, String.serializer())
             }
+        } catch (_: RedisPollerTimeoutException) {
+            logger.info("Fikk timeout mot redis ved henting av aktive orgnr")
+            respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
+        } catch (e: Exception) {
+            sikkerLogger.error("Feil ved henting av aktive orgnr", e)
+            respondInternalServerError(Tekst.TEKNISK_FEIL_FORBIGAAENDE, String.serializer())
         }
     }
 }
@@ -59,6 +64,7 @@ fun Route.aktiveOrgnrRoute(
 private fun AktiveArbeidsgivere.toResponse(): AktiveOrgnrResponse =
     AktiveOrgnrResponse(
         fulltNavn = fulltNavn,
+        avsenderNavn = avsenderNavn,
         underenheter = underenheter.map {
             GyldigUnderenhet(
                 orgnrUnderenhet = it.orgnrUnderenhet,

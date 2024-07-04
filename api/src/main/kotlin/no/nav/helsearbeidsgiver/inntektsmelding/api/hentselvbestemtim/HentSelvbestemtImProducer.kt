@@ -20,17 +20,16 @@ class HentSelvbestemtImProducer(
         logger.info("Starter ${HentSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(selvbestemtId: UUID): UUID {
-        val clientId = UUID.randomUUID()
-
+    fun publish(transaksjonId: UUID, selvbestemtId: UUID) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_REQUESTED),
-            Log.clientId(clientId),
+            Log.transaksjonId(transaksjonId),
             Log.selvbestemtId(selvbestemtId)
         ) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-                Key.CLIENT_ID to clientId.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
                 Key.SELVBESTEMT_ID to selvbestemtId.toJson()
             )
                 .also {
@@ -38,7 +37,5 @@ class HentSelvbestemtImProducer(
                     sikkerLogger.info("Publiserte til kafka:\n${it.toPretty()}")
                 }
         }
-
-        return clientId
     }
 }

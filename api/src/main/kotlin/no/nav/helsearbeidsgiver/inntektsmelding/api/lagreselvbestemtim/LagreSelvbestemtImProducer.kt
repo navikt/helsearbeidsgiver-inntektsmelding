@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.lagreselvbestemtim
 
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class LagreSelvbestemtImProducer(
@@ -21,19 +22,15 @@ class LagreSelvbestemtImProducer(
         logger.info("Starter ${LagreSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(selvbestemtId: UUID, avsenderFnr: String, skjema: SkjemaInntektsmelding): UUID {
-        val clientId = UUID.randomUUID()
-
+    fun publish(clientId: UUID, skjema: SkjemaInntektsmeldingSelvbestemt, avsenderFnr: Fnr) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_MOTTATT),
-            Log.clientId(clientId),
-            Log.selvbestemtId(selvbestemtId)
+            Log.clientId(clientId)
         ) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
                 Key.CLIENT_ID to clientId.toJson(),
-                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmelding.serializer()),
+                Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
                 Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
             )
                 .also {
@@ -41,7 +38,5 @@ class LagreSelvbestemtImProducer(
                     sikkerLogger.info("Publiserte til kafka:\n${it.toPretty()}")
                 }
         }
-
-        return clientId
     }
 }

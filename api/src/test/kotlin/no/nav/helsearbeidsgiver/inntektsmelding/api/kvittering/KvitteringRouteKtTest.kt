@@ -2,15 +2,13 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api.kvittering
 
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.ResultJson
-import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
+import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
-import no.nav.helsearbeidsgiver.utils.test.mock.mockConstructor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -33,18 +31,14 @@ class KvitteringRouteKtTest : ApiTest() {
 
     @Test
     fun `skal godta gyldig uuid`() = testApi {
-        val mockClientId = UUID.randomUUID()
-        mockTilgang(Tilgang.HAR_TILGANG)
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            harTilgangResultat,
+            ResultJson(
+                success = resultatMedInntektsmelding.parseJson()
+            ).toJson(ResultJson.serializer())
+        )
 
-        coEvery { mockRedisPoller.hent(mockClientId) } returns ResultJson(
-            success = resultatMedInntektsmelding.parseJson()
-        ).toJson(ResultJson.serializer())
-
-        val response = mockConstructor(KvitteringProducer::class) {
-            every { anyConstructed<KvitteringProducer>().publish(any()) } returns mockClientId
-
-            get(PATH + "?uuid=" + UUID.randomUUID())
-        }
+        val response = get(PATH + "?uuid=" + UUID.randomUUID())
 
         assertEquals(HttpStatusCode.OK, response.status)
     }

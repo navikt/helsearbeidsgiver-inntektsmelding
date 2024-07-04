@@ -11,6 +11,15 @@ import java.util.UUID
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
+data class UkjentErrorResponse(
+    val inntektsmeldingTypeId: UUID? = null
+) {
+    @EncodeDefault
+    val error = "Ukjent feil."
+}
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
 data class JsonErrorResponse(
     // TODO slett etter endring i frontend
     val forespoerselId: String? = null,
@@ -22,9 +31,38 @@ data class JsonErrorResponse(
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
-data class UkjentErrorResponse(
-    val inntektsmeldingTypeId: UUID
+data class ValideringErrorResponse(
+    val valideringsfeil: Set<String>
 ) {
     @EncodeDefault
-    val error = "Ukjent feil."
+    val error = "Feil under validering."
+}
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+data class RedisTimeoutResponse(
+    // TODO slett etter endring i frontend
+    val uuid: UUID? = null,
+    val inntektsmeldingTypeId: UUID? = null
+) {
+    @EncodeDefault
+    val error = "Brukte for lang tid mot redis."
+}
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+data class RedisPermanentErrorResponse(
+    val inntektsmeldingTypeId: UUID? = null
+) {
+    @EncodeDefault
+    val error = "Permanent feil mot redis."
+}
+
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+data class ArbeidsforholdErrorResponse(
+    val inntektsmeldingTypeId: UUID? = null
+) {
+    @EncodeDefault
+    val error = "Mangler arbeidsforhold i perioden"
 }

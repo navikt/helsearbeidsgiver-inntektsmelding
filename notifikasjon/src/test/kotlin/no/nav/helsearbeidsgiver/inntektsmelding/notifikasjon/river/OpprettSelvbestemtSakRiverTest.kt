@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river
 
-import io.kotest.assertions.any
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.ints.shouldBeExactly
@@ -56,21 +55,23 @@ class OpprettSelvbestemtSakRiverTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
+        val dataField = Key.SAK_ID to sakId.toJson()
+
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
             Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SAK_ID to sakId.toJson()
+            Key.DATA to mapOf(dataField).toJson(),
+            dataField
         )
 
         coVerifySequence {
             mockagNotifikasjonKlient.opprettNySak(
-                virksomhetsnummer = innkommendeMelding.inntektsmelding.avsender.orgnr,
+                virksomhetsnummer = innkommendeMelding.inntektsmelding.avsender.orgnr.verdi,
                 merkelapp = "Inntektsmelding sykepenger",
                 grupperingsid = innkommendeMelding.inntektsmelding.type.id.toString(),
                 lenke = "$mockUrl/im-dialog/kvittering/agi/${innkommendeMelding.inntektsmelding.type.id}",
                 tittel = "Inntektsmelding for ${innkommendeMelding.inntektsmelding.sykmeldt.navn}: " +
-                    "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.take(6)}",
+                    "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.verdi.take(6)}",
                 statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
                 initiellStatus = SaksStatus.FERDIG,
                 harddeleteOm = any()

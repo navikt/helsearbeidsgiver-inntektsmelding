@@ -68,12 +68,16 @@ class LagreSelvbestemtImRiverTest : FunSpec({
 
             testRapid.inspektør.size shouldBeExactly 1
 
+            val dataFields = arrayOf(
+                Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
+                Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer())
+            )
+
             testRapid.firstMessage().toMap() shouldContainExactly mapOf(
                 Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                 Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer())
+                Key.DATA to dataFields.toMap().toJson(),
+                *dataFields
             )
 
             verifySequence {
@@ -87,8 +91,8 @@ class LagreSelvbestemtImRiverTest : FunSpec({
         val nyInntektsmelding = mockInntektsmeldingV1()
 
         val duplikatIm = nyInntektsmelding.copy(
+            id = UUID.randomUUID(),
             avsender = nyInntektsmelding.avsender.copy(
-                fnr = "03067211111",
                 navn = "Intens Delfia",
                 tlf = "35350404"
             ),
@@ -107,12 +111,16 @@ class LagreSelvbestemtImRiverTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
+        val dataFields = arrayOf(
+            Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
+            Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())
+        )
+
         testRapid.firstMessage().toMap() shouldContainExactly mapOf(
             Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
             Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.SELVBESTEMT_INNTEKTSMELDING to nyInntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())
+            Key.DATA to dataFields.toMap().toJson(),
+            *dataFields
         )
 
         verifySequence {

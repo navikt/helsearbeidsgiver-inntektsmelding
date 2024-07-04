@@ -8,7 +8,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import io.mockk.every
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
@@ -17,6 +16,7 @@ import no.nav.helsearbeidsgiver.aareg.Opplysningspliktig
 import no.nav.helsearbeidsgiver.aareg.Periode
 import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
+import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -26,19 +26,20 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
-import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
-import no.nav.helsearbeidsgiver.pdl.domene.PersonNavn
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
+import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -55,36 +56,39 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
     @Test
     fun `Test hente aktive organisasjoner`() {
+        val transaksjonId = UUID.randomUUID()
+
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
         coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
-        coEvery { pdlKlient.personBolk(any()) } returns listOf(Mock.person)
+        coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.CLIENT_ID to Mock.clientId.toJson(),
-            Key.FNR to Mock.FNR.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FNR to Mock.fnr.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson()
         )
 
-        redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
+        redisStore.get(RedisKey.of(transaksjonId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR_AG
+            ?.fromJson(String.serializer()) shouldBe Mock.fnrAg
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+            ?.fromJson(String.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.FULLT_NAVN)
-            .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+            .filter(BehovType.HENT_PERSONER)
+            .firstAsMap()[Key.FNR_LISTE]
+            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -110,37 +114,40 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
     }
 
     @Test
-    fun `Aareg kall feiler`() {
+    fun `ingen arbeidsforhold`() {
+        val transaksjonId = UUID.randomUUID()
+
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns emptyList()
         coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
-        coEvery { pdlKlient.personBolk(any()) } returns listOf(Mock.person)
+        coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-            Key.CLIENT_ID to Mock.clientId.toJson(),
-            Key.FNR to Mock.FNR.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FNR to Mock.fnr.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson()
         )
 
-        redisStore.get(RedisKey.of(Mock.clientId)) shouldBe Mock.FEILTET_AKTIVE_ORGNR_RESPONSE
+        redisStore.get(RedisKey.of(transaksjonId))?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR_AG
+            ?.fromJson(String.serializer()) shouldBe Mock.fnrAg
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+            ?.fromJson(String.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.FULLT_NAVN)
-            .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.FNR
+            .filter(BehovType.HENT_PERSONER)
+            .firstAsMap()[Key.FNR_LISTE]
+            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -155,39 +162,39 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
     @Test
     fun `Ved feil under henting av personer så svarer service med feil`() {
+        val transaksjonId = UUID.randomUUID()
+
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforholdListe
         coEvery { altinnClient.hentRettighetOrganisasjoner(any()) } returns Mock.altinnOrganisasjonSet
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Virksomhet(organisasjonsnummer = "810007842", navn = "ANSTENDIG PIGGSVIN BARNEHAGE"))
 
         coEvery { pdlKlient.personBolk(any()) } throws IllegalArgumentException("Ingen folk å finne her!")
 
-        val transaksjonId = UUID.randomUUID()
-
         val expectedFail = Fail(
-            feilmelding = "Klarte ikke hente navn",
+            feilmelding = "Klarte ikke hente personer fra PDL.",
             event = EventName.AKTIVE_ORGNR_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = null,
             utloesendeMelding = mapOf(
                 Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-                Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
+                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
+                Key.FNR_LISTE to listOf(
+                    Mock.fnr,
+                    Mock.fnrAg
+                ).toJson(String.serializer()),
                 Key.UUID to transaksjonId.toJson()
             ).toJson()
         )
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
+        publish(
+            Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FNR to Mock.fnr.toJson(),
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson()
+        )
 
-            publish(
-                Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-                Key.CLIENT_ID to Mock.clientId.toJson(),
-                Key.FNR to Mock.FNR.toJson(),
-                Key.ARBEIDSGIVER_FNR to Mock.FNR_AG.toJson()
-            )
-        }
-
-        val response = redisStore.get(RedisKey.of(Mock.clientId))
+        val response = redisStore.get(RedisKey.of(transaksjonId))
             ?.fromJson(ResultJson.serializer())
             .shouldNotBeNull()
 
@@ -211,19 +218,23 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             {
                 "success": {
                     "fulltNavn": "Bjarne Betjent",
+                    "avsenderNavn": "Max Mekker",
                     "underenheter": [{"orgnrUnderenhet": "810007842", "virksomhetsnavn": "ANSTENDIG PIGGSVIN BARNEHAGE"}]
                 }
             }
         """.removeJsonWhitespace()
-        val FEILTET_AKTIVE_ORGNR_RESPONSE = """
-            {
-                "failure": "Fant ingen aktive arbeidsforhold"
-            }
-        """.removeJsonWhitespace()
-        const val FNR = "kongelig-albatross"
-        const val FNR_AG = "uutgrunnelig-koffert"
 
-        val clientId = randomUuid()
+        val resultatIngenArbeidsforholdJson = ResultJson(
+            success = AktiveArbeidsgivere(
+                fulltNavn = "Bjarne Betjent",
+                avsenderNavn = "Max Mekker",
+                underenheter = emptyList()
+            ).toJson(AktiveArbeidsgivere.serializer())
+        )
+            .toJson(ResultJson.serializer())
+
+        val fnr = Fnr.genererGyldig().verdi
+        val fnrAg = Fnr.genererGyldig().verdi
 
         val arbeidsforholdListe = listOf(
             AAregArbeidsforhold(
@@ -277,10 +288,9 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         val underenheter = listOf("810007842")
 
-        val person = FullPerson(
-            navn = PersonNavn(fornavn = "Bjarne", mellomnavn = null, etternavn = "Betjent"),
-            foedselsdato = 1.januar,
-            ident = FNR
+        val personer = listOf(
+            bjarneBetjent.copy(ident = fnr),
+            maxMekker.copy(ident = fnrAg)
         )
     }
 }

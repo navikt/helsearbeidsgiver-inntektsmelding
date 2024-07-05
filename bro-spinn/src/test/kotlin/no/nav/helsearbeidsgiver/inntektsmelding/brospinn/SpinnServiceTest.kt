@@ -14,21 +14,24 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.date.januar
+import java.util.UUID
 
 class SpinnServiceTest : FunSpec({
     val testRapid = TestRapid()
 
-    val mockRedis = MockRedis()
+    val mockRedis = MockRedisClassSpecific(RedisPrefix.SpinnService)
 
-    SpinnService(testRapid, mockRedis.store)
+    ServiceRiver(
+        SpinnService(testRapid, mockRedis.store)
+    ).connect(testRapid)
 
     beforeEach {
         testRapid.reset()
@@ -40,8 +43,9 @@ class SpinnServiceTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
         )
 
@@ -56,9 +60,9 @@ class SpinnServiceTest : FunSpec({
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
+            Key.UUID to Mock.transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.UUID to Mock.transaksjonId.toJson(),
             Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
             Key.EKSTERN_INNTEKTSMELDING to Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
         )
@@ -66,16 +70,16 @@ class SpinnServiceTest : FunSpec({
         verify {
             mockRedis.store.set(
                 RedisKey.of(Mock.transaksjonId, Key.EKSTERN_INNTEKTSMELDING),
-                Mock.eksternInntektsmelding.toJsonStr(EksternInntektsmelding.serializer())
+                Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
             )
         }
     }
 })
 
 private object Mock {
-    val transaksjonId = randomUuid()
-    val forespoerselId = randomUuid()
-    val spinnInntektsmeldingId = randomUuid()
+    val transaksjonId: UUID = UUID.randomUUID()
+    val forespoerselId: UUID = UUID.randomUUID()
+    val spinnInntektsmeldingId: UUID = UUID.randomUUID()
 
     val eksternInntektsmelding = EksternInntektsmelding(
         "AltinnPortal",

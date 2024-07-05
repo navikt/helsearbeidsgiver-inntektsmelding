@@ -206,7 +206,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntektService(redisStore)
             createInntektSelvbestemtService(redisConnection)
             createLagreSelvbestemtImService(redisStore)
-            createSpinnService(redisStore)
+            createSpinnService(redisConnection)
             createTilgangService(redisConnection)
             createHentForespoerselService(redisConnection)
 

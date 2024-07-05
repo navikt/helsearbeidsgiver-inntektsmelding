@@ -78,17 +78,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.fnrAg
+            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnrAg
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.fnr
+            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -137,17 +137,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.fnrAg
+            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnrAg
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.fnr
+            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -181,7 +181,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                 Key.FNR_LISTE to listOf(
                     Mock.fnr,
                     Mock.fnrAg
-                ).toJson(String.serializer()),
+                ).toJson(Fnr.serializer()),
                 Key.UUID to transaksjonId.toJson()
             ).toJson()
         )
@@ -233,8 +233,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         )
             .toJson(ResultJson.serializer())
 
-        val fnr = Fnr.genererGyldig().verdi
-        val fnrAg = Fnr.genererGyldig().verdi
+        val fnr = Fnr.genererGyldig()
+        val fnrAg = Fnr.genererGyldig()
 
         val arbeidsforholdListe = listOf(
             AAregArbeidsforhold(
@@ -289,8 +289,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         val underenheter = listOf("810007842")
 
         val personer = listOf(
-            bjarneBetjent.copy(ident = fnr),
-            maxMekker.copy(ident = fnrAg)
+            bjarneBetjent.copy(ident = fnr.verdi),
+            maxMekker.copy(ident = fnrAg.verdi)
         )
     }
 }

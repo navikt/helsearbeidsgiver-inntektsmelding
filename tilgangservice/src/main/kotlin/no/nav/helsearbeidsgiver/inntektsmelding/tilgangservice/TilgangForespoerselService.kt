@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -23,7 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
-import java.util.UUID
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 
 class TilgangForespoerselService(
     private val rapid: RapidsConnection,
@@ -44,7 +43,7 @@ class TilgangForespoerselService(
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val avsenderFnr = Key.FNR.les(String.serializer(), melding)
+        val avsenderFnr = Key.FNR.les(Fnr.serializer(), melding)
 
         MdcUtils.withLogFields(
             Log.klasse(this),

@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.brospinn
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.verify
@@ -50,10 +51,11 @@ class SpinnServiceTest : FunSpec({
         )
 
         val actual = testRapid.firstMessage().toMap()
+        val actualData = actual[Key.DATA].shouldNotBeNull().toMap()
 
         testRapid.inspektør.size shouldBeExactly 1
         Key.BEHOV.les(BehovType.serializer(), actual) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
-        Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, actual) shouldBe Mock.spinnInntektsmeldingId
+        Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, actualData) shouldBe Mock.spinnInntektsmeldingId
     }
 
     test("EksternInntektsmelding blir skrevet til redis") {

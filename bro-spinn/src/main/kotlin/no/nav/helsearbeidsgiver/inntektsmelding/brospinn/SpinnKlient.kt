@@ -9,13 +9,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
+import java.util.UUID
 
 class SpinnKlient(
     private val url: String,
     private val getAccessToken: () -> String
 ) {
     private val httpClient = createHttpClient()
-    fun hentEksternInntektsmelding(inntektsmeldingId: String): EksternInntektsmelding {
+    fun hentEksternInntektsmelding(inntektsmeldingId: UUID): EksternInntektsmelding {
         val result = runBlocking {
             try {
                 val response = httpClient.get("$url/$inntektsmeldingId") {
@@ -31,10 +32,11 @@ class SpinnKlient(
             }
         }
 
-        if (result.avsenderSystem?.navn != null) {
+        val avsenderSystemNavn = result.avsenderSystem?.navn
+        if (avsenderSystemNavn != null) {
             return EksternInntektsmelding(
                 arkivreferanse = result.arkivreferanse,
-                avsenderSystemNavn = result.avsenderSystem!!.navn!!,
+                avsenderSystemNavn = avsenderSystemNavn,
                 avsenderSystemVersjon = result.avsenderSystem?.versjon ?: "",
                 tidspunkt = result.mottattDato
             )

@@ -17,10 +17,14 @@ fun main() {
 
     val redisConnection = RedisConnection(Env.redisUrl)
 
+    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
+    val spinnKlient = SpinnKlient(Env.spinnUrl, tokenGetter)
+
     RapidApplication
         .create(System.getenv())
-        .createEksternInntektsmeldingLoeser(createSpinnKlient())
+        .createEksternInntektsmeldingLoeser(spinnKlient)
         .createSpinnService(redisConnection)
+        .createHentEksternImRiver(spinnKlient)
         .registerShutdownLifecycle {
             redisConnection.close()
         }
@@ -46,7 +50,8 @@ fun RapidsConnection.createSpinnService(redisConnection: RedisConnection): Rapid
         ).connect(this)
     }
 
-fun createSpinnKlient(): SpinnKlient {
-    val tokenGetter = oauth2ClientCredentialsTokenGetter(Env.oauth2Environment)
-    return SpinnKlient(Env.spinnUrl, tokenGetter)
-}
+fun RapidsConnection.createHentEksternImRiver(spinnKlient: SpinnKlient): RapidsConnection =
+    also {
+        logger.info("Starter ${HentEksternImRiver::class.simpleName}...")
+        HentEksternImRiver(spinnKlient).connect(this)
+    }

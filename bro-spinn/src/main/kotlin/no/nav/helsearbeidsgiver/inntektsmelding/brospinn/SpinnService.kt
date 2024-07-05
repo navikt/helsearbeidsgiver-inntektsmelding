@@ -67,8 +67,8 @@ class SpinnService(
                             Log.event(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT),
                             Log.behov(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING)
                         ) {
-                            logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
-                            sikkerLogger.info("Publiserte melding: ${it.toPretty()}")
+                            logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name}.")
+                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                         }
                     }
                 }
@@ -81,14 +81,16 @@ class SpinnService(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson()
+                    Key.DATA to mapOf(
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson()
+                    ).toJson()
                 )
                     .also {
                         MdcUtils.withLogFields(
                             Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
                         ) {
-                            logger.info("Publiserte melding om ${BehovType.HENT_EKSTERN_INNTEKTSMELDING.name} for transaksjonId $transaksjonId.")
+                            logger.info("Publiserte melding om ${BehovType.HENT_EKSTERN_INNTEKTSMELDING.name}.")
                             sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                         }
                     }

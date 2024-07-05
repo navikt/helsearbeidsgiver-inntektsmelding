@@ -10,9 +10,9 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.interestedIn
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Behov
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.publishData
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
+// TODO slett etter overgangsperiode
 class EksternInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
     private val spinnKlient: SpinnKlient
@@ -33,7 +34,7 @@ class EksternInntektsmeldingLoeser(
             it.demandValues(
                 Key.BEHOV to BEHOV.name
             )
-            it.interestedIn(
+            it.requireKeys(
                 Key.SPINN_INNTEKTSMELDING_ID,
                 Key.UUID
             )
@@ -53,7 +54,7 @@ class EksternInntektsmeldingLoeser(
                 return
             }
 
-            val eksternInntektsmelding = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId.toString())
+            val eksternInntektsmelding = spinnKlient.hentEksternInntektsmelding(inntektsmeldingId)
 
             rapidsConnection.publishData(
                 eventName = behov.event,

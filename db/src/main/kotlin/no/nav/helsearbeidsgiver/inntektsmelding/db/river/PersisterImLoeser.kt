@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -47,7 +46,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
         try {
             val json = behov.jsonMessage.toJson().parseJson().toMap()
 
-            val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+            val transaksjonId = Key.UUID.les(UuidSerializer, json)
             val inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json)
 
             val sisteIm = repository.hentNyeste(forespoerselId)

@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.brreg.BrregClient
 import no.nav.helsearbeidsgiver.brreg.Virksomhet
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -83,7 +83,7 @@ class VirksomhetLoeser(
     override fun onBehov(behov: Behov) {
         val json = behov.jsonMessage.toJson().parseJson().toMap()
 
-        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val orgnr: List<String> =
             if (behov[Key.ORGNRUNDERENHETER].isEmpty) {
                 listOf(

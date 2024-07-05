@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -42,7 +43,7 @@ class EksternInntektsmeldingLoeser(
         try {
             val json = behov.jsonMessage.toJson().parseJson().toMap()
 
-            val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+            val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
             logger.info("Løser behov $BEHOV med transaksjonId $transaksjonId")
 

@@ -47,7 +47,8 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
     test("Ved når inntektsmeldingId mangler skal feil publiseres") {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson()
+            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+            Key.UUID to UUID.randomUUID().toJson()
         )
 
         val actual = testRapid.firstMessage().readFail()
@@ -64,6 +65,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
             Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson()
         )
 
@@ -80,6 +82,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
             Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson()
         )
 
@@ -97,6 +100,7 @@ class EksternInntektsmeldingLoeserTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
             Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson()
         )
 

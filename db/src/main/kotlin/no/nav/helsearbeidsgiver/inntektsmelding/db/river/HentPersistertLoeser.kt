@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -64,7 +64,7 @@ class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repos
 
                 val json = behov.jsonMessage.toJson().parseJson().toMap()
 
-                val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+                val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
                 rapidsConnection.publishData(
                     eventName = behov.event,

@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
@@ -51,7 +52,7 @@ class FulltNavnLoeser(
     override fun onBehov(behov: Behov) {
         val json = behov.jsonMessage.toJson().parseJson().toMap()
 
-        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val arbeidstakerId = Key.IDENTITETSNUMMER.lesOrNull(String.serializer(), json).orEmpty()
         val arbeidsgiverId = Key.ARBEIDSGIVER_ID.lesOrNull(String.serializer(), json).orEmpty()
 

@@ -10,13 +10,18 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
+import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ApiTest
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.harTilgangResultat
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.ikkeTilgangResultat
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -39,6 +44,52 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         )
 
         val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+
+        val actualJson = response.bodyAsText()
+
+        response.status shouldBe HttpStatusCode.OK
+        actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+    }
+
+    @Test
+    fun `skal godta og returnere id ved innsending som bruker 'perioder'-felt i inntektsendringsårsak`() = testApi {
+        val selvbestemtId = UUID.randomUUID()
+
+        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
+            harTilgangResultat,
+            Mock.successResult(selvbestemtId)
+        )
+
+        val skjemaJson =
+            """
+            {
+                "selvbestemtId": "$selvbestemtId",
+                "type": {
+                    "type": "Selvbestemt",
+                    "id": "${UUID.randomUUID()}"
+                },
+                "sykmeldtFnr": "${Fnr.genererGyldig()}",
+                "avsender": {
+                    "orgnr": "${Orgnr.genererGyldig()}",
+                    "tlf": "${randomDigitString(8)}"
+                },
+                "sykmeldingsperioder": [{"fom": "2024-02-12", "tom": "2024-02-28"}],
+                "agp": null,
+                "inntekt": {
+                    "beloep": 1000.10,
+                    "inntektsdato": "2024-02-12",
+                    "naturalytelser": [],
+                    "endringAarsak": {
+                        "aarsak": "Ferie",
+                        "perioder": [{"fom": "2024-02-14", "tom": "2024-02-15"}, {"fom": "2024-02-21", "tom": "2024-02-21"}]
+                    }
+                },
+                "refusjon": null
+            }
+            """.removeJsonWhitespace()
+                .parseJson()
+
+        val response = post(path, skjemaJson, JsonElement.serializer())
 
         val actualJson = response.bodyAsText()
 

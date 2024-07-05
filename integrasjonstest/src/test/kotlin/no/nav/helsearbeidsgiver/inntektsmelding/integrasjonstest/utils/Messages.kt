@@ -1,16 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils
 
 import io.kotest.matchers.nulls.shouldNotBeNull
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
 @JvmInline
@@ -44,11 +41,11 @@ value class Messages(
         }
 
     fun filter(behovType: BehovType): Messages =
-        filter {
-            it.toMap()[Key.BEHOV]
-                ?.runCatching { fromJsonToBehovTypeListe() }
-                ?.getOrElse { emptyList() }
-                ?.contains(behovType)
+        filter { msg ->
+            msg.toMap()[Key.BEHOV]
+                ?.runCatching { fromJson(BehovType.serializer()) }
+                ?.map { it == behovType }
+                ?.getOrElse { false }
                 .orDefault(false)
         }
 
@@ -71,13 +68,3 @@ value class Messages(
             .toMutableList()
             .let(::Messages)
 }
-
-private fun JsonElement.fromJsonToBehovTypeListe(): List<BehovType> =
-    when (this) {
-        is JsonPrimitive ->
-            fromJson(BehovType.serializer()).let(::listOf)
-        is JsonArray ->
-            fromJson(BehovType.serializer().list())
-        else ->
-            emptyList()
-    }

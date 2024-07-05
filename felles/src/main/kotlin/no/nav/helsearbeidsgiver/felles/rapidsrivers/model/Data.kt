@@ -18,12 +18,11 @@ private val sikkerLogger = sikkerLogger()
 
 fun MessageContext.publishData(
     eventName: EventName,
-    transaksjonId: UUID?,
+    transaksjonId: UUID,
     forespoerselId: UUID?,
     vararg messageFields: Pair<Key, JsonElement?>
 ): JsonElement {
     val optionalIdFields = mapOf(
-        Key.UUID to transaksjonId,
         Key.FORESPOERSEL_ID to forespoerselId
     )
         .mapValuesNotNull { it?.toJson() }
@@ -34,6 +33,7 @@ fun MessageContext.publishData(
 
     return publish(
         Key.EVENT_NAME to eventName.toJson(),
+        Key.UUID to transaksjonId.toJson(),
         Key.DATA to nonNullMessageFields.toJson(),
         *optionalIdFields,
         *nonNullMessageFields.toList().toTypedArray()

@@ -21,8 +21,8 @@ class Tilgangskontroll(
         request: ApplicationRequest,
         forespoerselId: UUID
     ) {
-        validerTilgang(request, forespoerselId.toString()) { clientId, fnr ->
-            tilgangProducer.publishForespoerselId(clientId, fnr, forespoerselId)
+        validerTilgang(request, forespoerselId.toString()) { transaksjonId, fnr ->
+            tilgangProducer.publishForespoerselId(transaksjonId, fnr, forespoerselId)
         }
     }
 
@@ -30,8 +30,8 @@ class Tilgangskontroll(
         request: ApplicationRequest,
         orgnr: String
     ) {
-        validerTilgang(request, orgnr) { clientId, fnr ->
-            tilgangProducer.publishOrgnr(clientId, fnr, orgnr)
+        validerTilgang(request, orgnr) { transaksjonId, fnr ->
+            tilgangProducer.publishOrgnr(transaksjonId, fnr, orgnr)
         }
     }
 
@@ -40,16 +40,16 @@ class Tilgangskontroll(
         cacheKeyPostfix: String,
         publish: (UUID, Fnr) -> Unit
     ) {
-        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
         val innloggerFnr = request.lesFnrFraAuthToken()
 
         val tilgang = runBlocking {
             cache.get("$innloggerFnr:$cacheKeyPostfix") {
                 logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll.")
 
-                publish(clientId, innloggerFnr)
+                publish(transaksjonId, innloggerFnr)
 
-                val resultat = redisPoller.hent(clientId)
+                val resultat = redisPoller.hent(transaksjonId)
                     .fromJson(TilgangResultat.serializer())
 
                 resultat.tilgang ?: throw ManglerAltinnRettigheterException()

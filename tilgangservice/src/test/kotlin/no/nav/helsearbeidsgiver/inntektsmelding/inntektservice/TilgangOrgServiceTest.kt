@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntektservice
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.mockk.clearAllMocks
-import io.mockk.every
 import io.mockk.verify
 import kotlinx.serialization.json.JsonObject
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -14,9 +13,11 @@ import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangOrgService
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -24,9 +25,13 @@ import java.util.UUID
 class TilgangOrgServiceTest {
 
     private val testRapid = TestRapid()
-    private val mockRedis = MockRedis()
+    private val mockRedis = MockRedisClassSpecific(RedisPrefix.TilgangOrgService)
 
     private val service = TilgangOrgService(testRapid, mockRedis.store)
+
+    init {
+        ServiceRiver(service).connect(testRapid)
+    }
 
     @BeforeEach
     fun setup() {
@@ -38,10 +43,7 @@ class TilgangOrgServiceTest {
     @Test
     fun `kritisk feil stopper flyten`() {
         val event = EventName.TILGANG_ORG_REQUESTED
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
-
-        every { mockRedis.store.get(RedisKey.of(transaksjonId, event)) } returns clientId.toString()
 
         val fail = Fail(
             feilmelding = "ikkeno",
@@ -62,10 +64,10 @@ class TilgangOrgServiceTest {
         val expectedResultJson = TilgangResultat(
             feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
         )
-            .toJsonStr(TilgangResultat.serializer())
+            .toJson(TilgangResultat.serializer())
 
         verify {
-            mockRedis.store.set(RedisKey.of(clientId), expectedResultJson)
+            mockRedis.store.set(RedisKey.of(transaksjonId), expectedResultJson)
         }
     }
 }

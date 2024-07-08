@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import no.nav.helsearbeidsgiver.felles.BehovType
@@ -8,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -32,16 +34,13 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
         )
         every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
 
-        val dataFields = arrayOf(
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
-        )
-
         publish(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
-            Key.DATA to dataFields.toMap().toJson(),
-            *dataFields
+            Key.DATA to mapOf(
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
+            ).toJson()
         )
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
@@ -51,8 +50,10 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_REQUESTED
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
                 Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
-                Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, it) shouldBe Mock.spinnInntektsmeldingId
+
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.FORESPOERSEL_ID.les(UuidSerializer, data) shouldBe Mock.forespoerselId
+                Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, data) shouldBe Mock.spinnInntektsmeldingId
             }
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT)

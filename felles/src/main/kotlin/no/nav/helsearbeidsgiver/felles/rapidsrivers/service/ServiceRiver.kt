@@ -40,6 +40,11 @@ class ServiceRiver(
                 )
             }
 
+            // Meldinger med behov stammer fra servicen selv
+            Key.BEHOV in json -> {
+                null
+            }
+
             // Støtter Key.DATA som flagg med datafelt på rot (metode på vei ut)
             Key.DATA in json &&
                 (

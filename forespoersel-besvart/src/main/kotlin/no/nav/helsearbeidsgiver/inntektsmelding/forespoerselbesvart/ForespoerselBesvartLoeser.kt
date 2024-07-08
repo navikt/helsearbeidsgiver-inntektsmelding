@@ -88,16 +88,13 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
             Log.transaksjonId(melding.transaksjonId)
         ) {
             if (melding.spinnInntektsmeldingId != null) {
-                val dataFields = arrayOf(
-                    Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
-                    Key.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson()
-                )
-
                 context.publish(
                     Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
                     Key.UUID to UUID.randomUUID().toJson(),
-                    Key.DATA to dataFields.toMap().toJson(),
-                    *dataFields
+                    Key.DATA to mapOf(
+                        Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
+                        Key.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson()
+                    ).toJson()
                 ).also {
                     logger.info("Publiserte melding om ekstern avsender")
                     sikkerLogger.info("Publiserte melding om ekstern avsender:\n${it.toPretty()}")

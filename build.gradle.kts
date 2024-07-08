@@ -276,7 +276,7 @@ fun List<String>.containsAny(vararg others: String): Boolean = this.intersect(ot
 
 fun Task.deployMatrix(
     includeCluster: String? = null,
-    deployAll: Boolean = false
+    deployAll: Boolean = false,
 ) {
     doLast {
         val (

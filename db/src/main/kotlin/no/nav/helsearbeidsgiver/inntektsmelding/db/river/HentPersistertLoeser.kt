@@ -26,19 +26,18 @@ import kotlin.system.measureTimeMillis
 private const val EMPTY_PAYLOAD = "{}"
 
 class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Loeser(rapidsConnection) {
-
-    private val BEHOV = BehovType.HENT_PERSISTERT_IM
+    private val behov = BehovType.HENT_PERSISTERT_IM
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BEHOV.name
+                Key.BEHOV to behov.name,
             )
             it.interestedIn(
                 Key.EVENT_NAME,
-                Key.FORESPOERSEL_ID
+                Key.FORESPOERSEL_ID,
             )
         }
 
@@ -71,13 +70,13 @@ class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repos
                     transaksjonId = transaksjonId,
                     forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                     Key.INNTEKTSMELDING_DOKUMENT to dokument.toJson(),
-                    Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson()
+                    Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(),
                 )
             } catch (ex: Exception) {
                 logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId ${behov.forespoerselId}")
                 sikkerLogger.error(
                     "Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId ${behov.forespoerselId}",
-                    ex
+                    ex,
                 )
                 behov.createFail("Klarte ikke hente persistert inntektsmelding").also {
                     publishFail(it)
@@ -92,5 +91,5 @@ class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repos
 fun Pair<Inntektsmelding?, EksternInntektsmelding?>?.tilPayloadPair(): Pair<String, String> =
     Pair(
         this?.first?.toJsonStr(Inntektsmelding.serializer()) ?: EMPTY_PAYLOAD,
-        this?.second?.toJsonStr(EksternInntektsmelding.serializer()) ?: EMPTY_PAYLOAD
+        this?.second?.toJsonStr(EksternInntektsmelding.serializer()) ?: EMPTY_PAYLOAD,
     )

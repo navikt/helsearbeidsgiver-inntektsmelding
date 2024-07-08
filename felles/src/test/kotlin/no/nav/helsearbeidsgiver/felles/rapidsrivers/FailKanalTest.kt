@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class FailKanalTest {
-
     private val testRapid = TestRapid()
     private val mockPacketListener = mockk<River.PacketListener>(relaxed = true)
 
@@ -38,7 +37,7 @@ class FailKanalTest {
         testRapid.sendJson(
             Key.FAIL to fail.toJson(Fail.serializer()),
             Key.EVENT_NAME to fail.event.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson(),
         )
         verify(exactly = 1) { mockPacketListener.onPacket(any(), any()) }
     }
@@ -50,7 +49,7 @@ class FailKanalTest {
         testRapid.sendJson(
             Key.FAIL to fail.toJson(Fail.serializer()),
             Key.EVENT_NAME to fail.event.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson(),
         )
         verify(exactly = 0) { mockPacketListener.onPacket(any(), any()) }
     }
@@ -62,5 +61,5 @@ private fun mockFail(event: EventName): Fail =
         event = event,
         transaksjonId = UUID.randomUUID(),
         forespoerselId = UUID.randomUUID(),
-        utloesendeMelding = JsonNull
+        utloesendeMelding = JsonNull,
     )

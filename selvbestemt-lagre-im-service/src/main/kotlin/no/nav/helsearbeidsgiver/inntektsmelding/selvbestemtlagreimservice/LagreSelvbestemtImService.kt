@@ -44,34 +44,38 @@ import java.util.UUID
 
 class LagreSelvbestemtImService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStore,
 ) : CompositeEventListener() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.SELVBESTEMT_IM_MOTTATT
-    override val startKeys = setOf(
-        Key.SKJEMA_INNTEKTSMELDING,
-        Key.ARBEIDSGIVER_FNR
-    )
-    override val dataKeys = setOf(
-        Key.VIRKSOMHET,
-        Key.PERSONER,
-        Key.ARBEIDSFORHOLD,
-        Key.SELVBESTEMT_INNTEKTSMELDING,
-        Key.ER_DUPLIKAT_IM,
-        Key.SAK_ID
-    )
+    override val startKeys =
+        setOf(
+            Key.SKJEMA_INNTEKTSMELDING,
+            Key.ARBEIDSGIVER_FNR,
+        )
+    override val dataKeys =
+        setOf(
+            Key.VIRKSOMHET,
+            Key.PERSONER,
+            Key.ARBEIDSFORHOLD,
+            Key.SELVBESTEMT_INNTEKTSMELDING,
+            Key.ER_DUPLIKAT_IM,
+            Key.SAK_ID,
+        )
 
-    private val steg1Keys = setOf(
-        Key.VIRKSOMHET,
-        Key.PERSONER,
-        Key.ARBEIDSFORHOLD
-    )
-    private val steg2Keys = setOf(
-        Key.SELVBESTEMT_INNTEKTSMELDING,
-        Key.ER_DUPLIKAT_IM
-    )
+    private val steg1Keys =
+        setOf(
+            Key.VIRKSOMHET,
+            Key.PERSONER,
+            Key.ARBEIDSFORHOLD,
+        )
+    private val steg2Keys =
+        setOf(
+            Key.SELVBESTEMT_INNTEKTSMELDING,
+            Key.ER_DUPLIKAT_IM,
+        )
 
     init {
         LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
@@ -88,14 +92,14 @@ class LagreSelvbestemtImService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         ) {
             rapid.publishNotNull(
                 Key.EVENT_NAME to event.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.SELVBESTEMT_ID to skjema.selvbestemtId?.toJson(),
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                Key.ORGNRUNDERENHET to skjema.avsender.orgnr.toJson()
+                Key.ORGNRUNDERENHET to skjema.avsender.orgnr.toJson(),
             )
 
             rapid.publishNotNull(
@@ -103,10 +107,11 @@ class LagreSelvbestemtImService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.SELVBESTEMT_ID to skjema.selvbestemtId?.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                Key.FNR_LISTE to listOf(
-                    skjema.sykmeldtFnr,
-                    avsenderFnr
-                ).toJson(Fnr.serializer())
+                Key.FNR_LISTE to
+                    listOf(
+                        skjema.sykmeldtFnr,
+                        avsenderFnr,
+                    ).toJson(Fnr.serializer()),
             )
 
             rapid.publishNotNull(
@@ -114,7 +119,7 @@ class LagreSelvbestemtImService(
                 Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
                 Key.IDENTITETSNUMMER to skjema.sykmeldtFnr.verdi.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.SELVBESTEMT_ID to skjema.selvbestemtId?.toJson()
+                Key.SELVBESTEMT_ID to skjema.selvbestemtId?.toJson(),
             )
         }
     }
@@ -125,7 +130,7 @@ class LagreSelvbestemtImService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         ) {
             if (steg2Keys.all(melding::containsKey)) {
                 val inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), melding)
@@ -140,7 +145,7 @@ class LagreSelvbestemtImService(
                             Key.EVENT_NAME to event.toJson(),
                             Key.BEHOV to BehovType.OPPRETT_SELVBESTEMT_SAK.toJson(),
                             Key.UUID to transaksjonId.toJson(),
-                            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
                         )
                             .also {
                                 logger.info("Publiserte melding med behov '${BehovType.OPPRETT_SELVBESTEMT_SAK}'.")
@@ -153,18 +158,20 @@ class LagreSelvbestemtImService(
                 val avsenderFnr = Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), melding)
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
                 val personer = Key.PERSONER.les(personMapSerializer, melding)
-                val arbeidsforholdListe = Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
-                    .filter { it.arbeidsgiver.organisasjonsnummer == skjema.avsender.orgnr.verdi }
+                val arbeidsforholdListe =
+                    Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
+                        .filter { it.arbeidsgiver.organisasjonsnummer == skjema.avsender.orgnr.verdi }
 
                 val sykmeldtNavn = personer[skjema.sykmeldtFnr]?.navn.orEmpty()
                 val avsenderNavn = personer[avsenderFnr]?.navn.orEmpty()
 
-                val inntektsmelding = tilInntektsmelding(
-                    skjema = skjema,
-                    orgNavn = orgNavn,
-                    sykmeldtNavn = sykmeldtNavn,
-                    avsenderNavn = avsenderNavn
-                )
+                val inntektsmelding =
+                    tilInntektsmelding(
+                        skjema = skjema,
+                        orgNavn = orgNavn,
+                        sykmeldtNavn = sykmeldtNavn,
+                        avsenderNavn = avsenderNavn,
+                    )
 
                 val sykeperioder = skjema.agp?.perioder.orEmpty() + skjema.sykmeldingsperioder
                 val erAktivtArbeidsforhold = sykeperioder.aktivtArbeidsforholdIPeriode(arbeidsforholdListe)
@@ -173,7 +180,7 @@ class LagreSelvbestemtImService(
                         Key.EVENT_NAME to event.toJson(),
                         Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
                         Key.UUID to transaksjonId.toJson(),
-                        Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                        Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
                     )
                         .also {
                             logger.info("Publiserte melding med behov '${BehovType.LAGRE_SELVBESTEMT_IM}'.")
@@ -207,7 +214,7 @@ class LagreSelvbestemtImService(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(inntektsmelding.type.id)
+            Log.selvbestemtId(inntektsmelding.type.id),
         ) {
             val clientId = redisStore.get(RedisKey.of(transaksjonId, event))?.let(UUID::fromString)
 
@@ -223,11 +230,11 @@ class LagreSelvbestemtImService(
                     Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
                     Key.UUID to transaksjonId.toJson(),
                     Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson(),
-                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
                 )
                     .also {
                         MdcUtils.withLogFields(
-                            Log.event(EventName.SELVBESTEMT_IM_LAGRET)
+                            Log.event(EventName.SELVBESTEMT_IM_LAGRET),
                         ) {
                             logger.info("Publiserte melding.")
                             sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
@@ -237,11 +244,14 @@ class LagreSelvbestemtImService(
         }
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(event),
-            Log.transaksjonId(fail.transaksjonId)
+            Log.transaksjonId(fail.transaksjonId),
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             val datafeil =
@@ -262,8 +272,9 @@ class LagreSelvbestemtImService(
                 return inProgress(meldingMedDefault)
             }
 
-            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
-                ?.let(UUID::fromString)
+            val clientId =
+                redisStore.get(RedisKey.of(fail.transaksjonId, event))
+                    ?.let(UUID::fromString)
 
             if (clientId == null) {
                 val selvbestemtId = Key.SELVBESTEMT_ID.lesOrNull(UuidSerializer, fail.utloesendeMelding.toMap())
@@ -278,9 +289,9 @@ class LagreSelvbestemtImService(
     private fun kontrollerSkjema(skjema: SkjemaInntektsmeldingSelvbestemt) {
         skjema.agp?.let { arbeidsgiverperiode ->
             if (arbeidsgiverperiode.perioder.sumOf
-                {
-                    it.fom.datesUntil(it.tom).count() + 1 // datesuntil er eksklusiv t.o.m, så legg til 1
-                } < 16
+                    {
+                        it.fom.datesUntil(it.tom).count() + 1 // datesuntil er eksklusiv t.o.m, så legg til 1
+                    } < 16
             ) {
                 sikkerLogger.info("Skjema fra orgnr ${skjema.avsender.orgnr} har kort AGP")
             }
@@ -299,7 +310,7 @@ fun tilInntektsmelding(
     skjema: SkjemaInntektsmeldingSelvbestemt,
     orgNavn: String,
     sykmeldtNavn: String,
-    avsenderNavn: String
+    avsenderNavn: String,
 ): Inntektsmelding {
     val aarsakInnsending =
         if (skjema.selvbestemtId == null) {
@@ -310,24 +321,27 @@ fun tilInntektsmelding(
 
     return Inntektsmelding(
         id = UUID.randomUUID(),
-        type = Inntektsmelding.Type.Selvbestemt(
-            id = skjema.selvbestemtId ?: UUID.randomUUID()
-        ),
-        sykmeldt = Sykmeldt(
-            fnr = skjema.sykmeldtFnr,
-            navn = sykmeldtNavn
-        ),
-        avsender = Avsender(
-            orgnr = skjema.avsender.orgnr,
-            orgNavn = orgNavn,
-            navn = avsenderNavn,
-            tlf = skjema.avsender.tlf
-        ),
+        type =
+            Inntektsmelding.Type.Selvbestemt(
+                id = skjema.selvbestemtId ?: UUID.randomUUID(),
+            ),
+        sykmeldt =
+            Sykmeldt(
+                fnr = skjema.sykmeldtFnr,
+                navn = sykmeldtNavn,
+            ),
+        avsender =
+            Avsender(
+                orgnr = skjema.avsender.orgnr,
+                orgNavn = orgNavn,
+                navn = avsenderNavn,
+                tlf = skjema.avsender.tlf,
+            ),
         sykmeldingsperioder = skjema.sykmeldingsperioder,
         agp = skjema.agp,
         inntekt = skjema.inntekt,
         refusjon = skjema.refusjon,
         aarsakInnsending = aarsakInnsending,
-        mottatt = OffsetDateTime.now()
+        mottatt = OffsetDateTime.now(),
     )
 }

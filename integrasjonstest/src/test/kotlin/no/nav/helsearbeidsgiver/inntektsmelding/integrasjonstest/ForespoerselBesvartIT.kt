@@ -23,7 +23,6 @@ import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ForespoerselBesvartIT : EndToEndTest() {
-
     @BeforeEach
     fun setup() {
         truncateDatabase()
@@ -41,7 +40,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
             publish(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
+                Pri.Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
             )
         }
 
@@ -65,7 +64,7 @@ class ForespoerselBesvartIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.UUID to Mock.transaksjonId.toJson()
+            Key.UUID to Mock.transaksjonId.toJson(),
         )
 
         bekreftForventedeMeldinger()

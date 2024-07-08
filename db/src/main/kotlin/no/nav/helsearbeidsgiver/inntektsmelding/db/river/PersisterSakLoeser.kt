@@ -19,7 +19,7 @@ import java.util.UUID
 
 class PersisterSakLoeser(
     rapidsConnection: RapidsConnection,
-    private val repository: ForespoerselRepository
+    private val repository: ForespoerselRepository,
 ) : Loeser(rapidsConnection) {
     private val sikkerLogger = sikkerLogger()
 
@@ -49,7 +49,7 @@ class PersisterSakLoeser(
             eventName = behov.event,
             transaksjonId = transaksjonId,
             forespoerselId = forespoerselId,
-            Key.PERSISTERT_SAK_ID to sakId.toJson()
+            Key.PERSISTERT_SAK_ID to sakId.toJson(),
         )
     }
 }

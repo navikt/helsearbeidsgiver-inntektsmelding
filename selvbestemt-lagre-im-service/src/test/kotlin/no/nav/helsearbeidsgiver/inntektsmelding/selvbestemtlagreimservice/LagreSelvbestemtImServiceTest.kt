@@ -86,9 +86,9 @@ class LagreSelvbestemtImServiceTest : FunSpec({
                         Pair(
                             Key.SKJEMA_INNTEKTSMELDING,
                             MockLagre.skjema.copy(selvbestemtId = null)
-                                .toJson(SkjemaInntektsmeldingSelvbestemt.serializer())
-                        )
-                    )
+                                .toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                        ),
+                    ),
             )
         }
 
@@ -102,7 +102,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
 
             testRapid.sendJson(
                 MockLagre.steg1Data(transaksjonId)
-                    .minus(Key.SELVBESTEMT_ID)
+                    .minus(Key.SELVBESTEMT_ID),
             )
         }
 
@@ -120,7 +120,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
 
         testRapid.sendJson(
             MockLagre.steg2Data(transaksjonId, nyInntektsmelding)
-                .minus(Key.SELVBESTEMT_ID)
+                .minus(Key.SELVBESTEMT_ID),
         )
 
         testRapid.inspektør.size shouldBeExactly 5
@@ -128,7 +128,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
 
         testRapid.sendJson(
             MockLagre.steg3Data(transaksjonId)
-                .minus(Key.SELVBESTEMT_ID)
+                .minus(Key.SELVBESTEMT_ID),
         )
 
         testRapid.inspektør.size shouldBeExactly 6
@@ -142,8 +142,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    success = nyInntektsmelding.type.id.toJson()
-                ).toJsonStr()
+                    success = nyInntektsmelding.type.id.toJson(),
+                ).toJsonStr(),
             )
         }
     }
@@ -157,7 +157,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                MockLagre.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId),
             )
         }
 
@@ -170,7 +170,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
             testRapid.sendJson(
-                MockLagre.steg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId),
             )
         }
 
@@ -181,7 +181,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            MockLagre.steg2Data(transaksjonId, endretInntektsmelding)
+            MockLagre.steg2Data(transaksjonId, endretInntektsmelding),
         )
 
         testRapid.inspektør.size shouldBeExactly 5
@@ -195,8 +195,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    success = endretInntektsmelding.type.id.toJson()
-                ).toJsonStr()
+                    success = endretInntektsmelding.type.id.toJson(),
+                ).toJsonStr(),
             )
         }
     }
@@ -210,7 +210,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                MockLagre.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId),
             )
         }
 
@@ -218,7 +218,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns duplikatInntektsmelding.mottatt
 
             testRapid.sendJson(
-                MockLagre.steg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId),
             )
         }
 
@@ -231,22 +231,22 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         testRapid.sendJson(
             MockLagre.steg2Data(transaksjonId, duplikatInntektsmelding)
                 .plus(
-                    Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer())
-                )
+                    Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
+                ),
         )
 
         testRapid.inspektør.size shouldBeExactly 4
         Key.EVENT_NAME.lesOrNull(
             EventName.serializer(),
-            testRapid.message(3).toMap()
+            testRapid.message(3).toMap(),
         ) shouldNotBe EventName.SELVBESTEMT_IM_LAGRET
 
         verify {
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    success = duplikatInntektsmelding.type.id.toJson()
-                ).toJsonStr()
+                    success = duplikatInntektsmelding.type.id.toJson(),
+                ).toJsonStr(),
             )
         }
     }
@@ -256,28 +256,31 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         val virksomhetDefault = "Ukjent virksomhet"
-        val inntektsmeldingMedDefaults = MockLagre.inntektsmelding.let {
-            it.copy(
-                sykmeldt = it.sykmeldt.copy(
-                    navn = ""
-                ),
-                avsender = it.avsender.copy(
-                    orgNavn = virksomhetDefault,
-                    navn = ""
-                ),
-                aarsakInnsending = AarsakInnsending.Endring
-            )
-        }
+        val inntektsmeldingMedDefaults =
+            MockLagre.inntektsmelding.let {
+                it.copy(
+                    sykmeldt =
+                        it.sykmeldt.copy(
+                            navn = "",
+                        ),
+                    avsender =
+                        it.avsender.copy(
+                            orgNavn = virksomhetDefault,
+                            navn = "",
+                        ),
+                    aarsakInnsending = AarsakInnsending.Endring,
+                )
+            }
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                MockLagre.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId),
             )
         }
         testRapid.sendJson(
-            MockLagre.steg1Data(transaksjonId).minus(Key.VIRKSOMHET).minus(Key.PERSONER)
+            MockLagre.steg1Data(transaksjonId).minus(Key.VIRKSOMHET).minus(Key.PERSONER),
         )
 
         testRapid.sendJson(
@@ -286,12 +289,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
                 event = EventName.SELVBESTEMT_IM_MOTTATT,
                 transaksjonId = transaksjonId,
                 forespoerselId = null,
-                utloesendeMelding = JsonObject(
-                    mapOf(
-                        Key.BEHOV.toString() to BehovType.VIRKSOMHET.toJson()
-                    )
-                )
-            ).tilMelding()
+                utloesendeMelding =
+                    JsonObject(
+                        mapOf(
+                            Key.BEHOV.toString() to BehovType.VIRKSOMHET.toJson(),
+                        ),
+                    ),
+            ).tilMelding(),
         )
 
         mockStatic(OffsetDateTime::class) {
@@ -303,12 +307,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
                     event = EventName.SELVBESTEMT_IM_MOTTATT,
                     transaksjonId = transaksjonId,
                     forespoerselId = null,
-                    utloesendeMelding = JsonObject(
-                        mapOf(
-                            Key.BEHOV.toString() to BehovType.HENT_PERSONER.toJson()
-                        )
-                    )
-                ).tilMelding()
+                    utloesendeMelding =
+                        JsonObject(
+                            mapOf(
+                                Key.BEHOV.toString() to BehovType.HENT_PERSONER.toJson(),
+                            ),
+                        ),
+                ).tilMelding(),
             )
         }
 
@@ -319,7 +324,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         }
 
         testRapid.sendJson(
-            MockLagre.steg2Data(transaksjonId, inntektsmeldingMedDefaults)
+            MockLagre.steg2Data(transaksjonId, inntektsmeldingMedDefaults),
         )
 
         testRapid.inspektør.size shouldBeExactly 5
@@ -332,19 +337,19 @@ class LagreSelvbestemtImServiceTest : FunSpec({
         verify {
             mockRedis.store.set(
                 RedisKey.of(transaksjonId, Key.VIRKSOMHET),
-                virksomhetDefault.toJson().toString()
+                virksomhetDefault.toJson().toString(),
             )
 
             mockRedis.store.set(
                 RedisKey.of(transaksjonId, Key.PERSONER),
-                emptyMap<String, JsonElement>().toJson().toString()
+                emptyMap<String, JsonElement>().toJson().toString(),
             )
 
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    success = inntektsmeldingMedDefaults.type.id.toJson()
-                ).toJsonStr()
+                    success = inntektsmeldingMedDefaults.type.id.toJson(),
+                ).toJsonStr(),
             )
         }
     }
@@ -360,7 +365,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                MockLagre.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId),
             )
         }
 
@@ -368,7 +373,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
             testRapid.sendJson(
-                MockLagre.steg1Data(transaksjonId)
+                MockLagre.steg1Data(transaksjonId),
             )
         }
 
@@ -378,12 +383,13 @@ class LagreSelvbestemtImServiceTest : FunSpec({
                 event = EventName.SELVBESTEMT_IM_MOTTATT,
                 transaksjonId = transaksjonId,
                 forespoerselId = null,
-                utloesendeMelding = JsonObject(
-                    mapOf(
-                        Key.BEHOV.toString() to BehovType.LAGRE_SELVBESTEMT_IM.toJson()
-                    )
-                )
-            ).tilMelding()
+                utloesendeMelding =
+                    JsonObject(
+                        mapOf(
+                            Key.BEHOV.toString() to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
+                        ),
+                    ),
+            ).tilMelding(),
         )
 
         testRapid.inspektør.size shouldBeExactly 4
@@ -396,8 +402,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    failure = feilmelding.toJson()
-                ).toJsonStr()
+                    failure = feilmelding.toJson(),
+                ).toJsonStr(),
             )
         }
     }
@@ -411,7 +417,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             every { randomUuid() } returns transaksjonId
 
             testRapid.sendJson(
-                MockLagre.startMelding(clientId, transaksjonId)
+                MockLagre.startMelding(clientId, transaksjonId),
             )
         }
 
@@ -420,7 +426,7 @@ class LagreSelvbestemtImServiceTest : FunSpec({
 
             testRapid.sendJson(
                 MockLagre.steg1Data(transaksjonId)
-                    .plus(Key.ARBEIDSFORHOLD to MockLagre.lagArbeidsforhold("123456789").toJson(Arbeidsforhold.serializer()))
+                    .plus(Key.ARBEIDSFORHOLD to MockLagre.lagArbeidsforhold("123456789").toJson(Arbeidsforhold.serializer())),
             )
         }
 
@@ -430,8 +436,8 @@ class LagreSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(clientId),
                 ResultJson(
-                    failure = "Mangler arbeidsforhold i perioden".toJson()
-                ).toJsonStr()
+                    failure = "Mangler arbeidsforhold i perioden".toJson(),
+                ).toJsonStr(),
             )
         }
     }
@@ -442,90 +448,107 @@ private fun JsonElement.lesInntektsmelding(): Inntektsmelding =
 
 private object MockLagre {
     private const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
-    private val sykmeldt = Fnr.genererGyldig().let {
-        Person(
-            fnr = it,
-            navn = "Ponnius Pilatus",
-            foedselsdato = Person.foedselsdato(it)
-        )
-    }
-    private val avsender = Fnr.genererGyldig().let {
-        Person(
-            fnr = it,
-            navn = "King Kong Keiser",
-            foedselsdato = Person.foedselsdato(it)
-        )
-    }
-
-    val skjema = SkjemaInntektsmeldingSelvbestemt(
-        selvbestemtId = UUID.randomUUID(),
-        sykmeldtFnr = sykmeldt.fnr,
-        avsender = SkjemaAvsender(
-            orgnr = Orgnr.genererGyldig(),
-            tlf = "43431234"
-        ),
-        sykmeldingsperioder = listOf(
-            14.mars til 14.april
-        ),
-        agp = Arbeidsgiverperiode(
-            perioder = listOf(
-                13.mars til 28.mars
-            ),
-            egenmeldinger = listOf(
-                13.mars til 13.mars
-            ),
-            redusertLoennIAgp = RedusertLoennIAgp(
-                beloep = 606.0,
-                begrunnelse = RedusertLoennIAgp.Begrunnelse.ManglerOpptjening
+    private val sykmeldt =
+        Fnr.genererGyldig().let {
+            Person(
+                fnr = it,
+                navn = "Ponnius Pilatus",
+                foedselsdato = Person.foedselsdato(it),
             )
-        ),
-        inntekt = Inntekt(
-            beloep = 32100.0,
-            inntektsdato = 13.mars,
-            naturalytelser = listOf(
-                Naturalytelse(
-                    naturalytelse = Naturalytelse.Kode.AKSJERGRUNNFONDSBEVISTILUNDERKURS,
-                    verdiBeloep = 4000.5,
-                    sluttdato = 20.mars
+        }
+    private val avsender =
+        Fnr.genererGyldig().let {
+            Person(
+                fnr = it,
+                navn = "King Kong Keiser",
+                foedselsdato = Person.foedselsdato(it),
+            )
+        }
+
+    val skjema =
+        SkjemaInntektsmeldingSelvbestemt(
+            selvbestemtId = UUID.randomUUID(),
+            sykmeldtFnr = sykmeldt.fnr,
+            avsender =
+                SkjemaAvsender(
+                    orgnr = Orgnr.genererGyldig(),
+                    tlf = "43431234",
                 ),
-                Naturalytelse(
-                    naturalytelse = Naturalytelse.Kode.LOSJI,
-                    verdiBeloep = 700.0,
-                    sluttdato = 22.mars
-                )
-            ),
-            endringAarsak = Ferietrekk
-        ),
-        refusjon = Refusjon(
-            beloepPerMaaned = 12000.0,
-            endringer = listOf(
-                RefusjonEndring(
-                    beloep = 11000.0,
-                    startdato = 15.mars
+            sykmeldingsperioder =
+                listOf(
+                    14.mars til 14.april,
                 ),
-                RefusjonEndring(
-                    beloep = 1000.0,
-                    startdato = 20.mars
-                )
-            ),
-            sluttdato = 30.mars
+            agp =
+                Arbeidsgiverperiode(
+                    perioder =
+                        listOf(
+                            13.mars til 28.mars,
+                        ),
+                    egenmeldinger =
+                        listOf(
+                            13.mars til 13.mars,
+                        ),
+                    redusertLoennIAgp =
+                        RedusertLoennIAgp(
+                            beloep = 606.0,
+                            begrunnelse = RedusertLoennIAgp.Begrunnelse.ManglerOpptjening,
+                        ),
+                ),
+            inntekt =
+                Inntekt(
+                    beloep = 32100.0,
+                    inntektsdato = 13.mars,
+                    naturalytelser =
+                        listOf(
+                            Naturalytelse(
+                                naturalytelse = Naturalytelse.Kode.AKSJERGRUNNFONDSBEVISTILUNDERKURS,
+                                verdiBeloep = 4000.5,
+                                sluttdato = 20.mars,
+                            ),
+                            Naturalytelse(
+                                naturalytelse = Naturalytelse.Kode.LOSJI,
+                                verdiBeloep = 700.0,
+                                sluttdato = 22.mars,
+                            ),
+                        ),
+                    endringAarsak = Ferietrekk,
+                ),
+            refusjon =
+                Refusjon(
+                    beloepPerMaaned = 12000.0,
+                    endringer =
+                        listOf(
+                            RefusjonEndring(
+                                beloep = 11000.0,
+                                startdato = 15.mars,
+                            ),
+                            RefusjonEndring(
+                                beloep = 1000.0,
+                                startdato = 20.mars,
+                            ),
+                        ),
+                    sluttdato = 30.mars,
+                ),
         )
-    )
 
-    val inntektsmelding = tilInntektsmelding(
-        skjema = skjema,
-        orgNavn = ORG_NAVN,
-        sykmeldtNavn = sykmeldt.navn,
-        avsenderNavn = avsender.navn
-    )
+    val inntektsmelding =
+        tilInntektsmelding(
+            skjema = skjema,
+            orgNavn = ORG_NAVN,
+            sykmeldtNavn = sykmeldt.navn,
+            avsenderNavn = avsender.navn,
+        )
 
-    fun startMelding(clientId: UUID, transaksjonId: UUID): Map<Key, JsonElement> =
+    fun startMelding(
+        clientId: UUID,
+        transaksjonId: UUID,
+    ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-            Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson()
+            Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
         )
 
     fun steg1Data(transaksjonId: UUID): Map<Key, JsonElement> =
@@ -534,20 +557,24 @@ private object MockLagre {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.VIRKSOMHET to ORG_NAVN.toJson(),
-            Key.PERSONER to mapOf(
-                sykmeldt.fnr to sykmeldt,
-                avsender.fnr to avsender
-            ).toJson(personMapSerializer),
-            Key.ARBEIDSFORHOLD to lagArbeidsforhold(orgnr = skjema.avsender.orgnr.verdi).toJson(Arbeidsforhold.serializer())
+            Key.PERSONER to
+                mapOf(
+                    sykmeldt.fnr to sykmeldt,
+                    avsender.fnr to avsender,
+                ).toJson(personMapSerializer),
+            Key.ARBEIDSFORHOLD to lagArbeidsforhold(orgnr = skjema.avsender.orgnr.verdi).toJson(Arbeidsforhold.serializer()),
         )
 
-    fun steg2Data(transaksjonId: UUID, inntektsmelding: Inntektsmelding): Map<Key, JsonElement> =
+    fun steg2Data(
+        transaksjonId: UUID,
+        inntektsmelding: Inntektsmelding,
+    ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer())
+            Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
         )
 
     fun steg3Data(transaksjonId: UUID): Map<Key, JsonElement> =
@@ -555,14 +582,15 @@ private object MockLagre {
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
-            Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson()
+            Key.SAK_ID to "folkelig-lurendreier-sak-id".toJson(),
         )
 
-    fun lagArbeidsforhold(orgnr: String) = listOf(
-        Arbeidsforhold(
-            arbeidsgiver = Arbeidsgiver("ORG", orgnr),
-            ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(LocalDate.MIN, LocalDate.MAX)),
-            registrert = LocalDateTime.MIN
+    fun lagArbeidsforhold(orgnr: String) =
+        listOf(
+            Arbeidsforhold(
+                arbeidsgiver = Arbeidsgiver("ORG", orgnr),
+                ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(LocalDate.MIN, LocalDate.MAX)),
+                registrert = LocalDateTime.MIN,
+            ),
         )
-    )
 }

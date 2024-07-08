@@ -58,163 +58,181 @@ private val pathUtenId =
         Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID.replaceFirst("{selvbestemtId}", "")
 
 class HentSelvbestemtImRouteKtTest : ApiTest() {
-
     @BeforeEach
     fun setup() {
         clearAllMocks()
     }
 
     @Test
-    fun `gir OK med inntektsmelding`() = testApi {
-        val expectedInntektsmelding = mockInntektsmeldingV1()
+    fun `gir OK med inntektsmelding`() =
+        testApi {
+            val expectedInntektsmelding = mockInntektsmeldingV1()
 
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            Mock.successResult(expectedInntektsmelding),
-            harTilgangResultat
-        )
-
-        val response = get(pathMedId)
-
-        val actualJson = response.bodyAsText()
-
-        response.status shouldBe HttpStatusCode.OK
-        actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
-    }
-
-    @Test
-    fun `gir OK med inntektsmelding med ekstra 'perioder'-felt i inntektsendringsårsak`() = testApi {
-        val expectedInntektsmelding = mockInntektsmeldingV1().let {
-            it.copy(
-                inntekt = it.inntekt?.copy(
-                    endringAarsak = Ferie(
-                        ferier = listOf(
-                            15.februar(2024) til 16.februar(2024),
-                            22.februar(2024) til 23.februar(2024)
-                        )
-                    )
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    Mock.successResult(expectedInntektsmelding),
+                    harTilgangResultat,
                 )
-            )
+
+            val response = get(pathMedId)
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
         }
 
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            Mock.successResult(expectedInntektsmelding),
-            harTilgangResultat
-        )
+    @Test
+    fun `gir OK med inntektsmelding med ekstra 'perioder'-felt i inntektsendringsårsak`() =
+        testApi {
+            val expectedInntektsmelding =
+                mockInntektsmeldingV1().let {
+                    it.copy(
+                        inntekt =
+                            it.inntekt?.copy(
+                                endringAarsak =
+                                    Ferie(
+                                        ferier =
+                                            listOf(
+                                                15.februar(2024) til 16.februar(2024),
+                                                22.februar(2024) til 23.februar(2024),
+                                            ),
+                                    ),
+                            ),
+                    )
+                }
 
-        val response = get(pathMedId)
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    Mock.successResult(expectedInntektsmelding),
+                    harTilgangResultat,
+                )
 
-        val actualJson = response.bodyAsText()
+            val response = get(pathMedId)
 
-        response.status shouldBe HttpStatusCode.OK
-        actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
-    }
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(expectedInntektsmelding)
+        }
 
     @Test
-    fun `manglende tilgang gir 500-feil`() = testApi {
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            Mock.successResult(mockInntektsmeldingV1()),
-            ikkeTilgangResultat
-        )
+    fun `manglende tilgang gir 500-feil`() =
+        testApi {
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    Mock.successResult(mockInntektsmeldingV1()),
+                    ikkeTilgangResultat,
+                )
 
-        val response = get(pathMedId)
+            val response = get(pathMedId)
 
-        val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText()
 
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe "\"Error 500: no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException\""
-    }
-
-    @Test
-    fun `feilresultat gir 500-feil`() = testApi {
-        val expectedFeilmelding = "Du får vente til freddan'!"
-
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            Mock.failureResult(expectedFeilmelding),
-            harTilgangResultat
-        )
-
-        val response = get(pathMedId)
-
-        val actualJson = response.bodyAsText()
-
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
-    }
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe "\"Error 500: no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException\""
+        }
 
     @Test
-    fun `tomt resultat gir 500-feil`() = testApi {
-        val expectedFeilmelding = "Ukjent feil."
+    fun `feilresultat gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = "Du får vente til freddan'!"
 
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            Mock.emptyResult(),
-            harTilgangResultat
-        )
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    Mock.failureResult(expectedFeilmelding),
+                    harTilgangResultat,
+                )
 
-        val response = get(pathMedId)
+            val response = get(pathMedId)
 
-        val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText()
 
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
-    }
-
-    @Test
-    fun `timeout mot redis gir 500-feil`() = testApi {
-        val selvbestemtId = UUID.randomUUID()
-        val expectedFeilobjekt = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
-
-        coEvery { mockRedisPoller.hent(any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
-
-        val response = get("$pathUtenId$selvbestemtId")
-
-        val actualJson = response.bodyAsText()
-
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilobjekt)
-    }
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
+        }
 
     @Test
-    fun `ukjent feil mot redis gir 500-feil`() = testApi {
-        val selvbestemtId = UUID.randomUUID()
-        val expectedFeilobjekt = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer())
+    fun `tomt resultat gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = "Ukjent feil."
 
-        coEvery { mockRedisPoller.hent(any()) } throws IllegalStateException()
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    Mock.emptyResult(),
+                    harTilgangResultat,
+                )
 
-        val response = get("$pathUtenId$selvbestemtId")
+            val response = get(pathMedId)
 
-        val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText()
 
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilobjekt)
-    }
-
-    @Test
-    fun `ukjent feil gir 500-feil`() = testApi {
-        coEvery { mockRedisPoller.hent(any()) } returns Mock.successResult(mockInntektsmeldingV1()) andThenThrows NullPointerException()
-
-        val response = get(pathMedId)
-
-        val actualJson = response.bodyAsText()
-
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe "\"Error 500: java.lang.NullPointerException\""
-    }
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
+        }
 
     @Test
-    fun `ugyldig ID i URL gir 400-feil`() = testApi {
-        val response = get("${pathUtenId}ikke-en-uuid")
+    fun `timeout mot redis gir 500-feil`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
+            val expectedFeilobjekt = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
 
-        response.status shouldBe HttpStatusCode.BadRequest
-        response.bodyAsText() shouldBe "\"Ugyldig parameter: 'ikke-en-uuid'\""
-    }
+            coEvery { mockRedisPoller.hent(any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+
+            val response = get("$pathUtenId$selvbestemtId")
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilobjekt)
+        }
 
     @Test
-    fun `manglende ID i URL gir 404-feil`() = testApi {
-        val response = get(pathUtenId)
+    fun `ukjent feil mot redis gir 500-feil`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
+            val expectedFeilobjekt = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer())
 
-        response.status shouldBe HttpStatusCode.NotFound
-        response.bodyAsText().shouldBeEmpty()
-    }
+            coEvery { mockRedisPoller.hent(any()) } throws IllegalStateException()
+
+            val response = get("$pathUtenId$selvbestemtId")
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilobjekt)
+        }
+
+    @Test
+    fun `ukjent feil gir 500-feil`() =
+        testApi {
+            coEvery { mockRedisPoller.hent(any()) } returns Mock.successResult(mockInntektsmeldingV1()) andThenThrows NullPointerException()
+
+            val response = get(pathMedId)
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe "\"Error 500: java.lang.NullPointerException\""
+        }
+
+    @Test
+    fun `ugyldig ID i URL gir 400-feil`() =
+        testApi {
+            val response = get("${pathUtenId}ikke-en-uuid")
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            response.bodyAsText() shouldBe "\"Ugyldig parameter: 'ikke-en-uuid'\""
+        }
+
+    @Test
+    fun `manglende ID i URL gir 404-feil`() =
+        testApi {
+            val response = get(pathUtenId)
+
+            response.status shouldBe HttpStatusCode.NotFound
+            response.bodyAsText().shouldBeEmpty()
+        }
 }
 
 private object Mock {
@@ -245,16 +263,15 @@ private object Mock {
 
     fun successResult(inntektsmelding: Inntektsmelding): JsonElement =
         ResultJson(
-            success = inntektsmelding.toJson(Inntektsmelding.serializer())
+            success = inntektsmelding.toJson(Inntektsmelding.serializer()),
         ).toJson(ResultJson.serializer())
 
     fun failureResult(feilmelding: String): JsonElement =
         ResultJson(
-            failure = feilmelding.toJson()
+            failure = feilmelding.toJson(),
         ).toJson(ResultJson.serializer())
 
-    fun emptyResult(): JsonElement =
-        ResultJson().toJson(ResultJson.serializer())
+    fun emptyResult(): JsonElement = ResultJson().toJson(ResultJson.serializer())
 }
 
 private fun Inntektsmelding.hardcodedJson(): String =
@@ -370,9 +387,9 @@ private fun InntektEndringAarsak.hardcodedJson(): String =
         Feilregistrert -> """{ "aarsak": "Feilregistrert" }"""
 //        is Ferie -> """{ "aarsak": "Ferie", "ferier": [${ferier.joinToString(transform = Periode::hardcodedJson)}] }"""
         is Ferie -> """{ "aarsak": "Ferie", "ferier": [${ferier.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
-        ferier.joinToString(
-            transform = Periode::hardcodedJson
-        )
+            ferier.joinToString(
+                transform = Periode::hardcodedJson,
+            )
         }] }"""
         Ferietrekk -> """{ "aarsak": "Ferietrekk"}"""
         is NyStilling -> """{ "aarsak": "NyStilling", "gjelderFra": "$gjelderFra" }"""
@@ -380,21 +397,23 @@ private fun InntektEndringAarsak.hardcodedJson(): String =
         Nyansatt -> """{ "aarsak": "Nyansatt" }"""
 //        is Permisjon -> """{ "aarsak": "Permisjon", "permisjoner": [${permisjoner.joinToString(transform = Periode::hardcodedJson)}] }"""
         is Permisjon -> """{ "aarsak": "Permisjon", "permisjoner": [${permisjoner.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
-        permisjoner.joinToString(
-            transform = Periode::hardcodedJson
-        )
+            permisjoner.joinToString(
+                transform = Periode::hardcodedJson,
+            )
         }] }"""
 //        is Permittering -> """{ "aarsak": "Permittering", "permitteringer": [${permitteringer.joinToString(transform = Periode::hardcodedJson)}] }"""
-        is Permittering -> """{ "aarsak": "Permittering", "permitteringer": [${permitteringer.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
-        permitteringer.joinToString(
-            transform = Periode::hardcodedJson
-        )
+        is Permittering -> """{ "aarsak": "Permittering", "permitteringer": [${permitteringer.joinToString(
+            transform = Periode::hardcodedJson,
+        )}], "perioder": [${
+            permitteringer.joinToString(
+                transform = Periode::hardcodedJson,
+            )
         }] }"""
 //        is Sykefravaer -> """{ "aarsak": "Sykefravaer", "sykefravaer": [${sykefravaer.joinToString(transform = Periode::hardcodedJson)}] }"""
         is Sykefravaer -> """{ "aarsak": "Sykefravaer", "sykefravaer": [${sykefravaer.joinToString(transform = Periode::hardcodedJson)}], "perioder": [${
-        sykefravaer.joinToString(
-            transform = Periode::hardcodedJson
-        )
+            sykefravaer.joinToString(
+                transform = Periode::hardcodedJson,
+            )
         }] }"""
 
         is Tariffendring -> """{ "aarsak": "Tariffendring", "gjelderFra": "$gjelderFra", "bleKjent": "$bleKjent" }"""

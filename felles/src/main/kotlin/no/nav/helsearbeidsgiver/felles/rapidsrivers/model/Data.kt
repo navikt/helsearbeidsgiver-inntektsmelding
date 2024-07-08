@@ -20,14 +20,15 @@ fun MessageContext.publishData(
     eventName: EventName,
     transaksjonId: UUID,
     forespoerselId: UUID?,
-    vararg messageFields: Pair<Key, JsonElement?>
+    vararg messageFields: Pair<Key, JsonElement?>,
 ): JsonElement {
-    val optionalIdFields = mapOf(
-        Key.FORESPOERSEL_ID to forespoerselId
-    )
-        .mapValuesNotNull { it?.toJson() }
-        .toList()
-        .toTypedArray()
+    val optionalIdFields =
+        mapOf(
+            Key.FORESPOERSEL_ID to forespoerselId,
+        )
+            .mapValuesNotNull { it?.toJson() }
+            .toList()
+            .toTypedArray()
 
     val nonNullMessageFields = messageFields.toMap().mapValuesNotNull { it }
 
@@ -36,7 +37,7 @@ fun MessageContext.publishData(
         Key.UUID to transaksjonId.toJson(),
         Key.DATA to nonNullMessageFields.toJson(),
         *optionalIdFields,
-        *nonNullMessageFields.toList().toTypedArray()
+        *nonNullMessageFields.toList().toTypedArray(),
     )
         .also {
             logger.info("Publiserte data for '$eventName' med transaksjonId '$transaksjonId'.")

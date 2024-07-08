@@ -64,7 +64,7 @@ fun startServer(env: Map<String, String> = System.getenv()) {
     embeddedServer(
         factory = Netty,
         port = 8080,
-        module = { apiModule(rapid, redisPoller) }
+        module = { apiModule(rapid, redisPoller) },
     )
         .start(wait = true)
 
@@ -76,13 +76,14 @@ fun startServer(env: Map<String, String> = System.getenv()) {
 
 fun Application.apiModule(
     rapid: RapidsConnection,
-    redisPoller: RedisPoller
+    redisPoller: RedisPoller,
 ) {
-    val tilgangskontroll = Tilgangskontroll(
-        TilgangProducer(rapid),
-        LocalCache(60.minutes, 1000),
-        redisPoller
-    )
+    val tilgangskontroll =
+        Tilgangskontroll(
+            TilgangProducer(rapid),
+            LocalCache(60.minutes, 1000),
+            redisPoller,
+        )
 
     customAuthentication()
 
@@ -99,12 +100,12 @@ fun Application.apiModule(
 
             call.respondText(
                 text = "Error 500: $cause".toJsonStr(String.serializer()),
-                status = HttpStatusCode.InternalServerError
+                status = HttpStatusCode.InternalServerError,
             )
         }
     }
 
-    HelsesjekkerRouting()
+    helsesjekkerRouting()
 
     routing {
         get("/") {

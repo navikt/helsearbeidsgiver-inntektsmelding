@@ -15,18 +15,19 @@ object Auth {
 private val pidRegex = Regex("\\d{11}")
 
 fun Application.customAuthentication() {
-    val config = TokenSupportConfig(
-        IssuerConfig(
-            name = Auth.ISSUER,
-            discoveryUrl = Env.Auth.discoveryUrl,
-            acceptedAudience = Env.Auth.acceptedAudience
+    val config =
+        TokenSupportConfig(
+            IssuerConfig(
+                name = Auth.ISSUER,
+                discoveryUrl = Env.Auth.discoveryUrl,
+                acceptedAudience = Env.Auth.acceptedAudience,
+            ),
         )
-    )
 
     authentication {
         tokenValidationSupport(
             config = config,
-            additionalValidation = TokenValidationContext::containsPid
+            additionalValidation = TokenValidationContext::containsPid,
         )
     }
 }

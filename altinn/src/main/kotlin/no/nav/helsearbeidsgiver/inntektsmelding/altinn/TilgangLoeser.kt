@@ -29,16 +29,15 @@ import java.util.UUID
 // TODO test
 class TilgangLoeser(
     rapidsConnection: RapidsConnection,
-    private val altinnClient: AltinnClient
+    private val altinnClient: AltinnClient,
 ) : Loeser(rapidsConnection) {
-
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValues(Key.BEHOV to BehovType.TILGANGSKONTROLL.name)
             it.interestedIn(
                 Key.UUID,
                 Key.ORGNRUNDERENHET,
-                Key.FNR
+                Key.FNR,
             )
         }
     }
@@ -47,13 +46,13 @@ class TilgangLoeser(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(behov.event),
-            Log.behov(BehovType.TILGANGSKONTROLL)
+            Log.behov(BehovType.TILGANGSKONTROLL),
         ) {
             val json = behov.jsonMessage.toJson().parseJson().toMap()
 
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
             MdcUtils.withLogFields(
-                Log.transaksjonId(transaksjonId)
+                Log.transaksjonId(transaksjonId),
             ) {
                 runCatching {
                     hentTilgang(behov, json, transaksjonId)
@@ -66,7 +65,11 @@ class TilgangLoeser(
         }
     }
 
-    private fun hentTilgang(behov: Behov, json: Map<Key, JsonElement>, transaksjonId: UUID) {
+    private fun hentTilgang(
+        behov: Behov,
+        json: Map<Key, JsonElement>,
+        transaksjonId: UUID,
+    ) {
         val fnr = Key.FNR.les(Fnr.serializer(), json)
         val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), json)
 
@@ -82,7 +85,7 @@ class TilgangLoeser(
                     eventName = behov.event,
                     transaksjonId = transaksjonId,
                     forespoerselId = behov.forespoerselId?.let(UUID::fromString),
-                    Key.TILGANG to tilgang.toJson(Tilgang.serializer())
+                    Key.TILGANG to tilgang.toJson(Tilgang.serializer()),
                 )
             }
             .onFailure {

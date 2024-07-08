@@ -18,7 +18,6 @@ import org.jetbrains.exposed.sql.update
 import java.util.UUID
 
 class SelvbestemtImRepo(private val db: Database) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -42,21 +41,25 @@ class SelvbestemtImRepo(private val db: Database) {
         }
     }
 
-    fun oppdaterJournalpostId(selvbestemtId: UUID, journalpostId: String) {
-        val antallOppdatert = Metrics.dbSelvbestemtIm.recordTime(::oppdaterJournalpostId) {
-            transaction(db) {
-                SelvbestemtInntektsmeldingEntitet.update(
-                    where = {
-                        val nyesteImIdQuery = hentNyesteImQuery(selvbestemtId).adjustSelect { select(SelvbestemtInntektsmeldingEntitet.id) }
+    fun oppdaterJournalpostId(
+        selvbestemtId: UUID,
+        journalpostId: String,
+    ) {
+        val antallOppdatert =
+            Metrics.dbSelvbestemtIm.recordTime(::oppdaterJournalpostId) {
+                transaction(db) {
+                    SelvbestemtInntektsmeldingEntitet.update(
+                        where = {
+                            val nyesteImIdQuery = hentNyesteImQuery(selvbestemtId).adjustSelect { select(SelvbestemtInntektsmeldingEntitet.id) }
 
-                        (SelvbestemtInntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
-                            SelvbestemtInntektsmeldingEntitet.journalpostId.isNull()
+                            (SelvbestemtInntektsmeldingEntitet.id eqSubQuery nyesteImIdQuery) and
+                                SelvbestemtInntektsmeldingEntitet.journalpostId.isNull()
+                        },
+                    ) {
+                        it[this.journalpostId] = journalpostId
                     }
-                ) {
-                    it[this.journalpostId] = journalpostId
                 }
             }
-        }
 
         if (antallOppdatert == 1) {
             "Lagret journalpost-ID '$journalpostId' i database.".also {

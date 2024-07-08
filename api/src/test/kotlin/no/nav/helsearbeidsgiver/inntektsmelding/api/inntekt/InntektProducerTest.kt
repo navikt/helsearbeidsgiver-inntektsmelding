@@ -24,11 +24,12 @@ class InntektProducerTest : FunSpec({
 
         val publisert = testRapid.firstMessage().toMap()
 
-        publisert shouldContainAll mapOf(
-            Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
-            Key.CLIENT_ID to clientId.toJson(),
-            Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
-            Key.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson()
-        )
+        publisert shouldContainAll
+            mapOf(
+                Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
+                Key.CLIENT_ID to clientId.toJson(),
+                Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
+                Key.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson(),
+            )
     }
 })

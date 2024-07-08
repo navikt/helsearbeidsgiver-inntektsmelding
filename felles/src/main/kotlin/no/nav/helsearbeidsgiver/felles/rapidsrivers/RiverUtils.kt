@@ -14,8 +14,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
-fun JsonMessage.toPretty(): String =
-    toJson().parseJson().toPretty()
+fun JsonMessage.toPretty(): String = toJson().parseJson().toPretty()
 
 fun JsonMessage.demandKeys(vararg keys: IKey) {
     keys.forEach {
@@ -59,11 +58,9 @@ fun JsonMessage.interestedIn(vararg keys: IKey) {
     interestedIn(*keysAsStr)
 }
 
-fun MessageContext.publishNotNull(vararg messageFields: Pair<Key, JsonElement?>): JsonElement =
-    publishNotNull(messageFields.toMap())
+fun MessageContext.publishNotNull(vararg messageFields: Pair<Key, JsonElement?>): JsonElement = publishNotNull(messageFields.toMap())
 
-fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement =
-    publish(messageFields.toMap())
+fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement = publish(messageFields.toMap())
 
 fun MessageContext.publishNotNull(messageFields: Map<Key, JsonElement?>): JsonElement =
     messageFields.mapValuesNotNull { it }
@@ -84,7 +81,7 @@ fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
 
 private fun JsonMessage.validate(
     validateFn: (JsonMessage, String, (JsonNode) -> Any) -> Unit,
-    keyAndParserPairs: List<Pair<String, (JsonElement) -> Any>>
+    keyAndParserPairs: List<Pair<String, (JsonElement) -> Any>>,
 ) {
     keyAndParserPairs.forEach { (key, block) ->
         validateFn(this, key) {

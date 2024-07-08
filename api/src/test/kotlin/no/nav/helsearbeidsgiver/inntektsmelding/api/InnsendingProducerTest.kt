@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
+import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.inntektsmelding.api.innsending.InnsendingProducer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -26,17 +26,18 @@ class InnsendingProducerTest : FunSpec({
         val forespoerselId = UUID.randomUUID()
         val avsenderFnr = Fnr.genererGyldig()
 
-        producer.publish(clientId, forespoerselId, GYLDIG_INNSENDING_REQUEST, avsenderFnr)
+        producer.publish(clientId, forespoerselId, gyldigInnsendingRequest, avsenderFnr)
 
         testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.CLIENT_ID to clientId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet.toJson(),
-            Key.IDENTITETSNUMMER to GYLDIG_INNSENDING_REQUEST.identitetsnummer.toJson(),
-            Key.ARBEIDSGIVER_ID to avsenderFnr.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
-        )
+        testRapid.firstMessage().toMap() shouldContainExactly
+            mapOf(
+                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+                Key.CLIENT_ID to clientId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.ORGNRUNDERENHET to gyldigInnsendingRequest.orgnrUnderenhet.toJson(),
+                Key.IDENTITETSNUMMER to gyldigInnsendingRequest.identitetsnummer.toJson(),
+                Key.ARBEIDSGIVER_ID to avsenderFnr.toJson(),
+                Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+            )
     }
 })

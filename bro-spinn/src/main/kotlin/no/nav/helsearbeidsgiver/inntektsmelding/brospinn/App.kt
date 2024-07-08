@@ -45,8 +45,8 @@ fun RapidsConnection.createSpinnService(redisConnection: RedisConnection): Rapid
         ServiceRiver(
             SpinnService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.SpinnService)
-            )
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.SpinnService),
+            ),
         ).connect(this)
     }
 

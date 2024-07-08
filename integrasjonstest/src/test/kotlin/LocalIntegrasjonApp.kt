@@ -57,9 +57,8 @@ fun main() {
 
 class DummyLoeser(
     private val rapid: RapidsConnection,
-    private val behov: BehovType
+    private val behov: BehovType,
 ) : River.PacketListener {
-
     init {
         logger.info("Starter ${simpleName()} for Behov $behov")
         River(rapid).apply {
@@ -70,11 +69,14 @@ class DummyLoeser(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         logger.info("Fikk pakke:\n${packet.toPretty()}")
 
         rapid.publish(
-            *getData().toList().toTypedArray()
+            *getData().toList().toTypedArray(),
         )
             .also {
                 logger.info("Publiserte data:\n${it.toPretty()}")
@@ -86,55 +88,61 @@ class DummyLoeser(
         val orgnr = "123"
 
         return when (behov) {
-            BehovType.HENT_TRENGER_IM -> mapOf(
-                Key.FORESPOERSEL_SVAR to Forespoersel(
-                    type = ForespoerselType.KOMPLETT,
-                    orgnr = orgnr,
-                    fnr = fnr,
-                    vedtaksperiodeId = UUID.randomUUID(),
-                    sykmeldingsperioder = listOf(2.januar til 3.januar),
-                    egenmeldingsperioder = listOf(1.januar til 1.januar),
-                    bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
-                    forespurtData = mockForespurtData(),
-                    erBesvart = false
-                ).toJson(Forespoersel.serializer())
-            )
-            BehovType.VIRKSOMHET -> mapOf(
-                Key.VIRKSOMHET to "Din Bedrift A/S".toJson()
-            )
-            BehovType.FULLT_NAVN -> mapOf(
-                Key.ARBEIDSTAKER_INFORMASJON to
-                    PersonDato(
-                        "Navn navnesen",
-                        LocalDate.now(),
-                        "123456"
-                    )
-                        .toJson(
-                            PersonDato.serializer()
-                        ),
-                Key.ARBEIDSGIVER_INFORMASJON to
-                    PersonDato(
-                        "Arbeidsgiver",
-                        LocalDate.now(),
-                        "654321"
-                    )
-                        .toJson(
-                            PersonDato.serializer()
+            BehovType.HENT_TRENGER_IM ->
+                mapOf(
+                    Key.FORESPOERSEL_SVAR to
+                        Forespoersel(
+                            type = ForespoerselType.KOMPLETT,
+                            orgnr = orgnr,
+                            fnr = fnr,
+                            vedtaksperiodeId = UUID.randomUUID(),
+                            sykmeldingsperioder = listOf(2.januar til 3.januar),
+                            egenmeldingsperioder = listOf(1.januar til 1.januar),
+                            bestemmendeFravaersdager = mapOf(orgnr to 1.januar),
+                            forespurtData = mockForespurtData(),
+                            erBesvart = false,
+                        ).toJson(Forespoersel.serializer()),
+                )
+            BehovType.VIRKSOMHET ->
+                mapOf(
+                    Key.VIRKSOMHET to "Din Bedrift A/S".toJson(),
+                )
+            BehovType.FULLT_NAVN ->
+                mapOf(
+                    Key.ARBEIDSTAKER_INFORMASJON to
+                        PersonDato(
+                            "Navn navnesen",
+                            LocalDate.now(),
+                            "123456",
                         )
-            )
-            BehovType.INNTEKT -> mapOf(
-                Key.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer())
-            )
-            BehovType.ARBEIDSFORHOLD -> mapOf(
-                Key.ARBEIDSFORHOLD to
-                    listOf(
-                        Arbeidsforhold(
-                            Arbeidsgiver("A/S", orgnr),
-                            Ansettelsesperiode(PeriodeNullable(1.januar, 31.januar)),
-                            LocalDateTime.now()
+                            .toJson(
+                                PersonDato.serializer(),
+                            ),
+                    Key.ARBEIDSGIVER_INFORMASJON to
+                        PersonDato(
+                            "Arbeidsgiver",
+                            LocalDate.now(),
+                            "654321",
                         )
-                    ).toJson(Arbeidsforhold.serializer())
-            )
+                            .toJson(
+                                PersonDato.serializer(),
+                            ),
+                )
+            BehovType.INNTEKT ->
+                mapOf(
+                    Key.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer()),
+                )
+            BehovType.ARBEIDSFORHOLD ->
+                mapOf(
+                    Key.ARBEIDSFORHOLD to
+                        listOf(
+                            Arbeidsforhold(
+                                Arbeidsgiver("A/S", orgnr),
+                                Ansettelsesperiode(PeriodeNullable(1.januar, 31.januar)),
+                                LocalDateTime.now(),
+                            ),
+                        ).toJson(Arbeidsforhold.serializer()),
+                )
             else -> error("Ukjent behov, ingen dummy-løsning!")
         }
     }

@@ -9,12 +9,14 @@ import no.nav.helsearbeidsgiver.felles.test.mock.redisWithMockRedisClient
 class RedisConnectionTest : FunSpec({
 
     test(RedisConnection::get.name) {
-        val redis = redisWithMockRedisClient(
-            mockStorageInit = mapOf(
-                "atreides" to "good guys",
-                "harkonnen" to null
+        val redis =
+            redisWithMockRedisClient(
+                mockStorageInit =
+                    mapOf(
+                        "atreides" to "good guys",
+                        "harkonnen" to null,
+                    ),
             )
-        )
 
         redis.get("atreides") shouldBe "good guys"
         redis.get("harkonnen").shouldBeNull()
@@ -22,29 +24,33 @@ class RedisConnectionTest : FunSpec({
     }
 
     test(RedisConnection::getAll.name) {
-        val redis = redisWithMockRedisClient(
-            mockStorageInit = mapOf(
-                "atreides" to "good guys",
-                "harkonnen" to "bad guys",
-                "bene gesserit" to null
+        val redis =
+            redisWithMockRedisClient(
+                mockStorageInit =
+                    mapOf(
+                        "atreides" to "good guys",
+                        "harkonnen" to "bad guys",
+                        "bene gesserit" to null,
+                    ),
             )
-        )
 
         redis.getAll(
             "atreides",
             "harkonnen",
             "bene gesserit",
-            "fremen"
-        ) shouldContainExactly mapOf(
-            "atreides" to "good guys",
-            "harkonnen" to "bad guys"
-        )
+            "fremen",
+        ) shouldContainExactly
+            mapOf(
+                "atreides" to "good guys",
+                "harkonnen" to "bad guys",
+            )
     }
 
     test(RedisConnection::set.name) {
-        val redis = redisWithMockRedisClient(
-            mockStorageInit = emptyMap()
-        )
+        val redis =
+            redisWithMockRedisClient(
+                mockStorageInit = emptyMap(),
+            )
 
         redis.get("paul").shouldBeNull()
         redis.set("paul", "lisan al gaib")

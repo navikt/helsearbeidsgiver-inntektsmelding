@@ -18,7 +18,10 @@ object Metrics {
     val pdlRequest = requestMetric("PDL")
 }
 
-fun <T> Summary.recordTime(fnToRecord: KFunction<*>, block: suspend () -> T): T {
+fun <T> Summary.recordTime(
+    fnToRecord: KFunction<*>,
+    block: suspend () -> T,
+): T {
     val requestTimer: Summary.Timer = labels(fnToRecord.name).startTimer()
 
     return runBlocking { block() }
@@ -27,19 +30,25 @@ fun <T> Summary.recordTime(fnToRecord: KFunction<*>, block: suspend () -> T): T 
         }
 }
 
-private fun databaseMetric(dbName: String, tableName: String): Summary =
+private fun databaseMetric(
+    dbName: String,
+    tableName: String,
+): Summary =
     latencyMetric(
         name = "db_${dbName}_$tableName",
-        description = "database '$dbName' and table '$tableName'"
+        description = "database '$dbName' and table '$tableName'",
     )
 
 private fun requestMetric(clientName: String): Summary =
     latencyMetric(
         name = "client_$clientName",
-        description = "$clientName-request"
+        description = "$clientName-request",
     )
 
-private fun latencyMetric(name: String, description: String): Summary {
+private fun latencyMetric(
+    name: String,
+    description: String,
+): Summary {
     val nameInSnake = name.replace(Regex("[ -]"), "_").lowercase()
     return Summary.build()
         .name("simba_${nameInSnake}_latency_seconds")

@@ -25,44 +25,50 @@ fun mockInnsending(): Innsending =
         orgnrUnderenhet = "orgnr-bål",
         identitetsnummer = "fnr-fredrik",
         behandlingsdager = listOf(LocalDate.now().plusDays(5)),
-        egenmeldingsperioder = listOf(
-            Periode(
-                fom = LocalDate.now(),
-                tom = LocalDate.now().plusDays(2)
-            )
-        ),
+        egenmeldingsperioder =
+            listOf(
+                Periode(
+                    fom = LocalDate.now(),
+                    tom = LocalDate.now().plusDays(2),
+                ),
+            ),
         arbeidsgiverperioder = emptyList(),
         bestemmendeFraværsdag = LocalDate.now(),
-        fraværsperioder = listOf(
-            Periode(
-                fom = LocalDate.now().plusDays(3),
-                tom = LocalDate.now().plusDays(24)
-            )
-        ),
-        inntekt = Inntekt(
-            bekreftet = true,
-            beregnetInntekt = 32100.0,
-            endringÅrsak = null,
-            manueltKorrigert = false
-        ),
-        fullLønnIArbeidsgiverPerioden = FullLoennIArbeidsgiverPerioden(
-            utbetalerFullLønn = true,
-            begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert
-        ),
-        refusjon = Refusjon(
-            utbetalerHeleEllerDeler = true,
-            refusjonPrMnd = 200.0,
-            refusjonOpphører = LocalDate.now()
-        ),
-        naturalytelser = listOf(
-            Naturalytelse(
-                naturalytelse = NaturalytelseKode.KOSTDOEGN,
-                dato = LocalDate.now(),
-                beløp = 300.0
-            )
-        ),
+        fraværsperioder =
+            listOf(
+                Periode(
+                    fom = LocalDate.now().plusDays(3),
+                    tom = LocalDate.now().plusDays(24),
+                ),
+            ),
+        inntekt =
+            Inntekt(
+                bekreftet = true,
+                beregnetInntekt = 32100.0,
+                endringÅrsak = null,
+                manueltKorrigert = false,
+            ),
+        fullLønnIArbeidsgiverPerioden =
+            FullLoennIArbeidsgiverPerioden(
+                utbetalerFullLønn = true,
+                begrunnelse = BegrunnelseIngenEllerRedusertUtbetalingKode.ArbeidOpphoert,
+            ),
+        refusjon =
+            Refusjon(
+                utbetalerHeleEllerDeler = true,
+                refusjonPrMnd = 200.0,
+                refusjonOpphører = LocalDate.now(),
+            ),
+        naturalytelser =
+            listOf(
+                Naturalytelse(
+                    naturalytelse = NaturalytelseKode.KOSTDOEGN,
+                    dato = LocalDate.now(),
+                    beløp = 300.0,
+                ),
+            ),
         årsakInnsending = AarsakInnsending.ENDRING,
-        bekreftOpplysninger = true
+        bekreftOpplysninger = true,
     )
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess {
@@ -75,11 +81,12 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess {
         egenmeldingsperioder = listOf(1.januar til 1.januar),
         sykmeldingsperioder = listOf(2.januar til 16.januar),
         skjaeringstidspunkt = 11.januar,
-        bestemmendeFravaersdager = mapOf(
-            orgnr to 1.januar,
-            "343999567" to 11.januar
-        ),
+        bestemmendeFravaersdager =
+            mapOf(
+                orgnr to 1.januar,
+                "343999567" to 11.januar,
+            ),
         forespurtData = mockForespurtData(),
-        erBesvart = false
+        erBesvart = false,
     )
 }

@@ -35,7 +35,7 @@ enum class BehovType {
 
     // Asynkrone endringer, men brukt til å prøve igjen ved feil
     JOURNALFOER,
-    DISTRIBUER_IM
+    DISTRIBUER_IM,
 }
 
 @Serializable
@@ -76,5 +76,5 @@ enum class EventName {
     OPPGAVE_OPPRETT_REQUESTED,
     OPPGAVE_OPPRETTET,
     OPPGAVE_LAGRET,
-    OPPGAVE_FERDIGSTILT
+    OPPGAVE_FERDIGSTILT,
 }

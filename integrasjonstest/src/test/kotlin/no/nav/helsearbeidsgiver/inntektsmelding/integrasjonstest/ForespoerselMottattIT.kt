@@ -20,7 +20,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ForespoerselMottattIT : EndToEndTest() {
-
     @Test
     fun `skal ta imot forespørsel ny inntektsmelding, deretter opprette sak og oppgave`() {
         mockStatic(::randomUuid) {
@@ -30,7 +29,7 @@ class ForespoerselMottattIT : EndToEndTest() {
                 Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
                 Pri.Key.ORGNR to Mock.ORGNR.toJson(),
                 Pri.Key.FNR to Mock.FNR.toJson(),
-                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             )
         }
 

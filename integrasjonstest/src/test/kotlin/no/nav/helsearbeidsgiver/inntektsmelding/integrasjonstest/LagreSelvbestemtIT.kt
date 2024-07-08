@@ -58,7 +58,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as Inn
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LagreSelvbestemtIT : EndToEndTest() {
-
     @BeforeEach
     fun setup() {
         truncateDatabase()
@@ -67,23 +66,26 @@ class LagreSelvbestemtIT : EndToEndTest() {
     @Test
     fun `inntektsmelding lagres og prosesseres`() {
         val transaksjonId: UUID = UUID.randomUUID()
-        val nyInntektsmelding = Mock.inntektsmelding.copy(
-            type = InntektsmeldingV1.Type.Selvbestemt(
-                id = UUID.randomUUID()
-            ),
-            aarsakInnsending = AarsakInnsending.Ny
-        )
+        val nyInntektsmelding =
+            Mock.inntektsmelding.copy(
+                type =
+                    InntektsmeldingV1.Type.Selvbestemt(
+                        id = UUID.randomUUID(),
+                    ),
+                aarsakInnsending = AarsakInnsending.Ny,
+            )
 
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Mock.virksomhet)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
         coEvery { arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns Mock.sakId
-        coEvery { dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any()) } returns OpprettOgFerdigstillResponse(
-            journalpostId = Mock.journalpostId,
-            journalpostFerdigstilt = true,
-            melding = null,
-            dokumenter = emptyList()
-        )
+        coEvery { dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any()) } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = Mock.journalpostId,
+                journalpostFerdigstilt = true,
+                melding = null,
+                dokumenter = emptyList(),
+            )
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
@@ -92,7 +94,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
                 Key.CLIENT_ID to Mock.clientId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.copy(selvbestemtId = null).toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson()
+                Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
             )
         }
 
@@ -176,12 +178,13 @@ class LagreSelvbestemtIT : EndToEndTest() {
         coEvery { brregClient.hentVirksomheter(any()) } returns listOf(Mock.virksomhet)
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
-        coEvery { dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any()) } returns OpprettOgFerdigstillResponse(
-            journalpostId = Mock.journalpostId,
-            journalpostFerdigstilt = true,
-            melding = null,
-            dokumenter = emptyList()
-        )
+        coEvery { dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any()) } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = Mock.journalpostId,
+                journalpostFerdigstilt = true,
+                melding = null,
+                dokumenter = emptyList(),
+            )
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
@@ -190,7 +193,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
                 Key.CLIENT_ID to Mock.clientId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson()
+                Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
             )
         }
 
@@ -251,7 +254,7 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
                 Key.CLIENT_ID to Mock.clientId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson()
+                Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
             )
         }
 
@@ -304,12 +307,16 @@ class LagreSelvbestemtIT : EndToEndTest() {
         type shouldNotBeSameInstanceAs other.type
     }
 
-    private fun Map<Key, JsonElement>.shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId: UUID, inntektsmelding: InntektsmeldingV1) {
+    private fun Map<Key, JsonElement>.shouldContainNokTilJournalfoeringOgDistribusjon(
+        transaksjonId: UUID,
+        inntektsmelding: InntektsmeldingV1,
+    ) {
         this shouldContainKey Key.SELVBESTEMT_ID
-        this shouldContainAll mapOf(
-            Key.UUID to transaksjonId.toJson(),
-            Key.JOURNALPOST_ID to Mock.journalpostId.toJson()
-        )
+        this shouldContainAll
+            mapOf(
+                Key.UUID to transaksjonId.toJson(),
+                Key.JOURNALPOST_ID to Mock.journalpostId.toJson(),
+            )
 
         Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), this)
             .shouldBeEqualToIgnoringFields(inntektsmelding.convert(), Inntektsmelding::tidspunkt)
@@ -322,78 +329,92 @@ class LagreSelvbestemtIT : EndToEndTest() {
         val avsenderFnr = Fnr.genererGyldig()
         val sakId = UUID.randomUUID().toString()
         val journalpostId = randomDigitString(18)
-        val skjema = mockSkjemaInntektsmeldingSelvbestemt().let {
-            it.copy(
-                selvbestemtId = UUID.randomUUID(),
-                avsender = it.avsender.copy(
-                    orgnr = orgnr
+        val skjema =
+            mockSkjemaInntektsmeldingSelvbestemt().let {
+                it.copy(
+                    selvbestemtId = UUID.randomUUID(),
+                    avsender =
+                        it.avsender.copy(
+                            orgnr = orgnr,
+                        ),
                 )
-            )
-        }
+            }
 
-        val virksomhet = Virksomhet(
-            navn = "Innadvente Eiendomsmeglere",
-            organisasjonsnummer = orgnr.verdi
-        )
-
-        val personer = listOf(
-            FullPerson(
-                ident = skjema.sykmeldtFnr.verdi,
-                navn = PersonNavn(
-                    fornavn = "Åge",
-                    mellomnavn = null,
-                    etternavn = "Aleksandersen"
-                ),
-                foedselsdato = Person.foedselsdato(skjema.sykmeldtFnr)
-            ),
-            FullPerson(
-                ident = avsenderFnr.verdi,
-                navn = PersonNavn(
-                    fornavn = "Jan",
-                    mellomnavn = null,
-                    etternavn = "Eggum"
-                ),
-                foedselsdato = Person.foedselsdato(avsenderFnr)
+        val virksomhet =
+            Virksomhet(
+                navn = "Innadvente Eiendomsmeglere",
+                organisasjonsnummer = orgnr.verdi,
             )
-        )
 
-        val arbeidsforhold = listOf(
-            KlientArbeidsforhold(
-                arbeidsgiver = Arbeidsgiver(
-                    type = "Underenhet",
-                    organisasjonsnummer = orgnr.verdi
+        val personer =
+            listOf(
+                FullPerson(
+                    ident = skjema.sykmeldtFnr.verdi,
+                    navn =
+                        PersonNavn(
+                            fornavn = "Åge",
+                            mellomnavn = null,
+                            etternavn = "Aleksandersen",
+                        ),
+                    foedselsdato = Person.foedselsdato(skjema.sykmeldtFnr),
                 ),
-                opplysningspliktig = Opplysningspliktig(
-                    type = "ikke brukt",
-                    organisasjonsnummer = "ikke brukt heller"
+                FullPerson(
+                    ident = avsenderFnr.verdi,
+                    navn =
+                        PersonNavn(
+                            fornavn = "Jan",
+                            mellomnavn = null,
+                            etternavn = "Eggum",
+                        ),
+                    foedselsdato = Person.foedselsdato(avsenderFnr),
                 ),
-                arbeidsavtaler = emptyList(),
-                ansettelsesperiode = Ansettelsesperiode(
-                    Periode(
-                        fom = 8.oktober,
-                        tom = null
-                    )
-                ),
-                registrert = 7.oktober.kl(20, 0, 0, 0)
             )
-        )
 
-        val inntektsmelding = mockInntektsmeldingV1().let {
-            it.copy(
-                type = InntektsmeldingV1.Type.Selvbestemt(
-                    id = skjema.selvbestemtId.shouldNotBeNull()
+        val arbeidsforhold =
+            listOf(
+                KlientArbeidsforhold(
+                    arbeidsgiver =
+                        Arbeidsgiver(
+                            type = "Underenhet",
+                            organisasjonsnummer = orgnr.verdi,
+                        ),
+                    opplysningspliktig =
+                        Opplysningspliktig(
+                            type = "ikke brukt",
+                            organisasjonsnummer = "ikke brukt heller",
+                        ),
+                    arbeidsavtaler = emptyList(),
+                    ansettelsesperiode =
+                        Ansettelsesperiode(
+                            Periode(
+                                fom = 8.oktober,
+                                tom = null,
+                            ),
+                        ),
+                    registrert = 7.oktober.kl(20, 0, 0, 0),
                 ),
-                sykmeldt = Sykmeldt(
-                    fnr = skjema.sykmeldtFnr,
-                    navn = "Åge Aleksandersen"
-                ),
-                avsender = it.avsender.copy(
-                    orgnr = orgnr,
-                    orgNavn = virksomhet.navn,
-                    navn = "Jan Eggum"
-                ),
-                aarsakInnsending = AarsakInnsending.Endring
             )
-        }
+
+        val inntektsmelding =
+            mockInntektsmeldingV1().let {
+                it.copy(
+                    type =
+                        InntektsmeldingV1.Type.Selvbestemt(
+                            id = skjema.selvbestemtId.shouldNotBeNull(),
+                        ),
+                    sykmeldt =
+                        Sykmeldt(
+                            fnr = skjema.sykmeldtFnr,
+                            navn = "Åge Aleksandersen",
+                        ),
+                    avsender =
+                        it.avsender.copy(
+                            orgnr = orgnr,
+                            orgNavn = virksomhet.navn,
+                            navn = "Jan Eggum",
+                        ),
+                    aarsakInnsending = AarsakInnsending.Endring,
+                )
+            }
     }
 }

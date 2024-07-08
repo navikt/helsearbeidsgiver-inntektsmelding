@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test
 import java.lang.StringBuilder
 
 class UtilsTest {
-
     @Test
     fun `ingen eller redusert refusjon begrunnelsetekst`() {
         BegrunnelseIngenEllerRedusertUtbetalingKode.entries.forEach {

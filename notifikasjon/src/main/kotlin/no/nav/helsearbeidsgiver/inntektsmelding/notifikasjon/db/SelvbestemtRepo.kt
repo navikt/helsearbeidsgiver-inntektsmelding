@@ -13,11 +13,13 @@ import java.util.UUID
 import kotlin.time.toJavaDuration
 
 class SelvbestemtRepo(private val db: Database) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun lagreSakId(selvbestemtId: UUID, sakId: String): Int {
+    fun lagreSakId(
+        selvbestemtId: UUID,
+        sakId: String,
+    ): Int {
         "Skal lagre sak-ID for selvbestemt inntektsmelding.".also {
             logger.info(it)
             sikkerLogger.info(it)

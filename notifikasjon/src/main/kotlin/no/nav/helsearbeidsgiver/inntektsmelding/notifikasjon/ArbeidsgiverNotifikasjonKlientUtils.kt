@@ -20,12 +20,13 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
     orgnr: String,
     sykmeldtNavn: String,
     sykmeldtFoedselsdato: String,
-    initiellStatus: SaksStatus = SaksStatus.UNDER_BEHANDLING
+    initiellStatus: SaksStatus = SaksStatus.UNDER_BEHANDLING,
 ): String {
-    val statusTekst = when (initiellStatus) {
-        SaksStatus.FERDIG -> STATUS_TEKST_FERDIG
-        else -> STATUS_TEKST_UNDER_BEHANDLING
-    }
+    val statusTekst =
+        when (initiellStatus) {
+            SaksStatus.FERDIG -> STATUS_TEKST_FERDIG
+            else -> STATUS_TEKST_UNDER_BEHANDLING
+        }
 
     return Metrics.agNotifikasjonRequest.recordTime(::opprettNySak) {
         runBlocking {
@@ -37,20 +38,23 @@ fun ArbeidsgiverNotifikasjonKlient.opprettSak(
                 tittel = "Inntektsmelding for $sykmeldtNavn: f. $sykmeldtFoedselsdato",
                 statusTekst = statusTekst,
                 initiellStatus = initiellStatus,
-                harddeleteOm = sakLevetid
+                harddeleteOm = sakLevetid,
             )
         }
     }
 }
 
-fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(sakId: String, nyLenkeTilSak: String) {
+fun ArbeidsgiverNotifikasjonKlient.ferdigstillSak(
+    sakId: String,
+    nyLenkeTilSak: String,
+) {
     Metrics.agNotifikasjonRequest.recordTime(::nyStatusSak) {
         runBlocking {
             nyStatusSak(
                 id = sakId,
                 status = SaksStatus.FERDIG,
                 statusTekst = STATUS_TEKST_FERDIG,
-                nyLenkeTilSak = nyLenkeTilSak
+                nyLenkeTilSak = nyLenkeTilSak,
             )
         }
     }

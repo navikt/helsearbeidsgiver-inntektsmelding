@@ -31,5 +31,5 @@ private fun createAltinnClient(): AltinnClient =
         serviceCode = Env.serviceCode,
         apiGwApiKey = Env.apiGwApiKey,
         altinnApiKey = Env.altinnApiKey,
-        cacheConfig = CacheConfig(60.minutes, 100)
+        cacheConfig = CacheConfig(60.minutes, 100),
     )

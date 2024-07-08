@@ -49,8 +49,8 @@ class DistribusjonRiverTest : FunSpec({
         withData(
             mapOf(
                 "for vanlig melding" to null,
-                "for retry-melding" to BehovType.DISTRIBUER_IM
-            )
+                "for retry-melding" to BehovType.DISTRIBUER_IM,
+            ),
         ) { innkommendeBehov ->
 
             every { mockKafkaProducer.send(any()) } returns CompletableFuture()
@@ -63,27 +63,29 @@ class DistribusjonRiverTest : FunSpec({
                 innkommendeMelding.toMap()
                     .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
                     .plus(Key.BEHOV to innkommendeBehov?.toJson())
-                    .mapValuesNotNull { it }
+                    .mapValuesNotNull { it },
             )
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-                Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
-                Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson()
-            )
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
+                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
+                    Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                )
 
-            val forventetRecord = ProducerRecord<String, String>(
-                TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                JournalfoertInntektsmelding(
-                    journalpostId = innkommendeMelding.journalpostId,
-                    inntektsmelding = innkommendeMelding.inntektsmelding,
-                    selvbestemt = false
-                ).toJsonStr(JournalfoertInntektsmelding.serializer())
-            )
+            val forventetRecord =
+                ProducerRecord<String, String>(
+                    TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
+                    JournalfoertInntektsmelding(
+                        journalpostId = innkommendeMelding.journalpostId,
+                        inntektsmelding = innkommendeMelding.inntektsmelding,
+                        selvbestemt = false,
+                    ).toJsonStr(JournalfoertInntektsmelding.serializer()),
+                )
 
             verifySequence {
                 mockKafkaProducer.send(forventetRecord)
@@ -95,8 +97,8 @@ class DistribusjonRiverTest : FunSpec({
         withData(
             mapOf(
                 "for vanlig melding" to null,
-                "for retry-melding" to BehovType.DISTRIBUER_IM
-            )
+                "for retry-melding" to BehovType.DISTRIBUER_IM,
+            ),
         ) { innkommendeBehov ->
 
             every { mockKafkaProducer.send(any()) } returns CompletableFuture()
@@ -109,27 +111,29 @@ class DistribusjonRiverTest : FunSpec({
                 innkommendeMelding.toMap()
                     .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
                     .plus(Key.BEHOV to innkommendeBehov?.toJson())
-                    .mapValuesNotNull { it }
+                    .mapValuesNotNull { it },
             )
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-                Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
-                Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.SELVBESTEMT_ID to selvbestemtId.toJson()
-            )
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
+                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
+                    Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                )
 
-            val forventetRecord = ProducerRecord<String, String>(
-                TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                JournalfoertInntektsmelding(
-                    journalpostId = innkommendeMelding.journalpostId,
-                    inntektsmelding = innkommendeMelding.inntektsmelding,
-                    selvbestemt = true
-                ).toJsonStr(JournalfoertInntektsmelding.serializer())
-            )
+            val forventetRecord =
+                ProducerRecord<String, String>(
+                    TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
+                    JournalfoertInntektsmelding(
+                        journalpostId = innkommendeMelding.journalpostId,
+                        inntektsmelding = innkommendeMelding.inntektsmelding,
+                        selvbestemt = true,
+                    ).toJsonStr(JournalfoertInntektsmelding.serializer()),
+                )
 
             verifySequence {
                 mockKafkaProducer.send(forventetRecord)
@@ -143,26 +147,30 @@ class DistribusjonRiverTest : FunSpec({
 
         val innkommendeMelding = Mock.innkommendeMelding()
 
-        val innkommendeJsonMap = innkommendeMelding.toMap()
-            .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
+        val innkommendeJsonMap =
+            innkommendeMelding.toMap()
+                .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
 
-        val forventetFail = Fail(
-            feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '${innkommendeMelding.journalpostId}'.",
-            event = innkommendeMelding.eventName,
-            transaksjonId = innkommendeMelding.transaksjonId,
-            forespoerselId = forespoerselId,
-            utloesendeMelding = innkommendeJsonMap.plus(
-                Key.BEHOV to BehovType.DISTRIBUER_IM.toJson()
+        val forventetFail =
+            Fail(
+                feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '${innkommendeMelding.journalpostId}'.",
+                event = innkommendeMelding.eventName,
+                transaksjonId = innkommendeMelding.transaksjonId,
+                forespoerselId = forespoerselId,
+                utloesendeMelding =
+                    innkommendeJsonMap.plus(
+                        Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
+                    )
+                        .toJson(),
             )
-                .toJson()
-        )
 
         testRapid.sendJson(innkommendeJsonMap)
 
         testRapid.inspektør.size shouldBeExactly 1
 
-        testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
-            .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
+        testRapid.firstMessage().toMap() shouldContainExactly
+            forventetFail.tilMelding()
+                .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
 
         verifySequence {
             mockKafkaProducer.send(any())
@@ -175,12 +183,12 @@ class DistribusjonRiverTest : FunSpec({
                 "melding med ukjent event" to Pair(Key.EVENT_NAME, EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson()),
                 "melding med behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
                 "melding med data" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer()))
-            )
+                "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
+            ),
         ) { uoensketKeyMedVerdi ->
             testRapid.sendJson(
                 Mock.innkommendeMelding().toMap()
-                    .plus(uoensketKeyMedVerdi)
+                    .plus(uoensketKeyMedVerdi),
             )
 
             testRapid.inspektør.size shouldBeExactly 0
@@ -193,20 +201,21 @@ class DistribusjonRiverTest : FunSpec({
 })
 
 private object Mock {
-    val fail = Fail(
-        feilmelding = "I'm afraid I can't let you do that.",
-        event = EventName.INNTEKTSMELDING_JOURNALFOERT,
-        transaksjonId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
-        utloesendeMelding = JsonNull
-    )
+    val fail =
+        Fail(
+            feilmelding = "I'm afraid I can't let you do that.",
+            event = EventName.INNTEKTSMELDING_JOURNALFOERT,
+            transaksjonId = UUID.randomUUID(),
+            forespoerselId = UUID.randomUUID(),
+            utloesendeMelding = JsonNull,
+        )
 
     fun innkommendeMelding(): Melding =
         Melding(
             eventName = EventName.INNTEKTSMELDING_JOURNALFOERT,
             transaksjonId = UUID.randomUUID(),
             journalpostId = randomDigitString(13),
-            inntektsmelding = mockInntektsmelding()
+            inntektsmelding = mockInntektsmelding(),
         )
 
     fun Melding.toMap(): Map<Key, JsonElement> =
@@ -214,6 +223,6 @@ private object Mock {
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.JOURNALPOST_ID to journalpostId.toJson(),
-            Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer())
+            Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
         )
 }

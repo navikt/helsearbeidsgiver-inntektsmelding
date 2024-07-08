@@ -20,7 +20,7 @@ import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.test.mock.GYLDIG_INNSENDING_REQUEST
+import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
@@ -36,7 +36,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InnsendingServiceIT : EndToEndTest() {
-
     @Test
     fun `Test at innsending er mottatt`() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
@@ -49,17 +48,18 @@ class InnsendingServiceIT : EndToEndTest() {
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar,
         )
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-        } returns OpprettOgFerdigstillResponse(
-            journalpostId = "journalpost-id-sukkerspinn",
-            journalpostFerdigstilt = true,
-            melding = "Ha en brillefin dag!",
-            dokumenter = emptyList()
-        )
+        } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = "journalpost-id-sukkerspinn",
+                journalpostFerdigstilt = true,
+                melding = "Ha en brillefin dag!",
+                dokumenter = emptyList(),
+            )
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
@@ -70,7 +70,7 @@ class InnsendingServiceIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
                 Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
                 Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to GYLDIG_INNSENDING_REQUEST.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
             )
         }
 
@@ -198,20 +198,22 @@ class InnsendingServiceIT : EndToEndTest() {
         val forespoerselId: UUID = UUID.randomUUID()
         val vedtaksperiodeId: UUID = UUID.randomUUID()
 
-        val forespoerselSvar = ForespoerselSvar.Suksess(
-            type = ForespoerselType.KOMPLETT,
-            orgnr = GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet,
-            fnr = GYLDIG_INNSENDING_REQUEST.identitetsnummer,
-            vedtaksperiodeId = vedtaksperiodeId,
-            egenmeldingsperioder = GYLDIG_INNSENDING_REQUEST.egenmeldingsperioder,
-            sykmeldingsperioder = GYLDIG_INNSENDING_REQUEST.fraværsperioder,
-            skjaeringstidspunkt = GYLDIG_INNSENDING_REQUEST.bestemmendeFraværsdag,
-            bestemmendeFravaersdager = GYLDIG_INNSENDING_REQUEST.fraværsperioder.lastOrNull()
-                ?.let { mapOf(GYLDIG_INNSENDING_REQUEST.orgnrUnderenhet to it.fom) }
-                .orEmpty(),
-            forespurtData = mockForespurtData(),
-            erBesvart = false
-        )
+        val forespoerselSvar =
+            ForespoerselSvar.Suksess(
+                type = ForespoerselType.KOMPLETT,
+                orgnr = gyldigInnsendingRequest.orgnrUnderenhet,
+                fnr = gyldigInnsendingRequest.identitetsnummer,
+                vedtaksperiodeId = vedtaksperiodeId,
+                egenmeldingsperioder = gyldigInnsendingRequest.egenmeldingsperioder,
+                sykmeldingsperioder = gyldigInnsendingRequest.fraværsperioder,
+                skjaeringstidspunkt = gyldigInnsendingRequest.bestemmendeFraværsdag,
+                bestemmendeFravaersdager =
+                    gyldigInnsendingRequest.fraværsperioder.lastOrNull()
+                        ?.let { mapOf(gyldigInnsendingRequest.orgnrUnderenhet to it.fom) }
+                        .orEmpty(),
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
+            )
 
         val forespoersel = forespoerselSvar.toForespoersel()
     }

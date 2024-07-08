@@ -31,21 +31,22 @@ import java.util.UUID
 
 class InntektService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStore,
 ) : CompositeEventListener() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.INNTEKT_REQUESTED
-    override val startKeys = setOf(
-        Key.FORESPOERSEL_ID,
-        Key.SKJAERINGSTIDSPUNKT
-    )
-    override val dataKeys = setOf(
-        Key.FORESPOERSEL_SVAR,
-        Key.INNTEKT
-    )
+    override val startKeys =
+        setOf(
+            Key.FORESPOERSEL_ID,
+            Key.SKJAERINGSTIDSPUNKT,
+        )
+    override val dataKeys =
+        setOf(
+            Key.FORESPOERSEL_SVAR,
+            Key.INNTEKT,
+        )
 
     init {
         LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
@@ -61,17 +62,17 @@ class InntektService(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(forespoerselId),
         ) {
             rapid.publish(
                 Key.EVENT_NAME to event.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.UUID to transaksjonId.toJson()
+                Key.UUID to transaksjonId.toJson(),
             )
                 .also {
                     MdcUtils.withLogFields(
-                        Log.behov(BehovType.HENT_TRENGER_IM)
+                        Log.behov(BehovType.HENT_TRENGER_IM),
                     ) {
                         sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                     }
@@ -87,7 +88,7 @@ class InntektService(
             Log.klasse(this),
             Log.event(event),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(forespoerselId),
         ) {
             if (Key.FORESPOERSEL_SVAR in melding) {
                 val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
@@ -100,11 +101,11 @@ class InntektService(
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.FNR to forespoersel.fnr.toJson(),
                     Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
-                    Key.UUID to transaksjonId.toJson()
+                    Key.UUID to transaksjonId.toJson(),
                 )
                     .also {
                         MdcUtils.withLogFields(
-                            Log.behov(BehovType.INNTEKT)
+                            Log.behov(BehovType.INNTEKT),
                         ) {
                             sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                         }
@@ -118,9 +119,10 @@ class InntektService(
     override fun finalize(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
-        val clientId = RedisKey.of(transaksjonId, event)
-            .read()
-            ?.let(UUID::fromString)
+        val clientId =
+            RedisKey.of(transaksjonId, event)
+                .read()
+                ?.let(UUID::fromString)
 
         if (clientId == null) {
             sikkerLogger.error("Kunne ikke finne clientId for transaksjonId $transaksjonId i Redis!")
@@ -128,40 +130,46 @@ class InntektService(
         } else {
             val inntekt = Key.INNTEKT.les(Inntekt.serializer(), melding)
 
-            val resultJson = ResultJson(
-                success = inntekt.toJson(Inntekt.serializer())
-            )
-                .toJson(ResultJson.serializer())
+            val resultJson =
+                ResultJson(
+                    success = inntekt.toJson(Inntekt.serializer()),
+                )
+                    .toJson(ResultJson.serializer())
 
             RedisKey.of(clientId).write(resultJson)
 
             MdcUtils.withLogFields(
                 Log.clientId(clientId),
-                Log.transaksjonId(transaksjonId)
+                Log.transaksjonId(transaksjonId),
             ) {
                 sikkerLogger.info("$event fullført.")
             }
         }
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val clientId = RedisKey.of(fail.transaksjonId, event)
-            .read()
-            ?.let(UUID::fromString)
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
+        val clientId =
+            RedisKey.of(fail.transaksjonId, event)
+                .read()
+                ?.let(UUID::fromString)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
-                Log.transaksjonId(fail.transaksjonId)
+                Log.transaksjonId(fail.transaksjonId),
             ) {
                 sikkerLogger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
                 logger.error("Forsøkte å terminere, men fant ikke clientID for transaksjon ${fail.transaksjonId} i Redis")
             }
         } else {
             val feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
-            val resultJson = ResultJson(
-                failure = feilmelding.toJson()
-            )
-                .toJson(ResultJson.serializer())
+            val resultJson =
+                ResultJson(
+                    failure = feilmelding.toJson(),
+                )
+                    .toJson(ResultJson.serializer())
 
             "Returnerer feilmelding: '$feilmelding'".also {
                 logger.error(it)
@@ -172,7 +180,7 @@ class InntektService(
 
             MdcUtils.withLogFields(
                 Log.clientId(clientId),
-                Log.transaksjonId(fail.transaksjonId)
+                Log.transaksjonId(fail.transaksjonId),
             ) {
                 sikkerLogger.error("$event terminert.")
             }
@@ -183,6 +191,5 @@ class InntektService(
         redisStore.set(this, json.toString())
     }
 
-    private fun RedisKey.read(): String? =
-        redisStore.get(this)
+    private fun RedisKey.read(): String? = redisStore.get(this)
 }

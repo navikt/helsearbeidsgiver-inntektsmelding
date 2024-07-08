@@ -49,22 +49,24 @@ class MockRedis {
 
 class MockRedisClassSpecific(keyPrefix: RedisPrefix) {
     private val mockCommands = mockk<RedisCommands<String, String>>()
-    private val redis = mockStatic(RedisClient::class) {
-        every { RedisClient.create(any<String>()) } returns mockRedisClient(mockCommands)
-        RedisConnection("")
-    }
+    private val redis =
+        mockStatic(RedisClient::class) {
+            every { RedisClient.create(any<String>()) } returns mockRedisClient(mockCommands)
+            RedisConnection("")
+        }
 
     val store: RedisStoreClassSpecific
 
     init {
         setup()
 
-        store = spyk(
-            RedisStoreClassSpecific(
-                redis = redis,
-                keyPrefix = keyPrefix
+        store =
+            spyk(
+                RedisStoreClassSpecific(
+                    redis = redis,
+                    keyPrefix = keyPrefix,
+                ),
             )
-        )
     }
 
     fun setup() {

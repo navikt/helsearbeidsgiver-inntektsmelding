@@ -5,21 +5,23 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 
 class ImTestRapid : RapidsConnection() {
-
     internal val messages = Messages()
 
     override fun publish(message: String) {
         publishSafe(message)
     }
 
-    override fun publish(key: String, message: String) {
+    override fun publish(
+        key: String,
+        message: String,
+    ) {
         publishSafe(message)
     }
 
-    override fun rapidName(): String =
-        "imTestRapid"
+    override fun rapidName(): String = "imTestRapid"
 
     override fun start() {}
+
     override fun stop() {}
 
     internal fun reset() {

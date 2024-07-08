@@ -20,27 +20,28 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EksternInntektsmeldingLagretIT : EndToEndTest() {
-
     @Test
     fun `lagre ekstern inntektsmelding hvis ikke fra nav_no`() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        val eksternInntektsmelding = EksternInntektsmelding(
-            "AltinnPortal",
-            "1.63",
-            "AR123456",
-            11.januar(2018).atStartOfDay()
-        )
+        val eksternInntektsmelding =
+            EksternInntektsmelding(
+                "AltinnPortal",
+                "1.63",
+                "AR123456",
+                11.januar(2018).atStartOfDay(),
+            )
         every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
 
         publish(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
-            Key.DATA to mapOf(
-                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
-            ).toJson()
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
+                ).toJson(),
         )
 
         messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)

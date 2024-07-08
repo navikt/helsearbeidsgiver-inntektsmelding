@@ -24,7 +24,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HentForespoerselIT : EndToEndTest() {
-
     @Test
     fun `Test trengerIM meldingsflyt`() {
         val transaksjonId: UUID = UUID.randomUUID()
@@ -34,7 +33,7 @@ class HentForespoerselIT : EndToEndTest() {
             eventName = EventName.TRENGER_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = forespoerselId,
-            forespoerselSvar = mockForespoerselSvarSuksess()
+            forespoerselSvar = mockForespoerselSvarSuksess(),
         )
 
         publish(
@@ -42,7 +41,7 @@ class HentForespoerselIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(UuidSerializer),
             Key.DATA to "".toJson(),
             Key.ARBEIDSGIVER_FNR to Fnr.genererGyldig().toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer)
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
         )
 
         messages.filter(EventName.TRENGER_REQUESTED)
@@ -77,9 +76,10 @@ class HentForespoerselIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        val resultJson = redisStore.get(RedisKey.of(transaksjonId))
-            ?.fromJson(ResultJson.serializer())
-            .shouldNotBeNull()
+        val resultJson =
+            redisStore.get(RedisKey.of(transaksjonId))
+                ?.fromJson(ResultJson.serializer())
+                .shouldNotBeNull()
 
         resultJson.failure.shouldBeNull()
 

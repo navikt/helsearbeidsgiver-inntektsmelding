@@ -28,9 +28,8 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 class SakFerdigLoeser(
     rapid: RapidsConnection,
     private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-    private val linkUrl: String
+    private val linkUrl: String,
 ) : River.PacketListener {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -38,18 +37,21 @@ class SakFerdigLoeser(
         River(rapid).apply {
             validate {
                 it.demandValues(
-                    Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name
+                    Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name,
                 )
                 it.requireKeys(
                     Key.UUID,
                     Key.FORESPOERSEL_ID,
-                    Key.SAK_ID
+                    Key.SAK_ID,
                 )
             }
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
             logger.warn("Mangler forespørselId!")
             sikkerLogger.warn("Mangler forespørselId!")
@@ -61,7 +63,7 @@ class SakFerdigLoeser(
 
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(EventName.FORESPOERSEL_BESVART)
+            Log.event(EventName.FORESPOERSEL_BESVART),
         ) {
             runCatching {
                 haandterMelding(json.toMap(), context)
@@ -75,7 +77,10 @@ class SakFerdigLoeser(
         }
     }
 
-    private fun haandterMelding(melding: Map<Key, JsonElement>, context: MessageContext) {
+    private fun haandterMelding(
+        melding: Map<Key, JsonElement>,
+        context: MessageContext,
+    ) {
         val sakId = Key.SAK_ID.les(String.serializer(), melding)
         val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
@@ -84,7 +89,7 @@ class SakFerdigLoeser(
         MdcUtils.withLogFields(
             Log.sakId(sakId),
             Log.forespoerselId(forespoerselId),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         ) {
             agNotifikasjonKlient.ferdigstillSak(sakId = sakId, nyLenkeTilSak = nyLenkeTilSak)
 
@@ -92,7 +97,7 @@ class SakFerdigLoeser(
                 Key.EVENT_NAME to EventName.SAK_FERDIGSTILT.toJson(),
                 Key.SAK_ID to sakId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.UUID to transaksjonId.toJson()
+                Key.UUID to transaksjonId.toJson(),
             )
         }
     }

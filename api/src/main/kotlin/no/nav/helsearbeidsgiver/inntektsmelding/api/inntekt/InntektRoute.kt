@@ -30,7 +30,7 @@ import java.util.UUID
 fun Route.inntektRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisPoller: RedisPoller,
 ) {
     val inntektProducer = InntektProducer(rapid)
 
@@ -54,11 +54,12 @@ fun Route.inntektRoute(
 
             val resultat = resultatJson.success?.fromJson(Inntekt.serializer())
             if (resultat != null) {
-                val response = InntektResponse(
-                    bruttoinntekt = resultat.gjennomsnitt(),
-                    tidligereInntekter = resultat.maanedOversikt
-                )
-                    .toJson(InntektResponse.serializer().nullable)
+                val response =
+                    InntektResponse(
+                        bruttoinntekt = resultat.gjennomsnitt(),
+                        tidligereInntekter = resultat.maanedOversikt,
+                    )
+                        .toJson(InntektResponse.serializer().nullable)
 
                 call.respond(HttpStatusCode.OK, response)
             } else {

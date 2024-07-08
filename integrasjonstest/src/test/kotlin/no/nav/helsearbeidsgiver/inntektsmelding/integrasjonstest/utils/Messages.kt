@@ -12,15 +12,14 @@ import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 
 @JvmInline
 value class Messages(
-    private val value: MutableList<JsonElement> = mutableListOf()
+    private val value: MutableList<JsonElement> = mutableListOf(),
 ) {
     fun firstAsMap(): Map<Key, JsonElement> =
         value.firstOrNull()
             .shouldNotBeNull()
             .toMap()
 
-    fun all(): List<JsonElement> =
-        value
+    fun all(): List<JsonElement> = value
 
     fun add(json: String) {
         json.parseJson()
@@ -49,7 +48,10 @@ value class Messages(
                 .orDefault(false)
         }
 
-    fun filter(dataFelt: Key, utenDataKey: Boolean = false): Messages =
+    fun filter(
+        dataFelt: Key,
+        utenDataKey: Boolean = false,
+    ): Messages =
         filter { msg ->
             val dataFunnet = utenDataKey || msg.toMap().contains(Key.DATA)
 

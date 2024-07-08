@@ -14,13 +14,18 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class InnsendingProducer(
-    private val rapid: RapidsConnection
+    private val rapid: RapidsConnection,
 ) {
     init {
         logger.info("Starter ${InnsendingProducer::class.simpleName}...")
     }
 
-    fun publish(clientId: UUID, forespoerselId: UUID, request: Innsending, arbeidsgiverFnr: Fnr) {
+    fun publish(
+        clientId: UUID,
+        forespoerselId: UUID,
+        request: Innsending,
+        arbeidsgiverFnr: Fnr,
+    ) {
         rapid.publish(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
@@ -28,7 +33,7 @@ class InnsendingProducer(
             Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
             Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),
             Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer())
+            Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer()),
         )
             .also {
                 logger.info("Publiserte til kafka forespørselId: $forespoerselId og clientId=$clientId")

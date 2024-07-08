@@ -30,7 +30,7 @@ abstract class ContainerTest {
                 Properties().apply {
                     setProperty(
                         AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
-                        it.bootstrapServers
+                        it.bootstrapServers,
                     )
                 }
             }

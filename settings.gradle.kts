@@ -5,7 +5,7 @@ include(
         .listFiles()
         ?.filter { it.isDirectory && File(it, "build.gradle.kts").exists() }
         ?.map { it.name }
-        .orEmpty()
+        .orEmpty(),
 )
 
 pluginManagement {

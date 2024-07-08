@@ -8,20 +8,23 @@ import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.json.jsonb
 
 object InntektsmeldingEntitet : Table("inntektsmelding") {
-    val id = integer("id").autoIncrement(
-        idSeqName = "inntektsmelding_id_seq"
-    )
+    val id =
+        integer("id").autoIncrement(
+            idSeqName = "inntektsmelding_id_seq",
+        )
     val forespoerselId = varchar(name = "forespoersel_id", length = 40) references ForespoerselEntitet.forespoerselId
-    val dokument = jsonb<Inntektsmelding>(
-        name = "dokument",
-        jsonConfig = jsonConfig,
-        kSerializer = Inntektsmelding.serializer()
-    ).nullable()
-    val eksternInntektsmelding = jsonb<EksternInntektsmelding>(
-        name = "ekstern_inntektsmelding",
-        jsonConfig = jsonConfig,
-        kSerializer = EksternInntektsmelding.serializer()
-    ).nullable()
+    val dokument =
+        jsonb<Inntektsmelding>(
+            name = "dokument",
+            jsonConfig = jsonConfig,
+            kSerializer = Inntektsmelding.serializer(),
+        ).nullable()
+    val eksternInntektsmelding =
+        jsonb<EksternInntektsmelding>(
+            name = "ekstern_inntektsmelding",
+            jsonConfig = jsonConfig,
+            kSerializer = EksternInntektsmelding.serializer(),
+        ).nullable()
     val innsendt = datetime("innsendt")
     val journalpostId = varchar("journalpostid", 30).nullable()
     override val primaryKey = PrimaryKey(id, name = "id")

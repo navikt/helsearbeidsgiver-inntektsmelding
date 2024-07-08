@@ -13,24 +13,27 @@ import java.util.UUID
 
 class SpinnKlient(
     private val url: String,
-    private val getAccessToken: () -> String
+    private val getAccessToken: () -> String,
 ) {
     private val httpClient = createHttpClient()
+
     fun hentEksternInntektsmelding(inntektsmeldingId: UUID): EksternInntektsmelding {
-        val result = runBlocking {
-            try {
-                val response = httpClient.get("$url/$inntektsmeldingId") {
-                    contentType(ContentType.Application.Json)
-                    bearerAuth(getAccessToken())
+        val result =
+            runBlocking {
+                try {
+                    val response =
+                        httpClient.get("$url/$inntektsmeldingId") {
+                            contentType(ContentType.Application.Json)
+                            bearerAuth(getAccessToken())
+                        }
+                    if (response.status != HttpStatusCode.OK) {
+                        throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${response.status.value}")
+                    }
+                    Jackson.fromJson(response.bodyAsText())
+                } catch (e: ClientRequestException) {
+                    throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${e.response.status.value}", e)
                 }
-                if (response.status != HttpStatusCode.OK) {
-                    throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${response.status.value}")
-                }
-                Jackson.fromJson(response.bodyAsText())
-            } catch (e: ClientRequestException) {
-                throw SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: ${e.response.status.value}", e)
             }
-        }
 
         val avsenderSystemNavn = result.avsenderSystem?.navn
         if (avsenderSystemNavn != null) {
@@ -38,12 +41,13 @@ class SpinnKlient(
                 arkivreferanse = result.arkivreferanse,
                 avsenderSystemNavn = avsenderSystemNavn,
                 avsenderSystemVersjon = result.avsenderSystem?.versjon ?: "",
-                tidspunkt = result.mottattDato
+                tidspunkt = result.mottattDato,
             )
         }
         throw SpinnApiException(MANGLER_AVSENDER)
     }
 }
+
 class SpinnApiException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 const val MANGLER_AVSENDER = "Mangler avsenderSystemNavn"

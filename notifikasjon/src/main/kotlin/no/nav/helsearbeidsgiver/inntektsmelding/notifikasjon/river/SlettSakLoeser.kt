@@ -16,9 +16,8 @@ import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
 class SlettSakLoeser(
     rapidsConnection: RapidsConnection,
-    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
+    private val arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -28,9 +27,8 @@ class SlettSakLoeser(
             it.requireKey(Key.SAK_ID.str)
         }
     }
-    private fun slettSak(
-        sakId: String
-    ): Boolean {
+
+    private fun slettSak(sakId: String): Boolean {
         return try {
             runBlocking {
                 arbeidsgiverNotifikasjonKlient.hardDeleteSak(sakId)

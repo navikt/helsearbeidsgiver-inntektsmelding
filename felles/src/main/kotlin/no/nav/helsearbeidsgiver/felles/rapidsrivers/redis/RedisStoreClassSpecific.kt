@@ -11,7 +11,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 class RedisStoreClassSpecific(
 // class RedisStoreClassSpecific<Success : Any, Failure : Any>(
     private val redis: RedisConnection,
-    private val keyPrefix: RedisPrefix
+    private val keyPrefix: RedisPrefix,
 //    private val successSerializer: KSerializer<Success>,
 //    private val failureSerializer: KSerializer<Failure>,
 ) {
@@ -21,9 +21,10 @@ class RedisStoreClassSpecific(
     internal val keyPartSeparator = "#"
 
     fun get(key: RedisKey): JsonElement? {
-        val value = redis.get(key.toStoreKey())
-            // TODO slett etter overgangsperiode
-            ?: oldGet(key)
+        val value =
+            redis.get(key.toStoreKey())
+                // TODO slett etter overgangsperiode
+                ?: oldGet(key)
 
         val valueJson = value?.parseJson()
 
@@ -54,7 +55,10 @@ class RedisStoreClassSpecific(
             }
     }
 
-    fun set(key: RedisKey, value: JsonElement) {
+    fun set(
+        key: RedisKey,
+        value: JsonElement,
+    ) {
         sikkerLogger.debug("Setting in redis: ${key.toStoreKey()} -> ${value.toPretty()}")
 
         redis.set(key.toStoreKey(), value.toString())
@@ -63,18 +67,18 @@ class RedisStoreClassSpecific(
         oldSet(key, value)
     }
 
-    private fun oldGet(key: RedisKey): String? =
-        redis.get(key.toString())
+    private fun oldGet(key: RedisKey): String? = redis.get(key.toString())
 
-    private fun oldGetAll(keys: Set<RedisKey>): Map<String, String> =
-        redis.getAll(*keys.map { it.toString() }.toTypedArray())
+    private fun oldGetAll(keys: Set<RedisKey>): Map<String, String> = redis.getAll(*keys.map { it.toString() }.toTypedArray())
 
-    private fun oldSet(key: RedisKey, value: JsonElement) {
+    private fun oldSet(
+        key: RedisKey,
+        value: JsonElement,
+    ) {
         redis.set(key.toString(), value.toString())
     }
 
-    private fun RedisKey.toStoreKey(): String =
-        listOf(keyPrefix.name).plus(keyParts()).joinToString(separator = keyPartSeparator)
+    private fun RedisKey.toStoreKey(): String = listOf(keyPrefix.name).plus(keyParts()).joinToString(separator = keyPartSeparator)
 }
 
 enum class RedisPrefix {
@@ -90,5 +94,5 @@ enum class RedisPrefix {
     OpprettSakService,
     SpinnService,
     TilgangForespoerselService,
-    TilgangOrgService
+    TilgangOrgService,
 }

@@ -23,22 +23,23 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class ManuellOpprettSakService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStore,
 ) : CompositeEventListener() {
-
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.MANUELL_OPPRETT_SAK_REQUESTED
-    override val startKeys = setOf(
-        Key.FORESPOERSEL_ID,
-        Key.UUID
-    )
-    override val dataKeys = setOf(
-        Key.FORESPOERSEL_SVAR,
-        Key.ARBEIDSTAKER_INFORMASJON,
-        Key.SAK_ID,
-        Key.PERSISTERT_SAK_ID
-    )
+    override val startKeys =
+        setOf(
+            Key.FORESPOERSEL_ID,
+            Key.UUID,
+        )
+    override val dataKeys =
+        setOf(
+            Key.FORESPOERSEL_SVAR,
+            Key.ARBEIDSTAKER_INFORMASJON,
+            Key.SAK_ID,
+            Key.PERSISTERT_SAK_ID,
+        )
 
     private val step2Keys = setOf(Key.FORESPOERSEL_SVAR)
     private val step3Keys = setOf(Key.ARBEIDSTAKER_INFORMASJON)
@@ -58,7 +59,7 @@ class ManuellOpprettSakService(
             Key.EVENT_NAME to event.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }
 
@@ -76,7 +77,7 @@ class ManuellOpprettSakService(
                     Key.UUID to transaksjonId.toJson(),
                     Key.BEHOV to BehovType.PERSISTER_SAK_ID.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.SAK_ID to sakId.toJson()
+                    Key.SAK_ID to sakId.toJson(),
                 )
 
                 if (forespoersel.erBesvart) {
@@ -84,7 +85,7 @@ class ManuellOpprettSakService(
                         Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                         Key.UUID to transaksjonId.toJson(),
                         Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                        Key.SAK_ID to sakId.toJson()
+                        Key.SAK_ID to sakId.toJson(),
                     )
                 }
             }
@@ -98,7 +99,7 @@ class ManuellOpprettSakService(
                     Key.BEHOV to BehovType.OPPRETT_SAK.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                    Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer())
+                    Key.ARBEIDSTAKER_INFORMASJON to arbeidstaker.toJson(PersonDato.serializer()),
                 )
             }
 
@@ -108,7 +109,7 @@ class ManuellOpprettSakService(
                     Key.UUID to transaksjonId.toJson(),
                     Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.IDENTITETSNUMMER to forespoersel.fnr.toJson()
+                    Key.IDENTITETSNUMMER to forespoersel.fnr.toJson(),
                 )
             }
         }
@@ -124,11 +125,14 @@ class ManuellOpprettSakService(
             Key.EVENT_NAME to EventName.SAK_OPPRETTET.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.SAK_ID to sakId.toJson()
+            Key.SAK_ID to sakId.toJson(),
         )
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         sikkerLogger.error("Mottok feil:\n$fail")
     }
 }

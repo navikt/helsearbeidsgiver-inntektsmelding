@@ -27,18 +27,20 @@ import java.util.UUID
 
 class TilgangOrgService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific
+    override val redisStore: RedisStoreClassSpecific,
 ) : Service() {
     private val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.TILGANG_ORG_REQUESTED
-    override val startKeys = setOf(
-        Key.ORGNRUNDERENHET,
-        Key.FNR
-    )
-    override val dataKeys = setOf(
-        Key.TILGANG
-    )
+    override val startKeys =
+        setOf(
+            Key.ORGNRUNDERENHET,
+            Key.FNR,
+        )
+    override val dataKeys =
+        setOf(
+            Key.TILGANG,
+        )
 
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
@@ -48,15 +50,16 @@ class TilgangOrgService(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         ) {
             if (isFinished(melding)) {
                 val tilgang = Key.TILGANG.les(Tilgang.serializer(), melding)
 
-                val tilgangJson = TilgangResultat(
-                    tilgang = tilgang
-                )
-                    .toJson(TilgangResultat.serializer())
+                val tilgangJson =
+                    TilgangResultat(
+                        tilgang = tilgang,
+                    )
+                        .toJson(TilgangResultat.serializer())
 
                 redisStore.set(RedisKey.of(transaksjonId), tilgangJson)
 
@@ -67,11 +70,11 @@ class TilgangOrgService(
                     Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
                     Key.UUID to transaksjonId.toJson(),
                     Key.ORGNRUNDERENHET to orgnr.toJson(),
-                    Key.FNR to fnr.toJson()
+                    Key.FNR to fnr.toJson(),
                 )
                     .also {
                         MdcUtils.withLogFields(
-                            Log.behov(BehovType.TILGANGSKONTROLL)
+                            Log.behov(BehovType.TILGANGSKONTROLL),
                         ) {
                             sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                         }
@@ -80,15 +83,19 @@ class TilgangOrgService(
         }
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(fail.transaksjonId)
+            Log.transaksjonId(fail.transaksjonId),
         ) {
-            val tilgangResultat = TilgangResultat(
-                feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
-            )
+            val tilgangResultat =
+                TilgangResultat(
+                    feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE,
+                )
 
             sikkerLogger.error("Returnerer feilmelding: '${tilgangResultat.feilmelding}'")
 

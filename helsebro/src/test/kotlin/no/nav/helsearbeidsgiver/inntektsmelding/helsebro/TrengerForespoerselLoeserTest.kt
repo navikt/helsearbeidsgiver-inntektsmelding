@@ -35,17 +35,18 @@ class TrengerForespoerselLoeserTest : FunSpec({
             Key.EVENT_NAME to expectedEvent.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
             Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
-            Key.UUID to expectedTransaksjonId.toJson()
+            Key.UUID to expectedTransaksjonId.toJson(),
         )
 
         verifySequence {
             mockPriProducer.send(
                 Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
-                Pri.Key.BOOMERANG to mapOf(
-                    Key.EVENT_NAME to expectedEvent.toJson(),
-                    Key.UUID to expectedTransaksjonId.toJson()
-                ).toJson()
+                Pri.Key.BOOMERANG to
+                    mapOf(
+                        Key.EVENT_NAME to expectedEvent.toJson(),
+                        Key.UUID to expectedTransaksjonId.toJson(),
+                    ).toJson(),
             )
         }
     }

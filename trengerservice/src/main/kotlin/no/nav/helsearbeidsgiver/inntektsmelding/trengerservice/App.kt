@@ -29,7 +29,7 @@ fun RapidsConnection.createHentForespoerselService(redisConnection: RedisConnect
         ServiceRiver(
             HentForespoerselService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentForespoerselService)
-            )
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentForespoerselService),
+            ),
         ).connect(this)
     }

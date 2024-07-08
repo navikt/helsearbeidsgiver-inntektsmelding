@@ -14,9 +14,8 @@ import org.mapstruct.Mappings
 
 @Mapper(uses = [DateMapper::class, InntektEndringAarsakMapper::class, ArbeidsgiverperiodeListeMapper::class])
 interface InntektDokumentTilSkjemainnholdMapper {
-
     @Mapping(source = ".", target = "skjemainnhold")
-    fun InntektDokumentTilInntekstmeldingM(inntektsmeldingDokument: Inntektsmelding): InntektsmeldingM
+    fun inntektDokumentTilInntekstmeldingM(inntektsmeldingDokument: Inntektsmelding): InntektsmeldingM
 
     @Mappings(
         Mapping(constant = "Sykepenger", target = "ytelse"),
@@ -32,33 +31,33 @@ interface InntektDokumentTilSkjemainnholdMapper {
         Mapping(source = "fullLønnIArbeidsgiverPerioden.utbetalt", target = "sykepengerIArbeidsgiverperioden.bruttoUtbetalt"),
         Mapping(
             source = "fullLønnIArbeidsgiverPerioden.begrunnelse",
-            target = "sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt"
+            target = "sykepengerIArbeidsgiverperioden.begrunnelseForReduksjonEllerIkkeUtbetalt",
         ),
         Mapping(source = "refusjon", target = "refusjon"),
         Mapping(source = "naturalytelser", target = "opphoerAvNaturalytelseListe"),
         Mapping(constant = "NAV_NO", target = "avsendersystem.systemnavn"),
         Mapping(constant = "1.0", target = "avsendersystem.systemversjon"),
-        Mapping(source = "tidspunkt", target = "avsendersystem.innsendingstidspunkt")
+        Mapping(source = "tidspunkt", target = "avsendersystem.innsendingstidspunkt"),
     )
     fun inntektDokumentTilSkjemaInnhold(inntektsmeldingDokument: Inntektsmelding): Skjemainnhold
 
     @Mappings(
         Mapping(source = "refusjonPrMnd", target = "refusjonsbeloepPrMnd"),
         Mapping(source = "refusjonOpphører", target = "refusjonsopphoersdato"),
-        Mapping(source = "refusjonEndringer", target = "endringIRefusjonListe")
+        Mapping(source = "refusjonEndringer", target = "endringIRefusjonListe"),
     )
     fun mapRefusjon(refusjon: Refusjon): no.seres.xsd.nav.inntektsmelding_m._20181211.Refusjon
 
     @Mappings(
         Mapping(source = "dato", target = "endringsdato"),
-        Mapping(source = "beløp", target = "refusjonsbeloepPrMnd")
+        Mapping(source = "beløp", target = "refusjonsbeloepPrMnd"),
     )
     fun mapEndringIRefusjon(refusjonEndring: RefusjonEndring): EndringIRefusjon
 
     @Mappings(
         Mapping(source = "beløp", target = "beloepPrMnd"),
         Mapping(source = "dato", target = "fom"),
-        Mapping(source = "naturalytelse", target = "naturalytelseType")
+        Mapping(source = "naturalytelse", target = "naturalytelseType"),
     )
     fun mapNaturalytelseDetaljer(naturalytelse: Naturalytelse): NaturalytelseDetaljer
 }

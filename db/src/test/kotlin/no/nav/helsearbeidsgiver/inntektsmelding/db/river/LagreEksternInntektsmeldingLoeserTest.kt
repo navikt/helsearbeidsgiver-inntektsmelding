@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class LagreEksternInntektsmeldingLoeserTest {
-
     private val rapid = TestRapid()
     private val repository = mockk<InntektsmeldingRepository>(relaxed = true)
 
@@ -26,20 +25,20 @@ class LagreEksternInntektsmeldingLoeserTest {
 
     @Test
     fun `skal publisere event for vellykket lagring av ekstern inntektsmelding`() {
-        val eksterninntektsmelding = EksternInntektsmelding(
-            "AltinnPortal",
-            "1.63",
-            "AR123456",
-            11.januar(2018).atStartOfDay()
-        )
+        val eksterninntektsmelding =
+            EksternInntektsmelding(
+                "AltinnPortal",
+                "1.63",
+                "AR123456",
+                11.januar(2018).atStartOfDay(),
+            )
 
         rapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
             Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
             Key.UUID to randomUuid().toJson(),
             Key.EKSTERN_INNTEKTSMELDING to eksterninntektsmelding.toJson(EksternInntektsmelding.serializer()),
-            Key.FORESPOERSEL_ID to randomUuid().toJson()
-
+            Key.FORESPOERSEL_ID to randomUuid().toJson(),
         )
         val message = rapid.inspektør.message(0)
         Assertions.assertEquals(EventName.EKSTERN_INNTEKTSMELDING_LAGRET.name, message.path(Key.EVENT_NAME.str).asText())

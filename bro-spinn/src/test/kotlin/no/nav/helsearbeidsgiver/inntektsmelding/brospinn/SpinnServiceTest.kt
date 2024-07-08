@@ -31,7 +31,7 @@ class SpinnServiceTest : FunSpec({
     val mockRedis = MockRedisClassSpecific(RedisPrefix.SpinnService)
 
     ServiceRiver(
-        SpinnService(testRapid, mockRedis.store)
+        SpinnService(testRapid, mockRedis.store),
     ).connect(testRapid)
 
     beforeEach {
@@ -45,10 +45,11 @@ class SpinnServiceTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
-            Key.DATA to mapOf(
-                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
-            ).toJson()
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
+                ).toJson(),
         )
 
         val actual = testRapid.firstMessage().toMap()
@@ -64,17 +65,18 @@ class SpinnServiceTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
-            Key.DATA to mapOf(
-                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
-                Key.EKSTERN_INNTEKTSMELDING to Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
-            ).toJson()
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                    Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
+                    Key.EKSTERN_INNTEKTSMELDING to Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                ).toJson(),
         )
 
         verify {
             mockRedis.store.set(
                 RedisKey.of(Mock.transaksjonId, Key.EKSTERN_INNTEKTSMELDING),
-                Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
+                Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
             )
         }
     }
@@ -85,10 +87,11 @@ private object Mock {
     val forespoerselId: UUID = UUID.randomUUID()
     val spinnInntektsmeldingId: UUID = UUID.randomUUID()
 
-    val eksternInntektsmelding = EksternInntektsmelding(
-        "AltinnPortal",
-        "1.438",
-        "AR123456",
-        1.januar(2020).atStartOfDay()
-    )
+    val eksternInntektsmelding =
+        EksternInntektsmelding(
+            "AltinnPortal",
+            "1.438",
+            "AR123456",
+            1.januar(2020).atStartOfDay(),
+        )
 }

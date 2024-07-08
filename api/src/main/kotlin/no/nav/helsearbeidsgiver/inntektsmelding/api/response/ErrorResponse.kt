@@ -12,7 +12,7 @@ import java.util.UUID
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class UkjentErrorResponse(
-    val inntektsmeldingTypeId: UUID? = null
+    val inntektsmeldingTypeId: UUID? = null,
 ) {
     @EncodeDefault
     val error = "Ukjent feil."
@@ -23,7 +23,7 @@ data class UkjentErrorResponse(
 data class JsonErrorResponse(
     // TODO slett etter endring i frontend
     val forespoerselId: String? = null,
-    val inntektsmeldingTypeId: UUID? = null
+    val inntektsmeldingTypeId: UUID? = null,
 ) {
     @EncodeDefault
     val error = "Feil under serialisering."
@@ -32,7 +32,7 @@ data class JsonErrorResponse(
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class ValideringErrorResponse(
-    val valideringsfeil: Set<String>
+    val valideringsfeil: Set<String>,
 ) {
     @EncodeDefault
     val error = "Feil under validering."
@@ -43,7 +43,7 @@ data class ValideringErrorResponse(
 data class RedisTimeoutResponse(
     // TODO slett etter endring i frontend
     val uuid: UUID? = null,
-    val inntektsmeldingTypeId: UUID? = null
+    val inntektsmeldingTypeId: UUID? = null,
 ) {
     @EncodeDefault
     val error = "Brukte for lang tid mot redis."
@@ -52,7 +52,7 @@ data class RedisTimeoutResponse(
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class RedisPermanentErrorResponse(
-    val inntektsmeldingTypeId: UUID? = null
+    val inntektsmeldingTypeId: UUID? = null,
 ) {
     @EncodeDefault
     val error = "Permanent feil mot redis."
@@ -61,7 +61,7 @@ data class RedisPermanentErrorResponse(
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class ArbeidsforholdErrorResponse(
-    val inntektsmeldingTypeId: UUID? = null
+    val inntektsmeldingTypeId: UUID? = null,
 ) {
     @EncodeDefault
     val error = "Mangler arbeidsforhold i perioden"

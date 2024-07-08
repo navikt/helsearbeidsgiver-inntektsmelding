@@ -30,43 +30,49 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `skal godta og returnere liste med organisasjoner`() = testApi {
-        coEvery { mockRedisPoller.hent(any()) } returns ResultJson(
-            success = Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson()
-        ).toJson(ResultJson.serializer())
+    fun `skal godta og returnere liste med organisasjoner`() =
+        testApi {
+            coEvery { mockRedisPoller.hent(any()) } returns
+                ResultJson(
+                    success = Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson(),
+                ).toJson(ResultJson.serializer())
 
-        val requestBody = """
+            val requestBody = """
             {"identitetsnummer":"${Fnr.genererGyldig()}"}
         """
 
-        val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
+            val response = post(path, requestBody.fromJson(AktiveOrgnrRequest.serializer()), AktiveOrgnrRequest.serializer())
 
-        assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals(Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE, response.bodyAsText())
-    }
+            assertEquals(HttpStatusCode.Created, response.status)
+            assertEquals(Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE, response.bodyAsText())
+        }
 
     @Test
-    fun `gir 404 dersom ingen arbeidsforhold finnes`() = testApi {
-        val resultatUtenArbeidsforhold = AktiveArbeidsgivere(
-            fulltNavn = "Johnny Jobblaus",
-            avsenderNavn = "Håvard Hå-Err",
-            underenheter = emptyList()
-        )
+    fun `gir 404 dersom ingen arbeidsforhold finnes`() =
+        testApi {
+            val resultatUtenArbeidsforhold =
+                AktiveArbeidsgivere(
+                    fulltNavn = "Johnny Jobblaus",
+                    avsenderNavn = "Håvard Hå-Err",
+                    underenheter = emptyList(),
+                )
 
-        coEvery { mockRedisPoller.hent(any()) } returns ResultJson(
-            success = resultatUtenArbeidsforhold.toJson(AktiveArbeidsgivere.serializer())
-        ).toJson(ResultJson.serializer())
+            coEvery { mockRedisPoller.hent(any()) } returns
+                ResultJson(
+                    success = resultatUtenArbeidsforhold.toJson(AktiveArbeidsgivere.serializer()),
+                ).toJson(ResultJson.serializer())
 
-        val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig()), AktiveOrgnrRequest.serializer())
+            val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig()), AktiveOrgnrRequest.serializer())
 
-        response.status shouldBe HttpStatusCode.NotFound
-        response.bodyAsText() shouldBe "\"Fant ingen arbeidsforhold.\""
-    }
+            response.status shouldBe HttpStatusCode.NotFound
+            response.bodyAsText() shouldBe "\"Fant ingen arbeidsforhold.\""
+        }
 
     @Test
     fun `test request data`() {
         val fnr = Fnr.genererGyldig()
-        val requestBody = """
+        val requestBody =
+            """
             {"identitetsnummer":"$fnr"}
         """.removeJsonWhitespace()
 
@@ -75,7 +81,8 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     }
 
     private object Mock {
-        val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
+        val GYLDIG_AKTIVE_ORGNR_RESPONSE =
+            """
             {
                 "fulltNavn": "test-navn",
                 "avsenderNavn": "Arild Avsender",

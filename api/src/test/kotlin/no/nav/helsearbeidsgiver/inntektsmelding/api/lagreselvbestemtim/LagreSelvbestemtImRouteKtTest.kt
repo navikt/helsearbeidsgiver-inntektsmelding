@@ -35,33 +35,37 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
     }
 
     @Test
-    fun `skal godta og returnere id ved gyldig innsending`() = testApi {
-        val selvbestemtId = UUID.randomUUID()
+    fun `skal godta og returnere id ved gyldig innsending`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
 
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            harTilgangResultat,
-            Mock.successResult(selvbestemtId)
-        )
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(selvbestemtId),
+                )
 
-        val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
-        val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText()
 
-        response.status shouldBe HttpStatusCode.OK
-        actualJson shouldBe Mock.successResponseJson(selvbestemtId)
-    }
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+        }
 
     @Test
-    fun `skal godta og returnere id ved innsending som bruker 'perioder'-felt i inntektsendringsårsak`() = testApi {
-        val selvbestemtId = UUID.randomUUID()
+    fun `skal godta og returnere id ved innsending som bruker 'perioder'-felt i inntektsendringsårsak`() =
+        testApi {
+            val selvbestemtId = UUID.randomUUID()
 
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            harTilgangResultat,
-            Mock.successResult(selvbestemtId)
-        )
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.successResult(selvbestemtId),
+                )
 
-        val skjemaJson =
-            """
+            val skjemaJson =
+                """
             {
                 "selvbestemtId": "$selvbestemtId",
                 "type": {
@@ -87,33 +91,36 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
                 "refusjon": null
             }
             """.removeJsonWhitespace()
-                .parseJson()
+                    .parseJson()
 
-        val response = post(path, skjemaJson, JsonElement.serializer())
+            val response = post(path, skjemaJson, JsonElement.serializer())
 
-        val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText()
 
-        response.status shouldBe HttpStatusCode.OK
-        actualJson shouldBe Mock.successResponseJson(selvbestemtId)
-    }
-
-    @Test
-    fun `feil i request body gir 400-feil`() = testApi {
-        val expectedFeilmelding = "Feil under serialisering."
-
-        coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat
-
-        val response = post(path, "ikke et skjema", String.serializer())
-
-        val actualJson = response.bodyAsText()
-
-        response.status shouldBe HttpStatusCode.BadRequest
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
-    }
+            response.status shouldBe HttpStatusCode.OK
+            actualJson shouldBe Mock.successResponseJson(selvbestemtId)
+        }
 
     @Test
-    fun `valideringsfeil gir 400-feil`() = testApi {
-        val expectedFailureResponseJson = """
+    fun `feil i request body gir 400-feil`() =
+        testApi {
+            val expectedFeilmelding = "Feil under serialisering."
+
+            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat
+
+            val response = post(path, "ikke et skjema", String.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
+        }
+
+    @Test
+    fun `valideringsfeil gir 400-feil`() =
+        testApi {
+            val expectedFailureResponseJson =
+                """
         {
             "valideringsfeil": [
                 "Sykmeldingsperioder må fylles ut",
@@ -124,127 +131,139 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         }
         """.removeJsonWhitespace()
 
-        coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat
+            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat
 
-        val skjemaMedFeil = mockSkjemaInntektsmeldingSelvbestemt().let {
-            it.copy(
-                sykmeldingsperioder = emptyList(),
-                inntekt = it.inntekt.copy(
-                    beloep = -1.0
-                )
-            )
+            val skjemaMedFeil =
+                mockSkjemaInntektsmeldingSelvbestemt().let {
+                    it.copy(
+                        sykmeldingsperioder = emptyList(),
+                        inntekt =
+                            it.inntekt.copy(
+                                beloep = -1.0,
+                            ),
+                    )
+                }
+
+            val response = post(path, skjemaMedFeil, SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            actualJson shouldBe expectedFailureResponseJson
         }
 
-        val response = post(path, skjemaMedFeil, SkjemaInntektsmeldingSelvbestemt.serializer())
+    @Test
+    fun `manglende tilgang gir 500-feil`() =
+        testApi {
+            coEvery { mockRedisPoller.hent(any()) } returns ikkeTilgangResultat
 
-        val actualJson = response.bodyAsText()
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
-        response.status shouldBe HttpStatusCode.BadRequest
-        actualJson shouldBe expectedFailureResponseJson
-    }
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe "\"Error 500: no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException\""
+        }
 
     @Test
-    fun `manglende tilgang gir 500-feil`() = testApi {
-        coEvery { mockRedisPoller.hent(any()) } returns ikkeTilgangResultat
+    fun `feilresultat gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = "Ukjent feil."
 
-        val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.failureResult(expectedFeilmelding),
+                )
 
-        val actualJson = response.bodyAsText()
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe "\"Error 500: no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException\""
-    }
+            val actualJson = response.bodyAsText()
 
-    @Test
-    fun `feilresultat gir 500-feil`() = testApi {
-        val expectedFeilmelding = "Ukjent feil."
-
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            harTilgangResultat,
-            Mock.failureResult(expectedFeilmelding)
-        )
-
-        val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
-
-        val actualJson = response.bodyAsText()
-
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
-    }
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
+        }
 
     @Test
-    fun `skal returnere bad reqest hvis arbeidsforhold mangler`() = testApi {
-        val expectedFeilmelding = "Mangler arbeidsforhold i perioden"
+    fun `skal returnere bad reqest hvis arbeidsforhold mangler`() =
+        testApi {
+            val expectedFeilmelding = "Mangler arbeidsforhold i perioden"
 
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            harTilgangResultat,
-            Mock.failureResult(expectedFeilmelding)
-        )
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.failureResult(expectedFeilmelding),
+                )
 
-        val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
-        val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText()
 
-        response.status shouldBe HttpStatusCode.BadRequest
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
-    }
-
-    @Test
-    fun `tomt resultat gir 500-feil`() = testApi {
-        val expectedFeilmelding = "Ukjent feil."
-
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            harTilgangResultat,
-            Mock.emptyResult()
-        )
-
-        val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
-
-        val actualJson = response.bodyAsText()
-
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
-    }
+            response.status shouldBe HttpStatusCode.BadRequest
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
+        }
 
     @Test
-    fun `timeout mot redis gir 500-feil`() = testApi {
-        val expectedFeilmelding = "Brukte for lang tid mot redis."
+    fun `tomt resultat gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = "Ukjent feil."
 
-        coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    Mock.emptyResult(),
+                )
 
-        val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
-        val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText()
 
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
-    }
-
-    @Test
-    fun `ukjent feil mot redis gir 500-feil`() = testApi {
-        val expectedFeilmelding = "Permanent feil mot redis."
-
-        coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows IllegalStateException()
-
-        val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
-
-        val actualJson = response.bodyAsText()
-
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
-    }
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
+        }
 
     @Test
-    fun `ukjent feil gir 500-feil`() = testApi {
-        coEvery { mockRedisPoller.hent(any()) } throws NullPointerException()
+    fun `timeout mot redis gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = "Brukte for lang tid mot redis."
 
-        val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
 
-        val actualJson = response.bodyAsText()
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
-        response.status shouldBe HttpStatusCode.InternalServerError
-        actualJson shouldBe "\"Error 500: java.lang.NullPointerException\""
-    }
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
+        }
+
+    @Test
+    fun `ukjent feil mot redis gir 500-feil`() =
+        testApi {
+            val expectedFeilmelding = "Permanent feil mot redis."
+
+            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows IllegalStateException()
+
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe Mock.failureResponseJson(expectedFeilmelding)
+        }
+
+    @Test
+    fun `ukjent feil gir 500-feil`() =
+        testApi {
+            coEvery { mockRedisPoller.hent(any()) } throws NullPointerException()
+
+            val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
+
+            val actualJson = response.bodyAsText()
+
+            response.status shouldBe HttpStatusCode.InternalServerError
+            actualJson shouldBe "\"Error 500: java.lang.NullPointerException\""
+        }
 }
 
 private object Mock {
@@ -264,14 +283,13 @@ private object Mock {
 
     fun successResult(selvbestemtId: UUID): JsonElement =
         ResultJson(
-            success = selvbestemtId.toJson()
+            success = selvbestemtId.toJson(),
         ).toJson(ResultJson.serializer())
 
     fun failureResult(feilmelding: String): JsonElement =
         ResultJson(
-            failure = feilmelding.toJson(String.serializer())
+            failure = feilmelding.toJson(String.serializer()),
         ).toJson(ResultJson.serializer())
 
-    fun emptyResult(): JsonElement =
-        ResultJson().toJson(ResultJson.serializer())
+    fun emptyResult(): JsonElement = ResultJson().toJson(ResultJson.serializer())
 }

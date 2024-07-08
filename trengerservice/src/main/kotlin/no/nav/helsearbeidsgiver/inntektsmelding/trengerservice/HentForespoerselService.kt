@@ -38,32 +38,35 @@ private const val UKJENT_NAVN = "Ukjent navn"
 
 class HentForespoerselService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific
+    override val redisStore: RedisStoreClassSpecific,
 ) : Service() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.TRENGER_REQUESTED
-    override val startKeys = setOf(
-        Key.FORESPOERSEL_ID,
-        Key.ARBEIDSGIVER_FNR
-    )
-    override val dataKeys = setOf(
-        Key.FORESPOERSEL_SVAR,
-        Key.VIRKSOMHET,
-        Key.PERSONER,
-        Key.INNTEKT
-    )
+    override val startKeys =
+        setOf(
+            Key.FORESPOERSEL_ID,
+            Key.ARBEIDSGIVER_FNR,
+        )
+    override val dataKeys =
+        setOf(
+            Key.FORESPOERSEL_SVAR,
+            Key.VIRKSOMHET,
+            Key.PERSONER,
+            Key.INNTEKT,
+        )
 
-    private val steg1Keys = setOf(
-        Key.FORESPOERSEL_SVAR
-    )
-    private val steg2Keys = setOf(
-        Key.VIRKSOMHET,
-        Key.PERSONER,
-        Key.INNTEKT
-    )
+    private val steg1Keys =
+        setOf(
+            Key.FORESPOERSEL_SVAR,
+        )
+    private val steg2Keys =
+        setOf(
+            Key.VIRKSOMHET,
+            Key.PERSONER,
+            Key.INNTEKT,
+        )
 
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
@@ -81,7 +84,7 @@ class HentForespoerselService(
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson()
+                Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
             )
                 .also { loggBehovPublisert(BehovType.VIRKSOMHET, it) }
 
@@ -90,10 +93,11 @@ class HentForespoerselService(
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.FNR_LISTE to listOf(
-                    forespoersel.fnr.let(::Fnr),
-                    avsenderFnr
-                ).toJson(Fnr.serializer())
+                Key.FNR_LISTE to
+                    listOf(
+                        forespoersel.fnr.let(::Fnr),
+                        avsenderFnr,
+                    ).toJson(Fnr.serializer()),
             )
                 .also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
 
@@ -104,7 +108,7 @@ class HentForespoerselService(
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
                 Key.FNR to forespoersel.fnr.toJson(),
-                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson()
+                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(),
             )
                 .also { loggBehovPublisert(BehovType.INNTEKT, it) }
         } else if (startKeys.all(melding::containsKey) && steg1Keys.none(melding::containsKey)) {
@@ -112,7 +116,7 @@ class HentForespoerselService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson()
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             )
                 .also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
         }
@@ -134,50 +138,55 @@ class HentForespoerselService(
 
         val resultJson =
             ResultJson(
-                success = HentForespoerselResultat(
-                    sykmeldtNavn = sykmeldtNavn,
-                    avsenderNavn = avsenderNavn,
-                    orgNavn = virksomhetNavn,
-                    inntekt = inntekt,
-                    forespoersel = foresporsel,
-                    feil = feil.orEmpty()
-                )
-                    .toJson(HentForespoerselResultat.serializer())
+                success =
+                    HentForespoerselResultat(
+                        sykmeldtNavn = sykmeldtNavn,
+                        avsenderNavn = avsenderNavn,
+                        orgNavn = virksomhetNavn,
+                        inntekt = inntekt,
+                        forespoersel = foresporsel,
+                        feil = feil.orEmpty(),
+                    )
+                        .toJson(HentForespoerselResultat.serializer()),
             )
                 .toJson(ResultJson.serializer())
 
         redisStore.set(RedisKey.of(transaksjonId), resultJson)
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
-        val overkommeligFeil = when (utloesendeBehov) {
-            BehovType.VIRKSOMHET ->
-                Datafeil(
-                    Key.VIRKSOMHET,
-                    "Vi klarte ikke å hente navn på virksomhet.",
-                    "Ukjent virksomhet".toJson()
-                )
+        val overkommeligFeil =
+            when (utloesendeBehov) {
+                BehovType.VIRKSOMHET ->
+                    Datafeil(
+                        Key.VIRKSOMHET,
+                        "Vi klarte ikke å hente navn på virksomhet.",
+                        "Ukjent virksomhet".toJson(),
+                    )
 
-            BehovType.HENT_PERSONER ->
-                Datafeil(
-                    Key.PERSONER,
-                    "Vi klarte ikke å hente navn på personer.",
-                    // Lesing av personer bruker allerede defaults, så trenger bare map-struktur her
-                    emptyMap<Fnr, Person>().toJson(personMapSerializer)
-                )
+                BehovType.HENT_PERSONER ->
+                    Datafeil(
+                        Key.PERSONER,
+                        "Vi klarte ikke å hente navn på personer.",
+                        // Lesing av personer bruker allerede defaults, så trenger bare map-struktur her
+                        emptyMap<Fnr, Person>().toJson(personMapSerializer),
+                    )
 
-            BehovType.INNTEKT ->
-                Datafeil(
-                    Key.INNTEKT,
-                    "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
-                    UNDEFINED_FELT.toJson()
-                )
+                BehovType.INNTEKT ->
+                    Datafeil(
+                        Key.INNTEKT,
+                        "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",
+                        UNDEFINED_FELT.toJson(),
+                    )
 
-            else ->
-                null
-        }
+                else ->
+                    null
+            }
 
         if (overkommeligFeil != null) {
             val feilmeldingKey = RedisKey.feilmelding(fail.transaksjonId)
@@ -190,8 +199,9 @@ class HentForespoerselService(
             redisStore.set(feilmeldingKey, alleFeil.toJson(feilMapSerializer))
             redisStore.set(defaultVerdiKey, overkommeligFeil.defaultVerdi)
 
-            val meldingMedDefault = mapOf(overkommeligFeil.key to overkommeligFeil.defaultVerdi)
-                .plus(melding)
+            val meldingMedDefault =
+                mapOf(overkommeligFeil.key to overkommeligFeil.defaultVerdi)
+                    .plus(melding)
 
             onData(meldingMedDefault)
         } else {
@@ -200,18 +210,22 @@ class HentForespoerselService(
                 sikkerLogger.warn(it)
             }
 
-            val resultJson = ResultJson(
-                failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson()
-            )
-                .toJson(ResultJson.serializer())
+            val resultJson =
+                ResultJson(
+                    failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
+                )
+                    .toJson(ResultJson.serializer())
 
             redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
         }
     }
 
-    private fun loggBehovPublisert(behovType: BehovType, publisert: JsonElement) {
+    private fun loggBehovPublisert(
+        behovType: BehovType,
+        publisert: JsonElement,
+    ) {
         MdcUtils.withLogFields(
-            Log.behov(behovType)
+            Log.behov(behovType),
         ) {
             "Publiserte melding med behov $behovType.".let {
                 logger.info(it)
@@ -224,11 +238,11 @@ class HentForespoerselService(
 private data class Datafeil(
     val key: Key,
     val feilmelding: String,
-    val defaultVerdi: JsonElement
+    val defaultVerdi: JsonElement,
 )
 
 private val feilMapSerializer =
     MapSerializer(
         Key.serializer(),
-        String.serializer()
+        String.serializer(),
     )

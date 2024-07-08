@@ -25,7 +25,7 @@ import java.util.UUID
 
 fun Route.aktiveOrgnrRoute(
     connection: RapidsConnection,
-    redis: RedisPoller
+    redis: RedisPoller,
 ) {
     val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
     post(Routes.AKTIVEORGNR) {
@@ -65,10 +65,11 @@ private fun AktiveArbeidsgivere.toResponse(): AktiveOrgnrResponse =
     AktiveOrgnrResponse(
         fulltNavn = fulltNavn,
         avsenderNavn = avsenderNavn,
-        underenheter = underenheter.map {
-            GyldigUnderenhet(
-                orgnrUnderenhet = it.orgnrUnderenhet,
-                virksomhetsnavn = it.virksomhetsnavn
-            )
-        }
+        underenheter =
+            underenheter.map {
+                GyldigUnderenhet(
+                    orgnrUnderenhet = it.orgnrUnderenhet,
+                    virksomhetsnavn = it.virksomhetsnavn,
+                )
+            },
     )

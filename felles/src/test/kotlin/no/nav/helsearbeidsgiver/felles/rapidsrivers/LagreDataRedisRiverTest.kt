@@ -40,7 +40,7 @@ class LagreDataRedisRiverTest : FunSpec({
         dataKeys,
         testRapid,
         mockRedis.store,
-        mockListener::onPacket
+        mockListener::onPacket,
     )
 
     beforeEach {
@@ -57,7 +57,7 @@ class LagreDataRedisRiverTest : FunSpec({
             Key.DATA to "".toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FNR to Mock.FNR.toJson(),
-            Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer())
+            Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer()),
         )
 
         verifySequence {
@@ -73,7 +73,7 @@ class LagreDataRedisRiverTest : FunSpec({
             Key.EVENT_NAME to event.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FNR to Mock.FNR.toJson()
+            Key.FNR to Mock.FNR.toJson(),
         )
 
         verifySequence {
@@ -87,7 +87,7 @@ class LagreDataRedisRiverTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to event.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FNR to Mock.FNR.toJson()
+            Key.FNR to Mock.FNR.toJson(),
         )
 
         verify(exactly = 0) {
@@ -101,7 +101,7 @@ class LagreDataRedisRiverTest : FunSpec({
         testRapid.sendJson(
             Key.DATA to "".toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FNR to Mock.FNR.toJson()
+            Key.FNR to Mock.FNR.toJson(),
         )
 
         verify(exactly = 0) {
@@ -116,7 +116,7 @@ class LagreDataRedisRiverTest : FunSpec({
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FNR to Mock.FNR.toJson()
+            Key.FNR to Mock.FNR.toJson(),
         )
 
         verify(exactly = 0) {
@@ -132,7 +132,7 @@ class LagreDataRedisRiverTest : FunSpec({
             Key.BEHOV to BehovType.INNTEKT.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FNR to Mock.FNR.toJson()
+            Key.FNR to Mock.FNR.toJson(),
         )
 
         verify(exactly = 0) {
@@ -144,7 +144,7 @@ class LagreDataRedisRiverTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to event.toJson(),
             Key.DATA to "".toJson(),
-            Key.FNR to Mock.FNR.toJson()
+            Key.FNR to Mock.FNR.toJson(),
         )
 
         verify(exactly = 0) {
@@ -159,7 +159,7 @@ class LagreDataRedisRiverTest : FunSpec({
             Key.EVENT_NAME to event.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to transaksjonIdMedFeilFormat.toJson(),
-            Key.FNR to Mock.FNR.toJson()
+            Key.FNR to Mock.FNR.toJson(),
         )
 
         verify(exactly = 0) {
@@ -175,7 +175,7 @@ class LagreDataRedisRiverTest : FunSpec({
             Key.DATA to "".toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FNR to Mock.FNR.toJson(),
-            Key.ORGNRUNDERENHET to Mock.ORGNR.toJson()
+            Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
         )
 
         verify {
@@ -192,7 +192,7 @@ class LagreDataRedisRiverTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to event.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.ORGNRUNDERENHET to Mock.ORGNR.toJson()
+            Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
         )
 
         verify(exactly = 0) {
@@ -203,16 +203,17 @@ class LagreDataRedisRiverTest : FunSpec({
     test("Argumentfunksjon 'etterDataLagret' kalles når data har blitt lagret") {
         val transaksjonId = UUID.randomUUID()
 
-        val innkommendeMelding = mapOf(
-            Key.EVENT_NAME to event.toJson(),
-            Key.DATA to "".toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FNR to Mock.FNR.toJson(),
-            Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer())
-        )
+        val innkommendeMelding =
+            mapOf(
+                Key.EVENT_NAME to event.toJson(),
+                Key.DATA to "".toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FNR to Mock.FNR.toJson(),
+                Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer()),
+            )
 
         testRapid.sendJson(
-            *innkommendeMelding.toList().toTypedArray()
+            *innkommendeMelding.toList().toTypedArray(),
         )
 
         verifySequence {
@@ -225,7 +226,7 @@ class LagreDataRedisRiverTest : FunSpec({
 
                     melding shouldContainExactly innkommendeMelding
                 },
-                any()
+                any(),
             )
         }
     }
@@ -237,7 +238,7 @@ class LagreDataRedisRiverTest : FunSpec({
             Key.EVENT_NAME to event.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FNR to Mock.FNR.toJson(),
-            Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer())
+            Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer()),
         )
 
         verify(exactly = 0) {
@@ -252,16 +253,18 @@ private object Mock {
     const val FNR = "11223355077"
     const val ORGNR = "888222888"
 
-    val inntekt = Inntekt(
-        maanedOversikt = listOf(
-            InntektPerMaaned(
-                maaned = mars(2020),
-                inntekt = 17.18
-            ),
-            InntektPerMaaned(
-                maaned = april(2020),
-                inntekt = 0.12
-            )
+    val inntekt =
+        Inntekt(
+            maanedOversikt =
+                listOf(
+                    InntektPerMaaned(
+                        maaned = mars(2020),
+                        inntekt = 17.18,
+                    ),
+                    InntektPerMaaned(
+                        maaned = april(2020),
+                        inntekt = 0.12,
+                    ),
+                ),
         )
-    )
 }

@@ -7,16 +7,18 @@ import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.json.jsonb
 
 object SelvbestemtInntektsmeldingEntitet : Table("selvbestemt_inntektsmelding") {
-    val id = integer("id").autoIncrement(
-        idSeqName = "selvbestemt_inntektsmelding_id_seq"
-    )
+    val id =
+        integer("id").autoIncrement(
+            idSeqName = "selvbestemt_inntektsmelding_id_seq",
+        )
     val inntektsmeldingId = uuid("inntektsmelding_id")
     val selvbestemtId = uuid("selvbestemt_id")
-    val inntektsmelding = jsonb<Inntektsmelding>(
-        name = "inntektsmelding",
-        jsonConfig = jsonConfig,
-        kSerializer = Inntektsmelding.serializer()
-    )
+    val inntektsmelding =
+        jsonb<Inntektsmelding>(
+            name = "inntektsmelding",
+            jsonConfig = jsonConfig,
+            kSerializer = Inntektsmelding.serializer(),
+        )
     val journalpostId = text("journalpost_id").nullable()
     val opprettet = datetime("opprettet")
 }

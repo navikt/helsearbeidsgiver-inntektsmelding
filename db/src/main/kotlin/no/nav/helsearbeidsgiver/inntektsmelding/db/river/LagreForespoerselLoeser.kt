@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
 class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) : Loeser(rapidsConnection) {
-
     override fun accept(): River.PacketValidation {
         return River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.LAGRE_FORESPOERSEL.name)
@@ -35,7 +34,7 @@ class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val re
             transaksjonId = null,
             forespoerselId = forespoerselId,
             Key.IDENTITETSNUMMER to fnr.toJson(),
-            Key.ORGNRUNDERENHET to orgnr.toJson()
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
         )
     }
 }

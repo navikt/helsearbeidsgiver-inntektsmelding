@@ -18,9 +18,10 @@ abstract class MockAuthToken {
             issuerId = Auth.ISSUER,
             subject = "mockSubject",
             audience = "aud-localhost",
-            claims = mapOf(
-                Auth.CLAIM_PID to mockPid.verdi
-            )
+            claims =
+                mapOf(
+                    Auth.CLAIM_PID to mockPid.verdi,
+                ),
         )
             .serialize()
 

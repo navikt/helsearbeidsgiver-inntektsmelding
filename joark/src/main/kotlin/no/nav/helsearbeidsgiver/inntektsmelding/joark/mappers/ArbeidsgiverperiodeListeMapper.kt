@@ -5,7 +5,6 @@ import org.mapstruct.Mapper
 
 @Mapper
 abstract class ArbeidsgiverperiodeListeMapper {
-
     fun mapArbeidsgiverperiodeListe(perioder: List<Periode>): List<no.seres.xsd.nav.inntektsmelding_m._20181211.Periode>? {
         return if (perioder.isEmpty()) {
             null

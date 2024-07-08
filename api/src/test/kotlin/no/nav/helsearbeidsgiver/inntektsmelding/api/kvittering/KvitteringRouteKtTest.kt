@@ -16,32 +16,35 @@ import java.util.UUID
 private const val PATH = Routes.PREFIX + Routes.KVITTERING
 
 class KvitteringRouteKtTest : ApiTest() {
+    @Test
+    fun `skal ikke godta tom uuid`() =
+        testApi {
+            val response = get("$PATH?uuid=")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
 
     @Test
-    fun `skal ikke godta tom uuid`() = testApi {
-        val response = get("$PATH?uuid=")
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-    }
+    fun `skal ikke godta ugyldig uuid`() =
+        testApi {
+            val response = get("$PATH?uuid=ikke-en-uuid")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
 
     @Test
-    fun `skal ikke godta ugyldig uuid`() = testApi {
-        val response = get("$PATH?uuid=ikke-en-uuid")
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-    }
+    fun `skal godta gyldig uuid`() =
+        testApi {
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    ResultJson(
+                        success = resultatMedInntektsmelding.parseJson(),
+                    ).toJson(ResultJson.serializer()),
+                )
 
-    @Test
-    fun `skal godta gyldig uuid`() = testApi {
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            harTilgangResultat,
-            ResultJson(
-                success = resultatMedInntektsmelding.parseJson()
-            ).toJson(ResultJson.serializer())
-        )
+            val response = get(PATH + "?uuid=" + UUID.randomUUID())
 
-        val response = get(PATH + "?uuid=" + UUID.randomUUID())
-
-        assertEquals(HttpStatusCode.OK, response.status)
-    }
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
 }
 
 private val resultatMedInntektsmelding =

@@ -30,23 +30,24 @@ import kotlin.system.measureTimeMillis
 class VirksomhetLoeser(
     rapidsConnection: RapidsConnection,
     private val brregClient: BrregClient,
-    private val isPreProd: Boolean
+    private val isPreProd: Boolean,
 ) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
-    private val preprodOrgnr = mapOf(
-        "810007702" to "ANSTENDIG PIGGSVIN BYDEL",
-        "810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE",
-        "810008032" to "ANSTENDIG PIGGSVIN BRANNVESEN",
-        "810007982" to "ANSTENDIG PIGGSVIN SYKEHJEM"
-    )
+    private val preprodOrgnr =
+        mapOf(
+            "810007702" to "ANSTENDIG PIGGSVIN BYDEL",
+            "810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE",
+            "810008032" to "ANSTENDIG PIGGSVIN BRANNVESEN",
+            "810007982" to "ANSTENDIG PIGGSVIN SYKEHJEM",
+        )
 
-    private val BEHOV = BehovType.VIRKSOMHET
-    private val requestLatency = Summary.build()
-        .name("simba_brreg_hent_virksomhet_latency_seconds")
-        .help("brreg hent virksomhet latency in seconds")
-        .register()
+    private val behov = BehovType.VIRKSOMHET
+    private val requestLatency =
+        Summary.build()
+            .name("simba_brreg_hent_virksomhet_latency_seconds")
+            .help("brreg hent virksomhet latency in seconds")
+            .register()
 
     private fun hentVirksomheter(orgnrListe: List<String>): List<Virksomhet> {
         return if (isPreProd) {
@@ -69,14 +70,14 @@ class VirksomhetLoeser(
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BEHOV.name
+                Key.BEHOV to behov.name,
             )
             it.requireKeys(
-                Key.UUID
+                Key.UUID,
             )
             it.interestedIn(
                 Key.ORGNRUNDERENHET,
-                Key.ORGNRUNDERENHETER
+                Key.ORGNRUNDERENHETER,
             )
         }
 
@@ -88,14 +89,14 @@ class VirksomhetLoeser(
             if (behov[Key.ORGNRUNDERENHETER].isEmpty) {
                 listOf(
                     behov[Key.ORGNRUNDERENHET]
-                        .asText()
+                        .asText(),
                 )
             } else {
                 behov[Key.ORGNRUNDERENHETER]
                     .map { it.asText() }
             }
 
-        logger.info("Løser behov $BEHOV med uuid $transaksjonId")
+        logger.info("Løser behov ${this.behov} med uuid $transaksjonId")
 
         try {
             val navnListe: Map<String, String> =
@@ -108,7 +109,7 @@ class VirksomhetLoeser(
                 forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                 Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
                 Key.VIRKSOMHET to navnListe.values.first().toJson(),
-                Key.VIRKSOMHETER to navnListe.toJson()
+                Key.VIRKSOMHETER to navnListe.toJson(),
             )
         } catch (ex: FantIkkeVirksomhetException) {
             logger.error("Fant ikke virksomhet for $orgnr")

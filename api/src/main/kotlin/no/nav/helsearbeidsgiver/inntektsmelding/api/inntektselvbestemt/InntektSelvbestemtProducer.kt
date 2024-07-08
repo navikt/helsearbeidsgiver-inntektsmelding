@@ -14,17 +14,20 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
 class InntektSelvbestemtProducer(
-    private val rapid: RapidsConnection
+    private val rapid: RapidsConnection,
 ) {
     init {
         logger.info("Starter ${InntektSelvbestemtProducer::class.simpleName}...")
     }
 
-    fun publish(transaksjonId: UUID, request: InntektSelvbestemtRequest) {
+    fun publish(
+        transaksjonId: UUID,
+        request: InntektSelvbestemtRequest,
+    ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.INNTEKT_SELVBESTEMT_REQUESTED),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         ) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
@@ -32,7 +35,7 @@ class InntektSelvbestemtProducer(
                 Key.DATA to "".toJson(),
                 Key.FNR to request.sykmeldtFnr.toJson(),
                 Key.ORGNRUNDERENHET to request.orgnr.toJson(),
-                Key.SKJAERINGSTIDSPUNKT to request.inntektsdato.toJson()
+                Key.SKJAERINGSTIDSPUNKT to request.inntektsdato.toJson(),
             )
                 .also { json ->
                     "Publiserte request om inntekt selvbestemt.".let {

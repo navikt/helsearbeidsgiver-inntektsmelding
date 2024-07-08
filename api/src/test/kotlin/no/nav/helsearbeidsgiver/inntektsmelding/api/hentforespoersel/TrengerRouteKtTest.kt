@@ -47,163 +47,181 @@ import java.util.UUID
 private const val PATH = Routes.PREFIX + Routes.TRENGER
 
 class TrengerRouteKtTest : ApiTest() {
-
     @BeforeEach
     fun setup() {
         clearAllMocks()
     }
 
     @Test
-    fun `skal returnere resultat og status CREATED når trenger virker`() = testApi {
-        val expectedJson = MockTrenger.responseJson()
+    fun `skal returnere resultat og status CREATED når trenger virker`() =
+        testApi {
+            val expectedJson = MockTrenger.responseJson()
 
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            harTilgangResultat,
-            MockTrenger.resultatOkJson
-        )
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    MockTrenger.resultatOkJson,
+                )
 
-        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
+            val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
 
-        val actualJson = response.bodyAsText()
+            val actualJson = response.bodyAsText()
 
-        assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals(expectedJson, actualJson)
-    }
-
-    @Test
-    fun `skal returnere resultat og status CREATED når trenger virker med forespørsel bare inntekt`() = testApi {
-        val expectedJson = MockTrenger.responseBareInntektJson()
-
-        coEvery { mockRedisPoller.hent(any()) } returnsMany listOf(
-            harTilgangResultat,
-            MockTrenger.resultatOkMedForrigeInntektJson
-        )
-
-        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
-
-        val actualJson = response.bodyAsText()
-
-        assertEquals(HttpStatusCode.Created, response.status)
-        assertEquals(expectedJson, actualJson)
-    }
+            assertEquals(HttpStatusCode.Created, response.status)
+            assertEquals(expectedJson, actualJson)
+        }
 
     @Test
-    fun `skal returnere Internal server error hvis Redis timer ut`() = testApi {
-        coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
+    fun `skal returnere resultat og status CREATED når trenger virker med forespørsel bare inntekt`() =
+        testApi {
+            val expectedJson = MockTrenger.responseBareInntektJson()
 
-        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
+            coEvery { mockRedisPoller.hent(any()) } returnsMany
+                listOf(
+                    harTilgangResultat,
+                    MockTrenger.resultatOkMedForrigeInntektJson,
+                )
 
-        assertEquals(HttpStatusCode.InternalServerError, response.status)
-    }
+            val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
 
-    @Test
-    fun `skal returnere valideringsfeil ved ugyldig request`() = testApi {
-        val ugyldigRequest = JsonObject(
-            mapOf(
-                HentForespoerselRequest::uuid.name to "ikke en uuid".toJson()
-            )
-        )
+            val actualJson = response.bodyAsText()
 
-        val response = post(PATH, ugyldigRequest, JsonElement.serializer())
-
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertNotNull(response.bodyAsText())
-
-        val result = response.bodyAsText().fromJson(ResultJson.serializer())
-
-        assertNull(result.success)
-        assertNotNull(result.failure)
-
-        val violations = result.failure!!.fromJson(ValidationResponse.serializer()).errors
-
-        assertEquals(1, violations.size)
-        assertEquals("uuid", violations[0].property)
-    }
+            assertEquals(HttpStatusCode.Created, response.status)
+            assertEquals(expectedJson, actualJson)
+        }
 
     @Test
-    fun `skal returnere Forbidden hvis feil ikke tilgang`() = testApi {
-        coEvery { mockRedisPoller.hent(any()) } returns ikkeTilgangResultat
+    fun `skal returnere Internal server error hvis Redis timer ut`() =
+        testApi {
+            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
 
-        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
-        assertEquals(HttpStatusCode.Forbidden, response.status)
-    }
+            val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
+
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+        }
 
     @Test
-    fun `skal returnere Forbidden hvis feil i Tilgangsresultet`() = testApi {
-        coEvery { mockRedisPoller.hent(any()) } returns TilgangResultat(
-            feilmelding = "Noe er riv ruskende galt!"
-        ).toJson(TilgangResultat.serializer())
+    fun `skal returnere valideringsfeil ved ugyldig request`() =
+        testApi {
+            val ugyldigRequest =
+                JsonObject(
+                    mapOf(
+                        HentForespoerselRequest::uuid.name to "ikke en uuid".toJson(),
+                    ),
+                )
 
-        val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
-        assertEquals(HttpStatusCode.Forbidden, response.status)
-    }
+            val response = post(PATH, ugyldigRequest, JsonElement.serializer())
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertNotNull(response.bodyAsText())
+
+            val result = response.bodyAsText().fromJson(ResultJson.serializer())
+
+            assertNull(result.success)
+            assertNotNull(result.failure)
+
+            val violations = result.failure!!.fromJson(ValidationResponse.serializer()).errors
+
+            assertEquals(1, violations.size)
+            assertEquals("uuid", violations[0].property)
+        }
+
+    @Test
+    fun `skal returnere Forbidden hvis feil ikke tilgang`() =
+        testApi {
+            coEvery { mockRedisPoller.hent(any()) } returns ikkeTilgangResultat
+
+            val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
+            assertEquals(HttpStatusCode.Forbidden, response.status)
+        }
+
+    @Test
+    fun `skal returnere Forbidden hvis feil i Tilgangsresultet`() =
+        testApi {
+            coEvery { mockRedisPoller.hent(any()) } returns
+                TilgangResultat(
+                    feilmelding = "Noe er riv ruskende galt!",
+                ).toJson(TilgangResultat.serializer())
+
+            val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
+            assertEquals(HttpStatusCode.Forbidden, response.status)
+        }
 }
 
 private object MockTrenger {
     val request = HentForespoerselRequest(UUID.randomUUID())
 
-    private val forespoersel = Forespoersel(
-        type = ForespoerselType.KOMPLETT,
-        orgnr = "123",
-        fnr = "abc",
-        sykmeldingsperioder = listOf(
-            1.april til 20.april,
-            25.april til 30.april
-        ),
-        egenmeldingsperioder = listOf(
-            29.mars til 29.mars,
-            31.mars til 31.mars
-        ),
-        bestemmendeFravaersdager = mapOf("123" to 25.april),
-        forespurtData = mockForespurtData(),
-        erBesvart = false,
-        vedtaksperiodeId = UUID.randomUUID()
-    )
-
-    private val inntekt = Inntekt(
-        listOf(
-            InntektPerMaaned(
-                maaned = februar(2022),
-                inntekt = 2.0
-            ),
-            InntektPerMaaned(
-                maaned = januar(2022),
-                inntekt = 1.0
-            ),
-            InntektPerMaaned(
-                maaned = desember(2022),
-                inntekt = 3.0
-            )
+    private val forespoersel =
+        Forespoersel(
+            type = ForespoerselType.KOMPLETT,
+            orgnr = "123",
+            fnr = "abc",
+            sykmeldingsperioder =
+                listOf(
+                    1.april til 20.april,
+                    25.april til 30.april,
+                ),
+            egenmeldingsperioder =
+                listOf(
+                    29.mars til 29.mars,
+                    31.mars til 31.mars,
+                ),
+            bestemmendeFravaersdager = mapOf("123" to 25.april),
+            forespurtData = mockForespurtData(),
+            erBesvart = false,
+            vedtaksperiodeId = UUID.randomUUID(),
         )
-    )
 
-    val resultatOkJson = ResultJson(
-        success = HentForespoerselResultat(
-            sykmeldtNavn = "Ola Normann",
-            avsenderNavn = "Arbeidsgiver",
-            orgNavn = "Norge AS",
-            inntekt = inntekt,
-            forespoersel = forespoersel,
-            feil = emptyMap()
-        )
-            .toJson(HentForespoerselResultat.serializer())
-    )
-        .toJson(ResultJson.serializer())
-
-    val resultatOkMedForrigeInntektJson = ResultJson(
-        success = HentForespoerselResultat(
-            sykmeldtNavn = "Ola Normann",
-            avsenderNavn = "Arbeidsgiver",
-            orgNavn = "Norge AS",
-            inntekt = inntekt,
-            forespoersel = forespoersel.copy(
-                forespurtData = mockForespurtDataMedForrigeInntekt()
+    private val inntekt =
+        Inntekt(
+            listOf(
+                InntektPerMaaned(
+                    maaned = februar(2022),
+                    inntekt = 2.0,
+                ),
+                InntektPerMaaned(
+                    maaned = januar(2022),
+                    inntekt = 1.0,
+                ),
+                InntektPerMaaned(
+                    maaned = desember(2022),
+                    inntekt = 3.0,
+                ),
             ),
-            feil = emptyMap()
         )
-            .toJson(HentForespoerselResultat.serializer())
-    )
-        .toJson(ResultJson.serializer())
+
+    val resultatOkJson =
+        ResultJson(
+            success =
+                HentForespoerselResultat(
+                    sykmeldtNavn = "Ola Normann",
+                    avsenderNavn = "Arbeidsgiver",
+                    orgNavn = "Norge AS",
+                    inntekt = inntekt,
+                    forespoersel = forespoersel,
+                    feil = emptyMap(),
+                )
+                    .toJson(HentForespoerselResultat.serializer()),
+        )
+            .toJson(ResultJson.serializer())
+
+    val resultatOkMedForrigeInntektJson =
+        ResultJson(
+            success =
+                HentForespoerselResultat(
+                    sykmeldtNavn = "Ola Normann",
+                    avsenderNavn = "Arbeidsgiver",
+                    orgNavn = "Norge AS",
+                    inntekt = inntekt,
+                    forespoersel =
+                        forespoersel.copy(
+                            forespurtData = mockForespurtDataMedForrigeInntekt(),
+                        ),
+                    feil = emptyMap(),
+                )
+                    .toJson(HentForespoerselResultat.serializer()),
+        )
+            .toJson(ResultJson.serializer())
 
     fun responseJson(): String =
         """

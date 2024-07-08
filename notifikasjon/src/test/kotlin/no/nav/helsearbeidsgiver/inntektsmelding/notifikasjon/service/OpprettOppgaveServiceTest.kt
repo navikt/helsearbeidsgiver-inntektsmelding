@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class OpprettOppgaveServiceTest {
-
     private val rapid = TestRapid()
     private val mockRedis = MockRedis()
 
@@ -38,22 +37,25 @@ class OpprettOppgaveServiceTest {
 
     @Test
     fun `feil tolkes som feil av service`() {
-        val fail = Fail(
-            feilmelding = "Opprett oppgave feilet.",
-            event = EventName.OPPGAVE_OPPRETT_REQUESTED,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = mapOf(
-                Key.BEHOV.toString() to BehovType.OPPRETT_OPPGAVE.toJson()
-            ).toJson()
-        )
+        val fail =
+            Fail(
+                feilmelding = "Opprett oppgave feilet.",
+                event = EventName.OPPGAVE_OPPRETT_REQUESTED,
+                transaksjonId = UUID.randomUUID(),
+                forespoerselId = UUID.randomUUID(),
+                utloesendeMelding =
+                    mapOf(
+                        Key.BEHOV.toString() to BehovType.OPPRETT_OPPGAVE.toJson(),
+                    ).toJson(),
+            )
 
-        val failMap = mapOf(
-            Key.FAIL to fail.toJson(Fail.serializer()),
-            Key.EVENT_NAME to fail.event.toJson(),
-            Key.UUID to fail.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
-        )
+        val failMap =
+            mapOf(
+                Key.FAIL to fail.toJson(Fail.serializer()),
+                Key.EVENT_NAME to fail.event.toJson(),
+                Key.UUID to fail.transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson(),
+            )
 
         assertNotNull(toFailOrNull(failMap))
     }
@@ -70,7 +72,7 @@ class OpprettOppgaveServiceTest {
                 Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to "123456789".toJson()
+                Key.ORGNRUNDERENHET to "123456789".toJson(),
             )
         }
 
@@ -79,7 +81,7 @@ class OpprettOppgaveServiceTest {
             Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
             Key.DATA to "".toJson(),
-            Key.VIRKSOMHET to "TestBedrift A/S".toJson()
+            Key.VIRKSOMHET to "TestBedrift A/S".toJson(),
         )
         val behov = rapid.inspektør.message(0)
         assertEquals(BehovType.VIRKSOMHET.name, behov.path(Key.BEHOV.str).asText())
@@ -99,26 +101,28 @@ class OpprettOppgaveServiceTest {
                 Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to "123456789".toJson()
+                Key.ORGNRUNDERENHET to "123456789".toJson(),
             )
         }
 
-        val fail = Fail(
-            feilmelding = "Klarte ikke hente virksomhet",
-            event = EventName.OPPGAVE_OPPRETT_REQUESTED,
-            transaksjonId = transaksjonId,
-            forespoerselId = forespoerselId,
-            utloesendeMelding = mapOf(
-                Key.BEHOV.toString() to BehovType.VIRKSOMHET.toJson(),
-                Key.ORGNRUNDERENHET.toString() to "123456789".toJson()
-            ).toJson()
-        )
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke hente virksomhet",
+                event = EventName.OPPGAVE_OPPRETT_REQUESTED,
+                transaksjonId = transaksjonId,
+                forespoerselId = forespoerselId,
+                utloesendeMelding =
+                    mapOf(
+                        Key.BEHOV.toString() to BehovType.VIRKSOMHET.toJson(),
+                        Key.ORGNRUNDERENHET.toString() to "123456789".toJson(),
+                    ).toJson(),
+            )
 
         rapid.sendJson(
             Key.FAIL to fail.toJson(Fail.serializer()),
             Key.EVENT_NAME to fail.event.toJson(),
             Key.UUID to fail.transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson()
+            Key.FORESPOERSEL_ID to fail.forespoerselId!!.toJson(),
         )
 
         val behov = rapid.inspektør.message(0)

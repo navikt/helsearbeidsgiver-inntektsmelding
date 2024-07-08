@@ -31,32 +31,35 @@ import java.util.UUID
 /** Tar imot notifikasjon om at det er kommet en forespørsel om arbeidsgiveropplysninger. */
 class ForespoerselMottattLoeser(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer
+    private val priProducer: PriProducer,
 ) : River.PacketListener {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
-    private val forespoerselMottattCounter = Counter.build()
-        .name("simba_forespoersel_mottatt_total")
-        .help("Antall foresporsler mottatt fra Helsebro")
-        .register()
+    private val forespoerselMottattCounter =
+        Counter.build()
+            .name("simba_forespoersel_mottatt_total")
+            .help("Antall foresporsler mottatt fra Helsebro")
+            .register()
 
     init {
         River(rapid).apply {
             validate {
                 it.demandValues(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.name
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.name,
                 )
                 it.requireKeys(
                     Pri.Key.ORGNR,
                     Pri.Key.FNR,
-                    Pri.Key.FORESPOERSEL_ID
+                    Pri.Key.FORESPOERSEL_ID,
                 )
             }
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         if (packet[Key.FORESPOERSEL_ID.str].asText().isEmpty()) {
             logger.warn("Mangler forespørselId!")
             sikkerLogger.warn("Mangler forespørselId!")
@@ -68,7 +71,7 @@ class ForespoerselMottattLoeser(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.priNotis(Pri.NotisType.FORESPØRSEL_MOTTATT),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         ) {
             runCatching {
                 json.opprettEvent(transaksjonId, context)
@@ -84,7 +87,10 @@ class ForespoerselMottattLoeser(
         }
     }
 
-    private fun JsonElement.opprettEvent(transaksjonId: UUID, context: MessageContext) {
+    private fun JsonElement.opprettEvent(
+        transaksjonId: UUID,
+        context: MessageContext,
+    ) {
         val melding = fromJsonMapFiltered(Pri.Key.serializer())
 
         logger.info("Mottok melding på pri-topic om ${Pri.NotisType.FORESPØRSEL_MOTTATT}.")
@@ -97,7 +103,7 @@ class ForespoerselMottattLoeser(
         MdcUtils.withLogFields(
             Log.event(EventName.FORESPØRSEL_MOTTATT),
             Log.behov(BehovType.LAGRE_FORESPOERSEL),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(forespoerselId),
         ) {
             context.publish(
                 Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),
@@ -105,7 +111,7 @@ class ForespoerselMottattLoeser(
                 Key.ORGNRUNDERENHET to orgnr.toJson(),
                 Key.IDENTITETSNUMMER to fnr.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.UUID to transaksjonId.toJson()
+                Key.UUID to transaksjonId.toJson(),
             )
                 .also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")

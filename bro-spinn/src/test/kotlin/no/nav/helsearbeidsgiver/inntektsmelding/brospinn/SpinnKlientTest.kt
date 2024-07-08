@@ -15,9 +15,10 @@ class SpinnKlientTest : FunSpec({
 
     test("Hvis inntektsmelding ikke finnes kastes feil") {
         val spinnKlient = mockSpinnKlient("", HttpStatusCode.NotFound)
-        val exception = shouldThrowExactly<SpinnApiException> {
-            spinnKlient.hentEksternInntektsmelding(UUID.randomUUID())
-        }
+        val exception =
+            shouldThrowExactly<SpinnApiException> {
+                spinnKlient.hentEksternInntektsmelding(UUID.randomUUID())
+            }
         exception.message shouldBe "$FIKK_SVAR_MED_RESPONSE_STATUS: ${HttpStatusCode.NotFound.value}"
     }
 
@@ -25,9 +26,10 @@ class SpinnKlientTest : FunSpec({
         val responsData = Jackson.toJson(expectedInntektsmelding.copy(avsenderSystem = AvsenderSystem(null, null)))
         val spinnKlient = mockSpinnKlient(responsData, HttpStatusCode.OK)
 
-        val exception = shouldThrowExactly<SpinnApiException> {
-            spinnKlient.hentEksternInntektsmelding(UUID.randomUUID())
-        }
+        val exception =
+            shouldThrowExactly<SpinnApiException> {
+                spinnKlient.hentEksternInntektsmelding(UUID.randomUUID())
+            }
         exception.message shouldBe MANGLER_AVSENDER
     }
     test("Hvis inntektsmelding finnes returneres system navn") {

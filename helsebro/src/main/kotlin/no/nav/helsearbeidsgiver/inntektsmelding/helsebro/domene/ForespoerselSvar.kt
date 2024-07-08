@@ -19,7 +19,7 @@ data class ForespoerselSvar(
     val forespoerselId: UUID,
     val resultat: Suksess? = null,
     val feil: Feil? = null,
-    val boomerang: JsonElement
+    val boomerang: JsonElement,
 ) {
     companion object {
         val behovType = Pri.BehovType.TRENGER_FORESPØRSEL
@@ -36,10 +36,10 @@ data class ForespoerselSvar(
         val egenmeldingsperioder: List<Periode>,
         val bestemmendeFravaersdager: Map<String, LocalDate>,
         val forespurtData: ForespurtData,
-        val erBesvart: Boolean
+        val erBesvart: Boolean,
     )
 
     enum class Feil {
-        FORESPOERSEL_IKKE_FUNNET
+        FORESPOERSEL_IKKE_FUNNET,
     }
 }

@@ -6,7 +6,6 @@ import java.time.OffsetDateTime
 
 @Mapper
 abstract class DateMapper {
-
     fun offsetDateTimeTilLocalDateTime(offsetDateTime: OffsetDateTime): LocalDateTime {
         return offsetDateTime.toLocalDateTime()
     }

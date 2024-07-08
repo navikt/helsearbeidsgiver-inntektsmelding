@@ -43,14 +43,14 @@ class ForespoerselSvarLoeserTest : FunSpec({
     withData(
         mapOf(
             "Ved suksessfullt svar på behov så publiseres data på simba-rapid" to mockForespoerselSvarMedSuksess(),
-            "Ved suksessfullt svar med fastsatt inntekt på behov så publiseres data på simba-rapid" to mockForespoerselSvarMedSuksessMedFastsattInntekt()
-        )
+            "Ved suksessfullt svar med fastsatt inntekt på behov så publiseres data på simba-rapid" to mockForespoerselSvarMedSuksessMedFastsattInntekt(),
+        ),
     ) { expectedIncoming ->
         val expected = PublishedData.mock(expectedIncoming)
 
         testRapid.sendJson(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer())
+            Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
         )
 
         val actual = testRapid.firstMessage().fromJson(PublishedData.serializer())
@@ -66,7 +66,7 @@ class ForespoerselSvarLoeserTest : FunSpec({
 
         testRapid.sendJson(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer())
+            Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
         )
 
         val actual = testRapid.firstMessage().readFail()
@@ -85,7 +85,7 @@ private data class PublishedData(
     val uuid: UUID,
     val data: Map<Key, JsonElement>,
     @JsonNames("forespoersel-svar")
-    val forespoerselSvar: Forespoersel
+    val forespoerselSvar: Forespoersel,
 ) {
     companion object {
         fun mock(forespoerselSvar: ForespoerselSvar): PublishedData {
@@ -97,11 +97,12 @@ private data class PublishedData(
             return PublishedData(
                 eventName = initiateEvent,
                 uuid = transaksjonId,
-                data = mapOf(
-                    Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
-                    Key.FORESPOERSEL_SVAR to forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull().toJson(Forespoersel.serializer())
-                ),
-                forespoerselSvar = forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull()
+                data =
+                    mapOf(
+                        Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
+                        Key.FORESPOERSEL_SVAR to forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull().toJson(Forespoersel.serializer()),
+                    ),
+                forespoerselSvar = forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull(),
             )
         }
     }
@@ -120,11 +121,12 @@ fun mockFail(forespoerselSvar: ForespoerselSvar): Fail {
         event = initiateEvent,
         transaksjonId = transaksjonId,
         forespoerselId = forespoerselSvar.forespoerselId,
-        utloesendeMelding = mapOf(
-            Key.EVENT_NAME to initiateEvent.toJson(),
-            Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson()
-        ).toJson()
+        utloesendeMelding =
+            mapOf(
+                Key.EVENT_NAME to initiateEvent.toJson(),
+                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
+            ).toJson(),
     )
 }

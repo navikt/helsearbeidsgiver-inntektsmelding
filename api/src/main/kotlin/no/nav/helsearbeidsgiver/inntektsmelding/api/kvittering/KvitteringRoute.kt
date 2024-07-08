@@ -40,22 +40,24 @@ import kotlin.system.measureTimeMillis
 fun Route.kvitteringRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisPoller: RedisPoller,
 ) {
     val kvitteringProducer = KvitteringProducer(rapid)
 
-    val requestLatency = Summary.build()
-        .name("simba_kvittering_latency_seconds")
-        .help("kvittering endpoint latency in seconds")
-        .register()
+    val requestLatency =
+        Summary.build()
+            .name("simba_kvittering_latency_seconds")
+            .help("kvittering endpoint latency in seconds")
+            .register()
 
     get(Routes.KVITTERING) {
         val clientId = UUID.randomUUID()
 
-        val forespoerselId = call.parameters["uuid"]
-            ?.let(::fjernLedendeSlash)
-            ?.runCatching(UUID::fromString)
-            ?.getOrNull()
+        val forespoerselId =
+            call.parameters["uuid"]
+                ?.let(::fjernLedendeSlash)
+                ?.runCatching(UUID::fromString)
+                ?.getOrNull()
 
         if (forespoerselId == null) {
             "Ugyldig parameter: ${call.parameters["uuid"]}".let {
@@ -112,7 +114,7 @@ fun Route.kvitteringRoute(
 private fun InnsendtInntektsmelding.tilKvittering(): Kvittering =
     Kvittering(
         kvitteringDokument = dokument?.tilKvitteringSimba(),
-        kvitteringEkstern = eksternInntektsmelding?.tilKvitteringEkstern()
+        kvitteringEkstern = eksternInntektsmelding?.tilKvitteringEkstern(),
     )
 
 private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
@@ -126,13 +128,14 @@ private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
         arbeidsgiverperioder = arbeidsgiverperioder,
         bestemmendeFraværsdag = bestemmendeFraværsdag,
         fraværsperioder = fraværsperioder,
-        inntekt = Inntekt(
-            bekreftet = true,
-            // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
-            beregnetInntekt = inntekt?.beregnetInntekt ?: beregnetInntekt,
-            endringÅrsak = inntekt?.endringÅrsak,
-            manueltKorrigert = inntekt?.manueltKorrigert.orDefault(false)
-        ),
+        inntekt =
+            Inntekt(
+                bekreftet = true,
+                // Kan slette nullable inntekt og fallback når IM med gammelt format slettes fra database
+                beregnetInntekt = inntekt?.beregnetInntekt ?: beregnetInntekt,
+                endringÅrsak = inntekt?.endringÅrsak,
+                manueltKorrigert = inntekt?.manueltKorrigert.orDefault(false),
+            ),
         fullLønnIArbeidsgiverPerioden = fullLønnIArbeidsgiverPerioden,
         refusjon = refusjon,
         naturalytelser = naturalytelser,
@@ -141,12 +144,12 @@ private fun Inntektsmelding.tilKvitteringSimba(): KvitteringSimba =
         tidspunkt = tidspunkt,
         forespurtData = forespurtData,
         telefonnummer = telefonnummer,
-        innsenderNavn = innsenderNavn
+        innsenderNavn = innsenderNavn,
     )
 
 private fun EksternInntektsmelding.tilKvitteringEkstern(): KvitteringEkstern =
     KvitteringEkstern(
         avsenderSystemNavn,
         arkivreferanse,
-        tidspunkt.atZone(ZoneId.systemDefault()).toOffsetDateTime()
+        tidspunkt.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
     )

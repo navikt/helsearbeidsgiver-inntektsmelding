@@ -14,7 +14,11 @@ class RedisStore(redisUrl: String) {
     private val connection = redisClient.connect()
     private val syncCommands = connection.sync()
 
-    fun set(key: RedisKey, value: String, ttl: Long = 60L) {
+    fun set(
+        key: RedisKey,
+        value: String,
+        ttl: Long = 60L,
+    ) {
         sikkerLogger.debug("Setting in redis: $key -> $value")
         syncCommands.set(key.toString(), value, SetArgs().ex(ttl))
     }

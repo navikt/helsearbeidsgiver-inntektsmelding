@@ -33,6 +33,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
@@ -221,6 +222,7 @@ abstract class EndToEndTest : ContainerTest() {
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
             createHelsebro(mockPriProducer)
+            createHentEksternImRiver(spinnKlient)
             createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)

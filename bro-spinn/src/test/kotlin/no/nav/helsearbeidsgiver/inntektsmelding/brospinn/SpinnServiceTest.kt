@@ -45,9 +45,10 @@ class SpinnServiceTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
+            Key.DATA to mapOf(
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson()
+            ).toJson()
         )
 
         val actual = testRapid.firstMessage().toMap()
@@ -63,10 +64,11 @@ class SpinnServiceTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
             Key.UUID to Mock.transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
-            Key.EKSTERN_INNTEKTSMELDING to Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
+            Key.DATA to mapOf(
+                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+                Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
+                Key.EKSTERN_INNTEKTSMELDING to Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
+            ).toJson()
         )
 
         verify {

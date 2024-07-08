@@ -10,10 +10,10 @@ import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
@@ -73,6 +73,13 @@ class ServiceRiverTest : FunSpec({
                     Key.UUID to UUID.randomUUID().toJson(),
                     Key.FAIL to Mock.fail.toJson(Fail.serializer()),
                     Key.DATA to Mock.values(mockService.dataKeys).toJson()
+                ),
+
+                "over behov (som skal ignoreres)" to mapOf(
+                    Key.EVENT_NAME to mockService.eventName.toJson(),
+                    Key.UUID to UUID.randomUUID().toJson(),
+                    Key.FAIL to Mock.fail.toJson(Fail.serializer()),
+                    Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson()
                 )
             )
         ) { innkommendeMelding ->
@@ -440,6 +447,24 @@ class ServiceRiverTest : FunSpec({
         context("datamelding") {
             withData(
                 mapOf(
+                    "med behov" to mapOf(
+                        Key.EVENT_NAME to mockService.eventName.toJson(),
+                        Key.UUID to UUID.randomUUID().toJson(),
+                        Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                        Key.DATA to "".toJson(),
+                        *Mock.values(mockService.startKeys).toList().toTypedArray(),
+                        Key.PERSONER to "mock personer".toJson()
+                    ),
+
+                    "med behov (nested data)" to mapOf(
+                        Key.EVENT_NAME to mockService.eventName.toJson(),
+                        Key.UUID to UUID.randomUUID().toJson(),
+                        Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                        Key.DATA to Mock.values(mockService.startKeys)
+                            .plus(Key.PERSONER to "mock personer".toJson())
+                            .toJson()
+                    ),
+
                     "uten alle startdataverdier" to mapOf(
                         Key.EVENT_NAME to mockService.eventName.toJson(),
                         Key.UUID to UUID.randomUUID().toJson(),

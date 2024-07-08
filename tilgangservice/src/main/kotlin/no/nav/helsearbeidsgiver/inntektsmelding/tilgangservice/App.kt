@@ -29,15 +29,15 @@ fun RapidsConnection.createTilgangService(redisConnection: RedisConnection): Rap
         ServiceRiver(
             TilgangForespoerselService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangForespoerselService)
-            )
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangForespoerselService),
+            ),
         ).connect(this)
 
         logger.info("Starter ${TilgangOrgService::class.simpleName}...")
         ServiceRiver(
             TilgangOrgService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangOrgService)
-            )
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangOrgService),
+            ),
         ).connect(this)
     }

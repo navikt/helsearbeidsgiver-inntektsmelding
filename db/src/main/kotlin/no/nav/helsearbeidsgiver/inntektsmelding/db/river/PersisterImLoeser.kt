@@ -23,18 +23,17 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class PersisterImLoeser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BehovType.PERSISTER_IM.name
+                Key.BEHOV to BehovType.PERSISTER_IM.name,
             )
             it.interestedIn(
                 Key.FORESPOERSEL_ID,
-                Key.INNTEKTSMELDING
+                Key.INNTEKTSMELDING,
             )
         }
 
@@ -64,7 +63,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 transaksjonId = transaksjonId,
                 forespoerselId = forespoerselId,
                 Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
+                Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
             )
         } catch (ex: Exception) {
             logger.error("Klarte ikke persistere: $forespoerselId")

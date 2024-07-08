@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class OpprettSakServiceTest {
-
     private val testRapid = TestRapid()
     private val mockRedis = MockRedis()
 
@@ -52,31 +51,33 @@ class OpprettSakServiceTest {
                 Key.CLIENT_ID to UUID.randomUUID().toJson(),
                 Key.FORESPOERSEL_ID to foresporselId.toJson(),
                 Key.ORGNRUNDERENHET to "123456".toJson(),
-                Key.IDENTITETSNUMMER to fnr.toJson()
+                Key.IDENTITETSNUMMER to fnr.toJson(),
             )
         }
 
         testRapid.sendJson(
-            Key.FAIL to Fail(
-                feilmelding = "Klarte ikke hente navn",
-                event = EventName.SAK_OPPRETT_REQUESTED,
-                transaksjonId = transaksjonId,
-                forespoerselId = foresporselId,
-                utloesendeMelding = JsonObject(
-                    mapOf(
-                        Key.BEHOV.str to BehovType.FULLT_NAVN.toJson()
-                    )
-                )
-            ).toJson(Fail.serializer()),
+            Key.FAIL to
+                Fail(
+                    feilmelding = "Klarte ikke hente navn",
+                    event = EventName.SAK_OPPRETT_REQUESTED,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = foresporselId,
+                    utloesendeMelding =
+                        JsonObject(
+                            mapOf(
+                                Key.BEHOV.str to BehovType.FULLT_NAVN.toJson(),
+                            ),
+                        ),
+                ).toJson(Fail.serializer()),
             Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson()
+            Key.FORESPOERSEL_ID to foresporselId.toJson(),
         )
 
         verify {
             mockRedis.store.set(
                 RedisKey.of(transaksjonId, Key.ARBEIDSTAKER_INFORMASJON),
-                PersonDato("Ukjent person", null, fnr).toJsonStr(PersonDato.serializer())
+                PersonDato("Ukjent person", null, fnr).toJsonStr(PersonDato.serializer()),
             )
         }
     }

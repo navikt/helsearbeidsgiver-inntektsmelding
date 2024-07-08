@@ -25,13 +25,12 @@ data class Melding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    val identitetsnummer: String
+    val identitetsnummer: String,
 )
 
 class AltinnRiver(
-    private val altinnClient: AltinnClient
+    private val altinnClient: AltinnClient,
 ) : ObjectRiver<Melding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -43,7 +42,7 @@ class AltinnRiver(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.ARBEIDSGIVERE, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                identitetsnummer = Key.IDENTITETSNUMMER.les(String.serializer(), json)
+                identitetsnummer = Key.IDENTITETSNUMMER.les(String.serializer(), json),
             )
         }
 
@@ -62,18 +61,22 @@ class AltinnRiver(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to mapOf(dataField).toJson(),
-            dataField
+            dataField,
         )
     }
 
-    override fun Melding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
-        val fail = Fail(
-            feilmelding = "Klarte ikke hente organisasjonsrettigheter fra Altinn.",
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = json.toJson()
-        )
+    override fun Melding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke hente organisasjonsrettigheter fra Altinn.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding = json.toJson(),
+            )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
@@ -86,6 +89,6 @@ class AltinnRiver(
             Log.klasse(this@AltinnRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         )
 }

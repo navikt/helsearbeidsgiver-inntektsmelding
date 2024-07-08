@@ -40,7 +40,7 @@ class KvitteringServiceTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson()
+            Key.FORESPOERSEL_ID to foresporselId.toJson(),
         )
 
         testRapid.reset()
@@ -50,7 +50,7 @@ class KvitteringServiceTest {
             Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to foresporselId.toJson(),
             Key.DATA to "".toJson(),
-            Key.INNTEKTSMELDING_DOKUMENT to im.toJson()
+            Key.INNTEKTSMELDING_DOKUMENT to im.toJson(),
         )
 
         verify {

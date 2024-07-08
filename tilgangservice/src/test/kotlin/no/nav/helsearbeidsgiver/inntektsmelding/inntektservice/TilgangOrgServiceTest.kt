@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TilgangOrgServiceTest {
-
     private val testRapid = TestRapid()
     private val mockRedis = MockRedisClassSpecific(RedisPrefix.TilgangOrgService)
 
@@ -45,26 +44,29 @@ class TilgangOrgServiceTest {
         val event = EventName.TILGANG_ORG_REQUESTED
         val transaksjonId = UUID.randomUUID()
 
-        val fail = Fail(
-            feilmelding = "ikkeno",
-            event = event,
-            transaksjonId = transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = JsonObject(
-                mapOf(
-                    Key.BEHOV.str to BehovType.TILGANGSKONTROLL.toJson()
-                )
+        val fail =
+            Fail(
+                feilmelding = "ikkeno",
+                event = event,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding =
+                    JsonObject(
+                        mapOf(
+                            Key.BEHOV.str to BehovType.TILGANGSKONTROLL.toJson(),
+                        ),
+                    ),
             )
-        )
 
         shouldNotThrowAny {
             service.onError(emptyMap(), fail)
         }
 
-        val expectedResultJson = TilgangResultat(
-            feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
-        )
-            .toJson(TilgangResultat.serializer())
+        val expectedResultJson =
+            TilgangResultat(
+                feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE,
+            )
+                .toJson(TilgangResultat.serializer())
 
         verify {
             mockRedis.store.set(RedisKey.of(transaksjonId), expectedResultJson)

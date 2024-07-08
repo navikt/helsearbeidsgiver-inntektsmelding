@@ -35,35 +35,38 @@ import kotlin.system.measureTimeMillis
 fun Route.innsendingRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisPoller: RedisPoller,
 ) {
     val producer = InnsendingProducer(rapid)
 
-    val requestLatency = Summary.build()
-        .name("simba_innsending_latency_seconds")
-        .help("innsending endpoint latency in seconds")
-        .register()
+    val requestLatency =
+        Summary.build()
+            .name("simba_innsending_latency_seconds")
+            .help("innsending endpoint latency in seconds")
+            .register()
 
     post(Routes.INNSENDING + "/{forespoerselId}") {
         val clientId = UUID.randomUUID()
 
-        val forespoerselId = call.parameters["forespoerselId"]
-            ?.runCatching(UUID::fromString)
-            ?.getOrNull()
+        val forespoerselId =
+            call.parameters["forespoerselId"]
+                ?.runCatching(UUID::fromString)
+                ?.getOrNull()
 
         if (forespoerselId != null) {
             val requestTimer = requestLatency.startTimer()
             measureTimeMillis {
                 try {
-                    val request = call.receiveText()
-                        .parseJson()
-                        .also { json ->
-                            "Mottok innsending med forespørselId: $forespoerselId".let {
-                                logger.info(it)
-                                sikkerLogger.info("$it og request:\n$json")
+                    val request =
+                        call.receiveText()
+                            .parseJson()
+                            .also { json ->
+                                "Mottok innsending med forespørselId: $forespoerselId".let {
+                                    logger.info(it)
+                                    sikkerLogger.info("$it og request:\n$json")
+                                }
                             }
-                        }
-                        .fromJson(Innsending.serializer())
+                            .fromJson(Innsending.serializer())
 
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 

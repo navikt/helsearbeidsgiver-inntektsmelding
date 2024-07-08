@@ -24,13 +24,12 @@ class HentEksternImMelding(
     val transaksjonId: UUID,
     val data: Map<Key, JsonElement>,
     val forespoerselId: UUID,
-    val spinnImId: UUID
+    val spinnImId: UUID,
 )
 
 class HentEksternImRiver(
-    private val spinnKlient: SpinnKlient
+    private val spinnKlient: SpinnKlient,
 ) : ObjectRiver<HentEksternImMelding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -46,7 +45,7 @@ class HentEksternImRiver(
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 data = data,
                 forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, data),
-                spinnImId = Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, data)
+                spinnImId = Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, data),
             )
         }
 
@@ -58,26 +57,32 @@ class HentEksternImRiver(
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to data.plus(
-                Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
-            )
-                .toJson()
+            Key.DATA to
+                data.plus(
+                    Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                )
+                    .toJson(),
         )
     }
 
-    override fun HentEksternImMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
-        val feilmelding = when (error) {
-            is SpinnApiException -> "Klarte ikke hente ekstern inntektsmelding via Spinn API: ${error.message}"
-            else -> "Ukjent feil under henting av ekstern inntektsmelding via Spinn API."
-        }
+    override fun HentEksternImMelding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val feilmelding =
+            when (error) {
+                is SpinnApiException -> "Klarte ikke hente ekstern inntektsmelding via Spinn API: ${error.message}"
+                else -> "Ukjent feil under henting av ekstern inntektsmelding via Spinn API."
+            }
 
-        val fail = Fail(
-            feilmelding = feilmelding,
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = forespoerselId,
-            utloesendeMelding = json.toJson()
-        )
+        val fail =
+            Fail(
+                feilmelding = feilmelding,
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = forespoerselId,
+                utloesendeMelding = json.toJson(),
+            )
 
         logger.error(feilmelding)
         sikkerLogger.error(feilmelding, error)
@@ -91,6 +96,6 @@ class HentEksternImRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(forespoerselId),
         )
 }

@@ -35,13 +35,13 @@ data class HentForespoerselResponse(
     val erBesvart: Boolean,
     val feilReport: FeilReport? = null,
     val success: JsonElement? = null,
-    val failure: JsonElement? = null
+    val failure: JsonElement? = null,
 )
 
 @Deprecated("fjern når det ikke lenger brukes i frontend")
 @Serializable
 data class FeilReport(
-    val feil: MutableList<Feilmelding> = mutableListOf()
+    val feil: MutableList<Feilmelding> = mutableListOf(),
 )
 
 @Deprecated("fjern når det ikke lenger brukes i frontend")
@@ -50,5 +50,5 @@ data class Feilmelding(
     val melding: String,
     // TODO fjern når frontend ikke lenger bruker
     val status: Int? = null,
-    val datafelt: Key? = null
+    val datafelt: Key? = null,
 )

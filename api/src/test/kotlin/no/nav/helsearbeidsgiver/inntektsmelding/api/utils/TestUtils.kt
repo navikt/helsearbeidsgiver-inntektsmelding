@@ -31,15 +31,16 @@ val ikkeTilgangResultat = TilgangResultat(Tilgang.IKKE_TILGANG).toJson(TilgangRe
 abstract class ApiTest : MockAuthToken() {
     val mockRedisPoller = mockk<RedisPoller>()
 
-    fun testApi(block: suspend TestClient.() -> Unit): Unit = testApplication {
-        application {
-            apiModule(mockk(relaxed = true), mockRedisPoller)
+    fun testApi(block: suspend TestClient.() -> Unit): Unit =
+        testApplication {
+            application {
+                apiModule(mockk(relaxed = true), mockRedisPoller)
+            }
+
+            val testClient = TestClient(this, ::mockAuthToken)
+
+            testClient.block()
         }
-
-        val testClient = TestClient(this, ::mockAuthToken)
-
-        testClient.block()
-    }
 
     @AfterEach
     fun cleanupPrometheus() {
@@ -49,17 +50,18 @@ abstract class ApiTest : MockAuthToken() {
 
 class TestClient(
     appTestBuilder: ApplicationTestBuilder,
-    private val authToken: () -> String
+    private val authToken: () -> String,
 ) {
-    private val httpClient = appTestBuilder.createClient {
-        install(ContentNegotiation) {
-            json(jsonConfig)
+    private val httpClient =
+        appTestBuilder.createClient {
+            install(ContentNegotiation) {
+                json(jsonConfig)
+            }
         }
-    }
 
     fun get(
         path: String,
-        block: HttpRequestBuilder.() -> Unit = { withAuth() }
+        block: HttpRequestBuilder.() -> Unit = { withAuth() },
     ): HttpResponse =
         runBlocking {
             httpClient.get(path) {
@@ -70,7 +72,7 @@ class TestClient(
     fun post(
         path: String,
         body: JsonElement,
-        block: HttpRequestBuilder.() -> Unit = { withAuth() }
+        block: HttpRequestBuilder.() -> Unit = { withAuth() },
     ): HttpResponse =
         runBlocking {
             httpClient.post(path) {
@@ -85,12 +87,12 @@ class TestClient(
         path: String,
         body: T,
         bodySerializer: KSerializer<T>,
-        block: HttpRequestBuilder.() -> Unit = { withAuth() }
+        block: HttpRequestBuilder.() -> Unit = { withAuth() },
     ): HttpResponse =
         post(
             path,
             body.toJson(bodySerializer),
-            block
+            block,
         )
 
     private fun HttpRequestBuilder.withAuth() {

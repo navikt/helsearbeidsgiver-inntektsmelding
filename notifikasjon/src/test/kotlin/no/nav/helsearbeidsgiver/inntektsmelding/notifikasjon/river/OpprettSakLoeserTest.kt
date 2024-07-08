@@ -47,7 +47,7 @@ class OpprettSakLoeserTest : FunSpec({
                 tittel = "Inntektsmelding for ${mockPersonDato().navn}: f. 050120",
                 statusTekst = "NAV trenger inntektsmelding",
                 initiellStatus = SaksStatus.UNDER_BEHANDLING,
-                harddeleteOm = 390.days
+                harddeleteOm = 390.days,
             )
         } returns expectedSakId
 
@@ -57,7 +57,7 @@ class OpprettSakLoeserTest : FunSpec({
             Key.ARBEIDSTAKER_INFORMASJON to mockPersonDato().toJson(PersonDato.serializer()),
             Key.ORGNRUNDERENHET to "org-456".toJson(),
             Key.IDENTITETSNUMMER to "12345678901".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
         val resultat = testRapid.firstMessage()
@@ -82,7 +82,7 @@ class OpprettSakLoeserTest : FunSpec({
                 any(),
                 any(),
                 any(),
-                any()
+                any(),
             )
         } throws OpprettNySakException("Duplikat")
 
@@ -92,7 +92,7 @@ class OpprettSakLoeserTest : FunSpec({
             Key.ARBEIDSTAKER_INFORMASJON to mockPersonDato().toJson(PersonDato.serializer()),
             Key.ORGNRUNDERENHET to "org-456".toJson(),
             Key.IDENTITETSNUMMER to "12345678901".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
         val resultat = testRapid.firstMessage()
@@ -105,5 +105,5 @@ private fun mockPersonDato(): PersonDato =
     PersonDato(
         navn = "Rosa damesykkel",
         fødselsdato = 5.januar(2020),
-        "12345678910"
+        "12345678910",
     )

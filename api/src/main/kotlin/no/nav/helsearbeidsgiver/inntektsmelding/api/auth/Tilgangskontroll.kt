@@ -15,11 +15,11 @@ import java.util.UUID
 class Tilgangskontroll(
     private val tilgangProducer: TilgangProducer,
     private val cache: LocalCache<Tilgang>,
-    private val redisPoller: RedisPoller
+    private val redisPoller: RedisPoller,
 ) {
     fun validerTilgangTilForespoersel(
         request: ApplicationRequest,
-        forespoerselId: UUID
+        forespoerselId: UUID,
     ) {
         validerTilgang(request, forespoerselId.toString()) { transaksjonId, fnr ->
             tilgangProducer.publishForespoerselId(transaksjonId, fnr, forespoerselId)
@@ -28,7 +28,7 @@ class Tilgangskontroll(
 
     fun validerTilgangTilOrg(
         request: ApplicationRequest,
-        orgnr: String
+        orgnr: String,
     ) {
         validerTilgang(request, orgnr) { transaksjonId, fnr ->
             tilgangProducer.publishOrgnr(transaksjonId, fnr, orgnr)
@@ -38,23 +38,25 @@ class Tilgangskontroll(
     private fun validerTilgang(
         request: ApplicationRequest,
         cacheKeyPostfix: String,
-        publish: (UUID, Fnr) -> Unit
+        publish: (UUID, Fnr) -> Unit,
     ) {
         val transaksjonId = UUID.randomUUID()
         val innloggerFnr = request.lesFnrFraAuthToken()
 
-        val tilgang = runBlocking {
-            cache.get("$innloggerFnr:$cacheKeyPostfix") {
-                logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll.")
+        val tilgang =
+            runBlocking {
+                cache.get("$innloggerFnr:$cacheKeyPostfix") {
+                    logger.info("Fant ikke tilgang i cache, ber om tilgangskontroll.")
 
-                publish(transaksjonId, innloggerFnr)
+                    publish(transaksjonId, innloggerFnr)
 
-                val resultat = redisPoller.hent(transaksjonId)
-                    .fromJson(TilgangResultat.serializer())
+                    val resultat =
+                        redisPoller.hent(transaksjonId)
+                            .fromJson(TilgangResultat.serializer())
 
-                resultat.tilgang ?: throw ManglerAltinnRettigheterException()
+                    resultat.tilgang ?: throw ManglerAltinnRettigheterException()
+                }
             }
-        }
 
         if (tilgang != Tilgang.HAR_TILGANG) {
             logger.warn("Kall for ID '$cacheKeyPostfix' har ikke tilgang.")

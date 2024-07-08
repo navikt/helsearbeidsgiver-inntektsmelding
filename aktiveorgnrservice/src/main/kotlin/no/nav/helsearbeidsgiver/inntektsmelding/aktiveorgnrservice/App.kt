@@ -29,7 +29,7 @@ fun RapidsConnection.createAktiveOrgnrService(redisConnection: RedisConnection):
         ServiceRiver(
             AktiveOrgnrService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.AktiveOrgnrService)
-            )
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.AktiveOrgnrService),
+            ),
         ).connect(this)
     }

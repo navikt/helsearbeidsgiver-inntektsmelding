@@ -12,7 +12,6 @@ import org.mapstruct.factory.Mappers
 import java.time.LocalDate
 
 class InntektEndringAarsakMapperTest {
-
     @Test
     fun inntektEndringAarsakTilString() {
         val gjelderFra = LocalDate.of(2020, 1, 1)

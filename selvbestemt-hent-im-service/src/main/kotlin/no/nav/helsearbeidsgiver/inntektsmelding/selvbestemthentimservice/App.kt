@@ -29,8 +29,8 @@ fun RapidsConnection.createHentSelvbestemtImService(redisConnection: RedisConnec
         ServiceRiver(
             HentSelvbestemtImService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentSelvbestemtImService)
-            )
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentSelvbestemtImService),
+            ),
         )
             .connect(this)
     }

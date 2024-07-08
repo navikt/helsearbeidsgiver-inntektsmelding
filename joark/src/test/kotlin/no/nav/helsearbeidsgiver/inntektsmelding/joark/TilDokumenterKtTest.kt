@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TilDokumenterKtTest {
-
     @Test
     fun tilDokumenter() {
         val mockInntektsmelding = mockInntektsmelding()

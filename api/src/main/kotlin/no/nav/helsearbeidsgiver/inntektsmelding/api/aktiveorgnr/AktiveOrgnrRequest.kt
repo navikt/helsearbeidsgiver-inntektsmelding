@@ -5,5 +5,5 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 
 @Serializable
 data class AktiveOrgnrRequest(
-    val identitetsnummer: Fnr
+    val identitetsnummer: Fnr,
 )

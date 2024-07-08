@@ -54,11 +54,11 @@ class RedisPoller {
 
 sealed class RedisPollerException(
     message: String,
-    cause: Throwable? = null
+    cause: Throwable? = null,
 ) : Exception(message, cause)
 
 class RedisPollerJsonParseException(message: String, cause: Throwable) : RedisPollerException(message, cause)
 
 class RedisPollerTimeoutException(uuid: UUID) : RedisPollerException(
-    "Brukte for lang tid på å svare ($uuid)."
+    "Brukte for lang tid på å svare ($uuid).",
 )

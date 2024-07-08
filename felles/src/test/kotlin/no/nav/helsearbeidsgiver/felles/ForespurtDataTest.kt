@@ -16,7 +16,7 @@ class ForespurtDataTest : FunSpec({
     listOf(
         row("forespurtData", ::mockForespurtData),
         row("forespurtDataMedFastsattInntekt", ::mockForespurtDataMedFastsattInntekt),
-        row("forespurtDataMedForrigeInntekt", ::mockForespurtDataMedForrigeInntekt)
+        row("forespurtDataMedForrigeInntekt", ::mockForespurtDataMedForrigeInntekt),
     )
         .forEach { (fileName, mockDataFn) ->
             val expectedJson = "json/$fileName.json".readResource().removeJsonWhitespace()

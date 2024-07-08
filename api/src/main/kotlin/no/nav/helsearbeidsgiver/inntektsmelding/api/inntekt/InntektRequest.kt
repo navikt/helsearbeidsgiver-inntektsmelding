@@ -12,5 +12,5 @@ import java.util.UUID
 @Serializable
 data class InntektRequest(
     val forespoerselId: UUID,
-    val skjaeringstidspunkt: LocalDate
+    val skjaeringstidspunkt: LocalDate,
 )

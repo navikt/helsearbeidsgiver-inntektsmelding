@@ -12,19 +12,20 @@ import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
 abstract class FunSpecWithDb(
     table: List<Table>,
-    body: FunSpec.(ExposedDatabase) -> Unit
+    body: FunSpec.(ExposedDatabase) -> Unit,
 ) : FunSpec({
-    val db = Database(dbConfig())
-        .configureFlyway()
+        val db =
+            Database(dbConfig())
+                .configureFlyway()
 
-    beforeEach {
-        transaction {
-            table.forEach { it.deleteAll() }
+        beforeEach {
+            transaction {
+                table.forEach { it.deleteAll() }
+            }
         }
-    }
 
-    body(db.db)
-})
+        body(db.db)
+    })
 
 fun postgresContainer(): PostgreSQLContainer<Nothing> =
     PostgreSQLContainer<Nothing>("postgres:14").apply {
@@ -37,7 +38,7 @@ private fun PostgreSQLContainer<Nothing>.setupAndStart(): PostgreSQLContainer<No
         withLabel("app-navn", "test-database")
         start()
         println(
-            "🎩 Databasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test"
+            "🎩 Databasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test",
         )
     }
 

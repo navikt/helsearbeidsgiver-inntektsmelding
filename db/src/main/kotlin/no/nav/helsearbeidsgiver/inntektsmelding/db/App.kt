@@ -42,7 +42,7 @@ fun main() {
 fun RapidsConnection.createDbRivers(
     imRepo: InntektsmeldingRepository,
     selvbestemtImRepo: SelvbestemtImRepo,
-    forespoerselRepo: ForespoerselRepository
+    forespoerselRepo: ForespoerselRepository,
 ): RapidsConnection =
     also {
         logger.info("Starter ${LagreForespoerselLoeser::class.simpleName}...")

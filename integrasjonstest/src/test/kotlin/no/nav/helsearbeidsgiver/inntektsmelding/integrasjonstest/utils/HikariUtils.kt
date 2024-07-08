@@ -19,5 +19,4 @@ fun PostgreSQLContainer<Nothing>.toHikariConfig(): HikariConfig =
         maxLifetime = idleTimeout * 5
     }
 
-private fun Duration.toMillis(): Long =
-    toJavaDuration().toMillis()
+private fun Duration.toMillis(): Long = toJavaDuration().toMillis()

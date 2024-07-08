@@ -51,112 +51,126 @@ class InntektLoeserTest : FunSpec({
     test("Gir inntekt når klienten svarer med inntekt for orgnr") {
         coEvery {
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } returns mapOf(
-            Mock.orgnr.verdi to mapOf(
-                januar(2018) to 10.0,
-                februar(2018) to 11.0,
-                mars(2018) to 12.0
-            ),
-            "annet orgnr" to mapOf(
-                januar(2018) to 20.0,
-                februar(2018) to 21.0,
-                mars(2018) to 22.0
+        } returns
+            mapOf(
+                Mock.orgnr.verdi to
+                    mapOf(
+                        januar(2018) to 10.0,
+                        februar(2018) to 11.0,
+                        mars(2018) to 12.0,
+                    ),
+                "annet orgnr" to
+                    mapOf(
+                        januar(2018) to 20.0,
+                        februar(2018) to 21.0,
+                        mars(2018) to 22.0,
+                    ),
             )
-        )
 
         testRapid.sendJson(mockInnkommendeMelding())
 
         val publisert = testRapid.firstMessage().toMap()
 
         publisert shouldContainKey Key.DATA
-        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe Inntekt(
-            maanedOversikt = listOf(
-                InntektPerMaaned(
-                    maaned = januar(2018),
-                    inntekt = 10.0
-                ),
-                InntektPerMaaned(
-                    maaned = februar(2018),
-                    inntekt = 11.0
-                ),
-                InntektPerMaaned(
-                    maaned = mars(2018),
-                    inntekt = 12.0
-                )
+        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe
+            Inntekt(
+                maanedOversikt =
+                    listOf(
+                        InntektPerMaaned(
+                            maaned = januar(2018),
+                            inntekt = 10.0,
+                        ),
+                        InntektPerMaaned(
+                            maaned = februar(2018),
+                            inntekt = 11.0,
+                        ),
+                        InntektPerMaaned(
+                            maaned = mars(2018),
+                            inntekt = 12.0,
+                        ),
+                    ),
             )
-        )
     }
 
     test("Gir måneder uten inntekt når klienten svarer med inntekt utelukkende for andre orgnr") {
         coEvery {
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } returns mapOf(
-            "annet orgnr" to mapOf(
-                januar(2018) to 10.0,
-                februar(2018) to 11.0,
-                mars(2018) to 12.0
+        } returns
+            mapOf(
+                "annet orgnr" to
+                    mapOf(
+                        januar(2018) to 10.0,
+                        februar(2018) to 11.0,
+                        mars(2018) to 12.0,
+                    ),
             )
-        )
 
         testRapid.sendJson(mockInnkommendeMelding())
 
         val publisert = testRapid.firstMessage().toMap()
 
         publisert shouldContainKey Key.DATA
-        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe Inntekt(
-            maanedOversikt = listOf(
-                InntektPerMaaned(
-                    maaned = januar(2018),
-                    inntekt = null
-                ),
-                InntektPerMaaned(
-                    maaned = februar(2018),
-                    inntekt = null
-                ),
-                InntektPerMaaned(
-                    maaned = mars(2018),
-                    inntekt = null
-                )
+        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe
+            Inntekt(
+                maanedOversikt =
+                    listOf(
+                        InntektPerMaaned(
+                            maaned = januar(2018),
+                            inntekt = null,
+                        ),
+                        InntektPerMaaned(
+                            maaned = februar(2018),
+                            inntekt = null,
+                        ),
+                        InntektPerMaaned(
+                            maaned = mars(2018),
+                            inntekt = null,
+                        ),
+                    ),
             )
-        )
     }
 
     test("Setter inn manglende måned med null") {
         coEvery {
             inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } returns mapOf(
-            Mock.orgnr.verdi to mapOf(
-                januar(2018) to 10.0,
-                mars(2018) to 12.0
-            ),
-            "annet orgnr" to mapOf(
-                januar(2018) to 20.0,
-                februar(2018) to 21.0,
-                mars(2018) to 22.0
+        } returns
+            mapOf(
+                Mock.orgnr.verdi to
+                    mapOf(
+                        januar(2018) to 10.0,
+                        mars(2018) to 12.0,
+                    ),
+                "annet orgnr" to
+                    mapOf(
+                        januar(2018) to 20.0,
+                        februar(2018) to 21.0,
+                        mars(2018) to 22.0,
+                    ),
             )
-        )
 
         testRapid.sendJson(mockInnkommendeMelding())
 
         val publisert = testRapid.firstMessage().toMap()
 
         publisert shouldContainKey Key.DATA
-        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe Inntekt(
-            maanedOversikt = listOf(
-                InntektPerMaaned(
-                    maaned = januar(2018),
-                    inntekt = 10.0
-                ),
-                InntektPerMaaned(
-                    maaned = februar(2018),
-                    inntekt = null
-                ),
-                InntektPerMaaned(
-                    maaned = mars(2018),
-                    inntekt = 12.0
-                )
+        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe
+            Inntekt(
+                maanedOversikt =
+                    listOf(
+                        InntektPerMaaned(
+                            maaned = januar(2018),
+                            inntekt = 10.0,
+                        ),
+                        InntektPerMaaned(
+                            maaned = februar(2018),
+                            inntekt = null,
+                        ),
+                        InntektPerMaaned(
+                            maaned = mars(2018),
+                            inntekt = 12.0,
+                        ),
+                    ),
             )
-        )
     }
 
     test("Svarer med påkrevde felt") {
@@ -189,7 +203,7 @@ class InntektLoeserTest : FunSpec({
                 fom = Mock.skjaeringstidspunkt.toYearMonth().minusMonths(3),
                 tom = Mock.skjaeringstidspunkt.toYearMonth().minusMonths(1),
                 navConsumerId = any(),
-                callId = any()
+                callId = any(),
             )
         }
     }
@@ -259,5 +273,5 @@ private fun mockInnkommendeMelding(): Map<Key, JsonElement> =
         Key.UUID to Mock.uuid.toJson(),
         Key.ORGNRUNDERENHET to Mock.orgnr.verdi.toJson(),
         Key.FNR to Mock.fnr.verdi.toJson(),
-        Key.SKJAERINGSTIDSPUNKT to Mock.skjaeringstidspunkt.toJson()
+        Key.SKJAERINGSTIDSPUNKT to Mock.skjaeringstidspunkt.toJson(),
     )

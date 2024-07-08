@@ -20,7 +20,7 @@ class LagreStartDataRedisRiver(
     private val dataKeys: Set<Key>,
     rapid: RapidsConnection,
     private val redisStore: RedisStore,
-    private val etterDataLagret: (JsonMessage, MessageContext) -> Unit
+    private val etterDataLagret: (JsonMessage, MessageContext) -> Unit,
 ) : River.PacketListener {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -29,23 +29,26 @@ class LagreStartDataRedisRiver(
         River(rapid).apply {
             validate {
                 it.demandValues(
-                    Key.EVENT_NAME to eventName.name
+                    Key.EVENT_NAME to eventName.name,
                 )
                 it.rejectKeys(
                     Key.BEHOV,
                     Key.DATA,
-                    Key.FAIL
+                    Key.FAIL,
                 )
                 it.interestedIn(
                     Key.UUID,
-                    *dataKeys.toTypedArray()
+                    *dataKeys.toTypedArray(),
                 )
             }
         }
             .register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         lagreData(packet)
 
         "Lagret startdata for event $eventName.".also {
@@ -65,7 +68,7 @@ class LagreStartDataRedisRiver(
         packet[Key.UUID.str] = transaksjonId.toString()
 
         melding.plus(
-            Key.UUID to transaksjonId.toJson()
+            Key.UUID to transaksjonId.toJson(),
         )
             .filterKeys(dataKeys::contains)
             .onEach { (key, data) ->

@@ -28,21 +28,22 @@ import java.util.UUID
 
 class OpprettOppgaveService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStore,
 ) : CompositeEventListener() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.OPPGAVE_OPPRETT_REQUESTED
-    override val startKeys = setOf(
-        Key.UUID,
-        Key.FORESPOERSEL_ID,
-        Key.ORGNRUNDERENHET
-    )
-    override val dataKeys = setOf(
-        Key.VIRKSOMHET
-    )
+    override val startKeys =
+        setOf(
+            Key.UUID,
+            Key.FORESPOERSEL_ID,
+            Key.ORGNRUNDERENHET,
+        )
+    override val dataKeys =
+        setOf(
+            Key.VIRKSOMHET,
+        )
 
     init {
         LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
@@ -59,7 +60,7 @@ class OpprettOppgaveService(
                 Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson()
+                Key.ORGNRUNDERENHET to orgnr.toJson(),
             )
         }
     }
@@ -81,7 +82,7 @@ class OpprettOppgaveService(
             Log.klasse(this),
             Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(forespoerselId),
         ) {
             val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
             val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
@@ -92,16 +93,19 @@ class OpprettOppgaveService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 Key.VIRKSOMHET to virksomhetNavn.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson()
+                Key.ORGNRUNDERENHET to orgnr.toJson(),
             )
         }
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED),
-            Log.transaksjonId(fail.transaksjonId)
+            Log.transaksjonId(fail.transaksjonId),
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             if (utloesendeBehov == BehovType.VIRKSOMHET) {
@@ -114,8 +118,9 @@ class OpprettOppgaveService(
                 return finalize(meldingMedDefault)
             }
 
-            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
-                ?.let(UUID::fromString)
+            val clientId =
+                redisStore.get(RedisKey.of(fail.transaksjonId, event))
+                    ?.let(UUID::fromString)
 
             if (clientId == null) {
                 sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
@@ -125,17 +130,20 @@ class OpprettOppgaveService(
         }
     }
 
-    private inline fun medTransaksjonIdOgForespoerselId(melding: Map<Key, JsonElement>, block: (UUID, UUID) -> Unit) {
+    private inline fun medTransaksjonIdOgForespoerselId(
+        melding: Map<Key, JsonElement>,
+        block: (UUID, UUID) -> Unit,
+    ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED)
+            Log.event(EventName.OPPGAVE_OPPRETT_REQUESTED),
         ) {
             val transaksjonId = Key.UUID.les(UuidSerializer, melding)
             val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
 
             MdcUtils.withLogFields(
                 Log.transaksjonId(transaksjonId),
-                Log.forespoerselId(forespoerselId)
+                Log.forespoerselId(forespoerselId),
             ) {
                 block(transaksjonId, forespoerselId)
             }

@@ -37,7 +37,7 @@ class InntektSelvbestemtServiceTest : FunSpec({
     val mockRedis = MockRedisClassSpecific(RedisPrefix.InntektSelvbestemtService)
 
     ServiceRiver(
-        InntektSelvbestemtService(testRapid, mockRedis.store)
+        InntektSelvbestemtService(testRapid, mockRedis.store),
     ).connect(testRapid)
 
     beforeEach {
@@ -50,14 +50,14 @@ class InntektSelvbestemtServiceTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         testRapid.sendJson(
-            mockStartMelding(transaksjonId)
+            mockStartMelding(transaksjonId),
         )
 
         testRapid.inspektør.size shouldBeExactly 1
         testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
 
         testRapid.sendJson(
-            mockDataMelding(transaksjonId)
+            mockDataMelding(transaksjonId),
         )
 
         testRapid.inspektør.size shouldBeExactly 1
@@ -66,8 +66,8 @@ class InntektSelvbestemtServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(transaksjonId),
                 ResultJson(
-                    success = Mock.inntekt.toJson(Inntekt.serializer())
-                ).toJson(ResultJson.serializer())
+                    success = Mock.inntekt.toJson(Inntekt.serializer()),
+                ).toJson(ResultJson.serializer()),
             )
         }
     }
@@ -77,7 +77,7 @@ class InntektSelvbestemtServiceTest : FunSpec({
         val feilmelding = "Teknisk feil, prøv igjen senere."
 
         testRapid.sendJson(
-            mockStartMelding(transaksjonId)
+            mockStartMelding(transaksjonId),
         )
 
         testRapid.sendJson(
@@ -86,12 +86,13 @@ class InntektSelvbestemtServiceTest : FunSpec({
                 event = EventName.INNTEKT_SELVBESTEMT_REQUESTED,
                 transaksjonId = transaksjonId,
                 forespoerselId = null,
-                utloesendeMelding = JsonObject(
-                    mapOf(
-                        Key.BEHOV.toString() to BehovType.INNTEKT.toJson()
-                    )
-                )
-            ).tilMelding()
+                utloesendeMelding =
+                    JsonObject(
+                        mapOf(
+                            Key.BEHOV.toString() to BehovType.INNTEKT.toJson(),
+                        ),
+                    ),
+            ).tilMelding(),
         )
 
         testRapid.inspektør.size shouldBeExactly 1
@@ -101,8 +102,8 @@ class InntektSelvbestemtServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(transaksjonId),
                 ResultJson(
-                    failure = feilmelding.toJson()
-                ).toJson(ResultJson.serializer())
+                    failure = feilmelding.toJson(),
+                ).toJson(ResultJson.serializer()),
             )
         }
     }
@@ -115,7 +116,7 @@ fun mockStartMelding(transaksjonId: UUID): Map<Key, JsonElement> =
         Key.DATA to "".toJson(),
         Key.FNR to Fnr.genererGyldig().toJson(),
         Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
-        Key.SKJAERINGSTIDSPUNKT to 14.april.toJson()
+        Key.SKJAERINGSTIDSPUNKT to 14.april.toJson(),
     )
 
 fun mockDataMelding(transaksjonId: UUID): Map<Key, JsonElement> =
@@ -123,15 +124,16 @@ fun mockDataMelding(transaksjonId: UUID): Map<Key, JsonElement> =
         Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
         Key.UUID to transaksjonId.toJson(),
         Key.DATA to "".toJson(),
-        Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer())
+        Key.INNTEKT to Mock.inntekt.toJson(Inntekt.serializer()),
     )
 
 private object Mock {
-    val inntekt = Inntekt(
-        listOf(
-            InntektPerMaaned(april(2019), 40000.0),
-            InntektPerMaaned(mai(2019), 42000.0),
-            InntektPerMaaned(juni(2019), 44000.0)
+    val inntekt =
+        Inntekt(
+            listOf(
+                InntektPerMaaned(april(2019), 40000.0),
+                InntektPerMaaned(mai(2019), 42000.0),
+                InntektPerMaaned(juni(2019), 44000.0),
+            ),
         )
-    )
 }

@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.api.validation
 
 class TelefonnummerValidator(input: String?) {
-
     init {
         require(input != null)
         require(isEightDigits(input) || startsWithPlus(input) || isTwelveDigits(input)) { "Ikke et gyldig telefonnummer" }

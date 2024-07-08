@@ -65,15 +65,15 @@ class MessagesTest : FunSpec({
 private object Mock {
     const val ORGNR = "orgnr-pai"
 
-    val meldinger = mapOf(
-        Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
-        Key.BEHOV.str to BehovType.VIRKSOMHET.toJson(BehovType.serializer()),
-        Key.DATA.str to "".toJson(),
-        Key.VIRKSOMHET.str to ORGNR.toJson()
-    )
-        .toJson()
-        .toMessages()
+    val meldinger =
+        mapOf(
+            Key.EVENT_NAME.str to EventName.TRENGER_REQUESTED.toJson(EventName.serializer()),
+            Key.BEHOV.str to BehovType.VIRKSOMHET.toJson(BehovType.serializer()),
+            Key.DATA.str to "".toJson(),
+            Key.VIRKSOMHET.str to ORGNR.toJson(),
+        )
+            .toJson()
+            .toMessages()
 
-    private fun JsonElement.toMessages(): Messages =
-        Messages(mutableListOf(this))
+    private fun JsonElement.toMessages(): Messages = Messages(mutableListOf(this))
 }

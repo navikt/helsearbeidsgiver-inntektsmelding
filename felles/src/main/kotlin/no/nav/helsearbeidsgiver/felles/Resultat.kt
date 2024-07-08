@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 @Serializable
 data class TilgangResultat(
     val tilgang: Tilgang? = null,
-    val feilmelding: String? = null
+    val feilmelding: String? = null,
 )
 
 @Serializable
@@ -19,5 +19,5 @@ data class HentForespoerselResultat(
     val orgNavn: String,
     val inntekt: Inntekt?,
     val forespoersel: Forespoersel,
-    val feil: Map<Key, String>
+    val feil: Map<Key, String>,
 )

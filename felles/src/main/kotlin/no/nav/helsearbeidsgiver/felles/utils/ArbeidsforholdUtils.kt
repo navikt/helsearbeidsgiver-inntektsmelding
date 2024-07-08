@@ -24,12 +24,14 @@ fun Periode.innenforArbeidsforhold(ansattPerioder: List<PeriodeNullable>): Boole
             (ansPeriode.fom!!.isBefore(this.fom) || ansPeriode.fom.isEqual(this.fom))
     }
 }
+
 fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {
     if (list.size < 2) return list
 
-    val remainingPeriods = list
-        .sortedBy { it.fom }
-        .toMutableList()
+    val remainingPeriods =
+        list
+            .sortedBy { it.fom }
+            .toMutableList()
 
     val merged = ArrayList<PeriodeNullable>()
 
@@ -38,8 +40,9 @@ fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {
         remainingPeriods.removeAt(0)
 
         do {
-            val connectedPeriod = remainingPeriods
-                .find { !oppholdMellomPerioderOverstigerDager(currentPeriod, it, MAKS_DAGER_OPPHOLD) }
+            val connectedPeriod =
+                remainingPeriods
+                    .find { !oppholdMellomPerioderOverstigerDager(currentPeriod, it, MAKS_DAGER_OPPHOLD) }
             if (connectedPeriod != null) {
                 currentPeriod = PeriodeNullable(currentPeriod.fom, connectedPeriod.tom)
                 remainingPeriods.remove(connectedPeriod)
@@ -55,7 +58,7 @@ fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {
 fun oppholdMellomPerioderOverstigerDager(
     a1: PeriodeNullable,
     a2: PeriodeNullable,
-    dager: Long
+    dager: Long,
 ): Boolean {
     return a1.tom?.plusDays(dager)?.isBefore(a2.fom) ?: true
 }

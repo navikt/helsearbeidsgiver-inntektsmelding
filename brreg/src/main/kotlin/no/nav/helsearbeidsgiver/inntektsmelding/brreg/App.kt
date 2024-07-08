@@ -16,7 +16,10 @@ fun main() {
         .start()
 }
 
-fun RapidsConnection.createBrreg(brregClient: BrregClient, isDevelopmentMode: Boolean): RapidsConnection =
+fun RapidsConnection.createBrreg(
+    brregClient: BrregClient,
+    isDevelopmentMode: Boolean,
+): RapidsConnection =
     also {
         logger.info("Starter ${VirksomhetLoeser::class.simpleName}... developmentMode: $isDevelopmentMode")
         VirksomhetLoeser(this, brregClient, isDevelopmentMode)

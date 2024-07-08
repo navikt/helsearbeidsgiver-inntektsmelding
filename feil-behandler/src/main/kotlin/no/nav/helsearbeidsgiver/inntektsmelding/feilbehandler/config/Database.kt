@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.fromEnv
 import org.flywaydb.core.Flyway
 
 class Database(
-    secretsPrefix: String
+    secretsPrefix: String,
 ) {
     private val secrets = Secrets(secretsPrefix)
 
@@ -50,9 +50,10 @@ private class Secrets(prefix: String) {
     val username = "${prefix}_USERNAME".fromEnv()
     val password = "${prefix}_PASSWORD".fromEnv()
 
-    val url = "jdbc:postgresql://%s:%s/%s".format(
-        "${prefix}_HOST".fromEnv(),
-        "${prefix}_PORT".fromEnv(),
-        "${prefix}_DATABASE".fromEnv()
-    )
+    val url =
+        "jdbc:postgresql://%s:%s/%s".format(
+            "${prefix}_HOST".fromEnv(),
+            "${prefix}_PORT".fromEnv(),
+            "${prefix}_DATABASE".fromEnv(),
+        )
 }

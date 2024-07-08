@@ -13,5 +13,5 @@ import java.time.LocalDate
 data class InntektSelvbestemtRequest(
     val sykmeldtFnr: Fnr,
     val orgnr: Orgnr,
-    val inntektsdato: LocalDate
+    val inntektsdato: LocalDate,
 )

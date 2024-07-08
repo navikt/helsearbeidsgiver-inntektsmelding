@@ -50,7 +50,7 @@ class NotifikasjonHentIdLoeserTest : FunSpec({
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
             Key.UUID to expectedTransaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to expectedForespoerselId.toJson()
+            Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
         )
 
         testRapid.inspektør.size shouldBeExactly 2

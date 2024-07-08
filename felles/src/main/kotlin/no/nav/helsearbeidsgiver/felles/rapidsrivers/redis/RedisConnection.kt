@@ -6,21 +6,23 @@ import io.lettuce.core.api.sync.RedisCommands
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 
 class RedisConnection(
-    redisUrl: String
+    redisUrl: String,
 ) {
     private val client: RedisClient = RedisClient.create(redisUrl)
     private val connection: StatefulRedisConnection<String, String> = client.connect()
     private val syncCommands: RedisCommands<String, String> = connection.sync()
 
-    fun get(key: String): String? =
-        syncCommands.get(key)
+    fun get(key: String): String? = syncCommands.get(key)
 
     internal fun getAll(vararg keys: String): Map<String, String> =
         syncCommands.mget(*keys)
             .associate { it.key to it.getValueOrElse(null) }
             .mapValuesNotNull { it }
 
-    internal fun set(key: String, value: String) {
+    internal fun set(
+        key: String,
+        value: String,
+    ) {
         syncCommands.setex(key, 60L, value)
     }
 

@@ -49,15 +49,17 @@ class HentEksternImRiverTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
-            Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.DATA to innkommendeMelding.data
-                .plus(
-                    Key.EKSTERN_INNTEKTSMELDING to MockHent.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
-                )
-                .toJson()
-        )
+        testRapid.firstMessage().toMap() shouldContainExactly
+            mapOf(
+                Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
+                Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                Key.DATA to
+                    innkommendeMelding.data
+                        .plus(
+                            Key.EKSTERN_INNTEKTSMELDING to MockHent.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                        )
+                        .toJson(),
+            )
 
         verifySequence {
             mockSpinnKlient.hentEksternInntektsmelding(innkommendeMelding.spinnImId)
@@ -67,27 +69,30 @@ class HentEksternImRiverTest : FunSpec({
     context("håndterer feil") {
         withData(
             mapOf(
-                "spinn-api feil" to row(
-                    SpinnApiException("You spin me round."),
-                    "Klarte ikke hente ekstern inntektsmelding via Spinn API: You spin me round."
-                ),
-                "ukjent feil" to row(
-                    IllegalArgumentException("Hæ, Dead Or Alive?"),
-                    "Ukjent feil under henting av ekstern inntektsmelding via Spinn API."
-                )
-            )
+                "spinn-api feil" to
+                    row(
+                        SpinnApiException("You spin me round."),
+                        "Klarte ikke hente ekstern inntektsmelding via Spinn API: You spin me round.",
+                    ),
+                "ukjent feil" to
+                    row(
+                        IllegalArgumentException("Hæ, Dead Or Alive?"),
+                        "Ukjent feil under henting av ekstern inntektsmelding via Spinn API.",
+                    ),
+            ),
         ) { (error, expectedFeilmelding) ->
             val innkommendeMelding = MockHent.innkommendeMelding()
 
             val innkommendeJsonMap = innkommendeMelding.toMap()
 
-            val forventetFail = Fail(
-                feilmelding = expectedFeilmelding,
-                event = innkommendeMelding.eventName,
-                transaksjonId = innkommendeMelding.transaksjonId,
-                forespoerselId = innkommendeMelding.forespoerselId,
-                utloesendeMelding = innkommendeJsonMap.toJson()
-            )
+            val forventetFail =
+                Fail(
+                    feilmelding = expectedFeilmelding,
+                    event = innkommendeMelding.eventName,
+                    transaksjonId = innkommendeMelding.transaksjonId,
+                    forespoerselId = innkommendeMelding.forespoerselId,
+                    utloesendeMelding = innkommendeJsonMap.toJson(),
+                )
 
             every { mockSpinnKlient.hentEksternInntektsmelding(any()) } throws error
 
@@ -108,12 +113,12 @@ class HentEksternImRiverTest : FunSpec({
             mapOf(
                 "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
                 "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, MockHent.fail.toJson(Fail.serializer()))
-            )
+                "melding med fail" to Pair(Key.FAIL, MockHent.fail.toJson(Fail.serializer())),
+            ),
         ) { uoensketKeyMedVerdi ->
             testRapid.sendJson(
                 MockHent.innkommendeMelding().toMap()
-                    .plus(uoensketKeyMedVerdi)
+                    .plus(uoensketKeyMedVerdi),
             )
 
             testRapid.inspektør.size shouldBeExactly 0
@@ -126,13 +131,14 @@ class HentEksternImRiverTest : FunSpec({
 })
 
 private object MockHent {
-    val fail = Fail(
-        feilmelding = "Vi spiller ikke Flo Rida sin versjon.",
-        event = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED,
-        transaksjonId = UUID.randomUUID(),
-        forespoerselId = UUID.randomUUID(),
-        utloesendeMelding = JsonNull
-    )
+    val fail =
+        Fail(
+            feilmelding = "Vi spiller ikke Flo Rida sin versjon.",
+            event = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED,
+            transaksjonId = UUID.randomUUID(),
+            forespoerselId = UUID.randomUUID(),
+            utloesendeMelding = JsonNull,
+        )
 
     fun innkommendeMelding(): HentEksternImMelding {
         val forespoerselId = UUID.randomUUID()
@@ -142,12 +148,13 @@ private object MockHent {
             eventName = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED,
             behovType = BehovType.HENT_EKSTERN_INNTEKTSMELDING,
             transaksjonId = UUID.randomUUID(),
-            data = mapOf(
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson()
-            ),
+            data =
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
+                ),
             forespoerselId = forespoerselId,
-            spinnImId = spinnImId
+            spinnImId = spinnImId,
         )
     }
 
@@ -156,16 +163,18 @@ private object MockHent {
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to behovType.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to mapOf(
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson()
-            ).toJson()
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
+                ).toJson(),
         )
 
-    val eksternInntektsmelding = EksternInntektsmelding(
-        avsenderSystemNavn = "Trygge Trygves Trygdesystem",
-        avsenderSystemVersjon = "T3",
-        arkivreferanse = "Arkiv nr. 49",
-        tidspunkt = 12.oktober.kl(14, 0, 12, 0)
-    )
+    val eksternInntektsmelding =
+        EksternInntektsmelding(
+            avsenderSystemNavn = "Trygge Trygves Trygdesystem",
+            avsenderSystemVersjon = "T3",
+            arkivreferanse = "Arkiv nr. 49",
+            tidspunkt = 12.oktober.kl(14, 0, 12, 0),
+        )
 }

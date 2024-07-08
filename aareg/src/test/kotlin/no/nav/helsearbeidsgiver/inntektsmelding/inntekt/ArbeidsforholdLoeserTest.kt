@@ -46,10 +46,11 @@ class ArbeidsforholdLoeserTest : FunSpec({
     test("ved innkommende behov så hentes og publiseres arbeidsforhold fra aareg") {
         val expectedUuid = UUID.randomUUID()
 
-        val expectedArbeidsforhold = mockKlientArbeidsforhold()
-            .tilArbeidsforhold()
-            .let(::listOf)
-            .toJson(Arbeidsforhold.serializer())
+        val expectedArbeidsforhold =
+            mockKlientArbeidsforhold()
+                .tilArbeidsforhold()
+                .let(::listOf)
+                .toJson(Arbeidsforhold.serializer())
 
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
 
@@ -57,7 +58,7 @@ class ArbeidsforholdLoeserTest : FunSpec({
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-            Key.UUID to expectedUuid.toJson()
+            Key.UUID to expectedUuid.toJson(),
         )
 
         val actual = testRapid.firstMessage().toMap()
@@ -75,21 +76,23 @@ class ArbeidsforholdLoeserTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
         val forespoerselId = UUID.randomUUID()
 
-        val innkommendeMelding = mapOf(
-            Key.EVENT_NAME to event.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-            Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
-        )
+        val innkommendeMelding =
+            mapOf(
+                Key.EVENT_NAME to event.toJson(),
+                Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
+                Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            )
 
-        val expected = Fail(
-            feilmelding = "Klarte ikke hente arbeidsforhold",
-            event = event,
-            transaksjonId = transaksjonId,
-            forespoerselId = forespoerselId,
-            utloesendeMelding = innkommendeMelding.toJson()
-        )
+        val expected =
+            Fail(
+                feilmelding = "Klarte ikke hente arbeidsforhold",
+                event = event,
+                transaksjonId = transaksjonId,
+                forespoerselId = forespoerselId,
+                utloesendeMelding = innkommendeMelding.toJson(),
+            )
 
         coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
 

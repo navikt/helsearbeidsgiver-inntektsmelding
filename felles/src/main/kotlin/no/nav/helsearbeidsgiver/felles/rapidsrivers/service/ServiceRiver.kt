@@ -19,24 +19,24 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class ServiceRiver(
-    private val service: Service
+    private val service: Service,
 ) : ObjectRiver<ServiceMelding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): ServiceMelding? {
-        val nestedData = json[Key.DATA]
-            ?.runCatching { toMap() }
-            ?.getOrNull()
-            .orEmpty()
+        val nestedData =
+            json[Key.DATA]
+                ?.runCatching { toMap() }
+                ?.getOrNull()
+                .orEmpty()
 
         return when {
             Key.FAIL in json -> {
                 FailMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
                     transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    fail = Key.FAIL.les(Fail.serializer(), json)
+                    fail = Key.FAIL.les(Fail.serializer(), json),
                 )
             }
 
@@ -50,13 +50,14 @@ class ServiceRiver(
                 (
                     service.startKeys.all(json::containsKey) ||
                         service.dataKeys.any(json::containsKey)
-                    ) -> {
+                ) -> {
                 DataMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
                     transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    dataMap = json.filterKeys {
-                        (service.startKeys + service.dataKeys).contains(it)
-                    }
+                    dataMap =
+                        json.filterKeys {
+                            (service.startKeys + service.dataKeys).contains(it)
+                        },
                 )
             }
 
@@ -67,9 +68,10 @@ class ServiceRiver(
                 DataMelding(
                     eventName = Key.EVENT_NAME.krev(service.eventName, EventName.serializer(), json),
                     transaksjonId = Key.UUID.les(UuidSerializer, json),
-                    dataMap = nestedData.filterKeys {
-                        (service.startKeys + service.dataKeys).contains(it)
-                    }
+                    dataMap =
+                        nestedData.filterKeys {
+                            (service.startKeys + service.dataKeys).contains(it)
+                        },
                 )
             }
 
@@ -88,14 +90,18 @@ class ServiceRiver(
         return null
     }
 
-    override fun ServiceMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement>? {
-        val feilmelding = when (this) {
-            is DataMelding ->
-                "Noe gikk galt under håndtering av melding med data."
+    override fun ServiceMelding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement>? {
+        val feilmelding =
+            when (this) {
+                is DataMelding ->
+                    "Noe gikk galt under håndtering av melding med data."
 
-            is FailMelding ->
-                "Noe gikk galt under håndtering av melding med feil."
-        }
+                is FailMelding ->
+                    "Noe gikk galt under håndtering av melding med feil."
+            }
 
         logger.error(feilmelding)
         sikkerLogger.error("$feilmelding\n${json.toPretty()}", error)
@@ -109,15 +115,15 @@ class ServiceRiver(
                 is DataMelding ->
                     mapOf(
                         Log.event(eventName),
-                        Log.transaksjonId(transaksjonId)
+                        Log.transaksjonId(transaksjonId),
                     )
 
                 is FailMelding ->
                     mapOf(
                         Log.event(eventName),
-                        Log.transaksjonId(transaksjonId)
+                        Log.transaksjonId(transaksjonId),
                     )
-            }
+            },
         )
 
     private fun DataMelding.haandterData(melding: Map<Key, JsonElement>) {
@@ -156,7 +162,10 @@ class ServiceRiver(
         }
     }
 
-    private fun berikMedRedisData(melding: Map<Key, JsonElement>, transaksjonId: UUID): Map<Key, JsonElement>? {
+    private fun berikMedRedisData(
+        melding: Map<Key, JsonElement>,
+        transaksjonId: UUID,
+    ): Map<Key, JsonElement>? {
         val redisData = getAllRedisData(transaksjonId)
 
         return if (service.isInactive(redisData)) {

@@ -40,16 +40,17 @@ import java.util.UUID
 fun Route.hentSelvbestemtImRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisPoller: RedisPoller,
 ) {
     val producer = HentSelvbestemtImProducer(rapid)
 
     get(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID) {
         val transaksjonId = UUID.randomUUID()
 
-        val selvbestemtId = call.parameters["selvbestemtId"]
-            ?.runCatching(UUID::fromString)
-            ?.getOrNull()
+        val selvbestemtId =
+            call.parameters["selvbestemtId"]
+                ?.runCatching(UUID::fromString)
+                ?.getOrNull()
 
         if (selvbestemtId == null) {
             "Ugyldig parameter: '${call.parameters["selvbestemtId"]}'".let {
@@ -61,7 +62,7 @@ fun Route.hentSelvbestemtImRoute(
             MdcUtils.withLogFields(
                 Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING_MED_ID),
                 Log.selvbestemtId(selvbestemtId),
-                Log.transaksjonId(transaksjonId)
+                Log.transaksjonId(transaksjonId),
             ) {
                 producer.publish(transaksjonId, selvbestemtId)
 
@@ -77,9 +78,10 @@ fun Route.hentSelvbestemtImRoute(
                             tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr.verdi)
                             sendOkResponse(inntektsmelding)
                         } else {
-                            val feilmelding = result.failure
-                                ?.fromJson(String.serializer())
-                                .orDefault("Ukjent feil.")
+                            val feilmelding =
+                                result.failure
+                                    ?.fromJson(String.serializer())
+                                    .orDefault("Ukjent feil.")
 
                             sendErrorResponse(feilmelding)
                         }
@@ -97,11 +99,13 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendOkResponse(inntek
         logger.info(it)
         sikkerLogger.info("$it\n$inntektsmelding")
     }
-    val response = ResultJson(
-        // Midlertidig, for å håndtere ulikt format på frontend og backend
-        success = tilResponseMedEkstraFelt(inntektsmelding)
-            ?: HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer())
-    )
+    val response =
+        ResultJson(
+            // Midlertidig, for å håndtere ulikt format på frontend og backend
+            success =
+                tilResponseMedEkstraFelt(inntektsmelding)
+                    ?: HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer()),
+        )
     respondOk(response, ResultJson.serializer())
 }
 
@@ -110,29 +114,35 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendErrorResponse(fei
         logger.error(it)
         sikkerLogger.error("$it Feilmelding: '$feilmelding'")
     }
-    val response = ResultJson(
-        failure = HentSelvbestemtImResponseFailure(feilmelding).toJson(HentSelvbestemtImResponseFailure.serializer())
-    )
+    val response =
+        ResultJson(
+            failure = HentSelvbestemtImResponseFailure(feilmelding).toJson(HentSelvbestemtImResponseFailure.serializer()),
+        )
     respondInternalServerError(response, ResultJson.serializer())
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorResponse(selvbestemtId: UUID, error: Throwable) {
+private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorResponse(
+    selvbestemtId: UUID,
+    error: Throwable,
+) {
     "Klarte ikke hente inntektsmelding pga. feil i Redis.".also {
         logger.error(it)
         sikkerLogger.error(it, error)
     }
     when (error) {
         is RedisPollerTimeoutException -> {
-            val response = ResultJson(
-                failure = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
-            )
+            val response =
+                ResultJson(
+                    failure = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer()),
+                )
             respondInternalServerError(response, ResultJson.serializer())
         }
 
         else -> {
-            val response = ResultJson(
-                failure = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer())
-            )
+            val response =
+                ResultJson(
+                    failure = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer()),
+                )
             respondInternalServerError(response, ResultJson.serializer())
         }
     }
@@ -141,32 +151,36 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendRedisErrorRespons
 private fun tilResponseMedEkstraFelt(inntektsmelding: Inntektsmelding): JsonElement? {
     val inntekt = inntektsmelding.inntekt
     val endringAarsak = inntekt?.endringAarsak
-    val backendFelt = when (endringAarsak) {
-        is Ferie -> Ferie::ferier.name
-        is Permisjon -> Permisjon::permisjoner.name
-        is Permittering -> Permittering::permitteringer.name
-        is Sykefravaer -> Sykefravaer::sykefravaer.name
-        else -> null
-    }
+    val backendFelt =
+        when (endringAarsak) {
+            is Ferie -> Ferie::ferier.name
+            is Permisjon -> Permisjon::permisjoner.name
+            is Permittering -> Permittering::permitteringer.name
+            is Sykefravaer -> Sykefravaer::sykefravaer.name
+            else -> null
+        }
 
     return if (inntekt != null && endringAarsak != null && backendFelt != null) {
-        val nyEndringAarsak = endringAarsak.toJson(InntektEndringAarsak.serializer())
-            .jsonObject
-            .let {
-                it.plus("perioder" to it[backendFelt])
-            }
-            .mapValuesNotNull { it }
-            .let(::JsonObject)
+        val nyEndringAarsak =
+            endringAarsak.toJson(InntektEndringAarsak.serializer())
+                .jsonObject
+                .let {
+                    it.plus("perioder" to it[backendFelt])
+                }
+                .mapValuesNotNull { it }
+                .let(::JsonObject)
 
-        val nyInntektJson = inntekt.toJson(Inntekt.serializer())
-            .jsonObject
-            .plus(Inntekt::endringAarsak.name to nyEndringAarsak)
-            .let(::JsonObject)
+        val nyInntektJson =
+            inntekt.toJson(Inntekt.serializer())
+                .jsonObject
+                .plus(Inntekt::endringAarsak.name to nyEndringAarsak)
+                .let(::JsonObject)
 
-        val nyInntektsmeldingJson = inntektsmelding.toJson(Inntektsmelding.serializer())
-            .jsonObject
-            .plus(Inntektsmelding::inntekt.name to nyInntektJson)
-            .let(::JsonObject)
+        val nyInntektsmeldingJson =
+            inntektsmelding.toJson(Inntektsmelding.serializer())
+                .jsonObject
+                .plus(Inntektsmelding::inntekt.name to nyInntektJson)
+                .let(::JsonObject)
 
         HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer())
             .jsonObject

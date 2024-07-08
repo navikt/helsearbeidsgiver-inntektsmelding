@@ -31,14 +31,13 @@ data class LagreJournalpostIdMelding(
     val transaksjonId: UUID,
     // TODO erstatt med v1.Inntektsmelding når mulig
     val inntektsmeldingType: InntektsmeldingV1.Type,
-    val journalpostId: String
+    val journalpostId: String,
 )
 
 class LagreJournalpostIdRiver(
     private val imRepo: InntektsmeldingRepository,
-    private val selvbestemtImRepo: SelvbestemtImRepo
+    private val selvbestemtImRepo: SelvbestemtImRepo,
 ) : ObjectRiver<LagreJournalpostIdMelding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -52,16 +51,17 @@ class LagreJournalpostIdRiver(
             val inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), json)
             val vedtaksperiodeId = inntektsmelding.vedtaksperiodeId
 
-            val inntektsmeldingType = if (forespoerselId != null && vedtaksperiodeId != null) {
-                InntektsmeldingV1.Type.Forespurt(
-                    id = forespoerselId,
-                    vedtaksperiodeId = vedtaksperiodeId
-                )
-            } else if (selvbestemtId != null) {
-                InntektsmeldingV1.Type.Selvbestemt(selvbestemtId)
-            } else {
-                null
-            }
+            val inntektsmeldingType =
+                if (forespoerselId != null && vedtaksperiodeId != null) {
+                    InntektsmeldingV1.Type.Forespurt(
+                        id = forespoerselId,
+                        vedtaksperiodeId = vedtaksperiodeId,
+                    )
+                } else if (selvbestemtId != null) {
+                    InntektsmeldingV1.Type.Selvbestemt(selvbestemtId)
+                } else {
+                    null
+                }
 
             if (inntektsmeldingType != null) {
                 LagreJournalpostIdMelding(
@@ -69,7 +69,7 @@ class LagreJournalpostIdRiver(
                     behovType = Key.BEHOV.krev(BehovType.LAGRE_JOURNALPOST_ID, BehovType.serializer(), json),
                     transaksjonId = Key.UUID.les(UuidSerializer, json),
                     inntektsmeldingType = inntektsmeldingType,
-                    journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json)
+                    journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
                 )
             } else {
                 if (Key.BEHOV.lesOrNull(BehovType.serializer(), json) == BehovType.LAGRE_JOURNALPOST_ID) {
@@ -103,7 +103,7 @@ class LagreJournalpostIdRiver(
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING_DOKUMENT to json[Key.INNTEKTSMELDING_DOKUMENT],
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID]
+            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
         )
             .mapValuesNotNull { it }
             .also {
@@ -112,14 +112,18 @@ class LagreJournalpostIdRiver(
             }
     }
 
-    override fun LagreJournalpostIdMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
-        val fail = Fail(
-            feilmelding = "Klarte ikke lagre journalpost-ID '$journalpostId'.",
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
-            utloesendeMelding = json.toJson()
-        )
+    override fun LagreJournalpostIdMelding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke lagre journalpost-ID '$journalpostId'.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
+                utloesendeMelding = json.toJson(),
+            )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
@@ -134,6 +138,6 @@ class LagreJournalpostIdRiver(
             Log.klasse(this@LagreJournalpostIdRiver),
             Log.event(eventName),
             Log.behov(behovType),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         )
 }

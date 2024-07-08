@@ -48,7 +48,7 @@ import java.util.UUID
 fun Route.lagreSelvbestemtImRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisPoller: RedisPoller,
 ) {
     val producer = LagreSelvbestemtImProducer(rapid)
 
@@ -57,7 +57,7 @@ fun Route.lagreSelvbestemtImRoute(
 
         MdcUtils.withLogFields(
             Log.apiRoute(Routes.SELVBESTEMT_INNTEKTSMELDING),
-            Log.clientId(clientId)
+            Log.clientId(clientId),
         ) {
             val skjema = lesRequestOrNull()
             when {
@@ -85,9 +85,10 @@ fun Route.lagreSelvbestemtImRoute(
 
                     producer.publish(clientId, skjema, avsenderFnr)
 
-                    val resultat = runCatching {
-                        redisPoller.hent(clientId)
-                    }
+                    val resultat =
+                        runCatching {
+                            redisPoller.hent(clientId)
+                        }
 
                     sendResponse(resultat)
                 }
@@ -131,7 +132,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
             val selvbestemtId = resultat.success?.fromJson(UuidSerializer)
             if (selvbestemtId != null) {
                 MdcUtils.withLogFields(
-                    Log.selvbestemtId(selvbestemtId)
+                    Log.selvbestemtId(selvbestemtId),
                 ) {
                     "Selvbestemt inntektsmelding mottatt OK for ID '$selvbestemtId'.".also {
                         logger.info(it)

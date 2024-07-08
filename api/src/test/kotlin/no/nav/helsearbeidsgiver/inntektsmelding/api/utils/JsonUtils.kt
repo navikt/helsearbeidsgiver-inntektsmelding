@@ -10,5 +10,4 @@ fun Periode.hardcodedJson(): String =
     }
     """
 
-fun <T : Any> T?.jsonStrOrNull(): String? =
-    this?.let { "\"$it\"" }
+fun <T : Any> T?.jsonStrOrNull(): String? = this?.let { "\"$it\"" }

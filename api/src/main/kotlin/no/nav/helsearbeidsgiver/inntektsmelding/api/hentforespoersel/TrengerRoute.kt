@@ -34,13 +34,14 @@ import java.util.UUID
 fun Route.hentForespoerselRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisPoller: RedisPoller,
 ) {
     val hentForespoerselProducer = HentForespoerselProducer(rapid)
-    val requestLatency = Summary.build()
-        .name("simba_hent_forespoersel_latency_seconds")
-        .help("hent forespoersel endpoint latency in seconds")
-        .register()
+    val requestLatency =
+        Summary.build()
+            .name("simba_hent_forespoersel_latency_seconds")
+            .help("hent forespoersel endpoint latency in seconds")
+            .register()
 
     setOf(Routes.TRENGER, Routes.HENT_FORESPOERSEL).forEach { routeUrl ->
         post(routeUrl) {
@@ -68,27 +69,31 @@ fun Route.hentForespoerselRoute(
                             respond(HttpStatusCode.Created, resultat.toResponse(), HentForespoerselResponse.serializer())
                         } else {
                             val feilmelding = resultatJson.failure?.fromJson(String.serializer()) ?: "Teknisk feil, prøv igjen senere."
-                            val response = ResultJson(
-                                failure = feilmelding.toJson()
-                            )
+                            val response =
+                                ResultJson(
+                                    failure = feilmelding.toJson(),
+                                )
                             respond(HttpStatusCode.ServiceUnavailable, response, ResultJson.serializer())
                         }
                     } catch (e: ManglerAltinnRettigheterException) {
-                        val response = ResultJson(
-                            failure = "Du har ikke rettigheter for organisasjon.".toJson()
-                        )
+                        val response =
+                            ResultJson(
+                                failure = "Du har ikke rettigheter for organisasjon.".toJson(),
+                            )
                         respondForbidden(response, ResultJson.serializer())
                     } catch (_: RedisPollerJsonParseException) {
                         logger.info("Fikk parsefeil for ${request.uuid}")
-                        val response = ResultJson(
-                            failure = RedisPermanentErrorResponse(request.uuid).toJson(RedisPermanentErrorResponse.serializer())
-                        )
+                        val response =
+                            ResultJson(
+                                failure = RedisPermanentErrorResponse(request.uuid).toJson(RedisPermanentErrorResponse.serializer()),
+                            )
                         respondInternalServerError(response, ResultJson.serializer())
                     } catch (_: RedisPollerTimeoutException) {
                         logger.info("Fikk timeout for ${request.uuid}")
-                        val response = ResultJson(
-                            failure = RedisTimeoutResponse(request.uuid).toJson(RedisTimeoutResponse.serializer())
-                        )
+                        val response =
+                            ResultJson(
+                                failure = RedisTimeoutResponse(request.uuid).toJson(RedisTimeoutResponse.serializer()),
+                            )
                         respondInternalServerError(response, ResultJson.serializer())
                     }
                 }.also {
@@ -96,18 +101,20 @@ fun Route.hentForespoerselRoute(
                 }
                 .onFailure {
                     logger.error("Klarte ikke lese request.", it)
-                    val response = ResultJson(
-                        failure = ValidationResponse(
-                            listOf(
-                                ValidationError(
-                                    property = HentForespoerselRequest::uuid.name,
-                                    error = it.message.orEmpty(),
-                                    value = "<ukjent>"
+                    val response =
+                        ResultJson(
+                            failure =
+                                ValidationResponse(
+                                    listOf(
+                                        ValidationError(
+                                            property = HentForespoerselRequest::uuid.name,
+                                            error = it.message.orEmpty(),
+                                            value = "<ukjent>",
+                                        ),
+                                    ),
                                 )
-                            )
+                                    .toJson(ValidationResponse.serializer()),
                         )
-                            .toJson(ValidationResponse.serializer())
-                    )
                     respondBadRequest(response, ResultJson.serializer())
                 }
         }
@@ -115,39 +122,42 @@ fun Route.hentForespoerselRoute(
 }
 
 private fun HentForespoerselResultat.toResponse(): HentForespoerselResponse {
-    val response = HentForespoerselResponse(
-        navn = sykmeldtNavn,
-        innsenderNavn = avsenderNavn,
-        orgNavn = orgNavn,
-        identitetsnummer = forespoersel.fnr,
-        orgnrUnderenhet = forespoersel.orgnr,
-        skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
-        fravaersperioder = forespoersel.sykmeldingsperioder,
-        egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-        bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),
-        eksternBestemmendeFravaersdag = forespoersel.eksternBestemmendeFravaersdag(),
-        bruttoinntekt = inntekt?.gjennomsnitt(),
-        tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
-        behandlingsperiode = null,
-        behandlingsdager = emptyList(),
-        forespurtData = forespoersel.forespurtData,
-        erBesvart = forespoersel.erBesvart,
-        feilReport = if (feil.isEmpty()) {
-            null
-        } else {
-            FeilReport(
-                feil = feil.map {
-                    Feilmelding(
-                        melding = it.value,
-                        status = null,
-                        datafelt = it.key
+    val response =
+        HentForespoerselResponse(
+            navn = sykmeldtNavn,
+            innsenderNavn = avsenderNavn,
+            orgNavn = orgNavn,
+            identitetsnummer = forespoersel.fnr,
+            orgnrUnderenhet = forespoersel.orgnr,
+            skjaeringstidspunkt = forespoersel.eksternBestemmendeFravaersdag(),
+            fravaersperioder = forespoersel.sykmeldingsperioder,
+            egenmeldingsperioder = forespoersel.egenmeldingsperioder,
+            bestemmendeFravaersdag = forespoersel.forslagBestemmendeFravaersdag(),
+            eksternBestemmendeFravaersdag = forespoersel.eksternBestemmendeFravaersdag(),
+            bruttoinntekt = inntekt?.gjennomsnitt(),
+            tidligereinntekter = inntekt?.maanedOversikt.orEmpty(),
+            behandlingsperiode = null,
+            behandlingsdager = emptyList(),
+            forespurtData = forespoersel.forespurtData,
+            erBesvart = forespoersel.erBesvart,
+            feilReport =
+                if (feil.isEmpty()) {
+                    null
+                } else {
+                    FeilReport(
+                        feil =
+                            feil.map {
+                                Feilmelding(
+                                    melding = it.value,
+                                    status = null,
+                                    datafelt = it.key,
+                                )
+                            }.toMutableList(),
                     )
-                }.toMutableList()
-            )
-        }
-    )
+                },
+        )
 
     return response.copy(
-        success = response.toJson(HentForespoerselResponse.serializer())
+        success = response.toJson(HentForespoerselResponse.serializer()),
     )
 }

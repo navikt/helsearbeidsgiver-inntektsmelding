@@ -39,7 +39,7 @@ fun main() {
             Env.linkUrl,
             selvbestemtRepo,
             redisStore,
-            buildClient()
+            buildClient(),
         )
         .registerShutdownLifecycle {
             redisStore.shutdown()
@@ -54,7 +54,7 @@ fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
     selvbestemtRepo: SelvbestemtRepo,
     redisStore: RedisStore,
-    arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
+    arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =
     also {
         logger.info("Starter ${ForespoerselLagretRiver::class.simpleName}...")

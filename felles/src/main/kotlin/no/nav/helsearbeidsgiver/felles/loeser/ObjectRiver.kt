@@ -110,7 +110,10 @@ abstract class ObjectRiver<Melding : Any> {
      * Utgående melding som skal publiseres når feil er ferdig prosessert.
      * Default implementasjon returnerer '`null`', som betyr at ingen utgående melding publiseres.
      */
-    protected abstract fun Melding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement>?
+    protected abstract fun Melding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement>?
 
     /**
      * Bestemmer loggfelt som logges i [haandter] og [haandterFeil].
@@ -124,27 +127,29 @@ abstract class ObjectRiver<Melding : Any> {
     internal fun lesOgHaandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         val innkommende = runCatching { les(json) }.getOrNull()
 
-        val loggfelt = innkommende?.runCatching { loggfelt() }
-            ?.getOrElse { error ->
-                "Klarte ikke lage loggfelt.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it, error)
+        val loggfelt =
+            innkommende?.runCatching { loggfelt() }
+                ?.getOrElse { error ->
+                    "Klarte ikke lage loggfelt.".also {
+                        logger.error(it)
+                        sikkerLogger.error(it, error)
+                    }
+                    null
                 }
-                null
-            }
-            ?.toList()
-            ?.toTypedArray()
-            .orEmpty()
+                ?.toList()
+                ?.toTypedArray()
+                .orEmpty()
 
         return MdcUtils.withLogFields(*loggfelt) {
-            val utgaaende = innkommende?.let {
-                runCatching {
-                    it.haandter(json)
-                }
-                    .getOrElse { e ->
-                        it.haandterFeil(json, e)
+            val utgaaende =
+                innkommende?.let {
+                    runCatching {
+                        it.haandter(json)
                     }
-            }
+                        .getOrElse { e ->
+                            it.haandterFeil(json, e)
+                        }
+                }
 
             utgaaende?.takeIf { it.isNotEmpty() }
         }

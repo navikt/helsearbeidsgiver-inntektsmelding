@@ -6,11 +6,11 @@ import kotlinx.serialization.Serializable
 data class AktiveArbeidsgivere(
     val fulltNavn: String? = null,
     val avsenderNavn: String,
-    val underenheter: List<Arbeidsgiver>
+    val underenheter: List<Arbeidsgiver>,
 ) {
     @Serializable
     data class Arbeidsgiver(
         val orgnrUnderenhet: String,
-        val virksomhetsnavn: String
+        val virksomhetsnavn: String,
     )
 }

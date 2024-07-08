@@ -33,8 +33,7 @@ fun InntektEndringAarsak.stringValue(): String {
     }
 }
 
-private fun List<Periode>.lesbar(): String =
-    joinToString { "fra ${it.fom} til ${it.tom}" }
+private fun List<Periode>.lesbar(): String = joinToString { "fra ${it.fom} til ${it.tom}" }
 
 @Mapper
 abstract class InntektEndringAarsakMapper {

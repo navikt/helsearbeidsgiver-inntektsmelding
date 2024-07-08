@@ -41,7 +41,7 @@ class OppgaveFerdigLoeserTest : FunSpec({
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.OPPGAVE_ID to expected.oppgaveId.toJson(),
             Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-            Key.UUID to expected.transaksjonId.toJson()
+            Key.UUID to expected.transaksjonId.toJson(),
         )
 
         val actual = testRapid.firstMessage().fromJson(PublishedOppgave.serializer())
@@ -64,7 +64,7 @@ private data class PublishedOppgave(
     val oppgaveId: String,
     val forespoerselId: UUID,
     @SerialName("uuid")
-    val transaksjonId: UUID
+    val transaksjonId: UUID,
 ) {
     companion object {
         fun mock(): PublishedOppgave =
@@ -72,7 +72,7 @@ private data class PublishedOppgave(
                 eventName = EventName.OPPGAVE_FERDIGSTILT,
                 oppgaveId = "trist-kaleidoskop",
                 forespoerselId = UUID.randomUUID(),
-                transaksjonId = UUID.randomUUID()
+                transaksjonId = UUID.randomUUID(),
             )
     }
 }

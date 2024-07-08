@@ -22,7 +22,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TilgangskontrollIT : EndToEndTest() {
-
     @BeforeEach
     fun beforeEach() {
         clearAllMocks()
@@ -44,9 +43,10 @@ class TilgangskontrollIT : EndToEndTest() {
             eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = mockForespoerselSvarSuksess().copy(
-                orgnr = Mock.ORGNR_MED_TILGANG
-            )
+            forespoerselSvar =
+                mockForespoerselSvarSuksess().copy(
+                    orgnr = Mock.ORGNR_MED_TILGANG,
+                ),
         )
 
         tilgangProducer.publishForespoerselId(transaksjonId, Mock.innloggetFnr, Mock.forespoerselId)
@@ -59,13 +59,15 @@ class TilgangskontrollIT : EndToEndTest() {
                 Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
             }
 
-        val result = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
-            .filter(Key.TILGANG)
-            .firstAsMap()
+        val result =
+            messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+                .filter(Key.TILGANG)
+                .firstAsMap()
 
-        val tilgang = result[Key.TILGANG]
-            .shouldNotBeNull()
-            .fromJson(Tilgang.serializer())
+        val tilgang =
+            result[Key.TILGANG]
+                .shouldNotBeNull()
+                .fromJson(Tilgang.serializer())
 
         tilgang shouldBe Tilgang.HAR_TILGANG
     }
@@ -78,20 +80,23 @@ class TilgangskontrollIT : EndToEndTest() {
             eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = mockForespoerselSvarSuksess().copy(
-                orgnr = Mock.ORGNR_UTEN_TILGANG
-            )
+            forespoerselSvar =
+                mockForespoerselSvarSuksess().copy(
+                    orgnr = Mock.ORGNR_UTEN_TILGANG,
+                ),
         )
 
         tilgangProducer.publishForespoerselId(transaksjonId, Mock.innloggetFnr, Mock.forespoerselId)
 
-        val result = messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
-            .filter(Key.TILGANG)
-            .firstAsMap()
+        val result =
+            messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+                .filter(Key.TILGANG)
+                .firstAsMap()
 
-        val tilgang = result[Key.TILGANG]
-            .shouldNotBeNull()
-            .fromJson(Tilgang.serializer())
+        val tilgang =
+            result[Key.TILGANG]
+                .shouldNotBeNull()
+                .fromJson(Tilgang.serializer())
 
         tilgang shouldBe Tilgang.IKKE_TILGANG
     }
@@ -100,13 +105,15 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `organisasjon - skal få tilgang`() {
         tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.ORGNR_MED_TILGANG)
 
-        val result = messages.filter(EventName.TILGANG_ORG_REQUESTED)
-            .filter(Key.TILGANG)
-            .firstAsMap()
+        val result =
+            messages.filter(EventName.TILGANG_ORG_REQUESTED)
+                .filter(Key.TILGANG)
+                .firstAsMap()
 
-        val tilgang = result[Key.TILGANG]
-            .shouldNotBeNull()
-            .fromJson(Tilgang.serializer())
+        val tilgang =
+            result[Key.TILGANG]
+                .shouldNotBeNull()
+                .fromJson(Tilgang.serializer())
 
         tilgang shouldBe Tilgang.HAR_TILGANG
     }
@@ -115,13 +122,15 @@ class TilgangskontrollIT : EndToEndTest() {
     fun `organisasjon - skal bli nektet tilgang`() {
         tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.ORGNR_UTEN_TILGANG)
 
-        val result = messages.filter(EventName.TILGANG_ORG_REQUESTED)
-            .filter(Key.TILGANG)
-            .firstAsMap()
+        val result =
+            messages.filter(EventName.TILGANG_ORG_REQUESTED)
+                .filter(Key.TILGANG)
+                .firstAsMap()
 
-        val tilgang = result[Key.TILGANG]
-            .shouldNotBeNull()
-            .fromJson(Tilgang.serializer())
+        val tilgang =
+            result[Key.TILGANG]
+                .shouldNotBeNull()
+                .fromJson(Tilgang.serializer())
 
         tilgang shouldBe Tilgang.IKKE_TILGANG
     }

@@ -4,6 +4,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.valiktor.Validator
 
 object OrganisasjonsnummerConstraint : CustomConstraint
+
 fun <E> Validator<E>.Property<String?>.isOrganisasjonsnummer() =
     this.validate(OrganisasjonsnummerConstraint) {
         require(it != null)

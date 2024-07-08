@@ -30,26 +30,31 @@ class SelvbestemtImRepoTest : FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEnt
 
         test("henter nyeste") {
             val selvbestemtId = UUID.randomUUID()
-            val originalInntektsmelding = mockInntektsmeldingV1().copy(
-                type = Inntektsmelding.Type.Selvbestemt(
-                    id = selvbestemtId
+            val originalInntektsmelding =
+                mockInntektsmeldingV1().copy(
+                    type =
+                        Inntektsmelding.Type.Selvbestemt(
+                            id = selvbestemtId,
+                        ),
                 )
-            )
-            val endretInntektsmelding = originalInntektsmelding.copy(
-                id = UUID.randomUUID(),
-                inntekt = Inntekt(
-                    beloep = 1747.55,
-                    inntektsdato = 22.september,
-                    naturalytelser = listOf(
-                        Naturalytelse(
-                            naturalytelse = Naturalytelse.Kode.FRITRANSPORT,
-                            verdiBeloep = 10.11,
-                            sluttdato = 3.oktober
-                        )
-                    ),
-                    endringAarsak = null
+            val endretInntektsmelding =
+                originalInntektsmelding.copy(
+                    id = UUID.randomUUID(),
+                    inntekt =
+                        Inntekt(
+                            beloep = 1747.55,
+                            inntektsdato = 22.september,
+                            naturalytelser =
+                                listOf(
+                                    Naturalytelse(
+                                        naturalytelse = Naturalytelse.Kode.FRITRANSPORT,
+                                        verdiBeloep = 10.11,
+                                        sluttdato = 3.oktober,
+                                    ),
+                                ),
+                            endringAarsak = null,
+                        ),
                 )
-            )
 
             selvbestemtImRepo.lagreIm(originalInntektsmelding)
             selvbestemtImRepo.lagreIm(endretInntektsmelding)
@@ -60,11 +65,13 @@ class SelvbestemtImRepoTest : FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEnt
 
         test("henter eneste") {
             val selvbestemtId = UUID.randomUUID()
-            val inntektsmelding = mockInntektsmeldingV1().copy(
-                type = Inntektsmelding.Type.Selvbestemt(
-                    id = selvbestemtId
+            val inntektsmelding =
+                mockInntektsmeldingV1().copy(
+                    type =
+                        Inntektsmelding.Type.Selvbestemt(
+                            id = selvbestemtId,
+                        ),
                 )
-            )
 
             selvbestemtImRepo.lagreIm(inntektsmelding)
             selvbestemtImRepo.lagreIm(mockInntektsmeldingV1())
@@ -110,11 +117,13 @@ class SelvbestemtImRepoTest : FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEnt
             val selvbestemtId = UUID.randomUUID()
 
             repeat(2) {
-                val inntektsmelding = mockInntektsmeldingV1().copy(
-                    type = Inntektsmelding.Type.Selvbestemt(
-                        id = selvbestemtId
+                val inntektsmelding =
+                    mockInntektsmeldingV1().copy(
+                        type =
+                            Inntektsmelding.Type.Selvbestemt(
+                                id = selvbestemtId,
+                            ),
                     )
-                )
 
                 selvbestemtImRepo.lagreIm(inntektsmelding)
             }
@@ -140,11 +149,13 @@ class SelvbestemtImRepoTest : FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEnt
         test("journalpost-ID oppdateres for angitt selvbestemt ID") {
             val selvbestemtId = UUID.randomUUID()
             val journalpostId = randomDigitString(12)
-            val inntektsmelding = mockInntektsmeldingV1().copy(
-                type = Inntektsmelding.Type.Selvbestemt(
-                    id = selvbestemtId
+            val inntektsmelding =
+                mockInntektsmeldingV1().copy(
+                    type =
+                        Inntektsmelding.Type.Selvbestemt(
+                            id = selvbestemtId,
+                        ),
                 )
-            )
 
             selvbestemtImRepo.lagreIm(inntektsmelding)
             selvbestemtImRepo.lagreIm(mockInntektsmeldingV1())
@@ -169,14 +180,17 @@ class SelvbestemtImRepoTest : FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEnt
         test("kun nyeste inntektsmelding oppdateres med journalpost-ID") {
             val selvbestemtId = UUID.randomUUID()
             val journalpostId = randomDigitString(5)
-            val originalInntektsmelding = mockInntektsmeldingV1().copy(
-                type = Inntektsmelding.Type.Selvbestemt(
-                    id = selvbestemtId
+            val originalInntektsmelding =
+                mockInntektsmeldingV1().copy(
+                    type =
+                        Inntektsmelding.Type.Selvbestemt(
+                            id = selvbestemtId,
+                        ),
                 )
-            )
-            val endretInntektsmelding = originalInntektsmelding.copy(
-                id = UUID.randomUUID()
-            )
+            val endretInntektsmelding =
+                originalInntektsmelding.copy(
+                    id = UUID.randomUUID(),
+                )
 
             selvbestemtImRepo.lagreIm(originalInntektsmelding)
             selvbestemtImRepo.lagreIm(endretInntektsmelding)
@@ -203,14 +217,17 @@ class SelvbestemtImRepoTest : FunSpecWithDb(listOf(SelvbestemtInntektsmeldingEnt
             val selvbestemtId = UUID.randomUUID()
             val gammelJournalpostId = randomDigitString(10)
             val nyJournalpostId = randomDigitString(8)
-            val originalInntektsmelding = mockInntektsmeldingV1().copy(
-                type = Inntektsmelding.Type.Selvbestemt(
-                    id = selvbestemtId
+            val originalInntektsmelding =
+                mockInntektsmeldingV1().copy(
+                    type =
+                        Inntektsmelding.Type.Selvbestemt(
+                            id = selvbestemtId,
+                        ),
                 )
-            )
-            val endretInntektsmelding = originalInntektsmelding.copy(
-                id = UUID.randomUUID()
-            )
+            val endretInntektsmelding =
+                originalInntektsmelding.copy(
+                    id = UUID.randomUUID(),
+                )
 
             selvbestemtImRepo.lagreIm(originalInntektsmelding)
             selvbestemtImRepo.lagreIm(endretInntektsmelding)

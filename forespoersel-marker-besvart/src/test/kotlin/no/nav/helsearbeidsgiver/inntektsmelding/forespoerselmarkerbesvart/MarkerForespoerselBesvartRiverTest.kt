@@ -40,7 +40,7 @@ class MarkerForespoerselBesvartRiverTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.UUID to randomUuid().toJson(),
-            Key.FORESPOERSEL_ID to expectedForespoerselId.toJson()
+            Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
         )
 
         testRapid.inspektør.size shouldBeExactly 0
@@ -48,7 +48,7 @@ class MarkerForespoerselBesvartRiverTest : FunSpec({
         verifySequence {
             mockPriProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
             )
         }
     }
@@ -58,7 +58,7 @@ class MarkerForespoerselBesvartRiverTest : FunSpec({
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.UUID to randomUuid().toJson(),
             Key.FORESPOERSEL_ID to randomUuid().toJson(),
-            Key.BEHOV to BehovType.FULLT_NAVN.toJson()
+            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
         )
 
         testRapid.inspektør.size shouldBeExactly 0
@@ -73,7 +73,7 @@ class MarkerForespoerselBesvartRiverTest : FunSpec({
             Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
             Key.UUID to randomUuid().toJson(),
             Key.FORESPOERSEL_ID to randomUuid().toJson(),
-            Key.DATA to "".toJson()
+            Key.DATA to "".toJson(),
         )
 
         testRapid.inspektør.size shouldBeExactly 0

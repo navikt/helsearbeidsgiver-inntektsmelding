@@ -13,6 +13,6 @@ object Env {
             tokenEndpointUrl = "AZURE_OPENID_CONFIG_TOKEN_ENDPOINT".fromEnv(),
             clientId = "AZURE_APP_CLIENT_ID".fromEnv(),
             clientSecret = "AZURE_APP_CLIENT_SECRET".fromEnv(),
-            clientJwk = "AZURE_APP_JWK".fromEnv()
+            clientJwk = "AZURE_APP_JWK".fromEnv(),
         )
 }

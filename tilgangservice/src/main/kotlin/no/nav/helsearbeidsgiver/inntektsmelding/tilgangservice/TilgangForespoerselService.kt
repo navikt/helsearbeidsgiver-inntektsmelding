@@ -26,19 +26,21 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 
 class TilgangForespoerselService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific
+    override val redisStore: RedisStoreClassSpecific,
 ) : Service() {
     private val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.TILGANG_FORESPOERSEL_REQUESTED
-    override val startKeys = setOf(
-        Key.FORESPOERSEL_ID,
-        Key.FNR
-    )
-    override val dataKeys = setOf(
-        Key.FORESPOERSEL_SVAR,
-        Key.TILGANG
-    )
+    override val startKeys =
+        setOf(
+            Key.FORESPOERSEL_ID,
+            Key.FNR,
+        )
+    override val dataKeys =
+        setOf(
+            Key.FORESPOERSEL_SVAR,
+            Key.TILGANG,
+        )
 
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
@@ -49,15 +51,16 @@ class TilgangForespoerselService(
             Log.klasse(this),
             Log.event(eventName),
             Log.transaksjonId(transaksjonId),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(forespoerselId),
         ) {
             if (isFinished(melding)) {
                 val tilgang = Key.TILGANG.les(Tilgang.serializer(), melding)
 
-                val tilgangJson = TilgangResultat(
-                    tilgang = tilgang
-                )
-                    .toJson(TilgangResultat.serializer())
+                val tilgangJson =
+                    TilgangResultat(
+                        tilgang = tilgang,
+                    )
+                        .toJson(TilgangResultat.serializer())
 
                 redisStore.set(RedisKey.of(transaksjonId), tilgangJson)
 
@@ -71,11 +74,11 @@ class TilgangForespoerselService(
                     Key.UUID to transaksjonId.toJson(),
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                    Key.FNR to avsenderFnr.toJson()
+                    Key.FNR to avsenderFnr.toJson(),
                 )
                     .also {
                         MdcUtils.withLogFields(
-                            Log.behov(BehovType.TILGANGSKONTROLL)
+                            Log.behov(BehovType.TILGANGSKONTROLL),
                         ) {
                             sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                         }
@@ -85,11 +88,11 @@ class TilgangForespoerselService(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson()
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
                     .also {
                         MdcUtils.withLogFields(
-                            Log.behov(BehovType.HENT_TRENGER_IM)
+                            Log.behov(BehovType.HENT_TRENGER_IM),
                         ) {
                             sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                         }
@@ -98,15 +101,19 @@ class TilgangForespoerselService(
         }
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(eventName),
-            Log.transaksjonId(fail.transaksjonId)
+            Log.transaksjonId(fail.transaksjonId),
         ) {
-            val tilgangResultat = TilgangResultat(
-                feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
-            )
+            val tilgangResultat =
+                TilgangResultat(
+                    feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE,
+                )
 
             sikkerLogger.error("Returnerer feilmelding: '${tilgangResultat.feilmelding}'")
 

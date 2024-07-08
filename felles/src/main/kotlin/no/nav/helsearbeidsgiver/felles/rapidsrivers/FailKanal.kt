@@ -12,29 +12,32 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 class FailKanal(
     private val event: EventName,
     rapid: RapidsConnection,
-    private val onFail: (JsonMessage, MessageContext) -> Unit
+    private val onFail: (JsonMessage, MessageContext) -> Unit,
 ) : River.PacketListener {
     init {
         River(rapid).apply {
             validate { msg ->
                 msg.demand(
-                    Key.FAIL to { it.fromJson(Fail.serializer()) }
+                    Key.FAIL to { it.fromJson(Fail.serializer()) },
                 )
                 msg.demandValues(
-                    Key.EVENT_NAME to event.name
+                    Key.EVENT_NAME to event.name,
                 )
                 msg.requireKeys(Key.UUID)
                 msg.interestedIn(Key.FORESPOERSEL_ID)
                 msg.rejectKeys(
                     Key.BEHOV,
-                    Key.DATA
+                    Key.DATA,
                 )
             }
         }
             .register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         onFail(packet, context)
     }
 }

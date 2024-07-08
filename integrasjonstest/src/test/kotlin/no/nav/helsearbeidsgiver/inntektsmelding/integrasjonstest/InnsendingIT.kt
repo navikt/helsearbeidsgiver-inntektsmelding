@@ -38,7 +38,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InnsendingIT : EndToEndTest() {
-
     @BeforeEach
     fun setup() {
         truncateDatabase()
@@ -56,17 +55,18 @@ class InnsendingIT : EndToEndTest() {
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar,
         )
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-        } returns OpprettOgFerdigstillResponse(
-            journalpostId = Mock.JOURNALPOST_ID,
-            journalpostFerdigstilt = true,
-            melding = "Ha en fin dag!",
-            dokumenter = emptyList()
-        )
+        } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = Mock.JOURNALPOST_ID,
+                journalpostFerdigstilt = true,
+                melding = "Ha en fin dag!",
+                dokumenter = emptyList(),
+            )
 
         mockStatic(::randomUuid) {
             every { randomUuid() } returns transaksjonId
@@ -77,7 +77,7 @@ class InnsendingIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to Mock.skjema.identitetsnummer.toJson(),
                 Key.ARBEIDSGIVER_ID to Mock.skjema.identitetsnummer.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
             )
         }
 
@@ -146,17 +146,18 @@ class InnsendingIT : EndToEndTest() {
             eventName = EventName.INSENDING_STARTED,
             transaksjonId = transaksjonId,
             forespoerselId = Mock.forespoerselId,
-            forespoerselSvar = Mock.forespoerselSvar
+            forespoerselSvar = Mock.forespoerselSvar,
         )
 
         coEvery {
             dokarkivClient.opprettOgFerdigstillJournalpost(any(), any(), any(), any(), any(), any(), any())
-        } returns OpprettOgFerdigstillResponse(
-            journalpostId = Mock.JOURNALPOST_ID,
-            journalpostFerdigstilt = true,
-            melding = "Ha en fin dag!",
-            dokumenter = emptyList()
-        )
+        } returns
+            OpprettOgFerdigstillResponse(
+                journalpostId = Mock.JOURNALPOST_ID,
+                journalpostFerdigstilt = true,
+                melding = "Ha en fin dag!",
+                dokumenter = emptyList(),
+            )
 
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
 
@@ -169,7 +170,7 @@ class InnsendingIT : EndToEndTest() {
                 Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
                 Key.IDENTITETSNUMMER to bjarneBetjent.ident!!.toJson(),
                 Key.ARBEIDSGIVER_ID to maxMekker.ident!!.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer())
+                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
             )
         }
 
@@ -230,7 +231,7 @@ class InnsendingIT : EndToEndTest() {
         verify(exactly = 1) {
             mockPriProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
             )
         }
     }
@@ -245,25 +246,27 @@ class InnsendingIT : EndToEndTest() {
 
         private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
 
-        val innsendtInntektsmelding = mapInntektsmelding(
-            forespoersel = forespoersel,
-            skjema = skjema,
-            fulltnavnArbeidstaker = bjarneBetjent.navn.fulltNavn(),
-            virksomhetNavn = "Bedrift A/S",
-            innsenderNavn = maxMekker.navn.fulltNavn()
-        )
+        val innsendtInntektsmelding =
+            mapInntektsmelding(
+                forespoersel = forespoersel,
+                skjema = skjema,
+                fulltnavnArbeidstaker = bjarneBetjent.navn.fulltNavn(),
+                virksomhetNavn = "Bedrift A/S",
+                innsenderNavn = maxMekker.navn.fulltNavn(),
+            )
 
-        val forespoerselSvar = ForespoerselSvar.Suksess(
-            type = ForespoerselType.KOMPLETT,
-            orgnr = forespoersel.orgnr,
-            fnr = forespoersel.fnr,
-            vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-            egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-            sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-            skjaeringstidspunkt = null,
-            bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
-            forespurtData = mockForespurtData(),
-            erBesvart = false
-        )
+        val forespoerselSvar =
+            ForespoerselSvar.Suksess(
+                type = ForespoerselType.KOMPLETT,
+                orgnr = forespoersel.orgnr,
+                fnr = forespoersel.fnr,
+                vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                egenmeldingsperioder = forespoersel.egenmeldingsperioder,
+                sykmeldingsperioder = forespoersel.sykmeldingsperioder,
+                skjaeringstidspunkt = null,
+                bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
+                forespurtData = mockForespurtData(),
+                erBesvart = false,
+            )
     }
 }

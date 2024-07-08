@@ -31,19 +31,20 @@ import java.util.UUID
 
 class KvitteringService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStore,
 ) : CompositeEventListener() {
-
     private val logger = logger()
 
     override val event = EventName.KVITTERING_REQUESTED
-    override val startKeys = setOf(
-        Key.FORESPOERSEL_ID
-    )
-    override val dataKeys = setOf(
-        Key.INNTEKTSMELDING_DOKUMENT,
-        Key.EKSTERN_INNTEKTSMELDING
-    )
+    override val startKeys =
+        setOf(
+            Key.FORESPOERSEL_ID,
+        )
+    override val dataKeys =
+        setOf(
+            Key.INNTEKTSMELDING_DOKUMENT,
+            Key.EKSTERN_INNTEKTSMELDING,
+        )
 
     init {
         LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
@@ -61,7 +62,7 @@ class KvitteringService(
             Key.BEHOV to BehovType.HENT_PERSISTERT_IM.toJson(),
             Key.EVENT_NAME to event.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
             .also {
                 logger.info("Publiserte melding: ${it.toPretty()}")
@@ -80,33 +81,40 @@ class KvitteringService(
         val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
 
         // TODO: Skriv bort fra empty payload hvis mulig
-        val resultJson = ResultJson(
-            success = InnsendtInntektsmelding(
-                Key.INNTEKTSMELDING_DOKUMENT.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(Inntektsmelding.serializer()),
-                Key.EKSTERN_INNTEKTSMELDING.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(EksternInntektsmelding.serializer())
-            ).toJson(InnsendtInntektsmelding.serializer())
-        )
+        val resultJson =
+            ResultJson(
+                success =
+                    InnsendtInntektsmelding(
+                        Key.INNTEKTSMELDING_DOKUMENT.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(Inntektsmelding.serializer()),
+                        Key.EKSTERN_INNTEKTSMELDING.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(EksternInntektsmelding.serializer()),
+                    ).toJson(InnsendtInntektsmelding.serializer()),
+            )
 
         logger.info("Finalize kvittering med transaksjonId=$transaksjonId")
 
         redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
-            ?.let(UUID::fromString)
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
+        val clientId =
+            redisStore.get(RedisKey.of(fail.transaksjonId, event))
+                ?.let(UUID::fromString)
 
         if (clientId == null) {
             MdcUtils.withLogFields(
-                Log.transaksjonId(fail.transaksjonId)
+                Log.transaksjonId(fail.transaksjonId),
             ) {
                 sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
             }
         } else {
             logger.info("Terminate kvittering med forespoerselId=${fail.forespoerselId} og transaksjonId ${fail.transaksjonId}")
-            val resultJson = ResultJson(
-                failure = fail.feilmelding.toJson()
-            )
+            val resultJson =
+                ResultJson(
+                    failure = fail.feilmelding.toJson(),
+                )
             redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
         }
     }

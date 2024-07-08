@@ -8,8 +8,9 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.security.token.support.core.jwt.JwtToken
 
 fun ApplicationRequest.lesFnrFraAuthToken(): Fnr {
-    val authToken = authorization()?.removePrefix("${AuthScheme.Bearer} ")
-        ?: throw IllegalAccessException("Mangler autorisasjonsheader.")
+    val authToken =
+        authorization()?.removePrefix("${AuthScheme.Bearer} ")
+            ?: throw IllegalAccessException("Mangler autorisasjonsheader.")
 
     val pid = JwtToken(authToken).jwtTokenClaims.getStringClaim(Auth.CLAIM_PID)
 

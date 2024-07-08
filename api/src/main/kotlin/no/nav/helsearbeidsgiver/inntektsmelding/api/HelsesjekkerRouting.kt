@@ -11,7 +11,7 @@ import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import java.util.Collections
 
-fun Application.HelsesjekkerRouting() {
+fun Application.helsesjekkerRouting() {
     routing {
         get("isalive") {
             call.respondText("I'm alive")

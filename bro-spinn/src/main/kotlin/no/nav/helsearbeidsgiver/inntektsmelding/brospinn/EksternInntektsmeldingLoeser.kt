@@ -23,20 +23,20 @@ import java.util.UUID
 // TODO slett etter overgangsperiode
 class EksternInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
-    private val spinnKlient: SpinnKlient
+    private val spinnKlient: SpinnKlient,
 ) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerlogger = sikkerLogger()
-    private val BEHOV = BehovType.HENT_EKSTERN_INNTEKTSMELDING
+    private val behov = BehovType.HENT_EKSTERN_INNTEKTSMELDING
+
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BEHOV.name
+                Key.BEHOV to behov.name,
             )
             it.requireKeys(
                 Key.SPINN_INNTEKTSMELDING_ID,
-                Key.UUID
+                Key.UUID,
             )
         }
 
@@ -46,7 +46,7 @@ class EksternInntektsmeldingLoeser(
 
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
 
-            logger.info("Løser behov $BEHOV med transaksjonId $transaksjonId")
+            logger.info("Løser behov ${this.behov} med transaksjonId $transaksjonId")
 
             val inntektsmeldingId = Key.SPINN_INNTEKTSMELDING_ID.lesOrNull(UuidSerializer, json)
             if (inntektsmeldingId == null) {
@@ -60,7 +60,7 @@ class EksternInntektsmeldingLoeser(
                 eventName = behov.event,
                 transaksjonId = transaksjonId,
                 forespoerselId = behov.forespoerselId?.let(UUID::fromString),
-                Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer())
+                Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
             )
         } catch (e: SpinnApiException) {
             "Feil ved kall mot spinn api: ${e.message}".also {

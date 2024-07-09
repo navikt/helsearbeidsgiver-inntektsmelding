@@ -177,13 +177,14 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
     val hasCommonChanges =
         changedFiles.any {
             it.startsWith("felles/") ||
-                it in listOf(
-                "Dockerfile",
-                ".github/workflows/build.yml",
-                "config/nais.yml",
-                "build.gradle.kts",
-                "gradle.properties",
-            )
+                it in
+                listOf(
+                    "Dockerfile",
+                    ".github/workflows/build.yml",
+                    "config/nais.yml",
+                    "build.gradle.kts",
+                    "gradle.properties",
+                )
         }
 
     return subprojects

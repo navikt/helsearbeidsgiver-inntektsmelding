@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm")
@@ -23,14 +23,14 @@ dependencies {
         }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+    }
+}
+
 allprojects {
     tasks {
-        val jvmTargetVersion: String by project
-
-        withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = jvmTargetVersion
-        }
-
         withType<Test> {
             useJUnitPlatform()
             testLogging {

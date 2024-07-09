@@ -17,7 +17,8 @@ buildscript {
 }
 
 dependencies {
-    subprojects.filter { it.name != "integrasjonstest" }
+    subprojects
+        .filter { it.name != "integrasjonstest" }
         .forEach {
             jacocoAggregation(project(":${it.name}"))
         }
@@ -84,7 +85,10 @@ subprojects {
 
                 doLast {
                     dependencies.forEach {
-                        val file = layout.buildDirectory.file("libs/${it.name}").get().asFile
+                        val file = layout.buildDirectory
+                            .file("libs/${it.name}")
+                            .get()
+                            .asFile
                         if (!file.exists()) {
                             it.copyTo(file)
                         }
@@ -174,7 +178,8 @@ tasks {
 fun getBuildableProjects(buildAll: Boolean = false): List<String> {
     if (buildAll) return subprojects.map { it.name }
     val changedFiles =
-        System.getenv("CHANGED_FILES")
+        System
+            .getenv("CHANGED_FILES")
             ?.takeIf(String::isNotBlank)
             ?.split(",")
             ?: throw IllegalStateException("Ingen endrede filer funnet.")
@@ -189,7 +194,8 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
                 "gradle.properties",
             )
 
-    return subprojects.map { it.name }
+    return subprojects
+        .map { it.name }
         .filter { it != "integrasjonstest" }
         .let { projects ->
             if (hasCommonChanges) {
@@ -210,31 +216,30 @@ fun getDeployMatrixVariables(
     deployAll: Boolean = false,
 ): Triple<Set<String>, Set<String>, List<Pair<String, String>>> {
     val clustersByProject =
-        getBuildableProjects(deployAll).associateWith { project ->
-            File("config", project)
-                .listFiles()
-                ?.filter { it.isFile && it.name.endsWith(".yml") }
-                ?.map { it.name.removeSuffix(".yml") }
-                ?.let { clusters ->
-                    if (includeCluster != null) {
-                        listOf(includeCluster).intersect(clusters.toSet())
-                    } else {
-                        clusters
-                    }
-                }
-                ?.toSet()
-                ?.ifEmpty { null }
-        }
-            .mapNotNull { (key, value) ->
+        getBuildableProjects(deployAll)
+            .associateWith { project ->
+                File("config", project)
+                    .listFiles()
+                    ?.filter { it.isFile && it.name.endsWith(".yml") }
+                    ?.map { it.name.removeSuffix(".yml") }
+                    ?.let { clusters ->
+                        if (includeCluster != null) {
+                            listOf(includeCluster).intersect(clusters.toSet())
+                        } else {
+                            clusters
+                        }
+                    }?.toSet()
+                    ?.ifEmpty { null }
+            }.mapNotNull { (key, value) ->
                 value?.let { key to it }
-            }
-            .toMap()
+            }.toMap()
 
     val allClusters = clustersByProject.values.flatten().toSet()
 
     val exclusions =
         clustersByProject.flatMap { (project, clusters) ->
-            allClusters.subtract(clusters)
+            allClusters
+                .subtract(clusters)
                 .map { Pair(project, it) }
         }
 
@@ -289,20 +294,20 @@ fun Task.deployMatrix(
             "project" to deployableProjects.toJsonList(),
             "cluster" to clusters.toJsonList(),
             "exclude" to
-                exclusions.map { (project, cluster) ->
-                    listOf(
-                        "project" to project,
-                        "cluster" to cluster,
-                    )
-                        .toJsonObject()
-                }
-                    .toJsonList { it },
+                exclusions
+                    .map { (project, cluster) ->
+                        listOf(
+                            "project" to project,
+                            "cluster" to cluster,
+                        ).toJsonObject()
+                    }.toJsonList { it },
         )
     }
 }
 
 fun taskOutputJson(vararg keyValuePairs: Pair<String, String>) {
-    keyValuePairs.toList()
+    keyValuePairs
+        .toList()
         .toJsonObject { it }
         .let(::println)
 }

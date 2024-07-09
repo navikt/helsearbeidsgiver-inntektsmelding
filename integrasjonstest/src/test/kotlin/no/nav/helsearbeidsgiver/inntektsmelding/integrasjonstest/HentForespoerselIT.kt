@@ -44,7 +44,8 @@ class HentForespoerselIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to forespoerselId.toJson(UuidSerializer),
         )
 
-        messages.filter(EventName.TRENGER_REQUESTED)
+        messages
+            .filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .let {
@@ -52,7 +53,8 @@ class HentForespoerselIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        messages.filter(EventName.TRENGER_REQUESTED)
+        messages
+            .filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.VIRKSOMHET)
             .firstAsMap()
             .let {
@@ -60,7 +62,8 @@ class HentForespoerselIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        messages.filter(EventName.TRENGER_REQUESTED)
+        messages
+            .filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()
             .let {
@@ -68,7 +71,8 @@ class HentForespoerselIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe transaksjonId
             }
 
-        messages.filter(EventName.TRENGER_REQUESTED)
+        messages
+            .filter(EventName.TRENGER_REQUESTED)
             .filter(BehovType.INNTEKT)
             .firstAsMap()
             .let {
@@ -77,7 +81,8 @@ class HentForespoerselIT : EndToEndTest() {
             }
 
         val resultJson =
-            redisStore.get(RedisKey.of(transaksjonId))
+            redisStore
+                .get(RedisKey.of(transaksjonId))
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 

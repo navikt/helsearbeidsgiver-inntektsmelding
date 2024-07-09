@@ -25,7 +25,10 @@ import kotlin.system.measureTimeMillis
 
 private const val EMPTY_PAYLOAD = "{}"
 
-class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Loeser(rapidsConnection) {
+class HentPersistertLoeser(
+    rapidsConnection: RapidsConnection,
+    private val repository: InntektsmeldingRepository,
+) : Loeser(rapidsConnection) {
     private val behov = BehovType.HENT_PERSISTERT_IM
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
@@ -61,7 +64,11 @@ class HentPersistertLoeser(rapidsConnection: RapidsConnection, private val repos
                     sikkerLogger.info("Fant persistert eksternInntektsmelding: $eksternInntektsmelding for forespørselId ${behov.forespoerselId}")
                 }
 
-                val json = behov.jsonMessage.toJson().parseJson().toMap()
+                val json =
+                    behov.jsonMessage
+                        .toJson()
+                        .parseJson()
+                        .toMap()
 
                 val transaksjonId = Key.UUID.les(UuidSerializer, json)
 

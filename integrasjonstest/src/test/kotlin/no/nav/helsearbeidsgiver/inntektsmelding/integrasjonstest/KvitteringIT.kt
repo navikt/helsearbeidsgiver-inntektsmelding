@@ -39,7 +39,8 @@ class KvitteringIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
-        messages.filter(EventName.KVITTERING_REQUESTED)
+        messages
+            .filter(EventName.KVITTERING_REQUESTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
@@ -70,7 +71,8 @@ class KvitteringIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
-        messages.filter(EventName.KVITTERING_REQUESTED)
+        messages
+            .filter(EventName.KVITTERING_REQUESTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
@@ -94,7 +96,8 @@ class KvitteringIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
         )
 
-        messages.filter(EventName.KVITTERING_REQUESTED)
+        messages
+            .filter(EventName.KVITTERING_REQUESTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .filter(Key.EKSTERN_INNTEKTSMELDING)
             .firstAsMap()

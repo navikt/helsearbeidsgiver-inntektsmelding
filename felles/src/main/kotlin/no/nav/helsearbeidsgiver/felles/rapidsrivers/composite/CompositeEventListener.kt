@@ -99,7 +99,8 @@ abstract class CompositeEventListener : River.PacketListener {
                         Unit
                     } else {
                         val clientId =
-                            melding[Key.CLIENT_ID]?.fromJson(UuidSerializer)
+                            melding[Key.CLIENT_ID]
+                                ?.fromJson(UuidSerializer)
                                 .orDefault {
                                     "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
                                         logger.warn(it)
@@ -131,23 +132,23 @@ abstract class CompositeEventListener : River.PacketListener {
 
     private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
         val allDataKeys = (startKeys + dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
-        return redisStore.getAll(allDataKeys)
+        return redisStore
+            .getAll(allDataKeys)
             .mapKeysNotNull { key ->
-                key.removePrefix(transaksjonId.toString())
+                key
+                    .removePrefix(transaksjonId.toString())
                     .runCatching(Key::fromString)
                     .getOrElse {
                         sikkerLogger.error("Feil med nøkkel i Redis.", it)
                         null
                     }
-            }
-            .mapValuesNotNull { value ->
+            }.mapValuesNotNull { value ->
                 runCatching {
                     value.parseJson()
+                }.getOrElse {
+                    sikkerLogger.warn("Klarte ikke parse redis-verdi.\nvalue=$value", it)
+                    null
                 }
-                    .getOrElse {
-                        sikkerLogger.warn("Klarte ikke parse redis-verdi.\nvalue=$value", it)
-                        null
-                    }
             }
     }
 }

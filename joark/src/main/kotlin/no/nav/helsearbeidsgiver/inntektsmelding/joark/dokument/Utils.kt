@@ -29,43 +29,35 @@ private val begrunnelseRefusjonTilTekst =
             "Arbeidsgiverperioden er helt eller delvis gjennomført hos tidligere virksomhet",
     )
 
-fun LocalDate.toNorsk(): String {
-    return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-}
+fun LocalDate.toNorsk(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 
-fun LocalDateTime.toNorsk(): String {
-    return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
-}
+fun LocalDateTime.toNorsk(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
 
-fun OffsetDateTime.toNorsk(): String {
-    return this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
-}
+fun OffsetDateTime.toNorsk(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy ' kl. ' HH.mm.ss"))
 
 fun Double.toNorsk(): String {
     val format = DecimalFormat("#,###.##")
     return format.format(this)
 }
 
-fun Boolean.toNorsk(): String {
-    return if (this) {
+fun Boolean.toNorsk(): String =
+    if (this) {
         "Ja"
     } else {
         "Nei"
     }
-}
 
-fun BegrunnelseIngenEllerRedusertUtbetalingKode.tekst(): String {
-    return begrunnelseRefusjonTilTekst.getOrDefault(this, this.name)
-}
+fun BegrunnelseIngenEllerRedusertUtbetalingKode.tekst(): String = begrunnelseRefusjonTilTekst.getOrDefault(this, this.name)
 
 private const val MAX_LINJELENGDE = 36
 
-fun String.delOppLangeNavn(): List<String> {
-    return when {
+fun String.delOppLangeNavn(): List<String> =
+    when {
         this.length < MAX_LINJELENGDE -> listOf(this)
         !this.contains(" ") -> this.chunked(MAX_LINJELENGDE)
         else ->
-            this.split(" ")
+            this
+                .split(" ")
                 .fold(emptyList()) { result, word ->
                     val lastString = result.lastOrNull()
                     if (lastString != null && lastString.length + word.length < MAX_LINJELENGDE) {
@@ -75,11 +67,8 @@ fun String.delOppLangeNavn(): List<String> {
                     }
                 }
     }
-}
 
-fun <T> List<T>.dropLastIfNotEmpty(): List<T> {
-    return if (isNotEmpty()) dropLast(1) else this
-}
+fun <T> List<T>.dropLastIfNotEmpty(): List<T> = if (isNotEmpty()) dropLast(1) else this
 
 fun String.formaterTelefonnummer(): String {
     if (this.length > 8) {

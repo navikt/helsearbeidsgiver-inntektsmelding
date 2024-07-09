@@ -48,15 +48,14 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
         ) {
             runCatching {
                 opprettEvent(json, context)
-            }
-                .onFailure { e ->
-                    "Ukjent feil.".also {
-                        logger.error("$it Se sikker logg for mer info.")
-                        sikkerLogger.error(it, e)
-                    }
-
-                    haandterFeil(json)
+            }.onFailure { e ->
+                "Ukjent feil.".also {
+                    logger.error("$it Se sikker logg for mer info.")
+                    sikkerLogger.error(it, e)
                 }
+
+                haandterFeil(json)
+            }
         }
     }
 
@@ -75,13 +74,13 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
             Log.transaksjonId(melding.transaksjonId),
             bestemLoggFelt(melding.event),
         ) {
-            context.publish(
-                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-                Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
-                Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
-                Key.UUID to melding.transaksjonId.toJson(),
-            )
-                .also {
+            context
+                .publish(
+                    Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                    Key.BEHOV to BehovType.NOTIFIKASJON_HENT_ID.toJson(),
+                    Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
+                    Key.UUID to melding.transaksjonId.toJson(),
+                ).also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")
                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                     forespoerselBesvartCounter.inc()
@@ -93,18 +92,19 @@ sealed class ForespoerselBesvartLoeser : River.PacketListener {
             Log.transaksjonId(melding.transaksjonId),
         ) {
             if (melding.spinnInntektsmeldingId != null) {
-                context.publish(
-                    Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
-                    Key.UUID to UUID.randomUUID().toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
-                            Key.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson(),
-                        ).toJson(),
-                ).also {
-                    logger.info("Publiserte melding om ekstern avsender")
-                    sikkerLogger.info("Publiserte melding om ekstern avsender:\n${it.toPretty()}")
-                }
+                context
+                    .publish(
+                        Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
+                        Key.UUID to UUID.randomUUID().toJson(),
+                        Key.DATA to
+                            mapOf(
+                                Key.FORESPOERSEL_ID to melding.forespoerselId.toJson(),
+                                Key.SPINN_INNTEKTSMELDING_ID to melding.spinnInntektsmeldingId.toJson(),
+                            ).toJson(),
+                    ).also {
+                        logger.info("Publiserte melding om ekstern avsender")
+                        sikkerLogger.info("Publiserte melding om ekstern avsender:\n${it.toPretty()}")
+                    }
             }
         }
     }

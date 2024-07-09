@@ -3,8 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.pdl
 import no.nav.helsearbeidsgiver.felles.getEnvVar
 import no.nav.helsearbeidsgiver.tokenprovider.OAuth2Environment
 
-fun setUpEnvironment(): Environment {
-    return Environment(
+fun setUpEnvironment(): Environment =
+    Environment(
         pdlUrl = getEnvVar("PDL_URL"),
         oauth2Environment =
             OAuth2Environment(
@@ -16,7 +16,6 @@ fun setUpEnvironment(): Environment {
                 clientJwk = getEnvVar("AZURE_APP_JWK"),
             ),
     )
-}
 
 data class Environment(
     val pdlUrl: String,

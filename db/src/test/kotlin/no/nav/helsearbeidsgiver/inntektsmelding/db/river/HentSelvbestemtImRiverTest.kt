@@ -26,114 +26,118 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class HentSelvbestemtImRiverTest : FunSpec({
+class HentSelvbestemtImRiverTest :
+    FunSpec({
 
-    val testRapid = TestRapid()
-    val mockSelvbestemtImRepo = mockk<SelvbestemtImRepo>()
+        val testRapid = TestRapid()
+        val mockSelvbestemtImRepo = mockk<SelvbestemtImRepo>()
 
-    HentSelvbestemtImRiver(mockSelvbestemtImRepo).connect(testRapid)
+        HentSelvbestemtImRiver(mockSelvbestemtImRepo).connect(testRapid)
 
-    beforeTest {
-        testRapid.reset()
-        clearAllMocks()
-    }
-
-    test("henter inntektsmelding") {
-        val innkommendeMelding = innkommendeMelding()
-        val inntektsmelding =
-            mockInntektsmeldingV1().copy(
-                type =
-                    Inntektsmelding.Type.Selvbestemt(
-                        id = innkommendeMelding.selvbestemtId,
-                    ),
-            )
-
-        every { mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId) } returns inntektsmelding
-
-        testRapid.sendJson(innkommendeMelding.toMap())
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        val dataFields =
-            arrayOf(
-                Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
-                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            )
-
-        testRapid.firstMessage().toMap() shouldContainExactly
-            mapOf(
-                Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                Key.DATA to dataFields.toMap().toJson(),
-                *dataFields,
-            )
-
-        verifySequence {
-            mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId)
+        beforeTest {
+            testRapid.reset()
+            clearAllMocks()
         }
-    }
 
-    test("svarer med feil når inntektsmelding ikke finnes") {
-        val innkommendeMelding = innkommendeMelding()
-        val forventetFail = innkommendeMelding.toFail("Fant ikke selvbestemt inntektsmelding.")
+        test("henter inntektsmelding") {
+            val innkommendeMelding = innkommendeMelding()
+            val inntektsmelding =
+                mockInntektsmeldingV1().copy(
+                    type =
+                        Inntektsmelding.Type.Selvbestemt(
+                            id = innkommendeMelding.selvbestemtId,
+                        ),
+                )
 
-        every { mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId) } returns null
+            every { mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId) } returns inntektsmelding
 
-        testRapid.sendJson(innkommendeMelding.toMap())
+            testRapid.sendJson(innkommendeMelding.toMap())
 
-        testRapid.inspektør.size shouldBeExactly 1
+            testRapid.inspektør.size shouldBeExactly 1
 
-        testRapid.firstMessage().toMap() shouldContainExactly
-            forventetFail.tilMelding()
-                .minus(Key.FORESPOERSEL_ID)
-                .plus(Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson())
+            val dataFields =
+                arrayOf(
+                    Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
+                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                )
 
-        verifySequence {
-            mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId)
-        }
-    }
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.DATA to dataFields.toMap().toJson(),
+                    *dataFields,
+                )
 
-    test("håndterer at repo feiler") {
-        val innkommendeMelding = innkommendeMelding()
-        val forventetFail = innkommendeMelding.toFail("Klarte ikke hente selvbestemt inntektsmelding.")
-
-        every { mockSelvbestemtImRepo.hentNyesteIm(any()) } throws RuntimeException("CAPTCHA time, baby!")
-
-        testRapid.sendJson(innkommendeMelding.toMap())
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        testRapid.firstMessage().toMap() shouldContainExactly
-            forventetFail.tilMelding()
-                .minus(Key.FORESPOERSEL_ID)
-                .plus(Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson())
-
-        verifySequence {
-            mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId)
-        }
-    }
-
-    context("ignorerer melding") {
-        withData(
-            mapOf(
-                "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
-                "melding med data" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
-            ),
-        ) { uoensketKeyMedVerdi ->
-            testRapid.sendJson(
-                innkommendeMelding().toMap()
-                    .plus(uoensketKeyMedVerdi),
-            )
-
-            testRapid.inspektør.size shouldBeExactly 0
-
-            verify(exactly = 0) {
-                mockSelvbestemtImRepo.hentNyesteIm(any())
+            verifySequence {
+                mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId)
             }
         }
-    }
-})
+
+        test("svarer med feil når inntektsmelding ikke finnes") {
+            val innkommendeMelding = innkommendeMelding()
+            val forventetFail = innkommendeMelding.toFail("Fant ikke selvbestemt inntektsmelding.")
+
+            every { mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId) } returns null
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly
+                forventetFail
+                    .tilMelding()
+                    .minus(Key.FORESPOERSEL_ID)
+                    .plus(Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson())
+
+            verifySequence {
+                mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId)
+            }
+        }
+
+        test("håndterer at repo feiler") {
+            val innkommendeMelding = innkommendeMelding()
+            val forventetFail = innkommendeMelding.toFail("Klarte ikke hente selvbestemt inntektsmelding.")
+
+            every { mockSelvbestemtImRepo.hentNyesteIm(any()) } throws RuntimeException("CAPTCHA time, baby!")
+
+            testRapid.sendJson(innkommendeMelding.toMap())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            testRapid.firstMessage().toMap() shouldContainExactly
+                forventetFail
+                    .tilMelding()
+                    .minus(Key.FORESPOERSEL_ID)
+                    .plus(Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson())
+
+            verifySequence {
+                mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId)
+            }
+        }
+
+        context("ignorerer melding") {
+            withData(
+                mapOf(
+                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
+                    "melding med data" to Pair(Key.DATA, "".toJson()),
+                    "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
+                ),
+            ) { uoensketKeyMedVerdi ->
+                testRapid.sendJson(
+                    innkommendeMelding()
+                        .toMap()
+                        .plus(uoensketKeyMedVerdi),
+                )
+
+                testRapid.inspektør.size shouldBeExactly 0
+
+                verify(exactly = 0) {
+                    mockSelvbestemtImRepo.hentNyesteIm(any())
+                }
+            }
+        }
+    })
 
 private fun innkommendeMelding(): HentSelvbestemtImMelding =
     HentSelvbestemtImMelding(

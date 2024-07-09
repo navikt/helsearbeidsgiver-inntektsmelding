@@ -92,8 +92,7 @@ class AktiveOrgnrService(
                             avsenderNavn = avsenderNavn,
                             underenheter = gyldigeUnderenheter,
                         ).toJson(AktiveArbeidsgivere.serializer()),
-                )
-                    .toJson(ResultJson.serializer())
+                ).toJson(ResultJson.serializer())
 
             redisStore.set(RedisKey.of(transaksjonId), gyldigResponse)
         } else if (step1Keys.all(melding::containsKey) && step2Keys.none(melding::containsKey)) {

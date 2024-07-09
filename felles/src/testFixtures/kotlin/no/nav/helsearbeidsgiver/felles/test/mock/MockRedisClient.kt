@@ -45,7 +45,8 @@ fun RedisCommands<String, String>.setupMock(mockStorageInit: Map<String, String?
 
         every { mget(*varargAll { varargKeys.add(it) }) } answers {
             val keyValuePairs =
-                varargKeys.associateWith { mockStorage[it] }
+                varargKeys
+                    .associateWith { mockStorage[it] }
                     .map { KeyValue.fromNullable(it.key, it.value) }
 
             varargKeys.clear()

@@ -63,7 +63,8 @@ fun MessageContext.publishNotNull(vararg messageFields: Pair<Key, JsonElement?>)
 fun MessageContext.publish(vararg messageFields: Pair<Key, JsonElement>): JsonElement = publish(messageFields.toMap())
 
 fun MessageContext.publishNotNull(messageFields: Map<Key, JsonElement?>): JsonElement =
-    messageFields.mapValuesNotNull { it }
+    messageFields
+        .mapValuesNotNull { it }
         .let(::publish)
 
 fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
@@ -74,8 +75,7 @@ fun MessageContext.publish(messageFields: Map<Key, JsonElement>): JsonElement =
         .toString()
         .let {
             JsonMessage(it, MessageProblems(it), null)
-        }
-        .toJson()
+        }.toJson()
         .also(::publish)
         .parseJson()
 

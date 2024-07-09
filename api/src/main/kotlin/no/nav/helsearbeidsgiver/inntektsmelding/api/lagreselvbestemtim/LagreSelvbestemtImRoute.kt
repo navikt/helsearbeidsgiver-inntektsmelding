@@ -99,36 +99,33 @@ fun Route.lagreSelvbestemtImRoute(
 
 @OptIn(ExperimentalSerializationApi::class)
 private suspend fun PipelineContext<Unit, ApplicationCall>.lesRequestOrNull(): SkjemaInntektsmeldingSelvbestemt? =
-    call.receiveText()
+    call
+        .receiveText()
         .parseJson()
         .also { json ->
             "Mottok selvbestemt inntektsmelding.".let {
                 logger.info(it)
                 sikkerLogger.info("$it:\n${json.toPretty()}")
             }
-        }
-        .runCatching {
+        }.runCatching {
             try {
                 fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
             } catch (e: MissingFieldException) {
                 // Midlertidig, for å håndtere ulikt format på frontend og backend
                 fromJsonBackup(e)
             }
-        }
-        .onFailure { e ->
+        }.onFailure { e ->
             "Kunne ikke parse json.".let {
                 logger.error(it)
                 sikkerLogger.error(it, e)
             }
-        }
-        .getOrNull()
+        }.getOrNull()
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultatJson: Result<JsonElement>) {
     resultatJson
         .map {
             it.fromJson(ResultJson.serializer())
-        }
-        .onSuccess { resultat ->
+        }.onSuccess { resultat ->
             val selvbestemtId = resultat.success?.fromJson(UuidSerializer)
             if (selvbestemtId != null) {
                 MdcUtils.withLogFields(
@@ -154,8 +151,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
                     respondInternalServerError(UkjentErrorResponse(), UkjentErrorResponse.serializer())
                 }
             }
-        }
-        .onFailure { error ->
+        }.onFailure { error ->
             "Klarte ikke hente resultat fra Redis.".also {
                 logger.error(it)
                 sikkerLogger.error(it, error)
@@ -189,7 +185,8 @@ private fun JsonElement.fromJsonBackup(error: Throwable): SkjemaInntektsmeldingS
 
     val nyInntektJson = inntektJson.plus(Inntekt::endringAarsak.name to nyEndringAarsakJson).let(::JsonObject)
 
-    return skjemaJson.plus(SkjemaInntektsmeldingSelvbestemt::inntekt.name to nyInntektJson)
+    return skjemaJson
+        .plus(SkjemaInntektsmeldingSelvbestemt::inntekt.name to nyInntektJson)
         .let(::JsonObject)
         .fromJson(SkjemaInntektsmeldingSelvbestemt.serializer())
 }

@@ -45,7 +45,8 @@ fun Route.kvitteringRoute(
     val kvitteringProducer = KvitteringProducer(rapid)
 
     val requestLatency =
-        Summary.build()
+        Summary
+            .build()
             .name("simba_kvittering_latency_seconds")
             .help("kvittering endpoint latency in seconds")
             .register()

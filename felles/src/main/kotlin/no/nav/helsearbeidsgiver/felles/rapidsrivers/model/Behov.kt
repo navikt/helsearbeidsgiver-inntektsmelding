@@ -50,7 +50,8 @@ class Behov(
             feilmelding = feilmelding,
             event = event,
             transaksjonId =
-                json.toMap()[Key.UUID]
+                json
+                    .toMap()[Key.UUID]
                     ?.fromJson(UuidSerializer)
                     .orDefault {
                         UUID.randomUUID().also {
@@ -58,7 +59,8 @@ class Behov(
                         }
                     },
             forespoerselId =
-                forespoerselId?.takeUnless { it.isBlank() }
+                forespoerselId
+                    ?.takeUnless { it.isBlank() }
                     ?.let(UUID::fromString)
                     .also {
                         if (it == null) {

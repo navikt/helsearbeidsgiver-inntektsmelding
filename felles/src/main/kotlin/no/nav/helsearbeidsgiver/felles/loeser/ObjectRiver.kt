@@ -128,15 +128,15 @@ abstract class ObjectRiver<Melding : Any> {
         val innkommende = runCatching { les(json) }.getOrNull()
 
         val loggfelt =
-            innkommende?.runCatching { loggfelt() }
+            innkommende
+                ?.runCatching { loggfelt() }
                 ?.getOrElse { error ->
                     "Klarte ikke lage loggfelt.".also {
                         logger.error(it)
                         sikkerLogger.error(it, error)
                     }
                     null
-                }
-                ?.toList()
+                }?.toList()
                 ?.toTypedArray()
                 .orEmpty()
 
@@ -145,10 +145,9 @@ abstract class ObjectRiver<Melding : Any> {
                 innkommende?.let {
                     runCatching {
                         it.haandter(json)
+                    }.getOrElse { e ->
+                        it.haandterFeil(json, e)
                     }
-                        .getOrElse { e ->
-                            it.haandterFeil(json, e)
-                        }
                 }
 
             utgaaende?.takeIf { it.isNotEmpty() }

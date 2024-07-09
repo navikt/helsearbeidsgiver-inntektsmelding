@@ -21,7 +21,9 @@ import java.time.LocalDate
 
 private const val FORKLARING_ENDRING = "Forklaring for endring"
 
-class PdfDokument(val dokument: Inntektsmelding) {
+class PdfDokument(
+    val dokument: Inntektsmelding,
+) {
     private val pdf = PdfBuilder(bodySize = 20, topText = "Innsendt: ${dokument.tidspunkt.toNorsk()}") // Setter skriftstørrelsen på labels og text
     private var y = 0
     private val kolonneEn = 0

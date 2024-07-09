@@ -45,8 +45,7 @@ class LagreDataRedisRiver(
                     Key.FORESPOERSEL_ID,
                     *dataKeys.toTypedArray(),
                 )
-            }
-            .register(this)
+            }.register(this)
     }
 
     override fun onPacket(
@@ -63,11 +62,9 @@ class LagreDataRedisRiver(
         val transaksjonId =
             runCatching {
                 Key.UUID.lesOrNull(UuidSerializer, melding)
-            }
-                .onFailure {
-                    sikkerLogger.error("Klarte ikke lese transaksjon-ID.", it)
-                }
-                .getOrNull()
+            }.onFailure {
+                sikkerLogger.error("Klarte ikke lese transaksjon-ID.", it)
+            }.getOrNull()
 
         if (transaksjonId != null) {
             MdcUtils.withLogFields(
@@ -94,9 +91,9 @@ class LagreDataRedisRiver(
         melding: Map<Key, JsonElement>,
         transaksjonId: UUID,
     ): Int =
-        melding.filterKeys(dataKeys::contains)
+        melding
+            .filterKeys(dataKeys::contains)
             .onEach { (key, data) ->
                 redisStore.set(RedisKey.of(transaksjonId, key), data.toString())
-            }
-            .size
+            }.size
 }

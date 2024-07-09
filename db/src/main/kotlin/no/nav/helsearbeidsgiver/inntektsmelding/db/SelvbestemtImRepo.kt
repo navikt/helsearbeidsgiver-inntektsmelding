@@ -17,7 +17,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.util.UUID
 
-class SelvbestemtImRepo(private val db: Database) {
+class SelvbestemtImRepo(
+    private val db: Database,
+) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 

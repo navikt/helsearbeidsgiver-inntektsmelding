@@ -12,9 +12,12 @@ import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
 import java.util.UUID
 
-class ForespoerselRepository(private val db: Database) {
+class ForespoerselRepository(
+    private val db: Database,
+) {
     private val requestLatency =
-        Summary.build()
+        Summary
+            .build()
             .name("simba_db_forespoersel_repo_latency_seconds")
             .help("database forespoerselRepo latency in seconds")
             .labelNames("method")

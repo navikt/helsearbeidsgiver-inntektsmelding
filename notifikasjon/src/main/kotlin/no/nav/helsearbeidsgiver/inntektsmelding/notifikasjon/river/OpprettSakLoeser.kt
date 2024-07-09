@@ -34,13 +34,12 @@ class OpprettSakLoeser(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.OPPRETT_SAK.name)
             it.requireKey(Key.ORGNRUNDERENHET.str)
             it.interestedIn(Key.ARBEIDSTAKER_INFORMASJON.str)
         }
-    }
 
     private fun hentNavn(behov: Behov): PersonDato {
         if (behov[Key.ARBEIDSTAKER_INFORMASJON].isMissingNode) return PersonDato("Ukjent", null, "")
@@ -50,7 +49,8 @@ class OpprettSakLoeser(
     override fun onBehov(behov: Behov) {
         val utloesendeMelding = behov.jsonMessage.toJson().parseJson()
         val transaksjonId =
-            utloesendeMelding.toMap()[Key.UUID]
+            utloesendeMelding
+                .toMap()[Key.UUID]
                 ?.fromJson(UuidSerializer)
                 .orDefault {
                     UUID.randomUUID().also {
@@ -77,12 +77,10 @@ class OpprettSakLoeser(
                     sykmeldtNavn = personDato.navn,
                     sykmeldtFoedselsdato = formattertFoedselsdato,
                 )
-            }
-                .onFailure {
-                    logger.error("Klarte ikke opprette sak.", it)
-                    sikkerLogger.error("Klarte ikke opprette sak.", it)
-                }
-                .getOrNull()
+            }.onFailure {
+                logger.error("Klarte ikke opprette sak.", it)
+                sikkerLogger.error("Klarte ikke opprette sak.", it)
+            }.getOrNull()
 
         if (sakId.isNullOrBlank()) {
             val fail =

@@ -141,13 +141,13 @@ class LagreSelvbestemtImService(
                     }
 
                     AarsakInnsending.Ny -> {
-                        rapid.publish(
-                            Key.EVENT_NAME to event.toJson(),
-                            Key.BEHOV to BehovType.OPPRETT_SELVBESTEMT_SAK.toJson(),
-                            Key.UUID to transaksjonId.toJson(),
-                            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                        )
-                            .also {
+                        rapid
+                            .publish(
+                                Key.EVENT_NAME to event.toJson(),
+                                Key.BEHOV to BehovType.OPPRETT_SELVBESTEMT_SAK.toJson(),
+                                Key.UUID to transaksjonId.toJson(),
+                                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                            ).also {
                                 logger.info("Publiserte melding med behov '${BehovType.OPPRETT_SELVBESTEMT_SAK}'.")
                                 sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                             }
@@ -159,7 +159,8 @@ class LagreSelvbestemtImService(
                 val orgNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
                 val personer = Key.PERSONER.les(personMapSerializer, melding)
                 val arbeidsforholdListe =
-                    Key.ARBEIDSFORHOLD.les(Arbeidsforhold.serializer().list(), melding)
+                    Key.ARBEIDSFORHOLD
+                        .les(Arbeidsforhold.serializer().list(), melding)
                         .filter { it.arbeidsgiver.organisasjonsnummer == skjema.avsender.orgnr.verdi }
 
                 val sykmeldtNavn = personer[skjema.sykmeldtFnr]?.navn.orEmpty()
@@ -176,13 +177,13 @@ class LagreSelvbestemtImService(
                 val sykeperioder = skjema.agp?.perioder.orEmpty() + skjema.sykmeldingsperioder
                 val erAktivtArbeidsforhold = sykeperioder.aktivtArbeidsforholdIPeriode(arbeidsforholdListe)
                 if (erAktivtArbeidsforhold) {
-                    rapid.publish(
-                        Key.EVENT_NAME to event.toJson(),
-                        Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
-                        Key.UUID to transaksjonId.toJson(),
-                        Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    )
-                        .also {
+                    rapid
+                        .publish(
+                            Key.EVENT_NAME to event.toJson(),
+                            Key.BEHOV to BehovType.LAGRE_SELVBESTEMT_IM.toJson(),
+                            Key.UUID to transaksjonId.toJson(),
+                            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        ).also {
                             logger.info("Publiserte melding med behov '${BehovType.LAGRE_SELVBESTEMT_IM}'.")
                             sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                         }
@@ -226,13 +227,13 @@ class LagreSelvbestemtImService(
             }
 
             if (!erDuplikat) {
-                rapid.publish(
-                    Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson(),
-                    Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                )
-                    .also {
+                rapid
+                    .publish(
+                        Key.EVENT_NAME to EventName.SELVBESTEMT_IM_LAGRET.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson(),
+                        Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    ).also {
                         MdcUtils.withLogFields(
                             Log.event(EventName.SELVBESTEMT_IM_LAGRET),
                         ) {
@@ -273,7 +274,8 @@ class LagreSelvbestemtImService(
             }
 
             val clientId =
-                redisStore.get(RedisKey.of(fail.transaksjonId, event))
+                redisStore
+                    .get(RedisKey.of(fail.transaksjonId, event))
                     ?.let(UUID::fromString)
 
             if (clientId == null) {

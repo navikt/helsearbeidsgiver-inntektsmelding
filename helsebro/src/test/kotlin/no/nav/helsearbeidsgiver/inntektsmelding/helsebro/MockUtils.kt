@@ -73,5 +73,4 @@ private fun mockBoomerang(): JsonElement =
     mapOf(
         Key.EVENT_NAME.str to EventName.INNTEKT_REQUESTED.toJson(),
         Key.UUID.str to UUID.randomUUID().toJson(),
-    )
-        .toJson()
+    ).toJson()

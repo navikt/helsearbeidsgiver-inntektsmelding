@@ -36,228 +36,229 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.YearMonth
 import java.util.UUID
 
-class InntektLoeserTest : FunSpec({
+class InntektLoeserTest :
+    FunSpec({
 
-    val testRapid = TestRapid()
-    val inntektKlient = mockk<InntektKlient>()
+        val testRapid = TestRapid()
+        val inntektKlient = mockk<InntektKlient>()
 
-    InntektLoeser(testRapid, inntektKlient)
+        InntektLoeser(testRapid, inntektKlient)
 
-    beforeTest {
-        testRapid.reset()
-        clearAllMocks()
-    }
-
-    test("Gir inntekt når klienten svarer med inntekt for orgnr") {
-        coEvery {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } returns
-            mapOf(
-                Mock.orgnr.verdi to
-                    mapOf(
-                        januar(2018) to 10.0,
-                        februar(2018) to 11.0,
-                        mars(2018) to 12.0,
-                    ),
-                "annet orgnr" to
-                    mapOf(
-                        januar(2018) to 20.0,
-                        februar(2018) to 21.0,
-                        mars(2018) to 22.0,
-                    ),
-            )
-
-        testRapid.sendJson(mockInnkommendeMelding())
-
-        val publisert = testRapid.firstMessage().toMap()
-
-        publisert shouldContainKey Key.DATA
-        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe
-            Inntekt(
-                maanedOversikt =
-                    listOf(
-                        InntektPerMaaned(
-                            maaned = januar(2018),
-                            inntekt = 10.0,
-                        ),
-                        InntektPerMaaned(
-                            maaned = februar(2018),
-                            inntekt = 11.0,
-                        ),
-                        InntektPerMaaned(
-                            maaned = mars(2018),
-                            inntekt = 12.0,
-                        ),
-                    ),
-            )
-    }
-
-    test("Gir måneder uten inntekt når klienten svarer med inntekt utelukkende for andre orgnr") {
-        coEvery {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } returns
-            mapOf(
-                "annet orgnr" to
-                    mapOf(
-                        januar(2018) to 10.0,
-                        februar(2018) to 11.0,
-                        mars(2018) to 12.0,
-                    ),
-            )
-
-        testRapid.sendJson(mockInnkommendeMelding())
-
-        val publisert = testRapid.firstMessage().toMap()
-
-        publisert shouldContainKey Key.DATA
-        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe
-            Inntekt(
-                maanedOversikt =
-                    listOf(
-                        InntektPerMaaned(
-                            maaned = januar(2018),
-                            inntekt = null,
-                        ),
-                        InntektPerMaaned(
-                            maaned = februar(2018),
-                            inntekt = null,
-                        ),
-                        InntektPerMaaned(
-                            maaned = mars(2018),
-                            inntekt = null,
-                        ),
-                    ),
-            )
-    }
-
-    test("Setter inn manglende måned med null") {
-        coEvery {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } returns
-            mapOf(
-                Mock.orgnr.verdi to
-                    mapOf(
-                        januar(2018) to 10.0,
-                        mars(2018) to 12.0,
-                    ),
-                "annet orgnr" to
-                    mapOf(
-                        januar(2018) to 20.0,
-                        februar(2018) to 21.0,
-                        mars(2018) to 22.0,
-                    ),
-            )
-
-        testRapid.sendJson(mockInnkommendeMelding())
-
-        val publisert = testRapid.firstMessage().toMap()
-
-        publisert shouldContainKey Key.DATA
-        publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe
-            Inntekt(
-                maanedOversikt =
-                    listOf(
-                        InntektPerMaaned(
-                            maaned = januar(2018),
-                            inntekt = 10.0,
-                        ),
-                        InntektPerMaaned(
-                            maaned = februar(2018),
-                            inntekt = null,
-                        ),
-                        InntektPerMaaned(
-                            maaned = mars(2018),
-                            inntekt = 12.0,
-                        ),
-                    ),
-            )
-    }
-
-    test("Svarer med påkrevde felt") {
-        coEvery {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } returns emptyMap()
-
-        testRapid.sendJson(mockInnkommendeMelding())
-
-        val publisert = testRapid.firstMessage().toMap()
-
-        publisert shouldNotContainKey Key.FAIL
-
-        publisert shouldContainKey Key.EVENT_NAME
-        publisert shouldContainKey Key.DATA
-        publisert shouldContainKey Key.UUID
-        publisert shouldContainKey Key.INNTEKT
-    }
-
-    test("Kall mot klient bruker korrekte verdier lest fra innkommende melding") {
-        coEvery {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } returns emptyMap()
-
-        testRapid.sendJson(mockInnkommendeMelding())
-
-        coVerifySequence {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(
-                fnr = Mock.fnr.verdi,
-                fom = Mock.skjaeringstidspunkt.toYearMonth().minusMonths(3),
-                tom = Mock.skjaeringstidspunkt.toYearMonth().minusMonths(1),
-                navConsumerId = any(),
-                callId = any(),
-            )
-        }
-    }
-
-    test("Feil fra klienten gir feilmelding på rapid") {
-        coEvery {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } throws RuntimeException()
-
-        testRapid.sendJson(mockInnkommendeMelding())
-
-        coVerifySequence {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+        beforeTest {
+            testRapid.reset()
+            clearAllMocks()
         }
 
-        val publisert = testRapid.firstMessage().readFail()
+        test("Gir inntekt når klienten svarer med inntekt for orgnr") {
+            coEvery {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            } returns
+                mapOf(
+                    Mock.orgnr.verdi to
+                        mapOf(
+                            januar(2018) to 10.0,
+                            februar(2018) to 11.0,
+                            mars(2018) to 12.0,
+                        ),
+                    "annet orgnr" to
+                        mapOf(
+                            januar(2018) to 20.0,
+                            februar(2018) to 21.0,
+                            mars(2018) to 22.0,
+                        ),
+                )
 
-        publisert.feilmelding shouldBe "Klarte ikke hente inntekt."
-    }
+            testRapid.sendJson(mockInnkommendeMelding())
 
-    test("Feil i innkommende melding gir feilmelding på rapid") {
-        mockInnkommendeMelding()
-            .plus(Key.FNR to "ikke et fnr".toJson())
-            .let(testRapid::sendJson)
+            val publisert = testRapid.firstMessage().toMap()
 
-        coVerify(exactly = 0) {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            publisert shouldContainKey Key.DATA
+            publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe
+                Inntekt(
+                    maanedOversikt =
+                        listOf(
+                            InntektPerMaaned(
+                                maaned = januar(2018),
+                                inntekt = 10.0,
+                            ),
+                            InntektPerMaaned(
+                                maaned = februar(2018),
+                                inntekt = 11.0,
+                            ),
+                            InntektPerMaaned(
+                                maaned = mars(2018),
+                                inntekt = 12.0,
+                            ),
+                        ),
+                )
         }
 
-        val publisert = testRapid.firstMessage().readFail()
+        test("Gir måneder uten inntekt når klienten svarer med inntekt utelukkende for andre orgnr") {
+            coEvery {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            } returns
+                mapOf(
+                    "annet orgnr" to
+                        mapOf(
+                            januar(2018) to 10.0,
+                            februar(2018) to 11.0,
+                            mars(2018) to 12.0,
+                        ),
+                )
 
-        publisert.feilmelding shouldBe "Ukjent feil."
-    }
+            testRapid.sendJson(mockInnkommendeMelding())
 
-    test("Ukjent feil gir feilmelding på rapid") {
-        val mockInntektPerOgnrOgMaaned = mockk<Map<String, Map<YearMonth, Double>>>()
+            val publisert = testRapid.firstMessage().toMap()
 
-        coEvery {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
-        } returns mockInntektPerOgnrOgMaaned
-
-        every { mockInntektPerOgnrOgMaaned[any()] } throws RuntimeException()
-
-        testRapid.sendJson(mockInnkommendeMelding())
-
-        coVerifySequence {
-            inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            publisert shouldContainKey Key.DATA
+            publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe
+                Inntekt(
+                    maanedOversikt =
+                        listOf(
+                            InntektPerMaaned(
+                                maaned = januar(2018),
+                                inntekt = null,
+                            ),
+                            InntektPerMaaned(
+                                maaned = februar(2018),
+                                inntekt = null,
+                            ),
+                            InntektPerMaaned(
+                                maaned = mars(2018),
+                                inntekt = null,
+                            ),
+                        ),
+                )
         }
 
-        val publisert = testRapid.firstMessage().readFail()
+        test("Setter inn manglende måned med null") {
+            coEvery {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            } returns
+                mapOf(
+                    Mock.orgnr.verdi to
+                        mapOf(
+                            januar(2018) to 10.0,
+                            mars(2018) to 12.0,
+                        ),
+                    "annet orgnr" to
+                        mapOf(
+                            januar(2018) to 20.0,
+                            februar(2018) to 21.0,
+                            mars(2018) to 22.0,
+                        ),
+                )
 
-        publisert.feilmelding shouldBe "Ukjent feil."
-    }
-})
+            testRapid.sendJson(mockInnkommendeMelding())
+
+            val publisert = testRapid.firstMessage().toMap()
+
+            publisert shouldContainKey Key.DATA
+            publisert[Key.INNTEKT]?.fromJson(Inntekt.serializer()) shouldBe
+                Inntekt(
+                    maanedOversikt =
+                        listOf(
+                            InntektPerMaaned(
+                                maaned = januar(2018),
+                                inntekt = 10.0,
+                            ),
+                            InntektPerMaaned(
+                                maaned = februar(2018),
+                                inntekt = null,
+                            ),
+                            InntektPerMaaned(
+                                maaned = mars(2018),
+                                inntekt = 12.0,
+                            ),
+                        ),
+                )
+        }
+
+        test("Svarer med påkrevde felt") {
+            coEvery {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            } returns emptyMap()
+
+            testRapid.sendJson(mockInnkommendeMelding())
+
+            val publisert = testRapid.firstMessage().toMap()
+
+            publisert shouldNotContainKey Key.FAIL
+
+            publisert shouldContainKey Key.EVENT_NAME
+            publisert shouldContainKey Key.DATA
+            publisert shouldContainKey Key.UUID
+            publisert shouldContainKey Key.INNTEKT
+        }
+
+        test("Kall mot klient bruker korrekte verdier lest fra innkommende melding") {
+            coEvery {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            } returns emptyMap()
+
+            testRapid.sendJson(mockInnkommendeMelding())
+
+            coVerifySequence {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(
+                    fnr = Mock.fnr.verdi,
+                    fom = Mock.skjaeringstidspunkt.toYearMonth().minusMonths(3),
+                    tom = Mock.skjaeringstidspunkt.toYearMonth().minusMonths(1),
+                    navConsumerId = any(),
+                    callId = any(),
+                )
+            }
+        }
+
+        test("Feil fra klienten gir feilmelding på rapid") {
+            coEvery {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            } throws RuntimeException()
+
+            testRapid.sendJson(mockInnkommendeMelding())
+
+            coVerifySequence {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            }
+
+            val publisert = testRapid.firstMessage().readFail()
+
+            publisert.feilmelding shouldBe "Klarte ikke hente inntekt."
+        }
+
+        test("Feil i innkommende melding gir feilmelding på rapid") {
+            mockInnkommendeMelding()
+                .plus(Key.FNR to "ikke et fnr".toJson())
+                .let(testRapid::sendJson)
+
+            coVerify(exactly = 0) {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            }
+
+            val publisert = testRapid.firstMessage().readFail()
+
+            publisert.feilmelding shouldBe "Ukjent feil."
+        }
+
+        test("Ukjent feil gir feilmelding på rapid") {
+            val mockInntektPerOgnrOgMaaned = mockk<Map<String, Map<YearMonth, Double>>>()
+
+            coEvery {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            } returns mockInntektPerOgnrOgMaaned
+
+            every { mockInntektPerOgnrOgMaaned[any()] } throws RuntimeException()
+
+            testRapid.sendJson(mockInnkommendeMelding())
+
+            coVerifySequence {
+                inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
+            }
+
+            val publisert = testRapid.firstMessage().readFail()
+
+            publisert.feilmelding shouldBe "Ukjent feil."
+        }
+    })
 
 private object Mock {
     val uuid: UUID = UUID.randomUUID()

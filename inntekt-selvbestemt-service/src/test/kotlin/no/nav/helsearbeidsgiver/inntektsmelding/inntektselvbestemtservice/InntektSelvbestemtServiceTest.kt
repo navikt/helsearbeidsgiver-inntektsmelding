@@ -32,82 +32,83 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
-class InntektSelvbestemtServiceTest : FunSpec({
-    val testRapid = TestRapid()
-    val mockRedis = MockRedisClassSpecific(RedisPrefix.InntektSelvbestemtService)
+class InntektSelvbestemtServiceTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val mockRedis = MockRedisClassSpecific(RedisPrefix.InntektSelvbestemtService)
 
-    ServiceRiver(
-        InntektSelvbestemtService(testRapid, mockRedis.store),
-    ).connect(testRapid)
+        ServiceRiver(
+            InntektSelvbestemtService(testRapid, mockRedis.store),
+        ).connect(testRapid)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-        mockRedis.setup()
-    }
-
-    test("hent inntekt") {
-        val transaksjonId = UUID.randomUUID()
-
-        testRapid.sendJson(
-            mockStartMelding(transaksjonId),
-        )
-
-        testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
-
-        testRapid.sendJson(
-            mockDataMelding(transaksjonId),
-        )
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        verify {
-            mockRedis.store.set(
-                RedisKey.of(transaksjonId),
-                ResultJson(
-                    success = Mock.inntekt.toJson(Inntekt.serializer()),
-                ).toJson(ResultJson.serializer()),
-            )
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
+            mockRedis.setup()
         }
-    }
 
-    test("svar med feilmelding ved uhåndterbare feil") {
-        val transaksjonId = UUID.randomUUID()
-        val feilmelding = "Teknisk feil, prøv igjen senere."
+        test("hent inntekt") {
+            val transaksjonId = UUID.randomUUID()
 
-        testRapid.sendJson(
-            mockStartMelding(transaksjonId),
-        )
+            testRapid.sendJson(
+                mockStartMelding(transaksjonId),
+            )
 
-        testRapid.sendJson(
-            Fail(
-                feilmelding = feilmelding,
-                event = EventName.INNTEKT_SELVBESTEMT_REQUESTED,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding =
-                    JsonObject(
-                        mapOf(
-                            Key.BEHOV.toString() to BehovType.INNTEKT.toJson(),
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
+
+            testRapid.sendJson(
+                mockDataMelding(transaksjonId),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            verify {
+                mockRedis.store.set(
+                    RedisKey.of(transaksjonId),
+                    ResultJson(
+                        success = Mock.inntekt.toJson(Inntekt.serializer()),
+                    ).toJson(ResultJson.serializer()),
+                )
+            }
+        }
+
+        test("svar med feilmelding ved uhåndterbare feil") {
+            val transaksjonId = UUID.randomUUID()
+            val feilmelding = "Teknisk feil, prøv igjen senere."
+
+            testRapid.sendJson(
+                mockStartMelding(transaksjonId),
+            )
+
+            testRapid.sendJson(
+                Fail(
+                    feilmelding = feilmelding,
+                    event = EventName.INNTEKT_SELVBESTEMT_REQUESTED,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = null,
+                    utloesendeMelding =
+                        JsonObject(
+                            mapOf(
+                                Key.BEHOV.toString() to BehovType.INNTEKT.toJson(),
+                            ),
                         ),
-                    ),
-            ).tilMelding(),
-        )
-
-        testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
-
-        verify {
-            mockRedis.store.set(
-                RedisKey.of(transaksjonId),
-                ResultJson(
-                    failure = feilmelding.toJson(),
-                ).toJson(ResultJson.serializer()),
+                ).tilMelding(),
             )
+
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
+
+            verify {
+                mockRedis.store.set(
+                    RedisKey.of(transaksjonId),
+                    ResultJson(
+                        failure = feilmelding.toJson(),
+                    ).toJson(ResultJson.serializer()),
+                )
+            }
         }
-    }
-})
+    })
 
 fun mockStartMelding(transaksjonId: UUID): Map<Key, JsonElement> =
     mapOf(

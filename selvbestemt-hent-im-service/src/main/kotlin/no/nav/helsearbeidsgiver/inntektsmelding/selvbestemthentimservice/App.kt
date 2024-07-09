@@ -19,8 +19,7 @@ fun main() {
         .createHentSelvbestemtImService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createHentSelvbestemtImService(redisConnection: RedisConnection): RapidsConnection =
@@ -31,6 +30,5 @@ fun RapidsConnection.createHentSelvbestemtImService(redisConnection: RedisConnec
                 rapid = this,
                 redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentSelvbestemtImService),
             ),
-        )
-            .connect(this)
+        ).connect(this)
     }

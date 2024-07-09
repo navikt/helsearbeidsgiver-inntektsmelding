@@ -44,13 +44,14 @@ class VirksomhetLoeser(
 
     private val behov = BehovType.VIRKSOMHET
     private val requestLatency =
-        Summary.build()
+        Summary
+            .build()
             .name("simba_brreg_hent_virksomhet_latency_seconds")
             .help("brreg hent virksomhet latency in seconds")
             .register()
 
-    private fun hentVirksomheter(orgnrListe: List<String>): List<Virksomhet> {
-        return if (isPreProd) {
+    private fun hentVirksomheter(orgnrListe: List<String>): List<Virksomhet> =
+        if (isPreProd) {
             orgnrListe.map { orgnr -> Virksomhet(preprodOrgnr.getOrDefault(orgnr, "Ukjent arbeidsgiver"), orgnr) }
         } else {
             runBlocking {
@@ -65,7 +66,6 @@ class VirksomhetLoeser(
                 virksomheterNavn.ifEmpty { throw FantIkkeVirksomhetException(orgnrListe.toString()) }
             }
         }
-    }
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
@@ -82,7 +82,11 @@ class VirksomhetLoeser(
         }
 
     override fun onBehov(behov: Behov) {
-        val json = behov.jsonMessage.toJson().parseJson().toMap()
+        val json =
+            behov.jsonMessage
+                .toJson()
+                .parseJson()
+                .toMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val orgnr: List<String> =

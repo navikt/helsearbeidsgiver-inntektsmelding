@@ -101,14 +101,16 @@ class LagreSelvbestemtIT : EndToEndTest() {
         val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
 
         // Data hentet
-        serviceMessages.filter(Key.VIRKSOMHET)
+        serviceMessages
+            .filter(Key.VIRKSOMHET)
             .firstAsMap()[Key.VIRKSOMHET]
             .shouldNotBeNull()
             .fromJson(String.serializer())
             .shouldBe(Mock.virksomhet.navn)
 
         // Data hentet
-        serviceMessages.filter(Key.PERSONER)
+        serviceMessages
+            .filter(Key.PERSONER)
             .firstAsMap()[Key.PERSONER]
             .shouldNotBeNull()
             .fromJson(personMapSerializer)
@@ -116,57 +118,66 @@ class LagreSelvbestemtIT : EndToEndTest() {
             .shouldBe(Mock.personer.map { it.ident to it.navn.fulltNavn() })
 
         // Data hentet
-        serviceMessages.filter(Key.ARBEIDSFORHOLD)
+        serviceMessages
+            .filter(Key.ARBEIDSFORHOLD)
             .firstAsMap()[Key.ARBEIDSFORHOLD]
             .shouldNotBeNull()
             .fromJson(Arbeidsforhold.serializer().list())
             .shouldBe(Mock.arbeidsforhold.map { it.tilArbeidsforhold() })
 
         // Lagring forespurt
-        serviceMessages.filter(BehovType.LAGRE_SELVBESTEMT_IM)
+        serviceMessages
+            .filter(BehovType.LAGRE_SELVBESTEMT_IM)
             .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
             .shouldNotBeNull()
             .fromJson(InntektsmeldingV1.serializer())
             .shouldBeEqualToInntektsmelding(nyInntektsmelding)
 
         // Lagring utført, uten duplikat
-        serviceMessages.filter(Key.ER_DUPLIKAT_IM)
+        serviceMessages
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()[Key.ER_DUPLIKAT_IM]
             .shouldNotBeNull()
             .fromJson(Boolean.serializer())
             .shouldBeFalse()
 
         // Opprettelse av sak forespurt
-        serviceMessages.filter(BehovType.OPPRETT_SELVBESTEMT_SAK)
+        serviceMessages
+            .filter(BehovType.OPPRETT_SELVBESTEMT_SAK)
             .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
             .shouldNotBeNull()
             .fromJson(InntektsmeldingV1.serializer())
             .shouldBeEqualToInntektsmelding(nyInntektsmelding)
 
         // Opprettelse av sak utført
-        serviceMessages.filter(Key.SAK_ID)
+        serviceMessages
+            .filter(Key.SAK_ID)
             .firstAsMap()[Key.SAK_ID]
             .shouldNotBeNull()
             .fromJson(String.serializer())
             .shouldBe(Mock.sakId)
 
         // Service ferdig
-        messages.filter(EventName.SELVBESTEMT_IM_LAGRET)
+        messages
+            .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
             .shouldNotBeNull()
             .fromJson(InntektsmeldingV1.serializer())
             .shouldBeEqualToInntektsmelding(nyInntektsmelding)
 
-        messages.filter(EventName.SELVBESTEMT_IM_LAGRET)
+        messages
+            .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding)
 
-        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding)
 
-        messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, nyInntektsmelding)
     }
@@ -200,39 +211,46 @@ class LagreSelvbestemtIT : EndToEndTest() {
         val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
 
         // Lagring utført, uten duplikat
-        serviceMessages.filter(Key.ER_DUPLIKAT_IM)
+        serviceMessages
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()[Key.ER_DUPLIKAT_IM]
             .shouldNotBeNull()
             .fromJson(Boolean.serializer())
             .shouldBeFalse()
 
         // Opprettelse av sak _ikke_ forespurt
-        serviceMessages.filter(BehovType.OPPRETT_SELVBESTEMT_SAK)
+        serviceMessages
+            .filter(BehovType.OPPRETT_SELVBESTEMT_SAK)
             .all()
             .shouldBeEmpty()
 
         // Opprettelse av sak _ikke_ utført
-        serviceMessages.filter(Key.SAK_ID)
+        serviceMessages
+            .filter(Key.SAK_ID)
             .all()
             .shouldBeEmpty()
 
         // Service ferdig
-        messages.filter(EventName.SELVBESTEMT_IM_LAGRET)
+        messages
+            .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
             .shouldNotBeNull()
             .fromJson(InntektsmeldingV1.serializer())
             .shouldBeEqualToInntektsmelding(Mock.inntektsmelding)
 
-        messages.filter(EventName.SELVBESTEMT_IM_LAGRET)
+        messages
+            .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding)
 
-        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding)
 
-        messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .firstAsMap()
             .shouldContainNokTilJournalfoeringOgDistribusjon(transaksjonId, Mock.inntektsmelding)
     }
@@ -261,43 +279,51 @@ class LagreSelvbestemtIT : EndToEndTest() {
         val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
 
         // Lagring utført, med duplikat
-        serviceMessages.filter(Key.ER_DUPLIKAT_IM)
+        serviceMessages
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()[Key.SELVBESTEMT_INNTEKTSMELDING]
             .shouldNotBeNull()
             .fromJson(InntektsmeldingV1.serializer())
             .shouldBeEqualToInntektsmelding(Mock.inntektsmelding)
 
-        serviceMessages.filter(Key.ER_DUPLIKAT_IM)
+        serviceMessages
+            .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()[Key.ER_DUPLIKAT_IM]
             .shouldNotBeNull()
             .fromJson(Boolean.serializer())
             .shouldBeTrue()
 
         // Opprettelse av sak _ikke_ forespurt
-        serviceMessages.filter(BehovType.OPPRETT_SELVBESTEMT_SAK)
+        serviceMessages
+            .filter(BehovType.OPPRETT_SELVBESTEMT_SAK)
             .all()
             .shouldBeEmpty()
 
         // Opprettelse av sak _ikke_ utført
-        serviceMessages.filter(Key.SAK_ID)
+        serviceMessages
+            .filter(Key.SAK_ID)
             .all()
             .shouldBeEmpty()
 
         // Service ferdig
-        messages.filter(EventName.SELVBESTEMT_IM_LAGRET)
+        messages
+            .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .all()
             .shouldBeEmpty()
 
-        messages.filter(EventName.SELVBESTEMT_IM_LAGRET)
+        messages
+            .filter(EventName.SELVBESTEMT_IM_LAGRET)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .all()
             .shouldBeEmpty()
 
-        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .all()
             .shouldBeEmpty()
 
-        messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .all()
             .shouldBeEmpty()
     }
@@ -318,7 +344,8 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 Key.JOURNALPOST_ID to Mock.journalpostId.toJson(),
             )
 
-        Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), this)
+        Key.INNTEKTSMELDING_DOKUMENT
+            .les(Inntektsmelding.serializer(), this)
             .shouldBeEqualToIgnoringFields(inntektsmelding.convert(), Inntektsmelding::tidspunkt)
     }
 

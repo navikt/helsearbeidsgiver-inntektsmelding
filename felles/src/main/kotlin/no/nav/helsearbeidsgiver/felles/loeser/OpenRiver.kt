@@ -27,7 +27,8 @@ internal class OpenRiver(
         packet: JsonMessage,
         context: MessageContext,
     ) {
-        packet.toJson()
+        packet
+            .toJson()
             .parseJson()
             .toMap()
             .filterValues { it !is JsonNull }

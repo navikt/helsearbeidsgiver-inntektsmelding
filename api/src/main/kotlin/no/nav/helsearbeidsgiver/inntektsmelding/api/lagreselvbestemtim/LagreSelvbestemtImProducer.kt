@@ -31,13 +31,13 @@ class LagreSelvbestemtImProducer(
             Log.event(EventName.SELVBESTEMT_IM_MOTTATT),
             Log.clientId(clientId),
         ) {
-            rapid.publish(
-                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-                Key.CLIENT_ID to clientId.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
-            )
-                .also {
+            rapid
+                .publish(
+                    Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+                    Key.CLIENT_ID to clientId.toJson(),
+                    Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                    Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+                ).also {
                     logger.info("Publiserte til kafka.")
                     sikkerLogger.info("Publiserte til kafka:\n${it.toPretty()}")
                 }

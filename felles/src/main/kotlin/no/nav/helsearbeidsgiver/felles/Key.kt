@@ -8,7 +8,9 @@ interface IKey {
 }
 
 @Serializable(KeySerializer::class)
-enum class Key(override val str: String) : IKey {
+enum class Key(
+    override val str: String,
+) : IKey {
     // Predefinerte fra rapids-and-rivers-biblioteket
     EVENT_NAME("@event_name"),
     BEHOV("@behov"),

@@ -79,8 +79,7 @@ class DistribusjonRiver(
             Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
-        )
-            .mapValuesNotNull { it }
+        ).mapValuesNotNull { it }
     }
 
     override fun Melding.haandterFeil(
@@ -94,16 +93,17 @@ class DistribusjonRiver(
                 transaksjonId = transaksjonId,
                 forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
                 utloesendeMelding =
-                    json.plus(
-                        Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
-                    )
-                        .toJson(),
+                    json
+                        .plus(
+                            Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
+                        ).toJson(),
             )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail.tilMelding()
+        return fail
+            .tilMelding()
             .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }

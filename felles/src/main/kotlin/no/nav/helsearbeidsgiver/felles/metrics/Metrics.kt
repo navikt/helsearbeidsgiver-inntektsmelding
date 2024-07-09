@@ -50,7 +50,8 @@ private fun latencyMetric(
     description: String,
 ): Summary {
     val nameInSnake = name.replace(Regex("[ -]"), "_").lowercase()
-    return Summary.build()
+    return Summary
+        .build()
         .name("simba_${nameInSnake}_latency_seconds")
         .help("Latency (i sek.) for $description.")
         .labelNames("method")

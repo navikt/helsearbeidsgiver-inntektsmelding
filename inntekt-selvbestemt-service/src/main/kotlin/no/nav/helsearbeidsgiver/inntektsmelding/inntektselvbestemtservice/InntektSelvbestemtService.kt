@@ -54,8 +54,7 @@ class InntektSelvbestemtService(
             val resultJson =
                 ResultJson(
                     success = inntekt.toJson(Inntekt.serializer()),
-                )
-                    .toJson(ResultJson.serializer())
+                ).toJson(ResultJson.serializer())
 
             RedisKey.of(transaksjonId).write(resultJson)
 
@@ -65,15 +64,15 @@ class InntektSelvbestemtService(
             val orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding)
             val inntektsdato = Key.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, melding)
 
-            rapid.publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.INNTEKT.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FNR to fnr.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson(),
-                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(LocalDateSerializer),
-            )
-                .also { loggBehovPublisert(BehovType.INNTEKT, it) }
+            rapid
+                .publish(
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.BEHOV to BehovType.INNTEKT.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FNR to fnr.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                    Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(LocalDateSerializer),
+                ).also { loggBehovPublisert(BehovType.INNTEKT, it) }
         }
     }
 
@@ -85,8 +84,7 @@ class InntektSelvbestemtService(
         val resultJson =
             ResultJson(
                 failure = feilmelding.toJson(),
-            )
-                .toJson(ResultJson.serializer())
+            ).toJson(ResultJson.serializer())
 
         "Returnerer feilmelding: '$feilmelding'".also {
             logger.error(it)

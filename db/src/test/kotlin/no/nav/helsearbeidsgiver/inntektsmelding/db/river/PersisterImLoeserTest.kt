@@ -70,7 +70,8 @@ class PersisterImLoeserTest {
         Key.EVENT_NAME.lesOrNull(EventName.serializer(), publisert) shouldBe EventName.INSENDING_STARTED
         Key.ER_DUPLIKAT_IM.lesOrNull(Boolean.serializer(), publisert) shouldBe false
 
-        Key.INNTEKTSMELDING_DOKUMENT.lesOrNull(Inntektsmelding.serializer(), publisert)
+        Key.INNTEKTSMELDING_DOKUMENT
+            .lesOrNull(Inntektsmelding.serializer(), publisert)
             .shouldNotBeNull()
             .shouldBeEqualToIgnoringFields(mockInntektsmelding, Inntektsmelding::tidspunkt)
     }

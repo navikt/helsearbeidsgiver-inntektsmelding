@@ -21,27 +21,29 @@ class ForespoerselBesvartFraSimbaLoeser(
     private val sikkerLogger = sikkerLogger()
 
     override val forespoerselBesvartCounter: Counter =
-        Counter.build()
+        Counter
+            .build()
             .name("simba_forespoersel_besvart_fra_simba_total")
             .help("Antall foresporsler besvart fra Simba")
             .register()
 
     init {
-        River(rapid).apply {
-            validate {
-                it.demandValues(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name,
-                )
-                it.requireKeys(
-                    Key.UUID,
-                    Key.FORESPOERSEL_ID,
-                )
-                it.rejectKeys(
-                    Key.BEHOV,
-                    Key.DATA,
-                )
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate {
+                    it.demandValues(
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name,
+                    )
+                    it.requireKeys(
+                        Key.UUID,
+                        Key.FORESPOERSEL_ID,
+                    )
+                    it.rejectKeys(
+                        Key.BEHOV,
+                        Key.DATA,
+                    )
+                }
+            }.register(this)
     }
 
     override fun JsonElement.lesMelding(): Melding {

@@ -30,73 +30,55 @@ class PdfBuilder(
         title: String,
         x: Int = 0,
         y: Int = 0,
-    ): PdfBuilder {
-        return add(Text(titleSize, title, bold = false, italic = false, x, y))
-    }
+    ): PdfBuilder = add(Text(titleSize, title, bold = false, italic = false, x, y))
 
     fun addSection(
         title: String,
         x: Int = 0,
         y: Int = 0,
-    ): PdfBuilder {
-        return add(Text(sectionSize, title, bold = false, italic = false, x, y))
-    }
+    ): PdfBuilder = add(Text(sectionSize, title, bold = false, italic = false, x, y))
 
     fun addBody(
         title: String,
         x: Int = 0,
         y: Int = 0,
-    ): PdfBuilder {
-        return add(Text(bodySize, title, bold = false, italic = false, x, y))
-    }
+    ): PdfBuilder = add(Text(bodySize, title, bold = false, italic = false, x, y))
 
     fun addBold(
         title: String,
         x: Int = 0,
         y: Int = 0,
-    ): PdfBuilder {
-        return add(Text(bodySize, title, bold = true, italic = false, x, y))
-    }
+    ): PdfBuilder = add(Text(bodySize, title, bold = true, italic = false, x, y))
 
     fun addText(
         title: String,
         x: Int = 0,
         y: Int = 0,
         bold: Boolean = false,
-    ): PdfBuilder {
-        return add(Text(bodySize, title, bold, italic = false, x, y))
-    }
+    ): PdfBuilder = add(Text(bodySize, title, bold, italic = false, x, y))
 
     fun addLine(
         x: Int = 0,
         y: Int = 0,
-    ): PdfBuilder {
-        return add(Text(1, linetext, bold = false, italic = false, x, y))
-    }
+    ): PdfBuilder = add(Text(1, linetext, bold = false, italic = false, x, y))
 
     fun addItalics(
         title: String,
         x: Int = 0,
         y: Int = 0,
-    ): PdfBuilder {
-        return add(Text(bodySize, title, bold = false, italic = true, x, y))
-    }
+    ): PdfBuilder = add(Text(bodySize, title, bold = false, italic = true, x, y))
 
     private fun add(text: Text): PdfBuilder {
         list.add(text)
         return this
     }
 
-    private fun calculatePageCount(): Int {
-        return list.maxOf { it.y } / pageHeight
-    }
+    private fun calculatePageCount(): Int = list.maxOf { it.y } / pageHeight
 
     private fun isPage(
         y: Int,
         pageNumber: Int,
-    ): Boolean {
-        return y >= pageNumber * pageHeight && y < (pageNumber + 1) * pageHeight
-    }
+    ): Boolean = y >= pageNumber * pageHeight && y < (pageNumber + 1) * pageHeight
 
     private fun addTopText(
         contentStream: PDPageContentStream,
@@ -123,7 +105,10 @@ class PdfBuilder(
         val contentStream = PDPageContentStream(doc, page)
 
         if (pageNr == 0) {
-            val stream = this::class.java.classLoader.getResource(logo)!!.openStream()
+            val stream =
+                this::class.java.classLoader
+                    .getResource(logo)!!
+                    .openStream()
             val pdImage = PDImageXObject.createFromByteArray(doc, stream.readAllBytes(), logo)
             val w = pdImage.width.toFloat() / 3
             val h = pdImage.height.toFloat() / 3
@@ -162,9 +147,27 @@ class PdfBuilder(
         val doc = PDDocument()
         val out = ByteArrayOutputStream()
         val pageCount = calculatePageCount()
-        val fontNormal = PDType0Font.load(doc, this::class.java.classLoader.getResource(fontName)!!.openStream())
-        val fontBold = PDType0Font.load(doc, this::class.java.classLoader.getResource(fontBold)!!.openStream())
-        val fontItalic = PDType0Font.load(doc, this::class.java.classLoader.getResource(fontItalic)!!.openStream())
+        val fontNormal =
+            PDType0Font.load(
+                doc,
+                this::class.java.classLoader
+                    .getResource(fontName)!!
+                    .openStream(),
+            )
+        val fontBold =
+            PDType0Font.load(
+                doc,
+                this::class.java.classLoader
+                    .getResource(fontBold)!!
+                    .openStream(),
+            )
+        val fontItalic =
+            PDType0Font.load(
+                doc,
+                this::class.java.classLoader
+                    .getResource(fontItalic)!!
+                    .openStream(),
+            )
         for (i in 0..pageCount) {
             doc.addPage(producePage(i, doc, fontNormal, fontBold, fontItalic))
         }
@@ -175,4 +178,11 @@ class PdfBuilder(
     }
 }
 
-data class Text(val fontSize: Int, val value: String, val bold: Boolean = false, val italic: Boolean = false, val x: Int = 0, val y: Int = 0)
+data class Text(
+    val fontSize: Int,
+    val value: String,
+    val bold: Boolean = false,
+    val italic: Boolean = false,
+    val x: Int = 0,
+    val y: Int = 0,
+)

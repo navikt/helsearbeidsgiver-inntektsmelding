@@ -48,7 +48,10 @@ class SpinnKlient(
     }
 }
 
-class SpinnApiException(message: String, cause: Throwable? = null) : Exception(message, cause)
+class SpinnApiException(
+    message: String,
+    cause: Throwable? = null,
+) : Exception(message, cause)
 
 const val MANGLER_AVSENDER = "Mangler avsenderSystemNavn"
 const val FIKK_SVAR_MED_RESPONSE_STATUS = "Fikk svar med response status"

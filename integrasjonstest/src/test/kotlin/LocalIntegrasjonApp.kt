@@ -61,12 +61,13 @@ class DummyLoeser(
 ) : River.PacketListener {
     init {
         logger.info("Starter ${simpleName()} for Behov $behov")
-        River(rapid).apply {
-            validate { msg ->
-                msg.demandValues(Key.BEHOV to behov.name)
-                msg.interestedIn(Key.FORESPOERSEL_ID.str)
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate { msg ->
+                    msg.demandValues(Key.BEHOV to behov.name)
+                    msg.interestedIn(Key.FORESPOERSEL_ID.str)
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -75,10 +76,10 @@ class DummyLoeser(
     ) {
         logger.info("Fikk pakke:\n${packet.toPretty()}")
 
-        rapid.publish(
-            *getData().toList().toTypedArray(),
-        )
-            .also {
+        rapid
+            .publish(
+                *getData().toList().toTypedArray(),
+            ).also {
                 logger.info("Publiserte data:\n${it.toPretty()}")
             }
     }
@@ -114,19 +115,17 @@ class DummyLoeser(
                             "Navn navnesen",
                             LocalDate.now(),
                             "123456",
-                        )
-                            .toJson(
-                                PersonDato.serializer(),
-                            ),
+                        ).toJson(
+                            PersonDato.serializer(),
+                        ),
                     Key.ARBEIDSGIVER_INFORMASJON to
                         PersonDato(
                             "Arbeidsgiver",
                             LocalDate.now(),
                             "654321",
-                        )
-                            .toJson(
-                                PersonDato.serializer(),
-                            ),
+                        ).toJson(
+                            PersonDato.serializer(),
+                        ),
                 )
             BehovType.INNTEKT ->
                 mapOf(

@@ -31,51 +31,52 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class ForespoerselSvarLoeserTest : FunSpec({
-    val testRapid = TestRapid()
+class ForespoerselSvarLoeserTest :
+    FunSpec({
+        val testRapid = TestRapid()
 
-    ForespoerselSvarLoeser(testRapid)
+        ForespoerselSvarLoeser(testRapid)
 
-    beforeTest {
-        testRapid.reset()
-    }
+        beforeTest {
+            testRapid.reset()
+        }
 
-    withData(
-        mapOf(
-            "Ved suksessfullt svar på behov så publiseres data på simba-rapid" to mockForespoerselSvarMedSuksess(),
-            "Ved suksessfullt svar med fastsatt inntekt på behov så publiseres data på simba-rapid" to mockForespoerselSvarMedSuksessMedFastsattInntekt(),
-        ),
-    ) { expectedIncoming ->
-        val expected = PublishedData.mock(expectedIncoming)
+        withData(
+            mapOf(
+                "Ved suksessfullt svar på behov så publiseres data på simba-rapid" to mockForespoerselSvarMedSuksess(),
+                "Ved suksessfullt svar med fastsatt inntekt på behov så publiseres data på simba-rapid" to mockForespoerselSvarMedSuksessMedFastsattInntekt(),
+            ),
+        ) { expectedIncoming ->
+            val expected = PublishedData.mock(expectedIncoming)
 
-        testRapid.sendJson(
-            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
-        )
+            testRapid.sendJson(
+                Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
+            )
 
-        val actual = testRapid.firstMessage().fromJson(PublishedData.serializer())
+            val actual = testRapid.firstMessage().fromJson(PublishedData.serializer())
 
-        testRapid.inspektør.size shouldBeExactly 1
-        actual shouldBe expected
-    }
+            testRapid.inspektør.size shouldBeExactly 1
+            actual shouldBe expected
+        }
 
-    test("Ved feil så publiseres feil på simba-rapid") {
-        val expectedIncoming = mockForespoerselSvarMedFeil()
+        test("Ved feil så publiseres feil på simba-rapid") {
+            val expectedIncoming = mockForespoerselSvarMedFeil()
 
-        val expected = mockFail(expectedIncoming)
+            val expected = mockFail(expectedIncoming)
 
-        testRapid.sendJson(
-            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
-        )
+            testRapid.sendJson(
+                Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedIncoming.toJson(ForespoerselSvar.serializer()),
+            )
 
-        val actual = testRapid.firstMessage().readFail()
+            val actual = testRapid.firstMessage().readFail()
 
-        testRapid.inspektør.size shouldBeExactly 1
+            testRapid.inspektør.size shouldBeExactly 1
 
-        actual shouldBe expected
-    }
-})
+            actual shouldBe expected
+        }
+    })
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
@@ -100,7 +101,11 @@ private data class PublishedData(
                 data =
                     mapOf(
                         Key.FORESPOERSEL_ID to forespoerselSvar.forespoerselId.toJson(),
-                        Key.FORESPOERSEL_SVAR to forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull().toJson(Forespoersel.serializer()),
+                        Key.FORESPOERSEL_SVAR to
+                            forespoerselSvar.resultat
+                                ?.toForespoersel()
+                                .shouldNotBeNull()
+                                .toJson(Forespoersel.serializer()),
                     ),
                 forespoerselSvar = forespoerselSvar.resultat?.toForespoersel().shouldNotBeNull(),
             )

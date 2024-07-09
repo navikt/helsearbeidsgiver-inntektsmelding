@@ -15,15 +15,16 @@ import java.util.UUID
 
 class PersisterOppgaveLoeser(
     rapidsConnection: RapidsConnection,
-    private val repository: ForespoerselRepository
+    private val repository: ForespoerselRepository,
 ) : Loeser(rapidsConnection) {
     private val sikkerLogger = sikkerLogger()
 
-    override fun accept(): River.PacketValidation = River.PacketValidation {
-        it.demandValue(Key.BEHOV.str, BehovType.PERSISTER_OPPGAVE_ID.name)
-        it.requireKey(Key.FORESPOERSEL_ID.str)
-        it.requireKey(Key.OPPGAVE_ID.str)
-    }
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
+            it.demandValue(Key.BEHOV.str, BehovType.PERSISTER_OPPGAVE_ID.name)
+            it.requireKey(Key.FORESPOERSEL_ID.str)
+            it.requireKey(Key.OPPGAVE_ID.str)
+        }
 
     override fun onBehov(behov: Behov) {
         sikkerLogger.info("PersisterOppgaveLøser mottok for uuid: ${behov.jsonMessage[Key.UUID.str].asText()}")
@@ -37,7 +38,7 @@ class PersisterOppgaveLoeser(
             eventName = EventName.OPPGAVE_LAGRET,
             transaksjonId = null,
             forespoerselId = forespoerselId,
-            Key.OPPGAVE_ID to oppgaveId.toJson()
+            Key.OPPGAVE_ID to oppgaveId.toJson(),
         )
 
         sikkerLogger.info("PersisterOppgaveLøser lagret oppgaveId $oppgaveId for forespoerselID ${behov.forespoerselId}")

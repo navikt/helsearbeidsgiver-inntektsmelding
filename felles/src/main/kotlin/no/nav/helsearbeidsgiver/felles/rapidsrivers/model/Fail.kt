@@ -19,14 +19,14 @@ data class Fail(
     val event: EventName,
     val transaksjonId: UUID,
     val forespoerselId: UUID?,
-    val utloesendeMelding: JsonElement
+    val utloesendeMelding: JsonElement,
 ) {
     fun tilMelding(): Map<Key, JsonElement> =
         mapOf(
             Key.FAIL to toJson(serializer()),
             Key.EVENT_NAME to event.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId?.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId?.toJson(),
         )
             .mapValuesNotNull { it }
 }

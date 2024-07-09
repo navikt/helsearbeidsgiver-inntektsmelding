@@ -27,11 +27,12 @@ class RiverUtilsKtTest : FunSpec({
     context("publish") {
 
         test("vararg pairs") {
-            val melding = arrayOf(
-                Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-                Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
-                Key.FNR_LISTE to listOf("111", "333", "555").toJson(String.serializer())
-            )
+            val melding =
+                arrayOf(
+                    Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+                    Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
+                    Key.FNR_LISTE to listOf("111", "333", "555").toJson(String.serializer()),
+                )
 
             testRapid.publish(*melding)
 
@@ -39,17 +40,18 @@ class RiverUtilsKtTest : FunSpec({
                 testRapid.publish(
                     withArg<String> {
                         it.parseJson().toMap() shouldContainExactly melding.toMap()
-                    }
+                    },
                 )
             }
         }
 
         test("map") {
-            val melding = mapOf(
-                Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
-                Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
-                Key.ORGNRUNDERENHETER to listOf("222", "444", "666").toJson(String.serializer())
-            )
+            val melding =
+                mapOf(
+                    Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
+                    Key.INNTEKTSMELDING to mockInntektsmeldingV1().toJson(Inntektsmelding.serializer()),
+                    Key.ORGNRUNDERENHETER to listOf("222", "444", "666").toJson(String.serializer()),
+                )
 
             testRapid.publish(melding)
 
@@ -57,7 +59,7 @@ class RiverUtilsKtTest : FunSpec({
                 testRapid.publish(
                     withArg<String> {
                         it.parseJson().toMap() shouldContainExactly melding
-                    }
+                    },
                 )
             }
         }
@@ -68,15 +70,15 @@ class RiverUtilsKtTest : FunSpec({
             testRapid.publish(
                 mapOf(
                     Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                    Key.FORESPOERSEL_SVAR to JsonNull
-                )
+                    Key.FORESPOERSEL_SVAR to JsonNull,
+                ),
             )
 
             verifySequence {
                 testRapid.publish(
                     withArg<String> {
                         it.parseJson().toMap() shouldContainExactly mapOf(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
-                    }
+                    },
                 )
             }
         }

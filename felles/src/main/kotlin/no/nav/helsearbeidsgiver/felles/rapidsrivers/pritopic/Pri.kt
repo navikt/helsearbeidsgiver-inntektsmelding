@@ -22,13 +22,12 @@ object Pri {
         ORGNR("orgnr"),
         FNR("fnr"),
         FORESPOERSEL_ID("forespoerselId"),
-        SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId");
+        SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
+        ;
 
-        override fun toString(): String =
-            str
+        override fun toString(): String = str
 
-        fun fra(message: JsonMessage): JsonElement =
-            message[str].toString().parseJson()
+        fun fra(message: JsonMessage): JsonElement = message[str].toString().parseJson()
 
         companion object {
             internal fun fromJson(json: String): Key =
@@ -45,18 +44,18 @@ object Pri {
 
     @Serializable
     enum class BehovType : MessageType {
-        TRENGER_FORESPØRSEL
+        TRENGER_FORESPØRSEL,
     }
 
     @Serializable
     enum class NotisType : MessageType {
         FORESPØRSEL_MOTTATT,
         FORESPOERSEL_BESVART,
-        FORESPOERSEL_BESVART_SIMBA
+        FORESPOERSEL_BESVART_SIMBA,
     }
 
     internal object KeySerializer : AsStringSerializer<Key>(
         serialName = "helsearbeidsgiver.kotlinx.felles.Pri.Key",
-        parse = Key::fromJson
+        parse = Key::fromJson,
     )
 }

@@ -42,7 +42,7 @@ class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
 
             testRapid.sendJson(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to expected.forespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
             )
         }
 
@@ -53,10 +53,11 @@ class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
     }
 
     test("Ved feil så republiseres den innkommende meldingen") {
-        val expectedRepublisert = mapOf(
-            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-            Pri.Key.FORESPOERSEL_ID to "ikke en uuid".toJson()
-        )
+        val expectedRepublisert =
+            mapOf(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to "ikke en uuid".toJson(),
+            )
 
         testRapid.sendJson(expectedRepublisert)
 
@@ -66,7 +67,7 @@ class ForespoerselBesvartFraSpleisLoeserTest : FunSpec({
             mockPriProducer.send(
                 withArg<JsonElement> { json ->
                     json.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
-                }
+                },
             )
         }
     }

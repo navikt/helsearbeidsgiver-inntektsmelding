@@ -29,13 +29,14 @@ class InntektSelvbestemtProducerTest : FunSpec({
         producer.publish(transaksjonId, InntektSelvbestemtRequest(sykmeldtFnr, orgnr, inntektsdato))
 
         testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FNR to sykmeldtFnr.toJson(),
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
-            Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson()
-        )
+        testRapid.firstMessage().toMap() shouldContainExactly
+            mapOf(
+                Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
+                Key.FNR to sykmeldtFnr.toJson(),
+                Key.ORGNRUNDERENHET to orgnr.toJson(),
+                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(),
+            )
     }
 })

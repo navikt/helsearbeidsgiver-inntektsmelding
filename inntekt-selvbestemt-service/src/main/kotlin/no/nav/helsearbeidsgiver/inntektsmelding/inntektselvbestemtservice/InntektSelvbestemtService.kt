@@ -28,21 +28,22 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 class InntektSelvbestemtService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific
+    override val redisStore: RedisStoreClassSpecific,
 ) : Service() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.INNTEKT_SELVBESTEMT_REQUESTED
-    override val startKeys = setOf(
-        Key.FNR,
-        Key.ORGNRUNDERENHET,
-        Key.SKJAERINGSTIDSPUNKT
-    )
-    override val dataKeys = setOf(
-        Key.INNTEKT
-    )
+    override val startKeys =
+        setOf(
+            Key.FNR,
+            Key.ORGNRUNDERENHET,
+            Key.SKJAERINGSTIDSPUNKT,
+        )
+    override val dataKeys =
+        setOf(
+            Key.INNTEKT,
+        )
 
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
@@ -50,10 +51,11 @@ class InntektSelvbestemtService(
         if (isFinished(melding)) {
             val inntekt = Key.INNTEKT.les(Inntekt.serializer(), melding)
 
-            val resultJson = ResultJson(
-                success = inntekt.toJson(Inntekt.serializer())
-            )
-                .toJson(ResultJson.serializer())
+            val resultJson =
+                ResultJson(
+                    success = inntekt.toJson(Inntekt.serializer()),
+                )
+                    .toJson(ResultJson.serializer())
 
             RedisKey.of(transaksjonId).write(resultJson)
 
@@ -69,18 +71,22 @@ class InntektSelvbestemtService(
                 Key.UUID to transaksjonId.toJson(),
                 Key.FNR to fnr.toJson(),
                 Key.ORGNRUNDERENHET to orgnr.toJson(),
-                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(LocalDateSerializer)
+                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(LocalDateSerializer),
             )
                 .also { loggBehovPublisert(BehovType.INNTEKT, it) }
         }
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         val feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
-        val resultJson = ResultJson(
-            failure = feilmelding.toJson()
-        )
-            .toJson(ResultJson.serializer())
+        val resultJson =
+            ResultJson(
+                failure = feilmelding.toJson(),
+            )
+                .toJson(ResultJson.serializer())
 
         "Returnerer feilmelding: '$feilmelding'".also {
             logger.error(it)
@@ -90,7 +96,7 @@ class InntektSelvbestemtService(
         RedisKey.of(fail.transaksjonId).write(resultJson)
 
         MdcUtils.withLogFields(
-            Log.transaksjonId(fail.transaksjonId)
+            Log.transaksjonId(fail.transaksjonId),
         ) {
             sikkerLogger.error("$eventName terminert.")
         }
@@ -100,9 +106,12 @@ class InntektSelvbestemtService(
         redisStore.set(this, json)
     }
 
-    private fun loggBehovPublisert(behovType: BehovType, publisert: JsonElement) {
+    private fun loggBehovPublisert(
+        behovType: BehovType,
+        publisert: JsonElement,
+    ) {
         MdcUtils.withLogFields(
-            Log.behov(behovType)
+            Log.behov(behovType),
         ) {
             "Publiserte melding med behov $behovType.".let {
                 logger.info(it)

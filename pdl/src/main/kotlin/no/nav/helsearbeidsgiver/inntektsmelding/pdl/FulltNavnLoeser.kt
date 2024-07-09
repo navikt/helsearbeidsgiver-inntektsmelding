@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.PersonDato
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
@@ -31,18 +32,17 @@ import kotlin.system.measureTimeMillis
 
 class FulltNavnLoeser(
     rapidsConnection: RapidsConnection,
-    private val pdlClient: PdlClient
+    private val pdlClient: PdlClient,
 ) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    private val BEHOV = BehovType.FULLT_NAVN
+    private val behov = BehovType.FULLT_NAVN
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BEHOV.name
+                Key.BEHOV to behov.name,
             )
             it.requireKeys(Key.IDENTITETSNUMMER)
             it.interestedIn(Key.ARBEIDSGIVER_ID)
@@ -51,7 +51,7 @@ class FulltNavnLoeser(
     override fun onBehov(behov: Behov) {
         val json = behov.jsonMessage.toJson().parseJson().toMap()
 
-        val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+        val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val arbeidstakerId = Key.IDENTITETSNUMMER.lesOrNull(String.serializer(), json).orEmpty()
         val arbeidsgiverId = Key.ARBEIDSGIVER_ID.lesOrNull(String.serializer(), json).orEmpty()
 
@@ -73,7 +73,7 @@ class FulltNavnLoeser(
                     forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                     Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
                     Key.ARBEIDSTAKER_INFORMASJON to arbeidstakerInfo.toJson(PersonDato.serializer()),
-                    Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo.toJson(PersonDato.serializer())
+                    Key.ARBEIDSGIVER_INFORMASJON to arbeidsgiverInfo.toJson(PersonDato.serializer()),
                 )
             } catch (ex: Exception) {
                 logger.error("Klarte ikke hente navn for transaksjonId $transaksjonId.")
@@ -94,7 +94,7 @@ class FulltNavnLoeser(
                 PersonDato(
                     navn = it.navn.fulltNavn(),
                     fødselsdato = it.foedselsdato,
-                    ident = it.ident.orEmpty()
+                    ident = it.ident.orEmpty(),
                 )
             }
 }

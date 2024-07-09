@@ -29,7 +29,7 @@ fun RapidsConnection.createInntektSelvbestemtService(redisConnection: RedisConne
         ServiceRiver(
             InntektSelvbestemtService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.InntektSelvbestemtService)
-            )
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.InntektSelvbestemtService),
+            ),
         ).connect(this)
     }

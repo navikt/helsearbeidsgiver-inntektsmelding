@@ -15,10 +15,10 @@ import java.util.Properties
 import org.apache.kafka.common.serialization.Serializer as KafkaSerializer
 
 class PriProducer(
-    private val producer: KafkaProducer<String, JsonElement>
+    private val producer: KafkaProducer<String, JsonElement>,
 ) {
     constructor(env: Env = defaultEnv()) : this(
-        createProducer(env)
+        createProducer(env),
     )
 
     private val topic = Pri.TOPIC
@@ -35,8 +35,7 @@ class PriProducer(
             }
             .map { message }
 
-    private fun JsonElement.toRecord(): ProducerRecord<String, JsonElement> =
-        ProducerRecord(topic, this)
+    private fun JsonElement.toRecord(): ProducerRecord<String, JsonElement> = ProducerRecord(topic, this)
 
     interface Env {
         val brokers: String
@@ -46,12 +45,13 @@ class PriProducer(
     }
 
     companion object {
-        fun defaultEnv(): Env = object : Env {
-            override val brokers = "KAFKA_BROKERS".fromEnv()
-            override val keystorePath = "KAFKA_KEYSTORE_PATH".fromEnv()
-            override val truststorePath = "KAFKA_TRUSTSTORE_PATH".fromEnv()
-            override val credstorePassword = "KAFKA_CREDSTORE_PASSWORD".fromEnv()
-        }
+        fun defaultEnv(): Env =
+            object : Env {
+                override val brokers = "KAFKA_BROKERS".fromEnv()
+                override val keystorePath = "KAFKA_KEYSTORE_PATH".fromEnv()
+                override val truststorePath = "KAFKA_TRUSTSTORE_PATH".fromEnv()
+                override val credstorePassword = "KAFKA_CREDSTORE_PASSWORD".fromEnv()
+            }
     }
 }
 
@@ -59,15 +59,15 @@ private fun Map<Pri.Key, JsonElement>.toJson(): JsonElement =
     toJson(
         MapSerializer(
             Pri.Key.serializer(),
-            JsonElement.serializer()
-        )
+            JsonElement.serializer(),
+        ),
     )
 
 private fun createProducer(env: PriProducer.Env): KafkaProducer<String, JsonElement> =
     KafkaProducer(
         kafkaProperties(env),
         StringSerializer(),
-        Serializer()
+        Serializer(),
     )
 
 private fun kafkaProperties(env: PriProducer.Env): Properties =
@@ -76,24 +76,23 @@ private fun kafkaProperties(env: PriProducer.Env): Properties =
             mapOf(
                 CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to env.brokers,
                 CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
-
                 SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "",
-
                 SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "jks",
                 SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to env.truststorePath,
                 SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to env.credstorePassword,
-
                 SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to env.keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to env.credstorePassword,
-
-                ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1"
-            )
+                ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1",
+            ),
         )
     }
 
 private class Serializer : KafkaSerializer<JsonElement> {
-    override fun serialize(topic: String, data: JsonElement): ByteArray =
+    override fun serialize(
+        topic: String,
+        data: JsonElement,
+    ): ByteArray =
         data.toJson(JsonElement.serializer())
             .toString()
             .toByteArray()

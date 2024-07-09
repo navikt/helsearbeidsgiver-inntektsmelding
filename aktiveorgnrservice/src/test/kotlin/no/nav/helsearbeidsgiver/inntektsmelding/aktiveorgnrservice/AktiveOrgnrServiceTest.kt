@@ -43,7 +43,7 @@ class AktiveOrgnrServiceTest : FunSpec({
     val mockRedis = MockRedisClassSpecific(RedisPrefix.AktiveOrgnrService)
 
     ServiceRiver(
-        AktiveOrgnrService(testRapid, mockRedis.store)
+        AktiveOrgnrService(testRapid, mockRedis.store),
     ).connect(testRapid)
 
     beforeEach {
@@ -58,7 +58,7 @@ class AktiveOrgnrServiceTest : FunSpec({
         val expectedSuccess = Mock.successResult(orgnr)
 
         testRapid.sendJson(
-            Mock.startmelding(transaksjonId)
+            Mock.startmelding(transaksjonId),
         )
 
         testRapid.inspektør.size shouldBeExactly 3
@@ -67,14 +67,14 @@ class AktiveOrgnrServiceTest : FunSpec({
         testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
 
         testRapid.sendJson(
-            Mock.steg1Data(transaksjonId, orgnr)
+            Mock.steg1Data(transaksjonId, orgnr),
         )
 
         testRapid.inspektør.size shouldBeExactly 4
         testRapid.message(3).lesBehov() shouldBe BehovType.VIRKSOMHET
 
         testRapid.sendJson(
-            Mock.steg2Data(transaksjonId, orgnr)
+            Mock.steg2Data(transaksjonId, orgnr),
         )
 
         verify {
@@ -88,14 +88,14 @@ class AktiveOrgnrServiceTest : FunSpec({
         val expectedSuccess = Mock.successResultTomListe()
 
         testRapid.sendJson(
-            Mock.startmelding(transaksjonId)
+            Mock.startmelding(transaksjonId),
         )
 
         testRapid.inspektør.size shouldBeExactly 3
 
         testRapid.sendJson(
             Mock.steg1Data(transaksjonId, orgnr)
-                .plus(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer()))
+                .plus(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())),
         )
 
         // Virksomheter hentes ikke
@@ -112,14 +112,14 @@ class AktiveOrgnrServiceTest : FunSpec({
         val expectedSuccess = Mock.successResultTomListe()
 
         testRapid.sendJson(
-            Mock.startmelding(transaksjonId)
+            Mock.startmelding(transaksjonId),
         )
 
         testRapid.inspektør.size shouldBeExactly 3
 
         testRapid.sendJson(
             Mock.steg1Data(transaksjonId, orgnr)
-                .plus(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer()))
+                .plus(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer())),
         )
 
         // Orgnavn hentes ikke
@@ -137,14 +137,14 @@ class AktiveOrgnrServiceTest : FunSpec({
         val expectedFailure = Mock.failureResult(feilmelding)
 
         testRapid.sendJson(
-            Mock.startmelding(transaksjonId)
+            Mock.startmelding(transaksjonId),
         )
 
         testRapid.inspektør.size shouldBeExactly 3
 
         testRapid.sendJson(
             Mock.steg1Data(transaksjonId, orgnr)
-                .plus(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer()))
+                .plus(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer())),
         )
 
         // Orgnavn hentes ikke
@@ -161,7 +161,7 @@ class AktiveOrgnrServiceTest : FunSpec({
         val expectedFailure = Mock.failureResult(feilmelding)
 
         testRapid.sendJson(
-            Mock.startmelding(transaksjonId)
+            Mock.startmelding(transaksjonId),
         )
 
         testRapid.sendJson(
@@ -170,12 +170,13 @@ class AktiveOrgnrServiceTest : FunSpec({
                 event = EventName.AKTIVE_ORGNR_REQUESTED,
                 transaksjonId = transaksjonId,
                 forespoerselId = null,
-                utloesendeMelding = JsonObject(
-                    mapOf(
-                        Key.BEHOV.toString() to BehovType.ARBEIDSGIVERE.toJson()
-                    )
-                )
-            ).tilMelding()
+                utloesendeMelding =
+                    JsonObject(
+                        mapOf(
+                            Key.BEHOV.toString() to BehovType.ARBEIDSGIVERE.toJson(),
+                        ),
+                    ),
+            ).tilMelding(),
         )
 
         verify {
@@ -192,45 +193,50 @@ private object Mock {
     private val sykmeldtFnr = Fnr.genererGyldig()
     private val avsenderFnr = Fnr.genererGyldig()
 
-    private val personer = listOf(
-        sykmeldtFnr to SYKMELDT_NAVN,
-        avsenderFnr to AVSENDER_NAVN
-    ).associate { (fnr, navn) ->
-        fnr to Person(
-            fnr = fnr,
-            navn = navn,
-            foedselsdato = Person.foedselsdato(fnr)
-        )
-    }
+    private val personer =
+        listOf(
+            sykmeldtFnr to SYKMELDT_NAVN,
+            avsenderFnr to AVSENDER_NAVN,
+        ).associate { (fnr, navn) ->
+            fnr to
+                Person(
+                    fnr = fnr,
+                    navn = navn,
+                    foedselsdato = Person.foedselsdato(fnr),
+                )
+        }
 
     fun successResult(orgnr: Orgnr): JsonElement =
         ResultJson(
-            success = AktiveArbeidsgivere(
-                fulltNavn = SYKMELDT_NAVN,
-                avsenderNavn = AVSENDER_NAVN,
-                underenheter = listOf(
-                    AktiveArbeidsgivere.Arbeidsgiver(
-                        orgnrUnderenhet = orgnr.verdi,
-                        virksomhetsnavn = ORG_NAVN
-                    )
-                )
-            ).toJson(AktiveArbeidsgivere.serializer())
+            success =
+                AktiveArbeidsgivere(
+                    fulltNavn = SYKMELDT_NAVN,
+                    avsenderNavn = AVSENDER_NAVN,
+                    underenheter =
+                        listOf(
+                            AktiveArbeidsgivere.Arbeidsgiver(
+                                orgnrUnderenhet = orgnr.verdi,
+                                virksomhetsnavn = ORG_NAVN,
+                            ),
+                        ),
+                ).toJson(AktiveArbeidsgivere.serializer()),
         )
             .toJson(ResultJson.serializer())
 
     fun successResultTomListe(): JsonElement =
         ResultJson(
-            success = AktiveArbeidsgivere(
-                fulltNavn = SYKMELDT_NAVN,
-                avsenderNavn = AVSENDER_NAVN,
-                underenheter = emptyList()
-            ).toJson(AktiveArbeidsgivere.serializer())
+            success =
+                AktiveArbeidsgivere(
+                    fulltNavn = SYKMELDT_NAVN,
+                    avsenderNavn = AVSENDER_NAVN,
+                    underenheter = emptyList(),
+                ).toJson(AktiveArbeidsgivere.serializer()),
         )
             .toJson(ResultJson.serializer())
 
     fun failureResult(feilmelding: String): JsonElement =
         ResultJson(
-            failure = feilmelding.toJson()
+            failure = feilmelding.toJson(),
         )
             .toJson(ResultJson.serializer())
 
@@ -240,35 +246,44 @@ private object Mock {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FNR to sykmeldtFnr.toJson(),
-            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
+            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
         )
 
-    fun steg1Data(transaksjonId: UUID, orgnr: Orgnr): Map<Key, JsonElement> =
+    fun steg1Data(
+        transaksjonId: UUID,
+        orgnr: Orgnr,
+    ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
-            Key.ARBEIDSFORHOLD to listOf(
-                Arbeidsforhold(
-                    arbeidsgiver = Arbeidsgiver(
-                        type = "ORG",
-                        organisasjonsnummer = orgnr.verdi
+            Key.ARBEIDSFORHOLD to
+                listOf(
+                    Arbeidsforhold(
+                        arbeidsgiver =
+                            Arbeidsgiver(
+                                type = "ORG",
+                                organisasjonsnummer = orgnr.verdi,
+                            ),
+                        ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(12.mars, 13.mars)),
+                        registrert = 12.mars.kl(13, 1, 2, 3),
                     ),
-                    ansettelsesperiode = Ansettelsesperiode(PeriodeNullable(12.mars, 13.mars)),
-                    registrert = 12.mars.kl(13, 1, 2, 3)
-                )
-            ).toJson(Arbeidsforhold.serializer()),
+                ).toJson(Arbeidsforhold.serializer()),
             Key.ORG_RETTIGHETER to setOf(orgnr).toJson(Orgnr.serializer()),
-            Key.PERSONER to personer.toJson(personMapSerializer)
+            Key.PERSONER to personer.toJson(personMapSerializer),
         )
 
-    fun steg2Data(transaksjonId: UUID, orgnr: Orgnr): Map<Key, JsonElement> =
+    fun steg2Data(
+        transaksjonId: UUID,
+        orgnr: Orgnr,
+    ): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
-            Key.VIRKSOMHETER to mapOf(
-                orgnr.verdi to ORG_NAVN
-            ).toJson()
+            Key.VIRKSOMHETER to
+                mapOf(
+                    orgnr.verdi to ORG_NAVN,
+                ).toJson(),
         )
 }

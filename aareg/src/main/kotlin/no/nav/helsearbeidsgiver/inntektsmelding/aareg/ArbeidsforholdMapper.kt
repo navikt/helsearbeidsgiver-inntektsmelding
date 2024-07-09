@@ -8,15 +8,17 @@ import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
 fun KlientArbeidsforhold.tilArbeidsforhold(): Arbeidsforhold =
     Arbeidsforhold(
-        arbeidsgiver = Arbeidsgiver(
-            type = arbeidsgiver.type,
-            organisasjonsnummer = arbeidsgiver.organisasjonsnummer
-        ),
-        ansettelsesperiode = Ansettelsesperiode(
-            PeriodeNullable(
-                ansettelsesperiode.periode.fom,
-                ansettelsesperiode.periode.tom
-            )
-        ),
-        registrert = registrert
+        arbeidsgiver =
+            Arbeidsgiver(
+                type = arbeidsgiver.type,
+                organisasjonsnummer = arbeidsgiver.organisasjonsnummer,
+            ),
+        ansettelsesperiode =
+            Ansettelsesperiode(
+                PeriodeNullable(
+                    ansettelsesperiode.periode.fom,
+                    ansettelsesperiode.periode.tom,
+                ),
+            ),
+        registrert = registrert,
     )

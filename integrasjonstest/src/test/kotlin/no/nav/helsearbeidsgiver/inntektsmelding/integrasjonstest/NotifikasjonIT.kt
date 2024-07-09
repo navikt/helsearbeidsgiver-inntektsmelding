@@ -23,7 +23,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotifikasjonIT : EndToEndTest() {
-
     @Test
     fun `Oppretter og lagrer sak etter at forespørselen er mottatt`() {
         coEvery {
@@ -34,7 +33,7 @@ class NotifikasjonIT : EndToEndTest() {
             Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
             Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
             Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
         )
 
         messages.filter(EventName.SAK_OPPRETT_REQUESTED)
@@ -90,7 +89,7 @@ class NotifikasjonIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
             Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
         )
 
         messages.filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
@@ -138,7 +137,7 @@ class NotifikasjonIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
-            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
         )
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
@@ -153,7 +152,7 @@ class NotifikasjonIT : EndToEndTest() {
             Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
             Key.DATA to "".toJson(),
             Key.UUID to transactionId.toJson(),
-            Key.FORESPOERSEL_SVAR to mockForespoersel().copy(fnr = Mock.FNR, orgnr = Mock.ORGNR).toJson(Forespoersel.serializer())
+            Key.FORESPOERSEL_SVAR to mockForespoersel().copy(fnr = Mock.FNR, orgnr = Mock.ORGNR).toJson(Forespoersel.serializer()),
         )
 
         messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
@@ -209,7 +208,7 @@ class NotifikasjonIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.MANUELL_SLETT_SAK_REQUESTED.toJson(),
             Key.BEHOV to BehovType.SLETT_SAK.toJson(),
-            Key.SAK_ID to Mock.SAK_ID.toJson()
+            Key.SAK_ID to Mock.SAK_ID.toJson(),
         )
 
         coVerify(exactly = 1) { arbeidsgiverNotifikasjonKlient.hardDeleteSak(Mock.SAK_ID) }

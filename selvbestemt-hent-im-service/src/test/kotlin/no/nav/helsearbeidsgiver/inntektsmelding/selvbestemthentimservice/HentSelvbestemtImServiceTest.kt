@@ -32,7 +32,7 @@ class HentSelvbestemtImServiceTest : FunSpec({
     val mockRedis = MockRedisClassSpecific(RedisPrefix.HentSelvbestemtImService)
 
     ServiceRiver(
-        HentSelvbestemtImService(testRapid, mockRedis.store)
+        HentSelvbestemtImService(testRapid, mockRedis.store),
     )
         .connect(testRapid)
 
@@ -46,14 +46,14 @@ class HentSelvbestemtImServiceTest : FunSpec({
         val transaksjonId = UUID.randomUUID()
 
         testRapid.sendJson(
-            Mock.startMelding(transaksjonId)
+            Mock.startMelding(transaksjonId),
         )
 
         testRapid.inspektør.size shouldBeExactly 1
         testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
 
         testRapid.sendJson(
-            Mock.dataMelding(transaksjonId)
+            Mock.dataMelding(transaksjonId),
         )
 
         testRapid.inspektør.size shouldBeExactly 1
@@ -62,8 +62,8 @@ class HentSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(transaksjonId),
                 ResultJson(
-                    success = Mock.inntektsmelding.toJson(Inntektsmelding.serializer())
-                ).toJson(ResultJson.serializer())
+                    success = Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                ).toJson(ResultJson.serializer()),
             )
         }
     }
@@ -73,7 +73,7 @@ class HentSelvbestemtImServiceTest : FunSpec({
         val feilmelding = "Snitches get stitches (fordi vi har gratis helsevesen)"
 
         testRapid.sendJson(
-            Mock.startMelding(transaksjonId)
+            Mock.startMelding(transaksjonId),
         )
 
         testRapid.sendJson(
@@ -82,12 +82,13 @@ class HentSelvbestemtImServiceTest : FunSpec({
                 event = EventName.SELVBESTEMT_IM_REQUESTED,
                 transaksjonId = transaksjonId,
                 forespoerselId = null,
-                utloesendeMelding = JsonObject(
-                    mapOf(
-                        Key.BEHOV.toString() to BehovType.HENT_SELVBESTEMT_IM.toJson()
-                    )
-                )
-            ).tilMelding()
+                utloesendeMelding =
+                    JsonObject(
+                        mapOf(
+                            Key.BEHOV.toString() to BehovType.HENT_SELVBESTEMT_IM.toJson(),
+                        ),
+                    ),
+            ).tilMelding(),
         )
 
         testRapid.inspektør.size shouldBeExactly 1
@@ -97,8 +98,8 @@ class HentSelvbestemtImServiceTest : FunSpec({
             mockRedis.store.set(
                 RedisKey.of(transaksjonId),
                 ResultJson(
-                    failure = feilmelding.toJson()
-                ).toJson(ResultJson.serializer())
+                    failure = feilmelding.toJson(),
+                ).toJson(ResultJson.serializer()),
             )
         }
     }
@@ -113,7 +114,7 @@ private object Mock {
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
-            Key.SELVBESTEMT_ID to selvbestemtId.toJson()
+            Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
         )
 
     fun dataMelding(transaksjonId: UUID): Map<Key, JsonElement> =
@@ -122,6 +123,6 @@ private object Mock {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
         )
 }

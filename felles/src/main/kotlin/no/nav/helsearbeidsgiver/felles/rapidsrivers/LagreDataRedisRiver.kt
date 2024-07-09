@@ -26,9 +26,8 @@ class LagreDataRedisRiver(
     private val dataKeys: Set<Key>,
     private val rapid: RapidsConnection,
     private val redisStore: RedisStore,
-    private val etterDataLagret: (JsonMessage, MessageContext) -> Unit
+    private val etterDataLagret: (JsonMessage, MessageContext) -> Unit,
 ) : River.PacketListener {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -44,13 +43,16 @@ class LagreDataRedisRiver(
 
                 it.interestedIn(
                     Key.FORESPOERSEL_ID,
-                    *dataKeys.toTypedArray()
+                    *dataKeys.toTypedArray(),
                 )
             }
             .register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         val melding = packet.toJson().parseJson().toMap()
 
         if (Key.FORESPOERSEL_ID.lesOrNull(String.serializer(), melding).isNullOrEmpty()) {
@@ -58,19 +60,20 @@ class LagreDataRedisRiver(
             sikkerLogger.warn("Mangler forespørselId!")
         }
 
-        val transaksjonId = runCatching {
-            Key.UUID.lesOrNull(UuidSerializer, melding)
-        }
-            .onFailure {
-                sikkerLogger.error("Klarte ikke lese transaksjon-ID.", it)
+        val transaksjonId =
+            runCatching {
+                Key.UUID.lesOrNull(UuidSerializer, melding)
             }
-            .getOrNull()
+                .onFailure {
+                    sikkerLogger.error("Klarte ikke lese transaksjon-ID.", it)
+                }
+                .getOrNull()
 
         if (transaksjonId != null) {
             MdcUtils.withLogFields(
                 Log.klasse(this),
                 Log.event(event),
-                Log.transaksjonId(transaksjonId)
+                Log.transaksjonId(transaksjonId),
             ) {
                 val antallLagret = lagreData(melding, transaksjonId)
 
@@ -87,7 +90,10 @@ class LagreDataRedisRiver(
         }
     }
 
-    private fun lagreData(melding: Map<Key, JsonElement>, transaksjonId: UUID): Int =
+    private fun lagreData(
+        melding: Map<Key, JsonElement>,
+        transaksjonId: UUID,
+    ): Int =
         melding.filterKeys(dataKeys::contains)
             .onEach { (key, data) ->
                 redisStore.set(RedisKey.of(transaksjonId, key), data.toString())

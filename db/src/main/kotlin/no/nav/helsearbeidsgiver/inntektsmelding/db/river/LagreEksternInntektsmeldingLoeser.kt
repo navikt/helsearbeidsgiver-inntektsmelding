@@ -21,9 +21,8 @@ import java.util.UUID
 
 class LagreEksternInntektsmeldingLoeser(
     rapidsConnection: RapidsConnection,
-    private val repository: InntektsmeldingRepository
+    private val repository: InntektsmeldingRepository,
 ) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -34,6 +33,7 @@ class LagreEksternInntektsmeldingLoeser(
             it.interestedIn(Key.EKSTERN_INNTEKTSMELDING)
         }
     }
+
     override fun onBehov(behov: Behov) {
         val transaksjonId = behov[Key.UUID].asText().let(UUID::fromString)
         val forespoerselId = behov[Key.FORESPOERSEL_ID].asText().let(UUID::fromString)
@@ -41,7 +41,7 @@ class LagreEksternInntektsmeldingLoeser(
             Log.klasse(this),
             Log.event(behov.event),
             Log.transaksjonId(transaksjonId),
-            Log.behov(behov.behov)
+            Log.behov(behov.behov),
         ) {
             logger.info("Mottok behov ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name}")
             sikkerLogger.info("Mottok behov:\n${behov.jsonMessage.toPretty()}")
@@ -55,20 +55,20 @@ class LagreEksternInntektsmeldingLoeser(
                     repository.lagreEksternInntektsmelding(forespoerselId.toString(), eksternInntektsmelding)
                     logger.info(
                         "Lagret EksternInntektsmelding med arkiv referanse ${eksternInntektsmelding.arkivreferanse}" +
-                            " i database for forespoerselId $forespoerselId"
+                            " i database for forespoerselId $forespoerselId",
                     )
 
                     rapidsConnection.publishEvent(
                         eventName = EventName.EKSTERN_INNTEKTSMELDING_LAGRET,
                         transaksjonId = transaksjonId,
-                        forespoerselId = forespoerselId
+                        forespoerselId = forespoerselId,
                     )
                 } catch (ex: Exception) {
                     publishFail(behov.createFail("Klarte ikke lagre EksternInntektsmelding for transaksjonId $transaksjonId"))
                     logger.error("Klarte ikke lagre EksternInntektsmelding")
                     sikkerLogger.error(
                         "Klarte ikke lagre EksternInntektsmelding $EksternInntektsmelding",
-                        ex
+                        ex,
                     )
                 }
             }

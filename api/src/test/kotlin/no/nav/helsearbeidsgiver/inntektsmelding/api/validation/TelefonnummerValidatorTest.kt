@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 
 class TelefonnummerValidatorTest {
-
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = ["", " "])

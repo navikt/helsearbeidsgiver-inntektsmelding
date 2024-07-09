@@ -29,11 +29,12 @@ class LagreSelvbestemtImProducerTest : FunSpec({
         producer.publish(clientId, skjema, avsenderFnr)
 
         testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.CLIENT_ID to clientId.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
-        )
+        testRapid.firstMessage().toMap() shouldContainExactly
+            mapOf(
+                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+                Key.CLIENT_ID to clientId.toJson(),
+                Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+                Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+            )
     }
 })

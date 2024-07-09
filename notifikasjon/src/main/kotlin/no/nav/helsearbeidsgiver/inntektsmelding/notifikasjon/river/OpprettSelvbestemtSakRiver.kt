@@ -26,15 +26,14 @@ data class OpprettSelvbestemtSakMelding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
-    val inntektsmelding: Inntektsmelding
+    val inntektsmelding: Inntektsmelding,
 )
 
 class OpprettSelvbestemtSakRiver(
     private val linkUrl: String,
     private val selvbestemtRepo: SelvbestemtRepo,
-    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient
+    private val agNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ) : ObjectRiver<OpprettSelvbestemtSakMelding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -46,22 +45,23 @@ class OpprettSelvbestemtSakRiver(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.OPPRETT_SELVBESTEMT_SAK, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), json)
+                inntektsmelding = Key.SELVBESTEMT_INNTEKTSMELDING.les(Inntektsmelding.serializer(), json),
             )
         }
 
     override fun OpprettSelvbestemtSakMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
-        val sakId = agNotifikasjonKlient.opprettSak(
-            lenke = "$linkUrl/im-dialog/kvittering/agi/${inntektsmelding.type.id}",
-            inntektsmeldingTypeId = inntektsmelding.type.id,
-            orgnr = inntektsmelding.avsender.orgnr.verdi,
-            sykmeldtNavn = inntektsmelding.sykmeldt.navn,
-            sykmeldtFoedselsdato = inntektsmelding.sykmeldt.fnr.verdi.take(6),
-            initiellStatus = SaksStatus.FERDIG
-        )
+        val sakId =
+            agNotifikasjonKlient.opprettSak(
+                lenke = "$linkUrl/im-dialog/kvittering/agi/${inntektsmelding.type.id}",
+                inntektsmeldingTypeId = inntektsmelding.type.id,
+                orgnr = inntektsmelding.avsender.orgnr.verdi,
+                sykmeldtNavn = inntektsmelding.sykmeldt.navn,
+                sykmeldtFoedselsdato = inntektsmelding.sykmeldt.fnr.verdi.take(6),
+                initiellStatus = SaksStatus.FERDIG,
+            )
 
         return MdcUtils.withLogFields(
-            Log.sakId(sakId)
+            Log.sakId(sakId),
         ) {
             selvbestemtRepo.lagreSakId(inntektsmelding.type.id, sakId)
 
@@ -71,19 +71,23 @@ class OpprettSelvbestemtSakRiver(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.DATA to mapOf(dataField).toJson(),
-                dataField
+                dataField,
             )
         }
     }
 
-    override fun OpprettSelvbestemtSakMelding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
-        val fail = Fail(
-            feilmelding = "Klarte ikke lagre sak for selvbestemt inntektsmelding.",
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = json.toJson()
-        )
+    override fun OpprettSelvbestemtSakMelding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke lagre sak for selvbestemt inntektsmelding.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding = json.toJson(),
+            )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
@@ -99,6 +103,6 @@ class OpprettSelvbestemtSakRiver(
             Log.event(eventName),
             Log.behov(behovType),
             Log.transaksjonId(transaksjonId),
-            Log.selvbestemtId(inntektsmelding.type.id)
+            Log.selvbestemtId(inntektsmelding.type.id),
         )
 }

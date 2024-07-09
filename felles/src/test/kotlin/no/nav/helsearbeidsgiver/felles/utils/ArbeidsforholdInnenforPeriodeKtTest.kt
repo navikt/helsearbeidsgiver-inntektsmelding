@@ -18,8 +18,8 @@ class ArbeidsforholdInnenforPeriodeKtTest : FunSpec({
         listOf(
             Periode(
                 LocalDate.of(2021, 1, 15),
-                LocalDate.of(2021, 1, 20)
-            )
+                LocalDate.of(2021, 1, 20),
+            ),
         ).aktivtArbeidsforholdIPeriode(AaregTestData.arbeidsforholdMedSluttDato) shouldBe true
     }
 
@@ -27,43 +27,46 @@ class ArbeidsforholdInnenforPeriodeKtTest : FunSpec({
         listOf(
             Periode(
                 LocalDate.of(2021, 1, 15),
-                LocalDate.of(2021, 1, 28)
-            )
+                LocalDate.of(2021, 1, 28),
+            ),
         ).aktivtArbeidsforholdIPeriode(AaregTestData.evigArbeidsForholdListe) shouldBe true
     }
 
     test("Sammenhengende arbeidsforhold slås sammen til en periode") {
-        val arbeidsforholdListe = listOf(
-            Arbeidsforhold(
-                arbeidsgiver = arbeidsgiver1,
-                ansettelsesperiode = Ansettelsesperiode(
-                    PeriodeNullable(
-                        LocalDate.of(2019, 1, 1),
-                        LocalDate.of(2021, 2, 28)
-                    )
+        val arbeidsforholdListe =
+            listOf(
+                Arbeidsforhold(
+                    arbeidsgiver = arbeidsgiver1,
+                    ansettelsesperiode =
+                        Ansettelsesperiode(
+                            PeriodeNullable(
+                                LocalDate.of(2019, 1, 1),
+                                LocalDate.of(2021, 2, 28),
+                            ),
+                        ),
+                    registrert = minDate,
                 ),
-                registrert = minDate
-            ),
-            Arbeidsforhold(
-                arbeidsgiver = arbeidsgiver1,
-                ansettelsesperiode = Ansettelsesperiode(
-                    PeriodeNullable(
-                        LocalDate.of(2021, 3, 1),
-                        null
-                    )
+                Arbeidsforhold(
+                    arbeidsgiver = arbeidsgiver1,
+                    ansettelsesperiode =
+                        Ansettelsesperiode(
+                            PeriodeNullable(
+                                LocalDate.of(2021, 3, 1),
+                                null,
+                            ),
+                        ),
+                    registrert = minDate,
                 ),
-                registrert = minDate
             )
-        )
         listOf(
             Periode(
                 LocalDate.of(2021, 1, 15),
-                LocalDate.of(2021, 1, 18)
+                LocalDate.of(2021, 1, 18),
             ),
             Periode(
                 LocalDate.of(2021, 2, 26),
-                LocalDate.of(2021, 3, 10)
-            )
+                LocalDate.of(2021, 3, 10),
+            ),
         ).aktivtArbeidsforholdIPeriode(arbeidsforholdListe) shouldBe true
     }
 
@@ -71,8 +74,8 @@ class ArbeidsforholdInnenforPeriodeKtTest : FunSpec({
         listOf(
             Periode(
                 LocalDate.of(2021, 1, 1),
-                LocalDate.of(2021, 1, 5)
-            )
+                LocalDate.of(2021, 1, 5),
+            ),
         ).aktivtArbeidsforholdIPeriode(AaregTestData.pågåendeArbeidsforholdListe) shouldBe false
     }
 
@@ -80,8 +83,8 @@ class ArbeidsforholdInnenforPeriodeKtTest : FunSpec({
         listOf(
             Periode(
                 LocalDate.of(2021, 2, 5),
-                LocalDate.of(2021, 2, 9)
-            )
+                LocalDate.of(2021, 2, 9),
+            ),
         ).aktivtArbeidsforholdIPeriode(AaregTestData.pågåendeArbeidsforholdListe) shouldBe true
     }
 
@@ -89,8 +92,8 @@ class ArbeidsforholdInnenforPeriodeKtTest : FunSpec({
         listOf(
             Periode(
                 LocalDate.of(2021, 5, 15),
-                LocalDate.of(2021, 5, 18)
-            )
+                LocalDate.of(2021, 5, 18),
+            ),
         ).aktivtArbeidsforholdIPeriode(AaregTestData.avsluttetArbeidsforholdListe) shouldBe false
     }
 })

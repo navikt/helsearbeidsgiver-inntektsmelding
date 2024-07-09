@@ -33,6 +33,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
+import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
@@ -79,28 +80,31 @@ import kotlin.io.path.absolutePathString
 
 private const val NOTIFIKASJON_LINK = "notifikasjonLink"
 
-val bjarneBetjent = FullPerson(
-    navn = PersonNavn(
-        fornavn = "Bjarne",
-        mellomnavn = null,
-        etternavn = "Betjent"
-    ),
-    foedselsdato = 28.mai,
-    ident = Fnr.genererGyldig().verdi
-)
-val maxMekker = FullPerson(
-    navn = PersonNavn(
-        fornavn = "Max",
-        mellomnavn = null,
-        etternavn = "Mekker"
-    ),
-    foedselsdato = 6.august,
-    ident = Fnr.genererGyldig().verdi
-)
+val bjarneBetjent =
+    FullPerson(
+        navn =
+            PersonNavn(
+                fornavn = "Bjarne",
+                mellomnavn = null,
+                etternavn = "Betjent",
+            ),
+        foedselsdato = 28.mai,
+        ident = Fnr.genererGyldig().verdi,
+    )
+val maxMekker =
+    FullPerson(
+        navn =
+            PersonNavn(
+                fornavn = "Max",
+                mellomnavn = null,
+                etternavn = "Mekker",
+            ),
+        foedselsdato = 6.august,
+        ident = Fnr.genererGyldig().verdi,
+    )
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class EndToEndTest : ContainerTest() {
-
     private val imTestRapid = ImTestRapid()
 
     private val inntektsmeldingDatabase by lazy {
@@ -171,16 +175,17 @@ abstract class EndToEndTest : ContainerTest() {
         imTestRapid.reset()
         clearAllMocks()
 
-        coEvery { pdlKlient.personBolk(any()) } returns listOf(
-            bjarneBetjent,
-            maxMekker
-        )
+        coEvery { pdlKlient.personBolk(any()) } returns
+            listOf(
+                bjarneBetjent,
+                maxMekker,
+            )
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
         coEvery { brregClient.hentVirksomheter(any()) } answers {
             firstArg<List<String>>().map { orgnr ->
                 Virksomhet(
                     organisasjonsnummer = orgnr,
-                    navn = "Bedrift A/S"
+                    navn = "Bedrift A/S",
                 )
             }
         }
@@ -206,8 +211,8 @@ abstract class EndToEndTest : ContainerTest() {
             createInntektService(redisStore)
             createInntektSelvbestemtService(redisConnection)
             createLagreSelvbestemtImService(redisStore)
-            createSpinnService(redisStore)
-            createTilgangService(redisStore)
+            createSpinnService(redisConnection)
+            createTilgangService(redisConnection)
             createHentForespoerselService(redisConnection)
 
             // Rivers
@@ -221,6 +226,7 @@ abstract class EndToEndTest : ContainerTest() {
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
             createHelsebro(mockPriProducer)
+            createHentEksternImRiver(spinnKlient)
             createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
@@ -262,27 +268,29 @@ abstract class EndToEndTest : ContainerTest() {
         eventName: EventName,
         transaksjonId: UUID,
         forespoerselId: UUID,
-        forespoerselSvar: ForespoerselSvar.Suksess
+        forespoerselSvar: ForespoerselSvar.Suksess,
     ) {
         every {
             mockPriProducer.send(
                 *varargAny { (key, value) ->
                     key == Pri.Key.BEHOV &&
                         runCatching { value.fromJson(Pri.BehovType.serializer()) }.getOrNull() == Pri.BehovType.TRENGER_FORESPØRSEL
-                }
+                },
             )
         } answers {
             publish(
                 Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to ForespoerselSvar(
-                    forespoerselId = forespoerselId,
-                    resultat = forespoerselSvar,
-                    boomerang = mapOf(
-                        Key.EVENT_NAME to eventName.toJson(),
-                        Key.UUID to transaksjonId.toJson()
-                    ).toJson()
-                )
-                    .toJson(ForespoerselSvar.serializer())
+                Pri.Key.LØSNING to
+                    ForespoerselSvar(
+                        forespoerselId = forespoerselId,
+                        resultat = forespoerselSvar,
+                        boomerang =
+                            mapOf(
+                                Key.EVENT_NAME to eventName.toJson(),
+                                Key.UUID to transaksjonId.toJson(),
+                            ).toJson(),
+                    )
+                        .toJson(ForespoerselSvar.serializer()),
             )
 
             Result.success(JsonObject(emptyMap()))

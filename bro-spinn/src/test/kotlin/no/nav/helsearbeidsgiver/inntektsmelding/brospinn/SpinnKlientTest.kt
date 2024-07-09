@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 import no.nav.inntektsmeldingkontrakt.AvsenderSystem
+import java.util.UUID
 
 class SpinnKlientTest : FunSpec({
 
@@ -14,9 +15,10 @@ class SpinnKlientTest : FunSpec({
 
     test("Hvis inntektsmelding ikke finnes kastes feil") {
         val spinnKlient = mockSpinnKlient("", HttpStatusCode.NotFound)
-        val exception = shouldThrowExactly<SpinnApiException> {
-            spinnKlient.hentEksternInntektsmelding("abc-1")
-        }
+        val exception =
+            shouldThrowExactly<SpinnApiException> {
+                spinnKlient.hentEksternInntektsmelding(UUID.randomUUID())
+            }
         exception.message shouldBe "$FIKK_SVAR_MED_RESPONSE_STATUS: ${HttpStatusCode.NotFound.value}"
     }
 
@@ -24,14 +26,15 @@ class SpinnKlientTest : FunSpec({
         val responsData = Jackson.toJson(expectedInntektsmelding.copy(avsenderSystem = AvsenderSystem(null, null)))
         val spinnKlient = mockSpinnKlient(responsData, HttpStatusCode.OK)
 
-        val exception = shouldThrowExactly<SpinnApiException> {
-            spinnKlient.hentEksternInntektsmelding("abc-1")
-        }
+        val exception =
+            shouldThrowExactly<SpinnApiException> {
+                spinnKlient.hentEksternInntektsmelding(UUID.randomUUID())
+            }
         exception.message shouldBe MANGLER_AVSENDER
     }
     test("Hvis inntektsmelding finnes returneres system navn") {
         val spinnKlient = mockSpinnKlient(expectedJson, HttpStatusCode.OK)
-        val result = spinnKlient.hentEksternInntektsmelding("abc-1")
+        val result = spinnKlient.hentEksternInntektsmelding(UUID.randomUUID())
         result.avsenderSystemNavn shouldBe "NAV_NO"
     }
 })

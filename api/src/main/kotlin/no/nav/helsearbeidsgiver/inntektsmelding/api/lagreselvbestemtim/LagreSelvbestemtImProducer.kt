@@ -16,22 +16,26 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class LagreSelvbestemtImProducer(
-    private val rapid: RapidsConnection
+    private val rapid: RapidsConnection,
 ) {
     init {
         logger.info("Starter ${LagreSelvbestemtImProducer::class.simpleName}...")
     }
 
-    fun publish(clientId: UUID, skjema: SkjemaInntektsmeldingSelvbestemt, avsenderFnr: Fnr) {
+    fun publish(
+        clientId: UUID,
+        skjema: SkjemaInntektsmeldingSelvbestemt,
+        avsenderFnr: Fnr,
+    ) {
         MdcUtils.withLogFields(
             Log.event(EventName.SELVBESTEMT_IM_MOTTATT),
-            Log.clientId(clientId)
+            Log.clientId(clientId),
         ) {
             rapid.publish(
                 Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
                 Key.CLIENT_ID to clientId.toJson(),
                 Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
+                Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
             )
                 .also {
                     logger.info("Publiserte til kafka.")

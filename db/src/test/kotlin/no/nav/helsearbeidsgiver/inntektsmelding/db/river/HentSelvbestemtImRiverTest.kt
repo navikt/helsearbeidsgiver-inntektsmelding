@@ -40,11 +40,13 @@ class HentSelvbestemtImRiverTest : FunSpec({
 
     test("henter inntektsmelding") {
         val innkommendeMelding = innkommendeMelding()
-        val inntektsmelding = mockInntektsmeldingV1().copy(
-            type = Inntektsmelding.Type.Selvbestemt(
-                id = innkommendeMelding.selvbestemtId
+        val inntektsmelding =
+            mockInntektsmeldingV1().copy(
+                type =
+                    Inntektsmelding.Type.Selvbestemt(
+                        id = innkommendeMelding.selvbestemtId,
+                    ),
             )
-        )
 
         every { mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId) } returns inntektsmelding
 
@@ -52,17 +54,19 @@ class HentSelvbestemtImRiverTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
-        val dataFields = arrayOf(
-            Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
-            Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
-        )
+        val dataFields =
+            arrayOf(
+                Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson(),
+                Key.SELVBESTEMT_INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+            )
 
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-            Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-            Key.DATA to dataFields.toMap().toJson(),
-            *dataFields
-        )
+        testRapid.firstMessage().toMap() shouldContainExactly
+            mapOf(
+                Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                Key.DATA to dataFields.toMap().toJson(),
+                *dataFields,
+            )
 
         verifySequence {
             mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId)
@@ -79,9 +83,10 @@ class HentSelvbestemtImRiverTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
-        testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
-            .minus(Key.FORESPOERSEL_ID)
-            .plus(Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson())
+        testRapid.firstMessage().toMap() shouldContainExactly
+            forventetFail.tilMelding()
+                .minus(Key.FORESPOERSEL_ID)
+                .plus(Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson())
 
         verifySequence {
             mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId)
@@ -98,9 +103,10 @@ class HentSelvbestemtImRiverTest : FunSpec({
 
         testRapid.inspektør.size shouldBeExactly 1
 
-        testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
-            .minus(Key.FORESPOERSEL_ID)
-            .plus(Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson())
+        testRapid.firstMessage().toMap() shouldContainExactly
+            forventetFail.tilMelding()
+                .minus(Key.FORESPOERSEL_ID)
+                .plus(Key.SELVBESTEMT_ID to innkommendeMelding.selvbestemtId.toJson())
 
         verifySequence {
             mockSelvbestemtImRepo.hentNyesteIm(innkommendeMelding.selvbestemtId)
@@ -112,12 +118,12 @@ class HentSelvbestemtImRiverTest : FunSpec({
             mapOf(
                 "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
                 "melding med data" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer()))
-            )
+                "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
+            ),
         ) { uoensketKeyMedVerdi ->
             testRapid.sendJson(
                 innkommendeMelding().toMap()
-                    .plus(uoensketKeyMedVerdi)
+                    .plus(uoensketKeyMedVerdi),
             )
 
             testRapid.inspektør.size shouldBeExactly 0
@@ -134,7 +140,7 @@ private fun innkommendeMelding(): HentSelvbestemtImMelding =
         eventName = EventName.SELVBESTEMT_IM_REQUESTED,
         behovType = BehovType.HENT_SELVBESTEMT_IM,
         transaksjonId = UUID.randomUUID(),
-        selvbestemtId = UUID.randomUUID()
+        selvbestemtId = UUID.randomUUID(),
     )
 
 private fun HentSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
@@ -142,7 +148,7 @@ private fun HentSelvbestemtImMelding.toMap(): Map<Key, JsonElement> =
         Key.EVENT_NAME to eventName.toJson(),
         Key.BEHOV to behovType.toJson(),
         Key.UUID to transaksjonId.toJson(),
-        Key.SELVBESTEMT_ID to selvbestemtId.toJson()
+        Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
     )
 
 private fun HentSelvbestemtImMelding.toFail(feilmelding: String): Fail =
@@ -151,13 +157,14 @@ private fun HentSelvbestemtImMelding.toFail(feilmelding: String): Fail =
         event = EventName.SELVBESTEMT_IM_REQUESTED,
         transaksjonId = transaksjonId,
         forespoerselId = null,
-        utloesendeMelding = toMap().toJson()
+        utloesendeMelding = toMap().toJson(),
     )
 
-private val mockFail = Fail(
-    feilmelding = "Computer says no.",
-    event = EventName.SELVBESTEMT_IM_REQUESTED,
-    transaksjonId = UUID.randomUUID(),
-    forespoerselId = null,
-    utloesendeMelding = JsonNull
-)
+private val mockFail =
+    Fail(
+        feilmelding = "Computer says no.",
+        event = EventName.SELVBESTEMT_IM_REQUESTED,
+        transaksjonId = UUID.randomUUID(),
+        forespoerselId = null,
+        utloesendeMelding = JsonNull,
+    )

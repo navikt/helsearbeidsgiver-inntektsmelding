@@ -49,7 +49,7 @@ class ForespoerselMottattLoeserTest : FunSpec({
                 Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
                 Pri.Key.ORGNR to expected.orgnrUnderenhet.toJson(),
                 Pri.Key.FNR to expected.identitetsnummer.toJson(),
-                Pri.Key.FORESPOERSEL_ID to expected.forespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
             )
         }
 
@@ -60,12 +60,13 @@ class ForespoerselMottattLoeserTest : FunSpec({
     }
 
     test("Ved feil så republiseres den innkommende meldingen") {
-        val expectedRepublisert = mapOf(
-            Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
-            Pri.Key.ORGNR to "hyper-oval".toJson(),
-            Pri.Key.FNR to "trett-fjell".toJson(),
-            Pri.Key.FORESPOERSEL_ID to "ikke en uuid".toJson()
-        )
+        val expectedRepublisert =
+            mapOf(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+                Pri.Key.ORGNR to "hyper-oval".toJson(),
+                Pri.Key.FNR to "trett-fjell".toJson(),
+                Pri.Key.FORESPOERSEL_ID to "ikke en uuid".toJson(),
+            )
 
         testRapid.sendJson(expectedRepublisert)
 
@@ -75,7 +76,7 @@ class ForespoerselMottattLoeserTest : FunSpec({
             mockPriProducer.send(
                 withArg<JsonElement> { json ->
                     json.fromJsonMapFiltered(Pri.Key.serializer()) shouldBe expectedRepublisert
-                }
+                },
             )
         }
     }
@@ -91,7 +92,7 @@ private data class Published(
     val identitetsnummer: String,
     val forespoerselId: UUID,
     @SerialName("uuid")
-    val transaksjonId: UUID
+    val transaksjonId: UUID,
 ) {
     companion object {
         fun mock(): Published =
@@ -101,7 +102,7 @@ private data class Published(
                 orgnrUnderenhet = "certainly-stereo-facsimile",
                 identitetsnummer = "resort-cringe-huddle",
                 forespoerselId = UUID.randomUUID(),
-                transaksjonId = UUID.randomUUID()
+                transaksjonId = UUID.randomUUID(),
             )
     }
 }

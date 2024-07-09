@@ -10,32 +10,50 @@ import kotlinx.serialization.KSerializer
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.receive(serializer: KSerializer<T>): T =
-    call.receiveText().fromJson(serializer)
+suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.receive(serializer: KSerializer<T>): T = call.receiveText().fromJson(serializer)
 
-suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondOk(message: T, serializer: KSerializer<T>) {
+suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondOk(
+    message: T,
+    serializer: KSerializer<T>,
+) {
     respond(HttpStatusCode.OK, message, serializer)
 }
 
-suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondBadRequest(message: T, serializer: KSerializer<T>) {
+suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondBadRequest(
+    message: T,
+    serializer: KSerializer<T>,
+) {
     respond(HttpStatusCode.BadRequest, message, serializer)
 }
 
-suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondForbidden(message: T, serializer: KSerializer<T>) {
+suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondForbidden(
+    message: T,
+    serializer: KSerializer<T>,
+) {
     respond(HttpStatusCode.Forbidden, message, serializer)
 }
 
-suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondNotFound(message: T, serializer: KSerializer<T>) {
+suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondNotFound(
+    message: T,
+    serializer: KSerializer<T>,
+) {
     respond(HttpStatusCode.NotFound, message, serializer)
 }
 
-suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondInternalServerError(message: T, serializer: KSerializer<T>) {
+suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respondInternalServerError(
+    message: T,
+    serializer: KSerializer<T>,
+) {
     respond(HttpStatusCode.InternalServerError, message, serializer)
 }
 
-suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respond(status: HttpStatusCode, message: T, serializer: KSerializer<T>) {
+suspend fun <T : Any> PipelineContext<Unit, ApplicationCall>.respond(
+    status: HttpStatusCode,
+    message: T,
+    serializer: KSerializer<T>,
+) {
     call.respond(
         status = status,
-        message = message.toJson(serializer)
+        message = message.toJson(serializer),
     )
 }

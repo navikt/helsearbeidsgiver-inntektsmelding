@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class FulltNavnLoeserTest {
-
     private val testRapid = TestRapid()
     private val mockPdlClient = mockk<PdlClient>()
 
@@ -51,7 +50,7 @@ class FulltNavnLoeserTest {
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
             Key.IDENTITETSNUMMER to id.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson(),
         )
 
         val publisert = testRapid.firstMessage().toMap()
@@ -75,7 +74,7 @@ class FulltNavnLoeserTest {
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
             Key.IDENTITETSNUMMER to "abc".toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson(),
         )
 
         val publisert = testRapid.firstMessage().toMap()
@@ -92,17 +91,18 @@ class FulltNavnLoeserTest {
         val arbeidsgiverID = "654321"
         coEvery {
             mockPdlClient.personBolk(any())
-        } returns listOf(
-            mockPerson("Ola", arbeidstakerID),
-            mockPerson("Kari", arbeidsgiverID)
-        )
+        } returns
+            listOf(
+                mockPerson("Ola", arbeidstakerID),
+                mockPerson("Kari", arbeidsgiverID),
+            )
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
             Key.IDENTITETSNUMMER to arbeidstakerID.toJson(),
             Key.ARBEIDSGIVER_ID to arbeidsgiverID.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson(),
         )
 
         val publisert = testRapid.firstMessage().toMap()
@@ -126,16 +126,17 @@ class FulltNavnLoeserTest {
         val arbeidsgiverID = "654321"
         coEvery {
             mockPdlClient.personBolk(any())
-        } returns listOf(
-            mockPerson("Kari", arbeidsgiverID)
-        )
+        } returns
+            listOf(
+                mockPerson("Kari", arbeidsgiverID),
+            )
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
             Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
             Key.IDENTITETSNUMMER to arbeidstakerID.toJson(),
             Key.ARBEIDSGIVER_ID to arbeidsgiverID.toJson(),
-            Key.UUID to UUID.randomUUID().toJson()
+            Key.UUID to UUID.randomUUID().toJson(),
         )
 
         val publisert = testRapid.firstMessage().toMap()
@@ -154,13 +155,17 @@ class FulltNavnLoeserTest {
     }
 }
 
-private fun mockPerson(fornavn: String, ident: String): FullPerson =
+private fun mockPerson(
+    fornavn: String,
+    ident: String,
+): FullPerson =
     FullPerson(
-        navn = PersonNavn(
-            fornavn = fornavn,
-            mellomnavn = null,
-            etternavn = "Normann"
-        ),
+        navn =
+            PersonNavn(
+                fornavn = fornavn,
+                mellomnavn = null,
+                etternavn = "Normann",
+            ),
         foedselsdato = 13.juni(1956),
-        ident = ident
+        ident = ident,
     )

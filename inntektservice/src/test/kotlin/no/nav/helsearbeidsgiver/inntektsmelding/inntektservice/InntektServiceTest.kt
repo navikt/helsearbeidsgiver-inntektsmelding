@@ -23,13 +23,13 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class InntektServiceTest {
-
     private val testRapid = TestRapid()
     private val mockRedis = MockRedis()
 
-    private val service = spyk(
-        InntektService(testRapid, mockRedis.store)
-    )
+    private val service =
+        spyk(
+            InntektService(testRapid, mockRedis.store),
+        )
 
     @BeforeEach
     fun setup() {
@@ -46,17 +46,19 @@ class InntektServiceTest {
 
         every { mockRedis.store.get(RedisKey.of(transaksjonId, event)) } returns clientId.toString()
 
-        val fail = Fail(
-            feilmelding = "ikkeno",
-            event = event,
-            transaksjonId = transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = JsonObject(
-                mapOf(
-                    Key.BEHOV.str to BehovType.INNTEKT.toJson()
-                )
+        val fail =
+            Fail(
+                feilmelding = "ikkeno",
+                event = event,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding =
+                    JsonObject(
+                        mapOf(
+                            Key.BEHOV.str to BehovType.INNTEKT.toJson(),
+                        ),
+                    ),
             )
-        )
 
         shouldNotThrowAny {
             service.onError(emptyMap(), fail)
@@ -72,7 +74,7 @@ class InntektServiceTest {
                             ?.fromJson(String.serializer())
                     }
                         .shouldBeSuccess()
-                }
+                },
             )
         }
     }

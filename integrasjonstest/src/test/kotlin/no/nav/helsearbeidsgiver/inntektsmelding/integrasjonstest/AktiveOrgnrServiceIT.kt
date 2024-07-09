@@ -48,7 +48,6 @@ import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as AAregArbeidsforhold
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AktiveOrgnrServiceIT : EndToEndTest() {
-
     @BeforeEach
     fun setup() {
         clearAllMocks()
@@ -68,7 +67,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FNR to Mock.fnr.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson()
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
         )
 
         redisStore.get(RedisKey.of(transaksjonId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
@@ -78,17 +77,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.fnrAg
+            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnrAg
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.fnr
+            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -109,7 +108,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             .filter(Key.VIRKSOMHETER)
             .firstAsMap()[Key.VIRKSOMHETER]
             ?.fromJson(
-                MapSerializer(String.serializer(), String.serializer())
+                MapSerializer(String.serializer(), String.serializer()),
             ) shouldBe mapOf("810007842" to "ANSTENDIG PIGGSVIN BARNEHAGE")
     }
 
@@ -127,7 +126,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FNR to Mock.fnr.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson()
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
         )
 
         redisStore.get(RedisKey.of(transaksjonId))?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
@@ -137,17 +136,17 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.fnrAg
+            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnrAg
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(String.serializer()) shouldBe Mock.fnr
+            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 
         aktiveOrgnrMeldinger
             .filter(BehovType.HENT_PERSONER)
             .firstAsMap()[Key.FNR_LISTE]
-            ?.fromJson(String.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
+            ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
             .filter(Key.ORG_RETTIGHETER)
@@ -170,51 +169,56 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         coEvery { pdlKlient.personBolk(any()) } throws IllegalArgumentException("Ingen folk å finne her!")
 
-        val expectedFail = Fail(
-            feilmelding = "Klarte ikke hente personer fra PDL.",
-            event = EventName.AKTIVE_ORGNR_REQUESTED,
-            transaksjonId = transaksjonId,
-            forespoerselId = null,
-            utloesendeMelding = mapOf(
-                Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
-                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                Key.FNR_LISTE to listOf(
-                    Mock.fnr,
-                    Mock.fnrAg
-                ).toJson(String.serializer()),
-                Key.UUID to transaksjonId.toJson()
-            ).toJson()
-        )
+        val expectedFail =
+            Fail(
+                feilmelding = "Klarte ikke hente personer fra PDL.",
+                event = EventName.AKTIVE_ORGNR_REQUESTED,
+                transaksjonId = transaksjonId,
+                forespoerselId = null,
+                utloesendeMelding =
+                    mapOf(
+                        Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
+                        Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
+                        Key.FNR_LISTE to
+                            listOf(
+                                Mock.fnr,
+                                Mock.fnrAg,
+                            ).toJson(Fnr.serializer()),
+                        Key.UUID to transaksjonId.toJson(),
+                    ).toJson(),
+            )
 
         publish(
             Key.EVENT_NAME to EventName.AKTIVE_ORGNR_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FNR to Mock.fnr.toJson(),
-            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson()
+            Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
         )
 
-        val response = redisStore.get(RedisKey.of(transaksjonId))
-            ?.fromJson(ResultJson.serializer())
-            .shouldNotBeNull()
+        val response =
+            redisStore.get(RedisKey.of(transaksjonId))
+                ?.fromJson(ResultJson.serializer())
+                .shouldNotBeNull()
 
         response.success.shouldBeNull()
         response.failure.shouldNotBeNull().fromJson(String.serializer()) shouldBe expectedFail.feilmelding
 
-        val actualFail = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
-            .filterFeil()
-            .firstAsMap()
-            .get(Key.FAIL)
-            ?.fromJson(Fail.serializer())
-            .shouldNotBeNull()
+        val actualFail =
+            messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
+                .filterFeil()
+                .firstAsMap()
+                .get(Key.FAIL)
+                ?.fromJson(Fail.serializer())
+                .shouldNotBeNull()
 
         actualFail.shouldBeEqualToIgnoringFields(expectedFail, Fail::utloesendeMelding)
         actualFail.utloesendeMelding.toMap() shouldContainExactly expectedFail.utloesendeMelding.toMap()
     }
 
     private object Mock {
-
-        val GYLDIG_AKTIVE_ORGNR_RESPONSE = """
+        val GYLDIG_AKTIVE_ORGNR_RESPONSE =
+            """
             {
                 "success": {
                     "fulltNavn": "Bjarne Betjent",
@@ -224,73 +228,78 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
         """.removeJsonWhitespace()
 
-        val resultatIngenArbeidsforholdJson = ResultJson(
-            success = AktiveArbeidsgivere(
-                fulltNavn = "Bjarne Betjent",
-                avsenderNavn = "Max Mekker",
-                underenheter = emptyList()
-            ).toJson(AktiveArbeidsgivere.serializer())
-        )
-            .toJson(ResultJson.serializer())
-
-        val fnr = Fnr.genererGyldig().verdi
-        val fnrAg = Fnr.genererGyldig().verdi
-
-        val arbeidsforholdListe = listOf(
-            AAregArbeidsforhold(
-                arbeidsgiver = Arbeidsgiver(
-                    type = "Underenhet",
-                    organisasjonsnummer = "810007842"
-                ),
-                opplysningspliktig = Opplysningspliktig(
-                    type = "ikke brukt",
-                    organisasjonsnummer = "ikke brukt heller"
-                ),
-                arbeidsavtaler = emptyList(),
-                ansettelsesperiode = Ansettelsesperiode(
-                    Periode(
-                        fom = 1.januar,
-                        tom = null
-                    )
-                ),
-                registrert = 3.januar.kl(6, 30, 40, 50000)
+        val resultatIngenArbeidsforholdJson =
+            ResultJson(
+                success =
+                    AktiveArbeidsgivere(
+                        fulltNavn = "Bjarne Betjent",
+                        avsenderNavn = "Max Mekker",
+                        underenheter = emptyList(),
+                    ).toJson(AktiveArbeidsgivere.serializer()),
             )
-        )
+                .toJson(ResultJson.serializer())
+
+        val fnr = Fnr.genererGyldig()
+        val fnrAg = Fnr.genererGyldig()
+
+        val arbeidsforholdListe =
+            listOf(
+                AAregArbeidsforhold(
+                    arbeidsgiver =
+                        Arbeidsgiver(
+                            type = "Underenhet",
+                            organisasjonsnummer = "810007842",
+                        ),
+                    opplysningspliktig =
+                        Opplysningspliktig(
+                            type = "ikke brukt",
+                            organisasjonsnummer = "ikke brukt heller",
+                        ),
+                    arbeidsavtaler = emptyList(),
+                    ansettelsesperiode =
+                        Ansettelsesperiode(
+                            Periode(
+                                fom = 1.januar,
+                                tom = null,
+                            ),
+                        ),
+                    registrert = 3.januar.kl(6, 30, 40, 50000),
+                ),
+            )
 
         val altinnOrganisasjonSet =
             setOf(
                 AltinnOrganisasjon(
                     navn = "ANSTENDIG PIGGSVIN BYDEL",
                     type = "organisasjon",
-                    orgnrHovedenhet = "810007702"
+                    orgnrHovedenhet = "810007702",
                 ),
                 AltinnOrganisasjon(
                     navn = "ANSTENDIG PIGGSVIN BARNEHAGE",
                     type = "organisasjon",
                     orgnr = "810007842",
-                    orgnrHovedenhet = "810007702"
-
+                    orgnrHovedenhet = "810007702",
                 ),
                 AltinnOrganisasjon(
                     navn = "ANSTENDIG PIGGSVIN BRANNVESEN",
                     type = "organisasjon",
                     orgnr = "810008032",
-                    orgnrHovedenhet = "810007702"
-
+                    orgnrHovedenhet = "810007702",
                 ),
                 AltinnOrganisasjon(
                     navn = "ANSTENDIG PIGGSVIN SYKEHJEM",
                     type = "organisasjon",
                     orgnr = "810007982",
-                    orgnrHovedenhet = "810007702"
-                )
+                    orgnrHovedenhet = "810007702",
+                ),
             )
 
         val underenheter = listOf("810007842")
 
-        val personer = listOf(
-            bjarneBetjent.copy(ident = fnr),
-            maxMekker.copy(ident = fnrAg)
-        )
+        val personer =
+            listOf(
+                bjarneBetjent.copy(ident = fnr.verdi),
+                maxMekker.copy(ident = fnrAg.verdi),
+            )
     }
 }

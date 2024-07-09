@@ -7,8 +7,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 @Serializable
 data class ResultJson(
     val success: JsonElement? = null,
-    val failure: JsonElement? = null
+    val failure: JsonElement? = null,
 ) {
-    fun toJsonStr(): String =
-        toJsonStr(serializer())
+    fun toJsonStr(): String = toJsonStr(serializer())
 }

@@ -20,7 +20,6 @@ import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KvitteringIT : EndToEndTest() {
-
     @BeforeEach
     fun setup() {
         truncateDatabase()
@@ -37,7 +36,7 @@ class KvitteringIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
         messages.filter(EventName.KVITTERING_REQUESTED)
@@ -68,7 +67,7 @@ class KvitteringIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
         messages.filter(EventName.KVITTERING_REQUESTED)
@@ -92,7 +91,7 @@ class KvitteringIT : EndToEndTest() {
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.CLIENT_ID to clientId.toJson(),
-            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson()
+            Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
         )
 
         messages.filter(EventName.KVITTERING_REQUESTED)
@@ -110,12 +109,13 @@ class KvitteringIT : EndToEndTest() {
         const val ORGNR = "987"
 
         val inntektsmeldingDokument = mockInntektsmelding()
-        val eksternInntektsmelding = EksternInntektsmelding(
-            "AltinnPortal",
-            "1.489",
-            "AR123456",
-            11.januar.atStartOfDay()
-        )
+        val eksternInntektsmelding =
+            EksternInntektsmelding(
+                "AltinnPortal",
+                "1.489",
+                "AR123456",
+                11.januar.atStartOfDay(),
+            )
 
         /** Rar verdi. Tror denne bør fikses i prodkoden. */
         val tomObjektStreng = JsonPrimitive("{}")

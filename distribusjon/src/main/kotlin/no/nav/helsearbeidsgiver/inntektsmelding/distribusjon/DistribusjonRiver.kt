@@ -33,13 +33,12 @@ data class Melding(
     val transaksjonId: UUID,
     val journalpostId: String,
     // TODO endre til v1.Inntektsmelding når kun den brukes
-    val inntektsmelding: Inntektsmelding
+    val inntektsmelding: Inntektsmelding,
 )
 
 class DistribusjonRiver(
-    private val kafkaProducer: KafkaProducer<String, String>
+    private val kafkaProducer: KafkaProducer<String, String>,
 ) : ObjectRiver<Melding>() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -55,7 +54,7 @@ class DistribusjonRiver(
                 eventName = Key.EVENT_NAME.krev(EventName.INNTEKTSMELDING_JOURNALFOERT, EventName.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
                 journalpostId = Key.JOURNALPOST_ID.les(String.serializer(), json),
-                inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), json)
+                inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), json),
             )
         }
     }
@@ -79,22 +78,27 @@ class DistribusjonRiver(
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID]
+            Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
         )
             .mapValuesNotNull { it }
     }
 
-    override fun Melding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> {
-        val fail = Fail(
-            feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '$journalpostId'.",
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
-            utloesendeMelding = json.plus(
-                Key.BEHOV to BehovType.DISTRIBUER_IM.toJson()
+    override fun Melding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '$journalpostId'.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
+                utloesendeMelding =
+                    json.plus(
+                        Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
+                    )
+                        .toJson(),
             )
-                .toJson()
-        )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
@@ -108,16 +112,21 @@ class DistribusjonRiver(
         mapOf(
             Log.klasse(this@DistribusjonRiver),
             Log.event(eventName),
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         )
 
-    private fun distribuerInntektsmelding(journalpostId: String, inntektsmelding: Inntektsmelding, selvbestemt: Boolean) {
+    private fun distribuerInntektsmelding(
+        journalpostId: String,
+        inntektsmelding: Inntektsmelding,
+        selvbestemt: Boolean,
+    ) {
         val journalfoertInntektsmelding = JournalfoertInntektsmelding(journalpostId, inntektsmelding, selvbestemt)
 
-        val record = ProducerRecord<String, String>(
-            TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-            journalfoertInntektsmelding.toJsonStr(JournalfoertInntektsmelding.serializer())
-        )
+        val record =
+            ProducerRecord<String, String>(
+                TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
+                journalfoertInntektsmelding.toJsonStr(JournalfoertInntektsmelding.serializer()),
+            )
 
         kafkaProducer.send(record)
     }

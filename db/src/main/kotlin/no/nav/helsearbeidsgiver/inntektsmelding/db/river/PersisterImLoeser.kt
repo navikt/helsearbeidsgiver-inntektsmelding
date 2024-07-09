@@ -7,7 +7,6 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmeldin
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
-import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.demandValues
@@ -24,18 +23,17 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class PersisterImLoeser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BehovType.PERSISTER_IM.name
+                Key.BEHOV to BehovType.PERSISTER_IM.name,
             )
             it.interestedIn(
                 Key.FORESPOERSEL_ID,
-                Key.INNTEKTSMELDING
+                Key.INNTEKTSMELDING,
             )
         }
 
@@ -47,7 +45,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
         try {
             val json = behov.jsonMessage.toJson().parseJson().toMap()
 
-            val transaksjonId = Key.UUID.lesOrNull(UuidSerializer, json)
+            val transaksjonId = Key.UUID.les(UuidSerializer, json)
             val inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json)
 
             val sisteIm = repository.hentNyeste(forespoerselId)
@@ -65,7 +63,7 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
                 transaksjonId = transaksjonId,
                 forespoerselId = forespoerselId,
                 Key.INNTEKTSMELDING_DOKUMENT to inntektsmelding.toJson(Inntektsmelding.serializer()),
-                Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer())
+                Key.ER_DUPLIKAT_IM to erDuplikat.toJson(Boolean.serializer()),
             )
         } catch (ex: Exception) {
             logger.error("Klarte ikke persistere: $forespoerselId")

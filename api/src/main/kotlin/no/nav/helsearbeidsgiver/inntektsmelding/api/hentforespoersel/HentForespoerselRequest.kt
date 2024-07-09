@@ -9,5 +9,5 @@ import java.util.UUID
 
 @Serializable
 data class HentForespoerselRequest(
-    val uuid: UUID
+    val uuid: UUID,
 )

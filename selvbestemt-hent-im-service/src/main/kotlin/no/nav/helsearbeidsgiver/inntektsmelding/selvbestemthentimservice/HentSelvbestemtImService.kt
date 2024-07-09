@@ -23,26 +23,27 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class HentSelvbestemtImService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific
+    override val redisStore: RedisStoreClassSpecific,
 ) : Service() {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     override val eventName = EventName.SELVBESTEMT_IM_REQUESTED
-    override val startKeys = setOf(
-        Key.SELVBESTEMT_ID
-    )
-    override val dataKeys = setOf(
-        Key.SELVBESTEMT_INNTEKTSMELDING
-    )
+    override val startKeys =
+        setOf(
+            Key.SELVBESTEMT_ID,
+        )
+    override val dataKeys =
+        setOf(
+            Key.SELVBESTEMT_INNTEKTSMELDING,
+        )
 
     override fun onData(melding: Map<Key, JsonElement>) {
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
         val selvbestemtId = Key.SELVBESTEMT_ID.les(UuidSerializer, melding)
 
         MdcUtils.withLogFields(
-            Log.selvbestemtId(selvbestemtId)
+            Log.selvbestemtId(selvbestemtId),
         ) {
             if (isFinished(melding)) {
                 val inntektsmeldingJson = Key.SELVBESTEMT_INNTEKTSMELDING.les(JsonElement.serializer(), melding)
@@ -53,23 +54,30 @@ class HentSelvbestemtImService(
                     Key.EVENT_NAME to eventName.toJson(),
                     Key.BEHOV to BehovType.HENT_SELVBESTEMT_IM.toJson(),
                     Key.UUID to transaksjonId.toJson(),
-                    Key.SELVBESTEMT_ID to selvbestemtId.toJson()
+                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
                 )
                     .also { loggBehovPublisert(BehovType.HENT_SELVBESTEMT_IM, it) }
             }
         }
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
-        val resultJson = ResultJson(
-            failure = fail.feilmelding.toJson()
-        ).toJson(ResultJson.serializer())
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
+        val resultJson =
+            ResultJson(
+                failure = fail.feilmelding.toJson(),
+            ).toJson(ResultJson.serializer())
         redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
     }
 
-    private fun loggBehovPublisert(behovType: BehovType, publisert: JsonElement) {
+    private fun loggBehovPublisert(
+        behovType: BehovType,
+        publisert: JsonElement,
+    ) {
         MdcUtils.withLogFields(
-            Log.behov(behovType)
+            Log.behov(behovType),
         ) {
             "Publiserte melding med behov $behovType.".let {
                 logger.info(it)

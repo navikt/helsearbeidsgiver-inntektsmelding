@@ -27,7 +27,6 @@ import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import java.util.UUID
 
 abstract class CompositeEventListener : River.PacketListener {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -37,11 +36,20 @@ abstract class CompositeEventListener : River.PacketListener {
     abstract val dataKeys: Set<Key>
 
     abstract fun new(melding: Map<Key, JsonElement>)
-    abstract fun inProgress(melding: Map<Key, JsonElement>)
-    abstract fun finalize(melding: Map<Key, JsonElement>)
-    abstract fun onError(melding: Map<Key, JsonElement>, fail: Fail)
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    abstract fun inProgress(melding: Map<Key, JsonElement>)
+
+    abstract fun finalize(melding: Map<Key, JsonElement>)
+
+    abstract fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    )
+
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         val melding = packet.toJson().parseJson().toMap()
 
         if (Key.FORESPOERSEL_ID.lesOrNull(String.serializer(), melding).isNullOrEmpty()) {
@@ -60,7 +68,7 @@ abstract class CompositeEventListener : River.PacketListener {
         }
 
         MdcUtils.withLogFields(
-            Log.transaksjonId(transaksjonId)
+            Log.transaksjonId(transaksjonId),
         ) {
             val fail = toFailOrNull(melding)
 
@@ -90,14 +98,15 @@ abstract class CompositeEventListener : River.PacketListener {
                         }
                         Unit
                     } else {
-                        val clientId = melding[Key.CLIENT_ID]?.fromJson(UuidSerializer)
-                            .orDefault {
-                                "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
-                                    logger.warn(it)
-                                    sikkerLogger.warn(it)
+                        val clientId =
+                            melding[Key.CLIENT_ID]?.fromJson(UuidSerializer)
+                                .orDefault {
+                                    "Client-ID mangler. Bruker transaksjon-ID som backup.".also {
+                                        logger.warn(it)
+                                        sikkerLogger.warn(it)
+                                    }
+                                    transaksjonId
                                 }
-                                transaksjonId
-                            }
 
                         redisStore.set(clientIdRedisKey, clientId.toString())
 

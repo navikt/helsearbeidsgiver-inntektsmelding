@@ -16,29 +16,29 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class ForespoerselBesvartFraSimbaLoeser(
-    rapid: RapidsConnection
+    rapid: RapidsConnection,
 ) : ForespoerselBesvartLoeser() {
-
     private val sikkerLogger = sikkerLogger()
 
-    override val forespoerselBesvartCounter: Counter = Counter.build()
-        .name("simba_forespoersel_besvart_fra_simba_total")
-        .help("Antall foresporsler besvart fra Simba")
-        .register()
+    override val forespoerselBesvartCounter: Counter =
+        Counter.build()
+            .name("simba_forespoersel_besvart_fra_simba_total")
+            .help("Antall foresporsler besvart fra Simba")
+            .register()
 
     init {
         River(rapid).apply {
             validate {
                 it.demandValues(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name,
                 )
                 it.requireKeys(
                     Key.UUID,
-                    Key.FORESPOERSEL_ID
+                    Key.FORESPOERSEL_ID,
                 )
                 it.rejectKeys(
                     Key.BEHOV,
-                    Key.DATA
+                    Key.DATA,
                 )
             }
         }.register(this)
@@ -50,14 +50,14 @@ class ForespoerselBesvartFraSimbaLoeser(
             event = EventName.INNTEKTSMELDING_MOTTATT.name,
             forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json),
             transaksjonId = Key.UUID.les(UuidSerializer, json),
-            spinnInntektsmeldingId = null
+            spinnInntektsmeldingId = null,
         )
     }
 
     override fun haandterFeil(json: JsonElement) {
         sikkerLogger.error(
             "Klarte ikke umiddelbart markere forespørsel som besvart. " +
-                "Event fra helsebro skal løse dette. Aktuell melding:\n${json.toPretty()}"
+                "Event fra helsebro skal løse dette. Aktuell melding:\n${json.toPretty()}",
         )
     }
 }

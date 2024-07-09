@@ -4,12 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class ValidationResponse(
-    val errors: List<ValidationError>
+    val errors: List<ValidationError>,
 )
 
 @Serializable
 class ValidationError(
     val property: String,
     val error: String,
-    val value: String
+    val value: String,
 )

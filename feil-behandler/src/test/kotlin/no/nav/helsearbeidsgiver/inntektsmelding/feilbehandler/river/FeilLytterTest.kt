@@ -42,15 +42,16 @@ class FeilLytterTest : FunSpec({
 
     test("skal ignorere feil uten behov") {
         val uuid = UUID.randomUUID()
-        val feil = lagGyldigFeil(BehovType.LAGRE_JOURNALPOST_ID).copy(
-            utloesendeMelding =
-            JsonMessage.newMessage(
-                mapOf(
-                    Key.UUID.str to uuid,
-                    Key.FORESPOERSEL_ID.str to uuid
-                )
-            ).toJson().parseJson()
-        )
+        val feil =
+            lagGyldigFeil(BehovType.LAGRE_JOURNALPOST_ID).copy(
+                utloesendeMelding =
+                    JsonMessage.newMessage(
+                        mapOf(
+                            Key.UUID.str to uuid,
+                            Key.FORESPOERSEL_ID.str to uuid,
+                        ),
+                    ).toJson().parseJson(),
+            )
         handler.skalHaandteres(feil) shouldBe false
     }
 
@@ -97,8 +98,8 @@ class FeilLytterTest : FunSpec({
                 FeilProsessor.JOB_TYPE,
                 forsoek = 4,
                 maksAntallForsoek = 3,
-                data = feil.utloesendeMelding.toString()
-            )
+                data = feil.utloesendeMelding.toString(),
+            ),
         )
         rapid.sendTestMessage(feilmelding)
         repository.findByKjoeretidBeforeAndStatusIn(now.plusMinutes(1), setOf(BakgrunnsjobbStatus.STOPPET), true).size shouldBe 1
@@ -111,18 +112,20 @@ fun lagRapidFeilmelding(behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID): 
     val forespoerselId = UUID.randomUUID()
 
     return mapOf(
-        Key.FAIL to Fail(
-            feilmelding = "Klarte ikke journalføre",
-            event = eventName,
-            transaksjonId = transaksjonId,
-            forespoerselId = forespoerselId,
-            utloesendeMelding = mapOf(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to behovType.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.UUID to transaksjonId.toJson()
-            ).toJson()
-        ).toJson(Fail.serializer())
+        Key.FAIL to
+            Fail(
+                feilmelding = "Klarte ikke journalføre",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = forespoerselId,
+                utloesendeMelding =
+                    mapOf(
+                        Key.EVENT_NAME to eventName.toJson(),
+                        Key.BEHOV to behovType.toJson(),
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                    ).toJson(),
+            ).toJson(Fail.serializer()),
     )
         .toJson()
         .toString()
@@ -131,25 +134,27 @@ fun lagRapidFeilmelding(behovType: BehovType = BehovType.LAGRE_JOURNALPOST_ID): 
 fun lagGyldigFeil(behov: BehovType): Fail {
     val transaksjonId = UUID.randomUUID()
     val forespoerselID = UUID.randomUUID()
-    val jsonMessage = JsonMessage.newMessage(
-        EventName.OPPGAVE_OPPRETT_REQUESTED.name,
-        mapOf(
-            Key.BEHOV.str to behov,
-            Key.UUID.str to transaksjonId,
-            Key.FORESPOERSEL_ID.str to forespoerselID
+    val jsonMessage =
+        JsonMessage.newMessage(
+            EventName.OPPGAVE_OPPRETT_REQUESTED.name,
+            mapOf(
+                Key.BEHOV.str to behov,
+                Key.UUID.str to transaksjonId,
+                Key.FORESPOERSEL_ID.str to forespoerselID,
+            ),
         )
-    )
     return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, transaksjonId, forespoerselID, jsonMessage.toJson().parseJson())
 }
 
 fun lagGyldigFeilUtenForespoerselId(behov: BehovType): Fail {
     val transaksjonId = UUID.randomUUID()
-    val jsonMessage = JsonMessage.newMessage(
-        EventName.OPPGAVE_OPPRETT_REQUESTED.name,
-        mapOf(
-            Key.BEHOV.str to behov,
-            Key.UUID.str to transaksjonId
+    val jsonMessage =
+        JsonMessage.newMessage(
+            EventName.OPPGAVE_OPPRETT_REQUESTED.name,
+            mapOf(
+                Key.BEHOV.str to behov,
+                Key.UUID.str to transaksjonId,
+            ),
         )
-    )
     return Fail("Feil", EventName.OPPGAVE_OPPRETT_REQUESTED, transaksjonId, null, jsonMessage.toJson().parseJson())
 }

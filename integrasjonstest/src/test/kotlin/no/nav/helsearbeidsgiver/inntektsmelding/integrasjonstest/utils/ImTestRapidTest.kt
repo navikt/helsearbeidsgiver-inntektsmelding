@@ -18,7 +18,7 @@ class ImTestRapidTest : FunSpec({
             "13.37",
             "\"hola señor\"",
             "[1,2,3]",
-            "[1,true,\"tre\"]"
+            "[1,true,\"tre\"]",
         ) { json ->
             shouldThrowExactly<JsonObjectRequired> {
                 imTestRapid.publish(json)
@@ -34,7 +34,7 @@ class ImTestRapidTest : FunSpec({
             "{key:value}",
             "{1:1,2:2}",
             "{\"key\"=\"value\"}",
-            "\"key\"=\"value\""
+            "\"key\"=\"value\"",
         ) { json ->
             shouldThrow<SerializationException> {
                 imTestRapid.publish(json)

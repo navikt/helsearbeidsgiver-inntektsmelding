@@ -29,6 +29,5 @@ class ClassUtilsKtTest : FunSpec({
 })
 
 private class Hobbit {
-    fun getSimpleName(): String =
-        simpleName()
+    fun getSimpleName(): String = simpleName()
 }

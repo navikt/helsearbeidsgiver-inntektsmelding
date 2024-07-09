@@ -14,60 +14,66 @@ class BehovTest : FunSpec({
 
     test("Lag Fail med samme transaksjonId") {
 
-        val utloesendeMelding = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to Mock.event,
-                Key.BEHOV.str to Mock.behovType,
-                Key.UUID.str to Mock.transaksjonId.toString(),
-                "snipp" to "snapp"
+        val utloesendeMelding =
+            JsonMessage.newMessage(
+                mapOf(
+                    Key.EVENT_NAME.str to Mock.event,
+                    Key.BEHOV.str to Mock.behovType,
+                    Key.UUID.str to Mock.transaksjonId.toString(),
+                    "snipp" to "snapp",
+                ),
             )
-        )
 
-        val behov = Behov(
-            event = Mock.event,
-            behov = Mock.behovType,
-            forespoerselId = Mock.forespoerselId.toString(),
-            jsonMessage = utloesendeMelding
-        )
+        val behov =
+            Behov(
+                event = Mock.event,
+                behov = Mock.behovType,
+                forespoerselId = Mock.forespoerselId.toString(),
+                jsonMessage = utloesendeMelding,
+            )
 
         val fail = behov.createFail(Mock.FEILMELDING)
 
-        val expected = Fail(
-            feilmelding = Mock.FEILMELDING,
-            event = Mock.event,
-            transaksjonId = Mock.transaksjonId,
-            forespoerselId = Mock.forespoerselId,
-            utloesendeMelding = utloesendeMelding.toJson().parseJson()
-        )
+        val expected =
+            Fail(
+                feilmelding = Mock.FEILMELDING,
+                event = Mock.event,
+                transaksjonId = Mock.transaksjonId,
+                forespoerselId = Mock.forespoerselId,
+                utloesendeMelding = utloesendeMelding.toJson().parseJson(),
+            )
 
         fail shouldBe expected
     }
 
     test("Lag Fail med splitter ny transaksjonId") {
-        val utloesendeMelding = JsonMessage.newMessage(
-            mapOf(
-                Key.EVENT_NAME.str to Mock.event,
-                Key.BEHOV.str to Mock.behovType,
-                "hepp" to "hei"
+        val utloesendeMelding =
+            JsonMessage.newMessage(
+                mapOf(
+                    Key.EVENT_NAME.str to Mock.event,
+                    Key.BEHOV.str to Mock.behovType,
+                    "hepp" to "hei",
+                ),
             )
-        )
 
-        val behov = Behov(
-            event = Mock.event,
-            behov = Mock.behovType,
-            forespoerselId = Mock.forespoerselId.toString(),
-            jsonMessage = utloesendeMelding
-        )
+        val behov =
+            Behov(
+                event = Mock.event,
+                behov = Mock.behovType,
+                forespoerselId = Mock.forespoerselId.toString(),
+                jsonMessage = utloesendeMelding,
+            )
 
         val fail = behov.createFail(Mock.FEILMELDING)
 
-        val expected = Fail(
-            feilmelding = Mock.FEILMELDING,
-            event = Mock.event,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = Mock.forespoerselId,
-            utloesendeMelding = utloesendeMelding.toJson().parseJson()
-        )
+        val expected =
+            Fail(
+                feilmelding = Mock.FEILMELDING,
+                event = Mock.event,
+                transaksjonId = UUID.randomUUID(),
+                forespoerselId = Mock.forespoerselId,
+                utloesendeMelding = utloesendeMelding.toJson().parseJson(),
+            )
 
         fail.shouldBeEqualToIgnoringFields(expected, Fail::transaksjonId)
     }

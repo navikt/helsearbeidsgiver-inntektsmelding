@@ -12,12 +12,12 @@ import java.time.YearMonth
 @Serializable
 data class InntektPerMaaned(
     val maaned: YearMonth,
-    val inntekt: Double?
+    val inntekt: Double?,
 )
 
 @Serializable
 data class Inntekt(
-    val maanedOversikt: List<InntektPerMaaned>
+    val maanedOversikt: List<InntektPerMaaned>,
 ) {
     private fun total(): Double =
         maanedOversikt.mapNotNull { it.inntekt }

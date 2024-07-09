@@ -9,5 +9,5 @@ import java.util.UUID
 
 @Serializable
 data class LagreSelvbestemtImResponse(
-    val selvbestemtId: UUID
+    val selvbestemtId: UUID,
 )

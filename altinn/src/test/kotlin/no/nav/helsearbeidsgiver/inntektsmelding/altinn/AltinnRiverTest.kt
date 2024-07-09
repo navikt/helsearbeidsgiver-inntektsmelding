@@ -43,17 +43,18 @@ class AltinnRiverTest : FunSpec({
 
         val dataField = Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().mapNotNull { it.orgnr }.toSet().toJson(String.serializer().set())
 
-        val expectedPublished = mapOf(
-            Key.UUID to mockUuid.toJson(),
-            Key.DATA to mapOf(dataField).toJson(),
-            dataField
-        )
+        val expectedPublished =
+            mapOf(
+                Key.UUID to mockUuid.toJson(),
+                Key.DATA to mapOf(dataField).toJson(),
+                dataField,
+            )
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.UUID to mockUuid.toJson(),
             Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
-            Key.IDENTITETSNUMMER to mockId.toJson()
+            Key.IDENTITETSNUMMER to mockId.toJson(),
         )
 
         val actualPublished = testRapid.firstMessage().toMap()
@@ -68,7 +69,7 @@ class AltinnRiverTest : FunSpec({
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-            Key.IDENTITETSNUMMER to mockId.toJson()
+            Key.IDENTITETSNUMMER to mockId.toJson(),
         )
 
         testRapid.inspektør.size shouldBeExactly 0
@@ -79,7 +80,7 @@ class AltinnRiverTest : FunSpec({
     test("ufullstendig melding aktiverer ikke river") {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson()
+            Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
         )
 
         testRapid.inspektør.size shouldBeExactly 0
@@ -92,6 +93,6 @@ private fun mockAltinnOrganisasjonSet(): Set<AltinnOrganisasjon> =
     setOf(
         AltinnOrganisasjon(
             navn = "Pippin's Breakfast & Breakfast",
-            type = "gluttonous"
-        )
+            type = "gluttonous",
+        ),
     )

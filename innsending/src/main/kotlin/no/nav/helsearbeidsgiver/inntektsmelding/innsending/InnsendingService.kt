@@ -33,28 +33,29 @@ import java.util.UUID
 
 class InnsendingService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore
+    override val redisStore: RedisStore,
 ) : CompositeEventListener() {
-
     private val logger = logger()
 
     override val event = EventName.INSENDING_STARTED
-    override val startKeys = setOf(
-        Key.FORESPOERSEL_ID,
-        Key.ORGNRUNDERENHET,
-        Key.IDENTITETSNUMMER,
-        Key.ARBEIDSGIVER_ID,
-        Key.SKJEMA_INNTEKTSMELDING
-    )
-    override val dataKeys = setOf(
-        Key.VIRKSOMHET,
-        Key.ARBEIDSFORHOLD,
-        Key.ARBEIDSGIVER_INFORMASJON,
-        Key.ARBEIDSTAKER_INFORMASJON,
-        Key.INNTEKTSMELDING_DOKUMENT,
-        Key.ER_DUPLIKAT_IM,
-        Key.FORESPOERSEL_SVAR
-    )
+    override val startKeys =
+        setOf(
+            Key.FORESPOERSEL_ID,
+            Key.ORGNRUNDERENHET,
+            Key.IDENTITETSNUMMER,
+            Key.ARBEIDSGIVER_ID,
+            Key.SKJEMA_INNTEKTSMELDING,
+        )
+    override val dataKeys =
+        setOf(
+            Key.VIRKSOMHET,
+            Key.ARBEIDSFORHOLD,
+            Key.ARBEIDSGIVER_INFORMASJON,
+            Key.ARBEIDSTAKER_INFORMASJON,
+            Key.INNTEKTSMELDING_DOKUMENT,
+            Key.ER_DUPLIKAT_IM,
+            Key.FORESPOERSEL_SVAR,
+        )
 
     private val step1Keys =
         setOf(
@@ -62,7 +63,7 @@ class InnsendingService(
             Key.ARBEIDSFORHOLD,
             Key.ARBEIDSTAKER_INFORMASJON,
             Key.ARBEIDSGIVER_INFORMASJON,
-            Key.FORESPOERSEL_SVAR
+            Key.FORESPOERSEL_SVAR,
         )
 
     init {
@@ -83,7 +84,7 @@ class InnsendingService(
             Key.EVENT_NAME to event.toJson(),
             Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.UUID to transaksjonId.toJson()
+            Key.UUID to transaksjonId.toJson(),
         )
 
         logger.info("InnsendingService: emitting behov Virksomhet")
@@ -92,7 +93,7 @@ class InnsendingService(
             Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
             Key.ORGNRUNDERENHET to orgnr.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
         logger.info("InnsendingService: emitting behov ARBEIDSFORHOLD")
@@ -101,7 +102,7 @@ class InnsendingService(
             Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
             Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
 
         logger.info("InnsendingService: emitting behov FULLT_NAVN")
@@ -111,7 +112,7 @@ class InnsendingService(
             Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(),
             Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson()
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         )
     }
 
@@ -131,13 +132,14 @@ class InnsendingService(
             val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
             val innsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
 
-            val inntektsmelding = mapInntektsmelding(
-                forespoersel = forespoersel,
-                skjema = skjema,
-                fulltnavnArbeidstaker = sykmeldt.navn,
-                virksomhetNavn = virksomhetNavn,
-                innsenderNavn = innsender.navn
-            )
+            val inntektsmelding =
+                mapInntektsmelding(
+                    forespoersel = forespoersel,
+                    skjema = skjema,
+                    fulltnavnArbeidstaker = sykmeldt.navn,
+                    virksomhetNavn = virksomhetNavn,
+                    innsenderNavn = innsender.navn,
+                )
 
             if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
                 "Bestemmende fraværsdag er før inntektsdato. Dette er ikke mulig. Spleis vil trolig spør om ny inntektsmelding.".also {
@@ -153,7 +155,7 @@ class InnsendingService(
                 Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer())
+                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
             )
         }
     }
@@ -178,7 +180,7 @@ class InnsendingService(
                 Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
                 Key.UUID to transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingJson
+                Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingJson,
             )
                 .also {
                     logger.info("Submitting INNTEKTSMELDING_MOTTATT")
@@ -187,30 +189,34 @@ class InnsendingService(
         }
     }
 
-    override fun onError(melding: Map<Key, JsonElement>, fail: Fail) {
+    override fun onError(
+        melding: Map<Key, JsonElement>,
+        fail: Fail,
+    ) {
         val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
 
-        val datafeil = when (utloesendeBehov) {
-            BehovType.VIRKSOMHET -> {
-                listOf(
-                    Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
-                )
-            }
+        val datafeil =
+            when (utloesendeBehov) {
+                BehovType.VIRKSOMHET -> {
+                    listOf(
+                        Key.VIRKSOMHET to "Ukjent virksomhet".toJson(),
+                    )
+                }
 
-            BehovType.FULLT_NAVN -> {
-                val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
-                val avsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
+                BehovType.FULLT_NAVN -> {
+                    val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
+                    val avsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
 
-                listOf(
-                    Key.ARBEIDSTAKER_INFORMASJON to tomPerson(sykmeldtFnr).toJson(PersonDato.serializer()),
-                    Key.ARBEIDSGIVER_INFORMASJON to tomPerson(avsenderFnr).toJson(PersonDato.serializer())
-                )
-            }
+                    listOf(
+                        Key.ARBEIDSTAKER_INFORMASJON to tomPerson(sykmeldtFnr).toJson(PersonDato.serializer()),
+                        Key.ARBEIDSGIVER_INFORMASJON to tomPerson(avsenderFnr).toJson(PersonDato.serializer()),
+                    )
+                }
 
-            else -> {
-                emptyList()
+                else -> {
+                    emptyList()
+                }
             }
-        }
 
         if (datafeil.isNotEmpty()) {
             datafeil.onEach { (key, defaultVerdi) ->
@@ -221,12 +227,13 @@ class InnsendingService(
 
             inProgress(meldingMedDefault)
         } else {
-            val clientId = redisStore.get(RedisKey.of(fail.transaksjonId, event))
-                ?.let(UUID::fromString)
+            val clientId =
+                redisStore.get(RedisKey.of(fail.transaksjonId, event))
+                    ?.let(UUID::fromString)
 
             if (clientId == null) {
                 MdcUtils.withLogFields(
-                    Log.transaksjonId(fail.transaksjonId)
+                    Log.transaksjonId(fail.transaksjonId),
                 ) {
                     sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
                 }
@@ -242,5 +249,5 @@ private fun tomPerson(fnr: String): PersonDato =
     PersonDato(
         navn = "",
         fødselsdato = null,
-        ident = fnr
+        ident = fnr,
     )

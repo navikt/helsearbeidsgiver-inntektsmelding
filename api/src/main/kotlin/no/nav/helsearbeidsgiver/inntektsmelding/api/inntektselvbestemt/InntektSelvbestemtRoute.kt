@@ -29,7 +29,7 @@ import java.util.UUID
 fun Route.inntektSelvbestemtRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller
+    redisPoller: RedisPoller,
 ) {
     val inntektSelvbestemtProducer = InntektSelvbestemtProducer(rapid)
 
@@ -53,11 +53,12 @@ fun Route.inntektSelvbestemtRoute(
 
             val resultat = resultatJson.success?.fromJson(Inntekt.serializer())
             if (resultat != null) {
-                val response = InntektSelvbestemtResponse(
-                    bruttoinntekt = resultat.gjennomsnitt(),
-                    tidligereInntekter = resultat.maanedOversikt
-                )
-                    .toJson(InntektSelvbestemtResponse.serializer().nullable)
+                val response =
+                    InntektSelvbestemtResponse(
+                        bruttoinntekt = resultat.gjennomsnitt(),
+                        tidligereInntekter = resultat.maanedOversikt,
+                    )
+                        .toJson(InntektSelvbestemtResponse.serializer().nullable)
 
                 call.respond(HttpStatusCode.OK, response)
             } else {

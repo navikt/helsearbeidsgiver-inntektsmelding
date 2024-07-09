@@ -53,6 +53,18 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
  *             Key.FAVOURITE_FOOD to favouriteFood.toJson(String.serializer())
  *         )
  *     }
+ *
+ *     override fun LotrCharacter.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement> =
+ *         // Sikkert lurt å logge noe her
+ *         mapOf(
+ *             Key.FEILMELDING to "Klarte ikke finne favorittmaten til hobbiten :(".toJson(String.serializer())
+ *         )
+ *
+ *     override fun LotrCharacter.loggfelt(): Map<String, String> =
+ *         mapOf(
+ *             Log.race(race),
+ *             Log.name(name)
+ *         )
  * }
  * ```
  *
@@ -98,13 +110,10 @@ abstract class ObjectRiver<Melding : Any> {
      * Utgående melding som skal publiseres når feil er ferdig prosessert.
      * Default implementasjon returnerer '`null`', som betyr at ingen utgående melding publiseres.
      */
-    protected open fun Melding.haandterFeil(json: Map<Key, JsonElement>, error: Throwable): Map<Key, JsonElement>? {
-        "Ukjent feil.".also {
-            logger.error(it)
-            sikkerLogger.error(it, this)
-        }
-        return null
-    }
+    protected abstract fun Melding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement>?
 
     /**
      * Bestemmer loggfelt som logges i [haandter] og [haandterFeil].
@@ -112,36 +121,37 @@ abstract class ObjectRiver<Melding : Any> {
      * @return
      * Map for loggfelt med feltnavn og innhold.
      */
-    protected open fun Melding.loggfelt(): Map<String, String> =
-        emptyMap()
+    protected abstract fun Melding.loggfelt(): Map<String, String>
 
     /** Brukes av [OpenRiver]. */
     internal fun lesOgHaandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
         val innkommende = runCatching { les(json) }.getOrNull()
 
-        val loggfelt = innkommende?.loggfelt()
-            ?.toList()
-            ?.toTypedArray()
-            .orEmpty()
+        val loggfelt =
+            innkommende?.runCatching { loggfelt() }
+                ?.getOrElse { error ->
+                    "Klarte ikke lage loggfelt.".also {
+                        logger.error(it)
+                        sikkerLogger.error(it, error)
+                    }
+                    null
+                }
+                ?.toList()
+                ?.toTypedArray()
+                .orEmpty()
 
         return MdcUtils.withLogFields(*loggfelt) {
-            val utgaaende = innkommende?.let {
-                runCatching {
-                    it.haandter(json)
-                }
-                    .getOrElse { e ->
-                        it.haandterFeil(json, e)
+            val utgaaende =
+                innkommende?.let {
+                    runCatching {
+                        it.haandter(json)
                     }
-            }
-
-            if (utgaaende != null && utgaaende.isEmpty()) {
-                "Utgående melding er tom.".also {
-                    logger.error(it)
-                    sikkerLogger.error(it)
+                        .getOrElse { e ->
+                            it.haandterFeil(json, e)
+                        }
                 }
-            }
 
-            utgaaende
+            utgaaende?.takeIf { it.isNotEmpty() }
         }
     }
 }

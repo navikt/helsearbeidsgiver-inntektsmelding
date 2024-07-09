@@ -21,9 +21,8 @@ class Behov(
     val event: EventName,
     val behov: BehovType,
     val forespoerselId: String?,
-    val jsonMessage: JsonMessage
+    val jsonMessage: JsonMessage,
 ) {
-
     init {
         packetValidator.validate(jsonMessage)
         jsonMessage.demandValue(Key.EVENT_NAME.str, event.name)
@@ -31,15 +30,16 @@ class Behov(
     }
 
     companion object {
-        val packetValidator = River.PacketValidation {
-            it.demandKey(Key.EVENT_NAME.str)
-            it.demandKey(Key.BEHOV.str)
-            it.rejectKey(Key.DATA.str)
-            it.rejectKey(Key.FAIL.str)
-            it.interestedIn(Key.UUID.str)
-            it.interestedIn(Key.FORESPOERSEL_ID.str)
-            it.interestedIn(Key.SELVBESTEMT_ID.str)
-        }
+        val packetValidator =
+            River.PacketValidation {
+                it.demandKey(Key.EVENT_NAME.str)
+                it.demandKey(Key.BEHOV.str)
+                it.rejectKey(Key.DATA.str)
+                it.rejectKey(Key.FAIL.str)
+                it.interestedIn(Key.UUID.str)
+                it.interestedIn(Key.FORESPOERSEL_ID.str)
+                it.interestedIn(Key.SELVBESTEMT_ID.str)
+            }
     }
 
     operator fun get(key: Key): JsonNode = jsonMessage[key.str]
@@ -49,21 +49,23 @@ class Behov(
         return Fail(
             feilmelding = feilmelding,
             event = event,
-            transaksjonId = json.toMap()[Key.UUID]
-                ?.fromJson(UuidSerializer)
-                .orDefault {
-                    UUID.randomUUID().also {
-                        sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$it'.\n${json.toPretty()}")
-                    }
-                },
-            forespoerselId = forespoerselId?.takeUnless { it.isBlank() }
-                ?.let(UUID::fromString)
-                .also {
-                    if (it == null) {
-                        sikkerLogger.error("Mangler forespoerselId i Behov.\n${json.toPretty()}")
-                    }
-                },
-            utloesendeMelding = json
+            transaksjonId =
+                json.toMap()[Key.UUID]
+                    ?.fromJson(UuidSerializer)
+                    .orDefault {
+                        UUID.randomUUID().also {
+                            sikkerLogger.error("Mangler transaksjonId i Behov. Erstatter med ny, tilfeldig UUID '$it'.\n${json.toPretty()}")
+                        }
+                    },
+            forespoerselId =
+                forespoerselId?.takeUnless { it.isBlank() }
+                    ?.let(UUID::fromString)
+                    .also {
+                        if (it == null) {
+                            sikkerLogger.error("Mangler forespoerselId i Behov.\n${json.toPretty()}")
+                        }
+                    },
+            utloesendeMelding = json,
         )
     }
 }

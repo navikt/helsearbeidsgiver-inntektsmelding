@@ -42,7 +42,7 @@ class SakFerdigLoeserTest : FunSpec({
             Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
             Key.SAK_ID to expected.sakId.toJson(),
             Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-            Key.UUID to expected.transaksjonId.toJson()
+            Key.UUID to expected.transaksjonId.toJson(),
         )
 
         val actual = testRapid.firstMessage().fromJson(PublishedSak.serializer())
@@ -56,7 +56,7 @@ class SakFerdigLoeserTest : FunSpec({
                 id = expected.sakId,
                 status = SaksStatus.FERDIG,
                 statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
-                nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/${expected.forespoerselId}"
+                nyLenkeTilSak = "$linkUrl/im-dialog/kvittering/${expected.forespoerselId}",
             )
         }
     }
@@ -70,7 +70,7 @@ private data class PublishedSak(
     val sakId: String,
     val forespoerselId: UUID,
     @SerialName("uuid")
-    val transaksjonId: UUID
+    val transaksjonId: UUID,
 ) {
     companion object {
         fun mock(): PublishedSak =
@@ -78,7 +78,7 @@ private data class PublishedSak(
                 eventName = EventName.SAK_FERDIGSTILT,
                 sakId = "sulten-kalamari",
                 forespoerselId = UUID.randomUUID(),
-                transaksjonId = UUID.randomUUID()
+                transaksjonId = UUID.randomUUID(),
             )
     }
 }

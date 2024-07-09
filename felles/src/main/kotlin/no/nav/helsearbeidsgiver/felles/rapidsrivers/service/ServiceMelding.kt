@@ -11,11 +11,11 @@ sealed class ServiceMelding
 data class DataMelding(
     val eventName: EventName,
     val transaksjonId: UUID,
-    val dataMap: Map<Key, JsonElement>
+    val dataMap: Map<Key, JsonElement>,
 ) : ServiceMelding()
 
 data class FailMelding(
     val eventName: EventName,
     val transaksjonId: UUID,
-    val fail: Fail
+    val fail: Fail,
 ) : ServiceMelding()

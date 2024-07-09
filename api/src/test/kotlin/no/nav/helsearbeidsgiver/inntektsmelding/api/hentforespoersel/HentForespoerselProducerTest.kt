@@ -26,12 +26,13 @@ class HentForespoerselProducerTest : FunSpec({
         producer.publish(transaksjonId, HentForespoerselRequest(forespoerselId), avsenderFnr)
 
         testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().toMap() shouldContainExactly mapOf(
-            Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson()
-        )
+        testRapid.firstMessage().toMap() shouldContainExactly
+            mapOf(
+                Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.DATA to "".toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.ARBEIDSGIVER_FNR to avsenderFnr.toJson(),
+            )
     }
 })

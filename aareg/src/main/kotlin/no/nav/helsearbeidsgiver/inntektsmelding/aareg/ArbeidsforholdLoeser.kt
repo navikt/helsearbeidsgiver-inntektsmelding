@@ -31,25 +31,25 @@ import no.nav.helsearbeidsgiver.aareg.Arbeidsforhold as KlientArbeidsforhold
 
 class ArbeidsforholdLoeser(
     rapidsConnection: RapidsConnection,
-    private val aaregClient: AaregClient
+    private val aaregClient: AaregClient,
 ) : Loeser(rapidsConnection) {
-
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    private val requestLatency = Summary.build()
-        .name("simba_aareg_hent_arbeidsforhold_latency_seconds")
-        .help("aareg hent arbeidsforhold latency in seconds")
-        .register()
+    private val requestLatency =
+        Summary.build()
+            .name("simba_aareg_hent_arbeidsforhold_latency_seconds")
+            .help("aareg hent arbeidsforhold latency in seconds")
+            .register()
 
     override fun accept(): River.PacketValidation =
         River.PacketValidation {
             it.demandValues(
-                Key.BEHOV to BehovType.ARBEIDSFORHOLD.name
+                Key.BEHOV to BehovType.ARBEIDSFORHOLD.name,
             )
             it.requireKeys(
                 Key.IDENTITETSNUMMER,
-                Key.UUID
+                Key.UUID,
             )
         }
 
@@ -70,7 +70,7 @@ class ArbeidsforholdLoeser(
                     eventName = behov.event,
                     transaksjonId = transaksjonId,
                     forespoerselId = forespoerselId,
-                    Key.ARBEIDSFORHOLD to arbeidsforhold.toJson(Arbeidsforhold.serializer())
+                    Key.ARBEIDSFORHOLD to arbeidsforhold.toJson(Arbeidsforhold.serializer()),
                 )
             } else {
                 publishFail(behov.createFail("Klarte ikke hente arbeidsforhold"))
@@ -80,7 +80,10 @@ class ArbeidsforholdLoeser(
         }
     }
 
-    private fun hentArbeidsforhold(fnr: String, transaksjonId: UUID): List<Arbeidsforhold>? =
+    private fun hentArbeidsforhold(
+        fnr: String,
+        transaksjonId: UUID,
+    ): List<Arbeidsforhold>? =
         runCatching {
             runBlocking {
                 val arbeidsforhold: List<no.nav.helsearbeidsgiver.aareg.Arbeidsforhold>

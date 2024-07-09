@@ -240,6 +240,7 @@ abstract class EndToEndTest : ContainerTest() {
         // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
         redisStore.shutdown()
+        redisConnection.close()
         inntektsmeldingDatabase.dataSource.close()
         notifikasjonDatabase.dataSource.close()
         println("Stopped.")

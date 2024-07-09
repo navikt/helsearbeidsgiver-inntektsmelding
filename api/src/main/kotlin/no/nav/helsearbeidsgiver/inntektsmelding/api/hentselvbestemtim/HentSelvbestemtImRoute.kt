@@ -68,27 +68,25 @@ fun Route.hentSelvbestemtImRoute(
 
                 runCatching {
                     redisPoller.hent(transaksjonId)
+                }.onSuccess {
+                    val result = it.fromJson(ResultJson.serializer())
+
+                    val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
+
+                    if (inntektsmelding != null) {
+                        tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr.verdi)
+                        sendOkResponse(inntektsmelding)
+                    } else {
+                        val feilmelding =
+                            result.failure
+                                ?.fromJson(String.serializer())
+                                .orDefault("Ukjent feil.")
+
+                        sendErrorResponse(feilmelding)
+                    }
+                }.onFailure {
+                    sendRedisErrorResponse(selvbestemtId, it)
                 }
-                    .onSuccess {
-                        val result = it.fromJson(ResultJson.serializer())
-
-                        val inntektsmelding = result.success?.fromJson(Inntektsmelding.serializer())
-
-                        if (inntektsmelding != null) {
-                            tilgangskontroll.validerTilgangTilOrg(call.request, inntektsmelding.avsender.orgnr.verdi)
-                            sendOkResponse(inntektsmelding)
-                        } else {
-                            val feilmelding =
-                                result.failure
-                                    ?.fromJson(String.serializer())
-                                    .orDefault("Ukjent feil.")
-
-                            sendErrorResponse(feilmelding)
-                        }
-                    }
-                    .onFailure {
-                        sendRedisErrorResponse(selvbestemtId, it)
-                    }
             }
         }
     }
@@ -162,27 +160,30 @@ private fun tilResponseMedEkstraFelt(inntektsmelding: Inntektsmelding): JsonElem
 
     return if (inntekt != null && endringAarsak != null && backendFelt != null) {
         val nyEndringAarsak =
-            endringAarsak.toJson(InntektEndringAarsak.serializer())
+            endringAarsak
+                .toJson(InntektEndringAarsak.serializer())
                 .jsonObject
                 .let {
                     it.plus("perioder" to it[backendFelt])
-                }
-                .mapValuesNotNull { it }
+                }.mapValuesNotNull { it }
                 .let(::JsonObject)
 
         val nyInntektJson =
-            inntekt.toJson(Inntekt.serializer())
+            inntekt
+                .toJson(Inntekt.serializer())
                 .jsonObject
                 .plus(Inntekt::endringAarsak.name to nyEndringAarsak)
                 .let(::JsonObject)
 
         val nyInntektsmeldingJson =
-            inntektsmelding.toJson(Inntektsmelding.serializer())
+            inntektsmelding
+                .toJson(Inntektsmelding.serializer())
                 .jsonObject
                 .plus(Inntektsmelding::inntekt.name to nyInntektJson)
                 .let(::JsonObject)
 
-        HentSelvbestemtImResponseSuccess(inntektsmelding).toJson(HentSelvbestemtImResponseSuccess.serializer())
+        HentSelvbestemtImResponseSuccess(inntektsmelding)
+            .toJson(HentSelvbestemtImResponseSuccess.serializer())
             .jsonObject
             .plus(HentSelvbestemtImResponseSuccess::selvbestemtInntektsmelding.name to nyInntektsmeldingJson)
             .let(::JsonObject)

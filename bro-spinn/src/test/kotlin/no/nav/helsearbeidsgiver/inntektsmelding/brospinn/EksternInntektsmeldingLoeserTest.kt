@@ -31,83 +31,84 @@ val eksternInntektsmelding =
         11.januar(2018).atStartOfDay(),
     )
 
-class EksternInntektsmeldingLoeserTest : FunSpec({
-    val testRapid = TestRapid()
+class EksternInntektsmeldingLoeserTest :
+    FunSpec({
+        val testRapid = TestRapid()
 
-    val spinnKlient = mockk<SpinnKlient>()
+        val spinnKlient = mockk<SpinnKlient>()
 
-    EksternInntektsmeldingLoeser(testRapid, spinnKlient)
+        EksternInntektsmeldingLoeser(testRapid, spinnKlient)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-    }
-    every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
-
-    xtest("Ved når inntektsmeldingId mangler skal feil publiseres") {
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
-        )
-
-        val actual = testRapid.firstMessage().readFail()
-
-        testRapid.inspektør.size shouldBeExactly 1
-        Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
-        actual.feilmelding shouldBe "Mangler inntektsmeldingId"
-    }
-
-    test("Hvis inntektsmelding ikke finnes publiseres feil") {
-
-        every { spinnKlient.hentEksternInntektsmelding(any()) } throws SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: 404")
-
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
-            Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
-        )
-
-        val actual = testRapid.firstMessage().readFail()
-
-        testRapid.inspektør.size shouldBeExactly 1
-        Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
-        actual.feilmelding shouldBe "Feil ved kall mot spinn api: $FIKK_SVAR_MED_RESPONSE_STATUS: 404"
-    }
-
-    test("Hvis Inntektsmelding finnes publiseres data") {
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
+        }
         every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
 
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
-            Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
-        )
+        xtest("Ved når inntektsmeldingId mangler skal feil publiseres") {
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+                Key.UUID to UUID.randomUUID().toJson(),
+            )
 
-        val actual = testRapid.firstMessage().toMap()
+            val actual = testRapid.firstMessage().readFail()
 
-        testRapid.inspektør.size shouldBeExactly 1
+            testRapid.inspektør.size shouldBeExactly 1
+            Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
+            actual.feilmelding shouldBe "Mangler inntektsmeldingId"
+        }
 
-        Key.EVENT_NAME.lesOrNull(EventName.serializer(), actual) shouldBe EventName.FORESPOERSEL_BESVART
-        Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), actual) shouldBe eksternInntektsmelding
-    }
+        test("Hvis inntektsmelding ikke finnes publiseres feil") {
 
-    test("Hvis request timer ut blir feil publisert") {
-        every { spinnKlient.hentEksternInntektsmelding(any()) } throws SocketTimeoutException("Timeout!")
+            every { spinnKlient.hentEksternInntektsmelding(any()) } throws SpinnApiException("$FIKK_SVAR_MED_RESPONSE_STATUS: 404")
 
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
-            Key.UUID to UUID.randomUUID().toJson(),
-            Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
-        )
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+                Key.UUID to UUID.randomUUID().toJson(),
+                Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
+            )
 
-        val actual = testRapid.firstMessage().readFail()
+            val actual = testRapid.firstMessage().readFail()
 
-        testRapid.inspektør.size shouldBeExactly 1
-        Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
-        actual.feilmelding shouldBe "Ukjent feil ved kall til spinn"
-    }
-})
+            testRapid.inspektør.size shouldBeExactly 1
+            Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
+            actual.feilmelding shouldBe "Feil ved kall mot spinn api: $FIKK_SVAR_MED_RESPONSE_STATUS: 404"
+        }
+
+        test("Hvis Inntektsmelding finnes publiseres data") {
+            every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+                Key.UUID to UUID.randomUUID().toJson(),
+                Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
+            )
+
+            val actual = testRapid.firstMessage().toMap()
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            Key.EVENT_NAME.lesOrNull(EventName.serializer(), actual) shouldBe EventName.FORESPOERSEL_BESVART
+            Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), actual) shouldBe eksternInntektsmelding
+        }
+
+        test("Hvis request timer ut blir feil publisert") {
+            every { spinnKlient.hentEksternInntektsmelding(any()) } throws SocketTimeoutException("Timeout!")
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.name.toJson(),
+                Key.UUID to UUID.randomUUID().toJson(),
+                Key.SPINN_INNTEKTSMELDING_ID to UUID.randomUUID().toJson(),
+            )
+
+            val actual = testRapid.firstMessage().readFail()
+
+            testRapid.inspektør.size shouldBeExactly 1
+            Key.BEHOV.les(BehovType.serializer(), actual.utloesendeMelding.toMap()) shouldBe BehovType.HENT_EKSTERN_INNTEKTSMELDING
+            actual.feilmelding shouldBe "Ukjent feil ved kall til spinn"
+        }
+    })

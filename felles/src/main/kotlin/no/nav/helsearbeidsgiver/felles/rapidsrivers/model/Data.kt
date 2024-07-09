@@ -25,8 +25,7 @@ fun MessageContext.publishData(
     val optionalIdFields =
         mapOf(
             Key.FORESPOERSEL_ID to forespoerselId,
-        )
-            .mapValuesNotNull { it?.toJson() }
+        ).mapValuesNotNull { it?.toJson() }
             .toList()
             .toTypedArray()
 
@@ -38,9 +37,8 @@ fun MessageContext.publishData(
         Key.DATA to nonNullMessageFields.toJson(),
         *optionalIdFields,
         *nonNullMessageFields.toList().toTypedArray(),
-    )
-        .also {
-            logger.info("Publiserte data for '$eventName' med transaksjonId '$transaksjonId'.")
-            sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
-        }
+    ).also {
+        logger.info("Publiserte data for '$eventName' med transaksjonId '$transaksjonId'.")
+        sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+    }
 }

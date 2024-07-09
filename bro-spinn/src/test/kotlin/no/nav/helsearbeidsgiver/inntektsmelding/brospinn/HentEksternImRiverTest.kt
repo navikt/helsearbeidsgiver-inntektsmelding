@@ -28,107 +28,109 @@ import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.util.UUID
 
-class HentEksternImRiverTest : FunSpec({
+class HentEksternImRiverTest :
+    FunSpec({
 
-    val testRapid = TestRapid()
-    val mockSpinnKlient = mockk<SpinnKlient>()
+        val testRapid = TestRapid()
+        val mockSpinnKlient = mockk<SpinnKlient>()
 
-    HentEksternImRiver(mockSpinnKlient).connect(testRapid)
+        HentEksternImRiver(mockSpinnKlient).connect(testRapid)
 
-    beforeTest {
-        testRapid.reset()
-        clearAllMocks()
-    }
-
-    test("henter ekstern inntektsmelding") {
-        val innkommendeMelding = MockHent.innkommendeMelding()
-
-        every { mockSpinnKlient.hentEksternInntektsmelding(any()) } returns MockHent.eksternInntektsmelding
-
-        testRapid.sendJson(innkommendeMelding.toMap())
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        testRapid.firstMessage().toMap() shouldContainExactly
-            mapOf(
-                Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
-                Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                Key.DATA to
-                    innkommendeMelding.data
-                        .plus(
-                            Key.EKSTERN_INNTEKTSMELDING to MockHent.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
-                        )
-                        .toJson(),
-            )
-
-        verifySequence {
-            mockSpinnKlient.hentEksternInntektsmelding(innkommendeMelding.spinnImId)
+        beforeTest {
+            testRapid.reset()
+            clearAllMocks()
         }
-    }
 
-    context("håndterer feil") {
-        withData(
-            mapOf(
-                "spinn-api feil" to
-                    row(
-                        SpinnApiException("You spin me round."),
-                        "Klarte ikke hente ekstern inntektsmelding via Spinn API: You spin me round.",
-                    ),
-                "ukjent feil" to
-                    row(
-                        IllegalArgumentException("Hæ, Dead Or Alive?"),
-                        "Ukjent feil under henting av ekstern inntektsmelding via Spinn API.",
-                    ),
-            ),
-        ) { (error, expectedFeilmelding) ->
+        test("henter ekstern inntektsmelding") {
             val innkommendeMelding = MockHent.innkommendeMelding()
 
-            val innkommendeJsonMap = innkommendeMelding.toMap()
+            every { mockSpinnKlient.hentEksternInntektsmelding(any()) } returns MockHent.eksternInntektsmelding
 
-            val forventetFail =
-                Fail(
-                    feilmelding = expectedFeilmelding,
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = innkommendeMelding.forespoerselId,
-                    utloesendeMelding = innkommendeJsonMap.toJson(),
-                )
-
-            every { mockSpinnKlient.hentEksternInntektsmelding(any()) } throws error
-
-            testRapid.sendJson(innkommendeJsonMap)
+            testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
+                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.DATA to
+                        innkommendeMelding.data
+                            .plus(
+                                Key.EKSTERN_INNTEKTSMELDING to MockHent.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                            ).toJson(),
+                )
 
             verifySequence {
                 mockSpinnKlient.hentEksternInntektsmelding(innkommendeMelding.spinnImId)
             }
         }
-    }
 
-    context("ignorerer melding") {
-        withData(
-            mapOf(
-                "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
-                "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, MockHent.fail.toJson(Fail.serializer())),
-            ),
-        ) { uoensketKeyMedVerdi ->
-            testRapid.sendJson(
-                MockHent.innkommendeMelding().toMap()
-                    .plus(uoensketKeyMedVerdi),
-            )
+        context("håndterer feil") {
+            withData(
+                mapOf(
+                    "spinn-api feil" to
+                        row(
+                            SpinnApiException("You spin me round."),
+                            "Klarte ikke hente ekstern inntektsmelding via Spinn API: You spin me round.",
+                        ),
+                    "ukjent feil" to
+                        row(
+                            IllegalArgumentException("Hæ, Dead Or Alive?"),
+                            "Ukjent feil under henting av ekstern inntektsmelding via Spinn API.",
+                        ),
+                ),
+            ) { (error, expectedFeilmelding) ->
+                val innkommendeMelding = MockHent.innkommendeMelding()
 
-            testRapid.inspektør.size shouldBeExactly 0
+                val innkommendeJsonMap = innkommendeMelding.toMap()
 
-            verify(exactly = 0) {
-                mockSpinnKlient.hentEksternInntektsmelding(any())
+                val forventetFail =
+                    Fail(
+                        feilmelding = expectedFeilmelding,
+                        event = innkommendeMelding.eventName,
+                        transaksjonId = innkommendeMelding.transaksjonId,
+                        forespoerselId = innkommendeMelding.forespoerselId,
+                        utloesendeMelding = innkommendeJsonMap.toJson(),
+                    )
+
+                every { mockSpinnKlient.hentEksternInntektsmelding(any()) } throws error
+
+                testRapid.sendJson(innkommendeJsonMap)
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                testRapid.firstMessage().toMap() shouldContainExactly forventetFail.tilMelding()
+
+                verifySequence {
+                    mockSpinnKlient.hentEksternInntektsmelding(innkommendeMelding.spinnImId)
+                }
             }
         }
-    }
-})
+
+        context("ignorerer melding") {
+            withData(
+                mapOf(
+                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
+                    "melding med data som flagg" to Pair(Key.DATA, "".toJson()),
+                    "melding med fail" to Pair(Key.FAIL, MockHent.fail.toJson(Fail.serializer())),
+                ),
+            ) { uoensketKeyMedVerdi ->
+                testRapid.sendJson(
+                    MockHent
+                        .innkommendeMelding()
+                        .toMap()
+                        .plus(uoensketKeyMedVerdi),
+                )
+
+                testRapid.inspektør.size shouldBeExactly 0
+
+                verify(exactly = 0) {
+                    mockSpinnKlient.hentEksternInntektsmelding(any())
+                }
+            }
+        }
+    })
 
 private object MockHent {
     val fail =

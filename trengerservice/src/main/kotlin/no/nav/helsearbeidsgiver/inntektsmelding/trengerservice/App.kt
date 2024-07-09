@@ -19,8 +19,7 @@ fun main() {
         .createHentForespoerselService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createHentForespoerselService(redisConnection: RedisConnection): RapidsConnection =

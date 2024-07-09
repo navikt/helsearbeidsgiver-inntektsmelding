@@ -27,8 +27,7 @@ fun main() {
         .createHentEksternImRiver(spinnKlient)
         .registerShutdownLifecycle {
             redisConnection.close()
-        }
-        .start()
+        }.start()
 
     logger.info("Bye bye, baby, bye bye!")
 }

@@ -104,8 +104,7 @@ class LagreJournalpostIdRiver(
             Key.INNTEKTSMELDING_DOKUMENT to json[Key.INNTEKTSMELDING_DOKUMENT],
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
-        )
-            .mapValuesNotNull { it }
+        ).mapValuesNotNull { it }
             .also {
                 logger.info("Publiserer event '${EventName.INNTEKTSMELDING_JOURNALFOERT}' med journalpost-ID '$journalpostId'.")
                 sikkerLogger.info("Publiserer event:\n${it.toPretty()}")
@@ -128,7 +127,8 @@ class LagreJournalpostIdRiver(
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail.tilMelding()
+        return fail
+            .tilMelding()
             .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }

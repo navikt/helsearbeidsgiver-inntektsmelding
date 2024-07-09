@@ -44,7 +44,8 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 ).toJson(),
         )
 
-        messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
+        messages
+            .filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
             .filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
@@ -57,7 +58,8 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, data) shouldBe Mock.spinnInntektsmeldingId
             }
 
-        messages.filter(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT)
+        messages
+            .filter(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT)
             .filter(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
@@ -68,7 +70,8 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), it) shouldBe eksternInntektsmelding
             }
 
-        messages.filter(EventName.EKSTERN_INNTEKTSMELDING_LAGRET)
+        messages
+            .filter(EventName.EKSTERN_INNTEKTSMELDING_LAGRET)
             .firstAsMap()
             .also {
                 Key.EVENT_NAME.les(EventName.serializer(), it) shouldBe EventName.EKSTERN_INNTEKTSMELDING_LAGRET

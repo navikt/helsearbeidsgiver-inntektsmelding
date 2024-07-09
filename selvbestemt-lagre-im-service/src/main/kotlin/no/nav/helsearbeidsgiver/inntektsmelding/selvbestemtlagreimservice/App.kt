@@ -16,8 +16,7 @@ fun main() {
         .createLagreSelvbestemtImService(redisStore)
         .registerShutdownLifecycle {
             redisStore.shutdown()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createLagreSelvbestemtImService(redisStore: RedisStore): RapidsConnection =

@@ -59,8 +59,7 @@ class TilgangForespoerselService(
                 val tilgangJson =
                     TilgangResultat(
                         tilgang = tilgang,
-                    )
-                        .toJson(TilgangResultat.serializer())
+                    ).toJson(TilgangResultat.serializer())
 
                 redisStore.set(RedisKey.of(transaksjonId), tilgangJson)
 
@@ -68,15 +67,15 @@ class TilgangForespoerselService(
             } else if (Key.FORESPOERSEL_SVAR in melding) {
                 val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
 
-                rapid.publish(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                    Key.FNR to avsenderFnr.toJson(),
-                )
-                    .also {
+                rapid
+                    .publish(
+                        Key.EVENT_NAME to eventName.toJson(),
+                        Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                        Key.FNR to avsenderFnr.toJson(),
+                    ).also {
                         MdcUtils.withLogFields(
                             Log.behov(BehovType.TILGANGSKONTROLL),
                         ) {
@@ -84,13 +83,13 @@ class TilgangForespoerselService(
                         }
                     }
             } else {
-                rapid.publish(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                )
-                    .also {
+                rapid
+                    .publish(
+                        Key.EVENT_NAME to eventName.toJson(),
+                        Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    ).also {
                         MdcUtils.withLogFields(
                             Log.behov(BehovType.HENT_TRENGER_IM),
                         ) {

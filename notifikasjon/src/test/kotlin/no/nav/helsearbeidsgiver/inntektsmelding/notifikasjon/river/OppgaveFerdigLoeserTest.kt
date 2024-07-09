@@ -23,38 +23,39 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class OppgaveFerdigLoeserTest : FunSpec({
-    val testRapid = TestRapid()
-    val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
+class OppgaveFerdigLoeserTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val mockAgNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>(relaxed = true)
 
-    OppgaveFerdigLoeser(testRapid, mockAgNotifikasjonKlient)
+        OppgaveFerdigLoeser(testRapid, mockAgNotifikasjonKlient)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-    }
-
-    test("Ved besvart forespørsel med oppgave-ID ferdigstilles oppgaven") {
-        val expected = PublishedOppgave.mock()
-
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.OPPGAVE_ID to expected.oppgaveId.toJson(),
-            Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
-            Key.UUID to expected.transaksjonId.toJson(),
-        )
-
-        val actual = testRapid.firstMessage().fromJson(PublishedOppgave.serializer())
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        actual shouldBe expected
-
-        coVerifySequence {
-            mockAgNotifikasjonKlient.oppgaveUtfoert(expected.oppgaveId)
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
         }
-    }
-})
+
+        test("Ved besvart forespørsel med oppgave-ID ferdigstilles oppgaven") {
+            val expected = PublishedOppgave.mock()
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.OPPGAVE_ID to expected.oppgaveId.toJson(),
+                Key.FORESPOERSEL_ID to expected.forespoerselId.toJson(),
+                Key.UUID to expected.transaksjonId.toJson(),
+            )
+
+            val actual = testRapid.firstMessage().fromJson(PublishedOppgave.serializer())
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            actual shouldBe expected
+
+            coVerifySequence {
+                mockAgNotifikasjonKlient.oppgaveUtfoert(expected.oppgaveId)
+            }
+        }
+    })
 
 @Serializable
 private data class PublishedOppgave(

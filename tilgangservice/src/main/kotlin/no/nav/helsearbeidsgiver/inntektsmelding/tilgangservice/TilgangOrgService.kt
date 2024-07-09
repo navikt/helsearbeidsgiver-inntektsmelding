@@ -58,21 +58,20 @@ class TilgangOrgService(
                 val tilgangJson =
                     TilgangResultat(
                         tilgang = tilgang,
-                    )
-                        .toJson(TilgangResultat.serializer())
+                    ).toJson(TilgangResultat.serializer())
 
                 redisStore.set(RedisKey.of(transaksjonId), tilgangJson)
 
                 sikkerLogger.info("$eventName fullført.")
             } else {
-                rapid.publish(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.ORGNRUNDERENHET to orgnr.toJson(),
-                    Key.FNR to fnr.toJson(),
-                )
-                    .also {
+                rapid
+                    .publish(
+                        Key.EVENT_NAME to eventName.toJson(),
+                        Key.BEHOV to BehovType.TILGANGSKONTROLL.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.ORGNRUNDERENHET to orgnr.toJson(),
+                        Key.FNR to fnr.toJson(),
+                    ).also {
                         MdcUtils.withLogFields(
                             Log.behov(BehovType.TILGANGSKONTROLL),
                         ) {

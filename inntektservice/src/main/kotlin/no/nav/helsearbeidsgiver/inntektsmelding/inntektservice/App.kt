@@ -16,8 +16,7 @@ fun main() {
         .createInntektService(redisStore)
         .registerShutdownLifecycle {
             redisStore.shutdown()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createInntektService(redisStore: RedisStore): RapidsConnection =

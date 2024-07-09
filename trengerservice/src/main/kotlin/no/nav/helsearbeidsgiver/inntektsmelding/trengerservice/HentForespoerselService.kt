@@ -79,46 +79,46 @@ class HentForespoerselService(
             val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
             val inntektsdato = forespoersel.forslagInntektsdato()
 
-            rapid.publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-            )
-                .also { loggBehovPublisert(BehovType.VIRKSOMHET, it) }
+            rapid
+                .publish(
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                ).also { loggBehovPublisert(BehovType.VIRKSOMHET, it) }
 
-            rapid.publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.FNR_LISTE to
-                    listOf(
-                        forespoersel.fnr.let(::Fnr),
-                        avsenderFnr,
-                    ).toJson(Fnr.serializer()),
-            )
-                .also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
+            rapid
+                .publish(
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.FNR_LISTE to
+                        listOf(
+                            forespoersel.fnr.let(::Fnr),
+                            avsenderFnr,
+                        ).toJson(Fnr.serializer()),
+                ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
 
-            rapid.publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.INNTEKT.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                Key.FNR to forespoersel.fnr.toJson(),
-                Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(),
-            )
-                .also { loggBehovPublisert(BehovType.INNTEKT, it) }
+            rapid
+                .publish(
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.BEHOV to BehovType.INNTEKT.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                    Key.FNR to forespoersel.fnr.toJson(),
+                    Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(),
+                ).also { loggBehovPublisert(BehovType.INNTEKT, it) }
         } else if (startKeys.all(melding::containsKey) && steg1Keys.none(melding::containsKey)) {
-            rapid.publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            )
-                .also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
+            rapid
+                .publish(
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                ).also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
         }
     }
 
@@ -146,10 +146,8 @@ class HentForespoerselService(
                         inntekt = inntekt,
                         forespoersel = foresporsel,
                         feil = feil.orEmpty(),
-                    )
-                        .toJson(HentForespoerselResultat.serializer()),
-            )
-                .toJson(ResultJson.serializer())
+                    ).toJson(HentForespoerselResultat.serializer()),
+            ).toJson(ResultJson.serializer())
 
         redisStore.set(RedisKey.of(transaksjonId), resultJson)
     }
@@ -213,8 +211,7 @@ class HentForespoerselService(
             val resultJson =
                 ResultJson(
                     failure = Tekst.TEKNISK_FEIL_FORBIGAAENDE.toJson(),
-                )
-                    .toJson(ResultJson.serializer())
+                ).toJson(ResultJson.serializer())
 
             redisStore.set(RedisKey.of(fail.transaksjonId), resultJson)
         }

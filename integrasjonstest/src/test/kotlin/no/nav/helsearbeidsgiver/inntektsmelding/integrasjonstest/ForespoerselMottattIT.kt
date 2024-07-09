@@ -33,7 +33,8 @@ class ForespoerselMottattIT : EndToEndTest() {
             )
         }
 
-        messages.filter(EventName.FORESPØRSEL_MOTTATT)
+        messages
+            .filter(EventName.FORESPØRSEL_MOTTATT)
             .filter(BehovType.LAGRE_FORESPOERSEL)
             .firstAsMap()
             .also {
@@ -45,7 +46,8 @@ class ForespoerselMottattIT : EndToEndTest() {
                 it[Key.UUID]?.fromJson(UuidSerializer) shouldBe Mock.transaksjonId
             }
 
-        messages.filter(EventName.FORESPØRSEL_LAGRET)
+        messages
+            .filter(EventName.FORESPØRSEL_LAGRET)
             .firstAsMap()
             .also {
                 it shouldNotContainKey Key.BEHOV

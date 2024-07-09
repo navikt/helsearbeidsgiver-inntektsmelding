@@ -33,8 +33,7 @@ abstract class ContainerTest {
                         it.bootstrapServers,
                     )
                 }
-            }
-            .let(AdminClient::create)
+            }.let(AdminClient::create)
             .createTopics(listOf(NewTopic(topic, 1, 1.toShort())))
 
         println("Starter Redis...")

@@ -113,9 +113,7 @@ class HentPersistertLoeserTest {
         rapid.sendJson(*melding.toList().toTypedArray())
     }
 
-    private fun hentMelding(index: Int): JsonNode {
-        return rapid.inspektør.message(index)
-    }
+    private fun hentMelding(index: Int): JsonNode = rapid.inspektør.message(index)
 
     private fun sendMeldingMedFeil(vararg melding: Pair<Key, JsonElement>): Fail {
         rapid.reset()

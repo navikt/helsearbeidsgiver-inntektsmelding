@@ -33,172 +33,179 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
-class DistribusjonRiverTest : FunSpec({
+class DistribusjonRiverTest :
+    FunSpec({
 
-    val testRapid = TestRapid()
-    val mockKafkaProducer = mockk<KafkaProducer<String, String>>()
+        val testRapid = TestRapid()
+        val mockKafkaProducer = mockk<KafkaProducer<String, String>>()
 
-    DistribusjonRiver(mockKafkaProducer).connect(testRapid)
+        DistribusjonRiver(mockKafkaProducer).connect(testRapid)
 
-    beforeTest {
-        testRapid.reset()
-        clearAllMocks()
-    }
+        beforeTest {
+            testRapid.reset()
+            clearAllMocks()
+        }
 
-    context("distribuerer inntektsmelding på kafka topic") {
-        withData(
-            mapOf(
-                "for vanlig melding" to null,
-                "for retry-melding" to BehovType.DISTRIBUER_IM,
-            ),
-        ) { innkommendeBehov ->
+        context("distribuerer inntektsmelding på kafka topic") {
+            withData(
+                mapOf(
+                    "for vanlig melding" to null,
+                    "for retry-melding" to BehovType.DISTRIBUER_IM,
+                ),
+            ) { innkommendeBehov ->
 
-            every { mockKafkaProducer.send(any()) } returns CompletableFuture()
+                every { mockKafkaProducer.send(any()) } returns CompletableFuture()
+
+                val forespoerselId = UUID.randomUUID()
+
+                val innkommendeMelding = Mock.innkommendeMelding()
+
+                testRapid.sendJson(
+                    innkommendeMelding
+                        .toMap()
+                        .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
+                        .plus(Key.BEHOV to innkommendeBehov?.toJson())
+                        .mapValuesNotNull { it },
+                )
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    mapOf(
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
+                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
+                        Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    )
+
+                val forventetRecord =
+                    ProducerRecord<String, String>(
+                        TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
+                        JournalfoertInntektsmelding(
+                            journalpostId = innkommendeMelding.journalpostId,
+                            inntektsmelding = innkommendeMelding.inntektsmelding,
+                            selvbestemt = false,
+                        ).toJsonStr(JournalfoertInntektsmelding.serializer()),
+                    )
+
+                verifySequence {
+                    mockKafkaProducer.send(forventetRecord)
+                }
+            }
+        }
+
+        context("distribuerer selvbestemt inntektsmelding på kafka topic") {
+            withData(
+                mapOf(
+                    "for vanlig melding" to null,
+                    "for retry-melding" to BehovType.DISTRIBUER_IM,
+                ),
+            ) { innkommendeBehov ->
+
+                every { mockKafkaProducer.send(any()) } returns CompletableFuture()
+
+                val selvbestemtId = UUID.randomUUID()
+
+                val innkommendeMelding = Mock.innkommendeMelding()
+
+                testRapid.sendJson(
+                    innkommendeMelding
+                        .toMap()
+                        .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
+                        .plus(Key.BEHOV to innkommendeBehov?.toJson())
+                        .mapValuesNotNull { it },
+                )
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    mapOf(
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
+                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
+                        Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                        Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                    )
+
+                val forventetRecord =
+                    ProducerRecord<String, String>(
+                        TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
+                        JournalfoertInntektsmelding(
+                            journalpostId = innkommendeMelding.journalpostId,
+                            inntektsmelding = innkommendeMelding.inntektsmelding,
+                            selvbestemt = true,
+                        ).toJsonStr(JournalfoertInntektsmelding.serializer()),
+                    )
+
+                verifySequence {
+                    mockKafkaProducer.send(forventetRecord)
+                }
+            }
+        }
+        test("håndterer når producer feiler") {
+            every { mockKafkaProducer.send(any()) } throws RuntimeException("feil og feil, fru blom")
 
             val forespoerselId = UUID.randomUUID()
 
             val innkommendeMelding = Mock.innkommendeMelding()
 
-            testRapid.sendJson(
-                innkommendeMelding.toMap()
+            val innkommendeJsonMap =
+                innkommendeMelding
+                    .toMap()
                     .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
-                    .plus(Key.BEHOV to innkommendeBehov?.toJson())
-                    .mapValuesNotNull { it },
-            )
+
+            val forventetFail =
+                Fail(
+                    feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '${innkommendeMelding.journalpostId}'.",
+                    event = innkommendeMelding.eventName,
+                    transaksjonId = innkommendeMelding.transaksjonId,
+                    forespoerselId = forespoerselId,
+                    utloesendeMelding =
+                        innkommendeJsonMap
+                            .plus(
+                                Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
+                            ).toJson(),
+                )
+
+            testRapid.sendJson(innkommendeJsonMap)
 
             testRapid.inspektør.size shouldBeExactly 1
 
             testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                )
-
-            val forventetRecord =
-                ProducerRecord<String, String>(
-                    TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                    JournalfoertInntektsmelding(
-                        journalpostId = innkommendeMelding.journalpostId,
-                        inntektsmelding = innkommendeMelding.inntektsmelding,
-                        selvbestemt = false,
-                    ).toJsonStr(JournalfoertInntektsmelding.serializer()),
-                )
+                forventetFail
+                    .tilMelding()
+                    .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
 
             verifySequence {
-                mockKafkaProducer.send(forventetRecord)
-            }
-        }
-    }
-
-    context("distribuerer selvbestemt inntektsmelding på kafka topic") {
-        withData(
-            mapOf(
-                "for vanlig melding" to null,
-                "for retry-melding" to BehovType.DISTRIBUER_IM,
-            ),
-        ) { innkommendeBehov ->
-
-            every { mockKafkaProducer.send(any()) } returns CompletableFuture()
-
-            val selvbestemtId = UUID.randomUUID()
-
-            val innkommendeMelding = Mock.innkommendeMelding()
-
-            testRapid.sendJson(
-                innkommendeMelding.toMap()
-                    .plus(Key.SELVBESTEMT_ID to selvbestemtId.toJson())
-                    .plus(Key.BEHOV to innkommendeBehov?.toJson())
-                    .mapValuesNotNull { it },
-            )
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_DISTRIBUERT.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to innkommendeMelding.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                )
-
-            val forventetRecord =
-                ProducerRecord<String, String>(
-                    TOPIC_HELSEARBEIDSGIVER_INNTEKTSMELDING_EKSTERN,
-                    JournalfoertInntektsmelding(
-                        journalpostId = innkommendeMelding.journalpostId,
-                        inntektsmelding = innkommendeMelding.inntektsmelding,
-                        selvbestemt = true,
-                    ).toJsonStr(JournalfoertInntektsmelding.serializer()),
-                )
-
-            verifySequence {
-                mockKafkaProducer.send(forventetRecord)
-            }
-        }
-    }
-    test("håndterer når producer feiler") {
-        every { mockKafkaProducer.send(any()) } throws RuntimeException("feil og feil, fru blom")
-
-        val forespoerselId = UUID.randomUUID()
-
-        val innkommendeMelding = Mock.innkommendeMelding()
-
-        val innkommendeJsonMap =
-            innkommendeMelding.toMap()
-                .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
-
-        val forventetFail =
-            Fail(
-                feilmelding = "Klarte ikke distribuere IM med journalpost-ID: '${innkommendeMelding.journalpostId}'.",
-                event = innkommendeMelding.eventName,
-                transaksjonId = innkommendeMelding.transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding =
-                    innkommendeJsonMap.plus(
-                        Key.BEHOV to BehovType.DISTRIBUER_IM.toJson(),
-                    )
-                        .toJson(),
-            )
-
-        testRapid.sendJson(innkommendeJsonMap)
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        testRapid.firstMessage().toMap() shouldContainExactly
-            forventetFail.tilMelding()
-                .plus(Key.FORESPOERSEL_ID to forespoerselId.toJson())
-
-        verifySequence {
-            mockKafkaProducer.send(any())
-        }
-    }
-
-    context("ignorerer melding") {
-        withData(
-            mapOf(
-                "melding med ukjent event" to Pair(Key.EVENT_NAME, EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson()),
-                "melding med behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
-                "melding med data" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
-            ),
-        ) { uoensketKeyMedVerdi ->
-            testRapid.sendJson(
-                Mock.innkommendeMelding().toMap()
-                    .plus(uoensketKeyMedVerdi),
-            )
-
-            testRapid.inspektør.size shouldBeExactly 0
-
-            verify(exactly = 0) {
                 mockKafkaProducer.send(any())
             }
         }
-    }
-})
+
+        context("ignorerer melding") {
+            withData(
+                mapOf(
+                    "melding med ukjent event" to Pair(Key.EVENT_NAME, EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson()),
+                    "melding med behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
+                    "melding med data" to Pair(Key.DATA, "".toJson()),
+                    "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
+                ),
+            ) { uoensketKeyMedVerdi ->
+                testRapid.sendJson(
+                    Mock
+                        .innkommendeMelding()
+                        .toMap()
+                        .plus(uoensketKeyMedVerdi),
+                )
+
+                testRapid.inspektør.size shouldBeExactly 0
+
+                verify(exactly = 0) {
+                    mockKafkaProducer.send(any())
+                }
+            }
+        }
+    })
 
 private object Mock {
     val fail =

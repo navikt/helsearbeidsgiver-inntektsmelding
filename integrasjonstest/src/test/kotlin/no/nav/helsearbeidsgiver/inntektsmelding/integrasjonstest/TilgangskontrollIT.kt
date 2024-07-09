@@ -51,7 +51,8 @@ class TilgangskontrollIT : EndToEndTest() {
 
         tilgangProducer.publishForespoerselId(transaksjonId, Mock.innloggetFnr, Mock.forespoerselId)
 
-        messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+        messages
+            .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .also {
@@ -60,7 +61,8 @@ class TilgangskontrollIT : EndToEndTest() {
             }
 
         val result =
-            messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+            messages
+                .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
                 .filter(Key.TILGANG)
                 .firstAsMap()
 
@@ -89,7 +91,8 @@ class TilgangskontrollIT : EndToEndTest() {
         tilgangProducer.publishForespoerselId(transaksjonId, Mock.innloggetFnr, Mock.forespoerselId)
 
         val result =
-            messages.filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
+            messages
+                .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
                 .filter(Key.TILGANG)
                 .firstAsMap()
 
@@ -106,7 +109,8 @@ class TilgangskontrollIT : EndToEndTest() {
         tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.ORGNR_MED_TILGANG)
 
         val result =
-            messages.filter(EventName.TILGANG_ORG_REQUESTED)
+            messages
+                .filter(EventName.TILGANG_ORG_REQUESTED)
                 .filter(Key.TILGANG)
                 .firstAsMap()
 
@@ -123,7 +127,8 @@ class TilgangskontrollIT : EndToEndTest() {
         tilgangProducer.publishOrgnr(UUID.randomUUID(), Mock.innloggetFnr, Mock.ORGNR_UTEN_TILGANG)
 
         val result =
-            messages.filter(EventName.TILGANG_ORG_REQUESTED)
+            messages
+                .filter(EventName.TILGANG_ORG_REQUESTED)
                 .filter(Key.TILGANG)
                 .firstAsMap()
 

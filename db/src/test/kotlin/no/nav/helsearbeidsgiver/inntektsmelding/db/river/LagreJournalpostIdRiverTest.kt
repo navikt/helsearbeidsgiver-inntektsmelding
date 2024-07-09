@@ -32,205 +32,208 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Inntektsmelding as InntektsmeldingV1
 
-class LagreJournalpostIdRiverTest : FunSpec({
+class LagreJournalpostIdRiverTest :
+    FunSpec({
 
-    val testRapid = TestRapid()
-    val mockImRepo = mockk<InntektsmeldingRepository>()
-    val mockSelvbestemtImRepo = mockk<SelvbestemtImRepo>()
+        val testRapid = TestRapid()
+        val mockImRepo = mockk<InntektsmeldingRepository>()
+        val mockSelvbestemtImRepo = mockk<SelvbestemtImRepo>()
 
-    LagreJournalpostIdRiver(mockImRepo, mockSelvbestemtImRepo).connect(testRapid)
+        LagreJournalpostIdRiver(mockImRepo, mockSelvbestemtImRepo).connect(testRapid)
 
-    beforeTest {
-        testRapid.reset()
-        clearAllMocks()
-    }
+        beforeTest {
+            testRapid.reset()
+            clearAllMocks()
+        }
 
-    context("journalpost-ID lagres i databasen") {
-        test("forespurt IM") {
-            every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
+        context("journalpost-ID lagres i databasen") {
+            test("forespurt IM") {
+                every { mockImRepo.oppdaterJournalpostId(any(), any()) } just Runs
 
-            val innkommendeMelding =
-                Mock.innkommendeMelding(
-                    InntektsmeldingV1.Type.Forespurt(
-                        id = UUID.randomUUID(),
-                        vedtaksperiodeId = UUID.randomUUID(),
-                    ),
-                )
+                val innkommendeMelding =
+                    Mock.innkommendeMelding(
+                        InntektsmeldingV1.Type.Forespurt(
+                            id = UUID.randomUUID(),
+                            vedtaksperiodeId = UUID.randomUUID(),
+                        ),
+                    )
 
-            testRapid.sendJson(innkommendeMelding.toMap())
+                testRapid.sendJson(innkommendeMelding.toMap())
 
-            testRapid.inspektør.size shouldBeExactly 1
+                testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    mapOf(
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
+                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
+                        Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
+                        Key.FORESPOERSEL_ID to innkommendeMelding.inntektsmeldingType.id.toJson(),
+                    )
+
+                verifySequence {
+                    mockImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmeldingType.id, innkommendeMelding.journalpostId)
+                }
+                verify(exactly = 0) {
+                    mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
+                }
+            }
+
+            test("selvbestemt IM") {
+                every { mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any()) } just Runs
+
+                val innkommendeMelding =
+                    Mock.innkommendeMelding(
+                        InntektsmeldingV1.Type.Selvbestemt(
+                            id = UUID.randomUUID(),
+                        ),
+                    )
+
+                testRapid.sendJson(innkommendeMelding.toMap())
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    mapOf(
+                        Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
+                        Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                        Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
+                        Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
+                        Key.SELVBESTEMT_ID to innkommendeMelding.inntektsmeldingType.id.toJson(),
+                    )
+
+                verifySequence {
+                    mockSelvbestemtImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmeldingType.id, innkommendeMelding.journalpostId)
+                }
+                verify(exactly = 0) {
+                    mockImRepo.oppdaterJournalpostId(any(), any())
+                }
+            }
+        }
+
+        context("håndterer feil under lagring") {
+            test("forespurt IM") {
+                every { mockImRepo.oppdaterJournalpostId(any(), any()) } throws Exception()
+
+                val innkommendeMelding =
+                    Mock.innkommendeMelding(
+                        InntektsmeldingV1.Type.Forespurt(
+                            id = UUID.randomUUID(),
+                            vedtaksperiodeId = UUID.randomUUID(),
+                        ),
+                    )
+
+                val forventetFail =
+                    Fail(
+                        feilmelding = "Klarte ikke lagre journalpost-ID '${innkommendeMelding.journalpostId}'.",
+                        event = innkommendeMelding.eventName,
+                        transaksjonId = innkommendeMelding.transaksjonId,
+                        forespoerselId = innkommendeMelding.inntektsmeldingType.id,
+                        utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                    )
+
+                testRapid.sendJson(innkommendeMelding.toMap())
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    forventetFail
+                        .tilMelding()
+                        .plus(Key.FORESPOERSEL_ID to innkommendeMelding.inntektsmeldingType.id.toJson())
+
+                verifySequence {
+                    mockImRepo.oppdaterJournalpostId(any(), any())
+                }
+                verify(exactly = 0) {
+                    mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
+                }
+            }
+
+            test("selvbestemt IM") {
+                every { mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any()) } throws Exception()
+
+                val innkommendeMelding =
+                    Mock.innkommendeMelding(
+                        InntektsmeldingV1.Type.Selvbestemt(
+                            id = UUID.randomUUID(),
+                        ),
+                    )
+
+                val forventetFail =
+                    Fail(
+                        feilmelding = "Klarte ikke lagre journalpost-ID '${innkommendeMelding.journalpostId}'.",
+                        event = innkommendeMelding.eventName,
+                        transaksjonId = innkommendeMelding.transaksjonId,
+                        forespoerselId = null,
+                        utloesendeMelding = innkommendeMelding.toMap().toJson(),
+                    )
+
+                testRapid.sendJson(innkommendeMelding.toMap())
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    forventetFail
+                        .tilMelding()
+                        .minus(Key.FORESPOERSEL_ID)
+                        .plus(Key.SELVBESTEMT_ID to innkommendeMelding.inntektsmeldingType.id.toJson())
+
+                verifySequence {
+                    mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
+                }
+                verify(exactly = 0) {
+                    mockImRepo.oppdaterJournalpostId(any(), any())
+                }
+            }
+        }
+
+        context("ignorerer melding") {
+            withData(
                 mapOf(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
-                    Key.FORESPOERSEL_ID to innkommendeMelding.inntektsmeldingType.id.toJson(),
+                    "melding med ukjent behov" to Pair(Key.BEHOV, BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson()),
+                    "melding med data" to Pair(Key.DATA, "".toJson()),
+                    "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
+                ),
+            ) { uoensketKeyMedVerdi ->
+                testRapid.sendJson(
+                    Mock
+                        .innkommendeMelding(
+                            InntektsmeldingV1.Type.Forespurt(
+                                id = UUID.randomUUID(),
+                                vedtaksperiodeId = UUID.randomUUID(),
+                            ),
+                        ).toMap()
+                        .plus(uoensketKeyMedVerdi),
                 )
 
-            verifySequence {
-                mockImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmeldingType.id, innkommendeMelding.journalpostId)
+                testRapid.inspektør.size shouldBeExactly 0
+
+                verify(exactly = 0) {
+                    mockImRepo.oppdaterJournalpostId(any(), any())
+                    mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
+                }
             }
-            verify(exactly = 0) {
-                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
+
+            test("melding mangler både forespoerselId og selvbestemtId") {
+                testRapid.sendJson(
+                    Mock
+                        .innkommendeMelding(
+                            InntektsmeldingV1.Type.Selvbestemt(
+                                id = UUID.randomUUID(),
+                            ),
+                        ).toMap()
+                        .minus(Key.SELVBESTEMT_ID),
+                )
+
+                testRapid.inspektør.size shouldBeExactly 0
+
+                verify(exactly = 0) {
+                    mockImRepo.oppdaterJournalpostId(any(), any())
+                    mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
+                }
             }
         }
-
-        test("selvbestemt IM") {
-            every { mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any()) } just Runs
-
-            val innkommendeMelding =
-                Mock.innkommendeMelding(
-                    InntektsmeldingV1.Type.Selvbestemt(
-                        id = UUID.randomUUID(),
-                    ),
-                )
-
-            testRapid.sendJson(innkommendeMelding.toMap())
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_JOURNALFOERT.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.JOURNALPOST_ID to innkommendeMelding.journalpostId.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to INNTEKTSMELDING_DOKUMENT.toJson(Inntektsmelding.serializer()),
-                    Key.SELVBESTEMT_ID to innkommendeMelding.inntektsmeldingType.id.toJson(),
-                )
-
-            verifySequence {
-                mockSelvbestemtImRepo.oppdaterJournalpostId(innkommendeMelding.inntektsmeldingType.id, innkommendeMelding.journalpostId)
-            }
-            verify(exactly = 0) {
-                mockImRepo.oppdaterJournalpostId(any(), any())
-            }
-        }
-    }
-
-    context("håndterer feil under lagring") {
-        test("forespurt IM") {
-            every { mockImRepo.oppdaterJournalpostId(any(), any()) } throws Exception()
-
-            val innkommendeMelding =
-                Mock.innkommendeMelding(
-                    InntektsmeldingV1.Type.Forespurt(
-                        id = UUID.randomUUID(),
-                        vedtaksperiodeId = UUID.randomUUID(),
-                    ),
-                )
-
-            val forventetFail =
-                Fail(
-                    feilmelding = "Klarte ikke lagre journalpost-ID '${innkommendeMelding.journalpostId}'.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = innkommendeMelding.inntektsmeldingType.id,
-                    utloesendeMelding = innkommendeMelding.toMap().toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMelding.toMap())
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            testRapid.firstMessage().toMap() shouldContainExactly
-                forventetFail.tilMelding()
-                    .plus(Key.FORESPOERSEL_ID to innkommendeMelding.inntektsmeldingType.id.toJson())
-
-            verifySequence {
-                mockImRepo.oppdaterJournalpostId(any(), any())
-            }
-            verify(exactly = 0) {
-                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
-            }
-        }
-
-        test("selvbestemt IM") {
-            every { mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any()) } throws Exception()
-
-            val innkommendeMelding =
-                Mock.innkommendeMelding(
-                    InntektsmeldingV1.Type.Selvbestemt(
-                        id = UUID.randomUUID(),
-                    ),
-                )
-
-            val forventetFail =
-                Fail(
-                    feilmelding = "Klarte ikke lagre journalpost-ID '${innkommendeMelding.journalpostId}'.",
-                    event = innkommendeMelding.eventName,
-                    transaksjonId = innkommendeMelding.transaksjonId,
-                    forespoerselId = null,
-                    utloesendeMelding = innkommendeMelding.toMap().toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMelding.toMap())
-
-            testRapid.inspektør.size shouldBeExactly 1
-
-            testRapid.firstMessage().toMap() shouldContainExactly
-                forventetFail.tilMelding()
-                    .minus(Key.FORESPOERSEL_ID)
-                    .plus(Key.SELVBESTEMT_ID to innkommendeMelding.inntektsmeldingType.id.toJson())
-
-            verifySequence {
-                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
-            }
-            verify(exactly = 0) {
-                mockImRepo.oppdaterJournalpostId(any(), any())
-            }
-        }
-    }
-
-    context("ignorerer melding") {
-        withData(
-            mapOf(
-                "melding med ukjent behov" to Pair(Key.BEHOV, BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson()),
-                "melding med data" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, Mock.fail.toJson(Fail.serializer())),
-            ),
-        ) { uoensketKeyMedVerdi ->
-            testRapid.sendJson(
-                Mock.innkommendeMelding(
-                    InntektsmeldingV1.Type.Forespurt(
-                        id = UUID.randomUUID(),
-                        vedtaksperiodeId = UUID.randomUUID(),
-                    ),
-                )
-                    .toMap()
-                    .plus(uoensketKeyMedVerdi),
-            )
-
-            testRapid.inspektør.size shouldBeExactly 0
-
-            verify(exactly = 0) {
-                mockImRepo.oppdaterJournalpostId(any(), any())
-                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
-            }
-        }
-
-        test("melding mangler både forespoerselId og selvbestemtId") {
-            testRapid.sendJson(
-                Mock.innkommendeMelding(
-                    InntektsmeldingV1.Type.Selvbestemt(
-                        id = UUID.randomUUID(),
-                    ),
-                )
-                    .toMap()
-                    .minus(Key.SELVBESTEMT_ID),
-            )
-
-            testRapid.inspektør.size shouldBeExactly 0
-
-            verify(exactly = 0) {
-                mockImRepo.oppdaterJournalpostId(any(), any())
-                mockSelvbestemtImRepo.oppdaterJournalpostId(any(), any())
-            }
-        }
-    }
-})
+    })
 
 private object Mock {
     val fail =

@@ -43,7 +43,9 @@ sealed class ForslagInntekt {
 
     @Serializable
     @SerialName("ForslagInntektFastsatt")
-    data class Fastsatt(val fastsattInntekt: Double) : ForslagInntekt()
+    data class Fastsatt(
+        val fastsattInntekt: Double,
+    ) : ForslagInntekt()
 }
 
 @Serializable

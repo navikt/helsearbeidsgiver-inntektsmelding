@@ -74,10 +74,10 @@ class InntektTest {
 }
 
 private fun mockInntekt(vararg maanedInntenkterPairs: Pair<Int, Double?>): Inntekt =
-    maanedInntenkterPairs.map { (maanedNummer, inntekter) ->
-        InntektPerMaaned(
-            maaned = YearMonth.of(2018, maanedNummer),
-            inntekt = inntekter,
-        )
-    }
-        .let(::Inntekt)
+    maanedInntenkterPairs
+        .map { (maanedNummer, inntekter) ->
+            InntektPerMaaned(
+                maaned = YearMonth.of(2018, maanedNummer),
+                inntekt = inntekter,
+            )
+        }.let(::Inntekt)

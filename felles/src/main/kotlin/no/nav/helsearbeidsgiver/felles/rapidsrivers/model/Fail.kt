@@ -27,6 +27,5 @@ data class Fail(
             Key.EVENT_NAME to event.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.FORESPOERSEL_ID to forespoerselId?.toJson(),
-        )
-            .mapValuesNotNull { it }
+        ).mapValuesNotNull { it }
 }

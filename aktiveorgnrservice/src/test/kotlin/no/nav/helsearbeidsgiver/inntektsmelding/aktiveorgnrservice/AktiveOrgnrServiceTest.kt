@@ -37,153 +37,157 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
-class AktiveOrgnrServiceTest : FunSpec({
+class AktiveOrgnrServiceTest :
+    FunSpec({
 
-    val testRapid = TestRapid()
-    val mockRedis = MockRedisClassSpecific(RedisPrefix.AktiveOrgnrService)
+        val testRapid = TestRapid()
+        val mockRedis = MockRedisClassSpecific(RedisPrefix.AktiveOrgnrService)
 
-    ServiceRiver(
-        AktiveOrgnrService(testRapid, mockRedis.store),
-    ).connect(testRapid)
+        ServiceRiver(
+            AktiveOrgnrService(testRapid, mockRedis.store),
+        ).connect(testRapid)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-        mockRedis.setup()
-    }
-
-    test("henter aktive orgnr") {
-        val transaksjonId = UUID.randomUUID()
-        val orgnr = Orgnr.genererGyldig()
-        val expectedSuccess = Mock.successResult(orgnr)
-
-        testRapid.sendJson(
-            Mock.startmelding(transaksjonId),
-        )
-
-        testRapid.inspektør.size shouldBeExactly 3
-        testRapid.message(0).lesBehov() shouldBe BehovType.ARBEIDSGIVERE
-        testRapid.message(1).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
-        testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
-
-        testRapid.sendJson(
-            Mock.steg1Data(transaksjonId, orgnr),
-        )
-
-        testRapid.inspektør.size shouldBeExactly 4
-        testRapid.message(3).lesBehov() shouldBe BehovType.VIRKSOMHET
-
-        testRapid.sendJson(
-            Mock.steg2Data(transaksjonId, orgnr),
-        )
-
-        verify {
-            mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
+            mockRedis.setup()
         }
-    }
 
-    test("svarer med tom liste dersom sykmeldt mangler arbeidsforhold") {
-        val transaksjonId = UUID.randomUUID()
-        val orgnr = Orgnr.genererGyldig()
-        val expectedSuccess = Mock.successResultTomListe()
+        test("henter aktive orgnr") {
+            val transaksjonId = UUID.randomUUID()
+            val orgnr = Orgnr.genererGyldig()
+            val expectedSuccess = Mock.successResult(orgnr)
 
-        testRapid.sendJson(
-            Mock.startmelding(transaksjonId),
-        )
+            testRapid.sendJson(
+                Mock.startmelding(transaksjonId),
+            )
 
-        testRapid.inspektør.size shouldBeExactly 3
+            testRapid.inspektør.size shouldBeExactly 3
+            testRapid.message(0).lesBehov() shouldBe BehovType.ARBEIDSGIVERE
+            testRapid.message(1).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
+            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
 
-        testRapid.sendJson(
-            Mock.steg1Data(transaksjonId, orgnr)
-                .plus(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())),
-        )
+            testRapid.sendJson(
+                Mock.steg1Data(transaksjonId, orgnr),
+            )
 
-        // Virksomheter hentes ikke
-        testRapid.inspektør.size shouldBeExactly 3
+            testRapid.inspektør.size shouldBeExactly 4
+            testRapid.message(3).lesBehov() shouldBe BehovType.VIRKSOMHET
 
-        verify {
-            mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+            testRapid.sendJson(
+                Mock.steg2Data(transaksjonId, orgnr),
+            )
+
+            verify {
+                mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+            }
         }
-    }
 
-    test("svarer med tom liste dersom sykmeldtes arbeidsforhold og avsenders org-rettigheter ikke gjelder samme org") {
-        val transaksjonId = UUID.randomUUID()
-        val orgnr = Orgnr.genererGyldig()
-        val expectedSuccess = Mock.successResultTomListe()
+        test("svarer med tom liste dersom sykmeldt mangler arbeidsforhold") {
+            val transaksjonId = UUID.randomUUID()
+            val orgnr = Orgnr.genererGyldig()
+            val expectedSuccess = Mock.successResultTomListe()
 
-        testRapid.sendJson(
-            Mock.startmelding(transaksjonId),
-        )
+            testRapid.sendJson(
+                Mock.startmelding(transaksjonId),
+            )
 
-        testRapid.inspektør.size shouldBeExactly 3
+            testRapid.inspektør.size shouldBeExactly 3
 
-        testRapid.sendJson(
-            Mock.steg1Data(transaksjonId, orgnr)
-                .plus(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer())),
-        )
+            testRapid.sendJson(
+                Mock
+                    .steg1Data(transaksjonId, orgnr)
+                    .plus(Key.ARBEIDSFORHOLD to emptyList<Arbeidsforhold>().toJson(Arbeidsforhold.serializer())),
+            )
 
-        // Orgnavn hentes ikke
-        testRapid.inspektør.size shouldBeExactly 3
+            // Virksomheter hentes ikke
+            testRapid.inspektør.size shouldBeExactly 3
 
-        verify {
-            mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+            verify {
+                mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+            }
         }
-    }
 
-    test("svarer med feilmelding dersom avsender mangler org-rettigheter") {
-        val transaksjonId = UUID.randomUUID()
-        val orgnr = Orgnr.genererGyldig()
-        val feilmelding = "Må ha orgrettigheter for å kunne hente virksomheter."
-        val expectedFailure = Mock.failureResult(feilmelding)
+        test("svarer med tom liste dersom sykmeldtes arbeidsforhold og avsenders org-rettigheter ikke gjelder samme org") {
+            val transaksjonId = UUID.randomUUID()
+            val orgnr = Orgnr.genererGyldig()
+            val expectedSuccess = Mock.successResultTomListe()
 
-        testRapid.sendJson(
-            Mock.startmelding(transaksjonId),
-        )
+            testRapid.sendJson(
+                Mock.startmelding(transaksjonId),
+            )
 
-        testRapid.inspektør.size shouldBeExactly 3
+            testRapid.inspektør.size shouldBeExactly 3
 
-        testRapid.sendJson(
-            Mock.steg1Data(transaksjonId, orgnr)
-                .plus(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer())),
-        )
+            testRapid.sendJson(
+                Mock
+                    .steg1Data(transaksjonId, orgnr)
+                    .plus(Key.ORG_RETTIGHETER to setOf(Orgnr.genererGyldig().verdi).toJson(String.serializer())),
+            )
 
-        // Orgnavn hentes ikke
-        testRapid.inspektør.size shouldBeExactly 3
+            // Orgnavn hentes ikke
+            testRapid.inspektør.size shouldBeExactly 3
 
-        verify {
-            mockRedis.store.set(RedisKey.of(transaksjonId), expectedFailure)
+            verify {
+                mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+            }
         }
-    }
 
-    test("svarer med feilmelding dersom man ikke klarer å hente noe") {
-        val transaksjonId = UUID.randomUUID()
-        val feilmelding = "Kafka streiker for bedre vilkår :("
-        val expectedFailure = Mock.failureResult(feilmelding)
+        test("svarer med feilmelding dersom avsender mangler org-rettigheter") {
+            val transaksjonId = UUID.randomUUID()
+            val orgnr = Orgnr.genererGyldig()
+            val feilmelding = "Må ha orgrettigheter for å kunne hente virksomheter."
+            val expectedFailure = Mock.failureResult(feilmelding)
 
-        testRapid.sendJson(
-            Mock.startmelding(transaksjonId),
-        )
+            testRapid.sendJson(
+                Mock.startmelding(transaksjonId),
+            )
 
-        testRapid.sendJson(
-            Fail(
-                feilmelding = feilmelding,
-                event = EventName.AKTIVE_ORGNR_REQUESTED,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding =
-                    JsonObject(
-                        mapOf(
-                            Key.BEHOV.toString() to BehovType.ARBEIDSGIVERE.toJson(),
+            testRapid.inspektør.size shouldBeExactly 3
+
+            testRapid.sendJson(
+                Mock
+                    .steg1Data(transaksjonId, orgnr)
+                    .plus(Key.ORG_RETTIGHETER to emptySet<String>().toJson(String.serializer())),
+            )
+
+            // Orgnavn hentes ikke
+            testRapid.inspektør.size shouldBeExactly 3
+
+            verify {
+                mockRedis.store.set(RedisKey.of(transaksjonId), expectedFailure)
+            }
+        }
+
+        test("svarer med feilmelding dersom man ikke klarer å hente noe") {
+            val transaksjonId = UUID.randomUUID()
+            val feilmelding = "Kafka streiker for bedre vilkår :("
+            val expectedFailure = Mock.failureResult(feilmelding)
+
+            testRapid.sendJson(
+                Mock.startmelding(transaksjonId),
+            )
+
+            testRapid.sendJson(
+                Fail(
+                    feilmelding = feilmelding,
+                    event = EventName.AKTIVE_ORGNR_REQUESTED,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = null,
+                    utloesendeMelding =
+                        JsonObject(
+                            mapOf(
+                                Key.BEHOV.toString() to BehovType.ARBEIDSGIVERE.toJson(),
+                            ),
                         ),
-                    ),
-            ).tilMelding(),
-        )
+                ).tilMelding(),
+            )
 
-        verify {
-            mockRedis.store.set(RedisKey.of(transaksjonId), expectedFailure)
+            verify {
+                mockRedis.store.set(RedisKey.of(transaksjonId), expectedFailure)
+            }
         }
-    }
-})
+    })
 
 private object Mock {
     private const val SYKMELDT_NAVN = "Ole Idole"
@@ -220,8 +224,7 @@ private object Mock {
                             ),
                         ),
                 ).toJson(AktiveArbeidsgivere.serializer()),
-        )
-            .toJson(ResultJson.serializer())
+        ).toJson(ResultJson.serializer())
 
     fun successResultTomListe(): JsonElement =
         ResultJson(
@@ -231,14 +234,12 @@ private object Mock {
                     avsenderNavn = AVSENDER_NAVN,
                     underenheter = emptyList(),
                 ).toJson(AktiveArbeidsgivere.serializer()),
-        )
-            .toJson(ResultJson.serializer())
+        ).toJson(ResultJson.serializer())
 
     fun failureResult(feilmelding: String): JsonElement =
         ResultJson(
             failure = feilmelding.toJson(),
-        )
-            .toJson(ResultJson.serializer())
+        ).toJson(ResultJson.serializer())
 
     fun startmelding(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(

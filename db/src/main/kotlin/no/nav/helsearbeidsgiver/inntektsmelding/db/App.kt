@@ -35,8 +35,7 @@ fun main() {
         .registerShutdownLifecycle {
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
             database.dataSource.close()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createDbRivers(

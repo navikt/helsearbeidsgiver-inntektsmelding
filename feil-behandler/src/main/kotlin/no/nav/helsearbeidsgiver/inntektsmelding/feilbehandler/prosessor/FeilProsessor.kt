@@ -5,7 +5,9 @@ import no.nav.hag.utils.bakgrunnsjobb.BakgrunnsjobbProsesserer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class FeilProsessor(private val rapid: RapidsConnection) : BakgrunnsjobbProsesserer {
+class FeilProsessor(
+    private val rapid: RapidsConnection,
+) : BakgrunnsjobbProsesserer {
     override val type: String
         get() = JOB_TYPE
 

@@ -50,13 +50,12 @@ class NotifikasjonHentIdLoeser(
         ) {
             runCatching {
                 loesBehov(behov)
-            }
-                .onFailure { e ->
-                    "Ukjent feil.".also {
-                        logger.error("$it Se sikker logg for mer info.")
-                        sikkerLogger.error(it, e)
-                    }
+            }.onFailure { e ->
+                "Ukjent feil.".also {
+                    logger.error("$it Se sikker logg for mer info.")
+                    sikkerLogger.error(it, e)
                 }
+            }
         }
     }
 

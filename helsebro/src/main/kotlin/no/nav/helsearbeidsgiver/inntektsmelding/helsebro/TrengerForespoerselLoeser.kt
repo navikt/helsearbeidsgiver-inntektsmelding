@@ -50,7 +50,11 @@ class TrengerForespoerselLoeser(
         ) {
             logger.info("Mottok behov om ${BehovType.HENT_TRENGER_IM}.")
 
-            val json = behov.jsonMessage.toJson().parseJson().toMap()
+            val json =
+                behov.jsonMessage
+                    .toJson()
+                    .parseJson()
+                    .toMap()
 
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
             val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, json)
@@ -70,20 +74,19 @@ class TrengerForespoerselLoeser(
         transaksjonId: UUID,
         forespoerselId: UUID,
     ) {
-        priProducer.send(
-            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
-            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to
-                mapOf(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                ).toJson(),
-        )
-            .onSuccess {
+        priProducer
+            .send(
+                Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Pri.Key.BOOMERANG to
+                    mapOf(
+                        Key.EVENT_NAME to event.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                    ).toJson(),
+            ).onSuccess {
                 logger.info("Publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")
                 sikkerLogger.info("Publiserte melding på pri-topic:\n${it.toPretty()}")
-            }
-            .onFailure {
+            }.onFailure {
                 logger.warn("Klarte ikke publiserte melding på pri-topic om ${Pri.BehovType.TRENGER_FORESPØRSEL}.")
             }
     }

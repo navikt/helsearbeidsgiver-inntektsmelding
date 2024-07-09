@@ -20,18 +20,20 @@ import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketListener {
+abstract class Loeser(
+    val rapidsConnection: RapidsConnection,
+) : River.PacketListener {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     init {
-        River(rapidsConnection).apply {
-            validate(accept())
-            validate {
-                Behov.packetValidator.validate(it)
-            }
-        }
-            .register(this)
+        River(rapidsConnection)
+            .apply {
+                validate(accept())
+                validate {
+                    Behov.packetValidator.validate(it)
+                }
+            }.register(this)
     }
 
     abstract fun accept(): River.PacketValidation
@@ -39,7 +41,8 @@ abstract class Loeser(val rapidsConnection: RapidsConnection) : River.PacketList
     abstract fun onBehov(behov: Behov)
 
     fun publishFail(fail: Fail) {
-        rapidsConnection.publish(fail.tilMelding())
+        rapidsConnection
+            .publish(fail.tilMelding())
             .also {
                 logger.info("Publiserte feil for eventname '${fail.event.name}'.")
                 sikkerLogger.info("Publiserte feil:\n${it.toPretty()}")

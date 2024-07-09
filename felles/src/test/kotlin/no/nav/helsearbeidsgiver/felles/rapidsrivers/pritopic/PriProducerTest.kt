@@ -15,110 +15,111 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
 
-class PriProducerTest : FunSpec({
-    val mockProducer = mockk<KafkaProducer<String, JsonElement>>()
+class PriProducerTest :
+    FunSpec({
+        val mockProducer = mockk<KafkaProducer<String, JsonElement>>()
 
-    val priProducer =
-        PriProducer(
-            producer = mockProducer,
-        )
+        val priProducer =
+            PriProducer(
+                producer = mockProducer,
+            )
 
-    beforeEach {
-        clearAllMocks()
-    }
-
-    context("send<JsonElement>") {
-
-        test("gir suksessobjekt ved sendt melding til kafka stream") {
-            every { mockProducer.send(any()).get() } returns mockRecordMetadata()
-
-            val expectedMessageJson =
-                mapOf(
-                    Pri.Key.NOTIS to "universet er what?".toJson(),
-                    Pri.Key.FORESPOERSEL_ID to "8800664422".toJson(),
-                ).toJson()
-
-            val result = priProducer.send(expectedMessageJson)
-
-            result.isSuccess.shouldBeTrue()
-            result.getOrNull() shouldBe expectedMessageJson
-
-            val expected =
-                ProducerRecord<String, JsonElement>(
-                    Pri.TOPIC,
-                    expectedMessageJson,
-                )
-
-            verifySequence { mockProducer.send(expected) }
+        beforeEach {
+            clearAllMocks()
         }
 
-        test("gir feilobjekt ved feilet sending til kafka stream") {
-            every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
+        context("send<JsonElement>") {
 
-            val expectedMessageJson =
-                mapOf(
-                    Pri.Key.NOTIS to "universet er flatt".toJson(),
-                    Pri.Key.FORESPOERSEL_ID to "5577991133".toJson(),
-                ).toJson()
+            test("gir suksessobjekt ved sendt melding til kafka stream") {
+                every { mockProducer.send(any()).get() } returns mockRecordMetadata()
 
-            val result = priProducer.send(expectedMessageJson)
+                val expectedMessageJson =
+                    mapOf(
+                        Pri.Key.NOTIS to "universet er what?".toJson(),
+                        Pri.Key.FORESPOERSEL_ID to "8800664422".toJson(),
+                    ).toJson()
 
-            result.isFailure.shouldBeTrue()
-            result.getOrNull() shouldBe null
+                val result = priProducer.send(expectedMessageJson)
 
-            verifySequence { mockProducer.send(any()) }
-        }
-    }
+                result.isSuccess.shouldBeTrue()
+                result.getOrNull() shouldBe expectedMessageJson
 
-    context("send<vararg Pair<Pri.Key, JsonElement>>") {
+                val expected =
+                    ProducerRecord<String, JsonElement>(
+                        Pri.TOPIC,
+                        expectedMessageJson,
+                    )
 
-        test("gir suksessobjekt ved sendt melding til kafka stream") {
-            every { mockProducer.send(any()).get() } returns mockRecordMetadata()
+                verifySequence { mockProducer.send(expected) }
+            }
 
-            val expectedMessage =
-                mapOf(
-                    Pri.Key.BEHOV to "sol".toJson(),
-                    Pri.Key.BOOMERANG to "\uD83E\uDE83".toJson(),
-                )
+            test("gir feilobjekt ved feilet sending til kafka stream") {
+                every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
 
-            val result =
-                priProducer.send(
-                    *expectedMessage.toList().toTypedArray(),
-                )
+                val expectedMessageJson =
+                    mapOf(
+                        Pri.Key.NOTIS to "universet er flatt".toJson(),
+                        Pri.Key.FORESPOERSEL_ID to "5577991133".toJson(),
+                    ).toJson()
 
-            result.isSuccess.shouldBeTrue()
-            result.getOrNull() shouldBe expectedMessage.toJson()
+                val result = priProducer.send(expectedMessageJson)
 
-            val expected =
-                ProducerRecord<String, JsonElement>(
-                    Pri.TOPIC,
-                    expectedMessage.toJson(),
-                )
+                result.isFailure.shouldBeTrue()
+                result.getOrNull() shouldBe null
 
-            verifySequence { mockProducer.send(expected) }
+                verifySequence { mockProducer.send(any()) }
+            }
         }
 
-        test("gir feilobjekt ved feilet sending til kafka stream") {
-            every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
+        context("send<vararg Pair<Pri.Key, JsonElement>>") {
 
-            val expectedMessage =
-                mapOf(
-                    Pri.Key.BEHOV to "måne".toJson(),
-                    Pri.Key.BOOMERANG to "\uD83E\uDE83".toJson(),
-                )
+            test("gir suksessobjekt ved sendt melding til kafka stream") {
+                every { mockProducer.send(any()).get() } returns mockRecordMetadata()
 
-            val result =
-                priProducer.send(
-                    *expectedMessage.toList().toTypedArray(),
-                )
+                val expectedMessage =
+                    mapOf(
+                        Pri.Key.BEHOV to "sol".toJson(),
+                        Pri.Key.BOOMERANG to "\uD83E\uDE83".toJson(),
+                    )
 
-            result.isFailure.shouldBeTrue()
-            result.getOrNull() shouldBe null
+                val result =
+                    priProducer.send(
+                        *expectedMessage.toList().toTypedArray(),
+                    )
 
-            verifySequence { mockProducer.send(any()) }
+                result.isSuccess.shouldBeTrue()
+                result.getOrNull() shouldBe expectedMessage.toJson()
+
+                val expected =
+                    ProducerRecord<String, JsonElement>(
+                        Pri.TOPIC,
+                        expectedMessage.toJson(),
+                    )
+
+                verifySequence { mockProducer.send(expected) }
+            }
+
+            test("gir feilobjekt ved feilet sending til kafka stream") {
+                every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
+
+                val expectedMessage =
+                    mapOf(
+                        Pri.Key.BEHOV to "måne".toJson(),
+                        Pri.Key.BOOMERANG to "\uD83E\uDE83".toJson(),
+                    )
+
+                val result =
+                    priProducer.send(
+                        *expectedMessage.toList().toTypedArray(),
+                    )
+
+                result.isFailure.shouldBeTrue()
+                result.getOrNull() shouldBe null
+
+                verifySequence { mockProducer.send(any()) }
+            }
         }
-    }
-})
+    })
 
 private fun mockRecordMetadata(): RecordMetadata = RecordMetadata(null, 0, 0, 0, 0, 0)
 

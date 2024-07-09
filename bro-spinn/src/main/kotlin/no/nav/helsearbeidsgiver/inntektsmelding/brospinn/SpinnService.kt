@@ -57,38 +57,39 @@ class SpinnService(
                     eksternInntektsmelding != null &&
                     eksternInntektsmelding.avsenderSystemNavn != AVSENDER_NAV_NO
                 ) {
-                    rapid.publish(
-                        Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
-                        Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
-                        Key.UUID to transaksjonId.toJson(),
-                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                        Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
-                    ).also {
-                        MdcUtils.withLogFields(
-                            Log.event(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT),
-                            Log.behov(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING),
-                        ) {
-                            logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name}.")
-                            sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                    rapid
+                        .publish(
+                            Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
+                            Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
+                            Key.UUID to transaksjonId.toJson(),
+                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                            Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                        ).also {
+                            MdcUtils.withLogFields(
+                                Log.event(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT),
+                                Log.behov(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING),
+                            ) {
+                                logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name}.")
+                                sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
+                            }
                         }
-                    }
                 }
 
                 sikkerLogger.info("$eventName fullført.")
             } else {
                 val spinnImId = Key.SPINN_INNTEKTSMELDING_ID.les(UuidSerializer, melding)
 
-                rapid.publish(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                            Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
-                        ).toJson(),
-                )
-                    .also {
+                rapid
+                    .publish(
+                        Key.EVENT_NAME to eventName.toJson(),
+                        Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.DATA to
+                            mapOf(
+                                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                                Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
+                            ).toJson(),
+                    ).also {
                         MdcUtils.withLogFields(
                             Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING),
                         ) {

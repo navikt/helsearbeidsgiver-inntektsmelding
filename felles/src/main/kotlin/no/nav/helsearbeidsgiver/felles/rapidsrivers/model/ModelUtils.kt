@@ -9,6 +9,5 @@ object ModelUtils {
         melding[Key.FAIL]
             ?.runCatching {
                 fromJson(Fail.serializer())
-            }
-            ?.getOrNull()
+            }?.getOrNull()
 }

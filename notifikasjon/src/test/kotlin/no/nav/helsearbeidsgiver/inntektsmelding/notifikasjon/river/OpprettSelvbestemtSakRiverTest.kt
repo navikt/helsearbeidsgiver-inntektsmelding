@@ -30,128 +30,143 @@ import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class OpprettSelvbestemtSakRiverTest : FunSpec({
+class OpprettSelvbestemtSakRiverTest :
+    FunSpec({
 
-    val testRapid = TestRapid()
-    val mockUrl = "selvbestemt-lenke"
-    val mockSelvbestemtRepo = mockk<SelvbestemtRepo>()
-    val mockagNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
+        val testRapid = TestRapid()
+        val mockUrl = "selvbestemt-lenke"
+        val mockSelvbestemtRepo = mockk<SelvbestemtRepo>()
+        val mockagNotifikasjonKlient = mockk<ArbeidsgiverNotifikasjonKlient>()
 
-    OpprettSelvbestemtSakRiver(mockUrl, mockSelvbestemtRepo, mockagNotifikasjonKlient).connect(testRapid)
+        OpprettSelvbestemtSakRiver(mockUrl, mockSelvbestemtRepo, mockagNotifikasjonKlient).connect(testRapid)
 
-    beforeTest {
-        testRapid.reset()
-        clearAllMocks()
-    }
-
-    test("opprett sak") {
-        val sakId = UUID.randomUUID().toString()
-        val innkommendeMelding = innkommendeMelding()
-
-        coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
-        every { mockSelvbestemtRepo.lagreSakId(any(), any()) } returns 1
-
-        testRapid.sendJson(innkommendeMelding.toMap())
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        val dataField = Key.SAK_ID to sakId.toJson()
-
-        testRapid.firstMessage().toMap() shouldContainExactly
-            mapOf(
-                Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                Key.DATA to mapOf(dataField).toJson(),
-                dataField,
-            )
-
-        coVerifySequence {
-            mockagNotifikasjonKlient.opprettNySak(
-                virksomhetsnummer = innkommendeMelding.inntektsmelding.avsender.orgnr.verdi,
-                merkelapp = "Inntektsmelding sykepenger",
-                grupperingsid = innkommendeMelding.inntektsmelding.type.id.toString(),
-                lenke = "$mockUrl/im-dialog/kvittering/agi/${innkommendeMelding.inntektsmelding.type.id}",
-                tittel =
-                    "Inntektsmelding for ${innkommendeMelding.inntektsmelding.sykmeldt.navn}: " +
-                        "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.verdi.take(6)}",
-                statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
-                initiellStatus = SaksStatus.FERDIG,
-                harddeleteOm = any(),
-            )
-            mockSelvbestemtRepo.lagreSakId(innkommendeMelding.inntektsmelding.type.id, sakId)
+        beforeTest {
+            testRapid.reset()
+            clearAllMocks()
         }
-    }
 
-    context("håndterer feil") {
-
-        test("fra klient") {
+        test("opprett sak") {
+            val sakId = UUID.randomUUID().toString()
             val innkommendeMelding = innkommendeMelding()
-            val forventetFail = innkommendeMelding.toFail()
 
-            coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } throws RuntimeException("RIP in peace")
+            coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns sakId
+            every { mockSelvbestemtRepo.lagreSakId(any(), any()) } returns 1
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
             testRapid.inspektør.size shouldBeExactly 1
 
-            testRapid.firstMessage().toMap() shouldContainExactly
-                forventetFail.tilMelding()
-                    .minus(Key.FORESPOERSEL_ID)
-                    .plus(Key.SELVBESTEMT_ID to innkommendeMelding.inntektsmelding.type.id.toJson())
-
-            coVerifySequence {
-                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-            }
-            verify(exactly = 0) {
-                mockSelvbestemtRepo.lagreSakId(any(), any())
-            }
-        }
-
-        test("fra repo") {
-            val innkommendeMelding = innkommendeMelding()
-            val forventetFail = innkommendeMelding.toFail()
-
-            coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns UUID.randomUUID().toString()
-            every { mockSelvbestemtRepo.lagreSakId(any(), any()) } throws RuntimeException("RIPperoni")
-
-            testRapid.sendJson(innkommendeMelding.toMap())
-
-            testRapid.inspektør.size shouldBeExactly 1
+            val dataField = Key.SAK_ID to sakId.toJson()
 
             testRapid.firstMessage().toMap() shouldContainExactly
-                forventetFail.tilMelding()
-                    .minus(Key.FORESPOERSEL_ID)
-                    .plus(Key.SELVBESTEMT_ID to innkommendeMelding.inntektsmelding.type.id.toJson())
+                mapOf(
+                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
+                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
+                    Key.DATA to mapOf(dataField).toJson(),
+                    dataField,
+                )
 
             coVerifySequence {
-                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-                mockSelvbestemtRepo.lagreSakId(any(), any())
+                mockagNotifikasjonKlient.opprettNySak(
+                    virksomhetsnummer = innkommendeMelding.inntektsmelding.avsender.orgnr.verdi,
+                    merkelapp = "Inntektsmelding sykepenger",
+                    grupperingsid =
+                        innkommendeMelding.inntektsmelding.type.id
+                            .toString(),
+                    lenke = "$mockUrl/im-dialog/kvittering/agi/${innkommendeMelding.inntektsmelding.type.id}",
+                    tittel =
+                        "Inntektsmelding for ${innkommendeMelding.inntektsmelding.sykmeldt.navn}: " +
+                            "f. ${innkommendeMelding.inntektsmelding.sykmeldt.fnr.verdi.take(6)}",
+                    statusTekst = "Mottatt - Se kvittering eller korriger inntektsmelding",
+                    initiellStatus = SaksStatus.FERDIG,
+                    harddeleteOm = any(),
+                )
+                mockSelvbestemtRepo.lagreSakId(innkommendeMelding.inntektsmelding.type.id, sakId)
             }
         }
-    }
 
-    context("ignorerer melding") {
-        withData(
-            mapOf(
-                "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
-                "melding med data" to Pair(Key.DATA, "".toJson()),
-                "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
-            ),
-        ) { uoensketKeyMedVerdi ->
-            testRapid.sendJson(
-                innkommendeMelding().toMap()
-                    .plus(uoensketKeyMedVerdi),
-            )
+        context("håndterer feil") {
 
-            testRapid.inspektør.size shouldBeExactly 0
+            test("fra klient") {
+                val innkommendeMelding = innkommendeMelding()
+                val forventetFail = innkommendeMelding.toFail()
 
-            coVerify(exactly = 0) {
-                mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
-                mockSelvbestemtRepo.lagreSakId(any(), any())
+                coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } throws
+                    RuntimeException("RIP in peace")
+
+                testRapid.sendJson(innkommendeMelding.toMap())
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    forventetFail
+                        .tilMelding()
+                        .minus(Key.FORESPOERSEL_ID)
+                        .plus(
+                            Key.SELVBESTEMT_ID to
+                                innkommendeMelding.inntektsmelding.type.id
+                                    .toJson(),
+                        )
+
+                coVerifySequence {
+                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                }
+                verify(exactly = 0) {
+                    mockSelvbestemtRepo.lagreSakId(any(), any())
+                }
+            }
+
+            test("fra repo") {
+                val innkommendeMelding = innkommendeMelding()
+                val forventetFail = innkommendeMelding.toFail()
+
+                coEvery { mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any()) } returns UUID.randomUUID().toString()
+                every { mockSelvbestemtRepo.lagreSakId(any(), any()) } throws RuntimeException("RIPperoni")
+
+                testRapid.sendJson(innkommendeMelding.toMap())
+
+                testRapid.inspektør.size shouldBeExactly 1
+
+                testRapid.firstMessage().toMap() shouldContainExactly
+                    forventetFail
+                        .tilMelding()
+                        .minus(Key.FORESPOERSEL_ID)
+                        .plus(
+                            Key.SELVBESTEMT_ID to
+                                innkommendeMelding.inntektsmelding.type.id
+                                    .toJson(),
+                        )
+
+                coVerifySequence {
+                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                    mockSelvbestemtRepo.lagreSakId(any(), any())
+                }
             }
         }
-    }
-})
+
+        context("ignorerer melding") {
+            withData(
+                mapOf(
+                    "melding med uønsket behov" to Pair(Key.BEHOV, BehovType.VIRKSOMHET.toJson()),
+                    "melding med data" to Pair(Key.DATA, "".toJson()),
+                    "melding med fail" to Pair(Key.FAIL, mockFail.toJson(Fail.serializer())),
+                ),
+            ) { uoensketKeyMedVerdi ->
+                testRapid.sendJson(
+                    innkommendeMelding()
+                        .toMap()
+                        .plus(uoensketKeyMedVerdi),
+                )
+
+                testRapid.inspektør.size shouldBeExactly 0
+
+                coVerify(exactly = 0) {
+                    mockagNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
+                    mockSelvbestemtRepo.lagreSakId(any(), any())
+                }
+            }
+        }
+    })
 
 private fun innkommendeMelding(): OpprettSelvbestemtSakMelding =
     OpprettSelvbestemtSakMelding(

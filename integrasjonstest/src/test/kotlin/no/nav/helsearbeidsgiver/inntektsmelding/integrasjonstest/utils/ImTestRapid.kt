@@ -42,4 +42,6 @@ class ImTestRapid : RapidsConnection() {
     }
 }
 
-class JsonObjectRequired(val json: String) : Exception("Message must be a JSON-object, but wasn't: $json")
+class JsonObjectRequired(
+    val json: String,
+) : Exception("Message must be a JSON-object, but wasn't: $json")

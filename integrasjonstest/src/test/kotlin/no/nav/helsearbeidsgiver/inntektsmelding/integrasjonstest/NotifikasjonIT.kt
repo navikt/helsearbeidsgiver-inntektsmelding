@@ -36,7 +36,8 @@ class NotifikasjonIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
         )
 
-        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
+        messages
+            .filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(BehovType.FULLT_NAVN)
             .firstAsMap()
             .also {
@@ -44,7 +45,8 @@ class NotifikasjonIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
+        messages
+            .filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(Key.ARBEIDSTAKER_INFORMASJON)
             .firstAsMap()
             .also {
@@ -53,14 +55,16 @@ class NotifikasjonIT : EndToEndTest() {
                     .shouldNotBeNull()
             }
 
-        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
+        messages
+            .filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(BehovType.OPPRETT_SAK)
             .firstAsMap()
             .also {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.SAK_OPPRETT_REQUESTED)
+        messages
+            .filter(EventName.SAK_OPPRETT_REQUESTED)
             .filter(Key.SAK_ID)
             .firstAsMap()
             .also {
@@ -73,7 +77,8 @@ class NotifikasjonIT : EndToEndTest() {
                 forespoerselId shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.SAK_OPPRETTET)
+        messages
+            .filter(EventName.SAK_OPPRETTET)
             .firstAsMap()
             .also {
                 it[Key.SAK_ID]?.fromJsonToString() shouldBe Mock.SAK_ID
@@ -92,7 +97,8 @@ class NotifikasjonIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
         )
 
-        messages.filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
+        messages
+            .filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
             .filter(BehovType.OPPRETT_OPPGAVE)
             .all()
             .also { it.size shouldBe 1 }
@@ -107,7 +113,8 @@ class NotifikasjonIT : EndToEndTest() {
                 orgnr shouldBe Mock.ORGNR
             }
 
-        messages.filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
+        messages
+            .filter(EventName.OPPGAVE_OPPRETT_REQUESTED)
             .filter(BehovType.PERSISTER_OPPGAVE_ID)
             .firstAsMap()
             .also {
@@ -118,7 +125,8 @@ class NotifikasjonIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.OPPGAVE_LAGRET)
+        messages
+            .filter(EventName.OPPGAVE_LAGRET)
             .firstAsMap()
             .also {
                 val oppgaveId = it[Key.OPPGAVE_ID]?.fromJsonToString()
@@ -140,7 +148,8 @@ class NotifikasjonIT : EndToEndTest() {
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
         )
 
-        messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
+        messages
+            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.HENT_TRENGER_IM)
             .firstAsMap()
             .also {
@@ -155,7 +164,8 @@ class NotifikasjonIT : EndToEndTest() {
             Key.FORESPOERSEL_SVAR to mockForespoersel().copy(fnr = Mock.FNR, orgnr = Mock.ORGNR).toJson(Forespoersel.serializer()),
         )
 
-        messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
+        messages
+            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.FULLT_NAVN)
             .firstAsMap()
             .also {
@@ -163,7 +173,8 @@ class NotifikasjonIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
+        messages
+            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(Key.ARBEIDSTAKER_INFORMASJON)
             .firstAsMap()
             .also {
@@ -172,14 +183,16 @@ class NotifikasjonIT : EndToEndTest() {
                     .shouldNotBeNull()
             }
 
-        messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
+        messages
+            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(BehovType.OPPRETT_SAK)
             .firstAsMap()
             .also {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
+        messages
+            .filter(EventName.MANUELL_OPPRETT_SAK_REQUESTED)
             .filter(Key.SAK_ID)
             .firstAsMap()
             .also {
@@ -192,7 +205,8 @@ class NotifikasjonIT : EndToEndTest() {
                 forespoerselId shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.SAK_OPPRETTET)
+        messages
+            .filter(EventName.SAK_OPPRETTET)
             .firstAsMap()
             .also {
                 it[Key.SAK_ID]?.fromJsonToString() shouldBe Mock.SAK_ID

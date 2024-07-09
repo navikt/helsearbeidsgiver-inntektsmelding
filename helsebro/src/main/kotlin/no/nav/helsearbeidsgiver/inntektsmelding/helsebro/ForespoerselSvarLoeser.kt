@@ -31,22 +31,25 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
+class ForespoerselSvarLoeser(
+    rapid: RapidsConnection,
+) : River.PacketListener {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     init {
-        River(rapid).apply {
-            validate { msg ->
-                msg.demandValues(
-                    Pri.Key.BEHOV to ForespoerselSvar.behovType.name,
-                )
-                msg.demand(
-                    Pri.Key.LØSNING to { it.fromJson(ForespoerselSvar.serializer()) },
-                )
-                msg.interestedIn(Pri.Key.FORESPOERSEL_ID.str)
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate { msg ->
+                    msg.demandValues(
+                        Pri.Key.BEHOV to ForespoerselSvar.behovType.name,
+                    )
+                    msg.demand(
+                        Pri.Key.LØSNING to { it.fromJson(ForespoerselSvar.serializer()) },
+                    )
+                    msg.interestedIn(Pri.Key.FORESPOERSEL_ID.str)
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -65,19 +68,16 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
             val melding =
                 runCatching {
                     Melding.fra(json)
-                }
-                    .onFailure {
-                        sikkerLogger.error("Klarte ikke lese påkrevde felt fra innkommende melding. Publiserer ingen feil.", it)
-                    }
-                    .getOrNull()
+                }.onFailure {
+                    sikkerLogger.error("Klarte ikke lese påkrevde felt fra innkommende melding. Publiserer ingen feil.", it)
+                }.getOrNull()
 
             melding?.withLogFields {
                 runCatching {
                     sendSvar(it, context)
+                }.onFailure { feil ->
+                    context.publishFeil("Ukjent feil.", feil, it)
                 }
-                    .onFailure { feil ->
-                        context.publishFeil("Ukjent feil.", feil, it)
-                    }
             }
         }
     }
@@ -116,11 +116,10 @@ class ForespoerselSvarLoeser(rapid: RapidsConnection) : River.PacketListener {
             Key.UUID to melding.transaksjonId.toJson(),
             Key.DATA to dataFields.toMap().toJson(),
             *dataFields,
-        )
-            .also {
-                logger.info("Publiserte data for ${BehovType.HENT_TRENGER_IM}.")
-                sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
-            }
+        ).also {
+            logger.info("Publiserte data for ${BehovType.HENT_TRENGER_IM}.")
+            sikkerLogger.info("Publiserte data:\n${it.toPretty()}")
+        }
     }
 
     private fun MessageContext.publishFeil(

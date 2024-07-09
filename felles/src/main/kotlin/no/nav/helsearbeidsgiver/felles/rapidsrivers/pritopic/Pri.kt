@@ -11,7 +11,9 @@ object Pri {
     const val TOPIC = "helsearbeidsgiver.pri"
 
     @Serializable(KeySerializer::class)
-    enum class Key(override val str: String) : IKey {
+    enum class Key(
+        override val str: String,
+    ) : IKey {
         // Predefinerte fra rapids-and-rivers-biblioteket
         BEHOV("@behov"),
         LØSNING("@løsning"),

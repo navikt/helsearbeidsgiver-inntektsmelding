@@ -49,7 +49,11 @@ class FulltNavnLoeser(
         }
 
     override fun onBehov(behov: Behov) {
-        val json = behov.jsonMessage.toJson().parseJson().toMap()
+        val json =
+            behov.jsonMessage
+                .toJson()
+                .parseJson()
+                .toMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val arbeidstakerId = Key.IDENTITETSNUMMER.lesOrNull(String.serializer(), json).orEmpty()
@@ -86,10 +90,10 @@ class FulltNavnLoeser(
     }
 
     private fun hentPersoner(identitetsnummere: List<String>): List<PersonDato> =
-        Metrics.pdlRequest.recordTime(pdlClient::personBolk) {
-            pdlClient.personBolk(identitetsnummere)
-        }
-            .orEmpty()
+        Metrics.pdlRequest
+            .recordTime(pdlClient::personBolk) {
+                pdlClient.personBolk(identitetsnummere)
+            }.orEmpty()
             .map {
                 PersonDato(
                     navn = it.navn.fulltNavn(),

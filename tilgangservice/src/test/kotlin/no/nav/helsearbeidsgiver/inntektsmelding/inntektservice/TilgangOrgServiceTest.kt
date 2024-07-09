@@ -65,8 +65,7 @@ class TilgangOrgServiceTest {
         val expectedResultJson =
             TilgangResultat(
                 feilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE,
-            )
-                .toJson(TilgangResultat.serializer())
+            ).toJson(TilgangResultat.serializer())
 
         verify {
             mockRedis.store.set(RedisKey.of(transaksjonId), expectedResultJson)

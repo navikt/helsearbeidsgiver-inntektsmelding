@@ -26,23 +26,23 @@ class LagreStartDataRedisRiver(
     private val sikkerLogger = sikkerLogger()
 
     init {
-        River(rapid).apply {
-            validate {
-                it.demandValues(
-                    Key.EVENT_NAME to eventName.name,
-                )
-                it.rejectKeys(
-                    Key.BEHOV,
-                    Key.DATA,
-                    Key.FAIL,
-                )
-                it.interestedIn(
-                    Key.UUID,
-                    *dataKeys.toTypedArray(),
-                )
-            }
-        }
-            .register(this)
+        River(rapid)
+            .apply {
+                validate {
+                    it.demandValues(
+                        Key.EVENT_NAME to eventName.name,
+                    )
+                    it.rejectKeys(
+                        Key.BEHOV,
+                        Key.DATA,
+                        Key.FAIL,
+                    )
+                    it.interestedIn(
+                        Key.UUID,
+                        *dataKeys.toTypedArray(),
+                    )
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -67,10 +67,10 @@ class LagreStartDataRedisRiver(
         // TODO fjern når client-ID er død
         packet[Key.UUID.str] = transaksjonId.toString()
 
-        melding.plus(
-            Key.UUID to transaksjonId.toJson(),
-        )
-            .filterKeys(dataKeys::contains)
+        melding
+            .plus(
+                Key.UUID to transaksjonId.toJson(),
+            ).filterKeys(dataKeys::contains)
             .onEach { (key, data) ->
                 redisStore.set(RedisKey.of(transaksjonId, key), data.toString())
             }

@@ -19,8 +19,7 @@ fun main() {
         .createInntektSelvbestemtService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createInntektSelvbestemtService(redisConnection: RedisConnection): RapidsConnection =

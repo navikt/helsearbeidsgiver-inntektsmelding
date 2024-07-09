@@ -54,13 +54,13 @@ class TilgangProducer(
             Log.event(eventName),
             Log.transaksjonId(transaksjonId),
         ) {
-            rapid.publish(
-                Key.EVENT_NAME to eventName.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                *messageFields,
-            )
-                .also { json ->
+            rapid
+                .publish(
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.DATA to "".toJson(),
+                    *messageFields,
+                ).also { json ->
                     "Publiserte request om tilgang.".let {
                         logger.info(it)
                         sikkerLogger.info("$it\n${json.toPretty()}")

@@ -28,24 +28,24 @@ class ForespoerselLagretRiver(
     private val sikkerLogger = sikkerLogger()
 
     init {
-        River(rapid).apply {
-            validate {
-                it.demandValues(
-                    Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.name,
-                )
-                it.rejectKeys(
-                    Key.BEHOV,
-                    Key.DATA,
-                    Key.FAIL,
-                )
-                it.requireKeys(
-                    Key.FORESPOERSEL_ID,
-                    Key.ORGNRUNDERENHET,
-                    Key.IDENTITETSNUMMER,
-                )
-            }
-        }
-            .register(this)
+        River(rapid)
+            .apply {
+                validate {
+                    it.demandValues(
+                        Key.EVENT_NAME to EventName.FORESPØRSEL_LAGRET.name,
+                    )
+                    it.rejectKeys(
+                        Key.BEHOV,
+                        Key.DATA,
+                        Key.FAIL,
+                    )
+                    it.requireKeys(
+                        Key.FORESPOERSEL_ID,
+                        Key.ORGNRUNDERENHET,
+                        Key.IDENTITETSNUMMER,
+                    )
+                }
+            }.register(this)
     }
 
     override fun onPacket(

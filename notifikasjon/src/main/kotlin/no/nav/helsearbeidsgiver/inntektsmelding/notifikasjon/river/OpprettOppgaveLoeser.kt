@@ -47,7 +47,8 @@ class OpprettOppgaveLoeser(
         val json = utloesendeMelding.toMap()
 
         val transaksjonId =
-            Key.UUID.lesOrNull(UuidSerializer, json)
+            Key.UUID
+                .lesOrNull(UuidSerializer, json)
                 .orDefault {
                     UUID.randomUUID().also {
                         sikkerLogger.error(
@@ -86,15 +87,15 @@ class OpprettOppgaveLoeser(
                 )
             publishFail(fail)
         } else {
-            rapidsConnection.publish(
-                Key.EVENT_NAME to behov.event.toJson(),
-                Key.BEHOV to BehovType.PERSISTER_OPPGAVE_ID.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to orgnr.toJson(),
-                Key.OPPGAVE_ID to oppgaveId.toJson(),
-            )
-                .also {
+            rapidsConnection
+                .publish(
+                    Key.EVENT_NAME to behov.event.toJson(),
+                    Key.BEHOV to BehovType.PERSISTER_OPPGAVE_ID.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                    Key.OPPGAVE_ID to oppgaveId.toJson(),
+                ).also {
                     logger.info("Publiserte behov for '${behov.event}' med transaksjonId '$transaksjonId'.")
                     sikkerLogger.info("Publiserte behov:\n${it.toPretty()}")
                 }

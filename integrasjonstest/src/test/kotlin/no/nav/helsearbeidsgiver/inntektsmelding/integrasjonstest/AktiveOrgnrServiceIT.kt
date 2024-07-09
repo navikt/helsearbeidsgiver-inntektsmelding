@@ -197,7 +197,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         )
 
         val response =
-            redisStore.get(RedisKey.of(transaksjonId))
+            redisStore
+                .get(RedisKey.of(transaksjonId))
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 
@@ -205,7 +206,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         response.failure.shouldNotBeNull().fromJson(String.serializer()) shouldBe expectedFail.feilmelding
 
         val actualFail =
-            messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
+            messages
+                .filter(EventName.AKTIVE_ORGNR_REQUESTED)
                 .filterFeil()
                 .firstAsMap()
                 .get(Key.FAIL)
@@ -236,8 +238,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
                         avsenderNavn = "Max Mekker",
                         underenheter = emptyList(),
                     ).toJson(AktiveArbeidsgivere.serializer()),
-            )
-                .toJson(ResultJson.serializer())
+            ).toJson(ResultJson.serializer())
 
         val fnr = Fnr.genererGyldig()
         val fnrAg = Fnr.genererGyldig()

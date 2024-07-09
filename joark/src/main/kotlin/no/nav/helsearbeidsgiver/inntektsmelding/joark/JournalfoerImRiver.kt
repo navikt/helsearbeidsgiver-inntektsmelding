@@ -83,13 +83,13 @@ class JournalfoerImRiver(
         val inntektsmelding =
             runCatching {
                 // Prøv ny IM-modell
-                inntektsmeldingJson.fromJson(InntektsmeldingV1.serializer())
+                inntektsmeldingJson
+                    .fromJson(InntektsmeldingV1.serializer())
                     .convert()
+            }.getOrElse {
+                // Fall tilbake til gammel IM-modell
+                inntektsmeldingJson.fromJson(Inntektsmelding.serializer())
             }
-                .getOrElse {
-                    // Fall tilbake til gammel IM-modell
-                    inntektsmeldingJson.fromJson(Inntektsmelding.serializer())
-                }
 
         val journalpostId = opprettOgFerdigstillJournalpost(transaksjonId, inntektsmelding)
 
@@ -101,8 +101,7 @@ class JournalfoerImRiver(
             Key.JOURNALPOST_ID to journalpostId.toJson(),
             Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
             Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
-        )
-            .mapValuesNotNull { it }
+        ).mapValuesNotNull { it }
             .also {
                 MdcUtils.withLogFields(
                     Log.behov(BehovType.LAGRE_JOURNALPOST_ID),
@@ -124,16 +123,17 @@ class JournalfoerImRiver(
                 transaksjonId = transaksjonId,
                 forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
                 utloesendeMelding =
-                    json.plus(
-                        Key.BEHOV to BehovType.JOURNALFOER.toJson(),
-                    )
-                        .toJson(),
+                    json
+                        .plus(
+                            Key.BEHOV to BehovType.JOURNALFOER.toJson(),
+                        ).toJson(),
             )
 
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail.tilMelding()
+        return fail
+            .tilMelding()
             .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }

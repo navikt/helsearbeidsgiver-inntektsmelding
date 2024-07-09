@@ -24,16 +24,17 @@ class PriProducer(
     private val topic = Pri.TOPIC
 
     fun send(vararg message: Pair<Pri.Key, JsonElement>): Result<JsonElement> =
-        message.toMap()
+        message
+            .toMap()
             .toJson()
             .let(::send)
 
     fun send(message: JsonElement): Result<JsonElement> =
-        message.toRecord()
+        message
+            .toRecord()
             .runCatching {
                 producer.send(this).get()
-            }
-            .map { message }
+            }.map { message }
 
     private fun JsonElement.toRecord(): ProducerRecord<String, JsonElement> = ProducerRecord(topic, this)
 
@@ -93,7 +94,8 @@ private class Serializer : KafkaSerializer<JsonElement> {
         topic: String,
         data: JsonElement,
     ): ByteArray =
-        data.toJson(JsonElement.serializer())
+        data
+            .toJson(JsonElement.serializer())
             .toString()
             .toByteArray()
 }

@@ -59,7 +59,8 @@ private fun dbConfig(): HikariConfig {
 
 private fun Database.configureFlyway(): Database =
     also {
-        Flyway.configure()
+        Flyway
+            .configure()
             .dataSource(it.dataSource)
             .failOnMissingLocations(true)
             .cleanDisabled(false)

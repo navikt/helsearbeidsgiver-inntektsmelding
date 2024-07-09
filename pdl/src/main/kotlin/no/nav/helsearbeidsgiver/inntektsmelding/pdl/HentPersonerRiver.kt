@@ -68,8 +68,7 @@ class HentPersonerRiver(
                 Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
                 Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
                 Key.PERSONER to personer.toJson(personMapSerializer),
-            )
-                .mapValuesNotNull { it }
+            ).mapValuesNotNull { it }
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
@@ -95,7 +94,8 @@ class HentPersonerRiver(
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail.tilMelding()
+        return fail
+            .tilMelding()
             .plus(Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID])
             .mapValuesNotNull { it }
     }
@@ -109,12 +109,12 @@ class HentPersonerRiver(
         )
 
     private fun hentPersoner(fnrListe: List<Fnr>): List<Person> =
-        Metrics.pdlRequest.recordTime(pdlClient::personBolk) {
-            pdlClient.personBolk(
-                fnrListe.map(Fnr::verdi),
-            )
-        }
-            .orEmpty()
+        Metrics.pdlRequest
+            .recordTime(pdlClient::personBolk) {
+                pdlClient.personBolk(
+                    fnrListe.map(Fnr::verdi),
+                )
+            }.orEmpty()
             .mapNotNull { person ->
                 person.ident?.let { fnr ->
                     Person(

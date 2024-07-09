@@ -39,7 +39,8 @@ class InntektLoeser(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
     private val requestLatency =
-        Summary.build()
+        Summary
+            .build()
             .name("simba_inntekt_latency_seconds")
             .help("hentInntekt latency in seconds")
             .register()
@@ -70,16 +71,19 @@ class InntektLoeser(
         ) {
             runCatching {
                 hentInntekt(behov)
+            }.onFailure { feil ->
+                sikkerLogger.error("Ukjent feil.", feil)
+                behov.createFail("Ukjent feil.").also { this.publishFail(it) }
             }
-                .onFailure { feil ->
-                    sikkerLogger.error("Ukjent feil.", feil)
-                    behov.createFail("Ukjent feil.").also { this.publishFail(it) }
-                }
         }
     }
 
     private fun hentInntekt(behov: Behov) {
-        val json = behov.jsonMessage.toJson().parseJson().toMap()
+        val json =
+            behov.jsonMessage
+                .toJson()
+                .parseJson()
+                .toMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val fnr = Key.FNR.les(Fnr.serializer(), json)
@@ -109,8 +113,7 @@ class InntektLoeser(
                     forespoerselId = behov.forespoerselId?.let(UUID::fromString),
                     Key.INNTEKT to inntekt.toJson(Inntekt.serializer()),
                 )
-            }
-            .onFailure {
+            }.onFailure {
                 sikkerLogger.error("Klarte ikke hente inntekt.", it)
                 publishFail(behov.createFail("Klarte ikke hente inntekt."))
             }

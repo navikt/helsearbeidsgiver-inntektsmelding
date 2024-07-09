@@ -32,21 +32,21 @@ class MarkerForespoerselBesvartRiver(
     private val sikkerLogger = sikkerLogger()
 
     init {
-        River(rapid).validate { msg ->
-            msg.demandValues(
-                Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name,
-            )
-            msg.require(
-                Key.UUID to { it.fromJson(UuidSerializer) },
-                Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) },
-            )
-            msg.rejectKeys(
-                Key.BEHOV,
-                Key.DATA,
-                Key.FAIL,
-            )
-        }
-            .register(this)
+        River(rapid)
+            .validate { msg ->
+                msg.demandValues(
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.name,
+                )
+                msg.require(
+                    Key.UUID to { it.fromJson(UuidSerializer) },
+                    Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) },
+                )
+                msg.rejectKeys(
+                    Key.BEHOV,
+                    Key.DATA,
+                    Key.FAIL,
+                )
+            }.register(this)
     }
 
     override fun onPacket(
@@ -81,15 +81,14 @@ class MarkerForespoerselBesvartRiver(
     }
 
     private fun sendMeldingOmBesvarelse(forespoerselId: UUID) {
-        priProducer.send(
-            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
-            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        )
-            .onSuccess {
+        priProducer
+            .send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            ).onSuccess {
                 logger.info("Publiserte melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART_SIMBA}.")
                 sikkerLogger.info("Publiserte melding på pri-topic:\n${it.toPretty()}")
-            }
-            .onFailure {
+            }.onFailure {
                 logger.error("Klarte ikke publiserte melding på pri-topic om ${Pri.NotisType.FORESPOERSEL_BESVART_SIMBA}.")
             }
     }

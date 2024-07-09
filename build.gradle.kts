@@ -125,7 +125,7 @@ subprojects {
 
 dependencies {
     subprojects
-        .filter { !it.erIntegrasjonstestModul() }
+        .filterNot { it.erIntegrasjonstestModul() }
         .forEach {
             jacocoAggregation(project(":${it.name}"))
         }

@@ -67,7 +67,7 @@ fun <K : IKey, T : Any> K.les(
     melding: Map<K, JsonElement>,
 ): T =
     lesOrNull(serializer, melding)
-        ?: throw IllegalArgumentException("Felt '$this' mangler i JSON-map.")
+        ?: throw MeldingException("Felt '$this' mangler i JSON-map.")
 
 fun <K : IKey, T : Any> K.krev(
     krav: T,
@@ -76,8 +76,15 @@ fun <K : IKey, T : Any> K.krev(
 ): T =
     les(serializer, melding).also {
         if (it != krav) {
-            throw IllegalArgumentException("Nøkkel '$this' har verdi '$it', som ikke matcher med påkrevd verdi '$krav'.")
+            throw MeldingException("Nøkkel '$this' har verdi '$it', som ikke matcher med påkrevd verdi '$krav'.")
         }
     }
 
 fun Map<Key, JsonElement>.toPretty(): String = toJson().toPretty()
+
+// Exception uten stacktrace, som er billigere å kaste
+internal class MeldingException(
+    message: String,
+) : IllegalArgumentException(message) {
+    override fun fillInStackTrace(): Throwable? = null
+}

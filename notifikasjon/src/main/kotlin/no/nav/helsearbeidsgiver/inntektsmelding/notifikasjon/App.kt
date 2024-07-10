@@ -40,14 +40,12 @@ fun main() {
             selvbestemtRepo,
             redisStore,
             buildClient(),
-        )
-        .registerShutdownLifecycle {
+        ).registerShutdownLifecycle {
             redisStore.shutdown()
 
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
             database.dataSource.close()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createNotifikasjonRivers(

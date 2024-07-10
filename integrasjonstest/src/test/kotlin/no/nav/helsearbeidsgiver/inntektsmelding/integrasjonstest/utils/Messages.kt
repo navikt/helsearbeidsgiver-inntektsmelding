@@ -15,14 +15,16 @@ value class Messages(
     private val value: MutableList<JsonElement> = mutableListOf(),
 ) {
     fun firstAsMap(): Map<Key, JsonElement> =
-        value.firstOrNull()
+        value
+            .firstOrNull()
             .shouldNotBeNull()
             .toMap()
 
     fun all(): List<JsonElement> = value
 
     fun add(json: String) {
-        json.parseJson()
+        json
+            .parseJson()
             .let(value::add)
     }
 
@@ -32,7 +34,8 @@ value class Messages(
 
     fun filter(eventName: EventName): Messages =
         filter { msg ->
-            msg.toMap()[Key.EVENT_NAME]
+            msg
+                .toMap()[Key.EVENT_NAME]
                 ?.runCatching { fromJson(EventName.serializer()) }
                 ?.map { it == eventName }
                 ?.getOrElse { false }
@@ -41,7 +44,8 @@ value class Messages(
 
     fun filter(behovType: BehovType): Messages =
         filter { msg ->
-            msg.toMap()[Key.BEHOV]
+            msg
+                .toMap()[Key.BEHOV]
                 ?.runCatching { fromJson(BehovType.serializer()) }
                 ?.map { it == behovType }
                 ?.getOrElse { false }
@@ -66,7 +70,8 @@ value class Messages(
         }
 
     private fun filter(predicate: (JsonElement) -> Boolean): Messages =
-        value.filter(predicate)
+        value
+            .filter(predicate)
             .toMutableList()
             .let(::Messages)
 }

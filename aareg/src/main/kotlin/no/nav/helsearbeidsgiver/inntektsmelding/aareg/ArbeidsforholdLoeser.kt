@@ -37,7 +37,8 @@ class ArbeidsforholdLoeser(
     private val sikkerLogger = sikkerLogger()
 
     private val requestLatency =
-        Summary.build()
+        Summary
+            .build()
             .name("simba_aareg_hent_arbeidsforhold_latency_seconds")
             .help("aareg hent arbeidsforhold latency in seconds")
             .register()
@@ -54,7 +55,11 @@ class ArbeidsforholdLoeser(
         }
 
     override fun onBehov(behov: Behov) {
-        val json = behov.jsonMessage.toJson().parseJson().toMap()
+        val json =
+            behov.jsonMessage
+                .toJson()
+                .parseJson()
+                .toMap()
 
         measureTimeMillis {
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
@@ -96,11 +101,9 @@ class ArbeidsforholdLoeser(
                 }
                 arbeidsforhold
             }
-        }
-            .onFailure {
-                sikkerLogger.error("Det oppstod en feil ved henting av arbeidsforhold for $fnr", it)
-            }
-            .getOrNull()
+        }.onFailure {
+            sikkerLogger.error("Det oppstod en feil ved henting av arbeidsforhold for $fnr", it)
+        }.getOrNull()
             ?.map(KlientArbeidsforhold::tilArbeidsforhold)
             ?.also {
                 sikkerLogger.info("Fant arbeidsforhold $it for $fnr")

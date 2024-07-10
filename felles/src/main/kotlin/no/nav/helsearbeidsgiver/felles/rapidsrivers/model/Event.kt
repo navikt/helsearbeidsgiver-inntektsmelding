@@ -26,13 +26,13 @@ fun MessageContext.publishEvent(
         mapOf(
             Key.UUID to transaksjonId,
             Key.FORESPOERSEL_ID to forespoerselId,
-        )
-            .mapValuesNotNull { it?.toJson() }
+        ).mapValuesNotNull { it?.toJson() }
             .toList()
             .toTypedArray()
 
     val nonNullMessageFields =
-        messageFields.toMap()
+        messageFields
+            .toMap()
             .mapValuesNotNull { it }
             .toList()
             .toTypedArray()
@@ -41,9 +41,8 @@ fun MessageContext.publishEvent(
         Key.EVENT_NAME to eventName.toJson(),
         *optionalIdFields,
         *nonNullMessageFields,
-    )
-        .also {
-            logger.info("Publiserte event '$eventName' med transaksjonId '$transaksjonId'.")
-            sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
-        }
+    ).also {
+        logger.info("Publiserte event '$eventName' med transaksjonId '$transaksjonId'.")
+        sikkerLogger.info("Publiserte event:\n${it.toPretty()}")
+    }
 }

@@ -65,13 +65,12 @@ fun startServer(env: Map<String, String> = System.getenv()) {
         factory = Netty,
         port = 8080,
         module = { apiModule(rapid, redisPoller) },
-    )
-        .start(wait = true)
+    ).start(wait = true)
 
-    rapid.registerShutdownLifecycle {
-        redisPoller.close()
-    }
-        .start()
+    rapid
+        .registerShutdownLifecycle {
+            redisPoller.close()
+        }.start()
 }
 
 fun Application.apiModule(

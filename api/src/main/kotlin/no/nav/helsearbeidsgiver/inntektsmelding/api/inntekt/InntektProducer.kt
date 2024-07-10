@@ -30,13 +30,13 @@ class InntektProducer(
             Log.clientId(clientId),
             Log.forespoerselId(request.forespoerselId),
         ) {
-            rapid.publish(
-                Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
-                Key.CLIENT_ID to clientId.toJson(),
-                Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
-                Key.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson(),
-            )
-                .also { json ->
+            rapid
+                .publish(
+                    Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
+                    Key.CLIENT_ID to clientId.toJson(),
+                    Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
+                    Key.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson(),
+                ).also { json ->
                     "Publiserte request om inntekt.".let {
                         logger.info(it)
                         sikkerLogger.info("$it\n${json.toPretty()}")

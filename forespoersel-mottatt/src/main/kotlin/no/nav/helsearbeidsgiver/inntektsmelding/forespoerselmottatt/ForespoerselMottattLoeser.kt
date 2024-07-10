@@ -36,24 +36,26 @@ class ForespoerselMottattLoeser(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
     private val forespoerselMottattCounter =
-        Counter.build()
+        Counter
+            .build()
             .name("simba_forespoersel_mottatt_total")
             .help("Antall foresporsler mottatt fra Helsebro")
             .register()
 
     init {
-        River(rapid).apply {
-            validate {
-                it.demandValues(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.name,
-                )
-                it.requireKeys(
-                    Pri.Key.ORGNR,
-                    Pri.Key.FNR,
-                    Pri.Key.FORESPOERSEL_ID,
-                )
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate {
+                    it.demandValues(
+                        Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.name,
+                    )
+                    it.requireKeys(
+                        Pri.Key.ORGNR,
+                        Pri.Key.FNR,
+                        Pri.Key.FORESPOERSEL_ID,
+                    )
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -75,15 +77,14 @@ class ForespoerselMottattLoeser(
         ) {
             runCatching {
                 json.opprettEvent(transaksjonId, context)
-            }
-                .onFailure { e ->
-                    "Ukjent feil.".also {
-                        logger.error("$it Se sikker logg for mer info.")
-                        sikkerLogger.error(it, e)
-                    }
-
-                    json.republiser()
+            }.onFailure { e ->
+                "Ukjent feil.".also {
+                    logger.error("$it Se sikker logg for mer info.")
+                    sikkerLogger.error(it, e)
                 }
+
+                json.republiser()
+            }
         }
     }
 
@@ -105,15 +106,15 @@ class ForespoerselMottattLoeser(
             Log.behov(BehovType.LAGRE_FORESPOERSEL),
             Log.forespoerselId(forespoerselId),
         ) {
-            context.publish(
-                Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),
-                Key.BEHOV to BehovType.LAGRE_FORESPOERSEL.toJson(BehovType.serializer()),
-                Key.ORGNRUNDERENHET to orgnr.toJson(),
-                Key.IDENTITETSNUMMER to fnr.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-            )
-                .also {
+            context
+                .publish(
+                    Key.EVENT_NAME to EventName.FORESPØRSEL_MOTTATT.toJson(EventName.serializer()),
+                    Key.BEHOV to BehovType.LAGRE_FORESPOERSEL.toJson(BehovType.serializer()),
+                    Key.ORGNRUNDERENHET to orgnr.toJson(),
+                    Key.IDENTITETSNUMMER to fnr.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                ).also {
                     logger.info("Publiserte melding. Se sikkerlogg for mer info.")
                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}")
                     forespoerselMottattCounter.inc()

@@ -23,16 +23,19 @@ class PersisterSakLoeser(
 ) : Loeser(rapidsConnection) {
     private val sikkerLogger = sikkerLogger()
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.PERSISTER_SAK_ID.name)
             it.requireKey(Key.FORESPOERSEL_ID.str)
             it.requireKey(Key.SAK_ID.str)
         }
-    }
 
     override fun onBehov(behov: Behov) {
-        val json = behov.jsonMessage.toJson().parseJson().toMap()
+        val json =
+            behov.jsonMessage
+                .toJson()
+                .parseJson()
+                .toMap()
 
         val transaksjonId = Key.UUID.les(UuidSerializer, json)
         val sakId = Key.SAK_ID.les(String.serializer(), json)

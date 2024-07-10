@@ -23,71 +23,72 @@ import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class AltinnRiverTest : FunSpec({
-    val testRapid = TestRapid()
+class AltinnRiverTest :
+    FunSpec({
+        val testRapid = TestRapid()
 
-    val mockAltinnClient = mockk<AltinnClient>(relaxed = true)
+        val mockAltinnClient = mockk<AltinnClient>(relaxed = true)
 
-    AltinnRiver(mockAltinnClient).connect(testRapid)
+        AltinnRiver(mockAltinnClient).connect(testRapid)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-    }
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
+        }
 
-    test("henter organisasjonsrettigheter med id fra behov") {
-        coEvery { mockAltinnClient.hentRettighetOrganisasjoner(any()) } returns mockAltinnOrganisasjonSet()
+        test("henter organisasjonsrettigheter med id fra behov") {
+            coEvery { mockAltinnClient.hentRettighetOrganisasjoner(any()) } returns mockAltinnOrganisasjonSet()
 
-        val mockId = "long-john-silver"
-        val mockUuid = randomUuid()
+            val mockId = "long-john-silver"
+            val mockUuid = randomUuid()
 
-        val dataField = Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().mapNotNull { it.orgnr }.toSet().toJson(String.serializer().set())
+            val dataField = Key.ORG_RETTIGHETER to mockAltinnOrganisasjonSet().mapNotNull { it.orgnr }.toSet().toJson(String.serializer().set())
 
-        val expectedPublished =
-            mapOf(
+            val expectedPublished =
+                mapOf(
+                    Key.UUID to mockUuid.toJson(),
+                    Key.DATA to mapOf(dataField).toJson(),
+                    dataField,
+                )
+
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
                 Key.UUID to mockUuid.toJson(),
-                Key.DATA to mapOf(dataField).toJson(),
-                dataField,
+                Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
+                Key.IDENTITETSNUMMER to mockId.toJson(),
             )
 
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.UUID to mockUuid.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
-            Key.IDENTITETSNUMMER to mockId.toJson(),
-        )
+            val actualPublished = testRapid.firstMessage().toMap()
 
-        val actualPublished = testRapid.firstMessage().toMap()
+            coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(mockId) }
+            actualPublished shouldContainAll expectedPublished
+        }
 
-        coVerifySequence { mockAltinnClient.hentRettighetOrganisasjoner(mockId) }
-        actualPublished shouldContainAll expectedPublished
-    }
+        test("melding med feil behov aktiverer ikke river") {
+            val mockId = "small-jack-gold"
 
-    test("melding med feil behov aktiverer ikke river") {
-        val mockId = "small-jack-gold"
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+                Key.IDENTITETSNUMMER to mockId.toJson(),
+            )
 
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-            Key.IDENTITETSNUMMER to mockId.toJson(),
-        )
+            testRapid.inspektør.size shouldBeExactly 0
 
-        testRapid.inspektør.size shouldBeExactly 0
+            coVerify(exactly = 0) { mockAltinnClient.hentRettighetOrganisasjoner(any()) }
+        }
 
-        coVerify(exactly = 0) { mockAltinnClient.hentRettighetOrganisasjoner(any()) }
-    }
+        test("ufullstendig melding aktiverer ikke river") {
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
+                Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
+            )
 
-    test("ufullstendig melding aktiverer ikke river") {
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
-        )
+            testRapid.inspektør.size shouldBeExactly 0
 
-        testRapid.inspektør.size shouldBeExactly 0
-
-        coVerify(exactly = 0) { mockAltinnClient.hentRettighetOrganisasjoner(any()) }
-    }
-})
+            coVerify(exactly = 0) { mockAltinnClient.hentRettighetOrganisasjoner(any()) }
+        }
+    })
 
 private fun mockAltinnOrganisasjonSet(): Set<AltinnOrganisasjon> =
     setOf(

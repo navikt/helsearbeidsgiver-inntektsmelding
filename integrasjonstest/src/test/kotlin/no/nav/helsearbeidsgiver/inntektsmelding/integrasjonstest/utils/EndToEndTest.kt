@@ -109,24 +109,24 @@ abstract class EndToEndTest : ContainerTest() {
 
     private val inntektsmeldingDatabase by lazy {
         println("Database jdbcUrl for im-db: ${postgresContainerOne.jdbcUrl}")
-        postgresContainerOne.toHikariConfig()
+        postgresContainerOne
+            .toHikariConfig()
             .let(::Database)
             .also {
                 val migrationLocation = Path("../db/src/main/resources/db/migration").absolutePathString()
                 it.migrate(migrationLocation)
-            }
-            .createTruncateFunction()
+            }.createTruncateFunction()
     }
 
     private val notifikasjonDatabase by lazy {
         println("Database jdbcUrl for im-notifikasjon: ${postgresContainerTwo.jdbcUrl}")
-        postgresContainerTwo.toHikariConfig()
+        postgresContainerTwo
+            .toHikariConfig()
             .let(::Database)
             .also {
                 val migrationLocation = Path("../notifikasjon/src/main/resources/db/migration").absolutePathString()
                 it.migrate(migrationLocation)
-            }
-            .createTruncateFunction()
+            }.createTruncateFunction()
     }
 
     // Vent på rediscontainer
@@ -240,6 +240,7 @@ abstract class EndToEndTest : ContainerTest() {
         // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
         redisStore.shutdown()
+        redisConnection.close()
         inntektsmeldingDatabase.dataSource.close()
         notifikasjonDatabase.dataSource.close()
         println("Stopped.")
@@ -252,14 +253,14 @@ abstract class EndToEndTest : ContainerTest() {
 
     fun publish(vararg messageFields: Pair<Pri.Key, JsonElement>): JsonElement {
         println("Publiserer pri-melding med felt: ${messageFields.toMap()}")
-        return messageFields.toMap()
+        return messageFields
+            .toMap()
             .mapKeys { (key, _) -> key.toString() }
             .toJson()
             .toString()
             .let {
                 JsonMessage(it, MessageProblems(it), null)
-            }
-            .toJson()
+            }.toJson()
             .also(imTestRapid::publish)
             .parseJson()
     }
@@ -289,8 +290,7 @@ abstract class EndToEndTest : ContainerTest() {
                                 Key.EVENT_NAME to eventName.toJson(),
                                 Key.UUID to transaksjonId.toJson(),
                             ).toJson(),
-                    )
-                        .toJson(ForespoerselSvar.serializer()),
+                    ).toJson(ForespoerselSvar.serializer()),
             )
 
             Result.success(JsonObject(emptyMap()))

@@ -26,13 +26,12 @@ class LagreEksternInntektsmeldingLoeser(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.name)
             it.requireKey(Key.UUID.str)
             it.interestedIn(Key.EKSTERN_INNTEKTSMELDING)
         }
-    }
 
     override fun onBehov(behov: Behov) {
         val transaksjonId = behov[Key.UUID].asText().let(UUID::fromString)

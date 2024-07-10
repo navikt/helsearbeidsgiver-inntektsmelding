@@ -12,55 +12,59 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class MessagesTest : FunSpec({
+class MessagesTest :
+    FunSpec({
 
-    test("finner korrekt melding for event") {
-        val expectedEventName = EventName.TRENGER_REQUESTED
+        test("finner korrekt melding for event") {
+            val expectedEventName = EventName.TRENGER_REQUESTED
 
-        val funnetMelding = Mock.meldinger.filter(expectedEventName).firstAsMap()
+            val funnetMelding = Mock.meldinger.filter(expectedEventName).firstAsMap()
 
-        val actualEventName = funnetMelding[Key.EVENT_NAME]?.fromJson(EventName.serializer())
+            val actualEventName = funnetMelding[Key.EVENT_NAME]?.fromJson(EventName.serializer())
 
-        actualEventName shouldBe expectedEventName
-    }
-
-    test("finner ikke manglende melding for event") {
-        Mock.meldinger.filter(EventName.FORESPØRSEL_MOTTATT)
-            .all()
-            .shouldBeEmpty()
-    }
-
-    context("finner korrekt melding for behov") {
-        val expectedBehovType = BehovType.VIRKSOMHET
-
-        val funnetMelding = Mock.meldinger.filter(expectedBehovType).firstAsMap()
-
-        val actualBehovType = funnetMelding[Key.BEHOV]?.fromJson(BehovType.serializer())
-
-        actualBehovType shouldBe expectedBehovType
-    }
-
-    test("finner ikke manglende melding for behov") {
-        Mock.meldinger.filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
-            .all()
-            .shouldBeEmpty()
-    }
-
-    test("finner korrekt melding for key") {
-        val funnetMelding = Mock.meldinger.filter(Key.VIRKSOMHET).firstAsMap()
-
-        funnetMelding.also {
-            it shouldContainKey Key.DATA
-            it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
+            actualEventName shouldBe expectedEventName
         }
-    }
 
-    test("finner ikke manglende melding for key") {
-        Mock.meldinger.filter(Key.ARBEIDSFORHOLD)
-            .all()
-            .shouldBeEmpty()
-    }
-})
+        test("finner ikke manglende melding for event") {
+            Mock.meldinger
+                .filter(EventName.FORESPØRSEL_MOTTATT)
+                .all()
+                .shouldBeEmpty()
+        }
+
+        context("finner korrekt melding for behov") {
+            val expectedBehovType = BehovType.VIRKSOMHET
+
+            val funnetMelding = Mock.meldinger.filter(expectedBehovType).firstAsMap()
+
+            val actualBehovType = funnetMelding[Key.BEHOV]?.fromJson(BehovType.serializer())
+
+            actualBehovType shouldBe expectedBehovType
+        }
+
+        test("finner ikke manglende melding for behov") {
+            Mock.meldinger
+                .filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
+                .all()
+                .shouldBeEmpty()
+        }
+
+        test("finner korrekt melding for key") {
+            val funnetMelding = Mock.meldinger.filter(Key.VIRKSOMHET).firstAsMap()
+
+            funnetMelding.also {
+                it shouldContainKey Key.DATA
+                it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe Mock.ORGNR
+            }
+        }
+
+        test("finner ikke manglende melding for key") {
+            Mock.meldinger
+                .filter(Key.ARBEIDSFORHOLD)
+                .all()
+                .shouldBeEmpty()
+        }
+    })
 
 private object Mock {
     const val ORGNR = "orgnr-pai"
@@ -71,8 +75,7 @@ private object Mock {
             Key.BEHOV.str to BehovType.VIRKSOMHET.toJson(BehovType.serializer()),
             Key.DATA.str to "".toJson(),
             Key.VIRKSOMHET.str to ORGNR.toJson(),
-        )
-            .toJson()
+        ).toJson()
             .toMessages()
 
     private fun JsonElement.toMessages(): Messages = Messages(mutableListOf(this))

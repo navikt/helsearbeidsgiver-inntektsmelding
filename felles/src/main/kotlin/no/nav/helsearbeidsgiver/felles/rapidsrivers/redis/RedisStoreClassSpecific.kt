@@ -34,11 +34,13 @@ class RedisStoreClassSpecific(
 
     fun getAll(keys: Set<RedisKey>): Map<String, JsonElement> {
         val storeKeys = keys.map { it.toStoreKey() }.toTypedArray()
-        return redis.getAll(*storeKeys)
+        return redis
+            .getAll(*storeKeys)
             // TODO slett etter overgangsperiode
             .plus(oldGetAll(keys))
             .mapValuesNotNull { value ->
-                value.runCatching(String::parseJson)
+                value
+                    .runCatching(String::parseJson)
                     .getOrElse { error ->
                         "Klarte ikke parse redis-verdi.".also {
                             logger.error(it)
@@ -46,11 +48,9 @@ class RedisStoreClassSpecific(
                         }
                         null
                     }
-            }
-            .mapKeys {
+            }.mapKeys {
                 it.key.removePrefix("${keyPrefix.name}$keyPartSeparator")
-            }
-            .also {
+            }.also {
                 sikkerLogger.debug("Getting all from redis: $it")
             }
     }

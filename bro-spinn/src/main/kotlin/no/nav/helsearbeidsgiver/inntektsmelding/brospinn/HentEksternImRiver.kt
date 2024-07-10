@@ -58,10 +58,10 @@ class HentEksternImRiver(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to
-                data.plus(
-                    Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
-                )
-                    .toJson(),
+                data
+                    .plus(
+                        Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                    ).toJson(),
         )
     }
 

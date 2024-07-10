@@ -31,83 +31,84 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class ArbeidsforholdLoeserTest : FunSpec({
-    val testRapid = TestRapid()
+class ArbeidsforholdLoeserTest :
+    FunSpec({
+        val testRapid = TestRapid()
 
-    val mockAaregClient = mockk<AaregClient>()
+        val mockAaregClient = mockk<AaregClient>()
 
-    ArbeidsforholdLoeser(testRapid, mockAaregClient)
+        ArbeidsforholdLoeser(testRapid, mockAaregClient)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-    }
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
+        }
 
-    test("ved innkommende behov så hentes og publiseres arbeidsforhold fra aareg") {
-        val expectedUuid = UUID.randomUUID()
+        test("ved innkommende behov så hentes og publiseres arbeidsforhold fra aareg") {
+            val expectedUuid = UUID.randomUUID()
 
-        val expectedArbeidsforhold =
-            mockKlientArbeidsforhold()
-                .tilArbeidsforhold()
-                .let(::listOf)
-                .toJson(Arbeidsforhold.serializer())
+            val expectedArbeidsforhold =
+                mockKlientArbeidsforhold()
+                    .tilArbeidsforhold()
+                    .let(::listOf)
+                    .toJson(Arbeidsforhold.serializer())
 
-        coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
+            coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } returns mockKlientArbeidsforhold().let(::listOf)
 
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-            Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-            Key.UUID to expectedUuid.toJson(),
-        )
-
-        val actual = testRapid.firstMessage().toMap()
-
-        coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expectedUuid.toString()) }
-        testRapid.inspektør.size shouldBeExactly 1
-
-        actual[Key.UUID]?.fromJson(UuidSerializer) shouldBe expectedUuid
-        actual[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.INSENDING_STARTED
-        actual[Key.ARBEIDSFORHOLD] shouldBe expectedArbeidsforhold
-    }
-
-    test("ved feil fra aareg så publiseres løsning med feilmelding") {
-        val event = EventName.TRENGER_REQUESTED
-        val transaksjonId = UUID.randomUUID()
-        val forespoerselId = UUID.randomUUID()
-
-        val innkommendeMelding =
-            mapOf(
-                Key.EVENT_NAME to event.toJson(),
+            testRapid.sendJson(
+                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
                 Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
                 Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.UUID to expectedUuid.toJson(),
             )
 
-        val expected =
-            Fail(
-                feilmelding = "Klarte ikke hente arbeidsforhold",
-                event = event,
-                transaksjonId = transaksjonId,
-                forespoerselId = forespoerselId,
-                utloesendeMelding = innkommendeMelding.toJson(),
-            )
+            val actual = testRapid.firstMessage().toMap()
 
-        coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
+            coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expectedUuid.toString()) }
+            testRapid.inspektør.size shouldBeExactly 1
 
-        testRapid.sendJson(innkommendeMelding)
+            actual[Key.UUID]?.fromJson(UuidSerializer) shouldBe expectedUuid
+            actual[Key.EVENT_NAME]?.fromJson(EventName.serializer()) shouldBe EventName.INSENDING_STARTED
+            actual[Key.ARBEIDSFORHOLD] shouldBe expectedArbeidsforhold
+        }
 
-        coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.transaksjonId.toString()) }
+        test("ved feil fra aareg så publiseres løsning med feilmelding") {
+            val event = EventName.TRENGER_REQUESTED
+            val transaksjonId = UUID.randomUUID()
+            val forespoerselId = UUID.randomUUID()
 
-        testRapid.inspektør.size shouldBeExactly 1
+            val innkommendeMelding =
+                mapOf(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
+                    Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                )
 
-        val fail = testRapid.firstMessage().readFail()
+            val expected =
+                Fail(
+                    feilmelding = "Klarte ikke hente arbeidsforhold",
+                    event = event,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = forespoerselId,
+                    utloesendeMelding = innkommendeMelding.toJson(),
+                )
 
-        fail.shouldBeEqualToIgnoringFields(expected, Fail::utloesendeMelding)
-        fail.utloesendeMelding.toMap() shouldContainAll innkommendeMelding
-    }
-})
+            coEvery { mockAaregClient.hentArbeidsforhold(any(), any()) } throws RuntimeException()
+
+            testRapid.sendJson(innkommendeMelding)
+
+            coVerifySequence { mockAaregClient.hentArbeidsforhold(Mock.FNR, expected.transaksjonId.toString()) }
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            val fail = testRapid.firstMessage().readFail()
+
+            fail.shouldBeEqualToIgnoringFields(expected, Fail::utloesendeMelding)
+            fail.utloesendeMelding.toMap() shouldContainAll innkommendeMelding
+        }
+    })
 
 private object Mock {
     const val FNR = "12121200012"

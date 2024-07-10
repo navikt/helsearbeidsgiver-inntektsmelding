@@ -14,56 +14,57 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.util.UUID
 
-class SelvbestemtRepoTest : FunSpecWithDb(listOf(SelvbestemtSak), { db ->
+class SelvbestemtRepoTest :
+    FunSpecWithDb(listOf(SelvbestemtSak), { db ->
 
-    val selvbestemtRepo = SelvbestemtRepo(db)
+        val selvbestemtRepo = SelvbestemtRepo(db)
 
-    test("lagrer sak-ID") {
-        val selvbestemtId = UUID.randomUUID()
-        val sakId = "trallende-sarkofag"
+        test("lagrer sak-ID") {
+            val selvbestemtId = UUID.randomUUID()
+            val sakId = "trallende-sarkofag"
 
-        val antallLagret = selvbestemtRepo.lagreSakId(selvbestemtId, sakId)
+            val antallLagret = selvbestemtRepo.lagreSakId(selvbestemtId, sakId)
 
-        antallLagret shouldBeExactly 1
+            antallLagret shouldBeExactly 1
 
-        val alleSaker = lesAlleSaker(db)
+            val alleSaker = lesAlleSaker(db)
 
-        alleSaker shouldHaveSize 1
-        alleSaker.first().also { lagret ->
-            lagret[SelvbestemtSak.selvbestemtId] shouldBe selvbestemtId
-            lagret[SelvbestemtSak.sakId] shouldBe sakId
-            lagret[SelvbestemtSak.slettes].toLocalDate() shouldBe LocalDate.now().plusDays(sakLevetid.inWholeDays)
+            alleSaker shouldHaveSize 1
+            alleSaker.first().also { lagret ->
+                lagret[SelvbestemtSak.selvbestemtId] shouldBe selvbestemtId
+                lagret[SelvbestemtSak.sakId] shouldBe sakId
+                lagret[SelvbestemtSak.slettes].toLocalDate() shouldBe LocalDate.now().plusDays(sakLevetid.inWholeDays)
+            }
         }
-    }
 
-    test("lagrer ikke sak-ID ved konflikt på selvbestemt-ID") {
-        val selvbestemtId = UUID.randomUUID()
-        val sakId1 = "sensitiv-xylofon"
-        val sakId2 = "kampklar-banan"
+        test("lagrer ikke sak-ID ved konflikt på selvbestemt-ID") {
+            val selvbestemtId = UUID.randomUUID()
+            val sakId1 = "sensitiv-xylofon"
+            val sakId2 = "kampklar-banan"
 
-        selvbestemtRepo.lagreSakId(selvbestemtId, sakId1)
+            selvbestemtRepo.lagreSakId(selvbestemtId, sakId1)
 
-        lesAlleSaker(db) shouldHaveSize 1
+            lesAlleSaker(db) shouldHaveSize 1
 
-        shouldThrowExactly<ExposedSQLException> {
-            selvbestemtRepo.lagreSakId(selvbestemtId, sakId2)
+            shouldThrowExactly<ExposedSQLException> {
+                selvbestemtRepo.lagreSakId(selvbestemtId, sakId2)
+            }
         }
-    }
 
-    test("lagrer ikke sak-ID ved konflikt på sak-ID") {
-        val selvbestemtId1 = UUID.randomUUID()
-        val selvbestemtId2 = UUID.randomUUID()
-        val sakId = "brautende-flaske"
+        test("lagrer ikke sak-ID ved konflikt på sak-ID") {
+            val selvbestemtId1 = UUID.randomUUID()
+            val selvbestemtId2 = UUID.randomUUID()
+            val sakId = "brautende-flaske"
 
-        selvbestemtRepo.lagreSakId(selvbestemtId1, sakId)
+            selvbestemtRepo.lagreSakId(selvbestemtId1, sakId)
 
-        lesAlleSaker(db) shouldHaveSize 1
+            lesAlleSaker(db) shouldHaveSize 1
 
-        shouldThrowExactly<ExposedSQLException> {
-            selvbestemtRepo.lagreSakId(selvbestemtId2, sakId)
+            shouldThrowExactly<ExposedSQLException> {
+                selvbestemtRepo.lagreSakId(selvbestemtId2, sakId)
+            }
         }
-    }
-})
+    })
 
 private fun lesAlleSaker(db: Database): List<ResultRow> =
     transaction(db) {

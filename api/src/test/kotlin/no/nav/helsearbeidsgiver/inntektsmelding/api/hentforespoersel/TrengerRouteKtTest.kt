@@ -200,10 +200,8 @@ private object MockTrenger {
                     inntekt = inntekt,
                     forespoersel = forespoersel,
                     feil = emptyMap(),
-                )
-                    .toJson(HentForespoerselResultat.serializer()),
-        )
-            .toJson(ResultJson.serializer())
+                ).toJson(HentForespoerselResultat.serializer()),
+        ).toJson(ResultJson.serializer())
 
     val resultatOkMedForrigeInntektJson =
         ResultJson(
@@ -218,10 +216,8 @@ private object MockTrenger {
                             forespurtData = mockForespurtDataMedForrigeInntekt(),
                         ),
                     feil = emptyMap(),
-                )
-                    .toJson(HentForespoerselResultat.serializer()),
-        )
-            .toJson(ResultJson.serializer())
+                ).toJson(HentForespoerselResultat.serializer()),
+        ).toJson(ResultJson.serializer())
 
     fun responseJson(): String =
         """

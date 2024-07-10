@@ -58,8 +58,7 @@ fun Route.inntektRoute(
                     InntektResponse(
                         bruttoinntekt = resultat.gjennomsnitt(),
                         tidligereInntekter = resultat.maanedOversikt,
-                    )
-                        .toJson(InntektResponse.serializer().nullable)
+                    ).toJson(InntektResponse.serializer().nullable)
 
                 call.respond(HttpStatusCode.OK, response)
             } else {

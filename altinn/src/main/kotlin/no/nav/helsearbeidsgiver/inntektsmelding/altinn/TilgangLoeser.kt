@@ -31,8 +31,8 @@ class TilgangLoeser(
     rapidsConnection: RapidsConnection,
     private val altinnClient: AltinnClient,
 ) : Loeser(rapidsConnection) {
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
             it.demandValues(Key.BEHOV to BehovType.TILGANGSKONTROLL.name)
             it.interestedIn(
                 Key.UUID,
@@ -40,7 +40,6 @@ class TilgangLoeser(
                 Key.FNR,
             )
         }
-    }
 
     override fun onBehov(behov: Behov) {
         MdcUtils.withLogFields(
@@ -48,7 +47,11 @@ class TilgangLoeser(
             Log.event(behov.event),
             Log.behov(BehovType.TILGANGSKONTROLL),
         ) {
-            val json = behov.jsonMessage.toJson().parseJson().toMap()
+            val json =
+                behov.jsonMessage
+                    .toJson()
+                    .parseJson()
+                    .toMap()
 
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
             MdcUtils.withLogFields(
@@ -56,11 +59,11 @@ class TilgangLoeser(
             ) {
                 runCatching {
                     hentTilgang(behov, json, transaksjonId)
+                }.onFailure {
+                    behov
+                        .createFail("Ukjent feil.")
+                        .also(this::publishFail)
                 }
-                    .onFailure {
-                        behov.createFail("Ukjent feil.")
-                            .also(this::publishFail)
-                    }
             }
         }
     }
@@ -77,20 +80,19 @@ class TilgangLoeser(
             Metrics.altinnRequest.recordTime(altinnClient::harRettighetForOrganisasjon) {
                 altinnClient.harRettighetForOrganisasjon(fnr.verdi, orgnr.verdi)
             }
-        }
-            .onSuccess { harTilgang ->
-                val tilgang = if (harTilgang) Tilgang.HAR_TILGANG else Tilgang.IKKE_TILGANG
+        }.onSuccess { harTilgang ->
+            val tilgang = if (harTilgang) Tilgang.HAR_TILGANG else Tilgang.IKKE_TILGANG
 
-                rapidsConnection.publishData(
-                    eventName = behov.event,
-                    transaksjonId = transaksjonId,
-                    forespoerselId = behov.forespoerselId?.let(UUID::fromString),
-                    Key.TILGANG to tilgang.toJson(Tilgang.serializer()),
-                )
-            }
-            .onFailure {
-                behov.createFail("Feil ved henting av rettigheter fra Altinn.")
-                    .also(this::publishFail)
-            }
+            rapidsConnection.publishData(
+                eventName = behov.event,
+                transaksjonId = transaksjonId,
+                forespoerselId = behov.forespoerselId?.let(UUID::fromString),
+                Key.TILGANG to tilgang.toJson(Tilgang.serializer()),
+            )
+        }.onFailure {
+            behov
+                .createFail("Feil ved henting av rettigheter fra Altinn.")
+                .also(this::publishFail)
+        }
     }
 }

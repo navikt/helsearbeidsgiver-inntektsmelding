@@ -22,7 +22,10 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class PersisterImLoeser(rapidsConnection: RapidsConnection, private val repository: InntektsmeldingRepository) : Loeser(rapidsConnection) {
+class PersisterImLoeser(
+    rapidsConnection: RapidsConnection,
+    private val repository: InntektsmeldingRepository,
+) : Loeser(rapidsConnection) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -43,7 +46,11 @@ class PersisterImLoeser(rapidsConnection: RapidsConnection, private val reposito
         logger.info("Løser behov ${BehovType.PERSISTER_IM} med id $forespoerselId")
 
         try {
-            val json = behov.jsonMessage.toJson().parseJson().toMap()
+            val json =
+                behov.jsonMessage
+                    .toJson()
+                    .parseJson()
+                    .toMap()
 
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
             val inntektsmelding = Key.INNTEKTSMELDING.les(Inntektsmelding.serializer(), json)

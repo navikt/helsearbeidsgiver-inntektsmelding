@@ -40,7 +40,8 @@ fun Route.innsendingRoute(
     val producer = InnsendingProducer(rapid)
 
     val requestLatency =
-        Summary.build()
+        Summary
+            .build()
             .name("simba_innsending_latency_seconds")
             .help("innsending endpoint latency in seconds")
             .register()
@@ -58,15 +59,15 @@ fun Route.innsendingRoute(
             measureTimeMillis {
                 try {
                     val request =
-                        call.receiveText()
+                        call
+                            .receiveText()
                             .parseJson()
                             .also { json ->
                                 "Mottok innsending med forespørselId: $forespoerselId".let {
                                     logger.info(it)
                                     sikkerLogger.info("$it og request:\n$json")
                                 }
-                            }
-                            .fromJson(Innsending.serializer())
+                            }.fromJson(Innsending.serializer())
 
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 

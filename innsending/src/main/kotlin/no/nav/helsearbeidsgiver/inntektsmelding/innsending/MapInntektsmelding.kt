@@ -93,8 +93,7 @@ fun mapInntektsmelding(
             "arbeidsgiverperiode" to forespoersel.forespurtData.arbeidsgiverperiode.paakrevd,
             "inntekt" to forespoersel.forespurtData.inntekt.paakrevd,
             "refusjon" to forespoersel.forespurtData.refusjon.paakrevd,
-        )
-            .filterValues { it }
+        ).filterValues { it }
             .keys
             .toList()
 

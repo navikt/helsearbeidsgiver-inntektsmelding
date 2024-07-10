@@ -46,7 +46,8 @@ class ForespoerselBesvartIT : EndToEndTest() {
 
         bekreftForventedeMeldinger()
 
-        messages.filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
+        messages
+            .filter(EventName.EKSTERN_INNTEKTSMELDING_REQUESTED)
             .filter(BehovType.HENT_EKSTERN_INNTEKTSMELDING)
             .firstAsMap()
             .also {
@@ -71,7 +72,8 @@ class ForespoerselBesvartIT : EndToEndTest() {
     }
 
     private fun bekreftForventedeMeldinger() {
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages
+            .filter(EventName.FORESPOERSEL_BESVART)
             .filter(BehovType.NOTIFIKASJON_HENT_ID)
             .firstAsMap()
             .also {
@@ -81,7 +83,8 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
             }
 
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages
+            .filter(EventName.FORESPOERSEL_BESVART)
             .filter(Key.SAK_ID, utenDataKey = true)
             .firstAsMap()
             .also {
@@ -92,7 +95,8 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages
+            .filter(EventName.FORESPOERSEL_BESVART)
             .filter(Key.OPPGAVE_ID, utenDataKey = true)
             .firstAsMap()
             .also {
@@ -103,7 +107,8 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
 
-        messages.filter(EventName.SAK_FERDIGSTILT)
+        messages
+            .filter(EventName.SAK_FERDIGSTILT)
             .filter(Key.SAK_ID, utenDataKey = true)
             .firstAsMap()
             .also {
@@ -113,7 +118,8 @@ class ForespoerselBesvartIT : EndToEndTest() {
                 Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
-        messages.filter(EventName.OPPGAVE_FERDIGSTILT)
+        messages
+            .filter(EventName.OPPGAVE_FERDIGSTILT)
             .filter(Key.OPPGAVE_ID, utenDataKey = true)
             .firstAsMap()
             .also {

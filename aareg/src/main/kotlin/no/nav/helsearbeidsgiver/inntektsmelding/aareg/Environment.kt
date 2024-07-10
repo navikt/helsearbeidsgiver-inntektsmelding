@@ -3,8 +3,8 @@ package no.nav.helsearbeidsgiver.inntektsmelding.aareg
 import no.nav.helsearbeidsgiver.felles.getEnvVar
 import no.nav.helsearbeidsgiver.tokenprovider.OAuth2Environment
 
-fun setUpEnvironment(): Environment {
-    return Environment(
+fun setUpEnvironment(): Environment =
+    Environment(
         raw = System.getenv(),
         aaregUrl = getEnvVar("AAREG_URL"),
         oauth2Environment =
@@ -17,7 +17,6 @@ fun setUpEnvironment(): Environment {
                 clientJwk = getEnvVar("AZURE_APP_JWK"),
             ),
     )
-}
 
 data class Environment(
     val raw: Map<String, String>,

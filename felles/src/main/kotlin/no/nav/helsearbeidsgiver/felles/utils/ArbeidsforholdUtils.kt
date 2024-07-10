@@ -6,11 +6,10 @@ import no.nav.helsearbeidsgiver.felles.PeriodeNullable
 
 const val MAKS_DAGER_OPPHOLD = 3L
 
-fun List<Arbeidsforhold>.orgnrMedHistoriskArbeidsforhold(): List<String> {
-    return this
+fun List<Arbeidsforhold>.orgnrMedHistoriskArbeidsforhold(): List<String> =
+    this
         .mapNotNull { it.arbeidsgiver.organisasjonsnummer }
         .distinct()
-}
 
 fun List<Periode>.aktivtArbeidsforholdIPeriode(arbeidsforhold: List<Arbeidsforhold>): Boolean {
     val ansattPerioder = arbeidsforhold.map { it.ansettelsesperiode.periode }
@@ -18,12 +17,11 @@ fun List<Periode>.aktivtArbeidsforholdIPeriode(arbeidsforhold: List<Arbeidsforho
     return this.any { it.innenforArbeidsforhold(ansattPerioderSammenslaatt) } || this.any { it.innenforArbeidsforhold(ansattPerioder) }
 }
 
-fun Periode.innenforArbeidsforhold(ansattPerioder: List<PeriodeNullable>): Boolean {
-    return ansattPerioder.any { ansPeriode ->
+fun Periode.innenforArbeidsforhold(ansattPerioder: List<PeriodeNullable>): Boolean =
+    ansattPerioder.any { ansPeriode ->
         (ansPeriode.tom == null || this.tom.isBefore(ansPeriode.tom) || this.tom == ansPeriode.tom) &&
             (ansPeriode.fom!!.isBefore(this.fom) || ansPeriode.fom.isEqual(this.fom))
     }
-}
 
 fun slaaSammenPerioder(list: List<PeriodeNullable>): List<PeriodeNullable> {
     if (list.size < 2) return list
@@ -59,6 +57,4 @@ fun oppholdMellomPerioderOverstigerDager(
     a1: PeriodeNullable,
     a2: PeriodeNullable,
     dager: Long,
-): Boolean {
-    return a1.tom?.plusDays(dager)?.isBefore(a2.fom) ?: true
-}
+): Boolean = a1.tom?.plusDays(dager)?.isBefore(a2.fom) ?: true

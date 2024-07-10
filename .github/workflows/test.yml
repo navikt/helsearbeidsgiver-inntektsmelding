@@ -32,6 +32,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
 
       - name: Test
-        run: ./gradlew test --tests --parallel --build-cache '*Test' jacocoTestReport
+        run: ./gradlew test --tests --parallel --build-cache '*Test' jacocoTestReport -Dorg.gradle.jvmargs=-Xmx32g
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}

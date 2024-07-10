@@ -16,7 +16,8 @@ class Database(
         migrationConfig(secrets)
             .let(::HikariDataSource)
             .also {
-                Flyway.configure()
+                Flyway
+                    .configure()
                     .dataSource(it)
                     .lockRetryCount(50)
                     .load()
@@ -46,7 +47,9 @@ private fun migrationConfig(secrets: Secrets): HikariConfig =
         maximumPoolSize = 3
     }
 
-private class Secrets(prefix: String) {
+private class Secrets(
+    prefix: String,
+) {
     val username = "${prefix}_USERNAME".fromEnv()
     val password = "${prefix}_PASSWORD".fromEnv()
 

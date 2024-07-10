@@ -12,24 +12,25 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class HentSelvbestemtImProducerTest : FunSpec({
+class HentSelvbestemtImProducerTest :
+    FunSpec({
 
-    val testRapid = TestRapid()
-    val producer = HentSelvbestemtImProducer(testRapid)
+        val testRapid = TestRapid()
+        val producer = HentSelvbestemtImProducer(testRapid)
 
-    test("publiserer melding på forventet format") {
-        val transaksjonId = UUID.randomUUID()
-        val selvbestemtId = UUID.randomUUID()
+        test("publiserer melding på forventet format") {
+            val transaksjonId = UUID.randomUUID()
+            val selvbestemtId = UUID.randomUUID()
 
-        producer.publish(transaksjonId, selvbestemtId)
+            producer.publish(transaksjonId, selvbestemtId)
 
-        testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().toMap() shouldContainExactly
-            mapOf(
-                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.DATA to "".toJson(),
-                Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-            )
-    }
-})
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.firstMessage().toMap() shouldContainExactly
+                mapOf(
+                    Key.EVENT_NAME to EventName.SELVBESTEMT_IM_REQUESTED.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.DATA to "".toJson(),
+                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                )
+        }
+    })

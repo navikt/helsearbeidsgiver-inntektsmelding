@@ -39,15 +39,17 @@ class MockRedis {
         }
 
         every { store.getAll(capture(redisKeys)) } answers {
-            redisKeys.captured.associate {
-                it.toString() to mockStorage[it]
-            }
-                .mapValuesNotNull { it }
+            redisKeys.captured
+                .associate {
+                    it.toString() to mockStorage[it]
+                }.mapValuesNotNull { it }
         }
     }
 }
 
-class MockRedisClassSpecific(keyPrefix: RedisPrefix) {
+class MockRedisClassSpecific(
+    keyPrefix: RedisPrefix,
+) {
     private val mockCommands = mockk<RedisCommands<String, String>>()
     private val redis =
         mockStatic(RedisClient::class) {

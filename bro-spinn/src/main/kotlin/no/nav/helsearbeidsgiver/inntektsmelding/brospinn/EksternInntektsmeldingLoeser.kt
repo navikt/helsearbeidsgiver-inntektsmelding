@@ -42,7 +42,11 @@ class EksternInntektsmeldingLoeser(
 
     override fun onBehov(behov: Behov) {
         try {
-            val json = behov.jsonMessage.toJson().parseJson().toMap()
+            val json =
+                behov.jsonMessage
+                    .toJson()
+                    .parseJson()
+                    .toMap()
 
             val transaksjonId = Key.UUID.les(UuidSerializer, json)
 

@@ -69,11 +69,11 @@ class InntektServiceTest {
                 RedisKey.of(clientId),
                 withArg {
                     runCatching {
-                        it.fromJson(ResultJson.serializer())
+                        it
+                            .fromJson(ResultJson.serializer())
                             .failure
                             ?.fromJson(String.serializer())
-                    }
-                        .shouldBeSuccess()
+                    }.shouldBeSuccess()
                 },
             )
         }

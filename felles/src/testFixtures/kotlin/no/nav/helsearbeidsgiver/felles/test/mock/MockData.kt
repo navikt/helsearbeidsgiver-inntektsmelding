@@ -147,7 +147,8 @@ fun Innsending.tilForespoersel(vedtaksperiodeId: UUID): Forespoersel =
         sykmeldingsperioder = fraværsperioder,
         egenmeldingsperioder = egenmeldingsperioder,
         bestemmendeFravaersdager =
-            fraværsperioder.lastOrNull()
+            fraværsperioder
+                .lastOrNull()
                 ?.let { mapOf(orgnrUnderenhet to it.fom) }
                 .orEmpty(),
         forespurtData = mockForespurtData(),

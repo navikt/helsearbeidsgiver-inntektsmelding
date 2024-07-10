@@ -50,13 +50,13 @@ class HentSelvbestemtImService(
                 val resultJson = ResultJson(success = inntektsmeldingJson).toJson(ResultJson.serializer())
                 redisStore.set(RedisKey.of(transaksjonId), resultJson)
             } else {
-                rapid.publish(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.HENT_SELVBESTEMT_IM.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
-                )
-                    .also { loggBehovPublisert(BehovType.HENT_SELVBESTEMT_IM, it) }
+                rapid
+                    .publish(
+                        Key.EVENT_NAME to eventName.toJson(),
+                        Key.BEHOV to BehovType.HENT_SELVBESTEMT_IM.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                        Key.SELVBESTEMT_ID to selvbestemtId.toJson(),
+                    ).also { loggBehovPublisert(BehovType.HENT_SELVBESTEMT_IM, it) }
             }
         }
     }

@@ -34,18 +34,19 @@ class SakFerdigLoeser(
     private val sikkerLogger = sikkerLogger()
 
     init {
-        River(rapid).apply {
-            validate {
-                it.demandValues(
-                    Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name,
-                )
-                it.requireKeys(
-                    Key.UUID,
-                    Key.FORESPOERSEL_ID,
-                    Key.SAK_ID,
-                )
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate {
+                    it.demandValues(
+                        Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.name,
+                    )
+                    it.requireKeys(
+                        Key.UUID,
+                        Key.FORESPOERSEL_ID,
+                        Key.SAK_ID,
+                    )
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -67,13 +68,12 @@ class SakFerdigLoeser(
         ) {
             runCatching {
                 haandterMelding(json.toMap(), context)
-            }
-                .onFailure { e ->
-                    "Ukjent feil.".also {
-                        logger.error("$it Se sikker logg for mer info.")
-                        sikkerLogger.error(it, e)
-                    }
+            }.onFailure { e ->
+                "Ukjent feil.".also {
+                    logger.error("$it Se sikker logg for mer info.")
+                    sikkerLogger.error(it, e)
                 }
+            }
         }
     }
 

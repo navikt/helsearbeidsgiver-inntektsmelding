@@ -181,9 +181,11 @@ class ServiceRiver(
 
     private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
         val allDataKeys = (service.startKeys + service.dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
-        return service.redisStore.getAll(allDataKeys)
+        return service.redisStore
+            .getAll(allDataKeys)
             .mapKeysNotNull { key ->
-                key.removePrefix(transaksjonId.toString())
+                key
+                    .removePrefix(transaksjonId.toString())
                     .removePrefix(service.redisStore.keyPartSeparator)
                     // TODO erstatter de to foregående 'removePrefix' etter overgangsperiode
 //                    .removePrefix("$transaksjonId${service.redisStore.keyPartSeparator}")

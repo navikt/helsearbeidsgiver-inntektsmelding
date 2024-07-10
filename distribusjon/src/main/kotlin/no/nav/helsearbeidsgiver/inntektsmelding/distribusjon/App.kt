@@ -16,8 +16,7 @@ fun main() {
         .createDistribusjonRiver(producer)
         .registerShutdownLifecycle {
             producer.close()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createDistribusjonRiver(producer: KafkaProducer<String, String>): RapidsConnection =

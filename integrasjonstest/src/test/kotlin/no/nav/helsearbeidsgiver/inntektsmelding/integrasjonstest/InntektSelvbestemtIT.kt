@@ -38,7 +38,8 @@ class InntektSelvbestemtIT : EndToEndTest() {
             Key.SKJAERINGSTIDSPUNKT to Mock.inntektsdato.toJson(),
         )
 
-        messages.filter(BehovType.INNTEKT)
+        messages
+            .filter(BehovType.INNTEKT)
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(
@@ -53,7 +54,8 @@ class InntektSelvbestemtIT : EndToEndTest() {
 
         val dataField = Key.INNTEKT to Mock.inntektPerMaaned.toJson(Inntekt.serializer())
 
-        messages.filter(Key.INNTEKT)
+        messages
+            .filter(Key.INNTEKT)
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(

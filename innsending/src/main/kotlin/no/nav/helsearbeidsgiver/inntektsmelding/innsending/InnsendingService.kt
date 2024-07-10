@@ -176,13 +176,13 @@ class InnsendingService(
         if (!erDuplikat) {
             logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
             logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
-            rapid.publish(
-                Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingJson,
-            )
-                .also {
+            rapid
+                .publish(
+                    Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingJson,
+                ).also {
                     logger.info("Submitting INNTEKTSMELDING_MOTTATT")
                     sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT ${it.toPretty()}")
                 }
@@ -228,7 +228,8 @@ class InnsendingService(
             inProgress(meldingMedDefault)
         } else {
             val clientId =
-                redisStore.get(RedisKey.of(fail.transaksjonId, event))
+                redisStore
+                    .get(RedisKey.of(fail.transaksjonId, event))
                     ?.let(UUID::fromString)
 
             if (clientId == null) {

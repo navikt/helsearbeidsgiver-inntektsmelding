@@ -23,53 +23,54 @@ import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
-class RedisPollerTest : FunSpec({
-    // For å skippe kall til 'delay'
-    coroutineTestScope = true
+class RedisPollerTest :
+    FunSpec({
+        // For å skippe kall til 'delay'
+        coroutineTestScope = true
 
-    val key = UUID.randomUUID()
-    val dataJson = "noe data".toJson()
-    val dataJsonString = dataJson.toString()
+        val key = UUID.randomUUID()
+        val dataJson = "noe data".toJson()
+        val dataJsonString = dataJson.toString()
 
-    beforeEach {
-        clearAllMocks()
-    }
-
-    test("skal finne med tillatt antall forsøk") {
-        mockConstructor(RedisConnection::class) {
-            every { anyConstructed<RedisConnection>().get(any()) } returnsMany answers(answerOnAttemptNo = 10, answer = dataJsonString)
-
-            val redisPoller =
-                mockStatic(RedisClient::class) {
-                    every { RedisClient.create(any<String>()) } returns mockk(relaxed = true)
-                    RedisPoller()
-                }
-
-            val json = redisPoller.hent(key)
-
-            json shouldBe dataJson
+        beforeEach {
+            clearAllMocks()
         }
-    }
 
-    test("skal ikke finne etter maks forsøk") {
-        mockConstructor(RedisConnection::class) {
-            every { anyConstructed<RedisConnection>().get(any()) } returnsMany answers(answerOnAttemptNo = 11, answer = dataJsonString)
+        test("skal finne med tillatt antall forsøk") {
+            mockConstructor(RedisConnection::class) {
+                every { anyConstructed<RedisConnection>().get(any()) } returnsMany answers(answerOnAttemptNo = 10, answer = dataJsonString)
 
-            val redisPoller =
-                mockStatic(RedisClient::class) {
-                    every { RedisClient.create(any<String>()) } returns mockk(relaxed = true)
-                    RedisPoller()
-                }
+                val redisPoller =
+                    mockStatic(RedisClient::class) {
+                        every { RedisClient.create(any<String>()) } returns mockk(relaxed = true)
+                        RedisPoller()
+                    }
 
-            assertThrows<RedisPollerTimeoutException> {
-                redisPoller.hent(key)
+                val json = redisPoller.hent(key)
+
+                json shouldBe dataJson
             }
         }
-    }
 
-    test("skal parse forespurt data korrekt") {
-        val expected = mockForespoersel()
-        val expectedJson = """
+        test("skal ikke finne etter maks forsøk") {
+            mockConstructor(RedisConnection::class) {
+                every { anyConstructed<RedisConnection>().get(any()) } returnsMany answers(answerOnAttemptNo = 11, answer = dataJsonString)
+
+                val redisPoller =
+                    mockStatic(RedisClient::class) {
+                        every { RedisClient.create(any<String>()) } returns mockk(relaxed = true)
+                        RedisPoller()
+                    }
+
+                assertThrows<RedisPollerTimeoutException> {
+                    redisPoller.hent(key)
+                }
+            }
+        }
+
+        test("skal parse forespurt data korrekt") {
+            val expected = mockForespoersel()
+            val expectedJson = """
             {
                 "type": "${expected.type}",
                 "orgnr": "${expected.orgnr}",
@@ -83,21 +84,21 @@ class RedisPollerTest : FunSpec({
             }
         """
 
-        mockConstructor(RedisConnection::class) {
-            every { anyConstructed<RedisConnection>().get(any()) } returnsMany answers(answerOnAttemptNo = 1, answer = expectedJson)
+            mockConstructor(RedisConnection::class) {
+                every { anyConstructed<RedisConnection>().get(any()) } returnsMany answers(answerOnAttemptNo = 1, answer = expectedJson)
 
-            val redisPoller =
-                mockStatic(RedisClient::class) {
-                    every { RedisClient.create(any<String>()) } returns mockk(relaxed = true)
-                    RedisPoller()
-                }
+                val redisPoller =
+                    mockStatic(RedisClient::class) {
+                        every { RedisClient.create(any<String>()) } returns mockk(relaxed = true)
+                        RedisPoller()
+                    }
 
-            val resultat = redisPoller.hent(key).fromJson(Forespoersel.serializer())
+                val resultat = redisPoller.hent(key).fromJson(Forespoersel.serializer())
 
-            resultat shouldBe expected
+                resultat shouldBe expected
+            }
         }
-    }
-})
+    })
 
 private fun answers(
     answerOnAttemptNo: Int,

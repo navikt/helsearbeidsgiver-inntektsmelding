@@ -19,8 +19,7 @@ fun main() {
         .createAktiveOrgnrService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createAktiveOrgnrService(redisConnection: RedisConnection): RapidsConnection =

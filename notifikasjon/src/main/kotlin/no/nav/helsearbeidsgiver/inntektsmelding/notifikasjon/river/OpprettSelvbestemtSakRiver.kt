@@ -56,7 +56,9 @@ class OpprettSelvbestemtSakRiver(
                 inntektsmeldingTypeId = inntektsmelding.type.id,
                 orgnr = inntektsmelding.avsender.orgnr.verdi,
                 sykmeldtNavn = inntektsmelding.sykmeldt.navn,
-                sykmeldtFoedselsdato = inntektsmelding.sykmeldt.fnr.verdi.take(6),
+                sykmeldtFoedselsdato =
+                    inntektsmelding.sykmeldt.fnr.verdi
+                        .take(6),
                 initiellStatus = SaksStatus.FERDIG,
             )
 
@@ -92,7 +94,8 @@ class OpprettSelvbestemtSakRiver(
         logger.error(fail.feilmelding)
         sikkerLogger.error(fail.feilmelding, error)
 
-        return fail.tilMelding()
+        return fail
+            .tilMelding()
             .minus(Key.FORESPOERSEL_ID)
             .plus(Key.SELVBESTEMT_ID to inntektsmelding.type.id.toJson())
     }

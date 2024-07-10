@@ -18,8 +18,7 @@ fun main() {
         .createInnsending(redisStore)
         .registerShutdownLifecycle {
             redisStore.shutdown()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createInnsending(redisStore: RedisStore): RapidsConnection =

@@ -19,8 +19,7 @@ fun main() {
         .createTilgangService(redisConnection)
         .registerShutdownLifecycle {
             redisConnection.close()
-        }
-        .start()
+        }.start()
 }
 
 fun RapidsConnection.createTilgangService(redisConnection: RedisConnection): RapidsConnection =

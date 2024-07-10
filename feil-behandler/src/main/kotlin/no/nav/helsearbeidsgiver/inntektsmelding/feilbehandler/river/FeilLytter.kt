@@ -19,7 +19,10 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.sql.SQLException
 
-class FeilLytter(rapidsConnection: RapidsConnection, private val repository: BakgrunnsjobbRepository) : River.PacketListener {
+class FeilLytter(
+    rapidsConnection: RapidsConnection,
+    private val repository: BakgrunnsjobbRepository,
+) : River.PacketListener {
     private val jobbType = FeilProsessor.JOB_TYPE
 
     private val sikkerLogger = sikkerLogger()
@@ -37,12 +40,12 @@ class FeilLytter(rapidsConnection: RapidsConnection, private val repository: Bak
 
     init {
         sikkerLogger.info("Starter applikasjon - lytter på innkommende feil!")
-        River(rapidsConnection).apply {
-            validate { msg ->
-                msg.demandKey(Key.FAIL.str)
-            }
-        }
-            .register(this)
+        River(rapidsConnection)
+            .apply {
+                validate { msg ->
+                    msg.demandKey(Key.FAIL.str)
+                }
+            }.register(this)
     }
 
     override fun onPacket(

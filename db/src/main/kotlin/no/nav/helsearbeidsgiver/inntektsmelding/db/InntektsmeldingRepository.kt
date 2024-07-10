@@ -17,12 +17,15 @@ import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
 import java.util.UUID
 
-class InntektsmeldingRepository(private val db: Database) {
+class InntektsmeldingRepository(
+    private val db: Database,
+) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
     private val requestLatency =
-        Summary.build()
+        Summary
+            .build()
             .name("simba_db_inntektsmelding_repo_latency_seconds")
             .help("database inntektsmeldingRepo latency in seconds")
             .labelNames("method")
@@ -68,8 +71,7 @@ class InntektsmeldingRepository(private val db: Database) {
                         it[InntektsmeldingEntitet.dokument],
                         it[InntektsmeldingEntitet.eksternInntektsmelding],
                     )
-                }
-                .firstOrNull()
+                }.firstOrNull()
                 .also {
                     requestTimer.observeDuration()
                 }

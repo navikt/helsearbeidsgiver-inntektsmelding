@@ -51,7 +51,8 @@ class Tilgangskontroll(
                     publish(transaksjonId, innloggerFnr)
 
                     val resultat =
-                        redisPoller.hent(transaksjonId)
+                        redisPoller
+                            .hent(transaksjonId)
                             .fromJson(TilgangResultat.serializer())
 
                     resultat.tilgang ?: throw ManglerAltinnRettigheterException()

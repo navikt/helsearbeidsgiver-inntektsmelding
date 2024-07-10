@@ -15,23 +15,23 @@ class FailKanal(
     private val onFail: (JsonMessage, MessageContext) -> Unit,
 ) : River.PacketListener {
     init {
-        River(rapid).apply {
-            validate { msg ->
-                msg.demand(
-                    Key.FAIL to { it.fromJson(Fail.serializer()) },
-                )
-                msg.demandValues(
-                    Key.EVENT_NAME to event.name,
-                )
-                msg.requireKeys(Key.UUID)
-                msg.interestedIn(Key.FORESPOERSEL_ID)
-                msg.rejectKeys(
-                    Key.BEHOV,
-                    Key.DATA,
-                )
-            }
-        }
-            .register(this)
+        River(rapid)
+            .apply {
+                validate { msg ->
+                    msg.demand(
+                        Key.FAIL to { it.fromJson(Fail.serializer()) },
+                    )
+                    msg.demandValues(
+                        Key.EVENT_NAME to event.name,
+                    )
+                    msg.requireKeys(Key.UUID)
+                    msg.interestedIn(Key.FORESPOERSEL_ID)
+                    msg.rejectKeys(
+                        Key.BEHOV,
+                        Key.DATA,
+                    )
+                }
+            }.register(this)
     }
 
     override fun onPacket(

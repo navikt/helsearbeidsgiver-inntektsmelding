@@ -6,7 +6,9 @@ import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-class RedisStore(redisUrl: String) {
+class RedisStore(
+    redisUrl: String,
+) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -31,7 +33,8 @@ class RedisStore(redisUrl: String) {
 
     fun getAll(keys: Set<RedisKey>): Map<String, String> {
         val keysAsString = keys.map { it.toString() }.toTypedArray()
-        return syncCommands.mget(*keysAsString)
+        return syncCommands
+            .mget(*keysAsString)
             .associate { it.key to it.getValueOrElse(null) }
             .mapValuesNotNull { it }
             .also {

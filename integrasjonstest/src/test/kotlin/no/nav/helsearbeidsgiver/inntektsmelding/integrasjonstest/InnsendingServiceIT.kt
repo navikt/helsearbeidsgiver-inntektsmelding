@@ -75,7 +75,8 @@ class InnsendingServiceIT : EndToEndTest() {
         }
 
         // Forespørsel hentet
-        messages.filter(EventName.INSENDING_STARTED)
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.FORESPOERSEL_SVAR)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
@@ -86,7 +87,8 @@ class InnsendingServiceIT : EndToEndTest() {
             }
 
         // Virksomhetsnavn hentet
-        messages.filter(EventName.INSENDING_STARTED)
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.VIRKSOMHET)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
@@ -97,7 +99,8 @@ class InnsendingServiceIT : EndToEndTest() {
             }
 
         // Arbeidsforhold hentet
-        messages.filter(EventName.INSENDING_STARTED)
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.ARBEIDSFORHOLD)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
@@ -108,7 +111,8 @@ class InnsendingServiceIT : EndToEndTest() {
             }
 
         // Sykmeldt og innsender hentet
-        messages.filter(EventName.INSENDING_STARTED)
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.ARBEIDSTAKER_INFORMASJON)
             .filter(Key.ARBEIDSGIVER_INFORMASJON)
             .firstAsMap()
@@ -118,16 +122,19 @@ class InnsendingServiceIT : EndToEndTest() {
                 it shouldContainKey Key.DATA
 
                 shouldNotThrowAny {
-                    it[Key.ARBEIDSTAKER_INFORMASJON].shouldNotBeNull()
+                    it[Key.ARBEIDSTAKER_INFORMASJON]
+                        .shouldNotBeNull()
                         .fromJson(PersonDato.serializer())
 
-                    it[Key.ARBEIDSGIVER_INFORMASJON].shouldNotBeNull()
+                    it[Key.ARBEIDSGIVER_INFORMASJON]
+                        .shouldNotBeNull()
                         .fromJson(PersonDato.serializer())
                 }
             }
 
         // Inntektsmelding lagret
-        messages.filter(EventName.INSENDING_STARTED)
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
@@ -137,28 +144,34 @@ class InnsendingServiceIT : EndToEndTest() {
                 it shouldContainKey Key.DATA
 
                 shouldNotThrowAny {
-                    it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                        .shouldNotBeNull()
                         .fromJson(Inntektsmelding.serializer())
 
-                    it[Key.ER_DUPLIKAT_IM].shouldNotBeNull()
+                    it[Key.ER_DUPLIKAT_IM]
+                        .shouldNotBeNull()
                         .fromJson(Boolean.serializer())
                 }
             }
 
         // Siste melding fra service
-        messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_MOTTATT)
             .firstAsMap()
             .verifiserTransaksjonId(transaksjonId)
             .verifiserForespoerselId()
             .also {
                 shouldNotThrowAny {
-                    it[Key.UUID].shouldNotBeNull()
+                    it[Key.UUID]
+                        .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.FORESPOERSEL_ID].shouldNotBeNull()
+                    it[Key.FORESPOERSEL_ID]
+                        .shouldNotBeNull()
                         .fromJson(UuidSerializer)
 
-                    it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
+                    it[Key.INNTEKTSMELDING_DOKUMENT]
+                        .shouldNotBeNull()
                         .fromJson(Inntektsmelding.serializer())
                 }
             }
@@ -168,7 +181,8 @@ class InnsendingServiceIT : EndToEndTest() {
 
         // API besvart gjennom redis
         shouldNotThrowAny {
-            redisStore.get(RedisKey.of(Mock.clientId))
+            redisStore
+                .get(RedisKey.of(Mock.clientId))
                 .shouldNotBeNull()
                 .fromJson(ResultJson.serializer())
                 .success
@@ -208,7 +222,8 @@ class InnsendingServiceIT : EndToEndTest() {
                 sykmeldingsperioder = gyldigInnsendingRequest.fraværsperioder,
                 skjaeringstidspunkt = gyldigInnsendingRequest.bestemmendeFraværsdag,
                 bestemmendeFravaersdager =
-                    gyldigInnsendingRequest.fraværsperioder.lastOrNull()
+                    gyldigInnsendingRequest.fraværsperioder
+                        .lastOrNull()
                         ?.let { mapOf(gyldigInnsendingRequest.orgnrUnderenhet to it.fom) }
                         .orEmpty(),
                 forespurtData = mockForespurtData(),

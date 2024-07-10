@@ -58,13 +58,13 @@ class KvitteringService(
 
         logger.info("Sender event: ${event.name} for forespørsel $forespoerselId")
 
-        rapid.publish(
-            Key.BEHOV to BehovType.HENT_PERSISTERT_IM.toJson(),
-            Key.EVENT_NAME to event.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        )
-            .also {
+        rapid
+            .publish(
+                Key.BEHOV to BehovType.HENT_PERSISTERT_IM.toJson(),
+                Key.EVENT_NAME to event.toJson(),
+                Key.UUID to transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            ).also {
                 logger.info("Publiserte melding: ${it.toPretty()}")
             }
     }
@@ -85,8 +85,14 @@ class KvitteringService(
             ResultJson(
                 success =
                     InnsendtInntektsmelding(
-                        Key.INNTEKTSMELDING_DOKUMENT.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(Inntektsmelding.serializer()),
-                        Key.EKSTERN_INNTEKTSMELDING.les(String.serializer(), melding).takeIf { it != "{}" }?.fromJson(EksternInntektsmelding.serializer()),
+                        Key.INNTEKTSMELDING_DOKUMENT
+                            .les(String.serializer(), melding)
+                            .takeIf { it != "{}" }
+                            ?.fromJson(Inntektsmelding.serializer()),
+                        Key.EKSTERN_INNTEKTSMELDING
+                            .les(String.serializer(), melding)
+                            .takeIf { it != "{}" }
+                            ?.fromJson(EksternInntektsmelding.serializer()),
                     ).toJson(InnsendtInntektsmelding.serializer()),
             )
 
@@ -100,7 +106,8 @@ class KvitteringService(
         fail: Fail,
     ) {
         val clientId =
-            redisStore.get(RedisKey.of(fail.transaksjonId, event))
+            redisStore
+                .get(RedisKey.of(fail.transaksjonId, event))
                 ?.let(UUID::fromString)
 
         if (clientId == null) {

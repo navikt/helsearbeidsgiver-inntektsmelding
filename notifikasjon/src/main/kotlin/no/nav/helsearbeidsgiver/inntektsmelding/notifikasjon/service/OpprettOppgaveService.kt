@@ -119,7 +119,8 @@ class OpprettOppgaveService(
             }
 
             val clientId =
-                redisStore.get(RedisKey.of(fail.transaksjonId, event))
+                redisStore
+                    .get(RedisKey.of(fail.transaksjonId, event))
                     ?.let(UUID::fromString)
 
             if (clientId == null) {

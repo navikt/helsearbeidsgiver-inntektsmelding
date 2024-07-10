@@ -64,13 +64,13 @@ class InntektService(
             Log.transaksjonId(transaksjonId),
             Log.forespoerselId(forespoerselId),
         ) {
-            rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-            )
-                .also {
+            rapid
+                .publish(
+                    Key.EVENT_NAME to event.toJson(),
+                    Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                ).also {
                     MdcUtils.withLogFields(
                         Log.behov(BehovType.HENT_TRENGER_IM),
                     ) {
@@ -94,16 +94,16 @@ class InntektService(
                 val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
                 val skjaeringstidspunkt = Key.SKJAERINGSTIDSPUNKT.les(LocalDateSerializer, melding)
 
-                rapid.publish(
-                    Key.EVENT_NAME to event.toJson(),
-                    Key.BEHOV to BehovType.INNTEKT.toJson(),
-                    Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.FNR to forespoersel.fnr.toJson(),
-                    Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                )
-                    .also {
+                rapid
+                    .publish(
+                        Key.EVENT_NAME to event.toJson(),
+                        Key.BEHOV to BehovType.INNTEKT.toJson(),
+                        Key.ORGNRUNDERENHET to forespoersel.orgnr.toJson(),
+                        Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                        Key.FNR to forespoersel.fnr.toJson(),
+                        Key.SKJAERINGSTIDSPUNKT to skjaeringstidspunkt.toJson(),
+                        Key.UUID to transaksjonId.toJson(),
+                    ).also {
                         MdcUtils.withLogFields(
                             Log.behov(BehovType.INNTEKT),
                         ) {
@@ -120,7 +120,8 @@ class InntektService(
         val transaksjonId = Key.UUID.les(UuidSerializer, melding)
 
         val clientId =
-            RedisKey.of(transaksjonId, event)
+            RedisKey
+                .of(transaksjonId, event)
                 .read()
                 ?.let(UUID::fromString)
 
@@ -133,8 +134,7 @@ class InntektService(
             val resultJson =
                 ResultJson(
                     success = inntekt.toJson(Inntekt.serializer()),
-                )
-                    .toJson(ResultJson.serializer())
+                ).toJson(ResultJson.serializer())
 
             RedisKey.of(clientId).write(resultJson)
 
@@ -152,7 +152,8 @@ class InntektService(
         fail: Fail,
     ) {
         val clientId =
-            RedisKey.of(fail.transaksjonId, event)
+            RedisKey
+                .of(fail.transaksjonId, event)
                 .read()
                 ?.let(UUID::fromString)
 
@@ -168,8 +169,7 @@ class InntektService(
             val resultJson =
                 ResultJson(
                     failure = feilmelding.toJson(),
-                )
-                    .toJson(ResultJson.serializer())
+                ).toJson(ResultJson.serializer())
 
             "Returnerer feilmelding: '$feilmelding'".also {
                 logger.error(it)

@@ -26,16 +26,16 @@ class InnsendingProducer(
         request: Innsending,
         arbeidsgiverFnr: Fnr,
     ) {
-        rapid.publish(
-            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-            Key.CLIENT_ID to clientId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
-            Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),
-            Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson(),
-            Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer()),
-        )
-            .also {
+        rapid
+            .publish(
+                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+                Key.CLIENT_ID to clientId.toJson(),
+                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                Key.ORGNRUNDERENHET to request.orgnrUnderenhet.toJson(),
+                Key.IDENTITETSNUMMER to request.identitetsnummer.toJson(),
+                Key.ARBEIDSGIVER_ID to arbeidsgiverFnr.toJson(),
+                Key.SKJEMA_INNTEKTSMELDING to request.toJson(Innsending.serializer()),
+            ).also {
                 logger.info("Publiserte til kafka forespørselId: $forespoerselId og clientId=$clientId")
                 sikkerLogger.info("Publiserte til kafka forespørselId: $forespoerselId json=${it.toPretty()}")
             }

@@ -81,28 +81,32 @@ class InnsendingIT : EndToEndTest() {
             )
         }
 
-        messages.filter(EventName.INSENDING_STARTED)
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.INNTEKTSMELDING_DOKUMENT)
             .firstAsMap()
             .also {
                 // Ble lagret i databasen
                 it[Key.INNTEKTSMELDING_DOKUMENT].shouldNotBeNull()
             }
-        messages.filter(EventName.INSENDING_STARTED)
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
                 it[Key.ER_DUPLIKAT_IM]!!.fromJson(Boolean.serializer()) shouldBe false
             }
 
-        messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_MOTTATT)
             .firstAsMap()
             .also {
                 // EVENT: Mottatt inntektsmelding
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.INNTEKTSMELDING_MOTTATT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_MOTTATT)
             .filter(BehovType.LAGRE_JOURNALPOST_ID)
             .firstAsMap()
             .also {
@@ -111,7 +115,8 @@ class InnsendingIT : EndToEndTest() {
                 it[Key.JOURNALPOST_ID]?.fromJsonToString() shouldBe Mock.JOURNALPOST_ID
             }
 
-        messages.filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_JOURNALFOERT)
             .firstAsMap()
             .also {
                 it shouldContainKey Key.INNTEKTSMELDING_DOKUMENT
@@ -119,7 +124,8 @@ class InnsendingIT : EndToEndTest() {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
+        messages
+            .filter(EventName.INNTEKTSMELDING_DISTRIBUERT)
             .firstAsMap()
             .also {
                 // Verifiser at inntektsmelding er distribuert på ekstern kafka
@@ -174,7 +180,8 @@ class InnsendingIT : EndToEndTest() {
             )
         }
 
-        messages.filter(EventName.INSENDING_STARTED)
+        messages
+            .filter(EventName.INSENDING_STARTED)
             .filter(Key.ER_DUPLIKAT_IM)
             .firstAsMap()
             .also {
@@ -189,14 +196,16 @@ class InnsendingIT : EndToEndTest() {
     }
 
     private fun bekreftForventedeMeldingerForFerdigstilligAvOppgaveOgSak() {
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages
+            .filter(EventName.FORESPOERSEL_BESVART)
             .filter(BehovType.NOTIFIKASJON_HENT_ID)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
             }
 
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages
+            .filter(EventName.FORESPOERSEL_BESVART)
             .filter(Key.SAK_ID, utenDataKey = true)
             .firstAsMap()
             .also {
@@ -204,7 +213,8 @@ class InnsendingIT : EndToEndTest() {
                 Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
-        messages.filter(EventName.FORESPOERSEL_BESVART)
+        messages
+            .filter(EventName.FORESPOERSEL_BESVART)
             .filter(Key.OPPGAVE_ID, utenDataKey = true)
             .firstAsMap()
             .also {
@@ -212,14 +222,16 @@ class InnsendingIT : EndToEndTest() {
                 Key.OPPGAVE_ID.les(String.serializer(), it) shouldBe Mock.OPPGAVE_ID
             }
 
-        messages.filter(EventName.SAK_FERDIGSTILT)
+        messages
+            .filter(EventName.SAK_FERDIGSTILT)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
                 Key.SAK_ID.les(String.serializer(), it) shouldBe Mock.SAK_ID
             }
 
-        messages.filter(EventName.OPPGAVE_FERDIGSTILT)
+        messages
+            .filter(EventName.OPPGAVE_FERDIGSTILT)
             .firstAsMap()
             .also {
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId

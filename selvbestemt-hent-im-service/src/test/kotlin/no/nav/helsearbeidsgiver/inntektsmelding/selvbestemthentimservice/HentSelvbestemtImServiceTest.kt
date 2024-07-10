@@ -26,84 +26,84 @@ import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class HentSelvbestemtImServiceTest : FunSpec({
+class HentSelvbestemtImServiceTest :
+    FunSpec({
 
-    val testRapid = TestRapid()
-    val mockRedis = MockRedisClassSpecific(RedisPrefix.HentSelvbestemtImService)
+        val testRapid = TestRapid()
+        val mockRedis = MockRedisClassSpecific(RedisPrefix.HentSelvbestemtImService)
 
-    ServiceRiver(
-        HentSelvbestemtImService(testRapid, mockRedis.store),
-    )
-        .connect(testRapid)
+        ServiceRiver(
+            HentSelvbestemtImService(testRapid, mockRedis.store),
+        ).connect(testRapid)
 
-    beforeEach {
-        testRapid.reset()
-        clearAllMocks()
-        mockRedis.setup()
-    }
-
-    test("hent inntektsmelding") {
-        val transaksjonId = UUID.randomUUID()
-
-        testRapid.sendJson(
-            Mock.startMelding(transaksjonId),
-        )
-
-        testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
-
-        testRapid.sendJson(
-            Mock.dataMelding(transaksjonId),
-        )
-
-        testRapid.inspektør.size shouldBeExactly 1
-
-        verify {
-            mockRedis.store.set(
-                RedisKey.of(transaksjonId),
-                ResultJson(
-                    success = Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
-                ).toJson(ResultJson.serializer()),
-            )
+        beforeEach {
+            testRapid.reset()
+            clearAllMocks()
+            mockRedis.setup()
         }
-    }
 
-    test("svar med feilmelding ved uhåndterbare feil") {
-        val transaksjonId = UUID.randomUUID()
-        val feilmelding = "Snitches get stitches (fordi vi har gratis helsevesen)"
+        test("hent inntektsmelding") {
+            val transaksjonId = UUID.randomUUID()
 
-        testRapid.sendJson(
-            Mock.startMelding(transaksjonId),
-        )
+            testRapid.sendJson(
+                Mock.startMelding(transaksjonId),
+            )
 
-        testRapid.sendJson(
-            Fail(
-                feilmelding = feilmelding,
-                event = EventName.SELVBESTEMT_IM_REQUESTED,
-                transaksjonId = transaksjonId,
-                forespoerselId = null,
-                utloesendeMelding =
-                    JsonObject(
-                        mapOf(
-                            Key.BEHOV.toString() to BehovType.HENT_SELVBESTEMT_IM.toJson(),
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
+
+            testRapid.sendJson(
+                Mock.dataMelding(transaksjonId),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            verify {
+                mockRedis.store.set(
+                    RedisKey.of(transaksjonId),
+                    ResultJson(
+                        success = Mock.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                    ).toJson(ResultJson.serializer()),
+                )
+            }
+        }
+
+        test("svar med feilmelding ved uhåndterbare feil") {
+            val transaksjonId = UUID.randomUUID()
+            val feilmelding = "Snitches get stitches (fordi vi har gratis helsevesen)"
+
+            testRapid.sendJson(
+                Mock.startMelding(transaksjonId),
+            )
+
+            testRapid.sendJson(
+                Fail(
+                    feilmelding = feilmelding,
+                    event = EventName.SELVBESTEMT_IM_REQUESTED,
+                    transaksjonId = transaksjonId,
+                    forespoerselId = null,
+                    utloesendeMelding =
+                        JsonObject(
+                            mapOf(
+                                Key.BEHOV.toString() to BehovType.HENT_SELVBESTEMT_IM.toJson(),
+                            ),
                         ),
-                    ),
-            ).tilMelding(),
-        )
-
-        testRapid.inspektør.size shouldBeExactly 1
-        testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
-
-        verify {
-            mockRedis.store.set(
-                RedisKey.of(transaksjonId),
-                ResultJson(
-                    failure = feilmelding.toJson(),
-                ).toJson(ResultJson.serializer()),
+                ).tilMelding(),
             )
+
+            testRapid.inspektør.size shouldBeExactly 1
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_SELVBESTEMT_IM
+
+            verify {
+                mockRedis.store.set(
+                    RedisKey.of(transaksjonId),
+                    ResultJson(
+                        failure = feilmelding.toJson(),
+                    ).toJson(ResultJson.serializer()),
+                )
+            }
         }
-    }
-})
+    })
 
 private object Mock {
     private val selvbestemtId: UUID = UUID.randomUUID()

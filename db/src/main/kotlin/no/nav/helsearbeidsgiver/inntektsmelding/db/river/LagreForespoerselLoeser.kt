@@ -12,15 +12,17 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class LagreForespoerselLoeser(rapidsConnection: RapidsConnection, private val repository: ForespoerselRepository) : Loeser(rapidsConnection) {
-    override fun accept(): River.PacketValidation {
-        return River.PacketValidation {
+class LagreForespoerselLoeser(
+    rapidsConnection: RapidsConnection,
+    private val repository: ForespoerselRepository,
+) : Loeser(rapidsConnection) {
+    override fun accept(): River.PacketValidation =
+        River.PacketValidation {
             it.demandValue(Key.BEHOV.str, BehovType.LAGRE_FORESPOERSEL.name)
             it.requireKey(Key.ORGNRUNDERENHET.str)
             it.requireKey(Key.IDENTITETSNUMMER.str)
             it.requireKey(Key.FORESPOERSEL_ID.str)
         }
-    }
 
     override fun onBehov(behov: Behov) {
         val forespoerselId = behov.forespoerselId!!.let(UUID::fromString)

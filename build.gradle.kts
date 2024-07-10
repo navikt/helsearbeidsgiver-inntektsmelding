@@ -10,35 +10,22 @@ plugins {
     id("jvm-test-suite")
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
-
-dependencies {
-    subprojects
-        .filter { it.name != "integrasjonstest" }
-        .forEach {
-            jacocoAggregation(project(":${it.name}"))
-        }
-}
-
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
     }
 }
 
-allprojects {
-    tasks {
-        withType<Test> {
-            useJUnitPlatform()
-            testLogging {
-                events("skipped", "failed")
-            }
-        }
-    }
+subprojects {
+    group = "no.nav.helsearbeidsgiver.inntektsmelding"
+
+    applyPlugins(
+        "org.jetbrains.kotlin.jvm",
+        "org.jetbrains.kotlin.plugin.serialization",
+        "org.jmailen.kotlinter",
+        "java",
+        "jacoco",
+    )
 
     repositories {
         val githubPassword: String by project
@@ -52,21 +39,15 @@ allprojects {
             }
         }
     }
-}
-
-subprojects {
-    group = "no.nav.helsearbeidsgiver.inntektsmelding"
-    version = properties["version"] ?: "local-build"
-
-    applyPlugins(
-        "org.jetbrains.kotlin.jvm",
-        "org.jetbrains.kotlin.plugin.serialization",
-        "org.jmailen.kotlinter",
-        "java",
-        "jacoco",
-    )
 
     tasks {
+        withType<Test> {
+            useJUnitPlatform()
+            testLogging {
+                events("skipped", "failed")
+            }
+        }
+
         if (!project.erFellesModul() && !project.erFellesDatabaseModul()) {
             named<Jar>("jar") {
                 archiveBaseName.set("app")
@@ -142,6 +123,14 @@ subprojects {
     }
 }
 
+dependencies {
+    subprojects
+        .filterNot { it.erIntegrasjonstestModul() }
+        .forEach {
+            jacocoAggregation(project(":${it.name}"))
+        }
+}
+
 tasks {
     create("buildMatrix") {
         doLast {
@@ -186,18 +175,21 @@ fun getBuildableProjects(buildAll: Boolean = false): List<String> {
             ?: throw IllegalStateException("Ingen endrede filer funnet.")
 
     val hasCommonChanges =
-        changedFiles.any { it.startsWith("felles/") } ||
-            changedFiles.containsAny(
-                "Dockerfile",
-                ".github/workflows/build.yml",
-                "config/nais.yml",
-                "build.gradle.kts",
-                "gradle.properties",
-            )
+        changedFiles.any {
+            it.startsWith("felles/") ||
+                it in
+                listOf(
+                    "Dockerfile",
+                    ".github/workflows/build.yml",
+                    "config/nais.yml",
+                    "build.gradle.kts",
+                    "gradle.properties",
+                )
+        }
 
     return subprojects
+        .filterNot { it.erIntegrasjonstestModul() }
         .map { it.name }
-        .filter { it != "integrasjonstest" }
         .let { projects ->
             if (hasCommonChanges) {
                 projects
@@ -278,7 +270,7 @@ fun Project.erFellesModul(): Boolean = name == "felles"
 
 fun Project.erFellesDatabaseModul(): Boolean = name == "felles-db-exposed"
 
-fun List<String>.containsAny(vararg others: String): Boolean = this.intersect(others.toSet()).isNotEmpty()
+fun Project.erIntegrasjonstestModul(): Boolean = name == "integrasjonstest"
 
 fun Task.deployMatrix(
     includeCluster: String? = null,

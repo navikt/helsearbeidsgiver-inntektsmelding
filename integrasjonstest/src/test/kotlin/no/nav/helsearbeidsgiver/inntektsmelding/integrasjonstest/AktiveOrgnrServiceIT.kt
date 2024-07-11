@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
@@ -76,8 +77,11 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
-            .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnrAg
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), data) shouldBe Mock.fnrAg
+            }
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
@@ -90,9 +94,12 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
-            .filter(Key.ORG_RETTIGHETER)
-            .firstAsMap()[Key.ORG_RETTIGHETER]
-            ?.fromJson(String.serializer().set()) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+            .filter(Key.ORG_RETTIGHETER, nestedData = true)
+            .firstAsMap()
+            .also { melding ->
+                val data = melding[Key.DATA].shouldNotBeNull().toMap()
+                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+            }
 
         aktiveOrgnrMeldinger
             .filter(Key.ARBEIDSFORHOLD)
@@ -135,8 +142,11 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSGIVERE)
-            .firstAsMap()[Key.IDENTITETSNUMMER]
-            ?.fromJson(Fnr.serializer()) shouldBe Mock.fnrAg
+            .firstAsMap()
+            .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+                Key.ARBEIDSGIVER_FNR.les(Fnr.serializer(), data) shouldBe Mock.fnrAg
+            }
 
         aktiveOrgnrMeldinger
             .filter(BehovType.ARBEIDSFORHOLD)
@@ -149,9 +159,12 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             ?.fromJson(Fnr.serializer().list()) shouldBe listOf(Mock.fnr, Mock.fnrAg)
 
         aktiveOrgnrMeldinger
-            .filter(Key.ORG_RETTIGHETER)
-            .firstAsMap()[Key.ORG_RETTIGHETER]
-            ?.fromJson(String.serializer().set()) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+            .filter(Key.ORG_RETTIGHETER, nestedData = true)
+            .firstAsMap()
+            .also { melding ->
+                val data = melding[Key.DATA].shouldNotBeNull().toMap()
+                Key.ORG_RETTIGHETER.les(String.serializer().set(), data) shouldContainExactly Mock.altinnOrganisasjonSet.mapNotNull { it.orgnr }.toSet()
+            }
 
         aktiveOrgnrMeldinger
             .filter(Key.ARBEIDSFORHOLD)

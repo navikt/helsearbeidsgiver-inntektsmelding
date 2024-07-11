@@ -126,7 +126,10 @@ class AktiveOrgnrService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.ARBEIDSGIVERE.toJson(),
                 Key.UUID to transaksjonId.toJson(),
-                Key.IDENTITETSNUMMER to innloggetFnr.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.ARBEIDSGIVER_FNR to innloggetFnr.toJson(),
+                    ).toJson(),
             )
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),

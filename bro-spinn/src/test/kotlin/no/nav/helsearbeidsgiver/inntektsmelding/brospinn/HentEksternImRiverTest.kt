@@ -52,7 +52,7 @@ class HentEksternImRiverTest :
 
             testRapid.firstMessage().toMap() shouldContainExactly
                 mapOf(
-                    Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
+                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
                     Key.UUID to innkommendeMelding.transaksjonId.toJson(),
                     Key.DATA to
                         innkommendeMelding.data
@@ -133,15 +133,6 @@ class HentEksternImRiverTest :
     })
 
 private object MockHent {
-    val fail =
-        Fail(
-            feilmelding = "Vi spiller ikke Flo Rida sin versjon.",
-            event = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
-
     fun innkommendeMelding(): HentEksternImMelding {
         val forespoerselId = UUID.randomUUID()
         val spinnImId = UUID.randomUUID()
@@ -170,6 +161,15 @@ private object MockHent {
                     Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Key.SPINN_INNTEKTSMELDING_ID to spinnImId.toJson(),
                 ).toJson(),
+        )
+
+    val fail =
+        Fail(
+            feilmelding = "Vi spiller ikke Flo Rida sin versjon.",
+            event = EventName.EKSTERN_INNTEKTSMELDING_REQUESTED,
+            transaksjonId = UUID.randomUUID(),
+            forespoerselId = UUID.randomUUID(),
+            utloesendeMelding = JsonNull,
         )
 
     val eksternInntektsmelding =

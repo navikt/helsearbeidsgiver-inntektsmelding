@@ -50,7 +50,7 @@ private fun createMaskinportenClient(): MaskinportenClient =
         ),
     )
 
-fun MaskinportenClient.getToken() =
+private fun MaskinportenClient.getToken() =
     runBlocking {
         fetchNewAccessToken().tokenResponse.accessToken
     }

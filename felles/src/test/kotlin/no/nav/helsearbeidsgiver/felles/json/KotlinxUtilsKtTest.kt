@@ -5,6 +5,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.Row2
 import io.kotest.data.row
 import io.kotest.datatest.withData
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonNull
@@ -88,16 +90,18 @@ class KotlinxUtilsKtTest :
 
             withData(
                 mapOf(
-                    "gir IllegalArgumentException dersom nøkkel ikke finnes" to emptyMap(),
-                    "gir IllegalArgumentException dersom nøkkel finnes, men verdi er null-json" to mapOf(Key.EVENT_NAME to JsonNull),
+                    "gir MeldingException dersom nøkkel ikke finnes" to emptyMap(),
+                    "gir MeldingException dersom nøkkel finnes, men verdi er null-json" to mapOf(Key.EVENT_NAME to JsonNull),
                 ),
             ) { jsonMap ->
                 val e =
-                    shouldThrowExactly<IllegalArgumentException> {
+                    shouldThrowExactly<MeldingException> {
                         Key.EVENT_NAME.les(EventName.serializer(), jsonMap)
                     }
 
                 e.message shouldBe "Felt '${Key.EVENT_NAME}' mangler i JSON-map."
+                e.stackTrace.shouldBeEmpty()
+                e.fillInStackTrace().shouldBeNull()
             }
         }
     })

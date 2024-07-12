@@ -13,11 +13,9 @@ import kotlin.time.Duration.Companion.minutes
 private val logger = "helsearbeidsgiver-im-altinn".logger()
 
 fun main() {
-    val maskinportenClient = createMaskinportenClient()
-    val altinnClient = createAltinnClient(maskinportenClient)
     RapidApplication
         .create(System.getenv())
-        .createAltinn(altinnClient)
+        .createAltinn(createAltinnClient())
         .start()
 }
 
@@ -30,14 +28,16 @@ fun RapidsConnection.createAltinn(altinnClient: AltinnClient): RapidsConnection 
         AltinnRiver(altinnClient).connect(this)
     }
 
-private fun createAltinnClient(maskinportenClient: MaskinportenClient): AltinnClient =
-    AltinnClient(
+private fun createAltinnClient(): AltinnClient {
+    val maskinportenClient: MaskinportenClient = createMaskinportenClient()
+    return AltinnClient(
         url = Env.url,
         serviceCode = Env.serviceCode,
         getToken = maskinportenClient::getToken,
         altinnApiKey = Env.altinnApiKey,
         cacheConfig = CacheConfig(60.minutes, 100),
     )
+}
 
 private fun createMaskinportenClient(): MaskinportenClient =
     MaskinportenClient(

@@ -23,13 +23,13 @@ import java.util.UUID
 
 private const val AVSENDER_NAV_NO = "NAV_NO"
 
-class Steg0(
+data class Steg0(
     val transaksjonId: UUID,
     val forespoerselId: UUID,
     val spinnImId: UUID,
 )
 
-class Steg1(
+data class Steg1(
     val eksternInntektsmelding: EksternInntektsmelding,
 )
 
@@ -64,25 +64,23 @@ class SpinnService(
         )
 
     override fun utfoerSteg0(steg0: Steg0) {
-        withLogFields(steg0) {
-            val publisert =
-                rapid.publish(
-                    Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
-                    Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                            Key.SPINN_INNTEKTSMELDING_ID to steg0.spinnImId.toJson(),
-                        ).toJson(),
-                )
+        val publisert =
+            rapid.publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.HENT_EKSTERN_INNTEKTSMELDING.toJson(),
+                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.SPINN_INNTEKTSMELDING_ID to steg0.spinnImId.toJson(),
+                    ).toJson(),
+            )
 
-            MdcUtils.withLogFields(
-                Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING),
-            ) {
-                logger.info("Publiserte melding om ${BehovType.HENT_EKSTERN_INNTEKTSMELDING}.")
-                sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}.")
-            }
+        MdcUtils.withLogFields(
+            Log.behov(BehovType.HENT_EKSTERN_INNTEKTSMELDING),
+        ) {
+            logger.info("Publiserte melding om ${BehovType.HENT_EKSTERN_INNTEKTSMELDING}.")
+            sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}.")
         }
     }
 
@@ -90,28 +88,26 @@ class SpinnService(
         steg0: Steg0,
         steg1: Steg1,
     ) {
-        withLogFields(steg0) {
-            if (steg1.eksternInntektsmelding.avsenderSystemNavn != AVSENDER_NAV_NO) {
-                val publisert =
-                    rapid.publish(
-                        Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
-                        Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
-                        Key.UUID to steg0.transaksjonId.toJson(),
-                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                        Key.EKSTERN_INNTEKTSMELDING to steg1.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
-                    )
+        if (steg1.eksternInntektsmelding.avsenderSystemNavn != AVSENDER_NAV_NO) {
+            val publisert =
+                rapid.publish(
+                    Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_MOTTATT.toJson(),
+                    Key.BEHOV to BehovType.LAGRE_EKSTERN_INNTEKTSMELDING.toJson(),
+                    Key.UUID to steg0.transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    Key.EKSTERN_INNTEKTSMELDING to steg1.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                )
 
-                MdcUtils.withLogFields(
-                    Log.event(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT),
-                    Log.behov(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING),
-                ) {
-                    logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING}.")
-                    sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}")
-                }
+            MdcUtils.withLogFields(
+                Log.event(EventName.EKSTERN_INNTEKTSMELDING_MOTTATT),
+                Log.behov(BehovType.LAGRE_EKSTERN_INNTEKTSMELDING),
+            ) {
+                logger.info("Publiserte melding om ${BehovType.LAGRE_EKSTERN_INNTEKTSMELDING}.")
+                sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}")
             }
-
-            sikkerLogger.info("$eventName fullført.")
         }
+
+        sikkerLogger.info("$eventName fullført.")
     }
 
     override fun onError(
@@ -127,17 +123,11 @@ class SpinnService(
         }
     }
 
-    private fun withLogFields(
-        steg0: Steg0,
-        block: () -> Unit,
-    ) {
-        MdcUtils.withLogFields(
-            Log.klasse(this),
+    override fun Steg0.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@SpinnService),
             Log.event(eventName),
-            Log.transaksjonId(steg0.transaksjonId),
-            Log.forespoerselId(steg0.forespoerselId),
-        ) {
-            block()
-        }
-    }
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId),
+        )
 }

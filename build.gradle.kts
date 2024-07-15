@@ -16,6 +16,20 @@ kotlin {
     }
 }
 
+allprojects {
+    repositories {
+        val githubPassword: String by project
+        mavenCentral()
+        maven {
+            setUrl("https://maven.pkg.github.com/navikt/*")
+            credentials {
+                username = "x-access-token"
+                password = githubPassword
+            }
+        }
+    }
+}
+
 subprojects {
     group = "no.nav.helsearbeidsgiver.inntektsmelding"
 
@@ -26,19 +40,6 @@ subprojects {
         "java",
         "jacoco",
     )
-
-    repositories {
-        val githubPassword: String by project
-
-        mavenCentral()
-        maven {
-            setUrl("https://maven.pkg.github.com/navikt/*")
-            credentials {
-                username = "x-access-token"
-                password = githubPassword
-            }
-        }
-    }
 
     tasks {
         withType<Test> {

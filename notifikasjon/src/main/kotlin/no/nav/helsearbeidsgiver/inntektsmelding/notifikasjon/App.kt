@@ -4,8 +4,12 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjonKlient
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.ForespoerselLagretRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.river.OppgaveFerdigLoeser
@@ -24,6 +28,7 @@ private val logger = "im-notifikasjon".logger()
 
 fun main() {
     val redisStore = RedisStore(Env.redisUrl)
+    val redisConnection = RedisConnection(Env.redisUrl)
 
     val database = Database("NAIS_DATABASE_IM_NOTIFIKASJON_NOTIFIKASJON")
 
@@ -39,9 +44,11 @@ fun main() {
             Env.linkUrl,
             selvbestemtRepo,
             redisStore,
+            redisConnection,
             buildClient(),
         ).registerShutdownLifecycle {
             redisStore.shutdown()
+            redisConnection.close()
 
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
             database.dataSource.close()
@@ -52,6 +59,7 @@ fun RapidsConnection.createNotifikasjonRivers(
     linkUrl: String,
     selvbestemtRepo: SelvbestemtRepo,
     redisStore: RedisStore,
+    redisConnection: RedisConnection,
     arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
 ): RapidsConnection =
     also {
@@ -59,7 +67,12 @@ fun RapidsConnection.createNotifikasjonRivers(
         ForespoerselLagretRiver(this)
 
         logger.info("Starter ${OpprettSakService::class.simpleName}...")
-        OpprettSakService(this, redisStore)
+        ServiceRiver(
+            OpprettSakService(
+                rapid = this,
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.OpprettSakService),
+            ),
+        ).connect(this)
 
         logger.info("Starter ${OpprettSakLoeser::class.simpleName}...")
         OpprettSakLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)

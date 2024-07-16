@@ -230,7 +230,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, redisStore, arbeidsgiverNotifikasjonKlient)
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, redisStore, redisConnection, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
         }
     }

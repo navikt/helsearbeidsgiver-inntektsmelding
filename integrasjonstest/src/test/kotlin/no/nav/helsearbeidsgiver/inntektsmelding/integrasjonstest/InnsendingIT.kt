@@ -5,7 +5,6 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
@@ -19,7 +18,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
 import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.innsending.mapInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockInnsending
@@ -30,7 +28,8 @@ import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.maxMekker
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -68,18 +67,16 @@ class InnsendingIT : EndToEndTest() {
                 dokumenter = emptyList(),
             )
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-            publish(
-                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                Key.CLIENT_ID to UUID.randomUUID().toJson(),
-                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
-                Key.IDENTITETSNUMMER to Mock.skjema.identitetsnummer.toJson(),
-                Key.ARBEIDSGIVER_ID to Mock.skjema.identitetsnummer.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
-            )
-        }
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
+            Key.IDENTITETSNUMMER to Mock.skjema.identitetsnummer.toJson(),
+            Key.ARBEIDSGIVER_ID to Mock.skjema.identitetsnummer.toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
+        )
 
         messages
             .filter(EventName.INSENDING_STARTED)
@@ -167,18 +164,16 @@ class InnsendingIT : EndToEndTest() {
 
         coEvery { brregClient.hentVirksomhetNavn(any()) } returns "Bedrift A/S"
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-            publish(
-                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                Key.CLIENT_ID to UUID.randomUUID().toJson(),
-                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
-                Key.IDENTITETSNUMMER to bjarneBetjent.ident!!.toJson(),
-                Key.ARBEIDSGIVER_ID to maxMekker.ident!!.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
-            )
-        }
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Key.ORGNRUNDERENHET to Mock.skjema.orgnrUnderenhet.toJson(),
+            Key.IDENTITETSNUMMER to bjarneBetjent.ident!!.toJson(),
+            Key.ARBEIDSGIVER_ID to maxMekker.ident!!.toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(Innsending.serializer()),
+        )
 
         messages
             .filter(EventName.INSENDING_STARTED)
@@ -254,7 +249,7 @@ class InnsendingIT : EndToEndTest() {
         const val OPPGAVE_ID = "neglisjert-sommer"
 
         val forespoerselId: UUID = UUID.randomUUID()
-        val skjema = mockInnsending().copy(identitetsnummer = "fnr-bjarne")
+        val skjema = mockInnsending().copy(identitetsnummer = Fnr.genererGyldig().verdi)
 
         private val forespoersel = skjema.tilForespoersel(UUID.randomUUID())
 

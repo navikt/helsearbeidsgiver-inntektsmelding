@@ -1,60 +1,153 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.data.row
+import io.kotest.datatest.withData
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.verify
-import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.InnsendtInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
+import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class KvitteringServiceTest {
-    private val testRapid: TestRapid = TestRapid()
-    private val mockRedis = MockRedis()
+class KvitteringServiceTest :
+    FunSpec({
+        val testRapid = TestRapid()
+        val mockRedis = MockRedisClassSpecific(RedisPrefix.KvitteringService)
 
-    private val foresporselId = UUID.randomUUID()
+        ServiceRiver(
+            KvitteringService(testRapid, mockRedis.store),
+        ).connect(testRapid)
 
-    init {
-        KvitteringService(testRapid, mockRedis.store)
-    }
+        beforeTest {
+            testRapid.reset()
+            clearAllMocks()
+            mockRedis.setup()
+        }
 
-    @BeforeEach
-    fun setup() {
-        testRapid.reset()
-        clearAllMocks()
-        mockRedis.setup()
-    }
+        context("kvittering hentes") {
+            withData(
+                mapOf(
+                    "inntektsmelding hentes" to row(mockInntektsmelding(), null),
+                    "ekstern inntektsmelding hentes" to row(null, mockEksternInntektsmelding()),
+                    "ingen inntektsmelding funnet" to row(null, null),
+                    "begge typer inntektsmelding funnet (skal ikke skje)" to row(mockInntektsmelding(), mockEksternInntektsmelding()),
+                ),
+            ) { (expectedInntektsmelding, expectedEksternInntektsmelding) ->
+                val transaksjonId: UUID = UUID.randomUUID()
+                val expectedSuccess = MockKvittering.successResult(expectedInntektsmelding, expectedEksternInntektsmelding)
 
-    @Test
-    fun kvitteringServiceTest() {
-        val transaksjonId = UUID.randomUUID()
-        val im = "inntektsmelding_FTW"
+                testRapid.sendJson(
+                    MockKvittering.steg0(transaksjonId),
+                )
 
-        testRapid.sendJson(
-            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson(),
-        )
+                testRapid.inspektør.size shouldBeExactly 1
+                testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_PERSISTERT_IM
 
-        testRapid.reset()
+                testRapid.sendJson(
+                    MockKvittering.steg1(transaksjonId, expectedInntektsmelding, expectedEksternInntektsmelding),
+                )
 
-        testRapid.sendJson(
+                testRapid.inspektør.size shouldBeExactly 1
+
+                verify {
+                    mockRedis.store.set(RedisKey.of(transaksjonId), expectedSuccess)
+                }
+            }
+        }
+
+        test("svarer med feilmelding dersom man ikke klarer å hente inntektsmelding") {
+            val expectedFailure = MockKvittering.failureResult()
+
+            testRapid.sendJson(
+                MockKvittering.steg0(MockKvittering.fail.transaksjonId),
+            )
+
+            testRapid.sendJson(
+                MockKvittering.fail.tilMelding(),
+            )
+
+            testRapid.inspektør.size shouldBeExactly 1
+
+            verify {
+                mockRedis.store.set(RedisKey.of(MockKvittering.fail.transaksjonId), expectedFailure)
+            }
+        }
+    })
+
+private object MockKvittering {
+    val foresporselId: UUID = UUID.randomUUID()
+
+    fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
+        mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson(),
             Key.DATA to "".toJson(),
-            Key.INNTEKTSMELDING_DOKUMENT to im.toJson(),
+            Key.FORESPOERSEL_ID to foresporselId.toJson(),
         )
 
-        verify {
-            mockRedis.store.set(RedisKey.of(transaksjonId, Key.INNTEKTSMELDING_DOKUMENT), im.toJsonStr(String.serializer()))
-        }
-    }
+    fun steg1(
+        transaksjonId: UUID,
+        inntektsmelding: Inntektsmelding?,
+        eksternInntektsmelding: EksternInntektsmelding?,
+    ): Map<Key, JsonElement> =
+        mapOf(
+            Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FORESPOERSEL_ID to foresporselId.toJson(),
+            Key.INNTEKTSMELDING_DOKUMENT to
+                ResultJson(
+                    success =
+                        inntektsmelding?.toJson(Inntektsmelding.serializer()),
+                ).toJson(ResultJson.serializer()),
+            Key.EKSTERN_INNTEKTSMELDING to
+                ResultJson(
+                    success =
+                        eksternInntektsmelding?.toJson(EksternInntektsmelding.serializer()),
+                ).toJson(ResultJson.serializer()),
+        )
+
+    fun successResult(
+        inntektsmelding: Inntektsmelding?,
+        eksternInntektsmelding: EksternInntektsmelding?,
+    ): JsonElement =
+        ResultJson(
+            success = InnsendtInntektsmelding(inntektsmelding, eksternInntektsmelding).toJson(InnsendtInntektsmelding.serializer()),
+        ).toJson(ResultJson.serializer())
+
+    fun failureResult(): JsonElement =
+        ResultJson(
+            failure = fail.feilmelding.toJson(),
+        ).toJson(ResultJson.serializer())
+
+    val fail =
+        Fail(
+            feilmelding = "Fool of a Took!",
+            event = EventName.KVITTERING_REQUESTED,
+            transaksjonId = UUID.randomUUID(),
+            forespoerselId = null,
+            utloesendeMelding = JsonNull,
+        )
 }

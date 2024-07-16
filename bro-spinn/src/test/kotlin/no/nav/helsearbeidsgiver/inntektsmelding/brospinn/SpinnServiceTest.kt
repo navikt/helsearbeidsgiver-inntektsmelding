@@ -18,11 +18,11 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID
 
 class SpinnServiceTest :
@@ -70,14 +70,14 @@ class SpinnServiceTest :
                     mapOf(
                         Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
                         Key.SPINN_INNTEKTSMELDING_ID to Mock.spinnInntektsmeldingId.toJson(),
-                        Key.EKSTERN_INNTEKTSMELDING to Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                        Key.EKSTERN_INNTEKTSMELDING to mockEksternInntektsmelding().toJson(EksternInntektsmelding.serializer()),
                     ).toJson(),
             )
 
             verify {
                 mockRedis.store.set(
                     RedisKey.of(Mock.transaksjonId, Key.EKSTERN_INNTEKTSMELDING),
-                    Mock.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                    mockEksternInntektsmelding().toJson(EksternInntektsmelding.serializer()),
                 )
             }
         }
@@ -87,12 +87,4 @@ private object Mock {
     val transaksjonId: UUID = UUID.randomUUID()
     val forespoerselId: UUID = UUID.randomUUID()
     val spinnInntektsmeldingId: UUID = UUID.randomUUID()
-
-    val eksternInntektsmelding =
-        EksternInntektsmelding(
-            "AltinnPortal",
-            "1.438",
-            "AR123456",
-            1.januar(2020).atStartOfDay(),
-        )
 }

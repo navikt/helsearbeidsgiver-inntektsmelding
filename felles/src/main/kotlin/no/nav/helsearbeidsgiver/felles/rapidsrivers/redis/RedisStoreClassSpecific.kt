@@ -90,6 +90,7 @@ enum class RedisPrefix {
     InntektService,
     KvitteringService,
     LagreSelvbestemtImService,
+    ManuellOpprettSakService,
     OpprettOppgaveService,
     OpprettSakService,
     SpinnService,

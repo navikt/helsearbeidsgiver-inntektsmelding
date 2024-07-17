@@ -59,10 +59,10 @@ class ForespoerselMottattIT : EndToEndTest() {
     }
 
     private object Mock {
-        var FNR = "fnr-rebekka"
+        const val FNR = "fnr-rebekka"
         const val ORGNR = "orgnr-gås"
 
-        val forespoerselId = UUID.randomUUID()
+        val forespoerselId: UUID = UUID.randomUUID()
         val transaksjonId: UUID = UUID.randomUUID()
     }
 }

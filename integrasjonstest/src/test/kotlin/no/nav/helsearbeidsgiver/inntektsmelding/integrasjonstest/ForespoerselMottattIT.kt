@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.util.UUID
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ForespoerselMottattIT : EndToEndTest() {
@@ -59,10 +59,10 @@ class ForespoerselMottattIT : EndToEndTest() {
     }
 
     private object Mock {
-        const val FNR = "fnr-rebekka"
+         var FNR = "fnr-rebekka"
         const val ORGNR = "orgnr-gås"
 
-        val forespoerselId: UUID = UUID.randomUUID()
+        val forespoerselId = UUID.randomUUID()
         val transaksjonId: UUID = UUID.randomUUID()
     }
 }

@@ -29,7 +29,7 @@ fun RapidsConnection.createAltinn(altinnClient: AltinnClient): RapidsConnection 
     }
 
 private fun createAltinnClient(): AltinnClient {
-    val maskinportenClient: MaskinportenClient = createMaskinportenClient()
+    val maskinportenClient = createMaskinportenClient()
     return AltinnClient(
         url = Env.url,
         serviceCode = Env.serviceCode,
@@ -42,11 +42,11 @@ private fun createAltinnClient(): AltinnClient {
 private fun createMaskinportenClient(): MaskinportenClient =
     MaskinportenClient(
         MaskinportenClientConfig(
-            Env.Maskinporten.altinnScope,
-            Env.Maskinporten.endpoint,
-            Env.Maskinporten.clientJwk,
-            Env.Maskinporten.issuer,
-            Env.Maskinporten.clientId,
+            scope = Env.Maskinporten.altinnScope,
+            endpoint = Env.Maskinporten.endpoint,
+            clientJwk = Env.Maskinporten.clientJwk,
+            issuer = Env.Maskinporten.issuer,
+            clientId = Env.Maskinporten.clientId,
         ),
     )
 

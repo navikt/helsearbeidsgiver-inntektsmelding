@@ -86,6 +86,7 @@ private val resultatMedInntektsmelding =
             "tidspunkt": "2023-04-13T16:28:16.095083285+02:00",
             "årsakInnsending": "NY",
             "identitetsnummerInnsender": ""
-        }
+        },
+        "eksternInntektsmelding": null
     }
     """.removeJsonWhitespace()

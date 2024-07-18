@@ -17,19 +17,11 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.json.readFail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.januar
 import java.util.UUID
-
-val eksternInntektsmelding =
-    EksternInntektsmelding(
-        avsenderSystemNavn = "NAV_NO",
-        avsenderSystemVersjon = "1.63",
-        arkivreferanse = "im1234567",
-        11.januar(2018).atStartOfDay(),
-    )
 
 class EksternInntektsmeldingLoeserTest :
     FunSpec({
@@ -43,7 +35,7 @@ class EksternInntektsmeldingLoeserTest :
             testRapid.reset()
             clearAllMocks()
         }
-        every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
+        every { spinnKlient.hentEksternInntektsmelding(any()) } returns mockEksternInntektsmelding()
 
         xtest("Ved når inntektsmeldingId mangler skal feil publiseres") {
             testRapid.sendJson(
@@ -78,7 +70,7 @@ class EksternInntektsmeldingLoeserTest :
         }
 
         test("Hvis Inntektsmelding finnes publiseres data") {
-            every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
+            every { spinnKlient.hentEksternInntektsmelding(any()) } returns mockEksternInntektsmelding()
 
             testRapid.sendJson(
                 Key.EVENT_NAME to EventName.FORESPOERSEL_BESVART.toJson(),
@@ -92,7 +84,7 @@ class EksternInntektsmeldingLoeserTest :
             testRapid.inspektør.size shouldBeExactly 1
 
             Key.EVENT_NAME.lesOrNull(EventName.serializer(), actual) shouldBe EventName.FORESPOERSEL_BESVART
-            Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), actual) shouldBe eksternInntektsmelding
+            Key.EKSTERN_INNTEKTSMELDING.lesOrNull(EksternInntektsmelding.serializer(), actual) shouldBe mockEksternInntektsmelding()
         }
 
         test("Hvis request timer ut blir feil publisert") {

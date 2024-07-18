@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.orDefault
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
@@ -58,7 +59,7 @@ class InntektsmeldingRepository(
         }
     }
 
-    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: String): Pair<Inntektsmelding?, EksternInntektsmelding?>? {
+    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: String): Pair<Inntektsmelding?, EksternInntektsmelding?> {
         val requestTimer = requestLatency.labels("hentNyesteInternEllerEkstern").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet
@@ -72,10 +73,10 @@ class InntektsmeldingRepository(
                         it[InntektsmeldingEntitet.eksternInntektsmelding],
                     )
                 }.firstOrNull()
-                .also {
-                    requestTimer.observeDuration()
-                }
-        }
+        }.orDefault(Pair(null, null))
+            .also {
+                requestTimer.observeDuration()
+            }
     }
 
     fun oppdaterJournalpostId(

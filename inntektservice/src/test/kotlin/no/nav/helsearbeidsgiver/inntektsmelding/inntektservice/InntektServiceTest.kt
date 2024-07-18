@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.inntektsmelding.inntektservice
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.result.shouldBeSuccess
 import io.mockk.clearAllMocks
-import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.serialization.builtins.serializer
@@ -16,7 +15,9 @@ import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,12 +25,16 @@ import java.util.UUID
 
 class InntektServiceTest {
     private val testRapid = TestRapid()
-    private val mockRedis = MockRedis()
+    private val mockRedis = MockRedisClassSpecific(RedisPrefix.InntektService)
 
     private val service =
         spyk(
             InntektService(testRapid, mockRedis.store),
         )
+
+    init {
+        ServiceRiver(service).connect(testRapid)
+    }
 
     @BeforeEach
     fun setup() {
@@ -41,10 +46,7 @@ class InntektServiceTest {
     @Test
     fun `svarer med feilmelding ved feil under henting av inntekt`() {
         val event = EventName.INNTEKT_REQUESTED
-        val clientId = UUID.randomUUID()
         val transaksjonId = UUID.randomUUID()
-
-        every { mockRedis.store.get(RedisKey.of(transaksjonId, event)) } returns clientId.toString()
 
         val fail =
             Fail(
@@ -66,7 +68,7 @@ class InntektServiceTest {
 
         verify {
             mockRedis.store.set(
-                RedisKey.of(clientId),
+                RedisKey.of(transaksjonId),
                 withArg {
                     runCatching {
                         it

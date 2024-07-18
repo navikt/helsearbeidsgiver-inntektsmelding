@@ -137,7 +137,7 @@ class NotifikasjonIT : EndToEndTest() {
 
     @Test
     fun `Oppretter og lagrer sak ved manuell rekjøring`() {
-        var transactionId: UUID
+        val transaksjonId: UUID = UUID.randomUUID()
 
         coEvery {
             arbeidsgiverNotifikasjonKlient.opprettNySak(any(), any(), any(), any(), any(), any(), any(), any())
@@ -145,6 +145,8 @@ class NotifikasjonIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
         )
 
@@ -154,13 +156,12 @@ class NotifikasjonIT : EndToEndTest() {
             .firstAsMap()
             .also {
                 it[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer) shouldBe Mock.forespoerselId
-                transactionId = it[Key.UUID]?.fromJson(UuidSerializer).shouldNotBeNull()
             }
 
         publish(
             Key.EVENT_NAME to EventName.MANUELL_OPPRETT_SAK_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
-            Key.UUID to transactionId.toJson(),
             Key.FORESPOERSEL_SVAR to mockForespoersel().copy(fnr = Mock.FNR, orgnr = Mock.ORGNR).toJson(Forespoersel.serializer()),
         )
 

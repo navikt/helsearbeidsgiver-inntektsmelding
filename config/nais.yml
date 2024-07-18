@@ -107,9 +107,9 @@ spec:
     enabled: true
     scopes:
       consumes: {{#each maskinporten.consumes as |consume| }}
-         - name: "{{ consume }}"
-   {{/each }}
-{{/if }}
+        - name: "{{ consume }}"
+  {{/each}}
+{{/if}}
   accessPolicy:
     outbound:
       external:

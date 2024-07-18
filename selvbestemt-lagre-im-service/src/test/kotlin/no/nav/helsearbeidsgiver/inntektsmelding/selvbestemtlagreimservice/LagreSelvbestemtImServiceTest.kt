@@ -41,11 +41,12 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -63,9 +64,11 @@ class LagreSelvbestemtImServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedis()
+        val mockRedis = MockRedisClassSpecific(RedisPrefix.LagreSelvbestemtImService)
 
-        LagreSelvbestemtImService(testRapid, mockRedis.store)
+        ServiceRiver(
+            LagreSelvbestemtImService(testRapid, mockRedis.store),
+        ).connect(testRapid)
 
         beforeEach {
             testRapid.reset()
@@ -74,26 +77,21 @@ class LagreSelvbestemtImServiceTest :
         }
 
         test("helt ny inntektsmelding lagres og sak opprettes") {
-            val clientId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
-            val nyInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny)
+            val nyInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Ny)
 
-            mockStatic(::randomUuid) {
-                every { randomUuid() } returns transaksjonId
-
-                testRapid.sendJson(
-                    MockLagre
-                        .startMelding(clientId, transaksjonId)
-                        .plus(
-                            Pair(
-                                Key.SKJEMA_INNTEKTSMELDING,
-                                MockLagre.skjema
-                                    .copy(selvbestemtId = null)
-                                    .toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                            ),
+            testRapid.sendJson(
+                Mock
+                    .steg0(transaksjonId)
+                    .plus(
+                        Pair(
+                            Key.SKJEMA_INNTEKTSMELDING,
+                            Mock.skjema
+                                .copy(selvbestemtId = null)
+                                .toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
                         ),
-                )
-            }
+                    ),
+            )
 
             testRapid.inspektør.size shouldBeExactly 3
             testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
@@ -104,8 +102,8 @@ class LagreSelvbestemtImServiceTest :
                 every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
 
                 testRapid.sendJson(
-                    MockLagre
-                        .steg1Data(transaksjonId)
+                    Mock
+                        .steg1(transaksjonId)
                         .minus(Key.SELVBESTEMT_ID),
                 )
             }
@@ -123,8 +121,8 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.sendJson(
-                MockLagre
-                    .steg2Data(transaksjonId, nyInntektsmelding)
+                Mock
+                    .steg2(transaksjonId, nyInntektsmelding)
                     .minus(Key.SELVBESTEMT_ID),
             )
 
@@ -132,8 +130,8 @@ class LagreSelvbestemtImServiceTest :
             testRapid.message(4).lesBehov() shouldBe BehovType.OPPRETT_SELVBESTEMT_SAK
 
             testRapid.sendJson(
-                MockLagre
-                    .steg3Data(transaksjonId)
+                Mock
+                    .steg3(transaksjonId)
                     .minus(Key.SELVBESTEMT_ID),
             )
 
@@ -146,26 +144,21 @@ class LagreSelvbestemtImServiceTest :
 
             verify {
                 mockRedis.store.set(
-                    RedisKey.of(clientId),
+                    RedisKey.of(transaksjonId),
                     ResultJson(
                         success = nyInntektsmelding.type.id.toJson(),
-                    ).toJsonStr(),
+                    ).toJson(ResultJson.serializer()),
                 )
             }
         }
 
         test("endret inntektsmelding lagres uten at sak opprettes") {
-            val clientId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
-            val endretInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+            val endretInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
-            mockStatic(::randomUuid) {
-                every { randomUuid() } returns transaksjonId
-
-                testRapid.sendJson(
-                    MockLagre.startMelding(clientId, transaksjonId),
-                )
-            }
+            testRapid.sendJson(
+                Mock.steg0(transaksjonId),
+            )
 
             testRapid.inspektør.size shouldBeExactly 3
             testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
@@ -176,7 +169,7 @@ class LagreSelvbestemtImServiceTest :
                 every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
                 testRapid.sendJson(
-                    MockLagre.steg1Data(transaksjonId),
+                    Mock.steg1(transaksjonId),
                 )
             }
 
@@ -187,7 +180,7 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.sendJson(
-                MockLagre.steg2Data(transaksjonId, endretInntektsmelding),
+                Mock.steg2(transaksjonId, endretInntektsmelding),
             )
 
             testRapid.inspektør.size shouldBeExactly 5
@@ -199,32 +192,27 @@ class LagreSelvbestemtImServiceTest :
 
             verify {
                 mockRedis.store.set(
-                    RedisKey.of(clientId),
+                    RedisKey.of(transaksjonId),
                     ResultJson(
                         success = endretInntektsmelding.type.id.toJson(),
-                    ).toJsonStr(),
+                    ).toJson(ResultJson.serializer()),
                 )
             }
         }
 
         test("duplikat inntektsmelding lagres uten at sluttevent publiseres") {
-            val clientId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
-            val duplikatInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+            val duplikatInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
-            mockStatic(::randomUuid) {
-                every { randomUuid() } returns transaksjonId
-
-                testRapid.sendJson(
-                    MockLagre.startMelding(clientId, transaksjonId),
-                )
-            }
+            testRapid.sendJson(
+                Mock.steg0(transaksjonId),
+            )
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns duplikatInntektsmelding.mottatt
 
                 testRapid.sendJson(
-                    MockLagre.steg1Data(transaksjonId),
+                    Mock.steg1(transaksjonId),
                 )
             }
 
@@ -235,8 +223,8 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.sendJson(
-                MockLagre
-                    .steg2Data(transaksjonId, duplikatInntektsmelding)
+                Mock
+                    .steg2(transaksjonId, duplikatInntektsmelding)
                     .plus(
                         Key.ER_DUPLIKAT_IM to true.toJson(Boolean.serializer()),
                     ),
@@ -250,21 +238,20 @@ class LagreSelvbestemtImServiceTest :
 
             verify {
                 mockRedis.store.set(
-                    RedisKey.of(clientId),
+                    RedisKey.of(transaksjonId),
                     ResultJson(
                         success = duplikatInntektsmelding.type.id.toJson(),
-                    ).toJsonStr(),
+                    ).toJson(ResultJson.serializer()),
                 )
             }
         }
 
         test("bruk defaultverdier ved håndterbare feil under henting av data") {
-            val clientId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
             val virksomhetDefault = "Ukjent virksomhet"
             val inntektsmeldingMedDefaults =
-                MockLagre.inntektsmelding.let {
+                Mock.inntektsmelding.let {
                     it.copy(
                         sykmeldt =
                             it.sykmeldt.copy(
@@ -279,15 +266,11 @@ class LagreSelvbestemtImServiceTest :
                     )
                 }
 
-            mockStatic(::randomUuid) {
-                every { randomUuid() } returns transaksjonId
-
-                testRapid.sendJson(
-                    MockLagre.startMelding(clientId, transaksjonId),
-                )
-            }
             testRapid.sendJson(
-                MockLagre.steg1Data(transaksjonId).minus(Key.VIRKSOMHET).minus(Key.PERSONER),
+                Mock.steg0(transaksjonId),
+            )
+            testRapid.sendJson(
+                Mock.steg1(transaksjonId).minus(Key.VIRKSOMHET).minus(Key.PERSONER),
             )
 
             testRapid.sendJson(
@@ -331,7 +314,7 @@ class LagreSelvbestemtImServiceTest :
             }
 
             testRapid.sendJson(
-                MockLagre.steg2Data(transaksjonId, inntektsmeldingMedDefaults),
+                Mock.steg2(transaksjonId, inntektsmeldingMedDefaults),
             )
 
             testRapid.inspektør.size shouldBeExactly 5
@@ -344,43 +327,38 @@ class LagreSelvbestemtImServiceTest :
             verify {
                 mockRedis.store.set(
                     RedisKey.of(transaksjonId, Key.VIRKSOMHET),
-                    virksomhetDefault.toJson().toString(),
+                    virksomhetDefault.toJson(),
                 )
 
                 mockRedis.store.set(
                     RedisKey.of(transaksjonId, Key.PERSONER),
-                    emptyMap<String, JsonElement>().toJson().toString(),
+                    emptyMap<String, JsonElement>().toJson(),
                 )
 
                 mockRedis.store.set(
-                    RedisKey.of(clientId),
+                    RedisKey.of(transaksjonId),
                     ResultJson(
                         success = inntektsmeldingMedDefaults.type.id.toJson(),
-                    ).toJsonStr(),
+                    ).toJson(ResultJson.serializer()),
                 )
             }
         }
 
         test("svar med feilmelding ved uhåndterbare feil") {
-            val clientId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
 
             val feilmelding = "Databasen er full :("
-            val endretInntektsmelding = MockLagre.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
+            val endretInntektsmelding = Mock.inntektsmelding.copy(aarsakInnsending = AarsakInnsending.Endring)
 
-            mockStatic(::randomUuid) {
-                every { randomUuid() } returns transaksjonId
-
-                testRapid.sendJson(
-                    MockLagre.startMelding(clientId, transaksjonId),
-                )
-            }
+            testRapid.sendJson(
+                Mock.steg0(transaksjonId),
+            )
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
 
                 testRapid.sendJson(
-                    MockLagre.steg1Data(transaksjonId),
+                    Mock.steg1(transaksjonId),
                 )
             }
 
@@ -407,34 +385,29 @@ class LagreSelvbestemtImServiceTest :
 
             verify {
                 mockRedis.store.set(
-                    RedisKey.of(clientId),
+                    RedisKey.of(transaksjonId),
                     ResultJson(
                         failure = feilmelding.toJson(),
-                    ).toJsonStr(),
+                    ).toJson(ResultJson.serializer()),
                 )
             }
         }
 
         test("stopp flyt ved ikke aktivt arbeidsforhold") {
-            val clientId = UUID.randomUUID()
             val transaksjonId = UUID.randomUUID()
-            val inntektsmelding = MockLagre.inntektsmelding
+            val inntektsmelding = Mock.inntektsmelding
 
-            mockStatic(::randomUuid) {
-                every { randomUuid() } returns transaksjonId
-
-                testRapid.sendJson(
-                    MockLagre.startMelding(clientId, transaksjonId),
-                )
-            }
+            testRapid.sendJson(
+                Mock.steg0(transaksjonId),
+            )
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns inntektsmelding.mottatt
 
                 testRapid.sendJson(
-                    MockLagre
-                        .steg1Data(transaksjonId)
-                        .plus(Key.ARBEIDSFORHOLD to MockLagre.lagArbeidsforhold("123456789").toJson(Arbeidsforhold.serializer())),
+                    Mock
+                        .steg1(transaksjonId)
+                        .plus(Key.ARBEIDSFORHOLD to Mock.lagArbeidsforhold("123456789").toJson(Arbeidsforhold.serializer())),
                 )
             }
 
@@ -442,10 +415,10 @@ class LagreSelvbestemtImServiceTest :
 
             verify {
                 mockRedis.store.set(
-                    RedisKey.of(clientId),
+                    RedisKey.of(transaksjonId),
                     ResultJson(
                         failure = "Mangler arbeidsforhold i perioden".toJson(),
-                    ).toJsonStr(),
+                    ).toJson(ResultJson.serializer()),
                 )
             }
         }
@@ -454,7 +427,7 @@ class LagreSelvbestemtImServiceTest :
 private fun JsonElement.lesInntektsmelding(): Inntektsmelding =
     Key.SELVBESTEMT_INNTEKTSMELDING.lesOrNull(Inntektsmelding.serializer(), this.toMap()).shouldNotBeNull()
 
-private object MockLagre {
+private object Mock {
     private const val ORG_NAVN = "Keiser Augustus' Ponniutleie"
     private val sykmeldt =
         Fnr.genererGyldig().let {
@@ -547,19 +520,16 @@ private object MockLagre {
             avsenderNavn = avsender.navn,
         )
 
-    fun startMelding(
-        clientId: UUID,
-        transaksjonId: UUID,
-    ): Map<Key, JsonElement> =
+    fun steg0(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-            Key.CLIENT_ID to clientId.toJson(),
             Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
             Key.SKJEMA_INNTEKTSMELDING to skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
             Key.ARBEIDSGIVER_FNR to avsender.fnr.toJson(),
         )
 
-    fun steg1Data(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg1(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),
@@ -573,7 +543,7 @@ private object MockLagre {
             Key.ARBEIDSFORHOLD to lagArbeidsforhold(orgnr = skjema.avsender.orgnr.verdi).toJson(Arbeidsforhold.serializer()),
         )
 
-    fun steg2Data(
+    fun steg2(
         transaksjonId: UUID,
         inntektsmelding: Inntektsmelding,
     ): Map<Key, JsonElement> =
@@ -585,7 +555,7 @@ private object MockLagre {
             Key.ER_DUPLIKAT_IM to false.toJson(Boolean.serializer()),
         )
 
-    fun steg3Data(transaksjonId: UUID): Map<Key, JsonElement> =
+    fun steg3(transaksjonId: UUID): Map<Key, JsonElement> =
         mapOf(
             Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
             Key.UUID to transaksjonId.toJson(),

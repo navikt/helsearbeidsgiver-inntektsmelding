@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.contains
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.JsonElement
@@ -11,12 +11,15 @@ import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.test.json.readFail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.inntektsmelding.db.EKSTERN_INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.INNTEKTSMELDING_DOKUMENT
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -30,12 +33,11 @@ import java.util.UUID
 
 class HentPersistertLoeserTest {
     private val rapid = TestRapid()
-    private var løser: HentPersistertLoeser
     private val behov = BehovType.HENT_PERSISTERT_IM.toString()
     private val repository = mockk<InntektsmeldingRepository>()
 
     init {
-        løser = HentPersistertLoeser(rapid, repository)
+        HentPersistertLoeser(rapid, repository)
     }
 
     @Test
@@ -49,11 +51,12 @@ class HentPersistertLoeserTest {
             Key.UUID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
         )
-        val melding = hentMelding(0)
-        assertTrue(melding.contains(Key.DATA.str))
-        assertTrue(melding.contains(Key.INNTEKTSMELDING_DOKUMENT.str))
+        val melding = rapid.firstMessage().toMap()
+        assertTrue(melding.contains(Key.DATA))
+        assertTrue(melding.contains(Key.INNTEKTSMELDING_DOKUMENT))
         assertDoesNotThrow {
-            melding.get(Key.INNTEKTSMELDING_DOKUMENT.str).asText().fromJson(Inntektsmelding.serializer())
+            val resultJson = Key.INNTEKTSMELDING_DOKUMENT.les(ResultJson.serializer(), melding)
+            resultJson.success.shouldNotBeNull().fromJson(Inntektsmelding.serializer())
         }
     }
 
@@ -61,18 +64,19 @@ class HentPersistertLoeserTest {
     fun `skal hente ut EksternInntektsmelding`() {
         coEvery {
             repository.hentNyesteEksternEllerInternInntektsmelding(any())
-        } returns Pair(null, EKSTERN_INNTEKTSMELDING_DOKUMENT)
+        } returns Pair(null, mockEksternInntektsmelding())
         sendMelding(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.BEHOV to behov.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
         )
-        val melding = hentMelding(0)
-        assertTrue(melding.contains(Key.DATA.str))
-        assertTrue(melding.contains(Key.EKSTERN_INNTEKTSMELDING.str))
+        val melding = rapid.firstMessage().toMap()
+        assertTrue(melding.contains(Key.DATA))
+        assertTrue(melding.contains(Key.EKSTERN_INNTEKTSMELDING))
         assertDoesNotThrow {
-            melding.get(Key.EKSTERN_INNTEKTSMELDING.str).asText().fromJson(EksternInntektsmelding.serializer())
+            val resultJson = Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding)
+            resultJson.success.shouldNotBeNull().fromJson(EksternInntektsmelding.serializer())
         }
     }
 
@@ -96,24 +100,23 @@ class HentPersistertLoeserTest {
     fun `Ingen feilmelding dersom im ikke eksisterer`() {
         coEvery {
             repository.hentNyesteEksternEllerInternInntektsmelding(any())
-        } returns null
+        } returns Pair(null, null)
         sendMelding(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.BEHOV to behov.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
             Key.FORESPOERSEL_ID to UUID.randomUUID().toJson(),
         )
-        val message = hentMelding(0)
-        assertTrue(message.contains(Key.DATA.str))
-        assertEquals("{}", message.get(Key.INNTEKTSMELDING_DOKUMENT.str).asText())
+        val melding = rapid.firstMessage().toMap()
+        assertTrue(melding.contains(Key.DATA))
+        Key.INNTEKTSMELDING_DOKUMENT.les(ResultJson.serializer(), melding) shouldBe ResultJson(success = null)
+        Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding) shouldBe ResultJson(success = null)
     }
 
     private fun sendMelding(vararg melding: Pair<Key, JsonElement>) {
         rapid.reset()
         rapid.sendJson(*melding.toList().toTypedArray())
     }
-
-    private fun hentMelding(index: Int): JsonNode = rapid.inspektør.message(index)
 
     private fun sendMeldingMedFeil(vararg melding: Pair<Key, JsonElement>): Fail {
         rapid.reset()

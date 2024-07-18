@@ -1,11 +1,13 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.db.river
 
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.Loeser
@@ -17,13 +19,10 @@ import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 import kotlin.system.measureTimeMillis
-
-private const val EMPTY_PAYLOAD = "{}"
 
 class HentPersistertLoeser(
     rapidsConnection: RapidsConnection,
@@ -53,15 +52,15 @@ class HentPersistertLoeser(
                         .hentNyesteEksternEllerInternInntektsmelding(behov.forespoerselId!!)
                         .tilPayloadPair()
 
-                if (dokument == EMPTY_PAYLOAD) {
+                if (dokument.success == null) {
                     logger.info("Fant IKKE persistert inntektsmelding for forespørselId ${behov.forespoerselId}")
                 } else {
-                    sikkerLogger.info("Fant persistert inntektsmelding: $dokument for forespørselId ${behov.forespoerselId}")
+                    sikkerLogger.info("Fant persistert inntektsmelding: ${dokument.success} for forespørselId ${behov.forespoerselId}")
                 }
-                if (eksternInntektsmelding == EMPTY_PAYLOAD) {
+                if (eksternInntektsmelding.success == null) {
                     logger.info("Fant IKKE persistert eksternInntektsmelding for forespørselId ${behov.forespoerselId}")
                 } else {
-                    sikkerLogger.info("Fant persistert eksternInntektsmelding: $eksternInntektsmelding for forespørselId ${behov.forespoerselId}")
+                    sikkerLogger.info("Fant persistert eksternInntektsmelding: ${eksternInntektsmelding.success} for forespørselId ${behov.forespoerselId}")
                 }
 
                 val json =
@@ -76,8 +75,8 @@ class HentPersistertLoeser(
                     eventName = behov.event,
                     transaksjonId = transaksjonId,
                     forespoerselId = behov.forespoerselId?.let(UUID::fromString),
-                    Key.INNTEKTSMELDING_DOKUMENT to dokument.toJson(),
-                    Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(),
+                    Key.INNTEKTSMELDING_DOKUMENT to dokument.toJson(ResultJson.serializer()),
+                    Key.EKSTERN_INNTEKTSMELDING to eksternInntektsmelding.toJson(ResultJson.serializer()),
                 )
             } catch (ex: Exception) {
                 logger.info("Det oppstod en feil ved uthenting av persistert inntektsmelding for forespørselId ${behov.forespoerselId}")
@@ -95,8 +94,10 @@ class HentPersistertLoeser(
     }
 }
 
-fun Pair<Inntektsmelding?, EksternInntektsmelding?>?.tilPayloadPair(): Pair<String, String> =
+fun Pair<Inntektsmelding?, EksternInntektsmelding?>.tilPayloadPair(): Pair<ResultJson, ResultJson> =
     Pair(
-        this?.first?.toJsonStr(Inntektsmelding.serializer()) ?: EMPTY_PAYLOAD,
-        this?.second?.toJsonStr(EksternInntektsmelding.serializer()) ?: EMPTY_PAYLOAD,
+        first?.toJson(Inntektsmelding.serializer()).toSuccess(),
+        second?.toJson(EksternInntektsmelding.serializer()).toSuccess(),
     )
+
+private fun JsonElement?.toSuccess(): ResultJson = ResultJson(success = this)

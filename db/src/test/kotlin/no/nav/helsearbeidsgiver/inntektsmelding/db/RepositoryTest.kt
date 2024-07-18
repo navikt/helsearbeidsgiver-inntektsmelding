@@ -10,11 +10,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.helsearbeidsgiver.felles.db.exposed.test.FunSpecWithDb
+import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.ForespoerselEntitet
 import no.nav.helsearbeidsgiver.inntektsmelding.db.tabell.InntektsmeldingEntitet
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
@@ -247,7 +246,7 @@ class RepositoryTest :
 
             foresporselRepo.lagreForespoersel(forespoerselId.toString(), orgnr)
             inntektsmeldingRepo.lagreInntektsmelding(forespoerselId.toString(), INNTEKTSMELDING_DOKUMENT)
-            inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId.toString(), EKSTERN_INNTEKTSMELDING_DOKUMENT)
+            inntektsmeldingRepo.lagreEksternInntektsmelding(forespoerselId.toString(), mockEksternInntektsmelding())
 
             inntektsmeldingRepo.oppdaterJournalpostId(forespoerselId, journalpostId)
 
@@ -306,5 +305,3 @@ class RepositoryTest :
             oppgaveId.shouldBeEqualComparingTo(oppgaveId1)
         }
     })
-
-private fun all(vararg conditions: Op<Boolean>): Op<Boolean> = conditions.reduce(Expression<Boolean>::and)

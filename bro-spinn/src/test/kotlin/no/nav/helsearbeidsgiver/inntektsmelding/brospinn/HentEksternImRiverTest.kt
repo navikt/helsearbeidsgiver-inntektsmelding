@@ -20,12 +20,11 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.MockHent.toMap
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.kl
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import java.util.UUID
 
 class HentEksternImRiverTest :
@@ -44,7 +43,7 @@ class HentEksternImRiverTest :
         test("henter ekstern inntektsmelding") {
             val innkommendeMelding = MockHent.innkommendeMelding()
 
-            every { mockSpinnKlient.hentEksternInntektsmelding(any()) } returns MockHent.eksternInntektsmelding
+            every { mockSpinnKlient.hentEksternInntektsmelding(any()) } returns mockEksternInntektsmelding()
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
@@ -57,7 +56,7 @@ class HentEksternImRiverTest :
                     Key.DATA to
                         innkommendeMelding.data
                             .plus(
-                                Key.EKSTERN_INNTEKTSMELDING to MockHent.eksternInntektsmelding.toJson(EksternInntektsmelding.serializer()),
+                                Key.EKSTERN_INNTEKTSMELDING to mockEksternInntektsmelding().toJson(EksternInntektsmelding.serializer()),
                             ).toJson(),
                 )
 
@@ -170,13 +169,5 @@ private object MockHent {
             transaksjonId = UUID.randomUUID(),
             forespoerselId = UUID.randomUUID(),
             utloesendeMelding = JsonNull,
-        )
-
-    val eksternInntektsmelding =
-        EksternInntektsmelding(
-            avsenderSystemNavn = "Trygge Trygves Trygdesystem",
-            avsenderSystemVersjon = "T3",
-            arkivreferanse = "Arkiv nr. 49",
-            tidspunkt = 12.oktober.kl(14, 0, 12, 0),
         )
 }

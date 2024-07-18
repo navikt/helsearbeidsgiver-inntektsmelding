@@ -10,7 +10,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import io.mockk.coEvery
-import io.mockk.every
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.aareg.Ansettelsesperiode
@@ -35,7 +34,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.pdl.domene.FullPerson
@@ -45,7 +43,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -87,16 +84,13 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 dokumenter = emptyList(),
             )
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            publish(
-                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-                Key.CLIENT_ID to Mock.clientId.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.copy(selvbestemtId = null).toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
-            )
-        }
+        publish(
+            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.copy(selvbestemtId = null).toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+            Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+        )
 
         val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
 
@@ -197,16 +191,13 @@ class LagreSelvbestemtIT : EndToEndTest() {
                 dokumenter = emptyList(),
             )
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            publish(
-                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-                Key.CLIENT_ID to Mock.clientId.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
-            )
-        }
+        publish(
+            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+            Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+        )
 
         val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
 
@@ -265,16 +256,13 @@ class LagreSelvbestemtIT : EndToEndTest() {
         coEvery { pdlKlient.personBolk(any()) } returns Mock.personer
         coEvery { aaregClient.hentArbeidsforhold(any(), any()) } returns Mock.arbeidsforhold
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            publish(
-                Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
-                Key.CLIENT_ID to Mock.clientId.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
-                Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
-            )
-        }
+        publish(
+            Key.EVENT_NAME to EventName.SELVBESTEMT_IM_MOTTATT.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to Mock.skjema.toJson(SkjemaInntektsmeldingSelvbestemt.serializer()),
+            Key.ARBEIDSGIVER_FNR to Mock.avsenderFnr.toJson(),
+        )
 
         val serviceMessages = messages.filter(EventName.SELVBESTEMT_IM_MOTTATT)
 
@@ -352,7 +340,6 @@ class LagreSelvbestemtIT : EndToEndTest() {
     private object Mock {
         private val orgnr = Orgnr.genererGyldig()
 
-        val clientId: UUID = UUID.randomUUID()
         val avsenderFnr = Fnr.genererGyldig()
         val sakId = UUID.randomUUID().toString()
         val journalpostId = randomDigitString(18)

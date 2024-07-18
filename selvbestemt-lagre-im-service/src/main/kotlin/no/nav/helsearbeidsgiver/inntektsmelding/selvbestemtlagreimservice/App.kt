@@ -2,25 +2,33 @@ package no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-selvbestemt-lagre-im-service".logger()
 
 fun main() {
-    val redisStore = RedisStore(Env.redisUrl)
+    val redisConnection = RedisConnection(Env.redisUrl)
 
     RapidApplication
         .create(System.getenv())
-        .createLagreSelvbestemtImService(redisStore)
+        .createLagreSelvbestemtImService(redisConnection)
         .registerShutdownLifecycle {
-            redisStore.shutdown()
+            redisConnection.close()
         }.start()
 }
 
-fun RapidsConnection.createLagreSelvbestemtImService(redisStore: RedisStore): RapidsConnection =
+fun RapidsConnection.createLagreSelvbestemtImService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${LagreSelvbestemtImService::class.simpleName}...")
-        LagreSelvbestemtImService(this, redisStore)
+        ServiceRiver(
+            LagreSelvbestemtImService(
+                rapid = this,
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.LagreSelvbestemtImService),
+            ),
+        ).connect(this)
     }

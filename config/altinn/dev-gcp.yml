@@ -14,3 +14,6 @@ env:
     value: 4936
 externalHosts:
   - api-gw-q1.oera.no
+maskinporten:
+  consumes:
+    - "altinn:serviceowner/reportees"

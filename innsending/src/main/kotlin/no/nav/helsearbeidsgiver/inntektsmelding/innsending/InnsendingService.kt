@@ -29,6 +29,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
 class InnsendingService(
@@ -36,6 +37,7 @@ class InnsendingService(
     override val redisStore: RedisStore,
 ) : CompositeEventListener() {
     private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     override val event = EventName.INSENDING_STARTED
     override val startKeys =

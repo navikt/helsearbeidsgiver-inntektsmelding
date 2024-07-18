@@ -207,7 +207,7 @@ abstract class EndToEndTest : ContainerTest() {
         imTestRapid.apply {
             // Servicer
             createAktiveOrgnrService(redisConnection)
-            createInnsending(redisStore)
+            createInnsending(redisStore, redisConnection)
             createInntektService(redisStore)
             createInntektSelvbestemtService(redisConnection)
             createLagreSelvbestemtImService(redisConnection)

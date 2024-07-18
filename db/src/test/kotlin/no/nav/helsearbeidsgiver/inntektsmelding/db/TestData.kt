@@ -6,9 +6,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.FullLoennIArbe
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntekt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Refusjon
-import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -48,14 +46,6 @@ val INNTEKTSMELDING_DOKUMENT =
             ),
         innsenderNavn = "Fido",
         vedtaksperiodeId = UUID.randomUUID(),
-    )
-
-val EKSTERN_INNTEKTSMELDING_DOKUMENT =
-    EksternInntektsmelding(
-        "AltinnPortal",
-        "1.63",
-        "AR123456",
-        LocalDateTime.now(),
     )
 
 val INNTEKTSMELDING_DOKUMENT_GAMMELT_INNTEKTFORMAT = INNTEKTSMELDING_DOKUMENT.copy(inntekt = null)

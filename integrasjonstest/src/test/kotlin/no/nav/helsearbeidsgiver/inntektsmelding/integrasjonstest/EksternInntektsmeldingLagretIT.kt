@@ -10,10 +10,10 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.januar
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -25,14 +25,7 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
-        val eksternInntektsmelding =
-            EksternInntektsmelding(
-                "AltinnPortal",
-                "1.63",
-                "AR123456",
-                11.januar(2018).atStartOfDay(),
-            )
-        every { spinnKlient.hentEksternInntektsmelding(any()) } returns eksternInntektsmelding
+        every { spinnKlient.hentEksternInntektsmelding(any()) } returns mockEksternInntektsmelding()
 
         publish(
             Key.EVENT_NAME to EventName.EKSTERN_INNTEKTSMELDING_REQUESTED.toJson(),
@@ -67,7 +60,7 @@ class EksternInntektsmeldingLagretIT : EndToEndTest() {
                 Key.BEHOV.les(BehovType.serializer(), it) shouldBe BehovType.LAGRE_EKSTERN_INNTEKTSMELDING
                 Key.UUID.les(UuidSerializer, it) shouldBe Mock.transaksjonId
                 Key.FORESPOERSEL_ID.les(UuidSerializer, it) shouldBe Mock.forespoerselId
-                Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), it) shouldBe eksternInntektsmelding
+                Key.EKSTERN_INNTEKTSMELDING.les(EksternInntektsmelding.serializer(), it) shouldBe mockEksternInntektsmelding()
             }
 
         messages

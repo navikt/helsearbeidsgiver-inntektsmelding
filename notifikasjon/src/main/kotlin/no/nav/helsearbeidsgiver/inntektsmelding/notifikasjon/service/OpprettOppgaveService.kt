@@ -24,20 +24,10 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
-data class Steg0(
-    val transaksjonId: UUID,
-    val forespoerselId: UUID,
-    val orgnr: Orgnr,
-)
-
-data class Steg1(
-    val orgNavn: String,
-)
-
 class OpprettOppgaveService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStoreClassSpecific,
-) : ServiceMed1Steg<Steg0, Steg1>() {
+) : ServiceMed1Steg<OpprettOppgaveService.Steg0, OpprettOppgaveService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -52,6 +42,16 @@ class OpprettOppgaveService(
         setOf(
             Key.VIRKSOMHET,
         )
+
+    data class Steg0(
+        val transaksjonId: UUID,
+        val forespoerselId: UUID,
+        val orgnr: Orgnr,
+    )
+
+    data class Steg1(
+        val orgNavn: String,
+    )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

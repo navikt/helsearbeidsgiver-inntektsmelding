@@ -21,19 +21,20 @@ class InntektProducer(
     }
 
     fun publish(
-        clientId: UUID,
+        transaksjonId: UUID,
         request: InntektRequest,
     ) {
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.INNTEKT_REQUESTED),
-            Log.clientId(clientId),
+            Log.clientId(transaksjonId),
             Log.forespoerselId(request.forespoerselId),
         ) {
             rapid
                 .publish(
                     Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
-                    Key.CLIENT_ID to clientId.toJson(),
+                    Key.UUID to transaksjonId.toJson(),
+                    Key.DATA to "".toJson(),
                     Key.FORESPOERSEL_ID to request.forespoerselId.toJson(),
                     Key.SKJAERINGSTIDSPUNKT to request.skjaeringstidspunkt.toJson(),
                 ).also { json ->

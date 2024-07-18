@@ -8,5 +8,4 @@ dependencies {
     implementation("no.nav.helsearbeidsgiver:maskinporten-client:$maskinportenClientVersion")
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
     testImplementation("com.squareup.okhttp3:mockwebserver:$mockwebserverVersion")
-
 }

@@ -26,29 +26,15 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
-data class Steg0(
-    val transaksjonId: UUID,
-    val forespoerselId: UUID,
-    val orgnr: Orgnr,
-    val fnr: Fnr,
-)
-
-data class Steg1(
-    val sykmeldt: PersonDato,
-)
-
-data class Steg2(
-    val sakId: String,
-)
-
-data class Steg3(
-    val persistertSakId: String,
-)
-
 class OpprettSakService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStoreClassSpecific,
-) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>() {
+) : ServiceMed3Steg<
+        OpprettSakService.Steg0,
+        OpprettSakService.Steg1,
+        OpprettSakService.Steg2,
+        OpprettSakService.Steg3,
+    >() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -66,6 +52,25 @@ class OpprettSakService(
             Key.SAK_ID,
             Key.PERSISTERT_SAK_ID,
         )
+
+    data class Steg0(
+        val transaksjonId: UUID,
+        val forespoerselId: UUID,
+        val orgnr: Orgnr,
+        val fnr: Fnr,
+    )
+
+    data class Steg1(
+        val sykmeldt: PersonDato,
+    )
+
+    data class Steg2(
+        val sakId: String,
+    )
+
+    data class Steg3(
+        val persistertSakId: String,
+    )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

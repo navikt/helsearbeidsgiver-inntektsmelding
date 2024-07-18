@@ -5,7 +5,6 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.every
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.dokarkiv.domene.OpprettOgFerdigstillResponse
@@ -22,14 +21,15 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
@@ -38,11 +38,11 @@ import java.util.UUID
 class InnsendingServiceIT : EndToEndTest() {
     @Test
     fun `Test at innsending er mottatt`() {
-        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.ORGNR)
+        forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.verdi)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
 
-        val transaksjonId: UUID = randomUuid()
+        val transaksjonId: UUID = UUID.randomUUID()
 
         mockForespoerselSvarFraHelsebro(
             eventName = EventName.INSENDING_STARTED,
@@ -61,18 +61,16 @@ class InnsendingServiceIT : EndToEndTest() {
                 dokumenter = emptyList(),
             )
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-            publish(
-                Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
-                Key.CLIENT_ID to Mock.clientId.toJson(),
-                Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to Mock.ORGNR.toJson(),
-                Key.IDENTITETSNUMMER to Mock.FNR.toJson(),
-                Key.ARBEIDSGIVER_ID to Mock.FNR_AG.toJson(),
-                Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
-            )
-        }
+        publish(
+            Key.EVENT_NAME to EventName.INSENDING_STARTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
+            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
+            Key.IDENTITETSNUMMER to Mock.fnr.toJson(),
+            Key.ARBEIDSGIVER_ID to Mock.fnrAg.toJson(),
+            Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
+        )
 
         // Forespørsel hentet
         messages
@@ -96,18 +94,6 @@ class InnsendingServiceIT : EndToEndTest() {
             .also {
                 it shouldContainKey Key.DATA
                 it[Key.VIRKSOMHET]?.fromJson(String.serializer()) shouldBe "Bedrift A/S"
-            }
-
-        // Arbeidsforhold hentet
-        messages
-            .filter(EventName.INSENDING_STARTED)
-            .filter(Key.ARBEIDSFORHOLD)
-            .firstAsMap()
-            .verifiserTransaksjonId(transaksjonId)
-            .verifiserForespoerselId()
-            .also {
-                it shouldContainKey Key.DATA
-                it[Key.ARBEIDSFORHOLD].shouldNotBeNull()
             }
 
         // Sykmeldt og innsender hentet
@@ -182,7 +168,7 @@ class InnsendingServiceIT : EndToEndTest() {
         // API besvart gjennom redis
         shouldNotThrowAny {
             redisStore
-                .get(RedisKey.of(Mock.clientId))
+                .get(RedisKey.of(transaksjonId))
                 .shouldNotBeNull()
                 .fromJson(ResultJson.serializer())
                 .success
@@ -202,13 +188,12 @@ class InnsendingServiceIT : EndToEndTest() {
         }
 
     private object Mock {
-        const val ORGNR = "stolt-krakk"
-        const val FNR = "kongelig-albatross"
-        const val FNR_AG = "uutgrunnelig-koffert"
         const val SAK_ID = "tjukk-kalender"
         const val OPPGAVE_ID = "kunstig-demon"
 
-        val clientId: UUID = UUID.randomUUID()
+        val orgnr = Orgnr.genererGyldig()
+        val fnr = Fnr.genererGyldig()
+        val fnrAg = Fnr.genererGyldig()
         val forespoerselId: UUID = UUID.randomUUID()
         val vedtaksperiodeId: UUID = UUID.randomUUID()
 

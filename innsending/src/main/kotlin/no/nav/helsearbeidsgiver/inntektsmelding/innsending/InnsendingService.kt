@@ -15,14 +15,11 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.FailKanal
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.LagreStartDataRedisRiver
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.composite.CompositeEventListener
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -30,16 +27,43 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
+
+data class Steg0(
+    val transaksjonId: UUID,
+    val forespoerselId: UUID,
+    val orgnr: Orgnr,
+    val sykmeldtFnr: Fnr,
+    val avsenderFnr: Fnr,
+    val skjema: Innsending,
+)
+
+sealed class Steg1 {
+    data class Komplett(
+        val forespoersel: Forespoersel,
+        val orgNavn: String,
+        val sykmeldt: PersonDato,
+        val avsender: PersonDato,
+    ) : Steg1()
+
+    data object Delvis : Steg1()
+}
+
+data class Steg2(
+    val inntektsmelding: Inntektsmelding,
+    val erDuplikat: Boolean,
+)
 
 class InnsendingService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
-) : CompositeEventListener() {
-    private val logger = logger()
-    private val sikkerLogger = sikkerLogger()
+    override val redisStore: RedisStoreClassSpecific,
+) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
+    override val logger = logger()
+    override val sikkerLogger = sikkerLogger()
 
-    override val event = EventName.INSENDING_STARTED
+    override val eventName = EventName.INSENDING_STARTED
     override val startKeys =
         setOf(
             Key.FORESPOERSEL_ID,
@@ -51,7 +75,6 @@ class InnsendingService(
     override val dataKeys =
         setOf(
             Key.VIRKSOMHET,
-            Key.ARBEIDSFORHOLD,
             Key.ARBEIDSGIVER_INFORMASJON,
             Key.ARBEIDSTAKER_INFORMASJON,
             Key.INNTEKTSMELDING_DOKUMENT,
@@ -59,88 +82,85 @@ class InnsendingService(
             Key.FORESPOERSEL_SVAR,
         )
 
-    private val step1Keys =
-        setOf(
-            Key.VIRKSOMHET,
-            Key.ARBEIDSFORHOLD,
-            Key.ARBEIDSTAKER_INFORMASJON,
-            Key.ARBEIDSGIVER_INFORMASJON,
-            Key.FORESPOERSEL_SVAR,
+    override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
+        Steg0(
+            transaksjonId = Key.UUID.les(UuidSerializer, melding),
+            forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding),
+            orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
+            sykmeldtFnr = Key.IDENTITETSNUMMER.les(Fnr.serializer(), melding),
+            avsenderFnr = Key.ARBEIDSGIVER_ID.les(Fnr.serializer(), melding),
+            skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding),
         )
 
-    init {
-        LagreStartDataRedisRiver(event, startKeys, rapid, redisStore, ::onPacket)
-        LagreDataRedisRiver(event, dataKeys, rapid, redisStore, ::onPacket)
-        FailKanal(event, rapid, ::onPacket)
-    }
+    override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 {
+        val forespoersel = runCatching { Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding) }
+        val orgNavn = runCatching { Key.VIRKSOMHET.les(String.serializer(), melding) }
+        val sykmeldt = runCatching { Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding) }
+        val avsender = runCatching { Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding) }
 
-    override fun new(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val orgnr = Key.ORGNRUNDERENHET.les(String.serializer(), melding)
-        val sykmeldtFnr = Key.IDENTITETSNUMMER.les(String.serializer(), melding)
-        val innsenderFnr = Key.ARBEIDSGIVER_ID.les(String.serializer(), melding)
+        val results = listOf(forespoersel, orgNavn, sykmeldt, avsender)
 
-        logger.info("InnsendingService: emitting behov HENT_TRENGER_IM")
-        rapid.publish(
-            Key.EVENT_NAME to event.toJson(),
-            Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-        )
-
-        logger.info("InnsendingService: emitting behov Virksomhet")
-        rapid.publish(
-            Key.EVENT_NAME to event.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
-            Key.ORGNRUNDERENHET to orgnr.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        )
-
-        logger.info("InnsendingService: emitting behov ARBEIDSFORHOLD")
-        rapid.publish(
-            Key.EVENT_NAME to event.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
-            Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        )
-
-        logger.info("InnsendingService: emitting behov FULLT_NAVN")
-        rapid.publish(
-            Key.EVENT_NAME to event.toJson(),
-            Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
-            Key.IDENTITETSNUMMER to sykmeldtFnr.toJson(),
-            Key.ARBEIDSGIVER_ID to innsenderFnr.toJson(),
-            Key.UUID to transaksjonId.toJson(),
-            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        )
-    }
-
-    override fun inProgress(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding)
-
-        if (Key.FORESPOERSEL_SVAR in melding.keys) {
-            // Logger for å danne et bilde av tiden det tar å hente forespørsler.
-            logger.info("InnsendingService: forespørsel svar mottatt")
+        return if (results.all { it.isSuccess }) {
+            Steg1.Komplett(
+                forespoersel = forespoersel.getOrThrow(),
+                orgNavn = orgNavn.getOrThrow(),
+                sykmeldt = sykmeldt.getOrThrow(),
+                avsender = avsender.getOrThrow(),
+            )
+        } else if (results.any { it.isSuccess }) {
+            Steg1.Delvis
+        } else {
+            throw results.firstNotNullOf { it.exceptionOrNull() }
         }
+    }
 
-        if (step1Keys.all(melding::containsKey)) {
-            val forespoersel = Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding)
-            val virksomhetNavn = Key.VIRKSOMHET.les(String.serializer(), melding)
-            val sykmeldt = Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding)
-            val innsender = Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding)
+    override fun lesSteg2(melding: Map<Key, JsonElement>): Steg2 =
+        Steg2(
+            inntektsmelding = Key.INNTEKTSMELDING_DOKUMENT.les(Inntektsmelding.serializer(), melding),
+            erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
+        )
 
+    override fun utfoerSteg0(steg0: Steg0) {
+        rapid
+            .publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.HENT_TRENGER_IM.toJson(),
+                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+            ).also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
+
+        rapid
+            .publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
+            ).also { loggBehovPublisert(BehovType.VIRKSOMHET, it) }
+
+        rapid
+            .publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.FULLT_NAVN.toJson(),
+                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                Key.IDENTITETSNUMMER to steg0.sykmeldtFnr.toJson(),
+                Key.ARBEIDSGIVER_ID to steg0.avsenderFnr.toJson(),
+            ).also { loggBehovPublisert(BehovType.FULLT_NAVN, it) }
+    }
+
+    override fun utfoerSteg1(
+        steg0: Steg0,
+        steg1: Steg1,
+    ) {
+        if (steg1 is Steg1.Komplett) {
             val inntektsmelding =
                 mapInntektsmelding(
-                    forespoersel = forespoersel,
-                    skjema = skjema,
-                    fulltnavnArbeidstaker = sykmeldt.navn,
-                    virksomhetNavn = virksomhetNavn,
-                    innsenderNavn = innsender.navn,
+                    forespoersel = steg1.forespoersel,
+                    skjema = steg0.skjema,
+                    fulltnavnArbeidstaker = steg1.sykmeldt.navn,
+                    virksomhetNavn = steg1.orgNavn,
+                    innsenderNavn = steg1.avsender.navn,
                 )
 
             if (inntektsmelding.bestemmendeFraværsdag.isBefore(inntektsmelding.inntektsdato)) {
@@ -150,44 +170,44 @@ class InnsendingService(
                 }
             }
 
-            logger.info("InnsendingService: emitting behov PERSISTER_IM")
-
-            rapid.publish(
-                Key.EVENT_NAME to event.toJson(),
-                Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
-            )
+            rapid
+                .publish(
+                    Key.EVENT_NAME to eventName.toJson(),
+                    Key.BEHOV to BehovType.PERSISTER_IM.toJson(),
+                    Key.UUID to steg0.transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    Key.INNTEKTSMELDING to inntektsmelding.toJson(Inntektsmelding.serializer()),
+                ).also { loggBehovPublisert(BehovType.PERSISTER_IM, it) }
         }
     }
 
-    override fun finalize(melding: Map<Key, JsonElement>) {
-        val transaksjonId = Key.UUID.les(UuidSerializer, melding)
-        val forespoerselId = Key.FORESPOERSEL_ID.les(UuidSerializer, melding)
-        val erDuplikat = Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding)
-        val inntektsmeldingJson = Key.INNTEKTSMELDING_DOKUMENT.les(JsonElement.serializer(), melding)
+    override fun utfoerSteg2(
+        steg0: Steg0,
+        steg1: Steg1,
+        steg2: Steg2,
+    ) {
+        val resultJson =
+            ResultJson(
+                success = steg2.inntektsmelding.toJson(Inntektsmelding.serializer()),
+            ).toJson(ResultJson.serializer())
 
-        val clientId = redisStore.get(RedisKey.of(transaksjonId, event))!!.let(UUID::fromString)
+        redisStore.set(RedisKey.of(steg0.transaksjonId), resultJson)
 
-        logger.info("publiserer under clientID $clientId")
-
-        val resultJson = ResultJson(success = inntektsmeldingJson)
-        redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
-
-        if (!erDuplikat) {
-            logger.info("Publiserer INNTEKTSMELDING_DOKUMENT under uuid $transaksjonId")
-            logger.info("InnsendingService: emitting event INNTEKTSMELDING_MOTTATT")
-            rapid
-                .publish(
+        if (!steg2.erDuplikat) {
+            val publisert =
+                rapid.publish(
                     Key.EVENT_NAME to EventName.INNTEKTSMELDING_MOTTATT.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                    Key.INNTEKTSMELDING_DOKUMENT to inntektsmeldingJson,
-                ).also {
-                    logger.info("Submitting INNTEKTSMELDING_MOTTATT")
-                    sikkerLogger.info("Submitting INNTEKTSMELDING_MOTTATT ${it.toPretty()}")
-                }
+                    Key.UUID to steg0.transaksjonId.toJson(),
+                    Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    Key.INNTEKTSMELDING_DOKUMENT to steg2.inntektsmelding.toJson(Inntektsmelding.serializer()),
+                )
+
+            MdcUtils.withLogFields(
+                Log.event(EventName.INNTEKTSMELDING_MOTTATT),
+            ) {
+                logger.info("Publiserte melding.")
+                sikkerLogger.info("Publiserte melding:\n${publisert.toPretty()}")
+            }
         }
     }
 
@@ -222,27 +242,37 @@ class InnsendingService(
 
         if (datafeil.isNotEmpty()) {
             datafeil.onEach { (key, defaultVerdi) ->
-                redisStore.set(RedisKey.of(fail.transaksjonId, key), defaultVerdi.toString())
+                redisStore.set(RedisKey.of(fail.transaksjonId, key), defaultVerdi)
             }
 
             val meldingMedDefault = datafeil.toMap().plus(melding)
 
-            inProgress(meldingMedDefault)
+            onData(meldingMedDefault)
         } else {
-            val clientId =
-                redisStore
-                    .get(RedisKey.of(fail.transaksjonId, event))
-                    ?.let(UUID::fromString)
+            val resultJson = ResultJson(failure = fail.feilmelding.toJson())
 
-            if (clientId == null) {
-                MdcUtils.withLogFields(
-                    Log.transaksjonId(fail.transaksjonId),
-                ) {
-                    sikkerLogger.error("Forsøkte å terminere, men clientId mangler i Redis. forespoerselId=${fail.forespoerselId}")
-                }
-            } else {
-                val resultJson = ResultJson(failure = fail.feilmelding.toJson())
-                redisStore.set(RedisKey.of(clientId), resultJson.toJsonStr())
+            redisStore.set(RedisKey.of(fail.transaksjonId), resultJson.toJson(ResultJson.serializer()))
+        }
+    }
+
+    override fun Steg0.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@InnsendingService),
+            Log.event(eventName),
+            Log.transaksjonId(transaksjonId),
+            Log.forespoerselId(forespoerselId),
+        )
+
+    private fun loggBehovPublisert(
+        behovType: BehovType,
+        publisert: JsonElement,
+    ) {
+        MdcUtils.withLogFields(
+            Log.behov(behovType),
+        ) {
+            "Publiserte melding med behov $behovType.".let {
+                logger.info(it)
+                sikkerLogger.info("$it\n${publisert.toPretty()}")
             }
         }
     }

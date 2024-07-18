@@ -207,8 +207,8 @@ abstract class EndToEndTest : ContainerTest() {
         imTestRapid.apply {
             // Servicer
             createAktiveOrgnrService(redisConnection)
-            createInnsending(redisStore, redisConnection)
-            createInntektService(redisStore)
+            createInnsending(redisConnection)
+            createInntektService(redisConnection)
             createInntektSelvbestemtService(redisConnection)
             createLagreSelvbestemtImService(redisConnection)
             createSpinnService(redisConnection)
@@ -230,7 +230,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, redisStore, arbeidsgiverNotifikasjonKlient)
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, redisStore, redisConnection, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
         }
     }

@@ -26,20 +26,10 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class Steg0(
-    val transaksjonId: UUID,
-    val forespoerselId: UUID,
-)
-
-data class Steg1(
-    val inntektsmeldingDokument: Inntektsmelding?,
-    val eksternInntektsmelding: EksternInntektsmelding?,
-)
-
 class KvitteringService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStoreClassSpecific,
-) : ServiceMed1Steg<Steg0, Steg1>() {
+) : ServiceMed1Steg<KvitteringService.Steg0, KvitteringService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -53,6 +43,16 @@ class KvitteringService(
             Key.INNTEKTSMELDING_DOKUMENT,
             Key.EKSTERN_INNTEKTSMELDING,
         )
+
+    data class Steg0(
+        val transaksjonId: UUID,
+        val forespoerselId: UUID,
+    )
+
+    data class Steg1(
+        val inntektsmeldingDokument: Inntektsmelding?,
+        val eksternInntektsmelding: EksternInntektsmelding?,
+    )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

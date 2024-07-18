@@ -35,7 +35,7 @@ fun Route.inntektRoute(
     val inntektProducer = InntektProducer(rapid)
 
     post(Routes.INNTEKT) {
-        val clientId = UUID.randomUUID()
+        val transaksjonId = UUID.randomUUID()
 
         val request = call.receive<InntektRequest>()
 
@@ -47,9 +47,9 @@ fun Route.inntektRoute(
         }
 
         try {
-            inntektProducer.publish(clientId, request)
+            inntektProducer.publish(transaksjonId, request)
 
-            val resultatJson = redisPoller.hent(clientId).fromJson(ResultJson.serializer())
+            val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
             sikkerLogger.info("Fikk inntektresultat:\n$resultatJson")
 
             val resultat = resultatJson.success?.fromJson(Inntekt.serializer())

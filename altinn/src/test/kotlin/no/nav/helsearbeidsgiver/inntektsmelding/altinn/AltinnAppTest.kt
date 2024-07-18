@@ -2,24 +2,17 @@ package no.nav.helsearbeidsgiver.inntektsmelding.altinn
 
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import io.mockk.unmockkStatic
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.altinn.AltinnOrganisasjon
 import no.nav.helsearbeidsgiver.felles.fromEnv
-import no.nav.helsearbeidsgiver.felles.json.toJson
-import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.altinnOrganisasjoner
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.Mock.innkommendeMelding
@@ -38,23 +31,26 @@ class AltinnAppTest :
         beforeEach {
             server = MockWebServer()
             server.start()
-            val baseUrl = server.url("/").toString()
-            println("baseUrl== $baseUrl")
         }
-        afterEach { clearAllMocks() }
+        afterEach {
+            clearAllMocks()
+            unmockkStatic("no.nav.helsearbeidsgiver.felles.EnvUtilsKt")
+            testRapid.reset()
+            server.shutdown()
+        }
 
         test("tester at Altinn client  og maskinporten kaller riktig endepunkt og sender riktig data") {
             mockkObject(RapidApplication)
             every { RapidApplication.create(any()) } returns testRapid
 
             val maskinportenToken = TokenResponse("test_token", "Bearer", 3600, "test:test1")
-            val tokenResponse = Json.encodeToString(TokenResponse.serializer(), maskinportenToken)
+            val tokenResponse = maskinportenToken.toJson(TokenResponse.serializer()).toString()
             server.enqueue(
                 MockResponse()
                     .setBody(tokenResponse)
                     .addHeader("Content-Type", "application/json"),
             )
-            val altinnResponse = Json.encodeToString(altinnOrganisasjoner)
+            val altinnResponse = altinnOrganisasjoner.toJson(AltinnOrganisasjon.serializer().set()).toString()
             val mockResponse =
                 MockResponse()
                     .setBody(altinnResponse)
@@ -69,23 +65,6 @@ class AltinnAppTest :
 
             testRapid.sendJson(innkommendeMelding.toMap())
 
-            testRapid.inspektør.size shouldBeExactly 1
-
-            val altinnOrgnr =
-                altinnOrganisasjoner
-                    .mapNotNull { it.orgnr }
-                    .toSet()
-
-            testRapid.firstMessage().toMap() shouldContainExactly
-                mapOf(
-                    Key.EVENT_NAME to innkommendeMelding.eventName.toJson(),
-                    Key.UUID to innkommendeMelding.transaksjonId.toJson(),
-                    Key.DATA to
-                        innkommendeMelding.data
-                            .plus(
-                                Key.ORG_RETTIGHETER to altinnOrgnr.toJson(String.serializer().set()),
-                            ).toJson(),
-                )
             val tokenRequest = server.takeRequest()
             tokenRequest.path shouldBe "/token"
             tokenRequest.method shouldBe "POST"

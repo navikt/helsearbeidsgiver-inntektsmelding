@@ -18,6 +18,6 @@ data class EksternInntektsmelding(
 
 @Serializable
 data class InnsendtInntektsmelding(
-    val dokument: Inntektsmelding? = null,
-    val eksternInntektsmelding: EksternInntektsmelding? = null,
+    val dokument: Inntektsmelding?,
+    val eksternInntektsmelding: EksternInntektsmelding?,
 )

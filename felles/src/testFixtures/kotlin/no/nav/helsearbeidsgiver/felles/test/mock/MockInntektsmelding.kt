@@ -19,6 +19,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Sykmeldt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaAvsender
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.til
+import no.nav.helsearbeidsgiver.felles.EksternInntektsmelding
 import no.nav.helsearbeidsgiver.utils.test.date.desember
 import no.nav.helsearbeidsgiver.utils.test.date.kl
 import no.nav.helsearbeidsgiver.utils.test.date.mars
@@ -228,4 +229,12 @@ fun mockDelvisInntektsmeldingDokument() =
                     ),
             ),
         forespurtData = listOf("inntekt", "refusjon"),
+    )
+
+fun mockEksternInntektsmelding(): EksternInntektsmelding =
+    EksternInntektsmelding(
+        avsenderSystemNavn = "Trygge Trygves Trygdesystem",
+        avsenderSystemVersjon = "T1000",
+        arkivreferanse = "Arkiv nr. 49",
+        tidspunkt = 12.oktober.kl(14, 0, 12, 0),
     )

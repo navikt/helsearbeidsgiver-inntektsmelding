@@ -166,6 +166,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.sendResponse(resultat
         }
 }
 
+// TODO slett når frontend bruker korrekte navn
 private fun JsonElement.fromJsonBackup(error: Throwable): SkjemaInntektsmeldingSelvbestemt {
     val skjemaJson = jsonObject
     val inntektJson = skjemaJson[SkjemaInntektsmeldingSelvbestemt::inntekt.name]!!.jsonObject

@@ -3,8 +3,11 @@ package no.nav.helsearbeidsgiver.inntektsmelding.innsending
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Inntektsmelding
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Forespoersel
@@ -21,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
@@ -37,7 +41,7 @@ data class Steg0(
     val orgnr: Orgnr,
     val sykmeldtFnr: Fnr,
     val avsenderFnr: Fnr,
-    val skjema: Innsending,
+    val skjema: JsonElement,
 )
 
 sealed class Steg1 {
@@ -89,7 +93,7 @@ class InnsendingService(
             orgnr = Key.ORGNRUNDERENHET.les(Orgnr.serializer(), melding),
             sykmeldtFnr = Key.IDENTITETSNUMMER.les(Fnr.serializer(), melding),
             avsenderFnr = Key.ARBEIDSGIVER_ID.les(Fnr.serializer(), melding),
-            skjema = Key.SKJEMA_INNTEKTSMELDING.les(Innsending.serializer(), melding),
+            skjema = Key.SKJEMA_INNTEKTSMELDING.les(JsonElement.serializer(), melding),
         )
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 {
@@ -154,10 +158,22 @@ class InnsendingService(
         steg1: Steg1,
     ) {
         if (steg1 is Steg1.Komplett) {
+            val skjema =
+                runCatching {
+                    steg0.skjema
+                        .fromJson(SkjemaInntektsmelding.serializer())
+                        .convert(
+                            sykmeldingsperioder = steg1.forespoersel.sykmeldingsperioder,
+                            aarsakInnsending = AarsakInnsending.Ny,
+                        )
+                }.getOrElse {
+                    steg0.skjema.fromJson(Innsending.serializer())
+                }
+
             val inntektsmelding =
                 mapInntektsmelding(
                     forespoersel = steg1.forespoersel,
-                    skjema = steg0.skjema,
+                    skjema = skjema,
                     fulltnavnArbeidstaker = steg1.sykmeldt.navn,
                     virksomhetNavn = steg1.orgNavn,
                     innsenderNavn = steg1.avsender.navn,

@@ -16,12 +16,6 @@ import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
 fun JsonMessage.toPretty(): String = toJson().parseJson().toPretty()
 
-fun JsonMessage.demandKeys(vararg keys: IKey) {
-    keys.forEach {
-        demandKey(it.toString())
-    }
-}
-
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<IKey, String>) {
     keyAndValuePairs.forEach { (key, value) ->
         demandValue(key.str, value)
@@ -46,11 +40,6 @@ fun JsonMessage.requireKeys(vararg keys: IKey) {
 fun JsonMessage.require(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> Any>) {
     val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(IKey::str) }
     validate(JsonMessage::require, keyStringAndParserPairs)
-}
-
-fun JsonMessage.interestedIn(vararg keyAndParserPairs: Pair<IKey, (JsonElement) -> Any>) {
-    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(IKey::str) }
-    validate(JsonMessage::interestedIn, keyStringAndParserPairs)
 }
 
 fun JsonMessage.interestedIn(vararg keys: IKey) {

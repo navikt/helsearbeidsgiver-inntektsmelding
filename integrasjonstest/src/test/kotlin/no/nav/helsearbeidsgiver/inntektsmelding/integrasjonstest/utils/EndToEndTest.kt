@@ -32,7 +32,6 @@ import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveO
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
@@ -223,7 +222,6 @@ abstract class EndToEndTest : ContainerTest() {
             createBrreg(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
             createDistribusjonRiver(mockk(relaxed = true))
-            createEksternInntektsmeldingLoeser(spinnKlient)
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)

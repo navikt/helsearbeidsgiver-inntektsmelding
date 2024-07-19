@@ -53,6 +53,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.create
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonServices
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
@@ -211,6 +212,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntektService(redisConnection)
             createInntektSelvbestemtService(redisConnection)
             createLagreSelvbestemtImService(redisConnection)
+            createNotifikasjonServices(redisConnection)
             createSpinnService(redisConnection)
             createTilgangService(redisConnection)
             createHentForespoerselService(redisConnection)
@@ -230,7 +232,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, redisStore, redisConnection, arbeidsgiverNotifikasjonKlient)
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
         }
     }

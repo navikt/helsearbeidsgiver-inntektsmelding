@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
@@ -27,7 +26,6 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 private val logger = "im-notifikasjon".logger()
 
 fun main() {
-    val redisStore = RedisStore(Env.redisUrl)
     val redisConnection = RedisConnection(Env.redisUrl)
 
     val database = Database("NAIS_DATABASE_IM_NOTIFIKASJON_NOTIFIKASJON")
@@ -40,14 +38,12 @@ fun main() {
 
     RapidApplication
         .create(System.getenv())
+        .createNotifikasjonServices(redisConnection)
         .createNotifikasjonRivers(
             Env.linkUrl,
             selvbestemtRepo,
-            redisStore,
-            redisConnection,
             buildClient(),
         ).registerShutdownLifecycle {
-            redisStore.shutdown()
             redisConnection.close()
 
             logger.info("Stoppsignal mottatt, lukker databasetilkobling.")
@@ -55,17 +51,8 @@ fun main() {
         }.start()
 }
 
-fun RapidsConnection.createNotifikasjonRivers(
-    linkUrl: String,
-    selvbestemtRepo: SelvbestemtRepo,
-    redisStore: RedisStore,
-    redisConnection: RedisConnection,
-    arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
-): RapidsConnection =
+fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection): RapidsConnection =
     also {
-        logger.info("Starter ${ForespoerselLagretRiver::class.simpleName}...")
-        ForespoerselLagretRiver(this)
-
         logger.info("Starter ${OpprettSakService::class.simpleName}...")
         ServiceRiver(
             OpprettSakService(
@@ -73,6 +60,32 @@ fun RapidsConnection.createNotifikasjonRivers(
                 redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.OpprettSakService),
             ),
         ).connect(this)
+
+        logger.info("Starter ${OpprettOppgaveService::class.simpleName}...")
+        ServiceRiver(
+            OpprettOppgaveService(
+                rapid = this,
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.OpprettOppgaveService),
+            ),
+        ).connect(this)
+
+        logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")
+        ServiceRiver(
+            ManuellOpprettSakService(
+                rapid = this,
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.ManuellOpprettSakService),
+            ),
+        ).connect(this)
+    }
+
+fun RapidsConnection.createNotifikasjonRivers(
+    linkUrl: String,
+    selvbestemtRepo: SelvbestemtRepo,
+    arbeidsgiverNotifikasjonKlient: ArbeidsgiverNotifikasjonKlient,
+): RapidsConnection =
+    also {
+        logger.info("Starter ${ForespoerselLagretRiver::class.simpleName}...")
+        ForespoerselLagretRiver(this)
 
         logger.info("Starter ${OpprettSakLoeser::class.simpleName}...")
         OpprettSakLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
@@ -83,24 +96,8 @@ fun RapidsConnection.createNotifikasjonRivers(
         logger.info("Starter ${OpprettOppgaveLoeser::class.simpleName}...")
         OpprettOppgaveLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
-        logger.info("Starter ${OpprettOppgaveService::class.simpleName}...")
-        ServiceRiver(
-            OpprettOppgaveService(
-                rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.OpprettOppgaveService),
-            ),
-        ).connect(this)
-
         logger.info("Starter ${OppgaveFerdigLoeser::class.simpleName}...")
         OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
-
-        logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")
-        ServiceRiver(
-            ManuellOpprettSakService(
-                rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.ManuellOpprettSakService),
-            ),
-        ).connect(this)
 
         logger.info("Starter ${SlettSakLoeser::class.simpleName}...")
         SlettSakLoeser(this, arbeidsgiverNotifikasjonKlient)

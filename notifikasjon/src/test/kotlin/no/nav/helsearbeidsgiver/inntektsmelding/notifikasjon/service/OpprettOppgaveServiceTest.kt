@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.service
 
 import io.mockk.clearAllMocks
-import io.mockk.every
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -9,11 +8,13 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
-import no.nav.helsearbeidsgiver.felles.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -22,10 +23,12 @@ import java.util.UUID
 
 class OpprettOppgaveServiceTest {
     private val rapid = TestRapid()
-    private val mockRedis = MockRedis()
+    private val mockRedis = MockRedisClassSpecific(RedisPrefix.OpprettOppgaveService)
 
     init {
-        OpprettOppgaveService(rapid, mockRedis.store)
+        ServiceRiver(
+            OpprettOppgaveService(rapid, mockRedis.store),
+        ).connect(rapid)
     }
 
     @BeforeEach
@@ -62,19 +65,16 @@ class OpprettOppgaveServiceTest {
 
     @Test
     fun `skal publisere to behov`() {
-        val transaksjonId = randomUuid()
-        val forespoerselId = randomUuid()
+        val transaksjonId = UUID.randomUUID()
+        val forespoerselId = UUID.randomUUID()
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            rapid.sendJson(
-                Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to "123456789".toJson(),
-            )
-        }
+        rapid.sendJson(
+            Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.ORGNRUNDERENHET to Orgnr.genererGyldig().toJson(),
+        )
 
         rapid.sendJson(
             Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
@@ -91,19 +91,17 @@ class OpprettOppgaveServiceTest {
 
     @Test
     fun `skal fortsette selv om vi mottar feil fra hent virksomhetnavn`() {
-        val transaksjonId = randomUuid()
-        val forespoerselId = randomUuid()
+        val transaksjonId = UUID.randomUUID()
+        val forespoerselId = UUID.randomUUID()
+        val orgnr = Orgnr.genererGyldig()
 
-        mockStatic(::randomUuid) {
-            every { randomUuid() } returns transaksjonId
-
-            rapid.sendJson(
-                Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
-                Key.UUID to transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-                Key.ORGNRUNDERENHET to "123456789".toJson(),
-            )
-        }
+        rapid.sendJson(
+            Key.EVENT_NAME to EventName.OPPGAVE_OPPRETT_REQUESTED.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to "".toJson(),
+            Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+            Key.ORGNRUNDERENHET to orgnr.toJson(),
+        )
 
         val fail =
             Fail(
@@ -114,7 +112,7 @@ class OpprettOppgaveServiceTest {
                 utloesendeMelding =
                     mapOf(
                         Key.BEHOV.toString() to BehovType.VIRKSOMHET.toJson(),
-                        Key.ORGNRUNDERENHET.toString() to "123456789".toJson(),
+                        Key.ORGNRUNDERENHET.toString() to orgnr.toJson(),
                     ).toJson(),
             )
 

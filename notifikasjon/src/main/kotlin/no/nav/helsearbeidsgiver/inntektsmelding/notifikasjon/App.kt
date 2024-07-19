@@ -84,13 +84,23 @@ fun RapidsConnection.createNotifikasjonRivers(
         OpprettOppgaveLoeser(this, arbeidsgiverNotifikasjonKlient, linkUrl)
 
         logger.info("Starter ${OpprettOppgaveService::class.simpleName}...")
-        OpprettOppgaveService(this, redisStore)
+        ServiceRiver(
+            OpprettOppgaveService(
+                rapid = this,
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.OpprettOppgaveService),
+            ),
+        ).connect(this)
 
         logger.info("Starter ${OppgaveFerdigLoeser::class.simpleName}...")
         OppgaveFerdigLoeser(this, arbeidsgiverNotifikasjonKlient)
 
         logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")
-        ManuellOpprettSakService(this, redisStore)
+        ServiceRiver(
+            ManuellOpprettSakService(
+                rapid = this,
+                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.ManuellOpprettSakService),
+            ),
+        ).connect(this)
 
         logger.info("Starter ${SlettSakLoeser::class.simpleName}...")
         SlettSakLoeser(this, arbeidsgiverNotifikasjonKlient)

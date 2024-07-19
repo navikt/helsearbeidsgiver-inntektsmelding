@@ -22,8 +22,8 @@ import java.util.UUID
 
 fun mockInnsending(): Innsending =
     Innsending(
-        orgnrUnderenhet = "orgnr-bål",
-        identitetsnummer = "fnr-fredrik",
+        orgnrUnderenhet = Orgnr.genererGyldig().verdi,
+        identitetsnummer = Fnr.genererGyldig().verdi,
         behandlingsdager = listOf(LocalDate.now().plusDays(5)),
         egenmeldingsperioder =
             listOf(

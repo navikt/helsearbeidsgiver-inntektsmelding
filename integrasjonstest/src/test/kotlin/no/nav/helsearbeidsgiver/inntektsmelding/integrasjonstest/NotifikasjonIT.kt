@@ -34,6 +34,8 @@ class NotifikasjonIT : EndToEndTest() {
 
         publish(
             Key.EVENT_NAME to EventName.SAK_OPPRETT_REQUESTED.toJson(),
+            Key.UUID to UUID.randomUUID().toJson(),
+            Key.DATA to "".toJson(),
             Key.IDENTITETSNUMMER to Mock.fnr.toJson(),
             Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),

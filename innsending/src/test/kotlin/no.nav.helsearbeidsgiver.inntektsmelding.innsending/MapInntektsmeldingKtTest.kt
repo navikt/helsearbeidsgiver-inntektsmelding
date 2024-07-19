@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.felles.test.mock.tilForespoersel
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.desember
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juli
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mai
@@ -292,6 +293,48 @@ class MapInntektsmeldingKtTest :
                     )
 
                 inntektsmelding.bestemmendeFraværsdag shouldBe 12.mai
+                inntektsmelding.bestemmendeFraværsdag shouldNotBe forespoersel.forslagBestemmendeFravaersdag()
+            }
+
+            test("bruker beregnet bestemmende fraværsdag dersom kun refusjon er påkrevd") {
+                val forespoersel =
+                    Mock
+                        .forespoersel()
+                        .utenPaakrevdAGP()
+                        .utenPaakrevdInntekt()
+                        .let {
+                            it.copy(
+                                sykmeldingsperioder =
+                                    listOf(
+                                        5.januar til 10.januar,
+                                        14.januar til 28.januar,
+                                    ),
+                                bestemmendeFravaersdager =
+                                    mapOf(
+                                        it.orgnr to 3.januar,
+                                    ),
+                            )
+                        }
+
+                val skjema =
+                    Mock.skjema().copy(
+                        arbeidsgiverperioder =
+                            listOf(
+                                5.januar til 10.januar,
+                                14.januar til 23.januar,
+                            ),
+                    )
+
+                val inntektsmelding =
+                    mapInntektsmelding(
+                        forespoersel = forespoersel,
+                        skjema = skjema,
+                        fulltnavnArbeidstaker = "Runar fra Regnskap",
+                        virksomhetNavn = "Skrekkinngytende smaker LLC",
+                        innsenderNavn = "Hege fra HR",
+                    )
+
+                inntektsmelding.bestemmendeFraværsdag shouldBe 14.januar
                 inntektsmelding.bestemmendeFraværsdag shouldNotBe forespoersel.forslagBestemmendeFravaersdag()
             }
 

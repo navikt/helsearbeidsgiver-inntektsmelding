@@ -21,31 +21,16 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-data class Steg0(
-    val transaksjonId: UUID,
-    val forespoerselId: UUID,
-)
-
-data class Steg1(
-    val forespoersel: Forespoersel,
-)
-
-data class Steg2(
-    val sykmeldt: PersonDato,
-)
-
-data class Steg3(
-    val sakId: String,
-)
-
-data class Steg4(
-    val persistertSakId: String,
-)
-
 class ManuellOpprettSakService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStoreClassSpecific,
-) : ServiceMed4Steg<Steg0, Steg1, Steg2, Steg3, Steg4>() {
+) : ServiceMed4Steg<
+        ManuellOpprettSakService.Steg0,
+        ManuellOpprettSakService.Steg1,
+        ManuellOpprettSakService.Steg2,
+        ManuellOpprettSakService.Steg3,
+        ManuellOpprettSakService.Steg4,
+    >() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -62,6 +47,27 @@ class ManuellOpprettSakService(
             Key.SAK_ID,
             Key.PERSISTERT_SAK_ID,
         )
+
+    data class Steg0(
+        val transaksjonId: UUID,
+        val forespoerselId: UUID,
+    )
+
+    data class Steg1(
+        val forespoersel: Forespoersel,
+    )
+
+    data class Steg2(
+        val sykmeldt: PersonDato,
+    )
+
+    data class Steg3(
+        val sakId: String,
+    )
+
+    data class Steg4(
+        val persistertSakId: String,
+    )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
         Steg0(

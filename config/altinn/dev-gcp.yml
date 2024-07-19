@@ -4,6 +4,9 @@ azure:
 replicasMin: 2
 replicasMax: 2
 ingress: https://helsearbeidsgiver-im-altinn.intern.dev.nav.no
+envFrom:
+  - type: secret
+    name: altinn-api-gw-keys
 env:
   - name: ALTINN_URL
     value: https://tt02.altinn.no/api/serviceowner

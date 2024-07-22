@@ -16,8 +16,6 @@ object Log {
 
     fun transaksjonId(value: UUID) = "transaksjon_id" to value.toString()
 
-    fun clientId(value: UUID) = "client_id" to value.toString()
-
     fun forespoerselId(value: UUID) = "forespoersel_id" to value.toString()
 
     fun selvbestemtId(value: UUID) = "selvbestemt_id" to value.toString()

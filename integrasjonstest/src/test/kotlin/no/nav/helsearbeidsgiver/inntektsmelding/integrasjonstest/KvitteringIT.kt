@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -59,7 +58,7 @@ class KvitteringIT : EndToEndTest() {
                 data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
             }
 
-        redisStore.get(RedisKey.of(transaksjonId)).shouldNotBeNull()
+        redisConnection.get(transaksjonId).shouldNotBeNull()
     }
 
     @Test
@@ -91,7 +90,7 @@ class KvitteringIT : EndToEndTest() {
                 eIm shouldNotBe Mock.tomResultJson
             }
 
-        redisStore.get(RedisKey.of(transaksjonId)).shouldNotBeNull()
+        redisConnection.get(transaksjonId).shouldNotBeNull()
     }
 
     @Test

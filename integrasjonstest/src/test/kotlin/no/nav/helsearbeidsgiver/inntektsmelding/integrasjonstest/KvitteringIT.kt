@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
@@ -32,7 +33,7 @@ class KvitteringIT : EndToEndTest() {
         val forespoerselId = UUID.randomUUID()
 
         forespoerselRepository.lagreForespoersel(forespoerselId.toString(), Mock.orgnr)
-        imRepository.lagreInntektsmelding(forespoerselId.toString(), Mock.inntektsmeldingDokument)
+        imRepository.lagreInntektsmelding(forespoerselId.toString(), mockInntektsmelding())
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
@@ -43,17 +44,19 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT)
-            .filter(Key.EKSTERN_INNTEKTSMELDING)
+            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
+            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
             .firstAsMap()
             .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+
                 // Skal finne inntektsmeldingdokumentet
-                val imDokument = it[Key.INNTEKTSMELDING_DOKUMENT]
+                val imDokument = data[Key.LAGRET_INNTEKTSMELDING]
 
                 imDokument.shouldNotBeNull()
                 imDokument shouldNotBe Mock.tomResultJson
 
-                it[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
+                data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
             }
 
         redisStore.get(RedisKey.of(transaksjonId)).shouldNotBeNull()
@@ -65,7 +68,7 @@ class KvitteringIT : EndToEndTest() {
         val forespoerselId = UUID.randomUUID()
 
         forespoerselRepository.lagreForespoersel(forespoerselId.toString(), Mock.orgnr)
-        imRepository.lagreEksternInntektsmelding(forespoerselId.toString(), Mock.eksternInntektsmelding)
+        imRepository.lagreEksternInntektsmelding(forespoerselId.toString(), mockEksternInntektsmelding())
 
         publish(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
@@ -76,12 +79,14 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT)
-            .filter(Key.EKSTERN_INNTEKTSMELDING)
+            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
+            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
             .firstAsMap()
             .also {
-                it[Key.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomResultJson
-                val eIm = it[Key.EKSTERN_INNTEKTSMELDING]
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+
+                data[Key.LAGRET_INNTEKTSMELDING] shouldBe Mock.tomResultJson
+                val eIm = data[Key.EKSTERN_INNTEKTSMELDING]
                 eIm.shouldNotBeNull()
                 eIm shouldNotBe Mock.tomResultJson
             }
@@ -102,20 +107,20 @@ class KvitteringIT : EndToEndTest() {
 
         messages
             .filter(EventName.KVITTERING_REQUESTED)
-            .filter(Key.INNTEKTSMELDING_DOKUMENT)
-            .filter(Key.EKSTERN_INNTEKTSMELDING)
+            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
+            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
             .firstAsMap()
             .also {
+                val data = it[Key.DATA].shouldNotBeNull().toMap()
+
                 // Skal ikke finne inntektsmeldingdokument
-                it[Key.INNTEKTSMELDING_DOKUMENT] shouldBe Mock.tomResultJson
-                it[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
+                data[Key.LAGRET_INNTEKTSMELDING] shouldBe Mock.tomResultJson
+                data[Key.EKSTERN_INNTEKTSMELDING] shouldBe Mock.tomResultJson
             }
     }
 
     private object Mock {
         val orgnr = Orgnr.genererGyldig().verdi
-        val inntektsmeldingDokument = mockInntektsmelding()
-        val eksternInntektsmelding = mockEksternInntektsmelding()
 
         val tomResultJson = ResultJson(success = null).toJson(ResultJson.serializer())
     }

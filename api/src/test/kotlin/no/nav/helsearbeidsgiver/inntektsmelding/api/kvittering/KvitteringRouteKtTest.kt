@@ -33,12 +33,13 @@ class KvitteringRouteKtTest : ApiTest() {
     @Test
     fun `skal godta gyldig uuid`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
                         success = resultatMedInntektsmelding.parseJson(),
-                    ).toJson(ResultJson.serializer()),
+                    ).toJson(ResultJson.serializer())
+                        .toString(),
                 )
 
             val response = get(PATH + "?uuid=" + UUID.randomUUID())

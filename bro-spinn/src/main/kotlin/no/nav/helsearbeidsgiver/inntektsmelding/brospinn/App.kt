@@ -4,7 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.tokenprovider.oauth2ClientCredentialsTokenGetter
@@ -37,7 +37,7 @@ fun RapidsConnection.createSpinnService(redisConnection: RedisConnection): Rapid
         ServiceRiver(
             SpinnService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.SpinnService),
+                redisStore = RedisStore(redisConnection, RedisPrefix.Spinn),
             ),
         ).connect(this)
     }

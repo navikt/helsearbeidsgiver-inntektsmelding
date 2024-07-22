@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisDeprecated
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -30,7 +30,7 @@ class LagreDataRedisRiverTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedis()
+        val mockRedis = MockRedisDeprecated()
         val mockListener = mockk<River.PacketListener>(relaxed = true)
 
         val event = EventName.MANUELL_OPPRETT_SAK_REQUESTED

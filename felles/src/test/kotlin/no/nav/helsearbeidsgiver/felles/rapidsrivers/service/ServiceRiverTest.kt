@@ -10,33 +10,38 @@ import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.Person
+import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
 class ServiceRiverTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedisClassSpecific(RedisPrefix.HentForespoerselService)
-        val mockService =
-            spyk(
-                MockService(mockRedis.store),
-            )
+        val mockRedis = MockRedis(RedisPrefix.HentForespoerselService)
+        val mockService = spyk(MockService())
 
-        ServiceRiver(mockService).connect(testRapid)
+        ServiceRiver(mockRedis.store, mockService).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -555,9 +560,10 @@ class ServiceRiverTest :
         }
     })
 
-private class MockService(
-    override val redisStore: RedisStoreClassSpecific,
-) : Service() {
+private class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>() {
+    override val logger = logger()
+    override val sikkerLogger = sikkerLogger()
+
     override val eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED
     override val startKeys =
         setOf(
@@ -570,12 +576,41 @@ private class MockService(
             Key.VIRKSOMHETER,
         )
 
-    override fun onData(melding: Map<Key, JsonElement>) {}
+    data class Steg0(
+        val fnrListe: List<Fnr>,
+        val erDuplikatIm: Boolean,
+    )
+
+    data class Steg1(
+        val personer: Map<Fnr, Person>,
+        val orgNavn: Map<String, String>,
+    )
+
+    override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
+        Steg0(
+            Key.FNR_LISTE.les(Fnr.serializer().list(), melding),
+            Key.ER_DUPLIKAT_IM.les(Boolean.serializer(), melding),
+        )
+
+    override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
+        Steg1(
+            Key.PERSONER.les(personMapSerializer, melding),
+            Key.VIRKSOMHETER.les(MapSerializer(String.serializer(), String.serializer()), melding),
+        )
+
+    override fun utfoerSteg1(
+        steg0: Steg0,
+        steg1: Steg1,
+    ) {}
+
+    override fun utfoerSteg0(steg0: Steg0) {}
 
     override fun onError(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     ) {}
+
+    override fun Steg0.loggfelt(): Map<String, String> = emptyMap()
 }
 
 private object Mock {

@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreDeprecated
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -25,7 +25,7 @@ class LagreDataRedisRiver(
     private val event: EventName,
     private val dataKeys: Set<Key>,
     private val rapid: RapidsConnection,
-    private val redisStore: RedisStore,
+    private val redisStore: RedisStoreDeprecated,
     private val etterDataLagret: (JsonMessage, MessageContext) -> Unit,
 ) : River.PacketListener {
     private val logger = logger()

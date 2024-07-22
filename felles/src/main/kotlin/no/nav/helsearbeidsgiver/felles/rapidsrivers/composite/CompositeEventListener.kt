@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreDeprecated
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
@@ -30,7 +30,7 @@ abstract class CompositeEventListener : River.PacketListener {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    abstract val redisStore: RedisStore
+    abstract val redisStore: RedisStoreDeprecated
     abstract val event: EventName
     abstract val startKeys: Set<Key>
     abstract val dataKeys: Set<Key>

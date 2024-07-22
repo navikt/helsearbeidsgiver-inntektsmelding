@@ -13,15 +13,15 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class RedisStoreClassSpecificTest :
+class RedisStoreTest :
     FunSpec({
 
-        test(RedisStoreClassSpecific::get.name) {
+        test(RedisStore::get.name) {
             val keyPrefix = RedisPrefix.HentForespoerselService
             val transaksjonId = UUID.randomUUID()
 
             val redisStore =
-                RedisStoreClassSpecific(
+                RedisStore(
                     redis =
                         redisWithMockRedisClient(
                             mockStorageInit =
@@ -54,12 +54,12 @@ class RedisStoreClassSpecificTest :
             }
         }
 
-        test(RedisStoreClassSpecific::getAll.name) {
-            val keyPrefix = RedisPrefix.SpinnService
+        test(RedisStore::getAll.name) {
+            val keyPrefix = RedisPrefix.InntektService
             val transaksjonId = UUID.randomUUID()
 
             val redisStore =
-                RedisStoreClassSpecific(
+                RedisStore(
                     redis =
                         redisWithMockRedisClient(
                             mockStorageInit =
@@ -100,12 +100,12 @@ class RedisStoreClassSpecificTest :
             redisStore.getAll(keysWithoutValues).shouldBeEmpty()
         }
 
-        test("${RedisStoreClassSpecific::set.name} (ny og gammel)") {
+        test("${RedisStore::set.name} (ny og gammel)") {
             val keyPrefix = RedisPrefix.TilgangOrgService
             val transaksjonId = UUID.randomUUID()
 
             val redisStore =
-                RedisStoreClassSpecific(
+                RedisStore(
                     redis =
                         redisWithMockRedisClient(
                             mockStorageInit =
@@ -159,12 +159,12 @@ class RedisStoreClassSpecificTest :
 
         context("henter keys på gammel format") {
 
-            test(RedisStoreClassSpecific::get.name) {
+            test(RedisStore::get.name) {
                 val keyPrefix = RedisPrefix.HentForespoerselService
                 val transaksjonId = UUID.randomUUID()
 
                 val redisStore =
-                    RedisStoreClassSpecific(
+                    RedisStore(
                         redis =
                             redisWithMockRedisClient(
                                 mockStorageInit =
@@ -197,12 +197,12 @@ class RedisStoreClassSpecificTest :
                 }
             }
 
-            test(RedisStoreClassSpecific::getAll.name) {
-                val keyPrefix = RedisPrefix.SpinnService
+            test(RedisStore::getAll.name) {
+                val keyPrefix = RedisPrefix.InntektService
                 val transaksjonId = UUID.randomUUID()
 
                 val redisStore =
-                    RedisStoreClassSpecific(
+                    RedisStore(
                         redis =
                             redisWithMockRedisClient(
                                 mockStorageInit =

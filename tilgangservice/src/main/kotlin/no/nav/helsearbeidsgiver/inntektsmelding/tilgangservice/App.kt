@@ -4,7 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -25,18 +25,26 @@ fun main() {
 fun RapidsConnection.createTilgangService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${TilgangForespoerselService::class.simpleName}...")
+        val redisStoreTilgangForespoersel = RedisStore(redisConnection, RedisPrefix.TilgangForespoerselService)
+
         ServiceRiver(
-            TilgangForespoerselService(
-                rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangForespoerselService),
-            ),
+            redisStore = redisStoreTilgangForespoersel,
+            service =
+                TilgangForespoerselService(
+                    rapid = this,
+                    redisStore = redisStoreTilgangForespoersel,
+                ),
         ).connect(this)
 
         logger.info("Starter ${TilgangOrgService::class.simpleName}...")
+        val redisStoreTilgangOrg = RedisStore(redisConnection, RedisPrefix.TilgangOrgService)
+
         ServiceRiver(
-            TilgangOrgService(
-                rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangOrgService),
-            ),
+            redisStore = redisStoreTilgangOrg,
+            service =
+                TilgangOrgService(
+                    rapid = this,
+                    redisStore = redisStoreTilgangOrg,
+                ),
         ).connect(this)
     }

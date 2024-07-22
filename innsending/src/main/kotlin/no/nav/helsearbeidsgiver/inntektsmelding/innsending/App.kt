@@ -4,7 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -25,18 +25,26 @@ fun main() {
 fun RapidsConnection.createInnsending(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${InnsendingService::class.simpleName}...")
+        val redisStoreInnsending = RedisStore(redisConnection, RedisPrefix.InnsendingService)
+
         ServiceRiver(
-            InnsendingService(
-                rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.InnsendingService),
-            ),
+            redisStore = redisStoreInnsending,
+            service =
+                InnsendingService(
+                    rapid = this,
+                    redisStore = redisStoreInnsending,
+                ),
         ).connect(this)
 
         logger.info("Starter ${KvitteringService::class.simpleName}...")
+        val redisStoreKvittering = RedisStore(redisConnection, RedisPrefix.KvitteringService)
+
         ServiceRiver(
-            KvitteringService(
-                rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.KvitteringService),
-            ),
+            redisStore = redisStoreKvittering,
+            service =
+                KvitteringService(
+                    rapid = this,
+                    redisStore = redisStoreKvittering,
+                ),
         ).connect(this)
     }

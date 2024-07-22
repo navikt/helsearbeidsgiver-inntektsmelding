@@ -19,7 +19,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -30,9 +30,10 @@ class HentSelvbestemtImServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedisClassSpecific(RedisPrefix.HentSelvbestemtImService)
+        val mockRedis = MockRedis(RedisPrefix.HentSelvbestemtImService)
 
         ServiceRiver(
+            mockRedis.store,
             HentSelvbestemtImService(testRapid, mockRedis.store),
         ).connect(testRapid)
 

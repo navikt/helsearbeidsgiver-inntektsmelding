@@ -25,7 +25,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreDeprecated
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
@@ -133,7 +133,7 @@ abstract class EndToEndTest : ContainerTest() {
     // Vent på rediscontainer
     val redisStore by lazy {
         repeat(5) {
-            runCatching { RedisStore(redisContainer.redisURI) }
+            runCatching { RedisStoreDeprecated(redisContainer.redisURI) }
                 .onSuccess { return@lazy it }
                 .onFailure { runBlocking { delay(1000) } }
         }
@@ -213,7 +213,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntektSelvbestemtService(redisConnection)
             createLagreSelvbestemtImService(redisConnection)
             createNotifikasjonServices(redisConnection)
-            createSpinnService(redisConnection)
+            createSpinnService()
             createTilgangService(redisConnection)
             createHentForespoerselService(redisConnection)
 

@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.arbeidsgivernotifikasjon.ArbeidsgiverNotifikasjo
 import no.nav.helsearbeidsgiver.felles.db.exposed.Database
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
@@ -54,27 +54,35 @@ fun main() {
 fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${OpprettSakService::class.simpleName}...")
+        val redisStoreSak = RedisStore(redisConnection, RedisPrefix.OpprettSakService)
+
         ServiceRiver(
-            OpprettSakService(
-                rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.OpprettSakService),
-            ),
+            redisStore = redisStoreSak,
+            service =
+                OpprettSakService(
+                    rapid = this,
+                    redisStore = redisStoreSak,
+                ),
         ).connect(this)
 
         logger.info("Starter ${OpprettOppgaveService::class.simpleName}...")
+        val redisStoreOppgave = RedisStore(redisConnection, RedisPrefix.OpprettOppgaveService)
+
         ServiceRiver(
-            OpprettOppgaveService(
-                rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.OpprettOppgaveService),
-            ),
+            redisStore = redisStoreOppgave,
+            service =
+                OpprettOppgaveService(
+                    rapid = this,
+                    redisStore = redisStoreOppgave,
+                ),
         ).connect(this)
 
         logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")
+        val redisStoreManuellSak = RedisStore(redisConnection, RedisPrefix.ManuellOpprettSakService)
+
         ServiceRiver(
-            ManuellOpprettSakService(
-                rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.ManuellOpprettSakService),
-            ),
+            redisStore = redisStoreManuellSak,
+            service = ManuellOpprettSakService(this),
         ).connect(this)
     }
 

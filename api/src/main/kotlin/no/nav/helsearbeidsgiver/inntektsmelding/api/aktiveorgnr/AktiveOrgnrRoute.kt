@@ -11,6 +11,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.AktiveArbeidsgivere
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -25,9 +28,11 @@ import java.util.UUID
 
 fun Route.aktiveOrgnrRoute(
     connection: RapidsConnection,
-    redis: RedisPoller,
+    redisConnection: RedisConnection,
 ) {
     val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
+    val redisPoller = RedisStoreClassSpecific(redisConnection, RedisPrefix.AktiveOrgnrService).let(::RedisPoller)
+
     post(Routes.AKTIVEORGNR) {
         val transaksjonId = UUID.randomUUID()
 
@@ -37,7 +42,7 @@ fun Route.aktiveOrgnrRoute(
 
             aktiveOrgnrProducer.publish(transaksjonId, arbeidsgiverFnr = arbeidsgiverFnr, arbeidstagerFnr = request.identitetsnummer)
 
-            val resultatJson = redis.hent(transaksjonId).fromJson(ResultJson.serializer())
+            val resultatJson = redisPoller.hent(transaksjonId).fromJson(ResultJson.serializer())
 
             val resultat = resultatJson.success?.fromJson(AktiveArbeidsgivere.serializer())
             if (resultat != null) {

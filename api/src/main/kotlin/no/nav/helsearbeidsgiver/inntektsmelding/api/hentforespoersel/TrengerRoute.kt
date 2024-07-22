@@ -9,15 +9,16 @@ import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.HentForespoerselResultat
 import no.nav.helsearbeidsgiver.felles.ResultJson
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerJsonParseException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.ManglerAltinnRettigheterException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.Tilgangskontroll
 import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
-import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisPermanentErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.receive
@@ -34,9 +35,11 @@ import java.util.UUID
 fun Route.hentForespoerselRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller,
+    redisConnection: RedisConnection,
 ) {
     val hentForespoerselProducer = HentForespoerselProducer(rapid)
+    val redisPoller = RedisStoreClassSpecific(redisConnection, RedisPrefix.HentForespoerselService).let(::RedisPoller)
+
     val requestLatency =
         Summary
             .build()
@@ -81,13 +84,6 @@ fun Route.hentForespoerselRoute(
                             failure = "Du har ikke rettigheter for organisasjon.".toJson(),
                         )
                     respondForbidden(response, ResultJson.serializer())
-                } catch (_: RedisPollerJsonParseException) {
-                    logger.info("Fikk parsefeil for ${request.uuid}")
-                    val response =
-                        ResultJson(
-                            failure = RedisPermanentErrorResponse(request.uuid).toJson(RedisPermanentErrorResponse.serializer()),
-                        )
-                    respondInternalServerError(response, ResultJson.serializer())
                 } catch (_: RedisPollerTimeoutException) {
                     logger.info("Fikk timeout for ${request.uuid}")
                     val response =

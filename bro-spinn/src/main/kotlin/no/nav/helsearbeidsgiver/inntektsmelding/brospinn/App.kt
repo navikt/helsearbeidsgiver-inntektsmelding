@@ -22,7 +22,6 @@ fun main() {
 
     RapidApplication
         .create(System.getenv())
-        .createEksternInntektsmeldingLoeser(spinnKlient)
         .createSpinnService(redisConnection)
         .createHentEksternImRiver(spinnKlient)
         .registerShutdownLifecycle {
@@ -31,12 +30,6 @@ fun main() {
 
     logger.info("Bye bye, baby, bye bye!")
 }
-
-fun RapidsConnection.createEksternInntektsmeldingLoeser(spinnKlient: SpinnKlient): RapidsConnection =
-    also {
-        logger.info("Starter ${EksternInntektsmeldingLoeser::class.simpleName}...")
-        EksternInntektsmeldingLoeser(this, spinnKlient)
-    }
 
 fun RapidsConnection.createSpinnService(redisConnection: RedisConnection): RapidsConnection =
     also {

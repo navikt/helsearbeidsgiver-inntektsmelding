@@ -64,7 +64,7 @@ class AktiveOrgnrServiceTest :
 
             testRapid.inspektør.size shouldBeExactly 3
             testRapid.message(0).lesBehov() shouldBe BehovType.ARBEIDSGIVERE
-            testRapid.message(1).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
+            testRapid.message(1).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
             testRapid.message(2).lesBehov() shouldBe BehovType.HENT_PERSONER
 
             testRapid.sendJson(

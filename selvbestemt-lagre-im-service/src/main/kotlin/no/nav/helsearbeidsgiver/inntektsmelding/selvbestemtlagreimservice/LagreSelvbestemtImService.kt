@@ -160,7 +160,7 @@ class LagreSelvbestemtImService(
 
         rapid.publishNotNull(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
+            Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.IDENTITETSNUMMER to
                 steg0.skjema.sykmeldtFnr.verdi

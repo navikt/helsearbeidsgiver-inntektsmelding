@@ -96,7 +96,7 @@ class LagreSelvbestemtImServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
             testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
             testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
-            testRapid.message(2).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
+            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
@@ -163,7 +163,7 @@ class LagreSelvbestemtImServiceTest :
             testRapid.inspektør.size shouldBeExactly 3
             testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
             testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
-            testRapid.message(2).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
+            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt

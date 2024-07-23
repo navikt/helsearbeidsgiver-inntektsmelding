@@ -13,6 +13,8 @@ object Metrics {
 
     val altinnRequest = requestMetric("Altinn")
 
+    val brregRequest = requestMetric("Brreg")
+
     val dokArkivRequest = requestMetric("DokArkiv")
 
     val pdlRequest = requestMetric("PDL")

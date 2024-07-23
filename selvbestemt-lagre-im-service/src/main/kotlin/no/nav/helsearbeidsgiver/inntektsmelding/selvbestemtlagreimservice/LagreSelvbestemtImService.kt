@@ -138,7 +138,7 @@ class LagreSelvbestemtImService(
 
         rapid.publishNotNull(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
             Key.ORGNRUNDERENHET to
@@ -289,7 +289,7 @@ class LagreSelvbestemtImService(
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             val datafeil =
                 when (utloesendeBehov) {
-                    BehovType.VIRKSOMHET -> Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
+                    BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
 
                     // Lesing av personer bruker allerede defaults, så trenger bare map-struktur her
                     BehovType.HENT_PERSONER -> Key.PERSONER to emptyMap<Fnr, Person>().toJson(personMapSerializer)

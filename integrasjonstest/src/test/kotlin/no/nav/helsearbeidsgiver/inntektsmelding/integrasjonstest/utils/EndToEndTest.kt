@@ -33,7 +33,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
-import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
+import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.db.ForespoerselRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.InntektsmeldingRepository
 import no.nav.helsearbeidsgiver.inntektsmelding.db.SelvbestemtImRepo
@@ -208,7 +208,7 @@ abstract class EndToEndTest : ContainerTest() {
             // Rivers
             createAareg(aaregClient)
             createAltinn(altinnClient)
-            createBrreg(brregClient, false)
+            createBrregRiver(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
             createDistribusjonRiver(mockk(relaxed = true))
             createForespoerselBesvartFraSimba()

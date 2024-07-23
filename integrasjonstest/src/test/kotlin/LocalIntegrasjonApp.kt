@@ -104,7 +104,7 @@ class DummyLoeser(
                             erBesvart = false,
                         ).toJson(Forespoersel.serializer()),
                 )
-            BehovType.VIRKSOMHET ->
+            BehovType.HENT_VIRKSOMHET_NAVN ->
                 mapOf(
                     Key.VIRKSOMHET to "Din Bedrift A/S".toJson(),
                 )

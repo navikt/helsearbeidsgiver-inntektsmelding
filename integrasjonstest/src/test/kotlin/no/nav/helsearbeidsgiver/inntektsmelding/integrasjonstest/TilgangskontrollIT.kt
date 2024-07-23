@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.mock.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -63,11 +64,13 @@ class TilgangskontrollIT : EndToEndTest() {
         val result =
             messages
                 .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
-                .filter(Key.TILGANG)
+                .filter(Key.TILGANG, nestedData = true)
                 .firstAsMap()
 
         val tilgang =
-            result[Key.TILGANG]
+            result[Key.DATA]
+                .shouldNotBeNull()
+                .toMap()[Key.TILGANG]
                 .shouldNotBeNull()
                 .fromJson(Tilgang.serializer())
 
@@ -93,11 +96,13 @@ class TilgangskontrollIT : EndToEndTest() {
         val result =
             messages
                 .filter(EventName.TILGANG_FORESPOERSEL_REQUESTED)
-                .filter(Key.TILGANG)
+                .filter(Key.TILGANG, nestedData = true)
                 .firstAsMap()
 
         val tilgang =
-            result[Key.TILGANG]
+            result[Key.DATA]
+                .shouldNotBeNull()
+                .toMap()[Key.TILGANG]
                 .shouldNotBeNull()
                 .fromJson(Tilgang.serializer())
 
@@ -111,11 +116,13 @@ class TilgangskontrollIT : EndToEndTest() {
         val result =
             messages
                 .filter(EventName.TILGANG_ORG_REQUESTED)
-                .filter(Key.TILGANG)
+                .filter(Key.TILGANG, nestedData = true)
                 .firstAsMap()
 
         val tilgang =
-            result[Key.TILGANG]
+            result[Key.DATA]
+                .shouldNotBeNull()
+                .toMap()[Key.TILGANG]
                 .shouldNotBeNull()
                 .fromJson(Tilgang.serializer())
 
@@ -129,11 +136,13 @@ class TilgangskontrollIT : EndToEndTest() {
         val result =
             messages
                 .filter(EventName.TILGANG_ORG_REQUESTED)
-                .filter(Key.TILGANG)
+                .filter(Key.TILGANG, nestedData = true)
                 .firstAsMap()
 
         val tilgang =
-            result[Key.TILGANG]
+            result[Key.DATA]
+                .shouldNotBeNull()
+                .toMap()[Key.TILGANG]
                 .shouldNotBeNull()
                 .fromJson(Tilgang.serializer())
 

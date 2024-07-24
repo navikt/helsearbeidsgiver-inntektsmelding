@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -36,7 +36,7 @@ fun Route.inntektRoute(
     redisConnection: RedisConnection,
 ) {
     val inntektProducer = InntektProducer(rapid)
-    val redisPoller = RedisStoreClassSpecific(redisConnection, RedisPrefix.InntektService).let(::RedisPoller)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.Inntekt).let(::RedisPoller)
 
     post(Routes.INNTEKT) {
         val transaksjonId = UUID.randomUUID()

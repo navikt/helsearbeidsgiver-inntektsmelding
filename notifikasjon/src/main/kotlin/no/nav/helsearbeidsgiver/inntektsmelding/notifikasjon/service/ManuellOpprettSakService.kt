@@ -12,7 +12,7 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed4Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -23,7 +23,7 @@ import java.util.UUID
 
 class ManuellOpprettSakService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific,
+    override val redisStore: RedisStore,
 ) : ServiceMed4Steg<
         ManuellOpprettSakService.Steg0,
         ManuellOpprettSakService.Steg1,

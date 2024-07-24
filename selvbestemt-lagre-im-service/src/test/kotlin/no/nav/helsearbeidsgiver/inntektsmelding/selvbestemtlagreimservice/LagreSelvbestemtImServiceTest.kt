@@ -44,7 +44,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -64,7 +64,7 @@ class LagreSelvbestemtImServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedisClassSpecific(RedisPrefix.LagreSelvbestemtImService)
+        val mockRedis = MockRedis(RedisPrefix.LagreSelvbestemtIm)
 
         ServiceRiver(
             LagreSelvbestemtImService(testRapid, mockRedis.store),

@@ -7,9 +7,8 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
-// TODO bytt navn til RedisStore når gamle er erstattet helt
-class RedisStoreClassSpecific(
-// class RedisStoreClassSpecific<Success : Any, Failure : Any>(
+class RedisStore(
+// class RedisStore<Success : Any, Failure : Any>(
     private val redis: RedisConnection,
     private val keyPrefix: RedisPrefix,
 //    private val successSerializer: KSerializer<Success>,
@@ -82,18 +81,18 @@ class RedisStoreClassSpecific(
 }
 
 enum class RedisPrefix {
-    AktiveOrgnrService,
-    HentForespoerselService,
-    HentSelvbestemtImService,
-    InnsendingService,
-    InntektSelvbestemtService,
-    InntektService,
-    KvitteringService,
-    LagreSelvbestemtImService,
-    ManuellOpprettSakService,
-    OpprettOppgaveService,
-    OpprettSakService,
-    SpinnService,
-    TilgangForespoerselService,
-    TilgangOrgService,
+    AktiveOrgnr,
+    HentForespoersel,
+    HentSelvbestemtIm,
+    Innsending,
+    InntektSelvbestemt,
+    Inntekt,
+    Kvittering,
+    LagreSelvbestemtIm,
+    ManuellOpprettSak,
+    OpprettOppgave,
+    OpprettSak,
+    Spinn,
+    TilgangForespoersel,
+    TilgangOrg,
 }

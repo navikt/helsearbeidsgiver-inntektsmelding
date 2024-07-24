@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -31,7 +31,7 @@ fun Route.aktiveOrgnrRoute(
     redisConnection: RedisConnection,
 ) {
     val aktiveOrgnrProducer = AktiveOrgnrProducer(connection)
-    val redisPoller = RedisStoreClassSpecific(redisConnection, RedisPrefix.AktiveOrgnrService).let(::RedisPoller)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.AktiveOrgnr).let(::RedisPoller)
 
     post(Routes.AKTIVEORGNR) {
         val transaksjonId = UUID.randomUUID()

@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
@@ -29,7 +29,7 @@ class SpinnServiceTest :
     FunSpec({
         val testRapid = TestRapid()
 
-        val mockRedis = MockRedisClassSpecific(RedisPrefix.SpinnService)
+        val mockRedis = MockRedis(RedisPrefix.Spinn)
 
         ServiceRiver(
             SpinnService(testRapid, mockRedis.store),

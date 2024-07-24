@@ -20,8 +20,8 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
@@ -30,7 +30,7 @@ class ServiceRiverTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedisClassSpecific(RedisPrefix.HentForespoerselService)
+        val mockRedis = MockRedis(RedisPrefix.HentForespoersel)
         val mockService =
             spyk(
                 MockService(mockRedis.store),
@@ -556,7 +556,7 @@ class ServiceRiverTest :
     })
 
 private class MockService(
-    override val redisStore: RedisStoreClassSpecific,
+    override val redisStore: RedisStore,
 ) : Service() {
     override val eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED
     override val startKeys =

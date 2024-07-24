@@ -57,7 +57,7 @@ class TrengerRouteKtTest : ApiTest() {
         testApi {
             val expectedJson = MockTrenger.responseJson()
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     MockTrenger.resultatOkJson,
@@ -76,7 +76,7 @@ class TrengerRouteKtTest : ApiTest() {
         testApi {
             val expectedJson = MockTrenger.responseBareInntektJson()
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     MockTrenger.resultatOkMedForrigeInntektJson,
@@ -93,7 +93,7 @@ class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere Internal server error hvis Redis timer ut`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
+            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
 
             val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
 
@@ -129,7 +129,7 @@ class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere Forbidden hvis feil ikke tilgang`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returns ikkeTilgangResultat
+            coEvery { mockRedisConnection.get(any()) } returns ikkeTilgangResultat
 
             val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
             assertEquals(HttpStatusCode.Forbidden, response.status)
@@ -138,10 +138,11 @@ class TrengerRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere Forbidden hvis feil i Tilgangsresultet`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returns
+            coEvery { mockRedisConnection.get(any()) } returns
                 TilgangResultat(
                     feilmelding = "Noe er riv ruskende galt!",
                 ).toJson(TilgangResultat.serializer())
+                    .toString()
 
             val response = post(PATH, MockTrenger.request, HentForespoerselRequest.serializer())
             assertEquals(HttpStatusCode.Forbidden, response.status)
@@ -202,6 +203,7 @@ private object MockTrenger {
                     feil = emptyMap(),
                 ).toJson(HentForespoerselResultat.serializer()),
         ).toJson(ResultJson.serializer())
+            .toString()
 
     val resultatOkMedForrigeInntektJson =
         ResultJson(
@@ -218,6 +220,7 @@ private object MockTrenger {
                     feil = emptyMap(),
                 ).toJson(HentForespoerselResultat.serializer()),
         ).toJson(ResultJson.serializer())
+            .toString()
 
     fun responseJson(): String =
         """

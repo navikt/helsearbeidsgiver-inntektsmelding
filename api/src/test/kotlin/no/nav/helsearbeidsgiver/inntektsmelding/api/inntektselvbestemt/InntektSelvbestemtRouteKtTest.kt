@@ -6,7 +6,6 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Inntekt
 import no.nav.helsearbeidsgiver.felles.InntektPerMaaned
 import no.nav.helsearbeidsgiver.felles.ResultJson
@@ -43,7 +42,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
         testApi {
             val expectedInntekt = Mock.inntekt
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.successResult(expectedInntekt),
@@ -60,7 +59,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
     @Test
     fun `manglende tilgang gir 500-feil`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returns ikkeTilgangResultat
+            coEvery { mockRedisConnection.get(any()) } returns ikkeTilgangResultat
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
 
@@ -75,7 +74,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Du får vente til freddan'!"
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.failureResult(expectedFeilmelding),
@@ -94,7 +93,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = Tekst.TEKNISK_FEIL_FORBIGAAENDE
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.emptyResult(),
@@ -113,7 +112,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilJson = RedisTimeoutResponse().toJsonStr(RedisTimeoutResponse.serializer())
 
-            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
+            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
 
@@ -128,7 +127,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilJson = "Error 500: java.lang.IllegalStateException".toJsonStr(String.serializer())
 
-            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows IllegalStateException()
+            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows IllegalStateException()
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
 
@@ -141,7 +140,7 @@ class InntektSelvbestemtRouteKtTest : ApiTest() {
     @Test
     fun `ukjent feil gir 500-feil`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } throws NullPointerException()
+            coEvery { mockRedisConnection.get(any()) } throws NullPointerException()
 
             val response = post(PATH, Mock.request, InntektSelvbestemtRequest.serializer())
 
@@ -165,17 +164,19 @@ private object Mock {
 
     fun successResponseJson(inntekt: Inntekt): String = inntekt.hardcodedJson()
 
-    fun successResult(inntekt: Inntekt): JsonElement =
+    fun successResult(inntekt: Inntekt): String =
         ResultJson(
             success = inntekt.toJson(Inntekt.serializer()),
         ).toJson(ResultJson.serializer())
+            .toString()
 
-    fun failureResult(feilmelding: String): JsonElement =
+    fun failureResult(feilmelding: String): String =
         ResultJson(
             failure = feilmelding.toJson(),
         ).toJson(ResultJson.serializer())
+            .toString()
 
-    fun emptyResult(): JsonElement = ResultJson().toJson(ResultJson.serializer())
+    fun emptyResult(): String = ResultJson().toJson(ResultJson.serializer()).toString()
 }
 
 private fun Inntekt.hardcodedJson(): String =

@@ -39,7 +39,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val selvbestemtId = UUID.randomUUID()
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.successResult(selvbestemtId),
@@ -58,7 +58,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val selvbestemtId = UUID.randomUUID()
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.successResult(selvbestemtId),
@@ -106,7 +106,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Feil under serialisering."
 
-            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat
+            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat
 
             val response = post(path, "ikke et skjema", String.serializer())
 
@@ -131,7 +131,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         }
         """.removeJsonWhitespace()
 
-            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat
+            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat
 
             val skjemaMedFeil =
                 mockSkjemaInntektsmeldingSelvbestemt().let {
@@ -155,7 +155,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
     @Test
     fun `manglende tilgang gir 500-feil`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returns ikkeTilgangResultat
+            coEvery { mockRedisConnection.get(any()) } returns ikkeTilgangResultat
 
             val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
@@ -170,7 +170,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Ukjent feil."
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.failureResult(expectedFeilmelding),
@@ -189,7 +189,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Mangler arbeidsforhold i perioden"
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.failureResult(expectedFeilmelding),
@@ -208,7 +208,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Ukjent feil."
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     Mock.emptyResult(),
@@ -227,7 +227,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Brukte for lang tid mot redis."
 
-            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
+            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(UUID.randomUUID())
 
             val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
@@ -242,7 +242,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Permanent feil mot redis."
 
-            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows IllegalStateException()
+            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows IllegalStateException()
 
             val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
@@ -255,7 +255,7 @@ class LagreSelvbestemtImRouteKtTest : ApiTest() {
     @Test
     fun `ukjent feil gir 500-feil`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } throws NullPointerException()
+            coEvery { mockRedisConnection.get(any()) } throws NullPointerException()
 
             val response = post(path, mockSkjemaInntektsmeldingSelvbestemt(), SkjemaInntektsmeldingSelvbestemt.serializer())
 
@@ -281,15 +281,17 @@ private object Mock {
         }
         """.removeJsonWhitespace()
 
-    fun successResult(selvbestemtId: UUID): JsonElement =
+    fun successResult(selvbestemtId: UUID): String =
         ResultJson(
             success = selvbestemtId.toJson(),
         ).toJson(ResultJson.serializer())
+            .toString()
 
-    fun failureResult(feilmelding: String): JsonElement =
+    fun failureResult(feilmelding: String): String =
         ResultJson(
             failure = feilmelding.toJson(String.serializer()),
         ).toJson(ResultJson.serializer())
+            .toString()
 
-    fun emptyResult(): JsonElement = ResultJson().toJson(ResultJson.serializer())
+    fun emptyResult(): String = ResultJson().toJson(ResultJson.serializer()).toString()
 }

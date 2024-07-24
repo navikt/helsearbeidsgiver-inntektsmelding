@@ -4,6 +4,9 @@ import io.ktor.server.request.ApplicationRequest
 import kotlinx.coroutines.runBlocking
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangResultat
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -15,13 +18,16 @@ import java.util.UUID
 class Tilgangskontroll(
     private val tilgangProducer: TilgangProducer,
     private val cache: LocalCache<Tilgang>,
-    private val redisPoller: RedisPoller,
+    redisConnection: RedisConnection,
 ) {
+    private val redisPollerForespoersel = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangForespoerselService).let(::RedisPoller)
+    private val redisPollerOrg = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangOrgService).let(::RedisPoller)
+
     fun validerTilgangTilForespoersel(
         request: ApplicationRequest,
         forespoerselId: UUID,
     ) {
-        validerTilgang(request, forespoerselId.toString()) { transaksjonId, fnr ->
+        validerTilgang(redisPollerForespoersel, request, forespoerselId.toString()) { transaksjonId, fnr ->
             tilgangProducer.publishForespoerselId(transaksjonId, fnr, forespoerselId)
         }
     }
@@ -30,12 +36,13 @@ class Tilgangskontroll(
         request: ApplicationRequest,
         orgnr: String,
     ) {
-        validerTilgang(request, orgnr) { transaksjonId, fnr ->
+        validerTilgang(redisPollerOrg, request, orgnr) { transaksjonId, fnr ->
             tilgangProducer.publishOrgnr(transaksjonId, fnr, orgnr)
         }
     }
 
     private fun validerTilgang(
+        redisPoller: RedisPoller,
         request: ApplicationRequest,
         cacheKeyPostfix: String,
         publish: (UUID, Fnr) -> Unit,

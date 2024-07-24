@@ -47,6 +47,7 @@ data class Steg0(
 sealed class Steg1 {
     data class Komplett(
         val forespoersel: Forespoersel,
+        val aarsakInnsending: AarsakInnsending,
         val orgNavn: String,
         val sykmeldt: PersonDato,
         val avsender: PersonDato,
@@ -84,6 +85,8 @@ class InnsendingService(
             Key.INNTEKTSMELDING_DOKUMENT,
             Key.ER_DUPLIKAT_IM,
             Key.FORESPOERSEL_SVAR,
+            Key.LAGRET_INNTEKTSMELDING,
+            Key.EKSTERN_INNTEKTSMELDING,
         )
 
     override fun lesSteg0(melding: Map<Key, JsonElement>): Steg0 =
@@ -98,15 +101,25 @@ class InnsendingService(
 
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 {
         val forespoersel = runCatching { Key.FORESPOERSEL_SVAR.les(Forespoersel.serializer(), melding) }
+        val tidligereInntektsmelding = runCatching { Key.LAGRET_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
+        val tidligereEksternInntektsmelding = runCatching { Key.EKSTERN_INNTEKTSMELDING.les(ResultJson.serializer(), melding) }
         val orgNavn = runCatching { Key.VIRKSOMHET.les(String.serializer(), melding) }
         val sykmeldt = runCatching { Key.ARBEIDSTAKER_INFORMASJON.les(PersonDato.serializer(), melding) }
         val avsender = runCatching { Key.ARBEIDSGIVER_INFORMASJON.les(PersonDato.serializer(), melding) }
 
-        val results = listOf(forespoersel, orgNavn, sykmeldt, avsender)
+        val results = listOf(forespoersel, tidligereInntektsmelding, tidligereEksternInntektsmelding, orgNavn, sykmeldt, avsender)
 
         return if (results.all { it.isSuccess }) {
+            val aarsakInnsending =
+                if (tidligereInntektsmelding.getOrThrow().success == null && tidligereEksternInntektsmelding.getOrThrow().success == null) {
+                    AarsakInnsending.Ny
+                } else {
+                    AarsakInnsending.Endring
+                }
+
             Steg1.Komplett(
                 forespoersel = forespoersel.getOrThrow(),
+                aarsakInnsending = aarsakInnsending,
                 orgNavn = orgNavn.getOrThrow(),
                 sykmeldt = sykmeldt.getOrThrow(),
                 avsender = avsender.getOrThrow(),
@@ -132,6 +145,17 @@ class InnsendingService(
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_TRENGER_IM, it) }
+
+        rapid
+            .publish(
+                Key.EVENT_NAME to eventName.toJson(),
+                Key.BEHOV to BehovType.HENT_LAGRET_IM.toJson(),
+                Key.UUID to steg0.transaksjonId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    ).toJson(),
+            ).also { loggBehovPublisert(BehovType.HENT_LAGRET_IM, it) }
 
         rapid
             .publish(
@@ -164,7 +188,7 @@ class InnsendingService(
                         .fromJson(SkjemaInntektsmelding.serializer())
                         .convert(
                             sykmeldingsperioder = steg1.forespoersel.sykmeldingsperioder,
-                            aarsakInnsending = AarsakInnsending.Ny,
+                            aarsakInnsending = steg1.aarsakInnsending,
                         )
                 }.getOrElse {
                     steg0.skjema.fromJson(Innsending.serializer())

@@ -4,7 +4,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -28,7 +28,7 @@ fun RapidsConnection.createInnsending(redisConnection: RedisConnection): RapidsC
         ServiceRiver(
             InnsendingService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.InnsendingService),
+                redisStore = RedisStore(redisConnection, RedisPrefix.Innsending),
             ),
         ).connect(this)
 
@@ -36,7 +36,7 @@ fun RapidsConnection.createInnsending(redisConnection: RedisConnection): RapidsC
         ServiceRiver(
             KvitteringService(
                 rapid = this,
-                redisStore = RedisStoreClassSpecific(redisConnection, RedisPrefix.KvitteringService),
+                redisStore = RedisStore(redisConnection, RedisPrefix.Kvittering),
             ),
         ).connect(this)
     }

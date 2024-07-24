@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.ModelUtils.toFailOrNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -23,7 +23,7 @@ import java.util.UUID
 
 class OpprettOppgaveServiceTest {
     private val rapid = TestRapid()
-    private val mockRedis = MockRedisClassSpecific(RedisPrefix.OpprettOppgaveService)
+    private val mockRedis = MockRedis(RedisPrefix.OpprettOppgave)
 
     init {
         ServiceRiver(

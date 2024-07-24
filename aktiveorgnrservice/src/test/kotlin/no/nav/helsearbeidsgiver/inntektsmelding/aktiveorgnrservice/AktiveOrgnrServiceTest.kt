@@ -26,7 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -41,7 +41,7 @@ class AktiveOrgnrServiceTest :
     FunSpec({
 
         val testRapid = TestRapid()
-        val mockRedis = MockRedisClassSpecific(RedisPrefix.AktiveOrgnrService)
+        val mockRedis = MockRedis(RedisPrefix.AktiveOrgnr)
 
         ServiceRiver(
             AktiveOrgnrService(testRapid, mockRedis.store),

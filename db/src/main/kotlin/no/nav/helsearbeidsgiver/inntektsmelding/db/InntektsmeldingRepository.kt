@@ -59,12 +59,12 @@ class InntektsmeldingRepository(
         }
     }
 
-    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: String): Pair<Inntektsmelding?, EksternInntektsmelding?> {
+    fun hentNyesteEksternEllerInternInntektsmelding(forespoerselId: UUID): Pair<Inntektsmelding?, EksternInntektsmelding?> {
         val requestTimer = requestLatency.labels("hentNyesteInternEllerEkstern").startTimer()
         return transaction(db) {
             InntektsmeldingEntitet
                 .select(InntektsmeldingEntitet.dokument, InntektsmeldingEntitet.eksternInntektsmelding)
-                .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId }
+                .where { InntektsmeldingEntitet.forespoerselId eq forespoerselId.toString() }
                 .orderBy(InntektsmeldingEntitet.innsendt, SortOrder.DESC)
                 .limit(1)
                 .map {

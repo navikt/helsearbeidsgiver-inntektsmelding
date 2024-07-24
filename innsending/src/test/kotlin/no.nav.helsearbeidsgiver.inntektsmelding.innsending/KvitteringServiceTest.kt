@@ -23,7 +23,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.firstMessage
@@ -34,7 +34,7 @@ import java.util.UUID
 class KvitteringServiceTest :
     FunSpec({
         val testRapid = TestRapid()
-        val mockRedis = MockRedisClassSpecific(RedisPrefix.KvitteringService)
+        val mockRedis = MockRedis(RedisPrefix.Kvittering)
 
         ServiceRiver(
             KvitteringService(testRapid, mockRedis.store),
@@ -63,7 +63,7 @@ class KvitteringServiceTest :
                 )
 
                 testRapid.inspektør.size shouldBeExactly 1
-                testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_PERSISTERT_IM
+                testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_LAGRET_IM
 
                 testRapid.sendJson(
                     MockKvittering.steg1(transaksjonId, expectedInntektsmelding, expectedEksternInntektsmelding),
@@ -103,8 +103,10 @@ private object MockKvittering {
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to foresporselId.toJson(),
+                ).toJson(),
         )
 
     fun steg1(
@@ -115,18 +117,20 @@ private object MockKvittering {
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson(),
-            Key.INNTEKTSMELDING_DOKUMENT to
-                ResultJson(
-                    success =
-                        inntektsmelding?.toJson(Inntektsmelding.serializer()),
-                ).toJson(ResultJson.serializer()),
-            Key.EKSTERN_INNTEKTSMELDING to
-                ResultJson(
-                    success =
-                        eksternInntektsmelding?.toJson(EksternInntektsmelding.serializer()),
-                ).toJson(ResultJson.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to foresporselId.toJson(),
+                    Key.LAGRET_INNTEKTSMELDING to
+                        ResultJson(
+                            success =
+                                inntektsmelding?.toJson(Inntektsmelding.serializer()),
+                        ).toJson(ResultJson.serializer()),
+                    Key.EKSTERN_INNTEKTSMELDING to
+                        ResultJson(
+                            success =
+                                eksternInntektsmelding?.toJson(EksternInntektsmelding.serializer()),
+                        ).toJson(ResultJson.serializer()),
+                ).toJson(),
         )
 
     fun successResult(

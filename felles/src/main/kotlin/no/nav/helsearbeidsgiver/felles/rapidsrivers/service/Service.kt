@@ -4,13 +4,13 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import org.slf4j.Logger
 
 // TODO kan bli sealed når alle servicer bruker steg-abstraksjon
 abstract class Service {
-    abstract val redisStore: RedisStoreClassSpecific
+    abstract val redisStore: RedisStore
     abstract val eventName: EventName
     abstract val startKeys: Set<Key>
     abstract val dataKeys: Set<Key>

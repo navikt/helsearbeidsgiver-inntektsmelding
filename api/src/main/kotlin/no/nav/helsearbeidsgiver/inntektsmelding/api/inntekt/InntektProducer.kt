@@ -27,7 +27,7 @@ class InntektProducer(
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(EventName.INNTEKT_REQUESTED),
-            Log.clientId(transaksjonId),
+            Log.transaksjonId(transaksjonId),
             Log.forespoerselId(request.forespoerselId),
         ) {
             rapid

@@ -26,7 +26,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.tilArbeidsforhold
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.bjarneBetjent
@@ -71,7 +70,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
         )
 
-        redisStore.get(RedisKey.of(transaksjonId)) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
+        redisConnection.get(transaksjonId) shouldBe Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
@@ -136,7 +135,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             Key.ARBEIDSGIVER_FNR to Mock.fnrAg.toJson(),
         )
 
-        redisStore.get(RedisKey.of(transaksjonId))?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
+        redisConnection.get(transaksjonId)?.parseJson() shouldBe Mock.resultatIngenArbeidsforholdJson
 
         val aktiveOrgnrMeldinger = messages.filter(EventName.AKTIVE_ORGNR_REQUESTED)
 
@@ -210,8 +209,8 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
         )
 
         val response =
-            redisStore
-                .get(RedisKey.of(transaksjonId))
+            redisConnection
+                .get(transaksjonId)
                 ?.fromJson(ResultJson.serializer())
                 .shouldNotBeNull()
 

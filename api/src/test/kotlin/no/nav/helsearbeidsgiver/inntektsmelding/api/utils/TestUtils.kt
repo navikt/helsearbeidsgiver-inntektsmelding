@@ -19,22 +19,22 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangResultat
-import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.inntektsmelding.api.apiModule
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.AfterEach
 
-val harTilgangResultat = TilgangResultat(Tilgang.HAR_TILGANG).toJson(TilgangResultat.serializer())
-val ikkeTilgangResultat = TilgangResultat(Tilgang.IKKE_TILGANG).toJson(TilgangResultat.serializer())
+val harTilgangResultat = TilgangResultat(Tilgang.HAR_TILGANG).toJson(TilgangResultat.serializer()).toString()
+val ikkeTilgangResultat = TilgangResultat(Tilgang.IKKE_TILGANG).toJson(TilgangResultat.serializer()).toString()
 
 abstract class ApiTest : MockAuthToken() {
-    val mockRedisPoller = mockk<RedisPoller>()
+    val mockRedisConnection = mockk<RedisConnection>()
 
     fun testApi(block: suspend TestClient.() -> Unit): Unit =
         testApplication {
             application {
-                apiModule(mockk(relaxed = true), mockRedisPoller)
+                apiModule(mockk(relaxed = true), mockRedisConnection)
             }
 
             val testClient = TestClient(this, ::mockAuthToken)

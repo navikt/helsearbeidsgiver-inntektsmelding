@@ -4,13 +4,13 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import org.slf4j.Logger
 
 // TODO kan bli sealed når alle servicer bruker steg-abstraksjon
 abstract class Service {
-    abstract val redisStore: RedisStoreClassSpecific
+    abstract val redisStore: RedisStore
     abstract val eventName: EventName
     abstract val startKeys: Set<Key>
     abstract val dataKeys: Set<Key>
@@ -141,9 +141,47 @@ abstract class ServiceMed3Steg<S0, S1, S2, S3> : ServiceMed2Steg<S0, S1, S2>() {
     }
 }
 
+abstract class ServiceMed4Steg<S0, S1, S2, S3, S4> : ServiceMed3Steg<S0, S1, S2, S3>() {
+    protected abstract fun lesSteg4(melding: Map<Key, JsonElement>): S4
+
+    protected abstract fun utfoerSteg4(
+        steg0: S0,
+        steg1: S1,
+        steg2: S2,
+        steg3: S3,
+        steg4: S4,
+    )
+
+    override fun onData(melding: Map<Key, JsonElement>) {
+        runCatching {
+            Quintuple(
+                first = lesSteg0(melding),
+                second = lesSteg1(melding),
+                third = lesSteg2(melding),
+                fourth = lesSteg3(melding),
+                fifth = lesSteg4(melding),
+            )
+        }.onSuccess {
+            medLoggfelt(it.first) {
+                utfoerSteg4(it.first, it.second, it.third, it.fourth, it.fifth)
+            }
+        }.onFailure {
+            super.onData(melding)
+        }
+    }
+}
+
 private class Quadruple<S0, S1, S2, S3>(
     val first: S0,
     val second: S1,
     val third: S2,
     val fourth: S3,
+)
+
+private class Quintuple<S0, S1, S2, S3, S4>(
+    val first: S0,
+    val second: S1,
+    val third: S2,
+    val fourth: S3,
+    val fifth: S4,
 )

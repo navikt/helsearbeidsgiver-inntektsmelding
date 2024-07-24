@@ -25,14 +25,12 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.SpinnKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createEksternInntektsmeldingLoeser
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createHentEksternImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.brospinn.createSpinnService
 import no.nav.helsearbeidsgiver.inntektsmelding.brreg.createBrreg
@@ -53,6 +51,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.inntektselvbestemtservice.create
 import no.nav.helsearbeidsgiver.inntektsmelding.inntektservice.createInntektService
 import no.nav.helsearbeidsgiver.inntektsmelding.joark.createJournalfoerImRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonRivers
+import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.createNotifikasjonServices
 import no.nav.helsearbeidsgiver.inntektsmelding.notifikasjon.db.SelvbestemtRepo
 import no.nav.helsearbeidsgiver.inntektsmelding.pdl.createPdl
 import no.nav.helsearbeidsgiver.inntektsmelding.selvbestemtlagreimservice.createLagreSelvbestemtImService
@@ -130,17 +129,7 @@ abstract class EndToEndTest : ContainerTest() {
     }
 
     // Vent på rediscontainer
-    val redisStore by lazy {
-        repeat(5) {
-            runCatching { RedisStore(redisContainer.redisURI) }
-                .onSuccess { return@lazy it }
-                .onFailure { runBlocking { delay(1000) } }
-        }
-        throw IllegalStateException("Klarte ikke koble til Redis.")
-    }
-
-    // Vent på rediscontainer
-    private val redisConnection by lazy {
+    val redisConnection by lazy {
         repeat(5) {
             runCatching { RedisConnection(redisContainer.redisURI) }
                 .onSuccess { return@lazy it }
@@ -211,6 +200,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntektService(redisConnection)
             createInntektSelvbestemtService(redisConnection)
             createLagreSelvbestemtImService(redisConnection)
+            createNotifikasjonServices(redisConnection)
             createSpinnService(redisConnection)
             createTilgangService(redisConnection)
             createHentForespoerselService(redisConnection)
@@ -221,7 +211,6 @@ abstract class EndToEndTest : ContainerTest() {
             createBrreg(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)
             createDistribusjonRiver(mockk(relaxed = true))
-            createEksternInntektsmeldingLoeser(spinnKlient)
             createForespoerselBesvartFraSimba()
             createForespoerselBesvartFraSpleis(mockPriProducer)
             createForespoerselMottatt(mockPriProducer)
@@ -230,7 +219,7 @@ abstract class EndToEndTest : ContainerTest() {
             createInntekt(inntektClient)
             createJournalfoerImRiver(dokarkivClient)
             createMarkerForespoerselBesvart(mockPriProducer)
-            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, redisStore, arbeidsgiverNotifikasjonKlient)
+            createNotifikasjonRivers(NOTIFIKASJON_LINK, selvbestemtRepo, arbeidsgiverNotifikasjonKlient)
             createPdl(pdlKlient)
         }
     }
@@ -239,7 +228,6 @@ abstract class EndToEndTest : ContainerTest() {
     fun afterAllEndToEnd() {
         // Prometheus-metrikker spenner bein på testene uten denne
         CollectorRegistry.defaultRegistry.clear()
-        redisStore.shutdown()
         redisConnection.close()
         inntektsmeldingDatabase.dataSource.close()
         notifikasjonDatabase.dataSource.close()
@@ -296,6 +284,8 @@ abstract class EndToEndTest : ContainerTest() {
             Result.success(JsonObject(emptyMap()))
         }
     }
+
+    fun RedisConnection.get(transaksjonId: UUID): String? = get(transaksjonId.toString())
 
     fun truncateDatabase() {
         transaction(inntektsmeldingDatabase.db) {

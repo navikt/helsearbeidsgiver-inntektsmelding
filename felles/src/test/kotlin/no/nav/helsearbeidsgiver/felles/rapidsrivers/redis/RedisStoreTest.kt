@@ -6,28 +6,26 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.builtins.serializer
-import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.test.mock.redisWithMockRedisClient
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class RedisStoreClassSpecificTest :
+class RedisStoreTest :
     FunSpec({
 
-        test(RedisStoreClassSpecific::get.name) {
-            val keyPrefix = RedisPrefix.HentForespoerselService
+        test(RedisStore::get.name) {
+            val keyPrefix = RedisPrefix.HentForespoersel
             val transaksjonId = UUID.randomUUID()
 
             val redisStore =
-                RedisStoreClassSpecific(
+                RedisStore(
                     redis =
                         redisWithMockRedisClient(
                             mockStorageInit =
                                 mapOf(
                                     "$keyPrefix#$transaksjonId" to "\"mango\"",
-                                    "$keyPrefix#$transaksjonId#${EventName.SELVBESTEMT_IM_REQUESTED}" to "\"ananas\"",
                                     "$keyPrefix#$transaksjonId#Feilmelding" to "\"papaya\"",
                                     "$keyPrefix#$transaksjonId#${Key.FNR}" to "\"kokosnøtt\"",
                                     "$keyPrefix#$transaksjonId#${Key.TILGANG}" to null,
@@ -38,7 +36,6 @@ class RedisStoreClassSpecificTest :
 
             mapOf(
                 RedisKey.of(transaksjonId) to "mango",
-                RedisKey.of(transaksjonId, EventName.SELVBESTEMT_IM_REQUESTED) to "ananas",
                 RedisKey.feilmelding(transaksjonId) to "papaya",
                 RedisKey.of(transaksjonId, Key.FNR) to "kokosnøtt",
             ).forEach { (key, expected) ->
@@ -47,25 +44,23 @@ class RedisStoreClassSpecificTest :
 
             listOf(
                 RedisKey.of(transaksjonId, Key.TILGANG),
-                RedisKey.of(transaksjonId, EventName.FORESPOERSEL_BESVART),
                 RedisKey.of(UUID.randomUUID(), Key.FNR),
             ).forEach { key ->
                 redisStore.get(key)?.fromJson(String.serializer()).shouldBeNull()
             }
         }
 
-        test(RedisStoreClassSpecific::getAll.name) {
-            val keyPrefix = RedisPrefix.SpinnService
+        test(RedisStore::getAll.name) {
+            val keyPrefix = RedisPrefix.Spinn
             val transaksjonId = UUID.randomUUID()
 
             val redisStore =
-                RedisStoreClassSpecific(
+                RedisStore(
                     redis =
                         redisWithMockRedisClient(
                             mockStorageInit =
                                 mapOf(
                                     "$keyPrefix#$transaksjonId" to "\"eple\"",
-                                    "$keyPrefix#$transaksjonId#${EventName.SELVBESTEMT_IM_REQUESTED}" to "\"pære\"",
                                     "$keyPrefix#$transaksjonId#Feilmelding" to "\"appelsin\"",
                                     "$keyPrefix#$transaksjonId#${Key.FNR}" to "\"banan\"",
                                     "$keyPrefix#$transaksjonId#${Key.TILGANG}" to null,
@@ -77,7 +72,6 @@ class RedisStoreClassSpecificTest :
             val keysWithValues =
                 setOf(
                     RedisKey.of(transaksjonId),
-                    RedisKey.of(transaksjonId, EventName.SELVBESTEMT_IM_REQUESTED),
                     RedisKey.feilmelding(transaksjonId),
                     RedisKey.of(transaksjonId, Key.FNR),
                 )
@@ -85,7 +79,6 @@ class RedisStoreClassSpecificTest :
             redisStore.getAll(keysWithValues) shouldContainExactly
                 mapOf(
                     "$transaksjonId" to "eple".toJson(),
-                    "$transaksjonId#${EventName.SELVBESTEMT_IM_REQUESTED}" to "pære".toJson(),
                     "$transaksjonId#Feilmelding" to "appelsin".toJson(),
                     "$transaksjonId#${Key.FNR}" to "banan".toJson(),
                 )
@@ -93,19 +86,18 @@ class RedisStoreClassSpecificTest :
             val keysWithoutValues =
                 setOf(
                     RedisKey.of(transaksjonId, Key.TILGANG),
-                    RedisKey.of(transaksjonId, EventName.FORESPOERSEL_BESVART),
                     RedisKey.of(UUID.randomUUID(), Key.FNR),
                 )
 
             redisStore.getAll(keysWithoutValues).shouldBeEmpty()
         }
 
-        test("${RedisStoreClassSpecific::set.name} (ny og gammel)") {
-            val keyPrefix = RedisPrefix.TilgangOrgService
+        test("${RedisStore::set.name} (ny og gammel)") {
+            val keyPrefix = RedisPrefix.TilgangOrg
             val transaksjonId = UUID.randomUUID()
 
             val redisStore =
-                RedisStoreClassSpecific(
+                RedisStore(
                     redis =
                         redisWithMockRedisClient(
                             mockStorageInit =
@@ -121,7 +113,6 @@ class RedisStoreClassSpecificTest :
                 setOf(
                     RedisKey.of(transaksjonId),
                     RedisKey.of(transaksjonId, Key.TILGANG),
-                    RedisKey.of(transaksjonId, EventName.FORESPOERSEL_BESVART),
                 )
 
             redisStore.getAll(keys) shouldContainExactly
@@ -144,33 +135,21 @@ class RedisStoreClassSpecificTest :
                     "$transaksjonId${Key.TILGANG}" to "dragefrukt".toJson(),
                     "$transaksjonId#${Key.TILGANG}" to "dragefrukt".toJson(),
                 )
-
-            redisStore.set(RedisKey.of(transaksjonId, EventName.FORESPOERSEL_BESVART), "pasjonsfrukt".toJson())
-
-            redisStore.getAll(keys) shouldContainExactly
-                mapOf(
-                    "$transaksjonId" to "rabarbra".toJson(),
-                    "$transaksjonId${Key.TILGANG}" to "dragefrukt".toJson(),
-                    "$transaksjonId#${Key.TILGANG}" to "dragefrukt".toJson(),
-                    "$transaksjonId${EventName.FORESPOERSEL_BESVART}" to "pasjonsfrukt".toJson(),
-                    "$transaksjonId#${EventName.FORESPOERSEL_BESVART}" to "pasjonsfrukt".toJson(),
-                )
         }
 
         context("henter keys på gammel format") {
 
-            test(RedisStoreClassSpecific::get.name) {
-                val keyPrefix = RedisPrefix.HentForespoerselService
+            test(RedisStore::get.name) {
+                val keyPrefix = RedisPrefix.HentForespoersel
                 val transaksjonId = UUID.randomUUID()
 
                 val redisStore =
-                    RedisStoreClassSpecific(
+                    RedisStore(
                         redis =
                             redisWithMockRedisClient(
                                 mockStorageInit =
                                     mapOf(
                                         "$transaksjonId" to "\"mango\"",
-                                        "$transaksjonId${EventName.SELVBESTEMT_IM_REQUESTED}" to "\"ananas\"",
                                         "${transaksjonId}Feilmelding" to "\"papaya\"",
                                         "$transaksjonId${Key.FNR}" to "\"kokosnøtt\"",
                                         "$transaksjonId${Key.TILGANG}" to null,
@@ -181,7 +160,6 @@ class RedisStoreClassSpecificTest :
 
                 mapOf(
                     RedisKey.of(transaksjonId) to "mango",
-                    RedisKey.of(transaksjonId, EventName.SELVBESTEMT_IM_REQUESTED) to "ananas",
                     RedisKey.feilmelding(transaksjonId) to "papaya",
                     RedisKey.of(transaksjonId, Key.FNR) to "kokosnøtt",
                 ).forEach { (key, expected) ->
@@ -190,25 +168,23 @@ class RedisStoreClassSpecificTest :
 
                 listOf(
                     RedisKey.of(transaksjonId, Key.TILGANG),
-                    RedisKey.of(transaksjonId, EventName.FORESPOERSEL_BESVART),
                     RedisKey.of(UUID.randomUUID(), Key.FNR),
                 ).forEach { key ->
                     redisStore.get(key)?.fromJson(String.serializer()).shouldBeNull()
                 }
             }
 
-            test(RedisStoreClassSpecific::getAll.name) {
-                val keyPrefix = RedisPrefix.SpinnService
+            test(RedisStore::getAll.name) {
+                val keyPrefix = RedisPrefix.Spinn
                 val transaksjonId = UUID.randomUUID()
 
                 val redisStore =
-                    RedisStoreClassSpecific(
+                    RedisStore(
                         redis =
                             redisWithMockRedisClient(
                                 mockStorageInit =
                                     mapOf(
                                         "$transaksjonId" to "\"eple\"",
-                                        "$transaksjonId${EventName.SELVBESTEMT_IM_REQUESTED}" to "\"pære\"",
                                         "${transaksjonId}Feilmelding" to "\"appelsin\"",
                                         "$transaksjonId${Key.FNR}" to "\"banan\"",
                                         "$transaksjonId${Key.TILGANG}" to null,
@@ -220,7 +196,6 @@ class RedisStoreClassSpecificTest :
                 val keysWithValues =
                     setOf(
                         RedisKey.of(transaksjonId),
-                        RedisKey.of(transaksjonId, EventName.SELVBESTEMT_IM_REQUESTED),
                         RedisKey.feilmelding(transaksjonId),
                         RedisKey.of(transaksjonId, Key.FNR),
                     )
@@ -228,7 +203,6 @@ class RedisStoreClassSpecificTest :
                 redisStore.getAll(keysWithValues) shouldContainExactly
                     mapOf(
                         "$transaksjonId" to "eple".toJson(),
-                        "$transaksjonId${EventName.SELVBESTEMT_IM_REQUESTED}" to "pære".toJson(),
                         "${transaksjonId}Feilmelding" to "appelsin".toJson(),
                         "$transaksjonId${Key.FNR}" to "banan".toJson(),
                     )
@@ -236,7 +210,6 @@ class RedisStoreClassSpecificTest :
                 val keysWithoutValues =
                     setOf(
                         RedisKey.of(transaksjonId, Key.TILGANG),
-                        RedisKey.of(transaksjonId, EventName.FORESPOERSEL_BESVART),
                         RedisKey.of(UUID.randomUUID(), Key.FNR),
                     )
 

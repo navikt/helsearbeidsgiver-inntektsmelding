@@ -1,50 +1,98 @@
 package no.nav.helsearbeidsgiver.felles.rapidsrivers.redis
 
-import io.lettuce.core.RedisClient
-import io.lettuce.core.SetArgs
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class RedisStore(
-    redisUrl: String,
+// class RedisStore<Success : Any, Failure : Any>(
+    private val redis: RedisConnection,
+    private val keyPrefix: RedisPrefix,
+//    private val successSerializer: KSerializer<Success>,
+//    private val failureSerializer: KSerializer<Failure>,
 ) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    private val redisClient = redisUrl.let(RedisClient::create)
-    private val connection = redisClient.connect()
-    private val syncCommands = connection.sync()
+    internal val keyPartSeparator = "#"
 
-    fun set(
-        key: RedisKey,
-        value: String,
-        ttl: Long = 60L,
-    ) {
-        sikkerLogger.debug("Setting in redis: $key -> $value")
-        syncCommands.set(key.toString(), value, SetArgs().ex(ttl))
+    fun get(key: RedisKey): JsonElement? {
+        val value =
+            redis.get(key.toStoreKey())
+                // TODO slett etter overgangsperiode
+                ?: oldGet(key)
+
+        val valueJson = value?.parseJson()
+
+        sikkerLogger.debug("Getting from redis: ${key.toStoreKey()} -> ${valueJson?.toPretty()}")
+        return valueJson
     }
 
-    fun get(key: RedisKey): String? {
-        val value = syncCommands.get(key.toString())
-        sikkerLogger.debug("Getting from redis: $key -> $value")
-        return value
-    }
-
-    fun getAll(keys: Set<RedisKey>): Map<String, String> {
-        val keysAsString = keys.map { it.toString() }.toTypedArray()
-        return syncCommands
-            .mget(*keysAsString)
-            .associate { it.key to it.getValueOrElse(null) }
-            .mapValuesNotNull { it }
-            .also {
+    fun getAll(keys: Set<RedisKey>): Map<String, JsonElement> {
+        val storeKeys = keys.map { it.toStoreKey() }.toTypedArray()
+        return redis
+            .getAll(*storeKeys)
+            // TODO slett etter overgangsperiode
+            .plus(oldGetAll(keys))
+            .mapValuesNotNull { value ->
+                value
+                    .runCatching(String::parseJson)
+                    .getOrElse { error ->
+                        "Klarte ikke parse redis-verdi.".also {
+                            logger.error(it)
+                            sikkerLogger.error("$it\nvalue=$value", error)
+                        }
+                        null
+                    }
+            }.mapKeys {
+                it.key.removePrefix("${keyPrefix.name}$keyPartSeparator")
+            }.also {
                 sikkerLogger.debug("Getting all from redis: $it")
             }
     }
 
-    fun shutdown() {
-        logger.info("Stoppsignal mottatt, lukker Redis-tilkobling.")
-        connection.close()
-        redisClient.shutdown()
+    fun set(
+        key: RedisKey,
+        value: JsonElement,
+    ) {
+        sikkerLogger.debug("Setting in redis: ${key.toStoreKey()} -> ${value.toPretty()}")
+
+        redis.set(key.toStoreKey(), value.toString())
+
+        // TODO slett etter overgangsperiode
+        oldSet(key, value)
     }
+
+    private fun oldGet(key: RedisKey): String? = redis.get(key.toString())
+
+    private fun oldGetAll(keys: Set<RedisKey>): Map<String, String> = redis.getAll(*keys.map { it.toString() }.toTypedArray())
+
+    private fun oldSet(
+        key: RedisKey,
+        value: JsonElement,
+    ) {
+        redis.set(key.toString(), value.toString())
+    }
+
+    private fun RedisKey.toStoreKey(): String = listOf(keyPrefix.name).plus(keyParts()).joinToString(separator = keyPartSeparator)
+}
+
+enum class RedisPrefix {
+    AktiveOrgnr,
+    HentForespoersel,
+    HentSelvbestemtIm,
+    Innsending,
+    InntektSelvbestemt,
+    Inntekt,
+    Kvittering,
+    LagreSelvbestemtIm,
+    ManuellOpprettSak,
+    OpprettOppgave,
+    OpprettSak,
+    Spinn,
+    TilgangForespoersel,
+    TilgangOrg,
 }

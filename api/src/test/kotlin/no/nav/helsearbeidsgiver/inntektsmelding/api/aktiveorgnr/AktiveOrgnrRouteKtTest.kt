@@ -32,10 +32,11 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
     @Test
     fun `skal godta og returnere liste med organisasjoner`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returns
+            coEvery { mockRedisConnection.get(any()) } returns
                 ResultJson(
                     success = Mock.GYLDIG_AKTIVE_ORGNR_RESPONSE.parseJson(),
                 ).toJson(ResultJson.serializer())
+                    .toString()
 
             val requestBody = """
             {"identitetsnummer":"${Fnr.genererGyldig()}"}
@@ -57,10 +58,11 @@ class AktiveOrgnrRouteKtTest : ApiTest() {
                     underenheter = emptyList(),
                 )
 
-            coEvery { mockRedisPoller.hent(any()) } returns
+            coEvery { mockRedisConnection.get(any()) } returns
                 ResultJson(
                     success = resultatUtenArbeidsforhold.toJson(AktiveArbeidsgivere.serializer()),
                 ).toJson(ResultJson.serializer())
+                    .toString()
 
             val response = post(path, AktiveOrgnrRequest(Fnr.genererGyldig()), AktiveOrgnrRequest.serializer())
 

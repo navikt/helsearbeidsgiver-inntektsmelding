@@ -92,7 +92,7 @@ class RedisStoreTest :
             redisStore.getAll(keysWithoutValues).shouldBeEmpty()
         }
 
-        test("${RedisStore::set.name} (ny og gammel)") {
+        test(RedisStore::set.name) {
             val keyPrefix = RedisPrefix.TilgangOrg
             val transaksjonId = UUID.randomUUID()
 
@@ -132,88 +132,7 @@ class RedisStoreTest :
             redisStore.getAll(keys) shouldContainExactly
                 mapOf(
                     "$transaksjonId" to "rabarbra".toJson(),
-                    "$transaksjonId${Key.TILGANG}" to "dragefrukt".toJson(),
                     "$transaksjonId#${Key.TILGANG}" to "dragefrukt".toJson(),
                 )
-        }
-
-        context("henter keys på gammel format") {
-
-            test(RedisStore::get.name) {
-                val keyPrefix = RedisPrefix.HentForespoersel
-                val transaksjonId = UUID.randomUUID()
-
-                val redisStore =
-                    RedisStore(
-                        redis =
-                            redisWithMockRedisClient(
-                                mockStorageInit =
-                                    mapOf(
-                                        "$transaksjonId" to "\"mango\"",
-                                        "${transaksjonId}Feilmelding" to "\"papaya\"",
-                                        "$transaksjonId${Key.FNR}" to "\"kokosnøtt\"",
-                                        "$transaksjonId${Key.TILGANG}" to null,
-                                    ),
-                            ),
-                        keyPrefix = keyPrefix,
-                    )
-
-                mapOf(
-                    RedisKey.of(transaksjonId) to "mango",
-                    RedisKey.feilmelding(transaksjonId) to "papaya",
-                    RedisKey.of(transaksjonId, Key.FNR) to "kokosnøtt",
-                ).forEach { (key, expected) ->
-                    redisStore.get(key)?.fromJson(String.serializer()) shouldBe expected
-                }
-
-                listOf(
-                    RedisKey.of(transaksjonId, Key.TILGANG),
-                    RedisKey.of(UUID.randomUUID(), Key.FNR),
-                ).forEach { key ->
-                    redisStore.get(key)?.fromJson(String.serializer()).shouldBeNull()
-                }
-            }
-
-            test(RedisStore::getAll.name) {
-                val keyPrefix = RedisPrefix.Spinn
-                val transaksjonId = UUID.randomUUID()
-
-                val redisStore =
-                    RedisStore(
-                        redis =
-                            redisWithMockRedisClient(
-                                mockStorageInit =
-                                    mapOf(
-                                        "$transaksjonId" to "\"eple\"",
-                                        "${transaksjonId}Feilmelding" to "\"appelsin\"",
-                                        "$transaksjonId${Key.FNR}" to "\"banan\"",
-                                        "$transaksjonId${Key.TILGANG}" to null,
-                                    ),
-                            ),
-                        keyPrefix = keyPrefix,
-                    )
-
-                val keysWithValues =
-                    setOf(
-                        RedisKey.of(transaksjonId),
-                        RedisKey.feilmelding(transaksjonId),
-                        RedisKey.of(transaksjonId, Key.FNR),
-                    )
-
-                redisStore.getAll(keysWithValues) shouldContainExactly
-                    mapOf(
-                        "$transaksjonId" to "eple".toJson(),
-                        "${transaksjonId}Feilmelding" to "appelsin".toJson(),
-                        "$transaksjonId${Key.FNR}" to "banan".toJson(),
-                    )
-
-                val keysWithoutValues =
-                    setOf(
-                        RedisKey.of(transaksjonId, Key.TILGANG),
-                        RedisKey.of(UUID.randomUUID(), Key.FNR),
-                    )
-
-                redisStore.getAll(keysWithoutValues).shouldBeEmpty()
-            }
         }
     })

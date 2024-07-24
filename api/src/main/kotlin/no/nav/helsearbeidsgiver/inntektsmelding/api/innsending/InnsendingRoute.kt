@@ -12,6 +12,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -35,9 +38,10 @@ import kotlin.system.measureTimeMillis
 fun Route.innsendingRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller,
+    redisConnection: RedisConnection,
 ) {
     val producer = InnsendingProducer(rapid)
+    val redisPoller = RedisStoreClassSpecific(redisConnection, RedisPrefix.InnsendingService).let(::RedisPoller)
 
     val requestLatency =
         Summary

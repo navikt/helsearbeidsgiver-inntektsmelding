@@ -21,6 +21,8 @@ spec:
     sidecar:
       enabled: {{#if sidecarEnabled}}true{{else}}false{{/if}}
   {{#if ingress}}
+  tokenx:
+    enabled: {{#if tokenxEnabled}}true{{else}}false{{/if}}
   ingresses:
     - {{ ingress }}
   {{/if}}

@@ -154,13 +154,13 @@ class HentForespoerselService(
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.INNTEKT.toJson(),
+                Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
                 Key.FNR to steg1.forespoersel.fnr.toJson(),
                 Key.SKJAERINGSTIDSPUNKT to inntektsdato.toJson(),
-            ).also { loggBehovPublisert(BehovType.INNTEKT, it) }
+            ).also { loggBehovPublisert(BehovType.HENT_INNTEKT, it) }
     }
 
     override fun utfoerSteg2(
@@ -214,7 +214,7 @@ class HentForespoerselService(
                         emptyMap<Fnr, Person>().toJson(personMapSerializer),
                     )
 
-                BehovType.INNTEKT ->
+                BehovType.HENT_INNTEKT ->
                     Datafeil(
                         Key.INNTEKT,
                         "Vi har problemer med å hente inntektsopplysninger. Du kan legge inn beregnet månedsinntekt manuelt, eller prøv igjen senere.",

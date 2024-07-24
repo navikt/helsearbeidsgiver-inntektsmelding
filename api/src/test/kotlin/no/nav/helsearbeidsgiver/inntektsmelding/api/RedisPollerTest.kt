@@ -11,7 +11,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode
 import no.nav.helsearbeidsgiver.felles.Forespoersel
 import no.nav.helsearbeidsgiver.felles.ForespurtData
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespoersel
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
@@ -28,7 +28,7 @@ class RedisPollerTest :
         // For å skippe kall til 'delay'
         coroutineTestScope = true
 
-        val mockRedisStore = mockk<RedisStoreClassSpecific>()
+        val mockRedisStore = mockk<RedisStore>()
         val redisPoller = RedisPoller(mockRedisStore)
 
         val key = UUID.randomUUID()

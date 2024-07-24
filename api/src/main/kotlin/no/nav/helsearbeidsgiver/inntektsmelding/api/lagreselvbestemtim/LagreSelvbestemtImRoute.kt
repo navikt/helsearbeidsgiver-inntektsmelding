@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsm
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
@@ -54,7 +54,7 @@ fun Route.lagreSelvbestemtImRoute(
     redisConnection: RedisConnection,
 ) {
     val producer = LagreSelvbestemtImProducer(rapid)
-    val redisPoller = RedisStoreClassSpecific(redisConnection, RedisPrefix.LagreSelvbestemtImService).let(::RedisPoller)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.LagreSelvbestemtIm).let(::RedisPoller)
 
     post(Routes.SELVBESTEMT_INNTEKTSMELDING) {
         val transaksjonId = UUID.randomUUID()

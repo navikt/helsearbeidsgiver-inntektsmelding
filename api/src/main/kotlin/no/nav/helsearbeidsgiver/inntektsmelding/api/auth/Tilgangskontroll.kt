@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.Tilgang
 import no.nav.helsearbeidsgiver.felles.TilgangResultat
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -20,8 +20,8 @@ class Tilgangskontroll(
     private val cache: LocalCache<Tilgang>,
     redisConnection: RedisConnection,
 ) {
-    private val redisPollerForespoersel = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangForespoerselService).let(::RedisPoller)
-    private val redisPollerOrg = RedisStoreClassSpecific(redisConnection, RedisPrefix.TilgangOrgService).let(::RedisPoller)
+    private val redisPollerForespoersel = RedisStore(redisConnection, RedisPrefix.TilgangForespoersel).let(::RedisPoller)
+    private val redisPollerOrg = RedisStore(redisConnection, RedisPrefix.TilgangOrg).let(::RedisPoller)
 
     fun validerTilgangTilForespoersel(
         request: ApplicationRequest,

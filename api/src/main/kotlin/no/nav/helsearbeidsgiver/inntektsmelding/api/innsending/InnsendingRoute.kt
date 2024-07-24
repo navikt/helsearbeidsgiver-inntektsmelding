@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -41,7 +41,7 @@ fun Route.innsendingRoute(
     redisConnection: RedisConnection,
 ) {
     val producer = InnsendingProducer(rapid)
-    val redisPoller = RedisStoreClassSpecific(redisConnection, RedisPrefix.InnsendingService).let(::RedisPoller)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.Innsending).let(::RedisPoller)
 
     val requestLatency =
         Summary

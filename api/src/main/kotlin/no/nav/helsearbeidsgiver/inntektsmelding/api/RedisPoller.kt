@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.inntektsmelding.api
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
@@ -12,7 +12,7 @@ private const val WAIT_MILLIS = 500L
 
 // TODO Bruke kotlin.Result istedenfor exceptions?
 class RedisPoller(
-    private val redisStore: RedisStoreClassSpecific,
+    private val redisStore: RedisStore,
 ) {
     private val sikkerLogger = sikkerLogger()
 

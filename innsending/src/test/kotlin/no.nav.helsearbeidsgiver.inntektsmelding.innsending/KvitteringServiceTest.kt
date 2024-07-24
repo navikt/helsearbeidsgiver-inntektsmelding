@@ -63,7 +63,7 @@ class KvitteringServiceTest :
                 )
 
                 testRapid.inspektør.size shouldBeExactly 1
-                testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_PERSISTERT_IM
+                testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_LAGRET_IM
 
                 testRapid.sendJson(
                     MockKvittering.steg1(transaksjonId, expectedInntektsmelding, expectedEksternInntektsmelding),
@@ -103,8 +103,10 @@ private object MockKvittering {
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson(),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to foresporselId.toJson(),
+                ).toJson(),
         )
 
     fun steg1(
@@ -115,18 +117,20 @@ private object MockKvittering {
         mapOf(
             Key.EVENT_NAME to EventName.KVITTERING_REQUESTED.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to "".toJson(),
-            Key.FORESPOERSEL_ID to foresporselId.toJson(),
-            Key.INNTEKTSMELDING_DOKUMENT to
-                ResultJson(
-                    success =
-                        inntektsmelding?.toJson(Inntektsmelding.serializer()),
-                ).toJson(ResultJson.serializer()),
-            Key.EKSTERN_INNTEKTSMELDING to
-                ResultJson(
-                    success =
-                        eksternInntektsmelding?.toJson(EksternInntektsmelding.serializer()),
-                ).toJson(ResultJson.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.FORESPOERSEL_ID to foresporselId.toJson(),
+                    Key.LAGRET_INNTEKTSMELDING to
+                        ResultJson(
+                            success =
+                                inntektsmelding?.toJson(Inntektsmelding.serializer()),
+                        ).toJson(ResultJson.serializer()),
+                    Key.EKSTERN_INNTEKTSMELDING to
+                        ResultJson(
+                            success =
+                                eksternInntektsmelding?.toJson(EksternInntektsmelding.serializer()),
+                        ).toJson(ResultJson.serializer()),
+                ).toJson(),
         )
 
     fun successResult(

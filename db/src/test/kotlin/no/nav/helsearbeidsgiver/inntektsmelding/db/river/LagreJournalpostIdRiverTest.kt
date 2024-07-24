@@ -236,15 +236,6 @@ class LagreJournalpostIdRiverTest :
     })
 
 private object Mock {
-    val fail =
-        Fail(
-            feilmelding = "I er et steinras og du skal falla med meg.",
-            event = EventName.INNTEKTSMELDING_MOTTATT,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
-
     fun innkommendeMelding(inntektsmeldingType: InntektsmeldingV1.Type): LagreJournalpostIdMelding =
         LagreJournalpostIdMelding(
             eventName = EventName.INNTEKTSMELDING_MOTTATT,
@@ -270,4 +261,13 @@ private object Mock {
             imTypeKey to inntektsmeldingType.id.toJson(),
         )
     }
+
+    val fail =
+        Fail(
+            feilmelding = "I er et steinras og du skal falla med meg.",
+            event = EventName.INNTEKTSMELDING_MOTTATT,
+            transaksjonId = UUID.randomUUID(),
+            forespoerselId = UUID.randomUUID(),
+            utloesendeMelding = JsonNull,
+        )
 }

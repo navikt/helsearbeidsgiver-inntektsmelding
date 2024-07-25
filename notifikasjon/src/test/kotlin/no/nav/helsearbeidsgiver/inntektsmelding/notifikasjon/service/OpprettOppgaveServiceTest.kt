@@ -27,7 +27,6 @@ class OpprettOppgaveServiceTest {
 
     init {
         ServiceRiverStateful(
-            mockRedis.store,
             OpprettOppgaveService(rapid, mockRedis.store),
         ).connect(rapid)
     }

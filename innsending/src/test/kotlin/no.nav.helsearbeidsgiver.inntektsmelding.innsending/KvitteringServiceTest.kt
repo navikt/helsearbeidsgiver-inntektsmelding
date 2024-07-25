@@ -37,7 +37,6 @@ class KvitteringServiceTest :
         val mockRedis = MockRedis(RedisPrefix.Kvittering)
 
         ServiceRiverStateful(
-            mockRedis.store,
             KvitteringService(testRapid, mockRedis.store),
         ).connect(testRapid)
 

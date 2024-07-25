@@ -25,14 +25,10 @@ fun main() {
 fun RapidsConnection.createLagreSelvbestemtImService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${LagreSelvbestemtImService::class.simpleName}...")
-        val redisStore = RedisStore(redisConnection, RedisPrefix.LagreSelvbestemtIm)
-
         ServiceRiverStateful(
-            redisStore = redisStore,
-            service =
-                LagreSelvbestemtImService(
-                    rapid = this,
-                    redisStore = redisStore,
-                ),
+            LagreSelvbestemtImService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.LagreSelvbestemtIm),
+            ),
         ).connect(this)
     }

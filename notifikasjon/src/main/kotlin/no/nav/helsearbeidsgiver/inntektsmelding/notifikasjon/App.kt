@@ -54,36 +54,28 @@ fun main() {
 fun RapidsConnection.createNotifikasjonServices(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${OpprettSakService::class.simpleName}...")
-        val redisStoreSak = RedisStore(redisConnection, RedisPrefix.OpprettSak)
-
         ServiceRiverStateful(
-            redisStore = redisStoreSak,
-            service =
-                OpprettSakService(
-                    rapid = this,
-                    redisStore = redisStoreSak,
-                ),
+            OpprettSakService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.OpprettSak),
+            ),
         ).connect(this)
 
         logger.info("Starter ${OpprettOppgaveService::class.simpleName}...")
-        val redisStoreOppgave = RedisStore(redisConnection, RedisPrefix.OpprettOppgave)
-
         ServiceRiverStateful(
-            redisStore = redisStoreOppgave,
-            service =
-                OpprettOppgaveService(
-                    rapid = this,
-                    redisStore = redisStoreOppgave,
-                ),
+            OpprettOppgaveService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.OpprettOppgave),
+            ),
         ).connect(this)
 
         logger.info("Starter ${ManuellOpprettSakService::class.simpleName}...")
-        val redisStoreManuellSak = RedisStore(redisConnection, RedisPrefix.ManuellOpprettSak)
-
         // TODO kandidat for stateless
         ServiceRiverStateful(
-            redisStore = redisStoreManuellSak,
-            service = ManuellOpprettSakService(this),
+            ManuellOpprettSakService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.ManuellOpprettSak),
+            ),
         ).connect(this)
     }
 

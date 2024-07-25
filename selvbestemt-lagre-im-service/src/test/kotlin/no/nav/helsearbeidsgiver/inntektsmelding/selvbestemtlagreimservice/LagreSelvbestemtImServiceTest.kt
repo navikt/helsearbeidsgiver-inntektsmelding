@@ -67,7 +67,6 @@ class LagreSelvbestemtImServiceTest :
         val mockRedis = MockRedis(RedisPrefix.LagreSelvbestemtIm)
 
         ServiceRiverStateful(
-            mockRedis.store,
             LagreSelvbestemtImService(testRapid, mockRedis.store),
         ).connect(testRapid)
 

@@ -25,26 +25,18 @@ fun main() {
 fun RapidsConnection.createInnsending(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${InnsendingService::class.simpleName}...")
-        val redisStoreInnsending = RedisStore(redisConnection, RedisPrefix.Innsending)
-
         ServiceRiverStateful(
-            redisStore = redisStoreInnsending,
-            service =
-                InnsendingService(
-                    rapid = this,
-                    redisStore = redisStoreInnsending,
-                ),
+            InnsendingService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.Innsending),
+            ),
         ).connect(this)
 
         logger.info("Starter ${KvitteringService::class.simpleName}...")
-        val redisStoreKvittering = RedisStore(redisConnection, RedisPrefix.Kvittering)
-
         ServiceRiverStateful(
-            redisStore = redisStoreKvittering,
-            service =
-                KvitteringService(
-                    rapid = this,
-                    redisStore = redisStoreKvittering,
-                ),
+            KvitteringService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.Kvittering),
+            ),
         ).connect(this)
     }

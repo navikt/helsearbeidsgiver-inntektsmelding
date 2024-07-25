@@ -25,26 +25,18 @@ fun main() {
 fun RapidsConnection.createTilgangService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${TilgangForespoerselService::class.simpleName}...")
-        val redisStoreTilgangForespoersel = RedisStore(redisConnection, RedisPrefix.TilgangForespoersel)
-
         ServiceRiverStateful(
-            redisStore = redisStoreTilgangForespoersel,
-            service =
-                TilgangForespoerselService(
-                    rapid = this,
-                    redisStore = redisStoreTilgangForespoersel,
-                ),
+            TilgangForespoerselService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.TilgangForespoersel),
+            ),
         ).connect(this)
 
         logger.info("Starter ${TilgangOrgService::class.simpleName}...")
-        val redisStoreTilgangOrg = RedisStore(redisConnection, RedisPrefix.TilgangOrg)
-
         ServiceRiverStateful(
-            redisStore = redisStoreTilgangOrg,
-            service =
-                TilgangOrgService(
-                    rapid = this,
-                    redisStore = redisStoreTilgangOrg,
-                ),
+            TilgangOrgService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.TilgangOrg),
+            ),
         ).connect(this)
     }

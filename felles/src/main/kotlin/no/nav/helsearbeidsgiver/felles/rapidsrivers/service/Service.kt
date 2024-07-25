@@ -4,10 +4,15 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import org.slf4j.Logger
 
 sealed interface Service {
+    interface MedRedis {
+        val redisStore: RedisStore
+    }
+
     val eventName: EventName
     val startKeys: Set<Key>
     val dataKeys: Set<Key>

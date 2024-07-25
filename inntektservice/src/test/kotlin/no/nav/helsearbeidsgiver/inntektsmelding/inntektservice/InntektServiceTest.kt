@@ -33,7 +33,7 @@ class InntektServiceTest {
         )
 
     init {
-        ServiceRiverStateful(mockRedis.store, service).connect(testRapid)
+        ServiceRiverStateful(service).connect(testRapid)
     }
 
     @BeforeEach

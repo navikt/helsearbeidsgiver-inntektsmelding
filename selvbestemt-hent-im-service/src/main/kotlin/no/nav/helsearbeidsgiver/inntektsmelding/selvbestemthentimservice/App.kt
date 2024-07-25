@@ -25,14 +25,10 @@ fun main() {
 fun RapidsConnection.createHentSelvbestemtImService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${HentSelvbestemtImService::class.simpleName}...")
-        val redisStore = RedisStore(redisConnection, RedisPrefix.HentSelvbestemtIm)
-
         ServiceRiverStateful(
-            redisStore = redisStore,
-            service =
-                HentSelvbestemtImService(
-                    rapid = this,
-                    redisStore = redisStore,
-                ),
+            HentSelvbestemtImService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.HentSelvbestemtIm),
+            ),
         ).connect(this)
     }

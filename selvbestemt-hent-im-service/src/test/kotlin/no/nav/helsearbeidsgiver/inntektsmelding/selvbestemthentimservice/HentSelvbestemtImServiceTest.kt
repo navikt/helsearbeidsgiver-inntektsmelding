@@ -33,7 +33,6 @@ class HentSelvbestemtImServiceTest :
         val mockRedis = MockRedis(RedisPrefix.HentSelvbestemtIm)
 
         ServiceRiverStateful(
-            mockRedis.store,
             HentSelvbestemtImService(testRapid, mockRedis.store),
         ).connect(testRapid)
 

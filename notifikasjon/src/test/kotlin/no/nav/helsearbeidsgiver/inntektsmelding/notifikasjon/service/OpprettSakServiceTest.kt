@@ -29,7 +29,6 @@ class OpprettSakServiceTest {
 
     init {
         ServiceRiverStateful(
-            mockRedis.store,
             OpprettSakService(testRapid, mockRedis.store),
         ).connect(testRapid)
     }

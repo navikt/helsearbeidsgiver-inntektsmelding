@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -45,10 +44,9 @@ class ServiceRiverStateless(
     }
 }
 
-class ServiceRiverStateful(
-    private val redisStore: RedisStore,
-    override val service: Service,
-) : ServiceRiver() {
+class ServiceRiverStateful<S>(
+    override val service: S,
+) : ServiceRiver() where S : Service, S : Service.MedRedis {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -56,7 +54,7 @@ class ServiceRiverStateful(
         when (this) {
             is DataMelding -> {
                 dataMap.forEach { (key, data) ->
-                    redisStore.set(RedisKey.of(transaksjonId, key), data)
+                    service.redisStore.set(RedisKey.of(transaksjonId, key), data)
                 }
 
                 "Lagret ${dataMap.size} nøkler (med data) i Redis.".also {
@@ -87,12 +85,12 @@ class ServiceRiverStateful(
     private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
         // TODO bytte (service.startKeys + service.dataKeys) med Keys.entries?
         val allDataKeys = (service.startKeys + service.dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
-        return redisStore
+        return service.redisStore
             .getAll(allDataKeys)
             .mapKeysNotNull { key ->
                 key
                     .removePrefix(transaksjonId.toString())
-                    .removePrefix(redisStore.keyPartSeparator)
+                    .removePrefix(service.redisStore.keyPartSeparator)
                     // TODO erstatter de to foregående 'removePrefix' etter overgangsperiode
 //                    .removePrefix("$transaksjonId${service.redisStore.keyPartSeparator}")
                     .runCatching(Key::fromString)

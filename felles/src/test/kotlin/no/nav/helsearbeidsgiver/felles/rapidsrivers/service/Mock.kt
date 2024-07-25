@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -17,7 +18,12 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import java.util.UUID
 
-class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>() {
+class MockServiceMedRedis(
+    override val redisStore: RedisStore,
+) : MockService(),
+    Service.MedRedis
+
+open class MockService : ServiceMed1Steg<MockService.Steg0, MockService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 

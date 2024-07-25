@@ -29,9 +29,12 @@ class ServiceRiverStatefulTest :
 
         val testRapid = TestRapid()
         val mockRedis = MockRedis(RedisPrefix.HentForespoersel)
-        val mockService = spyk(MockService())
+        val mockService =
+            spyk(
+                MockServiceMedRedis(mockRedis.store),
+            )
 
-        ServiceRiverStateful(mockRedis.store, mockService).connect(testRapid)
+        ServiceRiverStateful(mockService).connect(testRapid)
 
         beforeTest {
             testRapid.reset()

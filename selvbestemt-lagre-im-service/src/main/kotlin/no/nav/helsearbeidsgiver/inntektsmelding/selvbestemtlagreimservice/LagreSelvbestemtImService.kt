@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publishNotNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.aktivtArbeidsforholdIPeriode
@@ -67,8 +68,9 @@ data class Steg3(
 
 class LagreSelvbestemtImService(
     private val rapid: RapidsConnection,
-    private val redisStore: RedisStore,
-) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>() {
+    override val redisStore: RedisStore,
+) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>(),
+    Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 

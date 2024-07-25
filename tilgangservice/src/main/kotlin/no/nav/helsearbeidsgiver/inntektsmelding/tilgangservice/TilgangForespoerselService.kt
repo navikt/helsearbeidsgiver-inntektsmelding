@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -28,8 +29,13 @@ import java.util.UUID
 
 class TilgangForespoerselService(
     private val rapid: RapidsConnection,
-    private val redisStore: RedisStore,
-) : ServiceMed2Steg<TilgangForespoerselService.Steg0, TilgangForespoerselService.Steg1, TilgangForespoerselService.Steg2>() {
+    override val redisStore: RedisStore,
+) : ServiceMed2Steg<
+        TilgangForespoerselService.Steg0,
+        TilgangForespoerselService.Steg1,
+        TilgangForespoerselService.Steg2,
+    >(),
+    Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 

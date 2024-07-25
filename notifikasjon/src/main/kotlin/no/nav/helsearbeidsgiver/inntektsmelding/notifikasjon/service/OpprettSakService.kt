@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -28,13 +29,14 @@ import java.util.UUID
 
 class OpprettSakService(
     private val rapid: RapidsConnection,
-    private val redisStore: RedisStore,
+    override val redisStore: RedisStore,
 ) : ServiceMed3Steg<
         OpprettSakService.Steg0,
         OpprettSakService.Steg1,
         OpprettSakService.Steg2,
         OpprettSakService.Steg3,
-    >() {
+    >(),
+    Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 

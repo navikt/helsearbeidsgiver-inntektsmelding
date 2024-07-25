@@ -25,14 +25,10 @@ fun main() {
 fun RapidsConnection.createAktiveOrgnrService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${AktiveOrgnrService::class.simpleName}...")
-        val redisStore = RedisStore(redisConnection, RedisPrefix.AktiveOrgnr)
-
         ServiceRiverStateful(
-            redisStore = redisStore,
-            service =
-                AktiveOrgnrService(
-                    rapid = this,
-                    redisStore = redisStore,
-                ),
+            AktiveOrgnrService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.AktiveOrgnr),
+            ),
         ).connect(this)
     }

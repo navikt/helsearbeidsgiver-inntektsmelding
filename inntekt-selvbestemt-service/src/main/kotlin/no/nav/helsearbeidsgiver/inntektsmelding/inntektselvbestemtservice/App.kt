@@ -25,14 +25,10 @@ fun main() {
 fun RapidsConnection.createInntektSelvbestemtService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${InntektSelvbestemtService::class.simpleName}...")
-        val redisStore = RedisStore(redisConnection, RedisPrefix.InntektSelvbestemt)
-
         ServiceRiverStateful(
-            redisStore = redisStore,
-            service =
-                InntektSelvbestemtService(
-                    rapid = this,
-                    redisStore = redisStore,
-                ),
+            InntektSelvbestemtService(
+                rapid = this,
+                redisStore = RedisStore(redisConnection, RedisPrefix.InntektSelvbestemt),
+            ),
         ).connect(this)
     }

@@ -29,7 +29,7 @@ class TilgangOrgServiceTest {
     private val service = TilgangOrgService(testRapid, mockRedis.store)
 
     init {
-        ServiceRiverStateful(mockRedis.store, service).connect(testRapid)
+        ServiceRiverStateful(service).connect(testRapid)
     }
 
     @BeforeEach

@@ -44,7 +44,6 @@ class AktiveOrgnrServiceTest :
         val mockRedis = MockRedis(RedisPrefix.AktiveOrgnr)
 
         ServiceRiverStateful(
-            mockRedis.store,
             AktiveOrgnrService(testRapid, mockRedis.store),
         ).connect(testRapid)
 

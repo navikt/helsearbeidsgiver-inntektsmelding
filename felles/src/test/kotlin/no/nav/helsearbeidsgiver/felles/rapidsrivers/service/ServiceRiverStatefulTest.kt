@@ -11,7 +11,6 @@ import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.felles.BehovType
 import no.nav.helsearbeidsgiver.felles.EventName
@@ -20,23 +19,19 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class ServiceRiverTest :
+class ServiceRiverStatefulTest :
     FunSpec({
 
         val testRapid = TestRapid()
         val mockRedis = MockRedis(RedisPrefix.HentForespoersel)
-        val mockService =
-            spyk(
-                MockService(mockRedis.store),
-            )
+        val mockService = spyk(MockService())
 
-        ServiceRiver(mockService).connect(testRapid)
+        ServiceRiverStateful(mockRedis.store, mockService).connect(testRapid)
 
         beforeTest {
             testRapid.reset()
@@ -352,89 +347,6 @@ class ServiceRiverTest :
             }
         }
 
-        test("datamelding trigger ikke service ved manglende startdata (inaktiv service)") {
-            every {
-                mockRedis.store.getAll(any())
-            } returns Mock.values(setOf(Key.PERSONER)).mapKeys { it.key.toString() }
-
-            val transaksjonId = UUID.randomUUID()
-            val virksomhetNavn = "Terkels Sabeltannisbutikk"
-
-            val innkommendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to "".toJson(),
-                    Key.VIRKSOMHETER to virksomhetNavn.toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMelding)
-
-            verifyOrder {
-                mockRedis.store.set(RedisKey.of(transaksjonId, Key.VIRKSOMHETER), virksomhetNavn.toJson())
-                mockRedis.store.getAll(any())
-            }
-            verify(exactly = 0) {
-                mockService.onData(any())
-                mockService.onError(any(), any())
-            }
-        }
-
-        test("datamelding (med nested data) trigger ikke service ved manglende startdata (inaktiv service)") {
-            every {
-                mockRedis.store.getAll(any())
-            } returns Mock.values(setOf(Key.PERSONER)).mapKeys { it.key.toString() }
-
-            val transaksjonId = UUID.randomUUID()
-            val virksomhetNavn = "Terkels Sabeltannisbutikk"
-
-            val innkommendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.DATA to
-                        mapOf(
-                            Key.VIRKSOMHETER to virksomhetNavn.toJson(),
-                        ).toJson(),
-                )
-
-            testRapid.sendJson(innkommendeMelding)
-
-            verifyOrder {
-                mockRedis.store.set(RedisKey.of(transaksjonId, Key.VIRKSOMHETER), virksomhetNavn.toJson())
-                mockRedis.store.getAll(any())
-            }
-            verify(exactly = 0) {
-                mockService.onData(any())
-                mockService.onError(any(), any())
-            }
-        }
-
-        test("fail-melding trigger ikke service ved manglende startdata (inaktiv service)") {
-            every {
-                mockRedis.store.getAll(any())
-            } returns Mock.values(setOf(Key.VIRKSOMHETER)).mapKeys { it.key.toString() }
-
-            val transaksjonId = UUID.randomUUID()
-
-            val innkommendeMelding =
-                mapOf(
-                    Key.EVENT_NAME to mockService.eventName.toJson(),
-                    Key.UUID to transaksjonId.toJson(),
-                    Key.FAIL to Mock.fail.toJson(Fail.serializer()),
-                )
-
-            testRapid.sendJson(innkommendeMelding)
-
-            verifyOrder {
-                mockRedis.store.getAll(any())
-            }
-            verify(exactly = 0) {
-                mockService.onData(any())
-                mockService.onError(any(), any())
-            }
-        }
-
         context("ignorer melding") {
             context("fail-melding") {
                 withData(
@@ -554,39 +466,3 @@ class ServiceRiverTest :
             }
         }
     })
-
-private class MockService(
-    override val redisStore: RedisStore,
-) : Service() {
-    override val eventName = EventName.MANUELL_OPPRETT_SAK_REQUESTED
-    override val startKeys =
-        setOf(
-            Key.FNR_LISTE,
-            Key.ER_DUPLIKAT_IM,
-        )
-    override val dataKeys =
-        setOf(
-            Key.PERSONER,
-            Key.VIRKSOMHETER,
-        )
-
-    override fun onData(melding: Map<Key, JsonElement>) {}
-
-    override fun onError(
-        melding: Map<Key, JsonElement>,
-        fail: Fail,
-    ) {}
-}
-
-private object Mock {
-    val fail =
-        Fail(
-            feilmelding = "Noen har blandet ut flybensinen med Red Bull.",
-            event = EventName.INNTEKTSMELDING_MOTTATT,
-            transaksjonId = UUID.randomUUID(),
-            forespoerselId = UUID.randomUUID(),
-            utloesendeMelding = JsonNull,
-        )
-
-    fun values(keys: Set<Key>): Map<Key, JsonElement> = keys.associateWith { "mock $it".toJson() }
-}

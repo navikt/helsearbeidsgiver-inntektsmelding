@@ -63,7 +63,7 @@ data class Steg2(
 
 class InnsendingService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
+    private val redisStore: RedisStore,
 ) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()

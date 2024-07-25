@@ -51,7 +51,7 @@ class RedisStoreTest :
         }
 
         test(RedisStore::getAll.name) {
-            val keyPrefix = RedisPrefix.Spinn
+            val keyPrefix = RedisPrefix.Kvittering
             val transaksjonId = UUID.randomUUID()
 
             val redisStore =
@@ -175,7 +175,7 @@ class RedisStoreTest :
             }
 
             test(RedisStore::getAll.name) {
-                val keyPrefix = RedisPrefix.Spinn
+                val keyPrefix = RedisPrefix.Kvittering
                 val transaksjonId = UUID.randomUUID()
 
                 val redisStore =

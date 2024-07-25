@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-hent-forespoersel-service".logger()
@@ -25,10 +25,14 @@ fun main() {
 fun RapidsConnection.createHentForespoerselService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${HentForespoerselService::class.simpleName}...")
-        ServiceRiver(
-            HentForespoerselService(
-                rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.HentForespoersel),
-            ),
+        val redisStore = RedisStore(redisConnection, RedisPrefix.HentForespoersel)
+
+        ServiceRiverStateful(
+            redisStore = redisStore,
+            service =
+                HentForespoerselService(
+                    rapid = this,
+                    redisStore = redisStore,
+                ),
         ).connect(this)
     }

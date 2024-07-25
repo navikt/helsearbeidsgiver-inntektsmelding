@@ -34,7 +34,7 @@ data class Steg1(
 
 class HentSelvbestemtImService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
+    private val redisStore: RedisStore,
 ) : ServiceMed1Steg<Steg0, Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()

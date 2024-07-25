@@ -15,6 +15,4 @@ object Env {
             clientSecret = "AZURE_APP_CLIENT_SECRET".fromEnv(),
             clientJwk = "AZURE_APP_JWK".fromEnv(),
         )
-
-    val redisUrl = "REDIS_URL".fromEnv()
 }

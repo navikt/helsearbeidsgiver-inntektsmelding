@@ -67,7 +67,7 @@ data class Steg3(
 
 class LagreSelvbestemtImService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
+    private val redisStore: RedisStore,
 ) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()

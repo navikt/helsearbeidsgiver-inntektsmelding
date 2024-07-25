@@ -92,7 +92,6 @@ enum class RedisPrefix {
     ManuellOpprettSak,
     OpprettOppgave,
     OpprettSak,
-    Spinn,
     TilgangForespoersel,
     TilgangOrg,
 }

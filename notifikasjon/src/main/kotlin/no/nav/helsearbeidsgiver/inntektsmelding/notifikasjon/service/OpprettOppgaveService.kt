@@ -26,7 +26,7 @@ import java.util.UUID
 
 class OpprettOppgaveService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
+    private val redisStore: RedisStore,
 ) : ServiceMed1Steg<OpprettOppgaveService.Steg0, OpprettOppgaveService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()

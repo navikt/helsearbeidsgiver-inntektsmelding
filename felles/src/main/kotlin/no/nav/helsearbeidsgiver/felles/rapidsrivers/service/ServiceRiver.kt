@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.felles.json.toPretty
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.collection.mapKeysNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -18,13 +19,101 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.util.UUID
 
-class ServiceRiver(
-    private val service: Service,
-) : ObjectRiver<ServiceMelding>() {
+class ServiceRiverStateless(
+    override val service: Service,
+) : ServiceRiver() {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    override fun les(json: Map<Key, JsonElement>): ServiceMelding? {
+    override fun ServiceMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+        when (this) {
+            is DataMelding -> {
+                service.onData(dataMap + json)
+            }
+
+            is FailMelding -> {
+                "Feilmelding er '${fail.feilmelding}'.".also {
+                    logger.error(it)
+                    sikkerLogger.error("$it Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
+                }
+
+                service.onError(json, fail)
+            }
+        }
+
+        return null
+    }
+}
+
+class ServiceRiverStateful(
+    private val redisStore: RedisStore,
+    override val service: Service,
+) : ServiceRiver() {
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
+    override fun ServiceMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
+        when (this) {
+            is DataMelding -> {
+                dataMap.forEach { (key, data) ->
+                    redisStore.set(RedisKey.of(transaksjonId, key), data)
+                }
+
+                "Lagret ${dataMap.size} nøkler (med data) i Redis.".also {
+                    logger.info(it)
+                    sikkerLogger.info("$it\n${json.toPretty()}")
+                }
+
+                val meldingMedRedisData = getAllRedisData(transaksjonId) + json
+
+                service.onData(meldingMedRedisData)
+            }
+
+            is FailMelding -> {
+                "Feilmelding er '${fail.feilmelding}'.".also {
+                    logger.error(it)
+                    sikkerLogger.error("$it Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
+                }
+
+                val meldingMedRedisData = getAllRedisData(transaksjonId) + json
+
+                service.onError(meldingMedRedisData, fail)
+            }
+        }
+
+        return null
+    }
+
+    private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
+        // TODO bytte (service.startKeys + service.dataKeys) med Keys.entries?
+        val allDataKeys = (service.startKeys + service.dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
+        return redisStore
+            .getAll(allDataKeys)
+            .mapKeysNotNull { key ->
+                key
+                    .removePrefix(transaksjonId.toString())
+                    .removePrefix(redisStore.keyPartSeparator)
+                    // TODO erstatter de to foregående 'removePrefix' etter overgangsperiode
+//                    .removePrefix("$transaksjonId${service.redisStore.keyPartSeparator}")
+                    .runCatching(Key::fromString)
+                    .getOrElse { error ->
+                        "Feil med nøkkel '$key' i Redis.".also {
+                            logger.error(it)
+                            sikkerLogger.error(it, error)
+                        }
+                        null
+                    }
+            }
+    }
+}
+
+sealed class ServiceRiver : ObjectRiver<ServiceMelding>() {
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
+    abstract val service: Service
+
+    final override fun les(json: Map<Key, JsonElement>): ServiceMelding? {
         val nestedData =
             json[Key.DATA]
                 ?.runCatching { toMap() }
@@ -81,16 +170,7 @@ class ServiceRiver(
         }
     }
 
-    override fun ServiceMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement>? {
-        when (this) {
-            is DataMelding -> haandterData(json)
-            is FailMelding -> haandterFail(json)
-        }
-
-        return null
-    }
-
-    override fun ServiceMelding.haandterFeil(
+    final override fun ServiceMelding.haandterFeil(
         json: Map<Key, JsonElement>,
         error: Throwable,
     ): Map<Key, JsonElement>? {
@@ -109,7 +189,7 @@ class ServiceRiver(
         return null
     }
 
-    override fun ServiceMelding.loggfelt(): Map<String, String> =
+    final override fun ServiceMelding.loggfelt(): Map<String, String> =
         mapOf(Log.klasse(service)).plus(
             when (this) {
                 is DataMelding ->
@@ -125,78 +205,4 @@ class ServiceRiver(
                     )
             },
         )
-
-    private fun DataMelding.haandterData(melding: Map<Key, JsonElement>) {
-        dataMap.forEach { (key, data) ->
-            service.redisStore.set(RedisKey.of(transaksjonId, key), data)
-        }
-
-        // if-sjekk trengs trolig ikke, men beholder midlertidig for sikkerhets skyld
-        if (dataMap.isNotEmpty()) {
-            "Lagret ${dataMap.size} nøkler (med data) i Redis.".also {
-                logger.info(it)
-                sikkerLogger.info("$it\n${melding.toPretty()}")
-            }
-
-            val meldingMedRedisData = berikMedRedisData(melding, transaksjonId)
-            if (meldingMedRedisData != null) {
-                service.onData(meldingMedRedisData)
-            }
-        } else {
-            "Fant ikke data å lagre.".also {
-                logger.error(it)
-                sikkerLogger.error("$it\n${melding.toPretty()}")
-            }
-        }
-    }
-
-    private fun FailMelding.haandterFail(melding: Map<Key, JsonElement>) {
-        "Feilmelding er '${fail.feilmelding}'.".also {
-            logger.error(it)
-            sikkerLogger.error("$it Utløsende melding er \n${fail.utloesendeMelding.toPretty()}")
-        }
-
-        val meldingMedRedisData = berikMedRedisData(melding, transaksjonId)
-        if (meldingMedRedisData != null) {
-            service.onError(meldingMedRedisData, fail)
-        }
-    }
-
-    private fun berikMedRedisData(
-        melding: Map<Key, JsonElement>,
-        transaksjonId: UUID,
-    ): Map<Key, JsonElement>? {
-        val redisData = getAllRedisData(transaksjonId)
-
-        return if (service.isInactive(redisData)) {
-            "Service er inaktiv pga. Redis-timeout ('startKeys' mangler).".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-            null
-        } else {
-            redisData + melding
-        }
-    }
-
-    private fun getAllRedisData(transaksjonId: UUID): Map<Key, JsonElement> {
-        val allDataKeys = (service.startKeys + service.dataKeys).map { RedisKey.of(transaksjonId, it) }.toSet()
-        return service.redisStore
-            .getAll(allDataKeys)
-            .mapKeysNotNull { key ->
-                key
-                    .removePrefix(transaksjonId.toString())
-                    .removePrefix(service.redisStore.keyPartSeparator)
-                    // TODO erstatter de to foregående 'removePrefix' etter overgangsperiode
-//                    .removePrefix("$transaksjonId${service.redisStore.keyPartSeparator}")
-                    .runCatching(Key::fromString)
-                    .getOrElse { error ->
-                        "Feil med nøkkel '$key' i Redis.".also {
-                            logger.error(it)
-                            sikkerLogger.error(it, error)
-                        }
-                        null
-                    }
-            }
-    }
 }

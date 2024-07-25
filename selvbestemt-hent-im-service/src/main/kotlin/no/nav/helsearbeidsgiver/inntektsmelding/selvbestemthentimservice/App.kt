@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "im-selvbestemt-hent-im-service".logger()
@@ -25,10 +25,14 @@ fun main() {
 fun RapidsConnection.createHentSelvbestemtImService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${HentSelvbestemtImService::class.simpleName}...")
-        ServiceRiver(
-            HentSelvbestemtImService(
-                rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.HentSelvbestemtIm),
-            ),
+        val redisStore = RedisStore(redisConnection, RedisPrefix.HentSelvbestemtIm)
+
+        ServiceRiverStateful(
+            redisStore = redisStore,
+            service =
+                HentSelvbestemtImService(
+                    rapid = this,
+                    redisStore = redisStore,
+                ),
         ).connect(this)
     }

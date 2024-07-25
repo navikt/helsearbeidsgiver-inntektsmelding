@@ -4,32 +4,26 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.felles.EventName
 import no.nav.helsearbeidsgiver.felles.Key
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import org.slf4j.Logger
 
-// TODO kan bli sealed når alle servicer bruker steg-abstraksjon
-abstract class Service {
-    abstract val redisStore: RedisStore
-    abstract val eventName: EventName
-    abstract val startKeys: Set<Key>
-    abstract val dataKeys: Set<Key>
+sealed interface Service {
+    val eventName: EventName
+    val startKeys: Set<Key>
+    val dataKeys: Set<Key>
 
-    // TODO kan bli internal når alle servicer bruker steg-abstraksjon
-    abstract fun onData(melding: Map<Key, JsonElement>)
+    // TODO internal?
+    fun onData(melding: Map<Key, JsonElement>)
 
-    abstract fun onError(
+    // TODO internal?
+    fun onError(
         melding: Map<Key, JsonElement>,
         fail: Fail,
     )
-
-    fun isFinished(melding: Map<Key, JsonElement>): Boolean = dataKeys.all(melding::containsKey)
-
-    internal fun isInactive(redisData: Map<Key, JsonElement>): Boolean = !startKeys.all(redisData::containsKey)
 }
 
 // TODO lese påkrevde felt som transaksjonId her?
-abstract class ServiceMed1Steg<S0, S1> : Service() {
+abstract class ServiceMed1Steg<S0, S1> : Service {
     protected abstract val logger: Logger
     protected abstract val sikkerLogger: Logger
 

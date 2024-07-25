@@ -28,7 +28,7 @@ import java.util.UUID
 
 class TilgangForespoerselService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
+    private val redisStore: RedisStore,
 ) : ServiceMed2Steg<TilgangForespoerselService.Steg0, TilgangForespoerselService.Steg1, TilgangForespoerselService.Steg2>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()

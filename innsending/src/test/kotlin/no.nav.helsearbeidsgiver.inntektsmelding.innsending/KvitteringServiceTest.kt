@@ -21,7 +21,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.mock.mockEksternInntektsmelding
@@ -36,7 +36,8 @@ class KvitteringServiceTest :
         val testRapid = TestRapid()
         val mockRedis = MockRedis(RedisPrefix.Kvittering)
 
-        ServiceRiver(
+        ServiceRiverStateful(
+            mockRedis.store,
             KvitteringService(testRapid, mockRedis.store),
         ).connect(testRapid)
 

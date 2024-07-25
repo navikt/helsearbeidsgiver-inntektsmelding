@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import org.junit.jupiter.api.BeforeEach
@@ -33,7 +33,7 @@ class InntektServiceTest {
         )
 
     init {
-        ServiceRiver(service).connect(testRapid)
+        ServiceRiverStateful(mockRedis.store, service).connect(testRapid)
     }
 
     @BeforeEach

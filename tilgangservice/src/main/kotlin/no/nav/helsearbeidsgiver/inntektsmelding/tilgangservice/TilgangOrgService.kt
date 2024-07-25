@@ -28,7 +28,7 @@ import java.util.UUID
 
 class TilgangOrgService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
+    private val redisStore: RedisStore,
 ) : ServiceMed1Steg<TilgangOrgService.Steg0, TilgangOrgService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()

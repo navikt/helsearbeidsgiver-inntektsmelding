@@ -6,7 +6,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.registerShutdownLifecycle
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 private val logger = "helsearbeidsgiver-im-inntektselvbestemtservice".logger()
@@ -25,10 +25,14 @@ fun main() {
 fun RapidsConnection.createInntektSelvbestemtService(redisConnection: RedisConnection): RapidsConnection =
     also {
         logger.info("Starter ${InntektSelvbestemtService::class.simpleName}...")
-        ServiceRiver(
-            InntektSelvbestemtService(
-                rapid = this,
-                redisStore = RedisStore(redisConnection, RedisPrefix.InntektSelvbestemt),
-            ),
+        val redisStore = RedisStore(redisConnection, RedisPrefix.InntektSelvbestemt)
+
+        ServiceRiverStateful(
+            redisStore = redisStore,
+            service =
+                InntektSelvbestemtService(
+                    rapid = this,
+                    redisStore = redisStore,
+                ),
         ).connect(this)
     }

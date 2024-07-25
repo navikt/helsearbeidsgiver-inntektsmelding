@@ -28,7 +28,7 @@ import java.util.UUID
 
 class OpprettSakService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
+    private val redisStore: RedisStore,
 ) : ServiceMed3Steg<
         OpprettSakService.Steg0,
         OpprettSakService.Steg1,

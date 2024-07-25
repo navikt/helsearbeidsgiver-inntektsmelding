@@ -42,11 +42,15 @@ fun Application.customAuthentication() {
         tokenValidationSupport(
             "tokenx-validation",
             config = tokenXConfig,
-            additionalValidation = TokenValidationContext::containsPid,
+            additionalValidation = TokenValidationContext::containsPidTokenx,
         )
     }
 }
 
+private fun TokenValidationContext.containsPidTokenx(): Boolean =
+    getClaims("tokenx-issuer")
+        .getStringClaim(Auth.CLAIM_PID)
+        .matches(pidRegex)
 private fun TokenValidationContext.containsPid(): Boolean =
     getClaims(Auth.ISSUER)
         .getStringClaim(Auth.CLAIM_PID)

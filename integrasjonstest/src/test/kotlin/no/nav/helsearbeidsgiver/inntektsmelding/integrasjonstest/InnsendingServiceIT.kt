@@ -18,9 +18,11 @@ import no.nav.helsearbeidsgiver.felles.PersonDato
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.json.lesOrNull
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.test.mock.gyldigInnsendingRequest
 import no.nav.helsearbeidsgiver.felles.test.mock.mockForespurtData
+import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmelding
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.inntektsmelding.helsebro.toForespoersel
 import no.nav.helsearbeidsgiver.inntektsmelding.integrasjonstest.utils.EndToEndTest
@@ -38,9 +40,12 @@ import java.util.UUID
 class InnsendingServiceIT : EndToEndTest() {
     @Test
     fun `Test at innsending er mottatt`() {
+        val tidligereInntektsmelding = mockInntektsmelding()
+
         forespoerselRepository.lagreForespoersel(Mock.forespoerselId.toString(), Mock.orgnr.verdi)
         forespoerselRepository.oppdaterSakId(Mock.forespoerselId.toString(), Mock.SAK_ID)
         forespoerselRepository.oppdaterOppgaveId(Mock.forespoerselId.toString(), Mock.OPPGAVE_ID)
+        imRepository.lagreInntektsmelding(Mock.forespoerselId.toString(), tidligereInntektsmelding)
 
         val transaksjonId: UUID = UUID.randomUUID()
 
@@ -82,6 +87,24 @@ class InnsendingServiceIT : EndToEndTest() {
             .also {
                 it shouldContainKey Key.DATA
                 it[Key.FORESPOERSEL_SVAR]?.fromJson(Forespoersel.serializer()) shouldBe Mock.forespoersel
+            }
+
+        // Tidligere inntektsmelding hentet
+        messages
+            .filter(EventName.INSENDING_STARTED)
+            .filter(Key.LAGRET_INNTEKTSMELDING, nestedData = true)
+            .filter(Key.EKSTERN_INNTEKTSMELDING, nestedData = true)
+            .firstAsMap()
+            .verifiserTransaksjonId(transaksjonId)
+            .verifiserForespoerselId()
+            .also {
+                it shouldContainKey Key.DATA
+
+                val data = it[Key.DATA]?.toMap().orEmpty()
+                val tidligereInntektsmeldingResult = ResultJson(success = tidligereInntektsmelding.toJson(Inntektsmelding.serializer()))
+
+                data[Key.LAGRET_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe tidligereInntektsmeldingResult
+                data[Key.EKSTERN_INNTEKTSMELDING]?.fromJson(ResultJson.serializer()) shouldBe ResultJson(success = null)
             }
 
         // Virksomhetsnavn hentet
@@ -184,7 +207,9 @@ class InnsendingServiceIT : EndToEndTest() {
 
     private fun Map<Key, JsonElement>.verifiserForespoerselId(): Map<Key, JsonElement> =
         also {
-            Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) shouldBe Mock.forespoerselId
+            val data = it[Key.DATA]?.toMap().orEmpty()
+            val forespoerselId = Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, it) ?: Key.FORESPOERSEL_ID.lesOrNull(UuidSerializer, data)
+            forespoerselId shouldBe Mock.forespoerselId
         }
 
     private object Mock {

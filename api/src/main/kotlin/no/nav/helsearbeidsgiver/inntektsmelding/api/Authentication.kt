@@ -24,9 +24,24 @@ fun Application.customAuthentication() {
             ),
         )
 
+    val tokenXConfig =
+        TokenSupportConfig(
+            IssuerConfig(
+                name = "tokenx-issuer",
+                discoveryUrl = Env.Auth.TokenX.discoveryUrl,
+                acceptedAudience = Env.Auth.TokenX.acceptedAudience,
+            ),
+        )
+
     authentication {
         tokenValidationSupport(
+            "idporten-validation",
             config = config,
+            additionalValidation = TokenValidationContext::containsPid,
+        )
+        tokenValidationSupport(
+            "tokenx-validation",
+            config = tokenXConfig,
             additionalValidation = TokenValidationContext::containsPid,
         )
     }

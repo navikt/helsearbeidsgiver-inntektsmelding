@@ -11,5 +11,7 @@ env:
 apps:
   - name: helsearbeidsgiver-redis
 inboundApps:
+  - name: tokenx-token-generator
+    namespace: aura
   - name: spinntektsmelding-frontend
 

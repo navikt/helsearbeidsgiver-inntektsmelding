@@ -125,13 +125,14 @@ spec:
           namespace: {{ app.namespace }}
           {{/if}}
         {{/each}}{{/if}}
+
     {{#if inboundApps}}
     inbound:
       rules:
-        {{# each inboundApps as |app| }}
+        {{#if inboundApps}}{{# each inboundApps as |app| }}
         - application: {{ app.name }}
-          {{#if app.namespace}}
+        {{#if app.namespace}}
           namespace: {{ app.namespace }}
-          {{/if}}
-        {{/each}}
+        {{/if}}
+        {{/each}}{{/if}}
     {{/if}}

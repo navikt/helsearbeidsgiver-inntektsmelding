@@ -72,8 +72,6 @@ class InnsendingService(
     override val startKeys =
         setOf(
             Key.FORESPOERSEL_ID,
-            Key.ORGNRUNDERENHET,
-            Key.IDENTITETSNUMMER,
             Key.ARBEIDSGIVER_ID,
             Key.SKJEMA_INNTEKTSMELDING,
         )

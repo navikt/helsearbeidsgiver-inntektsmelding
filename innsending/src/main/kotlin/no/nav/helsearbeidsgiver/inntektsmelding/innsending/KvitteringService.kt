@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStoreClassSpecific
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -28,7 +28,7 @@ import java.util.UUID
 
 class KvitteringService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStoreClassSpecific,
+    override val redisStore: RedisStore,
 ) : ServiceMed1Steg<KvitteringService.Steg0, KvitteringService.Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
@@ -40,7 +40,7 @@ class KvitteringService(
         )
     override val dataKeys =
         setOf(
-            Key.INNTEKTSMELDING_DOKUMENT,
+            Key.LAGRET_INNTEKTSMELDING,
             Key.EKSTERN_INNTEKTSMELDING,
         )
 
@@ -63,7 +63,7 @@ class KvitteringService(
     override fun lesSteg1(melding: Map<Key, JsonElement>): Steg1 =
         Steg1(
             inntektsmeldingDokument =
-                Key.INNTEKTSMELDING_DOKUMENT
+                Key.LAGRET_INNTEKTSMELDING
                     .les(ResultJson.serializer(), melding)
                     .success
                     ?.fromJson(Inntektsmelding.serializer()),
@@ -78,15 +78,18 @@ class KvitteringService(
         val publisert =
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.HENT_PERSISTERT_IM.toJson(),
+                Key.BEHOV to BehovType.HENT_LAGRET_IM.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                    ).toJson(),
             )
 
         MdcUtils.withLogFields(
-            Log.behov(BehovType.HENT_PERSISTERT_IM),
+            Log.behov(BehovType.HENT_LAGRET_IM),
         ) {
-            "Publiserte melding med behov ${BehovType.HENT_PERSISTERT_IM}.".let {
+            "Publiserte melding med behov ${BehovType.HENT_LAGRET_IM}.".let {
                 logger.info(it)
                 sikkerLogger.info("$it\n${publisert.toPretty()}")
             }

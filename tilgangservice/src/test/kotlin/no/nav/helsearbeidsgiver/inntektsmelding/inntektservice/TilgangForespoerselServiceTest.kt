@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
-import no.nav.helsearbeidsgiver.felles.test.mock.MockRedisClassSpecific
+import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangForespoerselService
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.junit.jupiter.api.BeforeEach
@@ -24,7 +24,7 @@ import java.util.UUID
 
 class TilgangForespoerselServiceTest {
     private val testRapid = TestRapid()
-    private val mockRedis = MockRedisClassSpecific(RedisPrefix.TilgangForespoerselService)
+    private val mockRedis = MockRedis(RedisPrefix.TilgangForespoersel)
 
     private val service = TilgangForespoerselService(testRapid, mockRedis.store)
 

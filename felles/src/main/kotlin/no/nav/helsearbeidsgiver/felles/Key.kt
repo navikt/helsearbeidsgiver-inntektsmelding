@@ -29,6 +29,7 @@ enum class Key(
     FAIL("fail"),
     SKJEMA_INNTEKTSMELDING("skjema_inntektsmelding"),
     INNTEKTSMELDING("inntektsmelding"),
+    LAGRET_INNTEKTSMELDING("lagret_inntektsmelding"),
     SELVBESTEMT_INNTEKTSMELDING("selvbestemt_inntektsmelding"),
 
     // Tidligere DataFelt

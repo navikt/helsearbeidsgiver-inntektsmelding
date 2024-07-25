@@ -41,12 +41,13 @@ class InnsendingRouteKtTest : ApiTest() {
     @Test
     fun `mottar inntektsmelding og svarer OK`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
                         success = mockInntektsmelding().toJson(Inntektsmelding.serializer()),
-                    ).toJson(ResultJson.serializer()),
+                    ).toJson(ResultJson.serializer())
+                        .toString(),
                 )
 
             val response = post(path, gyldigRequest)
@@ -58,12 +59,13 @@ class InnsendingRouteKtTest : ApiTest() {
     @Test
     fun `mottar delvis inntektsmelding og svarer OK`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     harTilgangResultat,
                     ResultJson(
                         success = mockDelvisInntektsmeldingDokument().toJson(Inntektsmelding.serializer()),
-                    ).toJson(ResultJson.serializer()),
+                    ).toJson(ResultJson.serializer())
+                        .toString(),
                 )
 
             val response = post(path, gyldigDelvisRequest)
@@ -87,7 +89,7 @@ class InnsendingRouteKtTest : ApiTest() {
     @Test
     fun `skal returnere feilmelding ved timeout fra Redis`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(Mock.forespoerselId)
+            coEvery { mockRedisConnection.get(any()) } returns harTilgangResultat andThenThrows RedisPollerTimeoutException(Mock.forespoerselId)
 
             val response = post(path, gyldigRequest)
 

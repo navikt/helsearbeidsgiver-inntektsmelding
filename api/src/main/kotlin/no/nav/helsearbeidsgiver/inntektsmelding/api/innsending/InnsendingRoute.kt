@@ -9,9 +9,15 @@ import io.prometheus.client.Summary
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.Utils.convert
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.deprecated.Innsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.AarsakInnsending
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.skjema.SkjemaInntektsmelding
 import no.nav.helsearbeidsgiver.felles.ResultJson
 import no.nav.helsearbeidsgiver.felles.Tekst
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPoller
 import no.nav.helsearbeidsgiver.inntektsmelding.api.RedisPollerTimeoutException
 import no.nav.helsearbeidsgiver.inntektsmelding.api.Routes
@@ -35,9 +41,10 @@ import kotlin.system.measureTimeMillis
 fun Route.innsendingRoute(
     rapid: RapidsConnection,
     tilgangskontroll: Tilgangskontroll,
-    redisPoller: RedisPoller,
+    redisConnection: RedisConnection,
 ) {
     val producer = InnsendingProducer(rapid)
+    val redisPoller = RedisStore(redisConnection, RedisPrefix.Innsending).let(::RedisPoller)
 
     val requestLatency =
         Summary
@@ -67,7 +74,16 @@ fun Route.innsendingRoute(
                                     logger.info(it)
                                     sikkerLogger.info("$it og request:\n$json")
                                 }
-                            }.fromJson(Innsending.serializer())
+                            }.let { json ->
+                                runCatching {
+                                    json.fromJson(SkjemaInntektsmelding.serializer()).convert(
+                                        sykmeldingsperioder = emptyList(),
+                                        aarsakInnsending = AarsakInnsending.Ny,
+                                    )
+                                }.getOrElse {
+                                    json.fromJson(Innsending.serializer())
+                                }
+                            }
 
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 

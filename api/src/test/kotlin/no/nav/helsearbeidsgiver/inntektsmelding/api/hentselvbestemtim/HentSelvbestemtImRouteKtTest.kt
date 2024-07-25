@@ -68,7 +68,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val expectedInntektsmelding = mockInntektsmeldingV1()
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     Mock.successResult(expectedInntektsmelding),
                     harTilgangResultat,
@@ -102,7 +102,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
                     )
                 }
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     Mock.successResult(expectedInntektsmelding),
                     harTilgangResultat,
@@ -119,7 +119,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     @Test
     fun `manglende tilgang gir 500-feil`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     Mock.successResult(mockInntektsmeldingV1()),
                     ikkeTilgangResultat,
@@ -138,7 +138,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Du får vente til freddan'!"
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     Mock.failureResult(expectedFeilmelding),
                     harTilgangResultat,
@@ -157,7 +157,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
         testApi {
             val expectedFeilmelding = "Ukjent feil."
 
-            coEvery { mockRedisPoller.hent(any()) } returnsMany
+            coEvery { mockRedisConnection.get(any()) } returnsMany
                 listOf(
                     Mock.emptyResult(),
                     harTilgangResultat,
@@ -177,7 +177,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
             val selvbestemtId = UUID.randomUUID()
             val expectedFeilobjekt = RedisTimeoutResponse(inntektsmeldingTypeId = selvbestemtId).toJson(RedisTimeoutResponse.serializer())
 
-            coEvery { mockRedisPoller.hent(any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
+            coEvery { mockRedisConnection.get(any()) } throws RedisPollerTimeoutException(UUID.randomUUID())
 
             val response = get("$pathUtenId$selvbestemtId")
 
@@ -193,7 +193,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
             val selvbestemtId = UUID.randomUUID()
             val expectedFeilobjekt = RedisPermanentErrorResponse(selvbestemtId).toJson(RedisPermanentErrorResponse.serializer())
 
-            coEvery { mockRedisPoller.hent(any()) } throws IllegalStateException()
+            coEvery { mockRedisConnection.get(any()) } throws IllegalStateException()
 
             val response = get("$pathUtenId$selvbestemtId")
 
@@ -206,7 +206,7 @@ class HentSelvbestemtImRouteKtTest : ApiTest() {
     @Test
     fun `ukjent feil gir 500-feil`() =
         testApi {
-            coEvery { mockRedisPoller.hent(any()) } returns Mock.successResult(mockInntektsmeldingV1()) andThenThrows NullPointerException()
+            coEvery { mockRedisConnection.get(any()) } returns Mock.successResult(mockInntektsmeldingV1()) andThenThrows NullPointerException()
 
             val response = get(pathMedId)
 
@@ -261,17 +261,19 @@ private object Mock {
         }
         """.removeJsonWhitespace()
 
-    fun successResult(inntektsmelding: Inntektsmelding): JsonElement =
+    fun successResult(inntektsmelding: Inntektsmelding): String =
         ResultJson(
             success = inntektsmelding.toJson(Inntektsmelding.serializer()),
         ).toJson(ResultJson.serializer())
+            .toString()
 
-    fun failureResult(feilmelding: String): JsonElement =
+    fun failureResult(feilmelding: String): String =
         ResultJson(
             failure = feilmelding.toJson(),
         ).toJson(ResultJson.serializer())
+            .toString()
 
-    fun emptyResult(): JsonElement = ResultJson().toJson(ResultJson.serializer())
+    fun emptyResult(): String = ResultJson().toJson(ResultJson.serializer()).toString()
 }
 
 private fun Inntektsmelding.hardcodedJson(): String =

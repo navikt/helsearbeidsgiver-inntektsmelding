@@ -26,6 +26,7 @@ import no.nav.helsearbeidsgiver.inntektsmelding.api.auth.lesFnrFraAuthToken
 import no.nav.helsearbeidsgiver.inntektsmelding.api.logger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.JsonErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.response.RedisTimeoutResponse
+import no.nav.helsearbeidsgiver.inntektsmelding.api.response.ValideringErrorResponse
 import no.nav.helsearbeidsgiver.inntektsmelding.api.sikkerLogger
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respond
 import no.nav.helsearbeidsgiver.inntektsmelding.api.utils.respondBadRequest
@@ -76,18 +77,31 @@ fun Route.innsendingRoute(
                                 }
                             }.let { json ->
                                 runCatching {
-                                    json.fromJson(SkjemaInntektsmelding.serializer()).convert(
-                                        sykmeldingsperioder = emptyList(),
-                                        aarsakInnsending = AarsakInnsending.Ny,
-                                    )
+                                    json
+                                        .fromJson(SkjemaInntektsmelding.serializer())
+                                        .also {
+                                            val valideringsfeil = it.valider()
+                                            if (valideringsfeil.isNotEmpty()) {
+                                                val response = ValideringErrorResponse(valideringsfeil)
+
+                                                respondBadRequest(response, ValideringErrorResponse.serializer())
+                                                return@measureTimeMillis
+                                            }
+                                        }.convert(
+                                            sykmeldingsperioder = emptyList(),
+                                            aarsakInnsending = AarsakInnsending.Ny,
+                                        )
                                 }.getOrElse {
-                                    json.fromJson(Innsending.serializer())
+                                    json
+                                        .fromJson(Innsending.serializer())
+                                        .also {
+                                            it.validate()
+                                        }
                                 }
                             }
 
                     tilgangskontroll.validerTilgangTilForespoersel(call.request, forespoerselId)
 
-                    request.validate()
                     val innloggerFnr = call.request.lesFnrFraAuthToken()
                     producer.publish(transaksjonId, forespoerselId, request, innloggerFnr)
 

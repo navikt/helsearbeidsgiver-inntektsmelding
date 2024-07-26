@@ -70,8 +70,6 @@ class InnsendingServiceIT : EndToEndTest() {
             Key.UUID to transaksjonId.toJson(),
             Key.DATA to "".toJson(),
             Key.FORESPOERSEL_ID to Mock.forespoerselId.toJson(),
-            Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
-            Key.IDENTITETSNUMMER to Mock.fnr.toJson(),
             Key.ARBEIDSGIVER_ID to Mock.fnrAg.toJson(),
             Key.SKJEMA_INNTEKTSMELDING to gyldigInnsendingRequest.toJson(Innsending.serializer()),
         )
@@ -216,7 +214,6 @@ class InnsendingServiceIT : EndToEndTest() {
         const val OPPGAVE_ID = "kunstig-demon"
 
         val orgnr = Orgnr.genererGyldig()
-        val fnr = Fnr.genererGyldig()
         val fnrAg = Fnr.genererGyldig()
         val forespoerselId: UUID = UUID.randomUUID()
         val vedtaksperiodeId: UUID = UUID.randomUUID()

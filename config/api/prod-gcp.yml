@@ -1,6 +1,7 @@
 kafkaPool: nav-prod
 idportenEnabled: true
 sidecarEnabled: true
+tokenxEnabled: true
 azure:
   enabled: true
 ingress: https://helsearbeidsgiver-im-api.intern.nav.no

@@ -111,7 +111,7 @@ fun Application.apiModule(
             call.respondText("helsearbeidsgiver inntektsmelding")
         }
 
-        authenticate("idporten-validation", "tokenx-validation") {
+        authenticate(Auth.IDPORTEN_VALIDATION, Auth.TOKENX_VALIDATION) {
             route(Routes.PREFIX) {
                 hentForespoerselRoute(rapid, tilgangskontroll, redisConnection)
                 inntektRoute(rapid, tilgangskontroll, redisConnection)

@@ -22,8 +22,6 @@ class RedisStore(
     fun get(key: RedisKey): JsonElement? {
         val value =
             redis.get(key.toStoreKey())
-                // TODO slett etter overgangsperiode
-                ?: oldGet(key)
 
         val valueJson = value?.parseJson()
 
@@ -35,8 +33,6 @@ class RedisStore(
         val storeKeys = keys.map { it.toStoreKey() }.toTypedArray()
         return redis
             .getAll(*storeKeys)
-            // TODO slett etter overgangsperiode
-            .plus(oldGetAll(keys))
             .mapValuesNotNull { value ->
                 value
                     .runCatching(String::parseJson)
@@ -61,20 +57,6 @@ class RedisStore(
         sikkerLogger.debug("Setting in redis: ${key.toStoreKey()} -> ${value.toPretty()}")
 
         redis.set(key.toStoreKey(), value.toString())
-
-        // TODO slett etter overgangsperiode
-        oldSet(key, value)
-    }
-
-    private fun oldGet(key: RedisKey): String? = redis.get(key.toString())
-
-    private fun oldGetAll(keys: Set<RedisKey>): Map<String, String> = redis.getAll(*keys.map { it.toString() }.toTypedArray())
-
-    private fun oldSet(
-        key: RedisKey,
-        value: JsonElement,
-    ) {
-        redis.set(key.toString(), value.toString())
     }
 
     private fun RedisKey.toStoreKey(): String = listOf(keyPrefix.name).plus(keyParts()).joinToString(separator = keyPartSeparator)

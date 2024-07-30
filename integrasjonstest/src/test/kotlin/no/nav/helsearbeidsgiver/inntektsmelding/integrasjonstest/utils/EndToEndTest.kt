@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.Pri
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
 import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
@@ -285,7 +286,10 @@ abstract class EndToEndTest : ContainerTest() {
         }
     }
 
-    fun RedisConnection.get(transaksjonId: UUID): String? = get(transaksjonId.toString())
+    fun RedisConnection.get(
+        prefix: RedisPrefix,
+        transaksjonId: UUID,
+    ): String? = get("$prefix#$transaksjonId")
 
     fun truncateDatabase() {
         transaction(inntektsmeldingDatabase.db) {

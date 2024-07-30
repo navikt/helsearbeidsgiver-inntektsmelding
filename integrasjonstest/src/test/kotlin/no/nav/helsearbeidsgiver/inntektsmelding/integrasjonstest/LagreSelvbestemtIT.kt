@@ -31,6 +31,7 @@ import no.nav.helsearbeidsgiver.felles.Person
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.test.mock.mockInntektsmeldingV1
 import no.nav.helsearbeidsgiver.felles.test.mock.mockSkjemaInntektsmeldingSelvbestemt
 import no.nav.helsearbeidsgiver.felles.test.mock.randomDigitString
@@ -104,12 +105,14 @@ class LagreSelvbestemtIT : EndToEndTest() {
 
         // Data hentet
         serviceMessages
-            .filter(Key.PERSONER)
-            .firstAsMap()[Key.PERSONER]
-            .shouldNotBeNull()
-            .fromJson(personMapSerializer)
-            .map { it.key.verdi to it.value.navn }
-            .shouldBe(Mock.personer.map { it.ident to it.navn.fulltNavn() })
+            .filter(Key.PERSONER, nestedData = true)
+            .firstAsMap()
+            .also { melding ->
+                val data = melding[Key.DATA].shouldNotBeNull().toMap()
+                val personer = Key.PERSONER.les(personMapSerializer, data).map { it.key.verdi to it.value.navn }
+
+                personer shouldBe Mock.personer.map { it.ident to it.navn.fulltNavn() }
+            }
 
         // Data hentet
         serviceMessages

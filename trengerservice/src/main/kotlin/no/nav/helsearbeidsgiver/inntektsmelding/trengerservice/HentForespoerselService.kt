@@ -143,12 +143,15 @@ class HentForespoerselService(
                 Key.EVENT_NAME to eventName.toJson(),
                 Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
-                Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
-                Key.FNR_LISTE to
-                    listOf(
-                        steg1.forespoersel.fnr.let(::Fnr),
-                        steg0.avsenderFnr,
-                    ).toJson(Fnr.serializer()),
+                Key.DATA to
+                    mapOf(
+                        Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
+                        Key.FNR_LISTE to
+                            listOf(
+                                steg1.forespoersel.fnr.let(::Fnr),
+                                steg0.avsenderFnr,
+                            ).toJson(Fnr.serializer()),
+                    ).toJson(),
             ).also { loggBehovPublisert(BehovType.HENT_PERSONER, it) }
 
         rapid

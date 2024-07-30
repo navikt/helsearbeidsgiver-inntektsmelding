@@ -48,7 +48,7 @@ class VirksomhetLoeserTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.ORGNRUNDERENHET to orgnr.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
         )
@@ -64,7 +64,7 @@ class VirksomhetLoeserTest {
 
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.ORGNRUNDERENHET to orgnr.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
         )
@@ -81,7 +81,7 @@ class VirksomhetLoeserTest {
     fun `skal håndtere ukjente feil`() {
         testRapid.sendJson(
             Key.EVENT_NAME to EventName.TRENGER_REQUESTED.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.ORGNRUNDERENHET to orgnr.toJson(),
             Key.UUID to UUID.randomUUID().toJson(),
         )

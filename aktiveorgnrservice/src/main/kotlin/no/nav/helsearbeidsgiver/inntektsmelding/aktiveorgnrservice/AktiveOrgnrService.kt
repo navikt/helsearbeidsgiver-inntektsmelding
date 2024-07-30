@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed2Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -52,7 +53,8 @@ data class Steg2(
 class AktiveOrgnrService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore,
-) : ServiceMed2Steg<Steg0, Steg1, Steg2>() {
+) : ServiceMed2Steg<Steg0, Steg1, Steg2>(),
+    Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -115,7 +117,7 @@ class AktiveOrgnrService(
 
         rapid.publish(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
+            Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.IDENTITETSNUMMER to steg0.sykmeldtFnr.toJson(),
         )
@@ -149,9 +151,9 @@ class AktiveOrgnrService(
             } else {
                 rapid.publish(
                     Key.EVENT_NAME to eventName.toJson(),
-                    Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+                    Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                     Key.UUID to steg0.transaksjonId.toJson(),
-                    Key.ORGNRUNDERENHETER to arbeidsgivere.toJson(String.serializer()),
+                    Key.ORGNR_UNDERENHETER to arbeidsgivere.toJson(String.serializer()),
                 )
             }
         }

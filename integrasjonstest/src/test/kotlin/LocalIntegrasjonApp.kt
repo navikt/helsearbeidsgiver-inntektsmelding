@@ -104,7 +104,7 @@ class DummyLoeser(
                             erBesvart = false,
                         ).toJson(Forespoersel.serializer()),
                 )
-            BehovType.VIRKSOMHET ->
+            BehovType.HENT_VIRKSOMHET_NAVN ->
                 mapOf(
                     Key.VIRKSOMHET to "Din Bedrift A/S".toJson(),
                 )
@@ -127,11 +127,11 @@ class DummyLoeser(
                             PersonDato.serializer(),
                         ),
                 )
-            BehovType.INNTEKT ->
+            BehovType.HENT_INNTEKT ->
                 mapOf(
                     Key.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer()),
                 )
-            BehovType.ARBEIDSFORHOLD ->
+            BehovType.HENT_ARBEIDSFORHOLD ->
                 mapOf(
                     Key.ARBEIDSFORHOLD to
                         listOf(

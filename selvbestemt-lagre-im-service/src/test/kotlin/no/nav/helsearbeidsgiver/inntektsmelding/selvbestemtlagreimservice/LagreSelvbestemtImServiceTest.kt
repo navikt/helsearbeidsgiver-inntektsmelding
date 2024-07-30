@@ -42,7 +42,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
@@ -66,7 +66,7 @@ class LagreSelvbestemtImServiceTest :
         val testRapid = TestRapid()
         val mockRedis = MockRedis(RedisPrefix.LagreSelvbestemtIm)
 
-        ServiceRiver(
+        ServiceRiverStateful(
             LagreSelvbestemtImService(testRapid, mockRedis.store),
         ).connect(testRapid)
 
@@ -94,9 +94,9 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
+            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
             testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
-            testRapid.message(2).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
+            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns nyInntektsmelding.mottatt
@@ -161,9 +161,9 @@ class LagreSelvbestemtImServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 3
-            testRapid.message(0).lesBehov() shouldBe BehovType.VIRKSOMHET
+            testRapid.message(0).lesBehov() shouldBe BehovType.HENT_VIRKSOMHET_NAVN
             testRapid.message(1).lesBehov() shouldBe BehovType.HENT_PERSONER
-            testRapid.message(2).lesBehov() shouldBe BehovType.ARBEIDSFORHOLD
+            testRapid.message(2).lesBehov() shouldBe BehovType.HENT_ARBEIDSFORHOLD
 
             mockStatic(OffsetDateTime::class) {
                 every { OffsetDateTime.now() } returns endretInntektsmelding.mottatt
@@ -282,7 +282,7 @@ class LagreSelvbestemtImServiceTest :
                     utloesendeMelding =
                         JsonObject(
                             mapOf(
-                                Key.BEHOV.toString() to BehovType.VIRKSOMHET.toJson(),
+                                Key.BEHOV.toString() to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
                             ),
                         ),
                 ).tilMelding(),

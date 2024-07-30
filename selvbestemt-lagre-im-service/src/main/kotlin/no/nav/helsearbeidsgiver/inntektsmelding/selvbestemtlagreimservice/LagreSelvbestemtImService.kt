@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publishNotNull
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.aktivtArbeidsforholdIPeriode
@@ -69,7 +70,8 @@ data class Steg3(
 class LagreSelvbestemtImService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore,
-) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>() {
+) : ServiceMed3Steg<Steg0, Steg1, Steg2, Steg3>(),
+    Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -139,7 +141,7 @@ class LagreSelvbestemtImService(
 
         rapid.publishNotNull(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.VIRKSOMHET.toJson(),
+            Key.BEHOV to BehovType.HENT_VIRKSOMHET_NAVN.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
             Key.ORGNRUNDERENHET to
@@ -165,7 +167,7 @@ class LagreSelvbestemtImService(
 
         rapid.publishNotNull(
             Key.EVENT_NAME to eventName.toJson(),
-            Key.BEHOV to BehovType.ARBEIDSFORHOLD.toJson(),
+            Key.BEHOV to BehovType.HENT_ARBEIDSFORHOLD.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
             Key.IDENTITETSNUMMER to
                 steg0.skjema.sykmeldtFnr.verdi
@@ -294,7 +296,7 @@ class LagreSelvbestemtImService(
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             val datafeil =
                 when (utloesendeBehov) {
-                    BehovType.VIRKSOMHET -> Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
+                    BehovType.HENT_VIRKSOMHET_NAVN -> Key.VIRKSOMHET to "Ukjent virksomhet".toJson()
 
                     // Lesing av personer bruker allerede defaults, så trenger bare map-struktur her
                     BehovType.HENT_PERSONER -> Key.PERSONER to emptyMap<Fnr, Person>().toJson(personMapSerializer)

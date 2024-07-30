@@ -1,0 +1,104 @@
+package no.nav.helsearbeidsgiver.inntektsmelding.aareg
+
+import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.aareg.AaregClient
+import no.nav.helsearbeidsgiver.felles.Arbeidsforhold
+import no.nav.helsearbeidsgiver.felles.BehovType
+import no.nav.helsearbeidsgiver.felles.EventName
+import no.nav.helsearbeidsgiver.felles.Key
+import no.nav.helsearbeidsgiver.felles.json.krev
+import no.nav.helsearbeidsgiver.felles.json.les
+import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
+import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
+import no.nav.helsearbeidsgiver.felles.metrics.Metrics
+import no.nav.helsearbeidsgiver.felles.metrics.recordTime
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
+import no.nav.helsearbeidsgiver.felles.utils.Log
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import java.util.UUID
+
+data class HentArbeidsforholdMelding(
+    val eventName: EventName,
+    val behovType: BehovType,
+    val transaksjonId: UUID,
+    val data: Map<Key, JsonElement>,
+    val fnr: Fnr,
+)
+
+class HentArbeidsforholdRiver(
+    private val aaregClient: AaregClient,
+) : ObjectRiver<HentArbeidsforholdMelding>() {
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
+
+    override fun les(json: Map<Key, JsonElement>): HentArbeidsforholdMelding? =
+        if (Key.FAIL in json) {
+            null
+        } else {
+            val data = json[Key.DATA]?.toMap().orEmpty()
+
+            HentArbeidsforholdMelding(
+                eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
+                behovType = Key.BEHOV.krev(BehovType.HENT_ARBEIDSFORHOLD, BehovType.serializer(), json),
+                transaksjonId = Key.UUID.les(UuidSerializer, json),
+                data = data,
+                fnr = Key.FNR.les(Fnr.serializer(), data),
+            )
+        }
+
+    override fun HentArbeidsforholdMelding.haandter(json: Map<Key, JsonElement>): Map<Key, JsonElement> {
+        val arbeidsforhold =
+            Metrics.aaregRequest
+                .recordTime(aaregClient::hentArbeidsforhold) {
+                    aaregClient.hentArbeidsforhold(fnr.verdi, transaksjonId.toString())
+                }.map { it.tilArbeidsforhold() }
+
+        "Fant ${arbeidsforhold.size} arbeidsforhold.".also {
+            logger.info(it)
+            sikkerLogger.info(it)
+        }
+
+        return mapOf(
+            Key.EVENT_NAME to eventName.toJson(),
+            Key.UUID to transaksjonId.toJson(),
+            Key.DATA to
+                data
+                    .plus(
+                        Key.ARBEIDSFORHOLD to arbeidsforhold.toJson(Arbeidsforhold.serializer()),
+                    ).toJson(),
+        )
+    }
+
+    override fun HentArbeidsforholdMelding.haandterFeil(
+        json: Map<Key, JsonElement>,
+        error: Throwable,
+    ): Map<Key, JsonElement> {
+        val fail =
+            Fail(
+                feilmelding = "Klarte ikke hente arbeidsforhold fra Aareg.",
+                event = eventName,
+                transaksjonId = transaksjonId,
+                forespoerselId = json[Key.FORESPOERSEL_ID]?.fromJson(UuidSerializer),
+                utloesendeMelding = json.toJson(),
+            )
+
+        logger.error(fail.feilmelding)
+        sikkerLogger.error(fail.feilmelding, error)
+
+        return fail.tilMelding()
+    }
+
+    override fun HentArbeidsforholdMelding.loggfelt(): Map<String, String> =
+        mapOf(
+            Log.klasse(this@HentArbeidsforholdRiver),
+            Log.event(eventName),
+            Log.behov(behovType),
+            Log.transaksjonId(transaksjonId),
+        )
+}

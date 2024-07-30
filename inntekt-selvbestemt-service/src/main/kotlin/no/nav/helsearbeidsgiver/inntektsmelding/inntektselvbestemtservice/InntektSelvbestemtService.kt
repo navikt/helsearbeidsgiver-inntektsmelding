@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
@@ -42,7 +43,8 @@ data class Steg1(
 class InntektSelvbestemtService(
     private val rapid: RapidsConnection,
     override val redisStore: RedisStore,
-) : ServiceMed1Steg<Steg0, Steg1>() {
+) : ServiceMed1Steg<Steg0, Steg1>(),
+    Service.MedRedis {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()
 
@@ -75,7 +77,7 @@ class InntektSelvbestemtService(
         val publisert =
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.INNTEKT.toJson(),
+                Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.FNR to steg0.fnr.toJson(),
                 Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
@@ -83,9 +85,9 @@ class InntektSelvbestemtService(
             )
 
         MdcUtils.withLogFields(
-            Log.behov(BehovType.INNTEKT),
+            Log.behov(BehovType.HENT_INNTEKT),
         ) {
-            "Publiserte melding med behov ${BehovType.INNTEKT}.".let {
+            "Publiserte melding med behov ${BehovType.HENT_INNTEKT}.".let {
                 logger.info(it)
                 sikkerLogger.info("$it\n${publisert.toPretty()}")
             }

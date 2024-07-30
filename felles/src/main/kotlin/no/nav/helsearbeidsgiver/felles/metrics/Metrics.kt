@@ -9,6 +9,8 @@ object Metrics {
 
     val dbSelvbestemtSak = databaseMetric("notifikasjon", "selvbestemt_sak")
 
+    val aaregRequest = requestMetric("Aareg")
+
     val agNotifikasjonRequest = requestMetric("AG-notifikasjon")
 
     val altinnRequest = requestMetric("Altinn")

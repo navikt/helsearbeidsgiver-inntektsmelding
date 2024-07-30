@@ -39,12 +39,12 @@ class InntektSelvbestemtIT : EndToEndTest() {
         )
 
         messages
-            .filter(BehovType.INNTEKT)
+            .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .shouldContainExactly(
                 mapOf(
                     Key.EVENT_NAME to EventName.INNTEKT_SELVBESTEMT_REQUESTED.toJson(),
-                    Key.BEHOV to BehovType.INNTEKT.toJson(),
+                    Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                     Key.UUID to Mock.transaksjonId.toJson(),
                     Key.ORGNRUNDERENHET to Mock.orgnr.toJson(),
                     Key.FNR to Mock.fnr.toJson(),

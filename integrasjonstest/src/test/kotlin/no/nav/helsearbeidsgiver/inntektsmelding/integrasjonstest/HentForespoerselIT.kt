@@ -72,7 +72,7 @@ class HentForespoerselIT : EndToEndTest() {
 
         messages
             .filter(EventName.TRENGER_REQUESTED)
-            .filter(BehovType.INNTEKT)
+            .filter(BehovType.HENT_INNTEKT)
             .firstAsMap()
             .let {
                 // Ble lagret i databasen

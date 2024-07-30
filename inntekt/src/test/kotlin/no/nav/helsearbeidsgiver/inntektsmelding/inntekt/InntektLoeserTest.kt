@@ -54,7 +54,7 @@ class InntektLoeserTest :
                 inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
             } returns
                 mapOf(
-                    Mock.orgnr.verdi to
+                    MockInntekt.orgnr.verdi to
                         mapOf(
                             januar(2018) to 10.0,
                             februar(2018) to 11.0,
@@ -136,7 +136,7 @@ class InntektLoeserTest :
                 inntektKlient.hentInntektPerOrgnrOgMaaned(any(), any(), any(), any(), any())
             } returns
                 mapOf(
-                    Mock.orgnr.verdi to
+                    MockInntekt.orgnr.verdi to
                         mapOf(
                             januar(2018) to 10.0,
                             mars(2018) to 12.0,
@@ -200,9 +200,9 @@ class InntektLoeserTest :
 
             coVerifySequence {
                 inntektKlient.hentInntektPerOrgnrOgMaaned(
-                    fnr = Mock.fnr.verdi,
-                    fom = Mock.skjaeringstidspunkt.toYearMonth().minusMonths(3),
-                    tom = Mock.skjaeringstidspunkt.toYearMonth().minusMonths(1),
+                    fnr = MockInntekt.fnr.verdi,
+                    fom = MockInntekt.skjaeringstidspunkt.toYearMonth().minusMonths(3),
+                    tom = MockInntekt.skjaeringstidspunkt.toYearMonth().minusMonths(1),
                     navConsumerId = any(),
                     callId = any(),
                 )
@@ -260,7 +260,7 @@ class InntektLoeserTest :
         }
     })
 
-private object Mock {
+private object MockInntekt {
     val uuid: UUID = UUID.randomUUID()
     val orgnr = Orgnr.genererGyldig()
     val fnr = Fnr.genererGyldig()
@@ -270,9 +270,9 @@ private object Mock {
 private fun mockInnkommendeMelding(): Map<Key, JsonElement> =
     mapOf(
         Key.EVENT_NAME to EventName.INNTEKT_REQUESTED.toJson(),
-        Key.BEHOV to BehovType.INNTEKT.toJson(),
-        Key.UUID to Mock.uuid.toJson(),
-        Key.ORGNRUNDERENHET to Mock.orgnr.verdi.toJson(),
-        Key.FNR to Mock.fnr.verdi.toJson(),
-        Key.SKJAERINGSTIDSPUNKT to Mock.skjaeringstidspunkt.toJson(),
+        Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
+        Key.UUID to MockInntekt.uuid.toJson(),
+        Key.ORGNRUNDERENHET to MockInntekt.orgnr.verdi.toJson(),
+        Key.FNR to MockInntekt.fnr.verdi.toJson(),
+        Key.SKJAERINGSTIDSPUNKT to MockInntekt.skjaeringstidspunkt.toJson(),
     )

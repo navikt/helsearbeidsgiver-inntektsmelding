@@ -51,6 +51,7 @@ enum class Key(
     FNR_LISTE("fnr_liste"),
     PERSONER("personer"),
     SKJAERINGSTIDSPUNKT("skjaeringstidspunkt"),
+    INNTEKTSDATO("inntektsdato"),
     TILGANG("tilgang"),
     SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
     EKSTERN_INNTEKTSMELDING("eksternInntektsmelding"),

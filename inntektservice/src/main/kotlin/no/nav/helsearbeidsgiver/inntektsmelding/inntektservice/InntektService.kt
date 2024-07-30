@@ -100,7 +100,7 @@ class InntektService(
         rapid
             .publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.INNTEKT.toJson(),
+                Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.FORESPOERSEL_ID to steg0.forespoerselId.toJson(),
                 Key.ORGNRUNDERENHET to steg1.forespoersel.orgnr.toJson(),
@@ -108,7 +108,7 @@ class InntektService(
                 Key.SKJAERINGSTIDSPUNKT to steg0.skjaeringstidspunkt.toJson(),
             ).also {
                 MdcUtils.withLogFields(
-                    Log.behov(BehovType.INNTEKT),
+                    Log.behov(BehovType.HENT_INNTEKT),
                 ) {
                     sikkerLogger.info("Publiserte melding:\n${it.toPretty()}.")
                 }

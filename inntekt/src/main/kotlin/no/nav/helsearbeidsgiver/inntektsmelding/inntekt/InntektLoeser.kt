@@ -49,7 +49,7 @@ class InntektLoeser(
         River.PacketValidation {
             it.demandKey(Key.EVENT_NAME.str)
             it.demandValues(
-                Key.BEHOV to BehovType.INNTEKT.name,
+                Key.BEHOV to BehovType.HENT_INNTEKT.name,
             )
             it.interestedIn(
                 Key.UUID,
@@ -61,13 +61,13 @@ class InntektLoeser(
         }
 
     override fun onBehov(behov: Behov) {
-        logger.info("Mottok melding med behov '${BehovType.INNTEKT}'.")
+        logger.info("Mottok melding med behov '${BehovType.HENT_INNTEKT}'.")
         sikkerLogger.info("Mottok melding:\n${behov.jsonMessage.toPretty()}")
 
         MdcUtils.withLogFields(
             Log.klasse(this),
             Log.event(behov.event),
-            Log.behov(BehovType.INNTEKT),
+            Log.behov(BehovType.HENT_INNTEKT),
         ) {
             runCatching {
                 hentInntekt(behov)

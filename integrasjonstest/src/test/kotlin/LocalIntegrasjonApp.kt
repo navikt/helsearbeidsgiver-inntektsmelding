@@ -127,7 +127,7 @@ class DummyLoeser(
                             PersonDato.serializer(),
                         ),
                 )
-            BehovType.INNTEKT ->
+            BehovType.HENT_INNTEKT ->
                 mapOf(
                     Key.INNTEKT to Inntekt(emptyList()).toJson(Inntekt.serializer()),
                 )

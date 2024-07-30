@@ -75,7 +75,7 @@ class InntektSelvbestemtService(
         val publisert =
             rapid.publish(
                 Key.EVENT_NAME to eventName.toJson(),
-                Key.BEHOV to BehovType.INNTEKT.toJson(),
+                Key.BEHOV to BehovType.HENT_INNTEKT.toJson(),
                 Key.UUID to steg0.transaksjonId.toJson(),
                 Key.FNR to steg0.fnr.toJson(),
                 Key.ORGNRUNDERENHET to steg0.orgnr.toJson(),
@@ -83,9 +83,9 @@ class InntektSelvbestemtService(
             )
 
         MdcUtils.withLogFields(
-            Log.behov(BehovType.INNTEKT),
+            Log.behov(BehovType.HENT_INNTEKT),
         ) {
-            "Publiserte melding med behov ${BehovType.INNTEKT}.".let {
+            "Publiserte melding med behov ${BehovType.HENT_INNTEKT}.".let {
                 logger.info(it)
                 sikkerLogger.info("$it\n${publisert.toPretty()}")
             }

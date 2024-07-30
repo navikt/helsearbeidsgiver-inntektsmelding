@@ -55,7 +55,7 @@ class InntektSelvbestemtServiceTest :
             )
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             testRapid.sendJson(
                 mockDataMelding(transaksjonId),
@@ -90,14 +90,14 @@ class InntektSelvbestemtServiceTest :
                     utloesendeMelding =
                         JsonObject(
                             mapOf(
-                                Key.BEHOV.toString() to BehovType.INNTEKT.toJson(),
+                                Key.BEHOV.toString() to BehovType.HENT_INNTEKT.toJson(),
                             ),
                         ),
                 ).tilMelding(),
             )
 
             testRapid.inspektør.size shouldBeExactly 1
-            testRapid.firstMessage().lesBehov() shouldBe BehovType.INNTEKT
+            testRapid.firstMessage().lesBehov() shouldBe BehovType.HENT_INNTEKT
 
             verify {
                 mockRedis.store.set(

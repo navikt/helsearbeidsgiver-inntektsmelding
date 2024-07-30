@@ -26,7 +26,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisConnection
 import no.nav.helsearbeidsgiver.inntekt.InntektKlient
-import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAareg
+import no.nav.helsearbeidsgiver.inntektsmelding.aareg.createAaregRiver
 import no.nav.helsearbeidsgiver.inntektsmelding.aktiveorgnrservice.createAktiveOrgnrService
 import no.nav.helsearbeidsgiver.inntektsmelding.altinn.createAltinn
 import no.nav.helsearbeidsgiver.inntektsmelding.api.tilgang.TilgangProducer
@@ -206,7 +206,7 @@ abstract class EndToEndTest : ContainerTest() {
             createHentForespoerselService(redisConnection)
 
             // Rivers
-            createAareg(aaregClient)
+            createAaregRiver(aaregClient)
             createAltinn(altinnClient)
             createBrreg(brregClient, false)
             createDbRivers(imRepository, selvbestemtImRepo, forespoerselRepository)

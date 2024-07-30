@@ -83,7 +83,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.ARBEIDSFORHOLD)
+            .filter(BehovType.HENT_ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
             ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 
@@ -148,7 +148,7 @@ class AktiveOrgnrServiceIT : EndToEndTest() {
             }
 
         aktiveOrgnrMeldinger
-            .filter(BehovType.ARBEIDSFORHOLD)
+            .filter(BehovType.HENT_ARBEIDSFORHOLD)
             .firstAsMap()[Key.IDENTITETSNUMMER]
             ?.fromJson(Fnr.serializer()) shouldBe Mock.fnr
 

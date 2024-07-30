@@ -12,7 +12,6 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
@@ -102,15 +101,8 @@ class OpprettOppgaveService(
         ) {
             val utloesendeBehov = Key.BEHOV.lesOrNull(BehovType.serializer(), fail.utloesendeMelding.toMap())
             if (utloesendeBehov == BehovType.VIRKSOMHET) {
-                val defaultVirksomhetNavnJson = "Arbeidsgiver".toJson()
-
-                redisStore.set(RedisKey.of(fail.transaksjonId, Key.VIRKSOMHET), defaultVirksomhetNavnJson)
-
-                val meldingMedDefault = mapOf(Key.VIRKSOMHET to defaultVirksomhetNavnJson).plus(melding)
-
-                return onData(meldingMedDefault)
-            } else {
-                redisStore.set(RedisKey.of(fail.transaksjonId), fail.feilmelding.toJson())
+                val meldingMedDefault = mapOf(Key.VIRKSOMHET to "Arbeidsgiver".toJson()).plus(melding)
+                onData(meldingMedDefault)
             }
         }
     }

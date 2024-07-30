@@ -167,8 +167,6 @@ class OpprettSakService(
                 val meldingMedDefault = mapOf(Key.ARBEIDSTAKER_INFORMASJON to ukjentPersonJson).plus(melding)
 
                 onData(meldingMedDefault)
-            } else {
-                redisStore.set(RedisKey.of(fail.transaksjonId), fail.feilmelding.toJson())
             }
         }
     }

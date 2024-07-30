@@ -22,8 +22,8 @@ fun Application.customAuthentication() {
         TokenSupportConfig(
             IssuerConfig(
                 name = Auth.IDPORTEN_ISSUER,
-                discoveryUrl = Env.Auth.discoveryUrl,
-                acceptedAudience = Env.Auth.acceptedAudience,
+                discoveryUrl = Env.Auth.IDporten.discoveryUrl,
+                acceptedAudience = Env.Auth.IDporten.acceptedAudience,
             ),
         )
 

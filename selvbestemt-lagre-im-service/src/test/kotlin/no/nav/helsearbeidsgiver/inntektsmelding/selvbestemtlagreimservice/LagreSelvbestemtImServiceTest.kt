@@ -42,7 +42,7 @@ import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.json.lesBehov
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.felles.test.rapidsrivers.message
@@ -66,7 +66,7 @@ class LagreSelvbestemtImServiceTest :
         val testRapid = TestRapid()
         val mockRedis = MockRedis(RedisPrefix.LagreSelvbestemtIm)
 
-        ServiceRiver(
+        ServiceRiverStateful(
             LagreSelvbestemtImService(testRapid, mockRedis.store),
         ).connect(testRapid)
 

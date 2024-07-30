@@ -10,7 +10,6 @@ import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.publish
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisStore
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed1Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -35,7 +34,6 @@ data class Steg1(
 
 class SpinnService(
     private val rapid: RapidsConnection,
-    override val redisStore: RedisStore,
 ) : ServiceMed1Steg<Steg0, Steg1>() {
     override val logger = logger()
     override val sikkerLogger = sikkerLogger()

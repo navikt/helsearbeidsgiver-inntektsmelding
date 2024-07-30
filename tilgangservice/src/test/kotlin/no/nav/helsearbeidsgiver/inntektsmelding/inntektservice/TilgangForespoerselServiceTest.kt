@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.felles.json.toJson
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.model.Fail
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisKey
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.redis.RedisPrefix
-import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiver
+import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceRiverStateful
 import no.nav.helsearbeidsgiver.felles.test.mock.MockRedis
 import no.nav.helsearbeidsgiver.inntektsmelding.tilgangservice.TilgangForespoerselService
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -29,7 +29,7 @@ class TilgangForespoerselServiceTest {
     private val service = TilgangForespoerselService(testRapid, mockRedis.store)
 
     init {
-        ServiceRiver(service).connect(testRapid)
+        ServiceRiverStateful(service).connect(testRapid)
     }
 
     @BeforeEach

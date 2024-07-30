@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.felles.json.krev
 import no.nav.helsearbeidsgiver.felles.json.les
 import no.nav.helsearbeidsgiver.felles.json.personMapSerializer
 import no.nav.helsearbeidsgiver.felles.json.toJson
+import no.nav.helsearbeidsgiver.felles.json.toMap
 import no.nav.helsearbeidsgiver.felles.loeser.ObjectRiver
 import no.nav.helsearbeidsgiver.felles.metrics.Metrics
 import no.nav.helsearbeidsgiver.felles.metrics.recordTime
@@ -29,6 +30,7 @@ data class Melding(
     val eventName: EventName,
     val behovType: BehovType,
     val transaksjonId: UUID,
+    val data: Map<Key, JsonElement>,
     val fnrListe: List<Fnr>,
 )
 
@@ -39,14 +41,17 @@ class HentPersonerRiver(
     private val sikkerLogger = sikkerLogger()
 
     override fun les(json: Map<Key, JsonElement>): Melding? =
-        if (setOf(Key.DATA, Key.FAIL).any(json::containsKey)) {
+        if (Key.FAIL in json) {
             null
         } else {
+            val data = json[Key.DATA]?.toMap().orEmpty()
+
             Melding(
                 eventName = Key.EVENT_NAME.les(EventName.serializer(), json),
                 behovType = Key.BEHOV.krev(BehovType.HENT_PERSONER, BehovType.serializer(), json),
                 transaksjonId = Key.UUID.les(UuidSerializer, json),
-                fnrListe = Key.FNR_LISTE.les(Fnr.serializer().list(), json),
+                data = data,
+                fnrListe = Key.FNR_LISTE.les(Fnr.serializer().list(), data),
             )
         }
 
@@ -58,23 +63,21 @@ class HentPersonerRiver(
 
         val personer = hentPersoner(fnrListe).associateBy { it.fnr }
 
-        "Ba om ${fnrListe.size} personer fra PDL og mottok ${personer.size}.".also {
-            logger.info(it)
-            sikkerLogger.info(it)
+        if (fnrListe.size != personer.size) {
+            "Ba om ${fnrListe.size} personer fra PDL og mottok ${personer.size}.".also {
+                logger.warn(it)
+                sikkerLogger.warn(it)
+            }
         }
-
-        val dataMap =
-            mapOf(
-                Key.FORESPOERSEL_ID to json[Key.FORESPOERSEL_ID],
-                Key.SELVBESTEMT_ID to json[Key.SELVBESTEMT_ID],
-                Key.PERSONER to personer.toJson(personMapSerializer),
-            ).mapValuesNotNull { it }
 
         return mapOf(
             Key.EVENT_NAME to eventName.toJson(),
             Key.UUID to transaksjonId.toJson(),
-            Key.DATA to dataMap.toJson(),
-            *dataMap.toList().toTypedArray(),
+            Key.DATA to
+                data
+                    .plus(
+                        Key.PERSONER to personer.toJson(personMapSerializer),
+                    ).toJson(),
         )
     }
 

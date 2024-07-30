@@ -28,6 +28,7 @@ import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.Service
 import no.nav.helsearbeidsgiver.felles.rapidsrivers.service.ServiceMed3Steg
 import no.nav.helsearbeidsgiver.felles.utils.Log
 import no.nav.helsearbeidsgiver.felles.utils.aktivtArbeidsforholdIPeriode
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -152,12 +153,16 @@ class LagreSelvbestemtImService(
             Key.EVENT_NAME to eventName.toJson(),
             Key.BEHOV to BehovType.HENT_PERSONER.toJson(),
             Key.UUID to steg0.transaksjonId.toJson(),
-            Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
-            Key.FNR_LISTE to
-                listOf(
-                    steg0.skjema.sykmeldtFnr,
-                    steg0.avsenderFnr,
-                ).toJson(Fnr.serializer()),
+            Key.DATA to
+                mapOf(
+                    Key.SELVBESTEMT_ID to steg0.skjema.selvbestemtId?.toJson(),
+                    Key.FNR_LISTE to
+                        listOf(
+                            steg0.skjema.sykmeldtFnr,
+                            steg0.avsenderFnr,
+                        ).toJson(Fnr.serializer()),
+                ).mapValuesNotNull { it }
+                    .toJson(),
         )
 
         rapid.publishNotNull(
